@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -129,19 +128,10 @@ public abstract class AbstractValueTransformationExpressionEvaluator
         return expressionEvaluatorBean;
     }
 
-    /**
-     * Transforms single value tuple.
-     *
-     * @param variables Variables to be applied. Must not be relativistic! All deltas must be sorted out by now.
-     * @param useNew Are we using "new" state of sources/input variables? Again, this is only supplementary information,
-     * because the variables should be already non-relativistic. Some scripts need to know the value of "useNew".
-     * @param context Caller-specified context of the whole expression evaluation.
-     */
+    /** Transforms single value or single values tuple. */
     @NotNull
     protected abstract List<V> transformSingleValue(
-            @NotNull VariablesMap variables,
-            boolean useNew,
-            @NotNull ExpressionEvaluationContext context,
+            @NotNull ValueTransformationContext valueTransformationContext,
             @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException;

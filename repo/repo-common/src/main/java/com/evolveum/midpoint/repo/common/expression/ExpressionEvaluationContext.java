@@ -22,7 +22,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.Task;
 
 /**
- * Simple almost-DTO used to contain all the parameters of expression evaluation.
+ * Simple almost-DTO used to contain all the parameters of the _whole_ expression evaluation.
  *
  * Designed to allow future compatible changes (addition of optional parameters).
  *
@@ -77,7 +77,7 @@ public class ExpressionEvaluationContext {
     /**
      * Free-form context description for diagnostic purposes.
      */
-    private final String contextDescription;
+    @NotNull private final String contextDescription;
 
     /**
      * Description of a local context (should be short).
@@ -130,7 +130,7 @@ public class ExpressionEvaluationContext {
             Collection<Source<?,?>> sources, VariablesMap variables, String contextDescription, @NotNull Task task) {
         this.sources = emptyIfNull(sources);
         this.variables = variables;
-        this.contextDescription = contextDescription;
+        this.contextDescription = emptyIfNull(contextDescription);
         this.task = task;
     }
 
@@ -219,7 +219,7 @@ public class ExpressionEvaluationContext {
         this.localContextDescription = localContextDescription;
     }
 
-    public String getContextDescription() {
+    public @NotNull String getContextDescription() {
         return contextDescription;
     }
 

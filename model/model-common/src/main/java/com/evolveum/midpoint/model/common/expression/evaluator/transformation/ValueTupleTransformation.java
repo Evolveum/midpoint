@@ -267,8 +267,11 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
     @NotNull
     private List<V> evaluateTransformation(VariablesMap staticVariables) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        List<V> transformationOutput = combinatorialEvaluation.evaluator.transformSingleValue(
-                staticVariables, outputSet != PlusMinusZero.MINUS, context, result);
+        var vtCtx = new ValueTransformationContext(
+                context, staticVariables,
+                outputSet != PlusMinusZero.MINUS,
+                "(to: " + outputSet + ") " + context.getContextDescription());
+        List<V> transformationOutput = combinatorialEvaluation.evaluator.transformSingleValue(vtCtx, result);
         computeAndApplyOutputValueMetadata(transformationOutput);
         return transformationOutput;
     }

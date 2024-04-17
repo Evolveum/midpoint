@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.common.expression.evaluator.transformation.ValueTransformationContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -22,9 +23,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
@@ -60,13 +59,11 @@ class ShadowOwnerReferenceSearchExpressionEvaluator
 
     @Override
     Evaluation createEvaluation(
-            @NotNull VariablesMap variables,
-            boolean useNew,
-            @NotNull ExpressionEvaluationContext context,
-            @NotNull OperationResult result) throws SchemaException {
+            @NotNull ValueTransformationContext vtCtx, @NotNull OperationResult result)
+            throws SchemaException {
 
         //noinspection DuplicatedCode
-        return new Evaluation(variables, useNew, context, result) {
+        return new Evaluation(vtCtx, result) {
 
             @Override
             protected QName getDefaultTargetType() {
@@ -78,7 +75,7 @@ class ShadowOwnerReferenceSearchExpressionEvaluator
                 configCheck(expressionEvaluatorBean.getFilter().isEmpty(),
                         "Filter is not supported in shadow owner reference search expression: %s",
                         lazy(() -> shortDebugDump()));
-                var input = variables.getValue(ExpressionConstants.VAR_INPUT, ShadowAssociationValue.class);
+                var input = vtCtx.getVariablesMap().getValue(ExpressionConstants.VAR_INPUT, ShadowAssociationValue.class);
                 if (input == null) {
                     return List.of();
                 }

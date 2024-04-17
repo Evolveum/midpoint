@@ -10,14 +10,13 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.common.expression.evaluator.transformation.ValueTransformationContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -49,11 +48,9 @@ public class ReferenceSearchExpressionEvaluator
 
     @Override
     Evaluation createEvaluation(
-            @NotNull VariablesMap variables,
-            boolean useNew,
-            @NotNull ExpressionEvaluationContext context,
-            @NotNull OperationResult result) throws SchemaException {
-        return new Evaluation(variables, useNew, context, result) {
+            @NotNull ValueTransformationContext vtCtx, @NotNull OperationResult result)
+            throws SchemaException {
+        return new Evaluation(vtCtx, result) {
             @Override
             protected @NotNull PrismReferenceValue createResultValue(
                     String oid,

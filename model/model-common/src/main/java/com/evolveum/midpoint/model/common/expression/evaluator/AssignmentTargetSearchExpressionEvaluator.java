@@ -10,6 +10,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.common.expression.evaluator.transformation.ValueTransformationContext;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -17,8 +18,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -57,12 +56,10 @@ class AssignmentTargetSearchExpressionEvaluator
 
     @Override
     Evaluation createEvaluation(
-            @NotNull VariablesMap variables,
-            boolean useNew,
-            @NotNull ExpressionEvaluationContext context,
-            @NotNull OperationResult result) throws SchemaException {
+            @NotNull ValueTransformationContext vtCtx, @NotNull OperationResult result)
+            throws SchemaException {
 
-        return new Evaluation(variables, useNew, context, result) {
+        return new Evaluation(vtCtx, result) {
 
             protected @NotNull PrismContainerValue<AssignmentType> createResultValue(
                     String oid,
@@ -94,8 +91,7 @@ class AssignmentTargetSearchExpressionEvaluator
                 }
                 prismContext.adopt(assignmentCVal, FocusType.COMPLEX_TYPE, FocusType.F_ASSIGNMENT);
                 if (InternalsConfig.consistencyChecks) {
-                    assignmentCVal.assertDefinitions(
-                            () -> "assignmentCVal in assignment expression in " + context.getContextDescription());
+                    assignmentCVal.assertDefinitions(() -> "assignmentCVal in assignment expression in " + vtCtx);
                 }
                 return assignmentCVal;
             }

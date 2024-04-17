@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.evaluator.transformation.ValueTransformationContext;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.jetbrains.annotations.NotNull;
@@ -23,13 +24,11 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
@@ -72,11 +71,9 @@ class AssociationTargetSearchExpressionEvaluator
 
     @Override
     Evaluation createEvaluation(
-            @NotNull VariablesMap variables,
-            boolean useNew,
-            @NotNull ExpressionEvaluationContext context,
-            @NotNull OperationResult result) throws SchemaException {
-        return new Evaluation(variables, useNew, context, result) {
+            @NotNull ValueTransformationContext vtCtx, @NotNull OperationResult result)
+            throws SchemaException {
+        return new Evaluation(vtCtx, result) {
 
             @Override
             protected QName getDefaultTargetType() {
@@ -102,30 +99,28 @@ class AssociationTargetSearchExpressionEvaluator
                 }
 
                 if (InternalsConfig.consistencyChecks) {
-                    newAssociationValue.assertDefinitions(
-                            () -> "associationCVal in assignment expression in " + context.getContextDescription());
+                    newAssociationValue.assertDefinitions(() -> "associationCVal in assignment expression in " + vtCtx);
                 }
                 return newAssociationValue.clone(); // It needs to be parent-less when included in the output triple
             }
 
-            private ResourceObjectTypeDefinition associationTargetDef(ExpressionEvaluationContext context)
+            private ResourceObjectTypeDefinition associationTargetDef()
                     throws ExpressionEvaluationException {
                 @SuppressWarnings("unchecked")
                 var rAssocTargetDefTypedValue = (TypedValue<ResourceObjectTypeDefinition>)
-                        context.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
+                        this.vtCtx.getVariablesMap().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
                 if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
                     throw new ExpressionEvaluationException(
                             String.format("No association target object definition variable in %s; the expression may be used in"
                                             + " a wrong place. It is only supposed to create an association.",
-                                    context.getContextDescription()));
+                                    vtCtx));
                 }
                 return (ResourceObjectTypeDefinition) rAssocTargetDefTypedValue.getValue();
             }
 
             @Override
-            protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params)
-                    throws ExpressionEvaluationException {
-                var rAssocTargetDef = associationTargetDef(params);
+            protected ObjectQuery extendQuery(ObjectQuery query) throws ExpressionEvaluationException {
+                var rAssocTargetDef = associationTargetDef();
                 ObjectFilter coordinatesFilter = prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_RESOURCE_REF).ref(rAssocTargetDef.getResourceOid())
                         .and().item(ShadowType.F_KIND).eq(rAssocTargetDef.getKind())
@@ -138,8 +133,8 @@ class AssociationTargetSearchExpressionEvaluator
             }
 
             @Override
-            protected ObjectQuery createRawQuery(SearchFilterType filter, ExpressionEvaluationContext params) throws SchemaException, ExpressionEvaluationException {
-                var concreteShadowDef = associationTargetDef(params).getPrismObjectDefinition();
+            protected ObjectQuery createRawQuery(SearchFilterType filter) throws SchemaException, ExpressionEvaluationException {
+                var concreteShadowDef = associationTargetDef().getPrismObjectDefinition();
                 var objFilter = prismContext.getQueryConverter().createObjectFilter(concreteShadowDef, filter);
                 return prismContext.queryFactory().createQuery(objFilter);
             }

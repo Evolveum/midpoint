@@ -12,13 +12,13 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.evaluator.transformation.AbstractValueTransformationExpressionEvaluator;
+import com.evolveum.midpoint.model.common.expression.evaluator.transformation.ValueTransformationContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -69,18 +69,18 @@ public class ScriptExpressionEvaluator<V extends PrismValue, D extends ItemDefin
 
     @Override
     protected @NotNull List<V> transformSingleValue(
-            @NotNull VariablesMap variables, boolean useNew,
-            @NotNull ExpressionEvaluationContext eCtx, @NotNull OperationResult result)
+            @NotNull ValueTransformationContext vtCtx, @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        scriptExpression.setAdditionalConvertor(eCtx.getAdditionalConvertor());
+        var eeCtx = vtCtx.getExpressionEvaluationContext();
+        scriptExpression.setAdditionalConvertor(eeCtx.getAdditionalConvertor());
         ScriptExpressionEvaluationContext sCtx = new ScriptExpressionEvaluationContext();
-        sCtx.setVariables(variables);
+        sCtx.setVariables(vtCtx.getVariablesMap());
         sCtx.setSuggestedReturnType(getReturnType());
-        sCtx.setEvaluateNew(useNew);
-        sCtx.setContextDescription(eCtx.getContextDescription());
-        sCtx.setAdditionalConvertor(eCtx.getAdditionalConvertor());
-        sCtx.setTask(eCtx.getTask());
+        sCtx.setEvaluateNew(vtCtx.isEvaluateNew());
+        sCtx.setContextDescription(vtCtx.getContextDescription());
+        sCtx.setAdditionalConvertor(eeCtx.getAdditionalConvertor());
+        sCtx.setTask(eeCtx.getTask());
         sCtx.setResult(result);
 
         return scriptExpression.evaluate(sCtx);
