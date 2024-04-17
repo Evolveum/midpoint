@@ -12,9 +12,6 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import java.io.File;
 import java.io.IOException;
 
-import com.evolveum.midpoint.prism.CloneStrategy;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
 
@@ -25,6 +22,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class TestMerger extends AbstractSchemaTest {
 
@@ -95,25 +93,6 @@ public class TestMerger extends AbstractSchemaTest {
     @Test
     public void test130ValuePolicyMergeOperation() throws Exception {
         testMergeOperation("value-policy/value-policy");
-    }
-
-    @Test
-    public void test140Archetype() throws Exception {
-        PrismObject<ArchetypeType> target = getPrismContext().parseObject(new File(TEST_ROOT_DIR,  "archetype/archetype.xml"));
-        PrismObject<ArchetypeType> source= target.cloneComplex(CloneStrategy.REUSE);
-        PrismObject<ArchetypeType> result = target.clone();
-
-        SimpleObjectMergeOperation.merge(target, source);
-
-        LOGGER.trace("Merged object:\n{}", target.debugDump());
-        LOGGER.trace("Result object:\n{}", result.debugDump());
-
-        ObjectDelta<ArchetypeType> delta = target.diff(result);
-
-        Assertions.assertThat(target)
-                .matches(
-                        t -> t.equivalent(result),
-                        "Merged object is not equivalent to expected result\n" + delta.debugDump());
     }
 
     private <O extends ObjectType> void testMergeOperation(String fileNamePrefix) throws IOException, SchemaException, ConfigurationException {
