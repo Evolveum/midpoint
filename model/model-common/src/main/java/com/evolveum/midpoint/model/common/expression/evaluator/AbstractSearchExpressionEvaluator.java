@@ -203,7 +203,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                 return List.of(createResultValue(defaultTargetOid, targetTypeQName, null, newValueDeltas));
             }
 
-            if (Boolean.TRUE.equals(expressionEvaluatorBean.isCreateOnDemand() && useNew)) {
+            if (Boolean.TRUE.equals(expressionEvaluatorBean.isCreateOnDemand()) && useNew) {
                 try {
                     PrismObject<O> createdObject = createOnDemand();
                     if (createdObject != null) {
