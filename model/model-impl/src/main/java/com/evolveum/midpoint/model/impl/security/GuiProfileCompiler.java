@@ -154,9 +154,12 @@ public class GuiProfileCompiler {
 
         FocusType focus = principal.getFocus(); // [EP:APSO] DONE, focus is from repository
 
-        ObjectQuery query = PrismContext.get().queryFor(AssignmentType.class).ownedBy(focus.getClass()).ownerId(focus.getOid()).build();
-        SearchResultList<AssignmentType> assignments = repositoryService.searchContainers(AssignmentType.class, query, null, result);
-        focus.getAssignment().addAll(assignments);
+        //TODO why??
+//        ObjectQuery query = PrismContext.get().queryFor(AssignmentType.class).ownerId(focus.getOid()).and().ownedBy(focus.getClass()).build();
+//        SearchResultList<AssignmentType> assignments = repositoryService.searchContainers(AssignmentType.class, query, null, result);
+//        focus.getAssignment().addAll(assignments.stream()
+//                .map(originalAssignment -> (AssignmentType) originalAssignment.cloneWithoutId())
+//                .toList());
 
         Collection<? extends EvaluatedAssignment> evaluatedAssignments = // [EP:APSO] DONE, see the called method
                 assignmentCollector.collect(focus.asPrismObject(), task, result);
@@ -164,7 +167,7 @@ public class GuiProfileCompiler {
         MidpointAuthentication auth = AuthUtil.getMidpointAuthenticationNotRequired();
         AuthenticationChannel channel = auth != null ? auth.getAuthenticationChannel() : null;
 
-        if(!options.isRunAsRunner() && channel != null) {
+        if (!options.isRunAsRunner() && channel != null) {
             @Nullable Authorization additionalAuth = channel.getAdditionalAuthority();
             if (additionalAuth != null) {
                 addAuthorizationToPrincipal(principal, additionalAuth, authorizationTransformer);
