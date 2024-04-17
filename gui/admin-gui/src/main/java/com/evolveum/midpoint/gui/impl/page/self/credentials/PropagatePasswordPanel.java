@@ -241,7 +241,8 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     private List<IColumn<PasswordAccountDto, String>> initColumns() {
         List<IColumn<PasswordAccountDto, String>> columns = new ArrayList<>();
 
-        columns.add(new CheckBoxHeaderColumn<>() {
+        columns.add(new CheckBoxHeaderColumn<PasswordAccountDto>() {
+            private static final long serialVersionUID = 1L;
             @Override
             protected IModel<Boolean> getEnabled(IModel<PasswordAccountDto> rowModel) {
                 return () -> {
@@ -301,6 +302,14 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
                             });
                 }
             }
+
+            @Override
+            protected boolean shouldBeUnchangeable(PasswordAccountDto obj) {
+                if (obj == null) {
+                    return super.shouldBeUnchangeable(obj);
+                }
+                return isMandatoryPropagation(obj);
+            }
         });
 
         columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.name")) {
@@ -359,6 +368,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
 
         IconColumn enabled = new IconColumn<PasswordAccountDto>(createStringResource("ChangePasswordPanel.enabled")) {
 
+            private static final long serialVersionUID = 1L;
             @Override
             protected DisplayType getIconDisplayType(IModel<PasswordAccountDto> rowModel) {
                 String cssClass = "fa fa-question text-info";
@@ -387,21 +397,22 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
 
             @Override
             public void populateItem(Item<ICellPopulator<PasswordAccountDto>> cellItem, String componentId, IModel<PasswordAccountDto> rowModel) {
-                IModel<List<StringLimitationResult>> limitationsModel = () -> {
-                    if (rowModel.getObject().getPasswordValuePolicy() == null) {
-                        return new ArrayList<>();
-                    }
-
-                    return getLimitationsForActualPassword(rowModel.getObject().getPasswordValuePolicy(),
-                            rowModel.getObject().getObject());
-                };
-                PasswordPolicyValidationPanel validationPanel = new PasswordPolicyValidationPanel(componentId, limitationsModel);
-                validationPanel.add(new VisibleEnableBehaviour() {
+                LoadableModel<List<StringLimitationResult>> limitationsModel = new LoadableModel<>() {
+                    private static final long serialVersionUID = 1L;
                     @Override
-                    public boolean isVisible() {
-                        return !limitationsModel.getObject().isEmpty();
+                    protected List<StringLimitationResult> load() {
+                        if (rowModel.getObject().getPasswordValuePolicy() == null) {
+                            return new ArrayList<>();
+                        }
+
+                        return getLimitationsForActualPassword(rowModel.getObject().getPasswordValuePolicy(),
+                                rowModel.getObject().getObject());
                     }
-                });
+                };
+
+                PasswordPolicyValidationPanel validationPanel = new PasswordPolicyValidationPanel(componentId, limitationsModel);
+                validationPanel.add(new VisibleEnableBehaviour(() -> !limitationsModel.getObject().isEmpty()));
+                validationPanel.setOutputMarkupId(true);
                 cellItem.add(validationPanel);
             }
 
@@ -417,6 +428,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
             @Override
             public void populateItem(Item<ICellPopulator<PasswordAccountDto>> cellItem, String componentId, IModel<PasswordAccountDto> rowModel) {
                 LoadableModel<OperationResult> resultStatusModel = new LoadableModel<OperationResult>() {
+                    private static final long serialVersionUID = 1L;
                     @Override
                     protected OperationResult load() {
                         if (progress == null
@@ -446,6 +458,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
                     }
                 };
                 ColumnResultPanel resultPanel = new ColumnResultPanel(componentId, resultStatusModel) {
+                    private static final long serialVersionUID = 1L;
                     @Override
                     protected boolean isProjectionResult() {
                         return !rowModel.getObject().isMidpoint();
@@ -607,7 +620,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
                 || CredentialsPropagationUserControlType.IDENTITY_MANAGER_MANDATORY.equals(getCredentialsPropagationUserControl());
     }
 
-    protected void updateResultColumnOfTable(AjaxRequestTarget target) {
+    private void updateResultColumnOfTable(AjaxRequestTarget target) {
         getTableComponent().getDataTable().visitChildren(ColumnResultPanel.class,
                 (IVisitor<ColumnResultPanel, ColumnResultPanel>) (panel, iVisit) -> {
                     if (panel.getModel() instanceof LoadableModel) {
@@ -617,7 +630,20 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
                 });
     }
 
-    protected CredentialsPropagationUserControlType getCredentialsPropagationUserControl() {
+    //fix for open project ticket 9608
+    private void updatePasswordValidationColumnOfTable(AjaxRequestTarget target) {
+        getTableComponent().getDataTable().visitChildren(PasswordPolicyValidationPanel.class,
+                (IVisitor<PasswordPolicyValidationPanel, PasswordPolicyValidationPanel>) (panel, iVisit) -> {
+                    if (panel.getModel() instanceof LoadableModel) {
+                        ((LoadableModel) panel.getModel()).reset();
+                    }
+                    target.add(panel);
+                });
+
+        target.appendJavaScript(PasswordPolicyValidationPanel.JAVA_SCRIPT_CODE);
+    }
+
+    private CredentialsPropagationUserControlType getCredentialsPropagationUserControl() {
         CredentialsPolicyType credentialsPolicy = credentialsPolicyModel.getObject();
         return credentialsPolicy != null && credentialsPolicy.getPassword() != null ?
                 credentialsPolicy.getPassword().getPropagationUserControl() : null;
@@ -643,5 +669,16 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     @Override
     protected boolean isHintPanelVisible() {
         return getPasswordHintConfigurability() == PasswordHintConfigurabilityType.ALWAYS_CONFIGURE;
+    }
+
+    private boolean isMandatoryPropagation(PasswordAccountDto passwordAccountDto) {
+        CredentialsPropagationUserControlType propagationUserControl = getCredentialsPropagationUserControl();
+        return passwordAccountDto.isMidpoint()
+                && CredentialsPropagationUserControlType.IDENTITY_MANAGER_MANDATORY.equals(propagationUserControl);
+    }
+
+    protected void updateNewPasswordValuePerformed(AjaxRequestTarget target) {
+        super.updateNewPasswordValuePerformed(target);
+        updatePasswordValidationColumnOfTable(target);
     }
 }

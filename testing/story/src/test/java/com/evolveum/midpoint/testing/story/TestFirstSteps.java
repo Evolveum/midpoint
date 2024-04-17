@@ -1702,15 +1702,14 @@ public class TestFirstSteps extends AbstractStoryTest {
                         .asItemDeltas(),
                 result);
 
-        when("running the simulated shadow management import (production)");
-        var taskOid = importOpenDjAccountRequest(DN_JSMITH1)
+        when("running the simulated shadow reclassification (production)");
+        var taskOid = shadowReclassificationOpenDjRequest(DN_JSMITH1)
                 .withTaskExecutionMode(SIMULATED_SHADOWS_PRODUCTION)
-                .withClassificationMode(ShadowClassificationModeType.FORCED)
                 .execute(result);
         waitForRootActivityCompletion(taskOid, DEFAULT_SHORT_TASK_WAIT_TIMEOUT);
 
         then("the task is OK");
-        assertTask(taskOid, "simulated import")
+        assertTask(taskOid, "simulated shadow reclassification")
                 .display();
 
         and("there is a simulated classification change");
@@ -1858,6 +1857,13 @@ public class TestFirstSteps extends AbstractStoryTest {
     @SuppressWarnings("SameParameterValue")
     private SynchronizationRequestBuilder importOpenDjAccountRequest(String dn) {
         return importAccountsRequest()
+                .withResourceOid(RESOURCE_OPENDJ_OID)
+                .withNamingAttribute(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER)
+                .withNameValue(dn);
+    }
+
+    private SynchronizationRequestBuilder shadowReclassificationOpenDjRequest(String dn) {
+        return shadowReclassificationRequest()
                 .withResourceOid(RESOURCE_OPENDJ_OID)
                 .withNamingAttribute(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER)
                 .withNameValue(dn);

@@ -69,12 +69,7 @@ public class ValueBasedDefinitionLookupsImpl {
                     ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
                     ResourceObjectDefinition rocd = resourceSchema.findDefinitionForShadow(fakeShadow.asObjectable());
                     if (rocd != null) {
-                        var objectDefinition = TransformableObjectDefinition.of(fakeShadow.getDefinition());
-                        objectDefinition.replaceDefinition(ShadowType.F_ATTRIBUTES,
-                                rocd.toResourceAttributeContainerDefinition());
-                        objectDefinition.replaceDefinition(ShadowType.F_ASSOCIATIONS,
-                                rocd.toShadowAssociationsContainerDefinition());
-                        return objectDefinition.getComplexTypeDefinition();
+                        return rocd.getPrismObjectDefinition().getComplexTypeDefinition();
                     }
                 } catch (Exception e) {
                     // Suppress and return null?
@@ -83,8 +78,6 @@ public class ValueBasedDefinitionLookupsImpl {
             }
             // We did not successfully found schema, do not override
             return null;
-
-
         }
     };
 
@@ -101,7 +94,4 @@ public class ValueBasedDefinitionLookupsImpl {
         PrismContext.get().registerValueBasedDefinitionLookup(shadowLookupByKindAndIntent);
         this.lookupTask = taskManager.createTaskInstance("system-resource-lookup-for-queries");
     }
-
-
-
 }

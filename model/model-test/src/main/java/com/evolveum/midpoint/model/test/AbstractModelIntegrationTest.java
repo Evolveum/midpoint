@@ -7310,6 +7310,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .withUsingReconciliation();
     }
 
+    /** Reclassification of shadows by creating a specialized task. */
+    protected SynchronizationRequestBuilder shadowReclassificationRequest() {
+        return new SynchronizationRequestBuilder(this)
+                .withUsingShadowReclassification();
+    }
+
     /**
      * Executes a set of deltas in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
      *
@@ -7683,12 +7689,5 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 openWorkItems,
                 () -> new AssertionError("More than one open work item: " + openWorkItems),
                 () -> new AssertionError("No open work items in: " + aCase));
-    }
-
-    @Override
-    protected <A extends AbstractAsserter<?>> A initializeAsserter(A asserter) {
-        super.initializeAsserter(asserter);
-        asserter.setObjectResolver(createSimpleModelObjectResolver());
-        return asserter;
     }
 }

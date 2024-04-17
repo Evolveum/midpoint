@@ -469,11 +469,44 @@ call apply_change(26, $aa$
     ALTER TABLE m_ref_role_membership ADD COLUMN fullObject BYTEA;
 $aa$);
 
+--- Policy Type
+
 call apply_change(27, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'POLICY' AFTER 'ORG';
+$aa$);
+call apply_change(28, $aa$
+    CREATE TABLE m_policy (
+        oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+        objectType ObjectType GENERATED ALWAYS AS ('POLICY') STORED
+            CHECK (objectType = 'POLICY')
+    )
+        INHERITS (m_abstract_role);
+
+    CREATE TRIGGER m_policy_oid_insert_tr BEFORE INSERT ON m_policy
+        FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+    CREATE TRIGGER m_policy_update_tr BEFORE UPDATE ON m_policy
+        FOR EACH ROW EXECUTE FUNCTION before_update_object();
+    CREATE TRIGGER m_policy_oid_delete_tr AFTER DELETE ON m_policy
+        FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+    CREATE INDEX m_policy_nameOrig_idx ON m_policy (nameOrig);
+    CREATE UNIQUE INDEX m_policy_nameNorm_key ON m_policy (nameNorm);
+    CREATE INDEX m_policy_subtypes_idx ON m_policy USING gin(subtypes);
+    CREATE INDEX m_policy_identifier_idx ON m_policy (identifier);
+    CREATE INDEX m_policy_validFrom_idx ON m_policy (validFrom);
+    CREATE INDEX m_policy_validTo_idx ON m_policy (validTo);
+    CREATE INDEX m_policy_fullTextInfo_idx ON m_policy USING gin(fullTextInfo gin_trgm_ops);
+    CREATE INDEX m_policy_createTimestamp_idx ON m_policy (createTimestamp);
+    CREATE INDEX m_policy_modifyTimestamp_idx ON m_policy (modifyTimestamp);
+$aa$);
+
+--- Schema Type
+
+call apply_change(29, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SCHEMA' AFTER 'ROLE_ANALYSIS_SESSION';
 $aa$);
 
-call apply_change(28, $aa$
+call apply_change(30, $aa$
 CREATE TABLE m_schema (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SCHEMA') STORED
@@ -489,7 +522,6 @@ CREATE TRIGGER m_schema_oid_delete_tr AFTER DELETE ON m_schema
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 $aa$);
-
 
 ---
 -- WRITE CHANGES ABOVE ^^

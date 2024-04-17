@@ -12,21 +12,23 @@ import java.util.Map;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -179,7 +181,7 @@ public interface RoleAnalysisService {
      * @param task The task associated with this operation.
      * @param result The operation result.
      */
-    void replaceDetectionPattern(
+    void anylseAttributesAndReplaceDetectionPattern(
             @NotNull String clusterOid,
             @NotNull List<DetectedPattern> detectedPatterns,
             @NotNull Task task,
@@ -287,7 +289,7 @@ public interface RoleAnalysisService {
      * @param result The operation result.
      * @return The resolved process mode.
      */
-    RoleAnalysisProcessModeType resolveClusterProcessMode(
+    RoleAnalysisOptionType resolveClusterOptionType(
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull Task task,
             @NotNull OperationResult result);
@@ -341,6 +343,23 @@ public interface RoleAnalysisService {
             @NotNull Task task);
 
     /**
+     * Method for preparing a mining structure for role analysis.
+     *
+     * @param cluster The cluster for which the mining structure is prepared.
+     * @param option The display value option.
+     * @param processMode The process mode.
+     * @param result The operation result.
+     * @param task The task associated with this operation.
+     * @return A MiningOperationChunk containing user and role chunks for further processing.
+     */
+    @NotNull MiningOperationChunk prepareMiningStructure(
+            @NotNull RoleAnalysisClusterType cluster,
+            DisplayValueOption option,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull OperationResult result,
+            @NotNull Task task);
+
+    /**
      * Method for preparing an expanded mining structure for role analysis.
      *
      * @param cluster The cluster for which the mining structure is prepared.
@@ -350,6 +369,7 @@ public interface RoleAnalysisService {
      * @param processMode The process mode.
      * @param result The operation result.
      * @param task The task associated with this operation.
+     * @param option The display value option.
      * @return A MiningOperationChunk containing user and role chunks for further processing.
      */
     @NotNull MiningOperationChunk prepareExpandedMiningStructure(
@@ -357,7 +377,8 @@ public interface RoleAnalysisService {
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,
-            @NotNull Task task);
+            @NotNull Task task,
+            @Nullable DisplayValueOption option);
 
     /**
      * Retrieves a RoleType PrismObject from a cache or, if not present,
@@ -367,6 +388,7 @@ public interface RoleAnalysisService {
      * @param roleOid The OID of the RoleType PrismObject to retrieve.
      * @param task The task associated with the operation.
      * @param result The operation result.
+     * @param option
      * @return The RoleType PrismObject fetched from the cache or ModelService, or null if not found.
      */
     @Nullable
@@ -374,7 +396,8 @@ public interface RoleAnalysisService {
             @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
             @NotNull String roleOid,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @Nullable RoleAnalysisCacheOption option);
 
     /**
      * Retrieves a UserType PrismObject from a cache or, if not present,
@@ -384,6 +407,7 @@ public interface RoleAnalysisService {
      * @param userOid The OID of the UserType PrismObject to retrieve.
      * @param task The task associated with the operation.
      * @param result The operation result.
+     * @param option
      * @return The UserType PrismObject fetched from the cache or ModelService, or null if not found.
      */
     @Nullable
@@ -391,7 +415,8 @@ public interface RoleAnalysisService {
             @NotNull Map<String, PrismObject<UserType>> userExistCache,
             @NotNull String userOid,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @Nullable RoleAnalysisCacheOption option);
 
     /**
      * This method is used to execute a migration task.
@@ -472,13 +497,13 @@ public interface RoleAnalysisService {
      * Recompute and resolve the cluster operation status.
      * This method also update the cluster operation status if detect some changes.
      *
-     * @param clusterPrismObject The cluster for recompute and resolve.
+     * @param clusterOid The cluster for recompute and resolve.
      * @param result The operation result.
      * @param task The task associated with this operation.
      * @return The cluster operation status.
      */
     @NotNull String recomputeAndResolveClusterOpStatus(
-            @NotNull PrismObject<RoleAnalysisClusterType> clusterPrismObject,
+            @NotNull String clusterOid,
             @NotNull OperationResult result,
             @NotNull Task task);
 
@@ -510,16 +535,46 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
+    /**
+     * Recomputes and resolves the operation status for the candidate role within the specified cluster.
+     *
+     * @param clusterPrismObject PrismObject representing the role analysis cluster.
+     * @param candidateRole RoleAnalysisCandidateRoleType representing the candidate role.
+     * @param result OperationResult containing the result of the operation.
+     * @param task Task used for executing the operation.
+     * @return A string representing the display status of the candidate role after recompute and resolution.
+     */
     @NotNull String recomputeAndResolveClusterCandidateRoleOpStatus(
             @NotNull PrismObject<RoleAnalysisClusterType> clusterPrismObject,
             @NotNull RoleAnalysisCandidateRoleType candidateRole,
             @NotNull OperationResult result, Task task);
 
+    /**
+     * Deletes a single candidate role from the specified role analysis cluster.
+     *
+     * @param clusterPrism PrismObject representing the role analysis cluster.
+     * @param candidateRoleBean RoleAnalysisCandidateRoleType representing the candidate role to be deleted.
+     * @param result OperationResult containing the result of the deletion operation.
+     * @param task Task used for executing the deletion operation.
+     */
     void deleteSingleCandidateRole(
             @NotNull PrismObject<RoleAnalysisClusterType> clusterPrism,
             @NotNull RoleAnalysisCandidateRoleType candidateRoleBean,
             @NotNull OperationResult result, Task task);
 
+    /**
+     * Sets the operation status of a candidate role within the specified role analysis cluster.
+     *
+     * @param clusterPrism PrismObject representing the role analysis cluster.
+     * @param candidateRoleContainer RoleAnalysisCandidateRoleType representing the candidate role container.
+     * @param taskOid String representing the OID of the task associated with the operation status.
+     * @param operationResultStatusType OperationResultStatusType representing the status of the operation.
+     * @param message String containing the message associated with the operation status.
+     * @param result OperationResult containing the result of the operation.
+     * @param task Task used for executing the operation.
+     * @param operationType RoleAnalysisOperation representing the type of operation.
+     * @param focus FocusType representing the focus type associated with the operation status.
+     */
     void setCandidateRoleOpStatus(
             @NotNull PrismObject<RoleAnalysisClusterType> clusterPrism,
             @NotNull RoleAnalysisCandidateRoleType candidateRoleContainer,
@@ -530,6 +585,16 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisOperation operationType,
             @Nullable FocusType focus);
 
+    /**
+     * Executes changes on the candidate role within the specified role analysis cluster.
+     *
+     * @param cluster PrismObject representing the role analysis cluster.
+     * @param roleAnalysisCandidateRoleType RoleAnalysisCandidateRoleType representing the candidate role container.
+     * @param members Set of PrismObject representing the members to be assigned to the candidate role.
+     * @param inducements Set of AssignmentType representing the inducements to be added to the candidate role.
+     * @param task Task used for executing the operation.
+     * @param result OperationResult containing the result of the operation.
+     */
     void executeChangesOnCandidateRole(
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull RoleAnalysisCandidateRoleType roleAnalysisCandidateRoleType,
@@ -538,6 +603,19 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
+    /**
+     * Loads objects iteratively from the repository based on the provided query and adds them to the modifyList
+     * if they are not already present.
+     *
+     * @param modelService ModelService used for loading the objects from the repository.
+     * @param type Class representing the type of objects to be loaded.
+     * @param query ObjectQuery specifying the conditions for searching the objects. Can be null.
+     * @param options Collection of SelectorOptions specifying additional options for the search operation. Can be null.
+     * @param modifyList List of loaded objects will be added. Objects already present in this list will be skipped.
+     * @param task Task used for executing the search operation.
+     * @param parentResult OperationResult containing the result of the operation.
+     * @param <T> Generic type extending ObjectType representing the type of objects to be loaded.
+     */
     <T extends ObjectType> void loadSearchObjectIterative(
             @NotNull ModelService modelService,
             @NotNull Class<T> type,
@@ -546,5 +624,122 @@ public interface RoleAnalysisService {
             @NotNull List<T> modifyList,
             @NotNull Task task,
             @NotNull OperationResult parentResult);
+
+
+    /**
+     * Performs attribute analysis for user objects.
+     *
+     * @param prismUsers Set of PrismObject representing user objects to analyze.
+     * @param membershipDensity The density of membership.
+     * @param task
+     * @param result
+     * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
+     */
+    List<AttributeAnalysisStructure> userTypeAttributeAnalysis(
+            @NotNull Set<PrismObject<UserType>> prismUsers,
+            Double membershipDensity, @NotNull Task task, @NotNull OperationResult result);
+
+    /**
+     * Performs attribute analysis for role objects.
+     *
+     * @param prismRoles Set of PrismObject representing role objects to analyze.
+     * @param membershipDensity The density of membership.
+     * @param task
+     * @param result
+     * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
+     */
+    List<AttributeAnalysisStructure> roleTypeAttributeAnalysis(
+            @NotNull Set<PrismObject<RoleType>> prismRoles,
+            Double membershipDensity, @NotNull Task task, @NotNull OperationResult result);
+
+    /**
+     * Performs attribute analysis for role members.
+     *
+     * @param objectOid The OID of the object to analyze.
+     * @param task Task used for processing the attribute analysis.
+     * @param result OperationResult containing the result of the operation.
+     * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
+     */
+    List<AttributeAnalysisStructure> roleMembersAttributeAnalysis(
+            @NotNull String objectOid,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+    List<AttributeAnalysisStructure> userRolesAttributeAnalysis(
+            @NotNull String objectOid,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Processes attribute analysis for the detected patterns.
+     * This method analyzes attribute usage patterns for both users and roles in the detected patterns.
+     * It retrieves user and role occupancy information from the detected patterns, then performs attribute
+     * analysis for both user and role types based on the specified attribute paths.
+     *
+     * @param detectedPatterns List of detected patterns to process.
+     * @param userExistCache Map containing cached PrismObject of UserType for efficient retrieval.
+     * @param roleExistCache Map containing cached PrismObject of RoleType for efficient retrieval.
+     * @param task Task used for processing the attribute analysis.
+     * @param result OperationResult containing the result of the operation.
+     * Any errors or status information will be recorded here.
+     */
+    void processAttributeAnalysis(
+            @NotNull List<RoleAnalysisDetectionPatternType> detectedPatterns,
+            @NotNull Map<String, PrismObject<UserType>> userExistCache,
+            @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Searches for clusters associated with a specific role analysis session.
+     *
+     * @param session RoleAnalysisSessionType representing the session for which clusters are being searched.
+     * @param task Task used for executing the search operation.
+     * @param result OperationResult containing the result of the search operation.
+     * Any errors or status information will be recorded here.
+     * @return List of PrismObject<RoleAnalysisClusterType> containing the clusters associated with the session.
+     * If the search operation fails or no clusters are found, null is returned.
+     */
+    List<PrismObject<RoleAnalysisClusterType>> searchSessionClusters(
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Resolves the focus object icon color based on the provided focus object archetype.
+     *
+     * @param focusObject FocusType representing the focus object for which the icon color is being resolved.
+     * @param task Task used for resolving the icon color.
+     * @param result OperationResult containing the result of the operation.
+     * Any errors or status information will be recorded here.
+     * @return String representing the icon color of the focus object.
+     */
+    String resolveFocusObjectIconColor(@NotNull FocusType focusObject, @NotNull Task task, @NotNull OperationResult result);
+
+    /**
+     * Retrieves the attribute definition for a specific attribute path.
+     * @param type The type of object for which the attribute definition is being retrieved.
+     * @param query The query specifying the conditions for searching the object.
+     * @param options Collection of SelectorOptions specifying additional options for the search operation.
+     * @param task Task used for executing the search operation.
+     * @param parentResult OperationResult containing the result of the search operation.
+     * @return RoleAnalysisAttributeDef containing the attribute definition for the specified attribute path.
+     */
+    <T extends ObjectType> Integer countObjects(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult);
+
+    /**
+     * Calculates the confidence of an attribute based on the specified process mode and cluster statistics.
+     * @param processModeType The process mode type.
+     * @param clusterStatistics The cluster statistics.
+     * @return String representing the calculated attribute confidence.
+     */
+    String calculateAttributeConfidence(
+            @NotNull RoleAnalysisProcessModeType processModeType,
+            @NotNull AnalysisClusterStatisticType clusterStatistics);
+
 
 }

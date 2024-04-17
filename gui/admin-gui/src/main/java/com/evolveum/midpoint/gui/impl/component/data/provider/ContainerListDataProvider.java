@@ -82,7 +82,7 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
                 LOGGER.trace("Query {} with {}", getType().getSimpleName(), query.debugDump());
             }
 
-            List<C> list = WebModelServiceUtils.searchContainersByQueryFromSearchPanel(
+            List<C> list = WebModelServiceUtils.searchContainers(
                     getType(), query, options, result, getPageBase());
 
             if (LOGGER.isTraceEnabled()) {
@@ -123,7 +123,7 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_CONTAINERS);
         try {
-            count = WebModelServiceUtils.countContainersByQueryFromSearchPanel(getType(), getQuery(), options, getPageBase());
+            count = WebModelServiceUtils.countContainers(getType(), getQuery(), options, getPageBase());
         } catch (Exception ex) {
             result.recordFatalError(getPageBase().createStringResource("ContainerListDataProvider.message.listContainers.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count containers", ex);

@@ -2,6 +2,7 @@
 :page-nav-title: Get user based on his unique identificator
 :page-display-order: 200
 :page-toc: top
+:page-upkeep-status: green
 
 == Description
 Example of retrieving identity data from a web resource object representing a user.

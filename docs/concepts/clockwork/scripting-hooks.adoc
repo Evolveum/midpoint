@@ -1,3 +1,7 @@
+---
+midpoint-feature: scripting-hook
+doc-type: config
+---
 = Scripting Hooks
 :page-wiki-name: Scripting Hooks
 :page-wiki-id: 13074820

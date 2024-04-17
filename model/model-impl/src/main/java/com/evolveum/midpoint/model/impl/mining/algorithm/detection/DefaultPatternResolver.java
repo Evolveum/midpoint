@@ -75,38 +75,42 @@ public class DefaultPatternResolver {
         List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList = new ArrayList<>();
         AbstractAnalysisSessionOptionType sessionOption = getSessionOptionType(session);
 
-        if (sessionOption.getSimilarityThreshold() == 100) {
+//        if (sessionOption.getSimilarityThreshold() == 100) {
+//
+//            RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType = new RoleAnalysisDetectionPatternType();
+//
+//            Set<ObjectReferenceType> roles;
+//            Set<ObjectReferenceType> users;
+//
+//            if (roleAnalysisProcessModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
+//                users = clusterStatistic.getPropertiesRef();
+//                roles = clusterStatistic.getMembersRef();
+//            } else {
+//                roles = clusterStatistic.getPropertiesRef();
+//                users = clusterStatistic.getMembersRef();
+//            }
+//
+//            List<ObjectReferenceType> rolesOccupancy = roleAnalysisClusterDetectionType.getRolesOccupancy();
+//            roles.stream().map(ObjectReferenceType::clone).forEach(rolesOccupancy::add);
+//
+//            List<ObjectReferenceType> userOccupancy = roleAnalysisClusterDetectionType.getUserOccupancy();
+//            users.stream().map(ObjectReferenceType::clone).forEach(userOccupancy::add);
+//
+//            int propertiesCount = roles.size();
+//            int membersCount = users.size();
+//
+//            roleAnalysisClusterDetectionType.setClusterMetric((double) propertiesCount * membersCount);
+//            roleAnalysisClusterDetectionTypeList.add(roleAnalysisClusterDetectionType.clone());
+//        } else {
+//            List<RoleAnalysisDetectionPatternType> clusterDetectionTypeList = resolveDefaultIntersection(session,
+//                    clusterType, result, task);
+//            roleAnalysisClusterDetectionTypeList.addAll(clusterDetectionTypeList);
+//
+//        }
 
-            RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType = new RoleAnalysisDetectionPatternType();
-
-            Set<ObjectReferenceType> roles;
-            Set<ObjectReferenceType> users;
-
-            if (roleAnalysisProcessModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
-                users = clusterStatistic.getPropertiesRef();
-                roles = clusterStatistic.getMembersRef();
-            } else {
-                roles = clusterStatistic.getPropertiesRef();
-                users = clusterStatistic.getMembersRef();
-            }
-
-            List<ObjectReferenceType> rolesOccupancy = roleAnalysisClusterDetectionType.getRolesOccupancy();
-            roles.stream().map(ObjectReferenceType::clone).forEach(rolesOccupancy::add);
-
-            List<ObjectReferenceType> userOccupancy = roleAnalysisClusterDetectionType.getUserOccupancy();
-            users.stream().map(ObjectReferenceType::clone).forEach(userOccupancy::add);
-
-            int propertiesCount = roles.size();
-            int membersCount = users.size();
-
-            roleAnalysisClusterDetectionType.setClusterMetric((double) propertiesCount * membersCount);
-            roleAnalysisClusterDetectionTypeList.add(roleAnalysisClusterDetectionType.clone());
-        } else {
-            List<RoleAnalysisDetectionPatternType> clusterDetectionTypeList = resolveDefaultIntersection(session,
-                    clusterType, result, task);
-            roleAnalysisClusterDetectionTypeList.addAll(clusterDetectionTypeList);
-
-        }
+        List<RoleAnalysisDetectionPatternType> clusterDetectionTypeList = resolveDefaultIntersection(session,
+                clusterType, result, task);
+        roleAnalysisClusterDetectionTypeList.addAll(clusterDetectionTypeList);
 
         return roleAnalysisClusterDetectionTypeList;
     }
@@ -117,7 +121,8 @@ public class DefaultPatternResolver {
             @NotNull OperationResult operationResult,
             @NotNull Task task) {
         List<DetectedPattern> possibleBusinessRole;
-        RoleAnalysisProcessModeType mode = session.getProcessMode();
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisProcessModeType mode = analysisOption.getProcessMode();
 
         MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareCompressedMiningStructure(
                 clusterType, false, roleAnalysisProcessModeType, operationResult, task);

@@ -76,7 +76,7 @@ public class UpgradeObjectHandler {
                 continue;
             }
 
-            ItemPath path = item.getItem().getItemPath();
+            ItemPath path = item.getItem().path();
 
             UpgradeObjectProcessor<O> processor = UpgradeProcessor.getProcessor(identifier);
             if (processor == null) {
@@ -112,7 +112,7 @@ public class UpgradeObjectHandler {
                         return false;
                     }
 
-                    ItemPath path = item.getItem().getItemPath();
+                    ItemPath path = item.getItem().path();
                     if (path == null) {
                         return true;
                     }

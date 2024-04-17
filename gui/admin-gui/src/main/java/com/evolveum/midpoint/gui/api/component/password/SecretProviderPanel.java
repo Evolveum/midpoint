@@ -20,16 +20,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Panel for SecretProvider
@@ -45,6 +48,8 @@ public class SecretProviderPanel extends BasePanel<ExternalDataType> {
     private static final String ID_PROVIDER_IDENTIFIER_LABEL = "providerIdentifierLabel";
     private static final String ID_PROVIDER_KEY = "providerKey";
 
+    private LoadableDetachableModel<List<SecretProvider>> secretProviders;
+
     public SecretProviderPanel(String id, IModel<ExternalDataType> model) {
         super(id, model);
     }
@@ -52,7 +57,29 @@ public class SecretProviderPanel extends BasePanel<ExternalDataType> {
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        initModels();
         initLayout();
+    }
+
+    private void initModels() {
+        secretProviders = new LoadableDetachableModel<>() {
+            @Override
+            protected List<SecretProvider> load() {
+                ArrayList<SecretProvider> identifiers = new ArrayList<>();
+
+                Protector protector = getProtector();
+                if (protector instanceof SecretsResolver resolver) {
+                    identifiers.addAll(
+                            getParentPage().getSecretsProviderManager().getSecretsProviderDescriptions(resolver)
+                                    .entrySet().stream()
+                                    .map(entry -> new SecretProvider(
+                                            entry.getKey(),
+                                            LocalizationUtil.translatePolyString(entry.getValue().getLabel())))
+                                    .toList());
+                }
+                return identifiers;
+            }
+        };
     }
 
     private void initLayout() {
@@ -71,7 +98,10 @@ public class SecretProviderPanel extends BasePanel<ExternalDataType> {
                 if (getModelObject() == null || StringUtils.isEmpty(getModelObject().getProvider())) {
                     return LocalizationUtil.translate("SecretProviderPanel.emptyIdentifier");
                 }
-                return getModelObject().getProvider();
+                Optional<SecretProvider> secretProvider = getIdentifiers().stream()
+                        .filter(provider -> provider.identifier.equals(getModelObject().getProvider()))
+                        .findFirst();
+                return secretProvider.isPresent() ? secretProvider.get().displayName : getModelObject().getProvider();
             }
 
             @Override
@@ -159,6 +189,9 @@ public class SecretProviderPanel extends BasePanel<ExternalDataType> {
                 refreshFeedback(target);
             }
         });
+        providerKeyPanel.getBaseFormComponent().add(AttributeAppender.append(
+                "placeholder",
+                LocalizationUtil.translate("SecretProviderPanel.key.placeholder")));
         providerKeyPanel.setOutputMarkupId(true);
         add(providerKeyPanel);
     }
@@ -167,20 +200,7 @@ public class SecretProviderPanel extends BasePanel<ExternalDataType> {
     }
 
     private List<SecretProvider> getIdentifiers() {
-
-        ArrayList<SecretProvider> identifiers = new ArrayList<>();
-
-        Protector protector = getProtector();
-        if (protector instanceof SecretsResolver resolver) {
-            identifiers.addAll(
-                    getPageBase().getSecretsProviderManager().getSecretsProviderDescriptions(resolver)
-                            .entrySet().stream()
-                            .map(entry -> new SecretProvider(
-                                    entry.getKey(),
-                                    LocalizationUtil.translatePolyString(entry.getValue().getLabel())))
-                            .toList());
-        }
-        return identifiers;
+        return secretProviders.getObject();
     }
 
     private Protector getProtector() {
@@ -199,7 +219,7 @@ public class SecretProviderPanel extends BasePanel<ExternalDataType> {
     }
 
     public FormComponent getKeyTextPanel() {
-        return ((TextPanel)get(ID_PROVIDER_KEY)).getBaseFormComponent();
+        return ((TextPanel) get(ID_PROVIDER_KEY)).getBaseFormComponent();
     }
 
 }

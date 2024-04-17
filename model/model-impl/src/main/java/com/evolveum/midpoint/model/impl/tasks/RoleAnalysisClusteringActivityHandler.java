@@ -17,7 +17,7 @@ import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.ClusteringActionExecutor;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.context.ClusteringActionExecutor;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;

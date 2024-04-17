@@ -1,4 +1,6 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
 .*Create a new User object in MidPoint with file data source*
 [source,bash]
 ----

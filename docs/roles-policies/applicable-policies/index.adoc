@@ -1,3 +1,7 @@
+---
+midpoint-feature: applicable-policies
+doc-type: intro
+---
 = User-Friendly Policy Selection
 :page-wiki-name: User-Friendly Policy Selection
 :page-wiki-id: 24676710
@@ -7,8 +11,7 @@
 :page-wiki-metadata-modify-date: 2018-04-09T18:34:20.259+02:00
 :page-since: "3.8"
 :page-toc: top
-:page-midpoint-feature: true
-:page-alias: [ { "parent" : "/midpoint/features/current/" }, { "parent" : "/midpoint/reference/admin-gui/" } ]
+:page-alias: [ { "parent" : "/midpoint/reference/admin-gui/" } ]
 :page-upkeep-status: yellow
 
 == Introduction

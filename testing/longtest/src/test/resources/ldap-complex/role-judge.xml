@@ -23,10 +23,7 @@
                     <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:equal>
-                                    <q:path>attributes/cn</q:path>
-                                    <q:value>judges</q:value>
-                                </q:equal>
+                                 <q:text>attributes/cn = "judges"</q:text>
                             </filter>
                             <searchStrategy>onResource</searchStrategy>
                         </associationTargetSearch>

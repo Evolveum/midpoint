@@ -1,3 +1,7 @@
+---
+midpoint-feature: resource-schema
+doc-type: intro
+---
 = Resource Schema
 :page-wiki-name: Resource Schema
 :page-wiki-id: 655397

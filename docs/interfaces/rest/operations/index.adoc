@@ -3,6 +3,7 @@
 :page-display-order: 100
 :page-toc: top
 :page-keywords: [ 'rest', 'operation', 'operations']
+:page-upkeep-status: green
 
 == Supported Operations
 

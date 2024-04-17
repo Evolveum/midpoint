@@ -18,6 +18,7 @@ public enum ApprovalOutcomeIcon {
     IN_PROGRESS(GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED, "MyRequestsPanel.inProgress"),
     FUTURE(GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_FUTURE_COLORED, "MyRequestsPanel.future"),
     CANCELLED(GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_CANCELLED_COLORED, "MyRequestsPanel.cancelled"),
+    UNRECOGNIZED(GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_UNRECOGNIZED_COLORED, "MyRequestsPanel.unrecognized"),
     EMPTY("", "");      // to be used for cases when it won't be really displayed; reconsider this
 
     private String icon;

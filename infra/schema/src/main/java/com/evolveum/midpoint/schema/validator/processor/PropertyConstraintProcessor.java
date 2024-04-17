@@ -55,7 +55,7 @@ public class PropertyConstraintProcessor implements UpgradeObjectProcessor<Objec
         PrismContainer<?> newContainer = object.findOrCreateContainer(itemConstraint);
 
         for (PrismContainerValue<?> value : container.getValues()) {
-            newContainer.getValues().add((PrismContainerValue) value.clone());
+            newContainer.add((PrismContainerValue) value.clone());
         }
 
         container.getParent().remove(container);

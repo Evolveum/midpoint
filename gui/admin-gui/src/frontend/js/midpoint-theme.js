@@ -6,6 +6,8 @@
  */
 
 import Sparkline from "sparklines";
+import { TempusDominus } from '@eonasdan/tempus-dominus';
+import { DateTime } from '@eonasdan/tempus-dominus/dist/js/tempus-dominus.js';
 
 export default class MidPointTheme {
 
@@ -217,6 +219,15 @@ export default class MidPointTheme {
                     });
                 });
     }
+
+initDateTimePicker(containerId, configuration) {
+    new TempusDominus(containerId, configuration);
+}
+
+createCurrentDateForDatePicker(containerId, configuration) {
+    const date = new Date();
+    return new DateTime(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+}
 
 breakLongerTextInTableCell(cellId) {
     $("#" + cellId).css("word-break", function (index, origValue) {

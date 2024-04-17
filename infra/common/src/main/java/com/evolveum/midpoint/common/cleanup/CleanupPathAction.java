@@ -25,8 +25,8 @@ public enum CleanupPathAction {
     /**
      * Consumer is asked what to do.
      *
-     * @see CleanupListener
-     * @see CleanupActionProcessor#setListener(CleanupListener)
+     * @see CleanerListener
+     * @see ObjectCleaner#setListener(CleanerListener)
      */
     ASK;
 }

@@ -1,3 +1,7 @@
+---
+midpoint-feature: [ 'entitlement', 'entitlement-association' ]
+doc-type: intro
+---
 = Entitlements
 :page-wiki-name: Entitlements
 :page-wiki-id: 13598822
@@ -7,8 +11,6 @@
 :page-wiki-metadata-modify-date: 2020-03-31T14:52:37.580+02:00
 :page-toc: top
 :page-since: "3.0"
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 == Introduction

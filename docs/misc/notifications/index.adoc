@@ -1,3 +1,7 @@
+---
+midpoint-feature: notifications
+doc-type: intro
+---
 = Notifications
 :page-wiki-name: Notifications
 :page-wiki-id: 9895968
@@ -5,8 +9,6 @@
 :page-wiki-metadata-create-date: 2013-05-24T17:23:00.357+02:00
 :page-wiki-metadata-modify-user: kjires
 :page-wiki-metadata-modify-date: 2020-12-04T14:29:08.100+01:00
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange
 :page-display-order: 100
 :page-toc: top

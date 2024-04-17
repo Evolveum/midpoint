@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 import java.util.*;
 import java.util.stream.IntStream;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -36,9 +38,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Utility class for resolving cell colors and status in the context of role analysis tables.
@@ -74,7 +73,7 @@ public class RoleAnalysisTableCellFillResolver {
      * @param rowModel The row model (properties to compare).
      * @param colModel The column model (members to compare).
      */
-    public static <T extends MiningBaseTypeChunk> void resolveCellTypeUserTable(@NotNull String componentId,
+    public static <T extends MiningBaseTypeChunk> boolean resolveCellTypeUserTable(@NotNull String componentId,
             Item<ICellPopulator<MiningRoleTypeChunk>> cellItem,
             MiningRoleTypeChunk rowModel,
             MiningUserTypeChunk colModel,
@@ -106,10 +105,10 @@ public class RoleAnalysisTableCellFillResolver {
         if (rowStatus.isDisable() || colStatus.isDisable()) {
             if (isCandidate) {
                 disabledCell(componentId, cellItem);
-                return;
+                return false;
             }
             emptyCell(componentId, cellItem);
-            return;
+            return false;
         }
         int size = duplicatedElements.size();
 
@@ -117,23 +116,23 @@ public class RoleAnalysisTableCellFillResolver {
             if (isCandidate) {
                 if (size > 1) {
                     reducedDuplicateCell(componentId, cellItem, duplicatedElements);
-                    return;
+                    return false;
                 } else if (size == 1) {
                     reducedCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
-                    return;
+                    return true;
                 }
                 reducedCell(componentId, cellItem, "#28A745", duplicatedElements);
-                return;
+                return true;
             } else if (secondStage) {
                 if (size > 1) {
                     additionalDuplicateCell(componentId, cellItem, duplicatedElements);
-                    return;
+                    return false;
                 } else if (size == 1) {
                     additionalCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
-                    return;
+                    return true;
                 }
                 additionalCell(componentId, cellItem, "#28A745", duplicatedElements);
-                return;
+                return true;
             }
         }
 
@@ -142,9 +141,10 @@ public class RoleAnalysisTableCellFillResolver {
         } else {
             emptyCell(componentId, cellItem);
         }
+        return false;
     }
 
-    public static <T extends MiningBaseTypeChunk> void resolveCellTypeRoleTable(@NotNull String componentId,
+    public static <T extends MiningBaseTypeChunk> boolean resolveCellTypeRoleTable(@NotNull String componentId,
             Item<ICellPopulator<MiningUserTypeChunk>> cellItem,
             @NotNull T rowModel,
             @NotNull T colModel,
@@ -174,10 +174,10 @@ public class RoleAnalysisTableCellFillResolver {
         if (rowStatus.isDisable() || colStatus.isDisable()) {
             if (isCandidate) {
                 disabledCell(componentId, cellItem);
-                return;
+                return false;
             }
             emptyCell(componentId, cellItem);
-            return;
+            return false;
         }
         int size = duplicatedElements.size();
 
@@ -185,23 +185,24 @@ public class RoleAnalysisTableCellFillResolver {
             if (isCandidate) {
                 if (size > 1) {
                     reducedDuplicateCell(componentId, cellItem, duplicatedElements);
-                    return;
+                    return false;
                 } else if (size == 1) {
+
                     reducedCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
-                    return;
+                    return true;
                 }
                 reducedCell(componentId, cellItem, "#28A745", duplicatedElements);
-                return;
+                return true;
             } else if (secondStage) {
                 if (size > 1) {
                     additionalDuplicateCell(componentId, cellItem, duplicatedElements);
-                    return;
+                    return false;
                 } else if (size == 1) {
                     additionalCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
-                    return;
+                    return true;
                 }
                 additionalCell(componentId, cellItem, "#28A745", duplicatedElements);
-                return;
+                return true;
             }
         }
 
@@ -210,6 +211,7 @@ public class RoleAnalysisTableCellFillResolver {
         } else {
             emptyCell(componentId, cellItem);
         }
+        return false;
     }
 
     /**
@@ -388,8 +390,10 @@ public class RoleAnalysisTableCellFillResolver {
                 List<String> properties = new ArrayList<>(mappedMembers.get(detectedPatternRole));
                 PrismObject<RoleType> roleTypeObject = roleAnalysisService.getRoleTypeObject(detectedPatternRole, task, result);
                 String chunkName = "Unknown";
+                String iconColor = null;
                 if (roleTypeObject != null) {
                     chunkName = roleTypeObject.getName().toString();
+                    iconColor = roleAnalysisService.resolveFocusObjectIconColor(roleTypeObject.asObjectable(), task, result);
                 }
 
                 MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(
@@ -398,6 +402,9 @@ public class RoleAnalysisTableCellFillResolver {
                         chunkName,
                         100.0,
                         roleAnalysisObjectStatus);
+                if (iconColor != null) {
+                    miningRoleTypeChunk.setIconColor(iconColor);
+                }
                 roles.add(miningRoleTypeChunk);
             }
 
@@ -408,9 +415,11 @@ public class RoleAnalysisTableCellFillResolver {
                 PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(detectedPatternUser, task, result);
                 List<String> properties = new ArrayList<>();
                 String chunkName = "Unknown";
+                String iconColor = null;
                 if (userTypeObject != null) {
                     chunkName = userTypeObject.getName().toString();
                     properties = getRolesOidAssignment(userTypeObject.asObjectable());
+                    iconColor = roleAnalysisService.resolveFocusObjectIconColor(userTypeObject.asObjectable(), task, result);
                 }
 
                 MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(
@@ -419,6 +428,11 @@ public class RoleAnalysisTableCellFillResolver {
                         chunkName,
                         100.0,
                         roleAnalysisObjectStatus);
+
+                if (iconColor != null) {
+                    miningUserTypeChunk.setIconColor(iconColor);
+                }
+
                 users.add(miningUserTypeChunk);
             }
         }

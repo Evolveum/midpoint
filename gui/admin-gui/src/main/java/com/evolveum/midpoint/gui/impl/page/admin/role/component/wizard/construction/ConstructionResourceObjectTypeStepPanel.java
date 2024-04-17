@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -138,7 +139,9 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
                             String description = oc.getDescription();
 
                             String name;
-                            if (oc.isDefaultForKind()) {
+                            if (StringUtils.isNotBlank(oc.getDisplayName())) {
+                                name = oc.getDisplayName();
+                            } else if (oc.isDefaultForKind()) {
                                 name = createStringResource(
                                         "ConstructionResourceObjectTypeStepPanel.isDefaultForKindName",
                                         createStringResource(oc.getKind()).getString()).getString();
@@ -210,7 +213,7 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
                             }
                             return active +
                                     "catalog-tile-panel card mb-0 simple-tile selectable tile-panel "
-                                    + "d-flex flex-column align-items-center rounded p-3";
+                                    + "d-flex flex-column justify-content-center align-items-center rounded p-3";
                         }));
             }
 
@@ -224,6 +227,11 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
                 target.add(ConstructionResourceObjectTypeStepPanel.this.get(ID_TILES_CONTAINER));
 
                 target.add(getNext());
+            }
+
+            @Override
+            protected VisibleEnableBehaviour getDescriptionBehaviour() {
+                return new VisibleBehaviour(() ->StringUtils.isNotBlank(getModelObject().getDescription()));
             }
         };
     }

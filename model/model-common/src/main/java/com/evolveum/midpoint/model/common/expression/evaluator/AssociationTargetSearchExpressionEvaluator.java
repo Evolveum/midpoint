@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
@@ -110,19 +112,23 @@ public class AssociationTargetSearchExpressionEvaluator
                 return newAssociationValue.clone(); // It needs to be parent-less when included in the output triple
             }
 
-            @Override
-            protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params)
-                    throws ExpressionEvaluationException {
+            private ResourceObjectTypeDefinition associationTargetDef(ExpressionEvaluationContext params) throws ExpressionEvaluationException {
                 @SuppressWarnings("unchecked")
                 var rAssocTargetDefTypedValue = (TypedValue<ResourceObjectTypeDefinition>)
                         params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
                 if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
                     throw new ExpressionEvaluationException(
                             String.format("No association target object definition variable in %s; the expression may be used in"
-                                    + " a wrong place. It is only supposed to create an association.",
+                                            + " a wrong place. It is only supposed to create an association.",
                                     params.getContextDescription()));
                 }
-                ResourceObjectTypeDefinition rAssocTargetDef = (ResourceObjectTypeDefinition) rAssocTargetDefTypedValue.getValue();
+                return (ResourceObjectTypeDefinition) rAssocTargetDefTypedValue.getValue();
+            }
+
+            @Override
+            protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params)
+                    throws ExpressionEvaluationException {
+                var rAssocTargetDef = associationTargetDef(params);
                 ObjectFilter coordinatesFilter = prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_RESOURCE_REF).ref(rAssocTargetDef.getResourceOid())
                         .and().item(ShadowType.F_KIND).eq(rAssocTargetDef.getKind())
@@ -132,6 +138,13 @@ public class AssociationTargetSearchExpressionEvaluator
                         prismContext.queryFactory()
                                 .createAnd(coordinatesFilter, query.getFilter()));
                 return query;
+            }
+
+            @Override
+            protected ObjectQuery createRawQuery(SearchFilterType filter, ExpressionEvaluationContext params) throws SchemaException, ExpressionEvaluationException {
+                var concreteShadowDef = associationTargetDef(params).getPrismObjectDefinition();
+                var objFilter = prismContext.getQueryConverter().createObjectFilter(concreteShadowDef, filter);
+                return prismContext.queryFactory().createQuery(objFilter);
             }
 
             @Override

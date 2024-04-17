@@ -1,4 +1,6 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
 .*Generate a Password for User*
 [source,bash]
 ----

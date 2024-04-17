@@ -25,6 +25,7 @@ import javax.xml.transform.dom.DOMSource;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.staxmate.dom.DOMConverter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -185,6 +186,7 @@ public class LegacyValidator<T extends Containerable> {
             Map<String, String> rootNamespaceDeclarations = new HashMap<>();
 
             XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+//            xmlInputFactory.setProperty(XMLInputFactory2.P_REPORT_CDATA, false);
             stream = xmlInputFactory.createXMLStreamReader(inputStream);
 
             int eventType = stream.nextTag();

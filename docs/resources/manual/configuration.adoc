@@ -1,3 +1,7 @@
+---
+midpoint-feature: manual-resources
+doc-type: config
+---
 = Manual Resource Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Manual Resource Configuration

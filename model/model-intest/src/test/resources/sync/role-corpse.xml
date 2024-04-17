@@ -25,10 +25,7 @@
                     <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:equal>
-                                    <q:path>attributes/name</q:path>
-                                    <q:value>corpses</q:value>
-                                </q:equal>
+                                 <q:text>attributes/name = "corpses"</q:text>
                             </filter>
                             <searchStrategy>onResourceIfNeeded</searchStrategy>
                         </associationTargetSearch>

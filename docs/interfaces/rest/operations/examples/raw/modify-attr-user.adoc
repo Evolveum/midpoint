@@ -1,4 +1,6 @@
 :page-visibility: hidden
+:page-upkeep-status: green
+
 .*Modification of an attribute for specific user*
 [source,bash]
 ----

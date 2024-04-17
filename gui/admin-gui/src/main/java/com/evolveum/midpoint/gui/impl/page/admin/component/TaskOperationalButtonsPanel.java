@@ -133,7 +133,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         });
         saveButton.setOutputMarkupId(true);
         saveButton.setOutputMarkupPlaceholderTag(true);
-        saveButton.add(AttributeAppender.append("class", "btn-primary btn-sm"));
+        saveButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
         repeatingView.add(saveButton);
     }
 

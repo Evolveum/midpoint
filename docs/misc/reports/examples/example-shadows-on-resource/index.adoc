@@ -6,142 +6,51 @@
 :page-wiki-metadata-create-date: 2020-05-04T11:22:23.046+02:00
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2020-05-04T13:07:47.860+02:00
+:page-upkeep-status: green
 
 Please see xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration] for basic information about configuration variables.
 
 
-== Usecase
+== Example Use-case
 
-Administrator needs display all shadows on resource with actual state.
+Administrator needs to display all shadows on resource with actual state.
 
 
 == Configuration
 
-As first we need configure object collection for shadows of concrete resource and kind.
+As first, we need to configure an object collection for shadows of a specific resource and the kind of object of managed in the resource.
 
-.Object collection
-[source,xml]
-----
-<objectCollection oid="72b1f98e-f587-4b9f-b92b-72e251dbb244">
-    <name>Account shadow R1</name>
-    <type>ShadowType</type>
-    <filter>
-        <and>
-            <ref>
-                <path>resourceRef</path>
-                <value oid="---RESOURCE_OID---"/>
-            </ref>
-            <equal>
-                <path>kind</path>
-                <value>account</value>
-            </equal>
-        </and>
-    </filter>
-</objectCollection>
+.*Example Object Collection*
+[%collapsible]
+====
+sampleRef::samples/objectCollection/resource-account-shadows.xml[]
+====
 
 
-----
+The import Dashboard object with widget for our object collection.
 
-Please replace_ '---RESOURCE_OID---_' with oid of your resource.
+.*Example Dashboard configuration*
+[%collapsible]
+====
+sampleRef::samples/dashboard/shadow-dashboard.xml[]
+====
 
-When we have object collection, then import Dashboard object with widget for our object collection.
+We want report with the table of shadow, for this we can import the following dashboard report.
 
-.Dashboard
-[source,xml]
-----
-<dashboard oid="72b1f98e-f587-4b9f-b92b-72e251da1234">
-    <name>shadow-dashboard</name>
-    <display>
-        <label>Shadow dashboard</label>
-    </display>
-    <widget>
-        <identifier>shadow</identifier>
-        <display>
-            <label>Resource R1; ACCOUNT</label>
-            <color>#00a65a</color>
-            <icon>
-                <cssClass>fa fa-user</cssClass>
-            </icon>
-        </display>
-        <data>
-            <sourceType>objectCollection</sourceType>
-            <collection>
-                <collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb244" type="ObjectCollectionType"/>
-            </collection>
-        </data>
-        <presentation>
-            <dataField>
-                <fieldType>value</fieldType>
-                <expression>
-                    <proportional>
-                        <style>value-only</style>
-                    </proportional>
-                </expression>
-            </dataField>
-            <dataField>
-                <fieldType>unit</fieldType>
-                <expression>
-                    <value>shadows</value>
-                </expression>
-            </dataField>
-            <view>
-                <column>
-                    <name>nameColumn</name>
-                    <path>name</path>
-                    <display>
-                        <label>Name</label>
-                    </display>
-                </column>
-                <column>
-                    <name>kindColumn</name>
-                    <path>intent</path>
-                    <display>
-                        <label>Kind</label>
-                    </display>
-                    <previousColumn>nameColumn</previousColumn>
-                </column>
-                <column>
-                    <name>intentColumn</name>
-                    <path>kind</path>
-                    <display>
-                        <label>Intent</label>
-                    </display>
-                    <previousColumn>kindColumn</previousColumn>
-                </column>
-                <column>
-                    <name>synchronizationColumn</name>
-                    <path>synchronizationSituation</path>
-                    <display>
-                        <label>Synchronization</label>
-                    </display>
-                    <previousColumn>intentColumn</previousColumn>
-                </column>
-            </view>
-        </presentation>
-    </widget>
-</dashboard>
-----
+.*Example Report configuration*
+[%collapsible]
+====
+sampleRef::samples/reports/dashboard-report-shadows-of-resource.xml[]
+====
 
-After successful import of dashboard object and reload of page you can see dashboard in menu *Dashboards* > *Shadow dashboard*.
+Now we can run the report in the report menu, and download the report.
+By default, the reports created from dashboards are in the HTML format.
 
-We want report with table of shadow, so we import dashboard report.
+== See Also
 
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/concepts/query/#reference-query[Reference Query]
 
-.Report
-[source,xml]
-----
-<report>
-    <name>Shadow dashboard report</name>
-    <reportEngine>dashboard</reportEngine>
-    <dashboard>
-        <dashboardRef oid="72b1f98e-f587-4b9f-b92b-72e251da1234" type="DashboardType"/>
-    </dashboard>
-</report>
-----
-
-Now we can run report in report menu, show task, and download report.
-Every report from dashboard is in HTML format.
-
-Report:
-
-image::image2020-5-4_12-32-9.png[]

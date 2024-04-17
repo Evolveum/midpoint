@@ -1,8 +1,14 @@
+---
+midpoint-feature: pdrbac
+doc-type: intro
+compliance:
+    iso27001:
+        '5.15':
+            description: 'Policy-driven RBAC as an access control mechanism that is based on roles and it includes dynamic policy elements'
+---
 = Policy-Driven Role-Based Access Control
 :page-nav-title: Policy-Driven RBAC
 :page-toc: top
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: green
 
 == Introduction

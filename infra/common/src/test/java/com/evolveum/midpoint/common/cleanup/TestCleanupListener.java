@@ -11,32 +11,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
-public class TestCleanupListener implements CleanupListener {
+public class TestCleanupListener extends DefaultCleanupListener {
 
     private List<CleanupEvent<Item<?, ?>>> optionalCleanupEvents = new ArrayList<>();
 
     private List<CleanupEvent<PrismReference>> referenceCleanupEvents = new ArrayList<>();
 
-    private List<CleanupEvent<PrismProperty<ProtectedStringType>>> protectedStringCleanupEvents = new ArrayList<>();
+    public TestCleanupListener() {
+        super(PrismTestUtil.getPrismContext());
+    }
 
     @Override
     public boolean onConfirmOptionalCleanup(CleanupEvent<Item<?, ?>> event) {
+        boolean result = super.onConfirmOptionalCleanup(event);
         optionalCleanupEvents.add(event);
+
         return true;
     }
 
     @Override
     public void onReferenceCleanup(CleanupEvent<PrismReference> event) {
-        referenceCleanupEvents.add(event);
-    }
+        super.onReferenceCleanup(event);
 
-    @Override
-    public void onProtectedStringCleanup(CleanupEvent<PrismProperty<ProtectedStringType>> event) {
-        protectedStringCleanupEvents.add(event);
+        referenceCleanupEvents.add(event);
     }
 
     public List<CleanupEvent<Item<?, ?>>> getOptionalCleanupEvents() {
@@ -45,9 +45,5 @@ public class TestCleanupListener implements CleanupListener {
 
     public List<CleanupEvent<PrismReference>> getReferenceCleanupEvents() {
         return referenceCleanupEvents;
-    }
-
-    public List<CleanupEvent<PrismProperty<ProtectedStringType>>> getProtectedStringCleanupEvents() {
-        return protectedStringCleanupEvents;
     }
 }

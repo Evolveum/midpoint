@@ -1,3 +1,7 @@
+---
+midpoint-feature: approval-process
+doc-type: example
+---
 = Approval examples
 :page-wiki-name: Approval examples
 :page-wiki-id: 24085020

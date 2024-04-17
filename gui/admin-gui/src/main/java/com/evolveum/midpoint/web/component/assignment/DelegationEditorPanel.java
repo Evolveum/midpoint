@@ -12,13 +12,13 @@ import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
@@ -258,13 +258,13 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     }
 
     protected void initBodyLayout(WebMarkupContainer body) {
-        DateInput validFrom = new DateInput(ID_DELEGATION_VALID_FROM,
+        DateTimePickerPanel validFrom = DateTimePickerPanel.createByDateModel(ID_DELEGATION_VALID_FROM,
                 AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
                     AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
         validFrom.setEnabled(getModel().getObject().isEditable());
         body.add(validFrom);
 
-        DateInput validTo = new DateInput(ID_DELEGATION_VALID_TO,
+        DateTimePickerPanel validTo = DateTimePickerPanel.createByDateModel(ID_DELEGATION_VALID_TO,
                 AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
                     AssignmentEditorDto.F_ACTIVATION + ".validTo")));
         validTo.setEnabled(getModel().getObject().isEditable());

@@ -1,3 +1,7 @@
+---
+midpoint-feature: provisioning-dependencies
+doc-type: intro
+---
 = Provisioning Dependencies
 :page-wiki-name: Provisioning Dependencies
 :page-wiki-id: 6586381
@@ -5,8 +9,6 @@
 :page-wiki-metadata-create-date: 2012-11-08T15:59:48.886+01:00
 :page-wiki-metadata-modify-user: vera
 :page-wiki-metadata-modify-date: 2020-01-22T10:08:31.217+01:00
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
 Usually each resource can be provisioned independently.

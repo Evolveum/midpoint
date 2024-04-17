@@ -17,17 +17,24 @@ import java.io.Serializable;
  * This enum provides chunk modes for role analysis, including EXPAND and COMPRESS.
  */
 public enum RoleAnalysisChunkMode implements Serializable {
-    EXPAND("EXPAND"),
-    COMPRESS("COMPRESS");
-
+    EXPAND("EXPAND", "Expand all"),
+    COMPRESS("COMPRESS", "Compress all"),
+    EXPAND_ROLE("EXPAND_ROLE", "Expand role"),
+    EXPAND_USER("EXPAND_USER", "Expand user");
     private final String displayString;
+    private final String value;
 
-    RoleAnalysisChunkMode(String displayString) {
+    RoleAnalysisChunkMode(String value, String displayString) {
         this.displayString = displayString;
+        this.value = value;
     }
 
     public String getDisplayString() {
         return displayString;
+    }
+
+    public String getValue() {
+        return value;
     }
 
 }

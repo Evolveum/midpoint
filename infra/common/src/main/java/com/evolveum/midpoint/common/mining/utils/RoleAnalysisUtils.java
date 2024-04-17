@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,11 +37,11 @@ public class RoleAnalysisUtils {
     public static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisUtils.class);
 
     public static AbstractAnalysisSessionOptionType getSessionOptionType(RoleAnalysisSessionType roleAnalysisSession) {
-        if (roleAnalysisSession == null || roleAnalysisSession.getProcessMode() == null) {
+        if (roleAnalysisSession == null || roleAnalysisSession.getAnalysisOption() == null) {
             return null;
         }
-
-        if (roleAnalysisSession.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
+        RoleAnalysisOptionType analysisOption = roleAnalysisSession.getAnalysisOption();
+        if (analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
             return roleAnalysisSession.getRoleModeOptions();
         }
         return roleAnalysisSession.getUserModeOptions();
@@ -68,6 +69,17 @@ public class RoleAnalysisUtils {
                 .map(AbstractReferencable::getOid)
                 .sorted()
                 .collect(Collectors.toList());
+    }
+
+    public static @NotNull List<String> getRoleMembershipRefAssignment(
+            @NotNull AssignmentHolderType object,
+            @NotNull QName complexType) {
+        List<ObjectReferenceType> refs = object.getRoleMembershipRef();
+        return refs.stream()
+                .filter(ref -> ref.getType().equals(complexType))
+                .map(AbstractReferencable::getOid)
+                .sorted()
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public static List<String> getRolesOidInducements(@NotNull PrismObject<RoleType> object) {

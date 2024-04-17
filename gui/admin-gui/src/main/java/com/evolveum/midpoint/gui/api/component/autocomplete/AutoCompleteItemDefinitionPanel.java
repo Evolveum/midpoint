@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,7 +25,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 
 public class AutoCompleteItemDefinitionPanel extends AbstractAutoCompletePanel {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
     private static final String ID_INPUT = "input";
 
      public AutoCompleteItemDefinitionPanel(String id, final IModel<ItemDefinition<?>> model) {
@@ -34,10 +35,10 @@ public class AutoCompleteItemDefinitionPanel extends AbstractAutoCompletePanel {
 
     private void initLayout(final IModel<ItemDefinition<?>> model) {
         final Model<String> itemDefinitionAsStringModel = new Model<>(null);
-        AutoCompleteTextField<String> input = new AutoCompleteTextField<String>(
+        AutoCompleteTextField<String> input = new AutoCompleteTextField<>(
                 ID_INPUT, itemDefinitionAsStringModel, String.class, createAutoCompleteSettings()) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Iterator<String> getChoices(String input) {
@@ -52,7 +53,7 @@ public class AutoCompleteItemDefinitionPanel extends AbstractAutoCompletePanel {
         };
 
          input.add(new OnChangeAjaxBehavior() {
-                private static final long serialVersionUID = 1L;
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {

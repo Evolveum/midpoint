@@ -20,18 +20,6 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "roleAnalysisPanel")
-@PanelInstance(
-        identifier = "clusterStatistic",
-        applicableForType = RoleAnalysisClusterType.class,
-        display = @PanelDisplay(
-                label = "AnalysisClusterStatisticType.clusterStatistic",
-                icon = GuiStyleConstants.CLASS_REPORT_ICON,
-                order = 40
-        ),
-        containerPath = "clusterStatistics",
-        type = "AnalysisClusterStatisticType",
-        expanded = true
-)
 
 @PanelInstance(
         identifier = "detectionOption",
@@ -56,6 +44,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         ),
         containerPath = "roleModeOptions",
         type = "RoleAnalysisSessionOptionType",
+        expanded = true)
+
+@PanelInstance(
+        identifier = "matchingOptions",
+        applicableForType = RoleAnalysisSessionType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisSessionType.matchingOptions",
+                icon = GuiStyleConstants.CLASS_OPTIONS,
+                order = 40
+        ),
+        containerPath = "matchingRule",
+        type = "RoleAnalysisMatchingRuleType",
         expanded = true)
 
 @PanelInstance(

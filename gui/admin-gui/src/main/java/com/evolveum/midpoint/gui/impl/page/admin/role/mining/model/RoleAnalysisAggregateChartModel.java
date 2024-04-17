@@ -14,6 +14,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.wicket.chartjs.*;
 
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The RoleAnalysisAggregateChartModel class is a LoadableModel that generates aggregate
@@ -22,10 +23,11 @@ import com.evolveum.wicket.chartjs.*;
 public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfiguration> {
 
     LoadableDetachableModel<List<RoleAnalysisModel>> roleAnalysisModels;
+    boolean isLineChart = true;
 
-    public RoleAnalysisAggregateChartModel(LoadableDetachableModel<List<RoleAnalysisModel>> roleAnalysisModel) {
+    public RoleAnalysisAggregateChartModel(LoadableDetachableModel<List<RoleAnalysisModel>> roleAnalysisModel, boolean isLineChart) {
         this.roleAnalysisModels = roleAnalysisModel;
-
+        this.isLineChart = isLineChart;
     }
 
     @Override
@@ -33,16 +35,25 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
         return createChartConfiguration();
     }
 
-    private ChartConfiguration createChartConfiguration() {
-        BarChartConfiguration chart = new BarChartConfiguration();
+    private @NotNull ChartConfiguration createChartConfiguration() {
 
-        ChartData chartData = createDataset();
-        chart.setData(chartData);
-        chart.setOptions(createChartOptions());
-        return chart;
+        if (isLineChart) {
+            LineChartConfiguration chart = new LineChartConfiguration();
+            ChartData chartData = createDataset();
+            chart.setData(chartData);
+            chart.setOptions(createChartOptions());
+            return chart;
+        } else {
+            BarChartConfiguration chart = new BarChartConfiguration();
+            ChartData chartData = createDataset();
+            chart.setData(chartData);
+            chart.setOptions(createChartOptions());
+            return chart;
+        }
+
     }
 
-    private ChartData createDataset() {
+    private @NotNull ChartData createDataset() {
         ChartData chartData = new ChartData();
 
         ChartDataset datasetUsers = new ChartDataset();
@@ -52,6 +63,13 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
         ChartDataset datasetRoles = new ChartDataset();
         datasetRoles.setLabel("Roles");
         datasetRoles.addBackgroudColor("Green");
+
+        if (isLineChart) {
+            datasetUsers.addBorderColor("Red");
+            datasetUsers.setBorderWidth(1);
+            datasetRoles.addBorderColor("Green");
+            datasetRoles.setBorderWidth(1);
+        }
 
         List<RoleAnalysisModel> object = roleAnalysisModels.getObject();
         for (RoleAnalysisModel roleAnalysisModel : object) {
@@ -67,10 +85,14 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
         return chartData;
     }
 
-    private ChartOptions createChartOptions() {
-        ChartOptions options = new ChartOptions();
+    private @NotNull RoleAnalysisChartOptions createChartOptions() {
+        RoleAnalysisChartOptions options = new RoleAnalysisChartOptions();
         options.setLegend(createLegendOptions());
         options.setIndexAxis(IndexAxis.AXIS_X.getValue());
+
+//        if (roleAnalysisModels.getObject().size() < 10) {
+//            options.setBarPercentage(0.2);
+//        }
         return options;
     }
 

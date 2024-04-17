@@ -14,18 +14,19 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
     private double eps;
     private int minPts;
     int minPropertiesOverlap;
+    boolean rule;
 
     private static final Trace LOGGER = TraceManager.getTrace(DensityBasedClustering.class);
 
     /**
      * Constructs a DensityBasedClustering instance with the specified parameters.
      *
-     * @param eps               The epsilon parameter for distance-based clustering.
-     * @param minPts            The minimum number of points required to form a dense cluster.
-     * @param measure           The distance measure for clustering.
-     * @param minRolesOverlap   The minimum properties overlap required for adding a point to a cluster.
+     * @param eps The epsilon parameter for distance-based clustering.
+     * @param minPts The minimum number of points required to form a dense cluster.
+     * @param measure The distance measure for clustering.
+     * @param minRolesOverlap The minimum properties overlap required for adding a point to a cluster.
      */
-    public DensityBasedClustering(double eps, int minPts, DistanceMeasure measure, int minRolesOverlap) {
+    public DensityBasedClustering(double eps, int minPts, DistanceMeasure measure, int minRolesOverlap, boolean rule) {
         super(measure);
 
         if (eps < 0.0) {
@@ -41,6 +42,7 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
                     eps, minPts, this.eps, this.minPts);
         }
 
+        this.rule = rule;
         this.minPropertiesOverlap = minRolesOverlap;
 
     }
@@ -48,13 +50,15 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
     /**
      * Performs density-based clustering on the provided collection of data points.
      *
-     * @param points   The collection of data points to cluster.
-     * @param handler  The progress increment handler for tracking the execution progress.
+     * @param points The collection of data points to cluster.
+     * @param handler The progress increment handler for tracking the execution progress.
      * @return A list of clusters containing the clustered data points.
      */
     public List<Cluster<T>> cluster(Collection<T> points, RoleAnalysisProgressIncrement handler) {
         List<Cluster<T>> clusters = new ArrayList<>();
         Map<Clusterable, PointStatus> visited = new HashMap<>();
+
+        Set<ClusterExplanation> explanation = new HashSet<>();
 
         handler.setActive(true);
         handler.enterNewStep("Clustering");
@@ -63,14 +67,20 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
             handler.iterateActualStatus();
 
             if (visited.get(point) == null) {
-                List<T> neighbors = this.getNeighbors(point, points);
+                List<T> neighbors = this.getNeighbors(point, points, rule, explanation);
                 int neighborsSize = getNeightborsSize(neighbors);
 
-                if (neighborsSize >= this.minPts || (point.getMembersCount() >= this.minPts && point.getPoint().size() >= minPropertiesOverlap)) {
+                if (neighborsSize >= this.minPts
+                        || (point.getMembersCount() >= this.minPts
+                        && point.getPoint().size() >= minPropertiesOverlap)) {
                     Cluster<T> cluster = new Cluster<>();
-                    clusters.add(this.expandCluster(cluster, point, neighbors, points, visited));
+                    Cluster<T> tCluster = this.expandCluster(cluster, point, neighbors, points, visited, explanation);
+                    tCluster.setExplanations(explanation);
+                    clusters.add(tCluster);
+                    explanation = new HashSet<>();
                 } else {
                     visited.put(point, PointStatus.NOISE);
+                    explanation = new HashSet<>();
                 }
             }
         }
@@ -79,7 +89,7 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
     }
 
     private Cluster<T> expandCluster(Cluster<T> cluster, T point, List<T> neighbors, Collection<T> points,
-            Map<Clusterable, PointStatus> visited) {
+            Map<Clusterable, PointStatus> visited, Set<ClusterExplanation> explanation) {
         cluster.addPoint(point);
         visited.put(point, PointStatus.PART_OF_CLUSTER);
         List<T> seeds = new ArrayList<>(neighbors);
@@ -88,7 +98,7 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
             T current = (T) ((List) seeds).get(index);
             PointStatus pStatus = visited.get(current);
             if (pStatus == null) {
-                List<T> currentNeighbors = this.getNeighbors(current, points);
+                List<T> currentNeighbors = this.getNeighbors(current, points, rule, explanation);
                 int currentNeighborsCount = getNeightborsSize(currentNeighbors);
                 if (currentNeighborsCount >= this.minPts) {
                     this.merge(seeds, currentNeighbors);
@@ -104,11 +114,32 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
         return cluster;
     }
 
-    private List<T> getNeighbors(T point, Collection<T> points) {
+    private List<T> getNeighbors(T point, Collection<T> points, boolean rule, Set<ClusterExplanation> explanation) {
+        if (rule) {
+            return getNeighborsRule(point, points, explanation);
+        } else {
+            return getNeighborsClean(point, points);
+        }
+    }
+
+    private List<T> getNeighborsClean(T point, Collection<T> points) {
         List<T> neighbors = new ArrayList<>();
 
         for (T neighbor : points) {
-            if (point != neighbor && this.distance(neighbor, point) <= this.eps) {
+            if (point != neighbor && this.accessDistance(neighbor, point) <= this.eps) {
+                neighbors.add(neighbor);
+            }
+        }
+
+        return neighbors;
+    }
+
+    private List<T> getNeighborsRule(T point, Collection<T> points, Set<ClusterExplanation> explanation) {
+        List<T> neighbors = new ArrayList<>();
+
+        for (T neighbor : points) {
+            if (point != neighbor && this.accessDistance(neighbor, point) <= this.eps
+                    && this.rulesDistance(neighbor.getExtensionProperties(), point.getExtensionProperties(), explanation) == 0) {
                 neighbors.add(neighbor);
             }
         }

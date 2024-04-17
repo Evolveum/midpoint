@@ -1,7 +1,7 @@
 = Supported Media Types
 :page-nav-title: Supported Media Types
 :page-display-order: 300
-
+:page-upkeep-status: green
 
 == Supported media types
 

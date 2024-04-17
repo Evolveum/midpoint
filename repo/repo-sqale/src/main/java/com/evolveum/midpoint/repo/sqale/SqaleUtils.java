@@ -40,7 +40,7 @@ public class SqaleUtils {
 
     public static final int CURRENT_SCHEMA_CHANGE_NUMBER = 28;
 
-    public static final int CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER = 8;
+    public static final int CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER = 9;
 
     /** User Data Key used to attach owner Oid to prism container values in order to propagate OID even if parent
      * full object is not present.
@@ -49,6 +49,7 @@ public class SqaleUtils {
      */
     public static final String OWNER_OID = "ownerOid";
     public static final String FULL_ID_PATH = "containerIdPath";
+    public static final String REINDEX_NEEDED = "sqale.reindexNeeded";
 
     /**
      * Returns version from midPoint object as a number.

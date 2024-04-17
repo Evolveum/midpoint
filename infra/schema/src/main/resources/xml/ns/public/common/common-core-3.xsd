@@ -8754,6 +8754,23 @@
     </xsd:complexType>
     <xsd:element name="role" type="tns:RoleType" substitutionGroup="tns:object"/>
 
+    <xsd:complexType name="PolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    FIXME
+                </p>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractRoleType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="policy" type="tns:PolicyType" substitutionGroup="tns:object"/>
+
     <xsd:element name="approverRef" type="tns:ObjectReferenceType" />
 
     <xsd:complexType name="AbstractConstructionType" abstract="true">
@@ -16510,6 +16527,28 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000330">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_CLASSIFICATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000331">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_CLEARANCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000332">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLASSIFICATION_PRIVILEGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+
             <xsd:enumeration value="00000000-0000-0000-0000-000000000501">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -16661,6 +16700,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHETYPE_OBJECT_INTEGRITY_CHECK_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000523">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SHADOW_RECLASSIFICATION_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

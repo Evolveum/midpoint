@@ -8,6 +8,10 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+
+import com.evolveum.midpoint.repo.sqale.qmodel.role.*;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -50,10 +54,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportDataMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.role.QAbstractRoleMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetypeMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.role.QRoleMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.role.QServiceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadowMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QProcessedObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QSimulationResultMapping;
@@ -201,6 +201,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(MarkType.COMPLEX_TYPE, QMarkMapping.init(repositoryContext))
                 .register(SchemaType.COMPLEX_TYPE, QSchemaMapping.init(repositoryContext))
                 .register(QAffectedObjectsMapping.init(repositoryContext))
+                .register(PolicyType.COMPLEX_TYPE, QPolicyMapping.init(repositoryContext))
                 .seal();
 
         return repositoryContext;

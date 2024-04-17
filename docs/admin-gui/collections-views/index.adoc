@@ -1,3 +1,7 @@
+---
+midpoint-feature: object-collection-and-view
+doc-type: intro
+---
 = Object Collections and Views
 :page-wiki-name: Object Collections and Views
 :page-wiki-id: 24676784
@@ -8,8 +12,6 @@
 :page-since: "4.0"
 :page-since-improved: [ "4.2", "4.3" ]
 :page-toc: top
-:page-midpoint-feature: true
-:page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: orange
 :page-upkeep-note: Document recent improvements (4.2, 4.3)
 

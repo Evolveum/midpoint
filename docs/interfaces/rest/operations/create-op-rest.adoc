@@ -3,6 +3,7 @@
 :page-display-order: 300
 :page-toc: top
 :page-keywords: [ 'rest', 'create', 'operation' ]
+:page-upkeep-status: green
 
 == Create With Rest
 Request to create a midPoint object based on data provided in the body of the request.
@@ -78,7 +79,15 @@ include::../../rest/concepts/raw/outcome.adoc[]
 
 == Access Authorization
 
+include::../operations/raw/a-auth.adoc[]
+
 - `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#addObject+`
+
+== Model Authorizations
+
+include::../operations/raw/m-auth.adoc[]
+
+- `+http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add+`
 
 == Examples
 
