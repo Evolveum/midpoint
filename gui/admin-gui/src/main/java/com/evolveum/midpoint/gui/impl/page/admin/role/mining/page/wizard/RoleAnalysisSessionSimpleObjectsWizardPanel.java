@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+
+import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -24,6 +28,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -96,6 +103,42 @@ public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWiz
             if (sessionType.getNewValue().getValue().getMinPropertiesOverlap() == null) {
                 setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, minObject);
             }
+
+            if(analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
+
+                AnalysisAttributeSettingType value = new AnalysisAttributeSettingType();
+                List<AnalysisAttributeRuleType> analysisAttributeRule = new ArrayList<>();
+                RoleAnalysisAttributeDef title = RoleAnalysisAttributeDefUtils.getTitle();
+                RoleAnalysisAttributeDef archetypeRef = RoleAnalysisAttributeDefUtils.getArchetypeRef();
+                RoleAnalysisAttributeDef locality = RoleAnalysisAttributeDefUtils.getLocality();
+                RoleAnalysisAttributeDef orgAssignment = RoleAnalysisAttributeDefUtils.getOrgAssignment();
+
+                analysisAttributeRule
+                        .add(new AnalysisAttributeRuleType()
+                                .attributeIdentifier(title.getDisplayValue())
+                                .propertyType(UserType.COMPLEX_TYPE));
+                analysisAttributeRule
+                        .add(new AnalysisAttributeRuleType()
+                                .attributeIdentifier(archetypeRef.getDisplayValue())
+                                .propertyType(UserType.COMPLEX_TYPE));
+                analysisAttributeRule
+                        .add(new AnalysisAttributeRuleType()
+                                .attributeIdentifier(locality.getDisplayValue())
+                                .propertyType(UserType.COMPLEX_TYPE));
+                analysisAttributeRule
+                        .add(new AnalysisAttributeRuleType()
+                                .attributeIdentifier(orgAssignment.getDisplayValue())
+                                .propertyType(UserType.COMPLEX_TYPE));
+                analysisAttributeRule
+                        .add(new AnalysisAttributeRuleType()
+                                .attributeIdentifier(archetypeRef.getDisplayValue())
+                                .propertyType(RoleType.COMPLEX_TYPE));
+
+                value.getAnalysisAttributeRule().addAll(analysisAttributeRule);
+                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING, value);
+            }
+            setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, minObject);
+
         } catch (SchemaException e) {
             throw new RuntimeException("Failed to update values session clustering options values", e);
         } catch (ObjectNotFoundException | SecurityViolationException | ConfigurationException |

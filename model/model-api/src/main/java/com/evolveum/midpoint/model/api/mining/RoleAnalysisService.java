@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -740,6 +742,10 @@ public interface RoleAnalysisService {
     String calculateAttributeConfidence(
             @NotNull RoleAnalysisProcessModeType processModeType,
             @NotNull AnalysisClusterStatisticType clusterStatistics);
+
+    List<RoleAnalysisAttributeDef> resolveRoleAttributes(@NotNull RoleAnalysisSessionType session);
+
+    List<RoleAnalysisAttributeDef> resolveUserAttributes(@NotNull RoleAnalysisSessionType session);
 
 
 }

@@ -9,14 +9,14 @@ package com.evolveum.midpoint.common.mining.objects.chunk;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 public class DisplayValueOption implements Serializable {
-    ItemPath roleItemValuePath;
-    ItemPath userItemValuePath;
+    RoleAnalysisAttributeDef roleAnalysisAttributeDef;
+    RoleAnalysisAttributeDef userAnalysisAttributeDef;
     RoleAnalysisSortMode sortMode;
     RoleAnalysisProcessModeType processMode;
     RoleAnalysisChunkMode chunkMode;
@@ -24,26 +24,29 @@ public class DisplayValueOption implements Serializable {
     public DisplayValueOption() {
     }
 
-    public DisplayValueOption(ItemPath roleItemValuePath, ItemPath userItemValuePath, RoleAnalysisSortMode sortMode) {
-        this.roleItemValuePath = roleItemValuePath;
-        this.userItemValuePath = userItemValuePath;
+    public DisplayValueOption(
+            RoleAnalysisAttributeDef roleAnalysisAttributeDef,
+            RoleAnalysisAttributeDef userAnalysisAttributeDef,
+            RoleAnalysisSortMode sortMode) {
+        this.roleAnalysisAttributeDef = roleAnalysisAttributeDef;
+        this.userAnalysisAttributeDef = userAnalysisAttributeDef;
         this.sortMode = sortMode;
     }
 
-    public ItemPath getRoleItemValuePath() {
-        return roleItemValuePath;
+    public RoleAnalysisAttributeDef getRoleAnalysisRoleDef() {
+        return roleAnalysisAttributeDef;
     }
 
-    public void setRoleItemValuePath(ItemPath roleItemValuePath) {
-        this.roleItemValuePath = roleItemValuePath;
+    public void setRoleAnalysisRoleDef(RoleAnalysisAttributeDef roleItemValuePath) {
+        this.roleAnalysisAttributeDef = roleItemValuePath;
     }
 
-    public ItemPath getUserItemValuePath() {
-        return userItemValuePath;
+    public RoleAnalysisAttributeDef getUserAnalysisUserDef() {
+        return userAnalysisAttributeDef;
     }
 
-    public void setUserItemValuePath(ItemPath userItemValuePath) {
-        this.userItemValuePath = userItemValuePath;
+    public void setUserAnalysisUserDef(RoleAnalysisAttributeDef userItemValuePath) {
+        this.userAnalysisAttributeDef = userItemValuePath;
     }
 
     public RoleAnalysisSortMode getSortMode() {

@@ -538,9 +538,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                 return "pageUsers.message.confirmationMessageForSingleObject";
             }
         };
-        basicTable.
-
-                setOutputMarkupId(true);
+        basicTable.setOutputMarkupId(true);
 
         return basicTable;
     }

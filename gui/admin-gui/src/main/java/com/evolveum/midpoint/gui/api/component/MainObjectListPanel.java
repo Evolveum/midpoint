@@ -383,7 +383,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 clearCache();
                 refreshTable(target);
 
-                target.add(getTable());
+                target.add(getTableComponent());
             }
         };
         refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
@@ -408,7 +408,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     private void onClickPlayPauseButton(AjaxRequestTarget target, boolean refreshEnabled) {
         clearCache();
         setManualRefreshEnabled(refreshEnabled);
-        target.add(getTable());
+        target.add(getTableComponent());
     }
 
     public void startRefreshing(AjaxRequestTarget target) {

@@ -1760,4 +1760,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         return String.format("%.2f", attributeConfidence);
     }
 
+    @Override
+    public List<RoleAnalysisAttributeDef> resolveRoleAttributes(@NotNull RoleAnalysisSessionType session) {
+        return null;
+    }
+
+    @Override
+    public List<RoleAnalysisAttributeDef> resolveUserAttributes(@NotNull RoleAnalysisSessionType session) {
+        return null;
+    }
 }

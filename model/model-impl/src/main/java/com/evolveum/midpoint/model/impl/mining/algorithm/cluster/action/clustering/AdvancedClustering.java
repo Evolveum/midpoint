@@ -77,7 +77,7 @@ public class AdvancedClustering implements Clusterable {
         double similarityDifference = 1 - (similarityThreshold / 100);
 
         List<AttributeMatch> attributeMatches = generateMatchingRulesList(
-                session.getMatchingRule(),
+                sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
                 RoleAnalysisProcessModeType.ROLE);
 
         SearchFilterType query = sessionOptionType.getQuery();
@@ -94,8 +94,9 @@ public class AdvancedClustering implements Clusterable {
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(
                 minUsersOverlap, new HashSet<>(attributeMatches), 0);
 
+        boolean isRule = !attributeMatches.isEmpty() && attributeMatches.get(0).getRoleAnalysisItemDef() != null;
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(
-                similarityDifference, minRolesCount, distanceMeasure, minUsersOverlap, true);
+                similarityDifference, minRolesCount, distanceMeasure, minUsersOverlap, isRule);
 
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
@@ -120,7 +121,7 @@ public class AdvancedClustering implements Clusterable {
         int minUsersCount = sessionOptionType.getMinMembersCount();
 
         List<AttributeMatch> attributeMatches = generateMatchingRulesList(
-                session.getMatchingRule(),
+                sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
                 RoleAnalysisProcessModeType.USER);
 
         SearchFilterType query = sessionOptionType.getQuery();
@@ -137,8 +138,9 @@ public class AdvancedClustering implements Clusterable {
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(
                 minRolesOverlap, new HashSet<>(attributeMatches), 0);
 
+        boolean isRule = !attributeMatches.isEmpty() && attributeMatches.get(0).getRoleAnalysisItemDef() != null;
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(
-                similarityDifference, minUsersCount, distanceMeasure, minRolesOverlap, true);
+                similarityDifference, minUsersCount, distanceMeasure, minRolesOverlap, isRule);
 
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
@@ -178,7 +180,7 @@ public class AdvancedClustering implements Clusterable {
         handler.setOperationCountToProcess(1);
 
         List<DataPoint> dataPoints;
-        if (attributeMatches.isEmpty()) {
+        if (attributeMatches.isEmpty() || attributeMatches.get(0).getRoleAnalysisItemDef() == null) {
             dataPoints = prepareDataPoints(chunkMap);
         } else {
             if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
