@@ -8,8 +8,6 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-
 import com.evolveum.midpoint.repo.sqale.qmodel.role.*;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
