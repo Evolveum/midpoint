@@ -567,9 +567,11 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     }
 
     protected void collectDeltas(Collection<ObjectDelta<? extends ObjectType>> deltas, ProtectedStringType currentPassword, ItemPath valuePath) {
-        List<PasswordAccountDto> selectedAccounts = Lists.newArrayList(provider.internalIterator(0, provider.size()));
-        selectedAccounts.removeIf(account -> !account.isSelected());
-        selectedAccounts.removeIf(account -> !isPasswordPropagationEnabled(account));
+        if (isMidpointAccountSelected()) {
+            //let's use the unified code of changing password for current user
+            super.collectDeltas(deltas, currentPassword, valuePath);
+        }
+        List<PasswordAccountDto> selectedAccounts = getAccountsListToChangePassword();
 
         SchemaRegistry registry = getPrismContext().getSchemaRegistry();
         selectedAccounts.forEach(account -> {
@@ -684,5 +686,17 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
 
     protected boolean removePasswordValueAttribute() {
         return false;
+    }
+
+    private List<PasswordAccountDto> getAccountsListToChangePassword() {
+        List<PasswordAccountDto> result = Lists.newArrayList(provider.internalIterator(0, provider.size()));
+        result.removeIf(account -> !account.isSelected());
+        result.removeIf(account -> !isPasswordPropagationEnabled(account));
+        result.removeIf(PasswordAccountDto::isMidpoint);    //midpoint account is handled in super class
+        if (isMidpointAccountSelected()) {
+            //fix for 9571: outbound mapping was already processed during midpoint account change execution
+            result.removeIf(PasswordAccountDto::isPasswordOutbound);
+        }
+        return result;
     }
 }
