@@ -77,7 +77,7 @@ public class AdvancedClustering implements Clusterable {
         double similarityDifference = 1 - (similarityThreshold / 100);
 
         List<AttributeMatch> attributeMatches = generateMatchingRulesList(
-                session.getMatchingRule(),
+                sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
                 RoleAnalysisProcessModeType.ROLE);
 
         SearchFilterType query = sessionOptionType.getQuery();
@@ -121,7 +121,7 @@ public class AdvancedClustering implements Clusterable {
         int minUsersCount = sessionOptionType.getMinMembersCount();
 
         List<AttributeMatch> attributeMatches = generateMatchingRulesList(
-                session.getMatchingRule(),
+                sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
                 RoleAnalysisProcessModeType.USER);
 
         SearchFilterType query = sessionOptionType.getQuery();

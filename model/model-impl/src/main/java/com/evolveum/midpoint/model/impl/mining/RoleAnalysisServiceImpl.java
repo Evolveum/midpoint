@@ -1601,25 +1601,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     @Override
-    public List<AttributeAnalysisStructure> attributeAnalysis(
-            @NotNull Set<String> objectOid,
-            @NotNull RoleAnalysisProcessModeType mode,
-            Double membershipDensity,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        List<AttributeAnalysisStructure> attributeAnalysisStructures = new ArrayList<>();
-
-        if (mode.equals(RoleAnalysisProcessModeType.USER)) {
-            Set<PrismObject<UserType>> prismUsers = fetchPrismUsers(this, objectOid, task, result);
-            runUserAttributeAnalysis(this, prismUsers, attributeAnalysisStructures, task, result);
-        } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            Set<PrismObject<RoleType>> prismRolesSet = fetchPrismRoles(this, objectOid, task, result);
-            runRoleAttributeAnalysis(this, prismRolesSet, attributeAnalysisStructures, task, result);
-        }
-        return attributeAnalysisStructures;
-    }
-
-    @Override
     public List<AttributeAnalysisStructure> userTypeAttributeAnalysis(
             @NotNull Set<PrismObject<UserType>> prismUsers,
             Double membershipDensity,
@@ -2151,5 +2132,15 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         double cumulativeProbability = normalDistribution.cumulativeProbability(zScore);
         cumulativeProbability = Math.min(100, Math.max(0.0, cumulativeProbability));
         return 1 - cumulativeProbability;
+    }
+
+    @Override
+    public List<RoleAnalysisAttributeDef> resolveRoleAttributes(@NotNull RoleAnalysisSessionType session) {
+        return null;
+    }
+
+    @Override
+    public List<RoleAnalysisAttributeDef> resolveUserAttributes(@NotNull RoleAnalysisSessionType session) {
+        return null;
     }
 }

@@ -7,11 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.experimental;
 
-import java.io.Serial;
-import java.util.*;
-import javax.xml.namespace.QName;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.*;
 
-import org.apache.commons.lang3.StringUtils;
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -23,25 +25,16 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
-import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
-import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements Popupable {
 
@@ -59,49 +52,71 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
     RoleAnalysisSortMode sortMode;
     RoleAnalysisChunkMode selectedTableMode;
 
-    boolean isPathEnable = true;
-    LoadableDetachableModel<ItemPathDto> itemPathRoleDto = new LoadableDetachableModel<>() {
+    boolean isUserExpanded = false;
+    boolean isRoleExpanded = false;
+
+    LoadableDetachableModel<RoleAnalysisAttributeDef> userAnalysisAttributeDef = new LoadableDetachableModel<>() {
         @Serial private static final long serialVersionUID = 1L;
 
         @Override
-        protected @NotNull ItemPathDto load() {
-            ItemPath itemPath = ItemPath.create(RoleType.F_NAME);
-            return new ItemPathDto(itemPath, null, RoleType.COMPLEX_TYPE);
+        protected @NotNull RoleAnalysisAttributeDef load() {
+            return getObjectNameDef();
         }
     };
 
-    LoadableDetachableModel<ItemPathDto> itemPathUserDto = new LoadableDetachableModel<>() {
+    LoadableDetachableModel<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = new LoadableDetachableModel<>() {
         @Serial private static final long serialVersionUID = 1L;
 
         @Override
-        protected @NotNull ItemPathDto load() {
-            ItemPath itemPath = ItemPath.create(UserType.F_NAME);
-            return new ItemPathDto(itemPath, null, UserType.COMPLEX_TYPE);
+        protected @NotNull RoleAnalysisAttributeDef load() {
+            return getObjectNameDef();
         }
     };
 
-    public RoleAnalysisTableSettingPanel(String id,
-            IModel<String> messageModel,
-            LoadableDetachableModel<DisplayValueOption> option) {
+    public RoleAnalysisTableSettingPanel(
+            @NotNull String id,
+            @NotNull IModel<String> messageModel,
+            @NotNull LoadableDetachableModel<DisplayValueOption> option) {
         super(id, messageModel);
         this.option = option;
 
-        RoleAnalysisChunkMode chunkMode = option.getObject().getChunkMode();
-        if (chunkMode.equals(RoleAnalysisChunkMode.COMPRESS)) {
-            isPathEnable = false;
-        }
+        if (option.getObject() == null) {
+            option.setObject(new DisplayValueOption());
+        } else {
+            selectedTableMode = option.getObject().getChunkMode();
+            updateBasedExpandedStatus(selectedTableMode);
 
-        ItemPath userItemValuePath = option.getObject().getUserItemValuePath();
-        if (userItemValuePath == null || !isPathEnable) {
-            userItemValuePath = ItemPath.create(UserType.F_NAME);
-        }
-        ItemPath roleItemValuePath = option.getObject().getRoleItemValuePath();
-        if (roleItemValuePath == null || !isPathEnable) {
-            roleItemValuePath = ItemPath.create(RoleType.F_NAME);
-        }
+            RoleAnalysisAttributeDef userAnalysisUserDef = option.getObject().getUserAnalysisUserDef();
+            if (userAnalysisUserDef != null) {
+                userAnalysisAttributeDef.setObject(userAnalysisUserDef);
+            }
 
-        itemPathUserDto.setObject(new ItemPathDto(userItemValuePath, null, UserType.COMPLEX_TYPE));
-        itemPathRoleDto.setObject(new ItemPathDto(roleItemValuePath, null, RoleType.COMPLEX_TYPE));
+            RoleAnalysisAttributeDef roleAnalysisRoleDef = option.getObject().getRoleAnalysisRoleDef();
+            if (roleAnalysisRoleDef != null) {
+                roleAnalysisAttributeDef.setObject(roleAnalysisRoleDef);
+            }
+        }
+    }
+
+    private void updateBasedExpandedStatus(RoleAnalysisChunkMode selectedTableMode) {
+        switch (selectedTableMode) {
+            case COMPRESS -> {
+                isUserExpanded = false;
+                isRoleExpanded = false;
+            }
+            case EXPAND_USER -> {
+                isUserExpanded = true;
+                isRoleExpanded = false;
+            }
+            case EXPAND_ROLE -> {
+                isUserExpanded = false;
+                isRoleExpanded = true;
+            }
+            case EXPAND -> {
+                isUserExpanded = true;
+                isRoleExpanded = true;
+            }
+        }
     }
 
     @Override
@@ -162,71 +177,33 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
         labelWithHelpPanel.setOutputMarkupId(true);
         add(labelWithHelpPanel);
 
-        ItemPathPanel componentsRolePath = new ItemPathPanel(ID_SELECTOR_ROLE, itemPathRoleDto) {
-            @Serial private static final long serialVersionUID = 1L;
+        ChoiceRenderer<RoleAnalysisAttributeDef> renderer = new ChoiceRenderer<>("displayValue");
 
+        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = new ArrayList<>(getAttributesForRoleAnalysis());
+        attributesForUserAnalysis.removeIf(RoleAnalysisAttributeDef::isContainer);
+
+        RoleAnalysisAttributeDef objectNameDef = getObjectNameDef();
+        attributesForUserAnalysis.add(0, objectNameDef);
+        IModel<RoleAnalysisAttributeDef> selectedModel = Model.of(roleAnalysisAttributeDef.getObject());
+
+        DropDownChoice<RoleAnalysisAttributeDef> dropDownChoice = new DropDownChoice<>(
+                ID_SELECTOR_ROLE, selectedModel,
+                attributesForUserAnalysis, renderer);
+
+        dropDownChoice.setOutputMarkupId(true);
+        dropDownChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
-            protected void onUpdate(ItemPathDto itemPathDto) {
+            protected void onUpdate(AjaxRequestTarget target) {
                 if (option.getObject() == null) {
                     option.setObject(new DisplayValueOption());
                 }
-                option.getObject().setRoleItemValuePath(new ItemPathType(itemPathDto.toItemPath()).getItemPath());
+                roleAnalysisAttributeDef.setObject(selectedModel.getObject());
+                option.getObject().setRoleAnalysisRoleDef(selectedModel.getObject());
             }
-
-            @Override
-            protected QName getRequaredObjectType() {
-                return RoleType.COMPLEX_TYPE;
-            }
-
-            @Override
-            protected boolean isResetButtonVisible() {
-                return isPathEnable;
-            }
-
-            @Override
-            public boolean collectItems(Collection<? extends ItemDefinition> definitions,
-                    String input, Map<String,
-                    ItemDefinition<?>> toSelect) {
-                if (definitions == null) {
-                    return true;
-                }
-
-                for (ItemDefinition<?> def : definitions) {
-                    if (isEligibleItemDefinition(def)) {
-                        putDefinition(def, input, toSelect);
-                    }
-                }
-
-                return true;
-            }
-
-            @Override
-            protected boolean setDefaultItemPath() {
-                return super.setDefaultItemPath();
-            }
-
-            @Override
-            public boolean isPlusButtonVisible() {
-                return false;
-            }
-
-            @Override
-            public boolean isMinusButtonVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isNamespaceEnable() {
-                return false;
-            }
-
-        };
-
-        componentsRolePath.setOutputMarkupId(true);
-
-        componentsRolePath.setEnabled(isPathEnable);
-
-        add(componentsRolePath);
+        });
+        dropDownChoice.setOutputMarkupId(true);
+        dropDownChoice.setEnabled(isRoleExpanded);
+        add(dropDownChoice);
     }
 
     private void initUserHeaderSelector() {
@@ -245,7 +222,6 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
             labelHelp = getPageBase()
                     .createStringResource("RoleAnalysisTableSettingPanel.selector.column.header.help");
         }
-
         LabelWithHelpPanel labelWithHelpPanel = new LabelWithHelpPanel(ID_SELECTOR_USER_HEADER_LABEL, labelTitle) {
             @Override
             protected IModel<String> getHelpModel() {
@@ -255,66 +231,33 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
         labelWithHelpPanel.setOutputMarkupId(true);
         add(labelWithHelpPanel);
 
-        ItemPathPanel componentsUserPath = new ItemPathPanel(ID_SELECTOR_USER, itemPathUserDto) {
-            @Serial private static final long serialVersionUID = 1L;
+        ChoiceRenderer<RoleAnalysisAttributeDef> renderer = new ChoiceRenderer<>("displayValue");
 
+        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = new ArrayList<>(getAttributesForUserAnalysis());
+        attributesForUserAnalysis.removeIf(RoleAnalysisAttributeDef::isContainer);
+
+        RoleAnalysisAttributeDef objectNameDef = getObjectNameDef();
+        attributesForUserAnalysis.add(0, objectNameDef);
+        IModel<RoleAnalysisAttributeDef> selectedModel = Model.of(userAnalysisAttributeDef.getObject());
+
+        DropDownChoice<RoleAnalysisAttributeDef> dropDownChoice = new DropDownChoice<>(
+                ID_SELECTOR_USER, selectedModel,
+                attributesForUserAnalysis, renderer);
+
+        dropDownChoice.setOutputMarkupId(true);
+        dropDownChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
-            protected void onUpdate(ItemPathDto itemPathDto) {
+            protected void onUpdate(AjaxRequestTarget target) {
                 if (option.getObject() == null) {
                     option.setObject(new DisplayValueOption());
                 }
-                option.getObject().setUserItemValuePath(new ItemPathType(itemPathDto.toItemPath()).getItemPath());
+                userAnalysisAttributeDef.setObject(selectedModel.getObject());
+                option.getObject().setUserAnalysisUserDef(selectedModel.getObject());
             }
-
-            @Override
-            protected QName getRequaredObjectType() {
-                return UserType.COMPLEX_TYPE;
-            }
-
-            @Override
-            protected boolean isResetButtonVisible() {
-                return isPathEnable;
-            }
-
-            @Override
-            public boolean collectItems(
-                    Collection<? extends ItemDefinition> definitions,
-                    String input,
-                    Map<String, ItemDefinition<?>> toSelect) {
-                if (definitions == null) {
-                    return true;
-                }
-
-                for (ItemDefinition<?> def : definitions) {
-                    if (isEligibleItemDefinition(def)) {
-                        putDefinition(def, input, toSelect);
-                    }
-                }
-
-                return true;
-            }
-
-            @Override
-            public boolean isPlusButtonVisible() {
-                return false;
-            }
-
-            @Override
-            public boolean isMinusButtonVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isNamespaceEnable() {
-                return false;
-            }
-
-        };
-        componentsUserPath.setOutputMarkupId(true);
-
-        componentsUserPath.setEnabled(isPathEnable);
-
-        add(componentsUserPath);
+        });
+        dropDownChoice.setOutputMarkupId(true);
+        dropDownChoice.setEnabled(isUserExpanded);
+        add(dropDownChoice);
     }
 
     public void initSortingSetting() {
@@ -363,7 +306,6 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
 
         ChoiceRenderer<RoleAnalysisChunkMode> renderer = new ChoiceRenderer<>("displayString");
 
-        selectedTableMode = option.getObject().getChunkMode();
         IModel<RoleAnalysisChunkMode> selectedModeModel = Model.of(selectedTableMode);
 
         DropDownChoice<RoleAnalysisChunkMode> tableModeSelector = new DropDownChoice<>(
@@ -374,28 +316,21 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
         tableModeSelector.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                RoleAnalysisChunkMode selectedMode = selectedModeModel.getObject();
-                isPathEnable = !selectedMode.equals(RoleAnalysisChunkMode.COMPRESS);
-                selectedTableMode = selectedMode;
-                ItemPathPanel componentUserSelector = (ItemPathPanel) RoleAnalysisTableSettingPanel.this.get(ID_SELECTOR_ROLE);
-                componentUserSelector.setEnabled(isPathEnable);
-                ItemPathPanel componentRoleSelector = (ItemPathPanel) RoleAnalysisTableSettingPanel.this.get(ID_SELECTOR_USER);
-                componentRoleSelector.setEnabled(isPathEnable);
+                selectedTableMode = selectedModeModel.getObject();
+                updateBasedExpandedStatus(selectedTableMode);
+                DropDownChoice<?> componentUserSelector = (DropDownChoice<?>) RoleAnalysisTableSettingPanel
+                        .this.get(ID_SELECTOR_ROLE);
+                componentUserSelector.setEnabled(isRoleExpanded);
+                DropDownChoice<?> componentRoleSelector = (DropDownChoice<?>) RoleAnalysisTableSettingPanel
+                        .this.get(ID_SELECTOR_USER);
+                componentRoleSelector.setEnabled(isUserExpanded);
 
-                if (isPathEnable) {
-                    ItemPath userItemValuePath = option.getObject().getUserItemValuePath();
-                    if (userItemValuePath == null) {
-                        userItemValuePath = ItemPath.create(UserType.F_NAME);
-                    }
-                    itemPathUserDto.setObject(new ItemPathDto(userItemValuePath, null, UserType.COMPLEX_TYPE));
-                    componentUserSelector.setDefaultModel(itemPathUserDto);
+                if (isRoleExpanded) {
+                    componentRoleSelector.setDefaultModel(Model.of(getObjectNameDef()));
+                }
 
-                    ItemPath roleItemValuePath = option.getObject().getRoleItemValuePath();
-                    if (roleItemValuePath == null) {
-                        roleItemValuePath = ItemPath.create(RoleType.F_NAME);
-                    }
-                    itemPathRoleDto.setObject(new ItemPathDto(roleItemValuePath, null, RoleType.COMPLEX_TYPE));
-                    componentRoleSelector.setDefaultModel(itemPathRoleDto);
+                if (isUserExpanded) {
+                    componentUserSelector.setDefaultModel(Model.of(getObjectNameDef()));
                 }
 
                 target.add(componentUserSelector);
@@ -404,30 +339,6 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
         });
         tableModeSelector.setOutputMarkupId(true);
         add(tableModeSelector);
-    }
-
-    public void putDefinition(ItemDefinition<?> def, String input, Map<String, ItemDefinition<?>> toSelect) {
-        if (StringUtils.isBlank(input)) {
-            toSelect.put(def.getItemName().getLocalPart(), def);
-        } else {
-            if (def.getItemName().getLocalPart().startsWith(input)) {
-                toSelect.put(def.getItemName().getLocalPart(), def);
-            }
-        }
-    }
-
-    private boolean isEligibleItemDefinition(@NotNull ItemDefinition<?> def) {
-        return def.isSingleValue() && (isPolyStringOrString(def) || isReference(def));
-    }
-
-    private boolean isPolyStringOrString(@NotNull ItemDefinition<?> def) {
-        return def.getTypeName().getLocalPart().equals(PolyStringType.COMPLEX_TYPE.getLocalPart())
-                || def.getTypeName().getLocalPart().equals("string")
-                || def.getTypeName().getLocalPart().equals("PolyString");
-    }
-
-    private boolean isReference(@NotNull ItemDefinition<?> def) {
-        return def.getTypeName().getLocalPart().equals(ObjectReferenceType.COMPLEX_TYPE.getLocalPart());
     }
 
     public void performAfterFinish(AjaxRequestTarget target) {

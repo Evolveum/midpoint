@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster
 import static com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure.extractAttributeAnalysis;
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformPattern;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getObjectNameDef;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidInducements;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.initRoleBasedDetectionPattern;
@@ -440,8 +441,8 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                     displayValueOptionModel.getObject().setChunkMode(RoleAnalysisChunkMode.EXPAND);
                 } else {
                     displayValueOptionModel.getObject().setChunkMode(RoleAnalysisChunkMode.COMPRESS);
-                    displayValueOptionModel.getObject().setUserItemValuePath(ItemPath.create(UserType.F_NAME));
-                    displayValueOptionModel.getObject().setRoleItemValuePath(ItemPath.create(RoleType.F_NAME));
+                    displayValueOptionModel.getObject().setUserAnalysisUserDef(getObjectNameDef());
+                    displayValueOptionModel.getObject().setRoleAnalysisRoleDef(getObjectNameDef());
                 }
 
                 updateMiningTable(ajaxRequestTarget, displayValueOptionModel.getObject(), true);
@@ -524,8 +525,8 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                     displayValueOptionModel.getObject().setChunkMode(RoleAnalysisChunkMode.EXPAND);
                 } else {
                     displayValueOptionModel.getObject().setChunkMode(RoleAnalysisChunkMode.COMPRESS);
-                    displayValueOptionModel.getObject().setUserItemValuePath(ItemPath.create(UserType.F_NAME));
-                    displayValueOptionModel.getObject().setRoleItemValuePath(ItemPath.create(RoleType.F_NAME));
+                    displayValueOptionModel.getObject().setUserAnalysisUserDef(getObjectNameDef());
+                    displayValueOptionModel.getObject().setRoleAnalysisRoleDef(getObjectNameDef());
                 }
 
                 updateMiningTable(ajaxRequestTarget, displayValueOptionModel.getObject(), true);

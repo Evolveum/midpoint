@@ -22,7 +22,12 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
 
 public class RoleAnalysisAttributeDef implements Serializable {
 
@@ -30,7 +35,8 @@ public class RoleAnalysisAttributeDef implements Serializable {
     boolean isContainer;
     String displayValue;
     ObjectQuery query;
-    Class<? extends ObjectType> classType;
+    Class<? extends ObjectType> targetClassType;
+    Class<? extends ObjectType> associatedClassType;
     IdentifierType identifierType;
 
     public RoleAnalysisAttributeDef(ItemPath path,
@@ -38,7 +44,7 @@ public class RoleAnalysisAttributeDef implements Serializable {
             Class<? extends ObjectType> classType) {
         this.path = path;
         this.isContainer = isContainer;
-        this.classType = classType;
+        this.targetClassType = classType;
     }
 
     public RoleAnalysisAttributeDef(ItemPath path,
@@ -47,7 +53,7 @@ public class RoleAnalysisAttributeDef implements Serializable {
             IdentifierType identifierType) {
         this.path = path;
         this.isContainer = isContainer;
-        this.classType = classType;
+        this.targetClassType = classType;
         this.identifierType = identifierType;
     }
 
@@ -59,7 +65,7 @@ public class RoleAnalysisAttributeDef implements Serializable {
         this.path = path;
         this.isContainer = isContainer;
         this.displayValue = displayValue;
-        this.classType = classType;
+        this.targetClassType = classType;
         this.identifierType = identifierType;
     }
 
@@ -134,8 +140,8 @@ public class RoleAnalysisAttributeDef implements Serializable {
         this.query = query;
     }
 
-    public Class<? extends ObjectType> getClassType() {
-        return classType;
+    public Class<? extends ObjectType> getTargetClassType() {
+        return targetClassType;
     }
 
     public enum IdentifierType {
@@ -143,8 +149,30 @@ public class RoleAnalysisAttributeDef implements Serializable {
         FINAL
     }
 
+    public Class<? extends ObjectType> getAssociatedClassType() {
+        return associatedClassType;
+    }
+
+    public void setAssociatedClassType(Class<? extends ObjectType> associatedClassType) {
+        this.associatedClassType = associatedClassType;
+    }
+
+    public QName getComplexType() {
+        Class<? extends ObjectType> classType = getAssociatedClassType();
+        if(classType.equals(UserType.class)){
+            return UserType.COMPLEX_TYPE;
+        }else if (classType.equals(RoleType.class)){
+            return RoleType.COMPLEX_TYPE;
+        }
+        return null;
+    }
+
     public IdentifierType getIdentifierType() {
         return identifierType;
+    }
+
+    public void setTargetClassType(Class<? extends ObjectType> targetClassType) {
+        this.targetClassType = targetClassType;
     }
 
 }

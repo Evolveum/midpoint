@@ -561,7 +561,16 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     public BoxedTablePanel<PO> getTable() {
         //noinspection unchecked
-        return (BoxedTablePanel<PO>) get(ID_ITEMS_TABLE);
+        return (BoxedTablePanel<PO>) getTableComponent();
+    }
+
+    private RoleAnalysisCollapsableTablePanel<PO> getCollapsableTable() {
+        //noinspection unchecked
+        return (RoleAnalysisCollapsableTablePanel<PO>) getTableComponent();
+    }
+
+    public Component getTableComponent() {
+        return get(ID_ITEMS_TABLE);
     }
 
     public Class<C> getType() {
@@ -905,6 +914,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(buttonId) {
             @Override
             protected DataTable<?, ?> getDataTable() {
+                Component tableComponent = getTableComponent();
+                if (tableComponent instanceof BoxedTablePanel) {
+                    return getTable().getDataTable();
+                } else if (tableComponent instanceof RoleAnalysisCollapsableTablePanel) {
+                    return getCollapsableTable().getDataTable();
+                }
+
                 return getTable().getDataTable();
             }
 
@@ -1083,18 +1099,23 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected ISelectableDataProvider getDataProvider() {
-        BoxedTablePanel<PO> table = getTable();
-        return (ISelectableDataProvider) table.getDataTable().getDataProvider();
+        Component tableComponent = getTableComponent();
+        if (tableComponent instanceof BoxedTablePanel) {
+            return (ISelectableDataProvider) getTable().getDataTable().getDataProvider();
+        } else if (tableComponent instanceof RoleAnalysisCollapsableTablePanel) {
+            return (ISelectableDataProvider) getCollapsableTable().getDataTable().getDataProvider();
+        }
+        return null;
     }
 
     public void refreshTable(AjaxRequestTarget target) {
-        BoxedTablePanel<PO> table = getTable();
         if (searchModel.getObject().isForceReload()) {
             resetTable(target);
         } else {
             saveSearchModel(getCurrentTablePaging());
         }
-        target.add(table);
+
+        target.add(getTableComponent());
         target.add(getFeedbackPanel());
     }
 

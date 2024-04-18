@@ -35,6 +35,28 @@ public class RoleAnalysisAttributeDefUtils {
     public static final ItemName F_LIFECYCLE_STATE = new ItemName(ObjectFactory.NAMESPACE, "lifecycleState");
     public static final ItemName F_RISK_LEVEL = new ItemName(ObjectFactory.NAMESPACE, "riskLevel");
 
+    public static RoleAnalysisAttributeDef getObjectNameDef() {
+        return name;
+    }
+
+    public static RoleAnalysisAttributeDef name = new RoleAnalysisAttributeDef(
+            F_NAME,
+            false,
+            "name",
+            ObjectType.class,
+            RoleAnalysisAttributeDef.IdentifierType.FINAL) {
+        @Override
+        public ObjectQuery getQuery(String value) {
+            return PrismContext.get().queryFor(ObjectType.class)
+                    .item(getPath()).eq(value)
+                    .build();
+        }
+    };
+
+    public static RoleAnalysisAttributeDef getOrgAssignment() {
+        return orgAssignment;
+    }
+
     public static RoleAnalysisAttributeDef orgAssignment = getRoleAnalysisItemDefAssignment(
             FocusType.F_ASSIGNMENT, "org assignment", OrgType.COMPLEX_TYPE);
     public static RoleAnalysisAttributeDef roleAssignment = getRoleAnalysisItemDefAssignment(
@@ -57,6 +79,10 @@ public class RoleAnalysisAttributeDefUtils {
 
     public static RoleAnalysisAttributeDef archetypeInducement = getRoleAnalysisItemDefAssignment(
             ArchetypeType.F_INDUCEMENT, "archetype inducement", ArchetypeType.COMPLEX_TYPE);
+
+    public static RoleAnalysisAttributeDef getArchetypeRef() {
+        return archetypeRef;
+    }
 
     public static RoleAnalysisAttributeDef archetypeRef = new RoleAnalysisAttributeDef(
             ItemPath.create(FocusType.F_ARCHETYPE_REF),
@@ -88,6 +114,10 @@ public class RoleAnalysisAttributeDefUtils {
         }
     };
 
+    public static RoleAnalysisAttributeDef getTitle() {
+        return title;
+    }
+
     public static RoleAnalysisAttributeDef title = new RoleAnalysisAttributeDef(
             F_TITLE,
             false,
@@ -115,6 +145,10 @@ public class RoleAnalysisAttributeDefUtils {
                     .build();
         }
     };
+
+    public static RoleAnalysisAttributeDef getLocality() {
+        return locality;
+    }
 
     public static RoleAnalysisAttributeDef locality = new RoleAnalysisAttributeDef(
             F_LOCALITY,
@@ -195,6 +229,9 @@ public class RoleAnalysisAttributeDefUtils {
         attributeMap.put(costCenter.getDisplayValue(), costCenter);
         attributeMap.put(lifecycleState.getDisplayValue(), lifecycleState);
         attributeMap.put(riskLevel.getDisplayValue(), riskLevel);
+
+        loadRoleExtension().forEach(attribute -> attributeMap.put(attribute.getDisplayValue(), attribute));
+        loadUserExtension().forEach(attribute -> attributeMap.put(attribute.getDisplayValue(), attribute));
         return Collections.unmodifiableMap(attributeMap);
     }
 
@@ -218,6 +255,8 @@ public class RoleAnalysisAttributeDefUtils {
         ));
         analysisAttributeDefs.addAll(loadRoleExtension());
 
+        analysisAttributeDefs.forEach(analysisAttributeDef -> analysisAttributeDef.setAssociatedClassType(RoleType.class));
+
         return analysisAttributeDefs;
     }
 
@@ -238,6 +277,9 @@ public class RoleAnalysisAttributeDefUtils {
         ));
 
         analysisAttributeDefs.addAll(loadUserExtension());
+
+        analysisAttributeDefs.forEach(analysisAttributeDef -> analysisAttributeDef.setAssociatedClassType(UserType.class));
+
         return analysisAttributeDefs;
     }
 
@@ -260,7 +302,7 @@ public class RoleAnalysisAttributeDefUtils {
             }
 
             @Override
-            public Class<? extends ObjectType> getClassType() {
+            public Class<? extends ObjectType> getTargetClassType() {
                 Class<? extends ObjectType> objectClass = null;
                 if (targetType.equals(OrgType.COMPLEX_TYPE)) {
                     objectClass = OrgType.class;
@@ -505,7 +547,7 @@ public class RoleAnalysisAttributeDefUtils {
     }
 
     @Nullable
-    private static String resolveRef(PrismObject<?> prismObject, ItemPath itemPath) {
+    private static String resolveRef(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
         Item<PrismValue, ItemDefinition<?>> property = prismObject.findItem(itemPath);
         if (property != null) {
             Object object = property.getRealValue();

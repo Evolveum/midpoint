@@ -658,25 +658,6 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result,
             @NotNull String sessionOid);
 
-    /**
-     * Performs attribute analysis for a set of objects based on the specified process mode.
-     * This method retrieves PrismObjects of either UserType or RoleType based on the process mode,
-     * then runs attribute analysis on the retrieved objects using the provided item paths and membership density.
-     *
-     * @param objectOid Set of object OIDs for which attribute analysis will be performed.
-     * @param mode RoleAnalysisProcessModeType indicating the type of objects being analyzed (USER or ROLE).
-     * @param membershipDensity Density value used for membership calculation in the analysis.
-     * @param task Task used for processing the attribute analysis.
-     * @param result OperationResult containing the result of the operation.
-     * Any errors or status information will be recorded here.
-     * @return List of AttributeAnalysisStructure containing the results of attribute analysis.
-     */
-    List<AttributeAnalysisStructure> attributeAnalysis(
-            @NotNull Set<String> objectOid,
-            @NotNull RoleAnalysisProcessModeType mode,
-            Double membershipDensity,
-            @NotNull Task task,
-            @NotNull OperationResult result);
 
     /**
      * Performs attribute analysis for user objects.
@@ -685,6 +666,7 @@ public interface RoleAnalysisService {
      * @param membershipDensity The density of membership.
      * @param task
      * @param result
+     * @param attributesForUserAnalysis
      * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
      */
     List<AttributeAnalysisStructure> userTypeAttributeAnalysis(
@@ -698,6 +680,7 @@ public interface RoleAnalysisService {
      * @param membershipDensity The density of membership.
      * @param task
      * @param result
+     * @param attributesForRoleAnalysis
      * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
      */
     List<AttributeAnalysisStructure> roleTypeAttributeAnalysis(
@@ -816,5 +799,9 @@ public interface RoleAnalysisService {
     <T extends MiningBaseTypeChunk> double calculateZScore(@NotNull T data, ZScoreData zScoreData);
 
     <T extends MiningBaseTypeChunk> double calculateZScoreConfidence(@NotNull T item, ZScoreData zScoreData);
+
+    List<RoleAnalysisAttributeDef> resolveRoleAttributes(@NotNull RoleAnalysisSessionType session);
+
+    List<RoleAnalysisAttributeDef> resolveUserAttributes(@NotNull RoleAnalysisSessionType session);
 
 }

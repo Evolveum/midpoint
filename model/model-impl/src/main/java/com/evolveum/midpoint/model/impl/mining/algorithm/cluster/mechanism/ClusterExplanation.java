@@ -53,15 +53,29 @@ public class ClusterExplanation implements Serializable {
             return null;
         }
 
-        if (session.getMatchingRule() == null) {
-            return null;
-        }
-
-        Set<String> ruleIdentifiers = extractRuleIdentifiers(session.getMatchingRule());
-
-        AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+        Set<String> ruleIdentifiers;
+
+        if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+            UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+            if (userModeOptions == null
+                    || userModeOptions.getClusteringAttributeSetting() == null
+                    || userModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() == null) {
+                return null;
+            }
+            ruleIdentifiers = extractRuleIdentifiers(userModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule());
+        } else {
+            RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
+            if (roleModeOptions == null
+                    || roleModeOptions.getClusteringAttributeSetting() == null
+                    || roleModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() == null) {
+                return null;
+            }
+            ruleIdentifiers = extractRuleIdentifiers(roleModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule());
+        }
+
+        AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
 
         Set<String> candidateNames = new HashSet<>();
         if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
@@ -81,7 +95,35 @@ public class ClusterExplanation implements Serializable {
                         if (attribute.getIdentifierType().equals(RoleAnalysisAttributeDef.IdentifierType.FINAL)) {
                             candidateName = itemPath + "-" + value;
                         } else {
-                            Class<? extends ObjectType> classType = attribute.getClassType();
+                            Class<? extends ObjectType> classType = attribute.getTargetClassType();
+                            PrismObject<? extends ObjectType> object = null;
+                            if (classType != null) {
+                                object = roleAnalysisService.getObject(classType, value, task, result);
+                            }
+                            candidateName = object != null ? itemPath + "-" + object.getName() : itemPath + "-" + value;
+                        }
+                        candidateNames.add(candidateName);
+                    }
+                }
+            }
+        } else {
+            RoleAnalysisAttributeAnalysisResult roleAttributeResult = clusterStatistics.getRoleAttributeAnalysisResult();
+            List<RoleAnalysisAttributeAnalysis> attributeAnalysisList = roleAttributeResult.getAttributeAnalysis();
+
+            for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysisList) {
+                String itemPath = analysis.getItemPath();
+                if (ruleIdentifiers.contains(itemPath) && analysis.getDensity() == 100) {
+                    List<RoleAnalysisAttributeStatistics> attributeStatisticsList = analysis.getAttributeStatistics();
+                    if (attributeStatisticsList.size() == 1) {
+                        RoleAnalysisAttributeStatistics attributeStatistic = attributeStatisticsList.get(0);
+                        String value = attributeStatistic.getAttributeValue();
+                        RoleAnalysisAttributeDef attribute = getAttributeByDisplayValue(itemPath);
+
+                        String candidateName;
+                        if (attribute.getIdentifierType().equals(RoleAnalysisAttributeDef.IdentifierType.FINAL)) {
+                            candidateName = itemPath + "-" + value;
+                        } else {
+                            Class<? extends ObjectType> classType = attribute.getTargetClassType();
                             PrismObject<? extends ObjectType> object = null;
                             if (classType != null) {
                                 object = roleAnalysisService.getObject(classType, value, task, result);
@@ -97,9 +139,9 @@ public class ClusterExplanation implements Serializable {
         return candidateNames.size() == 1 ? candidateNames.iterator().next() : null;
     }
 
-    private static @NotNull Set<String> extractRuleIdentifiers(@NotNull List<RoleAnalysisMatchingRuleType> matchingRule) {
+    private static @NotNull Set<String> extractRuleIdentifiers(@NotNull List<ClusteringAttributeRuleType> matchingRule) {
         Set<String> ruleIdentifiers = new HashSet<>();
-        for (RoleAnalysisMatchingRuleType ruleType : matchingRule) {
+        for (ClusteringAttributeRuleType ruleType : matchingRule) {
             ruleIdentifiers.add(ruleType.getAttributeIdentifier());
         }
         return ruleIdentifiers;
@@ -112,108 +154,129 @@ public class ClusterExplanation implements Serializable {
     private static boolean isValidAnalysisOption(@NotNull RoleAnalysisSessionType session) {
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisProcessModeType processMode = analysisOption != null ? analysisOption.getProcessMode() : null;
-        List<RoleAnalysisMatchingRuleType> matchingRule = session.getMatchingRule();
 
-        return analysisOption != null && processMode != null && matchingRule != null && !matchingRule.isEmpty();
-    }
-
-    public static String getClusterExplanationDescription(Set<ClusterExplanation> clusterExplanationSet) {
-        if (clusterExplanationSet == null || clusterExplanationSet.isEmpty()) {
-            return "No cluster explanation found.";
+        if (processMode == null) {
+            return false;
         }
-        if (clusterExplanationSet.size() == 1) {
-            return "There is a single cluster explanation.\n Cluster explanation: "
-                    + getExplanation(clusterExplanationSet.iterator().next().getAttributeExplanation());
-        } else {
-            StringBuilder sb = new StringBuilder();
-            sb.append("There are multiple cluster explanations. ");
 
-            for (ClusterExplanation explanation : clusterExplanationSet) {
-                sb.append("\nCluster explanation: ")
-                        .append(getExplanation(explanation.getAttributeExplanation()));
+        if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+            UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+            if (userModeOptions == null
+                    || userModeOptions.getClusteringAttributeSetting() == null
+                    || userModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() == null) {
+                return false;
             }
-            return sb.toString();
-        }
-    }
-
-    public static String getExplanation(Set<AttributeMatchExplanation> attributeExplanation) {
-        if (attributeExplanation == null) {
-            return null;
-        }
-
-        if (attributeExplanation.size() == 1) {
-            AttributeMatchExplanation explanation = attributeExplanation.iterator().next();
-            return "There is a single attribute match :\n Attribute path: "
-                    + explanation.getAttributePath() + " with value " + explanation.getAttributeValue() + "\n";
+            List<ClusteringAttributeRuleType> clusteringAttributeRule = userModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule();
+            return clusteringAttributeRule != null && !clusteringAttributeRule.isEmpty();
         } else {
-
-            StringBuilder sb = new StringBuilder();
-            for (AttributeMatchExplanation attributeMatchExplanation : attributeExplanation) {
-                sb.append("Attribute path: ")
-                        .append(attributeMatchExplanation.getAttributePath())
-                        .append(" with value ")
-                        .append(attributeMatchExplanation.getAttributeValue()).append("\n");
-            }
-
-            return "There are " + attributeExplanation.size() + " multiple attribute matches: \n" + sb;
+            RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
+            if (roleModeOptions == null
+                    || roleModeOptions.getClusteringAttributeSetting() == null
+                    || roleModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() == null) {
+            return false;
         }
+        List<ClusteringAttributeRuleType> clusteringAttributeRule = roleModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule();
+        return clusteringAttributeRule != null && !clusteringAttributeRule.isEmpty();
     }
+}
 
-    public static String getCandidateName(Set<AttributeMatchExplanation> attributeExplanation) {
-        if (attributeExplanation == null) {
-            return null;
+public static String getClusterExplanationDescription(Set<ClusterExplanation> clusterExplanationSet) {
+    if (clusterExplanationSet == null || clusterExplanationSet.isEmpty()) {
+        return "No cluster explanation found.";
+    }
+    if (clusterExplanationSet.size() == 1) {
+        return "There is a single cluster explanation.\n Cluster explanation: "
+                + getExplanation(clusterExplanationSet.iterator().next().getAttributeExplanation());
+    } else {
+        StringBuilder sb = new StringBuilder();
+        sb.append("There are multiple cluster explanations. ");
+
+        for (ClusterExplanation explanation : clusterExplanationSet) {
+            sb.append("\nCluster explanation: ")
+                    .append(getExplanation(explanation.getAttributeExplanation()));
         }
+        return sb.toString();
+    }
+}
 
-        if (attributeExplanation.size() == 1) {
-            AttributeMatchExplanation explanation = attributeExplanation.iterator().next();
-
-            return explanation.getAttributePath() + "_" + explanation.getAttributeValue();
-        }
+public static String getExplanation(Set<AttributeMatchExplanation> attributeExplanation) {
+    if (attributeExplanation == null) {
         return null;
     }
 
-    public ClusterExplanation(Set<AttributeMatchExplanation> attributeExplanation, String attributeValue, Double weight) {
-        this.attributeExplanation = attributeExplanation;
-        this.attributeValue = attributeValue;
-        this.weight = weight;
+    if (attributeExplanation.size() == 1) {
+        AttributeMatchExplanation explanation = attributeExplanation.iterator().next();
+        return "There is a single attribute match :\n Attribute path: "
+                + explanation.getAttributePath() + " with value " + explanation.getAttributeValue() + "\n";
+    } else {
+
+        StringBuilder sb = new StringBuilder();
+        for (AttributeMatchExplanation attributeMatchExplanation : attributeExplanation) {
+            sb.append("Attribute path: ")
+                    .append(attributeMatchExplanation.getAttributePath())
+                    .append(" with value ")
+                    .append(attributeMatchExplanation.getAttributeValue()).append("\n");
+        }
+
+        return "There are " + attributeExplanation.size() + " multiple attribute matches: \n" + sb;
+    }
+}
+
+public static String getCandidateName(Set<AttributeMatchExplanation> attributeExplanation) {
+    if (attributeExplanation == null) {
+        return null;
     }
 
-    public Set<AttributeMatchExplanation> getAttributeExplanation() {
-        return attributeExplanation;
-    }
+    if (attributeExplanation.size() == 1) {
+        AttributeMatchExplanation explanation = attributeExplanation.iterator().next();
 
-    public void setAttributeExplanation(Set<AttributeMatchExplanation> attributeExplanation) {
-        this.attributeExplanation = attributeExplanation;
+        return explanation.getAttributePath() + "_" + explanation.getAttributeValue();
     }
+    return null;
+}
 
-    public String getAttributeValue() {
-        return attributeValue;
-    }
+public ClusterExplanation(Set<AttributeMatchExplanation> attributeExplanation, String attributeValue, Double weight) {
+    this.attributeExplanation = attributeExplanation;
+    this.attributeValue = attributeValue;
+    this.weight = weight;
+}
 
-    public void setAttributeValue(String attributeValue) {
-        this.attributeValue = attributeValue;
-    }
+public Set<AttributeMatchExplanation> getAttributeExplanation() {
+    return attributeExplanation;
+}
 
-    public Double getWeight() {
-        return weight;
-    }
+public void setAttributeExplanation(Set<AttributeMatchExplanation> attributeExplanation) {
+    this.attributeExplanation = attributeExplanation;
+}
 
-    public void setWeight(Double weight) {
-        this.weight = weight;
-    }
+public String getAttributeValue() {
+    return attributeValue;
+}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {return true;}
-        if (o == null || getClass() != o.getClass()) {return false;}
-        ClusterExplanation that = (ClusterExplanation) o;
-        return Objects.equals(attributeExplanation, that.attributeExplanation) &&
-                Objects.equals(attributeValue, that.attributeValue) &&
-                Objects.equals(weight, that.weight);
-    }
+public void setAttributeValue(String attributeValue) {
+    this.attributeValue = attributeValue;
+}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(attributeExplanation, attributeValue, weight);
-    }
+public Double getWeight() {
+    return weight;
+}
+
+public void setWeight(Double weight) {
+    this.weight = weight;
+}
+
+@Override
+public boolean equals(Object o) {
+    if (this == o) {return true;}
+    if (o == null || getClass() != o.getClass()) {return false;}
+    ClusterExplanation that = (ClusterExplanation) o;
+    return Objects.equals(attributeExplanation, that.attributeExplanation) &&
+            Objects.equals(attributeValue, that.attributeValue) &&
+            Objects.equals(weight, that.weight);
+}
+
+@Override
+public int hashCode() {
+    return Objects.hash(attributeExplanation, attributeValue, weight);
+}
 }
