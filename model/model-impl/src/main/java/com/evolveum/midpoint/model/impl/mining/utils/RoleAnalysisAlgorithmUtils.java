@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -126,6 +128,7 @@ public class RoleAnalysisAlgorithmUtils {
 
     private @Nullable ClusterStatistic statisticLoad(
             @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull RoleAnalysisSessionType session,
             @NotNull List<DataPoint> clusterDataPoints,
             @NotNull List<DataPoint> allDataPoints,
             @NotNull String clusterIndex,
@@ -179,19 +182,29 @@ public class RoleAnalysisAlgorithmUtils {
         ClusterStatistic clusterStatistic = new ClusterStatistic(name, processedObjectsRef, totalMembersCount,
                 existingPropertiesInCluster, minVectorPoint, maxVectorPoint, meanPoints, density);
 
-        extractAttributeStatistics(roleAnalysisService, complexType, task, result, density, propertiesOidsSet, membersOidsSet, clusterStatistic);
+        List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = roleAnalysisService.resolveAnalysisAttributes(session, UserType.COMPLEX_TYPE);
+        List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = roleAnalysisService.resolveAnalysisAttributes(session, RoleType.COMPLEX_TYPE);
+
+        if (userAnalysisAttributeDef != null && roleAnalysisAttributeDef != null) {
+            extractAttributeStatistics(roleAnalysisService, complexType, task, result, density, propertiesOidsSet,
+                    membersOidsSet, clusterStatistic, userAnalysisAttributeDef, roleAnalysisAttributeDef);
+
+        }
 
         return clusterStatistic;
     }
 
-    private static void extractAttributeStatistics(@NotNull RoleAnalysisService roleAnalysisService,
+    private static void extractAttributeStatistics(
+            @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull QName complexType,
             @NotNull Task task,
             @NotNull OperationResult result,
             double density,
             Set<String> propertiesOidsSet,
             Set<String> membersOidsSet,
-            ClusterStatistic clusterStatistic) {
+            ClusterStatistic clusterStatistic,
+            @NotNull List<RoleAnalysisAttributeDef> userAttributeDefSet,
+            @NotNull List<RoleAnalysisAttributeDef> roleAttributeDefSet) {
         Set<PrismObject<UserType>> users;
         Set<PrismObject<RoleType>> roles;
 
@@ -219,9 +232,9 @@ public class RoleAnalysisAlgorithmUtils {
         }
 
         List<AttributeAnalysisStructure> userAttributeAnalysisStructures = roleAnalysisService
-                .userTypeAttributeAnalysis(users, userDensity, task, result);
+                .userTypeAttributeAnalysis(users, userDensity, task, result, userAttributeDefSet);
         List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = roleAnalysisService
-                .roleTypeAttributeAnalysis(roles, roleDensity, task, result);
+                .roleTypeAttributeAnalysis(roles, roleDensity, task, result, roleAttributeDefSet);
 
         clusterStatistic.setUserAttributeAnalysisStructures(userAttributeAnalysisStructures);
         clusterStatistic.setRoleAttributeAnalysisStructures(roleAttributeAnalysisStructures);
@@ -298,7 +311,7 @@ public class RoleAnalysisAlgorithmUtils {
             return null;
         }
 
-        ClusterStatistic clusterStatistic = statisticLoad(roleAnalysisService, dataPointCluster, dataPoints, clusterIndex,
+        ClusterStatistic clusterStatistic = statisticLoad(roleAnalysisService, session, dataPointCluster, dataPoints, clusterIndex,
                 complexType, sessionTypeObjectCount, task, result);
 
         assert clusterStatistic != null;
@@ -523,7 +536,17 @@ public class RoleAnalysisAlgorithmUtils {
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
 
-        roleAnalysisService.processAttributeAnalysis(detectedPatterns, userExistCache, roleExistCache, task, result);
+        List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = roleAnalysisService
+                .resolveAnalysisAttributes(session, UserType.COMPLEX_TYPE);
+        List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = roleAnalysisService
+                .resolveAnalysisAttributes(session, RoleType.COMPLEX_TYPE);
+
+        if (userAnalysisAttributeDef == null || roleAnalysisAttributeDef == null) {
+            return detectedPatterns;
+        }
+
+        roleAnalysisService.resolveDetectedPatternsAttributes(detectedPatterns, userExistCache, roleExistCache, task, result,
+                roleAnalysisAttributeDef, userAnalysisAttributeDef);
 
         return detectedPatterns;
     }

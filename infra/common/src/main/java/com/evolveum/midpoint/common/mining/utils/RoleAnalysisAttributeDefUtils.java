@@ -87,7 +87,7 @@ public class RoleAnalysisAttributeDefUtils {
     public static RoleAnalysisAttributeDef archetypeRef = new RoleAnalysisAttributeDef(
             ItemPath.create(FocusType.F_ARCHETYPE_REF),
             false,
-            "archetypeRef",
+            "archetype ref",
             ArchetypeType.class,
             RoleAnalysisAttributeDef.IdentifierType.OID) {
 
@@ -211,7 +211,7 @@ public class RoleAnalysisAttributeDefUtils {
         return attributeMap.get(displayValue);
     }
 
-    private static @NotNull @UnmodifiableView Map<String, RoleAnalysisAttributeDef> createAttributeMap() {
+    public static @NotNull @UnmodifiableView Map<String, RoleAnalysisAttributeDef> createAttributeMap() {
         Map<String, RoleAnalysisAttributeDef> attributeMap = new HashMap<>();
         attributeMap.put(orgAssignment.getDisplayValue(), orgAssignment);
         attributeMap.put(roleAssignment.getDisplayValue(), roleAssignment);
@@ -235,8 +235,7 @@ public class RoleAnalysisAttributeDefUtils {
         return Collections.unmodifiableMap(attributeMap);
     }
 
-    @Contract(pure = true)
-    public static @Unmodifiable @NotNull List<RoleAnalysisAttributeDef> getAttributesForRoleAnalysis() {
+    public static @NotNull List<RoleAnalysisAttributeDef> getAttributesForRoleAnalysis() {
 
         List<RoleAnalysisAttributeDef> analysisAttributeDefs = new ArrayList<>(List.of(
                 lifecycleState,
@@ -255,13 +254,10 @@ public class RoleAnalysisAttributeDefUtils {
         ));
         analysisAttributeDefs.addAll(loadRoleExtension());
 
-        analysisAttributeDefs.forEach(analysisAttributeDef -> analysisAttributeDef.setAssociatedClassType(RoleType.class));
-
-        return analysisAttributeDefs;
+        return Collections.unmodifiableList(analysisAttributeDefs);
     }
 
-    @Contract(pure = true)
-    public static @Unmodifiable @NotNull List<RoleAnalysisAttributeDef> getAttributesForUserAnalysis() {
+    public static @NotNull List<RoleAnalysisAttributeDef> getAttributesForUserAnalysis() {
         List<RoleAnalysisAttributeDef> analysisAttributeDefs = new ArrayList<>(List.of(
                 title,
                 locale,
@@ -278,9 +274,7 @@ public class RoleAnalysisAttributeDefUtils {
 
         analysisAttributeDefs.addAll(loadUserExtension());
 
-        analysisAttributeDefs.forEach(analysisAttributeDef -> analysisAttributeDef.setAssociatedClassType(UserType.class));
-
-        return analysisAttributeDefs;
+        return Collections.unmodifiableList(analysisAttributeDefs);
     }
 
     @NotNull

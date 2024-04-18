@@ -104,39 +104,37 @@ public class RoleAnalysisSessionSimpleObjectsWizardPanel extends AbstractFormWiz
                 setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, minObject);
             }
 
-            if(analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
+            AnalysisAttributeSettingType value = new AnalysisAttributeSettingType();
+            List<AnalysisAttributeRuleType> analysisAttributeRule = new ArrayList<>();
+            RoleAnalysisAttributeDef title = RoleAnalysisAttributeDefUtils.getTitle();
+            RoleAnalysisAttributeDef archetypeRef = RoleAnalysisAttributeDefUtils.getArchetypeRef();
+            RoleAnalysisAttributeDef locality = RoleAnalysisAttributeDefUtils.getLocality();
+            RoleAnalysisAttributeDef orgAssignment = RoleAnalysisAttributeDefUtils.getOrgAssignment();
 
-                AnalysisAttributeSettingType value = new AnalysisAttributeSettingType();
-                List<AnalysisAttributeRuleType> analysisAttributeRule = new ArrayList<>();
-                RoleAnalysisAttributeDef title = RoleAnalysisAttributeDefUtils.getTitle();
-                RoleAnalysisAttributeDef archetypeRef = RoleAnalysisAttributeDefUtils.getArchetypeRef();
-                RoleAnalysisAttributeDef locality = RoleAnalysisAttributeDefUtils.getLocality();
-                RoleAnalysisAttributeDef orgAssignment = RoleAnalysisAttributeDefUtils.getOrgAssignment();
+            analysisAttributeRule
+                    .add(new AnalysisAttributeRuleType()
+                            .attributeIdentifier(title.getDisplayValue())
+                            .propertyType(UserType.COMPLEX_TYPE));
+            analysisAttributeRule
+                    .add(new AnalysisAttributeRuleType()
+                            .attributeIdentifier(archetypeRef.getDisplayValue())
+                            .propertyType(UserType.COMPLEX_TYPE));
+            analysisAttributeRule
+                    .add(new AnalysisAttributeRuleType()
+                            .attributeIdentifier(locality.getDisplayValue())
+                            .propertyType(UserType.COMPLEX_TYPE));
+            analysisAttributeRule
+                    .add(new AnalysisAttributeRuleType()
+                            .attributeIdentifier(orgAssignment.getDisplayValue())
+                            .propertyType(UserType.COMPLEX_TYPE));
+            analysisAttributeRule
+                    .add(new AnalysisAttributeRuleType()
+                            .attributeIdentifier(archetypeRef.getDisplayValue())
+                            .propertyType(RoleType.COMPLEX_TYPE));
 
-                analysisAttributeRule
-                        .add(new AnalysisAttributeRuleType()
-                                .attributeIdentifier(title.getDisplayValue())
-                                .propertyType(UserType.COMPLEX_TYPE));
-                analysisAttributeRule
-                        .add(new AnalysisAttributeRuleType()
-                                .attributeIdentifier(archetypeRef.getDisplayValue())
-                                .propertyType(UserType.COMPLEX_TYPE));
-                analysisAttributeRule
-                        .add(new AnalysisAttributeRuleType()
-                                .attributeIdentifier(locality.getDisplayValue())
-                                .propertyType(UserType.COMPLEX_TYPE));
-                analysisAttributeRule
-                        .add(new AnalysisAttributeRuleType()
-                                .attributeIdentifier(orgAssignment.getDisplayValue())
-                                .propertyType(UserType.COMPLEX_TYPE));
-                analysisAttributeRule
-                        .add(new AnalysisAttributeRuleType()
-                                .attributeIdentifier(archetypeRef.getDisplayValue())
-                                .propertyType(RoleType.COMPLEX_TYPE));
+            value.getAnalysisAttributeRule().addAll(analysisAttributeRule);
+            setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING, value);
 
-                value.getAnalysisAttributeRule().addAll(analysisAttributeRule);
-                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING, value);
-            }
             setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, minObject);
 
         } catch (SchemaException e) {

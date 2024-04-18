@@ -12,7 +12,7 @@ import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.AttributeMatch;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.RoleAnalysisAttributeDefConvert;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
 
 /**
@@ -21,7 +21,7 @@ import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.Extensio
 public class JaccardDistancesMeasure implements DistanceMeasure {
     private final int minIntersection;
     private final int minIntersectionAttributes;
-    Set<AttributeMatch> attributesMatch;
+    Set<RoleAnalysisAttributeDefConvert> attributesMatch;
 
     /**
      * Constructs a JaccardDistancesMeasure with the specified minimum intersection size for calculation.
@@ -34,7 +34,7 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
     }
 
     public JaccardDistancesMeasure(int minIntersection,
-            @NotNull Set<AttributeMatch> attributesMatch,
+            @NotNull Set<RoleAnalysisAttributeDefConvert> attributesMatch,
             int minIntersectionAttributes) {
         this.minIntersectionAttributes = minIntersectionAttributes;
         this.minIntersection = minIntersection;
@@ -143,23 +143,23 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
         ClusterExplanation clusterExplanation = new ClusterExplanation();
 
         Set<AttributeMatchExplanation> attributeMatchExplanations = new HashSet<>();
-        for (AttributeMatch attributeMatch : attributesMatch) {
+        for (RoleAnalysisAttributeDefConvert roleAnalysisAttributeDefConvert : attributesMatch) {
 
-            boolean multiValue = attributeMatch.isMultiValue();
+            boolean multiValue = roleAnalysisAttributeDefConvert.isMultiValue();
             if (!multiValue) {
-                double weight = computeSingleValue(valueA, valueB, attributeMatch);
+                double weight = computeSingleValue(valueA, valueB, roleAnalysisAttributeDefConvert);
                 if (weight > 0) {
                     AttributeMatchExplanation attributeMatchExplanation = new AttributeMatchExplanation(
-                            attributeMatch.getAttributeDisplayValue().toString(),
-                            valueA.getSingleValueForKey(attributeMatch));
+                            roleAnalysisAttributeDefConvert.getAttributeDisplayValue().toString(),
+                            valueA.getSingleValueForKey(roleAnalysisAttributeDefConvert));
                     attributeMatchExplanations.add(attributeMatchExplanation);
                     weightSum += weight;
                 }
             } else {
-                double weight = computeMultiValue(valueA, valueB, attributeMatch);
+                double weight = computeMultiValue(valueA, valueB, roleAnalysisAttributeDefConvert);
                 if (weight > 0) {
                     AttributeMatchExplanation attributeMatchExplanation = new AttributeMatchExplanation(
-                            attributeMatch.getAttributeDisplayValue().toString(),
+                            roleAnalysisAttributeDefConvert.getAttributeDisplayValue().toString(),
                             "multiValue");
                     attributeMatchExplanations.add(attributeMatchExplanation);
                     weightSum += weight;
@@ -179,13 +179,13 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
     private double computeSingleValue(
             @NotNull ExtensionProperties valueA,
             @NotNull ExtensionProperties valueB,
-            @NotNull AttributeMatch attributeMatch) {
-        String valuesForKeyA = valueA.getSingleValueForKey(attributeMatch);
-        String valuesForKeyB = valueB.getSingleValueForKey(attributeMatch);
+            @NotNull RoleAnalysisAttributeDefConvert roleAnalysisAttributeDefConvert) {
+        String valuesForKeyA = valueA.getSingleValueForKey(roleAnalysisAttributeDefConvert);
+        String valuesForKeyB = valueB.getSingleValueForKey(roleAnalysisAttributeDefConvert);
 
         if (valuesForKeyA != null && valuesForKeyB != null) {
             if (valuesForKeyA.equals(valuesForKeyB)) {
-                return attributeMatch.getWeight();
+                return roleAnalysisAttributeDefConvert.getWeight();
             }
         }
         return 0;
@@ -194,10 +194,10 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
     private double computeMultiValue(
             @NotNull ExtensionProperties valueA,
             @NotNull ExtensionProperties valueB,
-            @NotNull AttributeMatch attributeMatch) {
-        Set<String> valuesForKeyA = valueA.getSetValuesForKeys(attributeMatch);
-        Set<String> valuesForKeyB = valueB.getSetValuesForKeys(attributeMatch);
-        double percentage = attributeMatch.getSimilarity();
+            @NotNull RoleAnalysisAttributeDefConvert roleAnalysisAttributeDefConvert) {
+        Set<String> valuesForKeyA = valueA.getSetValuesForKeys(roleAnalysisAttributeDefConvert);
+        Set<String> valuesForKeyB = valueB.getSetValuesForKeys(roleAnalysisAttributeDefConvert);
+        double percentage = roleAnalysisAttributeDefConvert.getSimilarity();
 
         if (valuesForKeyA != null
                 && valuesForKeyB != null
@@ -206,7 +206,7 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
             double compute = computeMultiValueAttributes(valuesForKeyA, valuesForKeyB);
 
             if ((1 - compute) >= percentage) {
-                return attributeMatch.getWeight();
+                return roleAnalysisAttributeDefConvert.getWeight();
             }
         }
 

@@ -23,7 +23,7 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDef
 /**
  * Represents an attribute match with associated extension properties.
  */
-public class AttributeMatch implements Serializable {
+public class RoleAnalysisAttributeDefConvert implements Serializable {
 
     RoleAnalysisAttributeDef roleAnalysisAttributeDef;
     private String attributeDisplayValue;
@@ -31,7 +31,7 @@ public class AttributeMatch implements Serializable {
     double similarity;
     double weight;
 
-    public AttributeMatch(ClusteringAttributeRuleType rule, @NotNull RoleAnalysisProcessModeType processMode) {
+    public RoleAnalysisAttributeDefConvert(ClusteringAttributeRuleType rule, @NotNull RoleAnalysisProcessModeType processMode) {
         if (rule == null
                 || rule.getSimilarity() == null
                 || rule.getWeight() == null
@@ -64,15 +64,15 @@ public class AttributeMatch implements Serializable {
 
     }
 
-    public static @NotNull List<AttributeMatch> generateMatchingRulesList(
+    public static @NotNull List<RoleAnalysisAttributeDefConvert> generateMatchingRulesList(
             @NotNull List<ClusteringAttributeRuleType> matchingRule,
             @NotNull RoleAnalysisProcessModeType processMode) {
-        List<AttributeMatch> attributeMatches = new ArrayList<>();
+        List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts = new ArrayList<>();
         for (ClusteringAttributeRuleType rule : matchingRule) {
-            AttributeMatch attributeMatch = new AttributeMatch(rule, processMode);
-            attributeMatches.add(attributeMatch);
+            RoleAnalysisAttributeDefConvert roleAnalysisAttributeDefConvert = new RoleAnalysisAttributeDefConvert(rule, processMode);
+            roleAnalysisAttributeDefConverts.add(roleAnalysisAttributeDefConvert);
         }
-        return attributeMatches;
+        return roleAnalysisAttributeDefConverts;
     }
 
     public boolean isMultiValue() {

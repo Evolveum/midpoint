@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering;
 
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.*;
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.AttributeMatch.generateMatchingRulesList;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.RoleAnalysisAttributeDefConvert.generateMatchingRulesList;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -25,7 +25,7 @@ import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressI
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.*;
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.AttributeMatch;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.RoleAnalysisAttributeDefConvert;
 import com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -76,14 +76,14 @@ public class AdvancedClustering implements Clusterable {
         double similarityThreshold = sessionOptionType.getSimilarityThreshold();
         double similarityDifference = 1 - (similarityThreshold / 100);
 
-        List<AttributeMatch> attributeMatches = generateMatchingRulesList(
+        List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts = generateMatchingRulesList(
                 sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
                 RoleAnalysisProcessModeType.ROLE);
 
         SearchFilterType query = sessionOptionType.getQuery();
 
         List<DataPoint> dataPoints = loadInitialData(modelService, roleAnalysisService, handler, isIndirect,
-                RoleAnalysisProcessModeType.ROLE, attributeMatches,
+                RoleAnalysisProcessModeType.ROLE, roleAnalysisAttributeDefConverts,
                 minUserOccupancy, maxUserOccupancy, query, task, result);
 
         if (dataPoints.isEmpty()) {
@@ -92,9 +92,9 @@ public class AdvancedClustering implements Clusterable {
         }
 
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(
-                minUsersOverlap, new HashSet<>(attributeMatches), 0);
+                minUsersOverlap, new HashSet<>(roleAnalysisAttributeDefConverts), 0);
 
-        boolean isRule = !attributeMatches.isEmpty() && attributeMatches.get(0).getRoleAnalysisItemDef() != null;
+        boolean isRule = !roleAnalysisAttributeDefConverts.isEmpty() && roleAnalysisAttributeDefConverts.get(0).getRoleAnalysisItemDef() != null;
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(
                 similarityDifference, minRolesCount, distanceMeasure, minUsersOverlap, isRule);
 
@@ -120,14 +120,14 @@ public class AdvancedClustering implements Clusterable {
         int minRolesOverlap = sessionOptionType.getMinPropertiesOverlap();
         int minUsersCount = sessionOptionType.getMinMembersCount();
 
-        List<AttributeMatch> attributeMatches = generateMatchingRulesList(
+        List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts = generateMatchingRulesList(
                 sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
                 RoleAnalysisProcessModeType.USER);
 
         SearchFilterType query = sessionOptionType.getQuery();
 
         List<DataPoint> dataPoints = loadInitialData(modelService, roleAnalysisService, handler,
-                isIndirect, RoleAnalysisProcessModeType.USER, attributeMatches,
+                isIndirect, RoleAnalysisProcessModeType.USER, roleAnalysisAttributeDefConverts,
                 minRolesOccupancy, maxRolesOccupancy, query, task, result);
 
         if (dataPoints.isEmpty()) {
@@ -136,9 +136,9 @@ public class AdvancedClustering implements Clusterable {
         }
 
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(
-                minRolesOverlap, new HashSet<>(attributeMatches), 0);
+                minRolesOverlap, new HashSet<>(roleAnalysisAttributeDefConverts), 0);
 
-        boolean isRule = !attributeMatches.isEmpty() && attributeMatches.get(0).getRoleAnalysisItemDef() != null;
+        boolean isRule = !roleAnalysisAttributeDefConverts.isEmpty() && roleAnalysisAttributeDefConverts.get(0).getRoleAnalysisItemDef() != null;
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(
                 similarityDifference, minUsersCount, distanceMeasure, minRolesOverlap, isRule);
 
@@ -153,7 +153,7 @@ public class AdvancedClustering implements Clusterable {
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisProgressIncrement handler,
             Boolean isIndirect, @NotNull RoleAnalysisProcessModeType processMode,
-            @NotNull List<AttributeMatch> attributeMatches,
+            @NotNull List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts,
             int minProperties,
             int maxProperties,
             @Nullable SearchFilterType userQuery,
@@ -180,13 +180,13 @@ public class AdvancedClustering implements Clusterable {
         handler.setOperationCountToProcess(1);
 
         List<DataPoint> dataPoints;
-        if (attributeMatches.isEmpty() || attributeMatches.get(0).getRoleAnalysisItemDef() == null) {
+        if (roleAnalysisAttributeDefConverts.isEmpty() || roleAnalysisAttributeDefConverts.get(0).getRoleAnalysisItemDef() == null) {
             dataPoints = prepareDataPoints(chunkMap);
         } else {
             if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-                dataPoints = prepareDataPointsRoleModeRules(chunkMap, roleAnalysisService, attributeMatches, task);
+                dataPoints = prepareDataPointsRoleModeRules(chunkMap, roleAnalysisService, roleAnalysisAttributeDefConverts, task);
             } else {
-                dataPoints = prepareDataPointsUserModeRules(chunkMap, roleAnalysisService, attributeMatches, task);
+                dataPoints = prepareDataPointsUserModeRules(chunkMap, roleAnalysisService, roleAnalysisAttributeDefConverts, task);
             }
         }
         handler.iterateActualStatus();

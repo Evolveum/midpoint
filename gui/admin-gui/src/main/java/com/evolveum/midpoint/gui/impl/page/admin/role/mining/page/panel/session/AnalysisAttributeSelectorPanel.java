@@ -7,11 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
+import javax.xml.namespace.QName;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -27,10 +24,7 @@ import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AnalysisAttributeRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AnalysisAttributeSettingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class AnalysisAttributeSelectorPanel extends InputPanel {
     private static final String ID_MULTISELECT = "multiselect";
@@ -121,25 +115,13 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
         return new ChoiceProvider<>() {
             @Override
             public String getDisplayValue(AnalysisAttributeRuleType roleAnalysisAttributeDef) {
-                String prefix = "";
-                if (roleAnalysisAttributeDef.getPropertyType().equals(UserType.COMPLEX_TYPE)) {
-                    prefix = "(User) ";
-                } else {
-                    prefix = "(Role) ";
-                }
-                return prefix + roleAnalysisAttributeDef.getAttributeIdentifier();
+
+                return getIdentifier(roleAnalysisAttributeDef);
             }
 
             @Override
             public String getIdValue(AnalysisAttributeRuleType roleAnalysisAttributeDef) {
-                String prefix = "";
-                if (roleAnalysisAttributeDef.getPropertyType().equals(UserType.COMPLEX_TYPE)) {
-                    prefix = "(User) ";
-                } else {
-                    prefix = "(Role) ";
-                }
-
-                return prefix + roleAnalysisAttributeDef.getAttributeIdentifier();
+                return getIdentifier(roleAnalysisAttributeDef);
             }
 
             @Override
@@ -155,20 +137,14 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
             @Override
             public Collection<AnalysisAttributeRuleType> toChoices(Collection<String> collection) {
                 Collection<AnalysisAttributeRuleType> choices = new ArrayList<>();
+                Set<String> allowedAttributes = new HashSet<>(collection);
 
                 List<AnalysisAttributeRuleType> objectToChooseFrom = getObjectToChooseFrom();
                 objectToChooseFrom.forEach(def -> {
 
-                    String prefix;
-                    if (def.getPropertyType().equals(UserType.COMPLEX_TYPE)) {
-                        prefix = "(User) ";
-                    } else {
-                        prefix = "(Role) ";
-                    }
+                    String value = getIdentifier(def);
 
-                    String value = prefix + def.getAttributeIdentifier();
-
-                    if (collection.contains(value)) {
+                    if (allowedAttributes.contains(value)) {
                         choices.add(def);
                     }
                 });
@@ -189,12 +165,15 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
         }
 
         List<AnalysisAttributeRuleType> clusteringAttributeRule = realValue.getAnalysisAttributeRule();
-        Set<String> identifiers = clusteringAttributeRule.stream()
-                .map(AnalysisAttributeRuleType::getAttributeIdentifier).collect(Collectors.toSet());
+        Set<String> identifiers = new HashSet<>();
+        for (AnalysisAttributeRuleType analysisAttributeRuleType : clusteringAttributeRule) {
+            String value = getIdentifier(analysisAttributeRuleType);
+            identifiers.add(value);
+        }
 
         for (AnalysisAttributeRuleType poiRef : poiRefs) {
-
-            if (identifiers.contains(poiRef.getAttributeIdentifier())) {
+            String identifier = getIdentifier(poiRef);
+            if (identifiers.contains(identifier)) {
                 identifiers.remove(poiRef.getAttributeIdentifier());
                 continue;
             }
@@ -210,20 +189,47 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
         getSelectedObject().setObject(new ArrayList<>(poiRefs));
     }
 
-    private @NotNull List<AnalysisAttributeRuleType> createChoiceSet() {
-        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = new ArrayList<>(
-                RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis());
+    @NotNull
+    private String getIdentifier(@NotNull AnalysisAttributeRuleType analysisAttributeRuleType) {
+        String prefix;
+        if (analysisAttributeRuleType.getPropertyType().equals(UserType.COMPLEX_TYPE)) {
+            prefix = "(User) ";
+        } else {
+            prefix = "(Role) ";
+        }
+        return prefix + analysisAttributeRuleType.getAttributeIdentifier();
+    }
 
-        attributesForUserAnalysis.addAll(RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis());
+    private @NotNull List<AnalysisAttributeRuleType> createChoiceSet() {
 
         List<AnalysisAttributeRuleType> result = new ArrayList<>();
-        for (RoleAnalysisAttributeDef def : attributesForUserAnalysis) {
-            AnalysisAttributeRuleType rule = new AnalysisAttributeRuleType();
-            rule.setAttributeIdentifier(def.getDisplayValue());
-            rule.setPropertyType(def.getComplexType());
-            result.add(rule);
-        }
+        List<RoleAnalysisAttributeDef> roleAttributesForRoleAnalysis = new ArrayList<>(
+                RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis());
+        List<RoleAnalysisAttributeDef> userAttributesForUserAnalysis = new ArrayList<>(
+                RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis());
+
+        addAttributesToResult(roleAttributesForRoleAnalysis, result, RoleType.COMPLEX_TYPE);
+        addAttributesToResult(userAttributesForUserAnalysis, result, UserType.COMPLEX_TYPE);
+
         return result;
+    }
+
+    private void addAttributesToResult(
+            @NotNull List<RoleAnalysisAttributeDef> attributeDef,
+            @NotNull List<AnalysisAttributeRuleType> result,
+            @NotNull QName complexType) {
+        for (RoleAnalysisAttributeDef def : attributeDef) {
+            result.add(createAnalysisAttributeRule(def, complexType));
+        }
+    }
+
+    private @NotNull AnalysisAttributeRuleType createAnalysisAttributeRule(
+            @NotNull RoleAnalysisAttributeDef def,
+            @NotNull QName complexType) {
+        AnalysisAttributeRuleType rule = new AnalysisAttributeRuleType();
+        rule.setAttributeIdentifier(def.getDisplayValue());
+        rule.setPropertyType(complexType);
+        return rule;
     }
 
     private @NotNull List<AnalysisAttributeRuleType> performSearch(String term) {
