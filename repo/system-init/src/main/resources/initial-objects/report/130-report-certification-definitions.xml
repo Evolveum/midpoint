@@ -17,9 +17,7 @@
     </assignment>
     <objectCollection>
         <collection>
-            <filter>
-                <q:all/>
-            </filter>
+            <!-- Type is declared in the view element. -->
         </collection>
         <view>
             <column id="2">

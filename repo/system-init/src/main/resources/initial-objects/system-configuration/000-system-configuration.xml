@@ -1409,16 +1409,7 @@
                 <connectorRef type="ConnectorType">
                     <resolutionTime>run</resolutionTime>
                     <filter>
-                        <q:and>
-                            <q:equal>
-                                <q:path>connectorType</q:path>
-                                <q:value>org.identityconnectors.databasetable.DatabaseTableConnector</q:value>
-                            </q:equal>
-                            <q:equal>
-                                <q:path>available</q:path>
-                                <q:value>true</q:value>
-                            </q:equal>
-                        </q:and>
+                        <q:text>connectorType = 'org.identityconnectors.databasetable.DatabaseTableConnector' and available = true</q:text>
                     </filter>
                 </connectorRef>
             </resourceDetailsPage>
@@ -1457,16 +1448,7 @@
                 <connectorRef type="ConnectorType">
                     <resolutionTime>run</resolutionTime>
                     <filter>
-                        <q:and>
-                            <q:equal>
-                                <q:path>connectorType</q:path>
-                                <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
-                            </q:equal>
-                            <q:equal>
-                                <q:path>available</q:path>
-                                <q:value>true</q:value>
-                            </q:equal>
-                        </q:and>
+                        <q:text>connectorType = 'com.evolveum.polygon.connector.ldap.LdapConnector' and available = true</q:text>
                     </filter>
                 </connectorRef>
             </resourceDetailsPage>
@@ -1505,16 +1487,7 @@
                 <connectorRef type="ConnectorType">
                     <resolutionTime>run</resolutionTime>
                     <filter>
-                        <q:and>
-                            <q:equal>
-                                <q:path>connectorType</q:path>
-                                <q:value>com.evolveum.polygon.connector.ldap.ad.AdLdapConnector</q:value>
-                            </q:equal>
-                            <q:equal>
-                                <q:path>available</q:path>
-                                <q:value>true</q:value>
-                            </q:equal>
-                        </q:and>
+                        <q:text>connectorType = 'com.evolveum.polygon.connector.ldap.ad.AdLdapConnector' and available = true</q:text>
                     </filter>
                 </connectorRef>
             </resourceDetailsPage>
