@@ -26,7 +26,7 @@ public class ShadowSummaryPanel extends ObjectSummaryPanel<ShadowType> {
     @Serial private static final long serialVersionUID = 1L;
 
     public ShadowSummaryPanel(String id, IModel<ShadowType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
-        super(id, ShadowType.class, model, summaryPanelSpecificationType);
+        super(id, model, summaryPanelSpecificationType);
     }
 
     @Override

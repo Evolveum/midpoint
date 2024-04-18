@@ -11,7 +11,7 @@
 Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Report configuration] for basic information about configuration variables.
 
 
-== Example use-case
+== Example Use-case
 
 We need report users with mismatched attributes, so we have to compare attributes of account of user and attributes of user in Midpoint. We create example which compare email prefix of user in Midpoint with firstname and lastname attributes of account chained by '.'.
 

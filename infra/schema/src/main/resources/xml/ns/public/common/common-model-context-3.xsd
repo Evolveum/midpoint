@@ -2328,6 +2328,7 @@
                 <a:experimental>true</a:experimental>
                 <a:container>true</a:container>
                 <a:since>4.0</a:since>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2495,6 +2496,8 @@
                 <a:experimental>true</a:experimental>
                 <a:container>true</a:container>
                 <a:since>4.0</a:since>
+                <a:naturalKey>operationType</a:naturalKey>
+                <a:naturalKey>level</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2958,6 +2961,7 @@
                 <a:experimenta>true</a:experimenta>
                 <a:container>true</a:container>
                 <a:since>4.0</a:since>
+                <a:naturalKey>logger</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

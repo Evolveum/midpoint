@@ -18,9 +18,9 @@
  *
  * When you want to create a new merger, you need to just extend {@link com.evolveum.midpoint.schema.merger.BaseMergeOperation}
  * and implement the merging logic. In most cases, it involves providing the appropriate root-level
- * {@link com.evolveum.midpoint.schema.merger.ItemMerger} to the constructor:
+ * {@link com.evolveum.midpoint.prism.delta.ItemMerger} to the constructor:
  * {@link com.evolveum.midpoint.schema.merger.BaseMergeOperation#BaseMergeOperation(com.evolveum.midpoint.prism.Containerable,
- * com.evolveum.midpoint.prism.Containerable, com.evolveum.midpoint.schema.merger.GenericItemMerger)}
+ * com.evolveum.midpoint.prism.Containerable, GenericItemMerger)}
  * Only in rare cases you will need to implement the merging logic yourself, like in
  * {@link com.evolveum.midpoint.schema.merger.objdef.LimitationsMerger} or
  * {@link com.evolveum.midpoint.schema.merger.resource.ObjectTypeDefinitionMerger}.
@@ -46,3 +46,5 @@
  * The architecture of this package is not finished yet. It is more-or-less an experiment for now.
  */
 package com.evolveum.midpoint.schema.merger;
+
+import com.evolveum.midpoint.prism.impl.GenericItemMerger;

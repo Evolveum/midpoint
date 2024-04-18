@@ -9,12 +9,15 @@ package com.evolveum.midpoint.web.component.data.column;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordLimitationsPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -29,10 +32,21 @@ public class PasswordPolicyValidationPanel extends BasePanel<List<StringLimitati
     private static final String ID_RESULT_ICON = "resultIcon";
     private static final String ID_INFO_ICON = "infoIcon";
     private static final String ID_POLICY_VALIDATION_POPOVER = "policyValidationPopover";
+
+    public static final String JAVA_SCRIPT_CODE = "$(document).ready(function (){\n"
+            + "            $(\".info-icon\").passwordValidatorPopover(\".info-icon\", \".password-validator-popover\");\n"
+            + "        });\n";
     private Model<Boolean> isAfterInitialization = Model.of(false);
 
-    public PasswordPolicyValidationPanel(String id, IModel<List<StringLimitationResult>> model) {
+    public PasswordPolicyValidationPanel(String id, LoadableModel<List<StringLimitationResult>> model) {
         super(id, model);
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        response.render(OnDomReadyHeaderItem.forScript(JAVA_SCRIPT_CODE));
     }
 
     @Override
@@ -63,6 +77,7 @@ public class PasswordPolicyValidationPanel extends BasePanel<List<StringLimitati
 
         ImagePanel infoPanel = new ImagePanel(
                 ID_INFO_ICON, Model.of(GuiDisplayTypeUtil.createDisplayType("fa fa-info-circle")));
+        infoPanel.setOutputMarkupId(true);
         add(infoPanel);
 
         PasswordLimitationsPanel validationPanel = new PasswordLimitationsPanel(ID_POLICY_VALIDATION_POPOVER, getModel());

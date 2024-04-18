@@ -107,6 +107,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
     private void initLayout() {
         IModel<String> currentPasswordModel = new IModel<String>() {
+            private static final long serialVersionUID = 1L;
             @Override
             public String getObject() {
                 return currentPasswordValue;
@@ -144,7 +145,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, Model.of(newPasswordValue), false, true, getModelObject().asPrismObject()) {
             private static final long serialVersionUID = 1L;
 
-
             @Override
             protected void updatePasswordValidation(AjaxRequestTarget target) {
                 super.updatePasswordValidation(target);
@@ -161,6 +161,10 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                 return !savedPassword;
             }
 
+            @Override
+            protected boolean removePasswordValueAttribute() {
+                return ChangePasswordPanel.this.removePasswordValueAttribute();
+            }
         };
         passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
         add(passwordPanel);
@@ -237,7 +241,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         return CHANGE_PASSWORD_BUTTON_STYLE;
     }
 
-    private void updateNewPasswordValuePerformed(AjaxRequestTarget target) {
+    protected void updateNewPasswordValuePerformed(AjaxRequestTarget target) {
         target.add(get(ID_PASSWORD_VALIDATION_PANEL));
     }
 
@@ -438,4 +442,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         return PasswordHintConfigurabilityType.ALWAYS_CONFIGURE;
     }
 
+    protected boolean removePasswordValueAttribute() {
+        return true;
+    }
 }

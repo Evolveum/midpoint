@@ -179,8 +179,6 @@ The _resource_ parameter will be set before the report is run.
 Usage of the parameter is very simple.
 We just use the name of the parameter in expression of query.
 
-// TODO
-
 image::collection-parameters.png[]
 
 .Object collection report with parameter
@@ -556,9 +554,6 @@ return object?.assignments?.findAll(a -> a.targetRef != null)
 This would be used in the `assignment` sub-report with `splitParentRow` option.
 * Finally, you can resolve these refs, but not dropping the rows to preserve the rows for the owning object.
 
-// If you wanted just a single row for multiple unresolved targetRefs, the things get complicated, but that is already beyond the scope of this example.
-// It's probably better to get `assignment.targetRef.oid` into one of the columns and use that to deal with the broken references instead.
-
 In any case, with great power comes great responsibility - and both `splitParentRow` and `removeParentRow` behavior gives you a lot of power.
 
 ==== Example of Generated Report
@@ -567,3 +562,13 @@ In the picture below we can see an example of generated HTML report of all users
 Report contains columns for Name, Full Name, Administrative status, Roles, Organizations and Accounts of every user.
 
 image::collection-example.png[]
+
+
+== See Also
+
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/report-security.adoc[Report Security]
+- xref:/midpoint/reference/misc/reports/configuration/report-task-definition.adoc[Report Task Definition]

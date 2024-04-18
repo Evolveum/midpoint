@@ -39,7 +39,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
     private static final String OPERATION_LOAD_PARENT_ORGS = DOT_CLASS + "activationTag";
 
     public FocusSummaryPanel(String id, Class<O> type, final IModel<O> model, SummaryPanelSpecificationType summaryPanelSpecification) {
-        super(id, type, model, summaryPanelSpecification);
+        super(id, model, summaryPanelSpecification);
     }
 
     @Override

@@ -531,6 +531,13 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return menu;
     }
 
+    private MainMenuItem createSchemaItems() {
+        MainMenuItem menu = createMainMenuItem("PageAdmin.menu.top.schema", GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA);
+        createBasicAssignmentHolderMenuItems(menu, PageTypes.SCHEMA);
+
+        return menu;
+    }
+
     private SideBarMenuItem createConfigurationMenu(boolean experimentalFeaturesEnabled) {
         SideBarMenuItem item = new SideBarMenuItem("PageAdmin.menu.top.configuration", experimentalFeaturesEnabled) {
             @Override
@@ -543,6 +550,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         item.addMainMenuItem(createObjectsCollectionItems());
         item.addMainMenuItem(createObjectTemplatesItems());
         item.addMainMenuItem(createMarkItems());
+        item.addMainMenuItem(createSchemaItems());
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.bulkActions", "fa fa-bullseye", PageBulkAction.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.importObject", "fa fa-upload", PageImportObject.class));
         item.addMainMenuItem(createRepositoryObjectsMenu());

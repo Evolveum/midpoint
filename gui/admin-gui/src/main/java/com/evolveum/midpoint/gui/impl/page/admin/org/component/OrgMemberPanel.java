@@ -6,12 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.org.component;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
+import com.evolveum.midpoint.gui.api.component.ChooseOrgMemberPopup;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.Component;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -108,5 +114,41 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
         }
         return super.getRelationsForRecomputeTask();
     }
+
+    @Override
+    protected Popupable createAssignPopup(QName stableRelation) {
+        ChooseOrgMemberPopup browser = new ChooseOrgMemberPopup(OrgMemberPanel.this.getPageBase().getMainPopupBodyId(),
+                getMemberPanelStorage().getSearch(), loadMultiFunctionalButtonModel()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected OrgType getAssignmentTargetRefObject() {
+                return OrgMemberPanel.this.getModelObject();
+            }
+
+            @Override
+            protected List<ObjectReferenceType> getArchetypeRefList() {
+                return new ArrayList<>();
+            }
+
+            @Override
+            protected QName getRelationIfIsStable() {
+                return stableRelation;
+            }
+
+            @Override
+            protected boolean shouldHideTaskLink() {
+                return OrgMemberPanel.this.shouldHideTaskLink();
+            }
+
+            @Override
+            public Component getFeedbackPanel() {
+                return OrgMemberPanel.this.getFeedback();
+            }
+        };
+        browser.setOutputMarkupId(true);
+        return browser;
+    }
+
 
 }

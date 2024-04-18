@@ -20,6 +20,13 @@ public enum ValidationItemType {
     MISSING_NATURAL_KEY,
 
     /**
+     * Used when natural key is not unique in prism container value for multi-value containers.
+     *
+     * Data type: {@link com.evolveum.midpoint.prism.PrismContainerValue}
+     */
+    NATURAL_KEY_NOT_UNIQUE,
+
+    /**
      * Multi-value reference where at least one value doesn't have OID defined (e.g. uses filter).
      *
      * Data type: {@link com.evolveum.midpoint.prism.PrismReferenceValue}
@@ -50,6 +57,10 @@ public enum ValidationItemType {
 
     /**
      * Summarized message used by {@link ObjectValidator} and tools that depends on it.
+     *
+     * Enabling validation in {@link ObjectValidator#setTypeToCheck(ValidationItemType, boolean)} will
+     * not do anything for this one. Separate items {@link #DEPRECATED_ITEM}, {@link #REMOVED_ITEM} or
+     * {@link #PLANNED_REMOVAL_ITEM} have to be used.
      *
      * Validation items of this type can be split to separate types {@link #DEPRECATED_ITEM}, {@link #REMOVED_ITEM},
      * {@link #PLANNED_REMOVAL_ITEM}. using {@link ObjectValidator#setSummarizeItemLifecycleState(boolean)}.

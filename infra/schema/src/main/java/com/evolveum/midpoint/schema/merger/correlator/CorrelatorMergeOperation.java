@@ -12,7 +12,7 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
-import com.evolveum.midpoint.schema.merger.GenericItemMerger;
+import com.evolveum.midpoint.prism.impl.GenericItemMerger;
 import com.evolveum.midpoint.schema.merger.IgnoreSourceItemMerger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCorrelatorType;
 

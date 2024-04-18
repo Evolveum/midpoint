@@ -175,7 +175,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element ref="tns:schema" minOccurs="0">
+                    <xsd:element name="schema" type="tns:XmlSchemaType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Schema for resource objects.
@@ -380,6 +380,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.6</a:since>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -454,7 +455,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="schema" type="tns:XmlSchemaType"/>
+    <xsd:element name="xmlSchema" type="tns:XmlSchemaType"/>
 
     <xsd:complexType name="CachingMetadataType">
         <xsd:annotation>
@@ -613,6 +614,7 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:merger>ResourceObjectTypeDefinitionType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2070,6 +2072,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:naturalKey>ref</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -4269,7 +4272,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element ref="tns:schema" minOccurs="0">
+                    <xsd:element name="schema" type="tns:XmlSchemaType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Connector configuration schema.
@@ -5765,6 +5768,7 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.6</a:since>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -5912,6 +5916,7 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.6</a:since>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

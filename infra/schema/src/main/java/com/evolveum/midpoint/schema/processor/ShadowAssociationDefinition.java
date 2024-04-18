@@ -14,6 +14,9 @@ import java.io.Serializable;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -235,6 +238,26 @@ public class ShadowAssociationDefinition extends AbstractFreezable
     @Override
     public Integer getDisplayOrder() {
         return associationConfigItem.getDisplayOrder();
+    }
+
+    @Override
+    public @Nullable String getMergerIdentifier() {
+        return null;
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return null;
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return null;
+    }
+
+    @Override
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
+        return null;
     }
 
     @Override

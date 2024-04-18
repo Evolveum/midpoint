@@ -11,7 +11,7 @@
 Please see xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration] for basic information about configuration variables.
 
 
-== Example use-case
+== Example Use-case
 
 The Administrator needs to display all users which have value of description set as 'Created by mP'
 
@@ -48,18 +48,13 @@ After the successful import of the dashboard object you can see the dashboard in
 We want to report it out as a table of users created by Midpoint, for this we can use a dashboard report.
 
 
-.Report
-[source,xml]
-----
-<report>
-    <name>Users created by mP dashboard report</name>
-    <dashboard>
-        <dashboardRef oid="72b1f98e-f587-4b9f-b92b-72e251da3456" type="DashboardType"/>
-    </dashboard>
-</report>
-----
+.*Example Dashboard Report Configuration*
+[%collapsible]
+====
+sampleRef::samples/reports/users-created-policy-dashboard-report.xml[]
+====
 
-Now we can run the report in the report menu, show task, and download report.
+Now we can run the report in the report menu, open the task which generated the report and download the report.
 
 
 == See Also

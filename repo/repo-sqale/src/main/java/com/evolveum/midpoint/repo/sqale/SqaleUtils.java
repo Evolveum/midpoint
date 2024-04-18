@@ -38,7 +38,7 @@ public class SqaleUtils {
      */
     public static final String SCHEMA_AUDIT_CHANGE_NUMBER = "schemaAuditChangeNumber";
 
-    public static final int CURRENT_SCHEMA_CHANGE_NUMBER = 28;
+    public static final int CURRENT_SCHEMA_CHANGE_NUMBER = 30;
 
     public static final int CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER = 9;
 

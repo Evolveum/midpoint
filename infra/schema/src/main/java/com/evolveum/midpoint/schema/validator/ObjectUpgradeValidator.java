@@ -13,7 +13,7 @@ public class ObjectUpgradeValidator {
 
     private final ObjectValidator validator;
 
-    public ObjectUpgradeValidator(@NotNull PrismContext prismContext) {
+    public ObjectUpgradeValidator() {
         this.validator = new ObjectValidator();
     }
 
@@ -21,24 +21,8 @@ public class ObjectUpgradeValidator {
         this.validator.setTypeToCheck(item, check);
     }
 
-    public void setWarnDeprecated(boolean value) {
-        this.validator.setWarnDeprecated(value);
-    }
-
-    public void setWarnPlannedRemoval(boolean value) {
-        this.validator.setWarnPlannedRemoval(value);
-    }
-
     public void setWarnPlannedRemovalVersion(String value) {
         this.validator.setWarnPlannedRemovalVersion(value);
-    }
-
-    public void setWarnRemoved(boolean value) {
-        this.validator.setWarnRemoved(value);
-    }
-
-    public void setWarnIncorrectOids(boolean value) {
-        this.validator.setWarnIncorrectOids(value);
     }
 
     public void showAllWarnings() {
@@ -48,7 +32,13 @@ public class ObjectUpgradeValidator {
     public <O extends ObjectType> UpgradeValidationResult validate(PrismObject<O> object) throws Exception {
         ValidationResult result = validator.validate(object);
 
+        ValidationResult filtered = new ValidationResult();
+
+        result.getItems().stream()
+                .filter(i -> i.type() == ValidationItemType.DEPRECATED_REMOVED_PLANNED_REMOVAL_ITEM)
+                .forEach(filtered::addItem);
+
         UpgradeProcessor processor = new UpgradeProcessor();
-        return processor.process(object, result);
+        return processor.process(object, filtered);
     }
 }

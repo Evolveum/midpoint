@@ -113,7 +113,7 @@ Naturally you can use them as a basis for your custom reports.
 
 You can create and configure reports also with the use of the xref:/midpoint/reference/interfaces/rest/endpoints/reports.adoc[REST API].
 
-== Generate The Report
+== How to Generate The Report
 
 The actual report (i.e. report file) has to be generated.
 This is done usually by clicking the "run" ("Save and run" or "Run original report") button from the report definition.
