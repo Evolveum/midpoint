@@ -188,6 +188,16 @@ public class NativeShadowItemDefinitionImpl<T>
     }
 
     @Override
+    public void setMergerIdentifier(String value) {
+        unsupported("mergerIdentifier", value);
+    }
+
+    @Override
+    public void setNaturalKeyConstituents(List<QName> naturalKeyConstituents) {
+        unsupported("naturalKeyConstituents", naturalKeyConstituents);
+    }
+
+    @Override
     public <A> void setAnnotation(QName qname, A value) {
         unsupported("annotation", qname);
     }

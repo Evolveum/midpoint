@@ -67,6 +67,7 @@
                         </icon>
                     </display>
                     <container id="10">
+                        <identifier>collection</identifier>
                         <path>objectCollection/collection</path>
                     </container>
                     <panelType>formPanel</panelType>

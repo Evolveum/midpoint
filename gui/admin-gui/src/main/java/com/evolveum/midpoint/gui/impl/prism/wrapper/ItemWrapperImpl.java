@@ -17,6 +17,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -527,6 +529,26 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
     @Override
     public DisplayHint getDisplayHint() {
         return getItemDefinition().getDisplayHint();
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return getItemDefinition().getNaturalKeyConstituents();
+    }
+
+    @Override
+    public @Nullable String getMergerIdentifier() {
+        return getItemDefinition().getMergerIdentifier();
+    }
+
+    @Override
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
+        return getItemDefinition().getNaturalKeyInstance();
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return getItemDefinition().getMergerInstance(strategy, originMarker);
     }
 
     @Override

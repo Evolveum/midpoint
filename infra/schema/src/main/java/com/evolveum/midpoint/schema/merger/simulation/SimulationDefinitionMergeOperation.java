@@ -15,9 +15,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
-import com.evolveum.midpoint.schema.merger.GenericItemMerger;
+import com.evolveum.midpoint.prism.impl.GenericItemMerger;
 import com.evolveum.midpoint.schema.merger.IgnoreSourceItemMerger;
-import com.evolveum.midpoint.schema.merger.OriginMarker;
+import com.evolveum.midpoint.prism.OriginMarker;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationDefinitionType;
 
 /**

@@ -6,25 +6,27 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.prism.*;
+import static com.evolveum.midpoint.schema.processor.ResourceSchema.qualifyTypeName;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import java.io.Serial;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.io.Serial;
-import java.util.*;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.schema.processor.ResourceSchema.qualifyTypeName;
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import com.evolveum.midpoint.prism.DeepCloneOperation;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
  * Default implementation of {@link ResourceObjectClassDefinition}.
@@ -237,8 +239,8 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
-        throw new UnsupportedOperationException("");
+    public @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

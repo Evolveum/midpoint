@@ -13,6 +13,8 @@ import java.io.Serial;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -708,5 +710,21 @@ public abstract class ShadowItemDefinitionImpl<
 
     private String getMutabilityFlag() {
         return isImmutable() ? "" : "+";
+    }
+
+    public @Nullable String getMergerIdentifier() {
+        return null;
+    }
+
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return null;
+    }
+
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return List.of();
+    }
+
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
+        return null;
     }
 }

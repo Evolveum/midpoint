@@ -2897,6 +2897,7 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:merger>AssignmentType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3305,6 +3306,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.0</a:since>
+                <a:merger>AssignmentRelationType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
            <xsd:sequence>
@@ -4482,6 +4484,7 @@
                     <a:version>4.4</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:merger>PropertyLimitationsType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -5392,6 +5395,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:displayName>MappingType.details</a:displayName>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -5524,31 +5528,31 @@
             <xsd:element name="name" type="xsd:QName" minOccurs="0"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
-               <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
-                   <xsd:annotation>
-                       <xsd:documentation>
-                           Path of the item (property) that is the target of the binding.
-                           This is the item which is source/target of the mapping or which
-                           is used for the form field. The path may not be specified if it
-                           can be inferred by other means (e.g. using default source or
-                           target definitions). But even in a case that the path is default
-                           we may still want to define other aspects of the binding, e.g.
-                           the value set or type override.
-                       </xsd:documentation>
-                   </xsd:annotation>
-               </xsd:element>
-               <xsd:element name="set" type="tns:ValueSetDefinitionType" minOccurs="0">
-                   <xsd:annotation>
-                       <xsd:documentation>
-                           Definition of the set of values for this variable. The variable
-                           definition will be valid only for those variable. The evaluation
-                           of the set depends on the context that the definition is used.
-                           E.g. if the set is used in mapping source then it defines the
-                           domain of the expression. If it used in the mapping target
-                           definition then it defines range of the expression. Etc.
-                       </xsd:documentation>
-                   </xsd:annotation>
-               </xsd:element>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+               <xsd:annotation>
+                   <xsd:documentation>
+                       Path of the item (property) that is the target of the binding.
+                       This is the item which is source/target of the mapping or which
+                       is used for the form field. The path may not be specified if it
+                       can be inferred by other means (e.g. using default source or
+                       target definitions). But even in a case that the path is default
+                       we may still want to define other aspects of the binding, e.g.
+                       the value set or type override.
+                   </xsd:documentation>
+               </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="set" type="tns:ValueSetDefinitionType" minOccurs="0">
+               <xsd:annotation>
+                   <xsd:documentation>
+                       Definition of the set of values for this variable. The variable
+                       definition will be valid only for those variable. The evaluation
+                       of the set depends on the context that the definition is used.
+                       E.g. if the set is used in mapping source then it defines the
+                       domain of the expression. If it used in the mapping target
+                       definition then it defines range of the expression. Etc.
+                   </xsd:documentation>
+               </xsd:annotation>
+            </xsd:element>
             <xsd:element name="type" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5801,6 +5805,7 @@
             <xsd:appinfo>
                 <a:since>4.3</a:since>
                 <a:container/>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -7701,6 +7706,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -8077,6 +8083,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:merger>ObjectSelectorType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -9189,6 +9196,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:naturalKey>ref</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10196,6 +10204,7 @@
                 <a:container/>
                 <a:relational>true</a:relational>
                 <a:expensive>true</a:expensive>
+                <a:naturalKey>key</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12023,6 +12032,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:naturalKey>identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12132,6 +12142,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:merger>ExpressionEvaluatorProfileType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12191,6 +12202,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:merger>ScriptLanguageExpressionProfileType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12316,6 +12328,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:naturalKey>identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -12359,6 +12372,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12408,6 +12422,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12466,6 +12481,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -14563,6 +14579,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:displayName>ItemConstraintType.details</a:displayName>
+                <a:naturalKey>path</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -14922,6 +14939,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:naturalKey>package</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -14949,6 +14967,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:naturalKey>component</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -15144,6 +15163,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -16125,6 +16145,7 @@
                 <a:since>3.5</a:since>
                 <a:container>true</a:container>
                 <a:displayName>GlobalPolicyRuleType.details</a:displayName>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -17249,6 +17270,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:merger>SelectorQualifiedGetOptionType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -21261,5 +21283,40 @@
             <xsd:element name="delete" type="tns:OperationPolicyConfigurationType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="SchemaType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Schema definition type. Replacement for extension schema defined in midPoint.home
+            </xsd:documentation>
+            <xsd:appinfo>
+                <!--<a:container>true</a:container>-->
+                <a:since>4.9</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+                <xsd:sequence>
+                    <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                type which this schema extends
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                xsd schema definition
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="schema" type="tns:SchemaType" substitutionGroup="c:object"/>
+
 
 </xsd:schema>

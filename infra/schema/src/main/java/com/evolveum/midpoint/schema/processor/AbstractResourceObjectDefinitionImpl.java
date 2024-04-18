@@ -13,6 +13,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -576,6 +580,26 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     @Override
     public DisplayHint getDisplayHint() {
+        return null;
+    }
+
+    @Override
+    public @Nullable String getMergerIdentifier() {
+        return null;
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return null;
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return null;
+    }
+
+    @Override
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
         return null;
     }
 

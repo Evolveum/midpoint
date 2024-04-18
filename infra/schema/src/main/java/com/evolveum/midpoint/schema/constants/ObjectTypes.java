@@ -126,8 +126,13 @@ public enum ObjectTypes {
             SimulationResultType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SIMULATION_RESULT, SimulationResultType.class,
             ObjectManager.MODEL, "simulationResults"),
 
-    POLICY(PolicyType.COMPLEX_TYPE, SchemaConstantsGenerated.C_POLICY, PolicyType.class, ObjectManager.MODEL, "roles"),
+    POLICY(
+            PolicyType.COMPLEX_TYPE, SchemaConstantsGenerated.C_POLICY, PolicyType.class,
+            ObjectManager.MODEL, "policies"),
 
+    SCHEMA(
+            SchemaType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SCHEMA, SchemaType.class,
+            ObjectManager.MODEL, "schemas"),
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");

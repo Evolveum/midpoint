@@ -16,6 +16,9 @@ import com.evolveum.midpoint.prism.path.ItemName;
 
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -124,6 +127,16 @@ public class CompositeObjectDefinitionImpl
     @Override
     public DisplayHint getDisplayHint() {
         return structuralDefinition.getDisplayHint();
+    }
+
+    @Override
+    public @Nullable String getMergerIdentifier() {
+        return structuralDefinition.getMergerIdentifier();
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return structuralDefinition.getNaturalKeyConstituents();
     }
 
     @Override
@@ -784,5 +797,15 @@ public class CompositeObjectDefinitionImpl
     @Override
     public boolean hasAnyInbounds() {
         return structuralDefinition.hasAnyInbounds();
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return structuralDefinition.getMergerInstance(strategy, originMarker);
+    }
+
+    @Override
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
+        return structuralDefinition.getNaturalKeyInstance();
     }
 }

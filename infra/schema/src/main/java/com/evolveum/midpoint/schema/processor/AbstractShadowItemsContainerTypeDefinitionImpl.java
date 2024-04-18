@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.Optional;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -291,4 +294,24 @@ abstract class AbstractShadowItemsContainerTypeDefinitionImpl implements ShadowI
 
     @Override
     public abstract @NotNull AbstractShadowItemsContainerTypeDefinitionImpl clone();
+
+    @Override
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
+        return null;
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return List.of();
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return null;
+    }
+
+    @Override
+    public @Nullable String getMergerIdentifier() {
+        return null;
+    }
 }

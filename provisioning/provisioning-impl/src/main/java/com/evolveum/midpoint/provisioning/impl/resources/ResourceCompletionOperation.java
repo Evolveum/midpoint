@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
-import static com.evolveum.midpoint.prism.schema.PrismSchema.isNotEmpty;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import java.util.Collection;
