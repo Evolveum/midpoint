@@ -16,6 +16,9 @@ import java.util.*;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -357,6 +360,26 @@ public class ResourceAttributeDefinitionImpl<T>
         } else {
             return rawDefinition.isEmphasized();
         }
+    }
+
+    @Override
+    public @Nullable String getMergerIdentifier() {
+        return rawDefinition.getMergerIdentifier();
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return rawDefinition.getNaturalKeyConstituents();
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return rawDefinition.getMergerInstance(strategy, originMarker);
+    }
+
+    @Override
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
+        return rawDefinition.getNaturalKeyInstance();
     }
 
     @Override

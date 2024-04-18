@@ -147,6 +147,7 @@
             <class name="com.evolveum.midpoint.schema.TestConfigErrorReporter"/>
             <class name="com.evolveum.midpoint.schema.validator.processor.TestUpgradeProcessors"/>
             <class name="com.evolveum.midpoint.schema.merger.TestMerger"/>
+            <class name="com.evolveum.midpoint.schema.merger.ThreeWayMergerTest"/>
         </classes>
     </test>
 </suite>

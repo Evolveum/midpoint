@@ -101,7 +101,7 @@ public class VerificationReporter {
             initDeltaXmlFile();
         }
 
-        validator = new ObjectUpgradeValidator(prismContext);
+        validator = new ObjectUpgradeValidator();
 
         validator.setWarnPlannedRemovalVersion(options.getPlannedRemovalVersion());
 

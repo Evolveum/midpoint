@@ -7,22 +7,18 @@
 package com.evolveum.midpoint.schema.validator;
 
 import java.util.*;
-
-import com.evolveum.midpoint.schema.merger.key.NaturalKey;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import javax.xml.namespace.QName;
 
 /**
  * Validator that can process objects, validate them, check for errors and warning
@@ -42,8 +38,6 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  */
 public class ObjectValidator {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ObjectValidator.class);
 
     private Set<ValidationItemType> typesToCheck = new HashSet<>();
 
@@ -73,26 +67,6 @@ public class ObjectValidator {
 
     public void setSummarizeItemLifecycleState(boolean summarizeItemLifecycleState) {
         this.summarizeItemLifecycleState = summarizeItemLifecycleState;
-    }
-
-    @Deprecated
-    public void setWarnDeprecated(boolean warnDeprecated) {
-        setTypeToCheck(ValidationItemType.DEPRECATED_ITEM, warnDeprecated);
-    }
-
-    @Deprecated
-    public void setWarnPlannedRemoval(boolean warnPlannedRemoval) {
-        setTypeToCheck(ValidationItemType.PLANNED_REMOVAL_ITEM, warnPlannedRemoval);
-    }
-
-    @Deprecated
-    public void setWarnIncorrectOids(boolean value) {
-        setTypeToCheck(ValidationItemType.INCORRECT_OID_FORMAT, value);
-    }
-
-    @Deprecated
-    public void setWarnRemoved(boolean warnRemoved) {
-        setTypeToCheck(ValidationItemType.REMOVED_ITEM, warnRemoved);
     }
 
     public void setTypeToCheck(@NotNull ValidationItemType type, boolean set) {
@@ -209,38 +183,38 @@ public class ObjectValidator {
         }
 
         // todo enable natural keys check
-//        List<QName> constituents = def.getNaturalKeyConstituents();
-//        if (constituents == null || constituents.isEmpty()) {
-//            return;
-//        }
-//
-//        NaturalKey naturalKey = def.getNaturalKeyInstance();
-//
-//        for (PrismContainerValue<?> value : container.getValues()) {
-//            for (QName key : constituents) {
-//                if (value.findItem(ItemPath.create(key)) == null) {
-//                    warn(
-//                            result, ValidationItemType.MISSING_NATURAL_KEY,
-//                            "Missing natural key constituent: " + key.getLocalPart(), container, value);
-//                }
-//            }
-//
-//            if (check(ValidationItemType.NATURAL_KEY_NOT_UNIQUE) && naturalKey != null) {
-//                // this could be quite expensive, however now there's probably no better way to
-//                // figure out whether there are two values with the same natural key
-//                for (PrismContainerValue<?> other : container.getValues()) {
-//                    if (value == other) {
-//                        continue;
-//                    }
-//
-//                    if (naturalKey.valuesMatch(value, other)) {
-//                        warn(
-//                                result, ValidationItemType.NATURAL_KEY_NOT_UNIQUE,
-//                                "Non-unique natural key in " + container.getPath(), container, value);
-//                    }
-//                }
-//            }
-//        }
+        List<QName> constituents = def.getNaturalKeyConstituents();
+        if (constituents == null || constituents.isEmpty()) {
+            return;
+        }
+
+        NaturalKeyDefinition naturalKey = def.getNaturalKeyInstance();
+
+        for (PrismContainerValue<?> value : container.getValues()) {
+            for (QName key : constituents) {
+                if (value.findItem(ItemPath.create(key)) == null) {
+                    warn(
+                            result, ValidationItemType.MISSING_NATURAL_KEY,
+                            "Missing natural key constituent: " + key.getLocalPart(), container, value);
+                }
+            }
+
+            if (check(ValidationItemType.NATURAL_KEY_NOT_UNIQUE) && naturalKey != null) {
+                // this could be quite expensive, however now there's probably no better way to
+                // figure out whether there are two values with the same natural key
+                for (PrismContainerValue<?> other : container.getValues()) {
+                    if (value == other) {
+                        continue;
+                    }
+
+                    if (naturalKey.valuesMatch(value, other)) {
+                        warn(
+                                result, ValidationItemType.NATURAL_KEY_NOT_UNIQUE,
+                                "Non-unique natural key in " + container.getPath(), container, value);
+                    }
+                }
+            }
+        }
     }
 
     private void visitProperty(PrismProperty<?> property, ValidationResult result) {
@@ -262,8 +236,6 @@ public class ObjectValidator {
             if (!byte[].class.equals(def.getTypeClass())) {
                 return;
             }
-
-            ItemPath path = property.getPath();
 
             warn(
                     result, ValidationItemType.MULTIVALUE_BYTE_ARRAY,

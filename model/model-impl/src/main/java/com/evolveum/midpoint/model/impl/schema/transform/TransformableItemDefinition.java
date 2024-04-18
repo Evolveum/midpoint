@@ -10,6 +10,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.impl.key.NaturalKeyDefinitionImpl;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -18,8 +21,10 @@ import com.evolveum.midpoint.prism.deleg.ItemDefinitionDelegator;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
+import java.util.List;
 
 public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends ItemDefinition<I>>
         extends TransformableDefinition
@@ -47,6 +52,9 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     private Integer maxOccurs;
     private ItemProcessing processing;
     private PrismReferenceValue valueEnumerationRef;
+    private String merger;
+
+    private List<QName> naturalKeyConstituents;
 
     protected TransformableItemDefinition(D delegate) {
         super(delegate);
@@ -71,6 +79,8 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
             this.valueEnumerationRef = copyOf.valueEnumerationRef;
             this.delegate = copyOf.delegate;
             this.alwaysUseForEquals = copyOf.alwaysUseForEquals;
+            this.merger = copyOf.merger;
+            this.naturalKeyConstituents = copyOf.naturalKeyConstituents;
         } else {
             this.delegate = new DelegatedItem.FullySerializable<>(delegate);
         }
@@ -183,6 +193,39 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     public void freeze() {
         // Intentional Noop for now
 
+    }
+
+    @Nullable
+    @Override
+    public String getMergerIdentifier() {
+        return merger;
+    }
+
+    @Override
+    public void setMergerIdentifier(String mergerIdentifier) {
+        this.merger = mergerIdentifier;
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return getPrismContext().itemMergerFactory().createMerger(this, strategy, originMarker);
+    }
+
+    @Override
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
+        // todo how to create proper NaturalKey instance, implementations could be outside of prism api/impl
+        return naturalKeyConstituents != null && !naturalKeyConstituents.isEmpty() ? NaturalKeyDefinitionImpl.of(naturalKeyConstituents) : null;
+    }
+
+    @Nullable
+    @Override
+    public List<QName> getNaturalKeyConstituents() {
+        return naturalKeyConstituents;
+    }
+
+    @Override
+    public void setNaturalKeyConstituents(List<QName> naturalKeyConstituents) {
+        this.naturalKeyConstituents = naturalKeyConstituents;
     }
 
     @Override

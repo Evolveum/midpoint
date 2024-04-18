@@ -681,4 +681,8 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         super.updateNewPasswordValuePerformed(target);
         updatePasswordValidationColumnOfTable(target);
     }
+
+    protected boolean removePasswordValueAttribute() {
+        return false;
+    }
 }

@@ -1136,6 +1136,7 @@
                         </item>
                     </container>
                     <container id="131">
+                        <identifier>objectType</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType</path>
                     </container>
@@ -1170,6 +1171,7 @@
                         </item>
                     </container>
                     <container id="139">
+                        <identifier>delineation-hidden</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/delineation</path>
                     </container>
@@ -1208,6 +1210,7 @@
                         </item>
                     </container>
                     <container id="146">
+                        <identifier>limitations</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/attribute/limitations</path>
                     </container>
@@ -1234,6 +1237,7 @@
                         </item>
                     </container>
                     <container id="154">
+                        <identifier>reaction</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/synchronization/reaction</path>
                     </container>
@@ -1260,6 +1264,7 @@
                         </item>
                     </container>
                     <container id="159">
+                        <identifier>reaction</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/synchronization/reaction</path>
                     </container>
@@ -1310,6 +1315,7 @@
                         </item>
                     </container>
                     <container id="164">
+                        <identifier>attribute</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/attribute</path>
                     </container>
@@ -1376,6 +1382,7 @@
                         </item>
                     </container>
                     <container id="175">
+                        <identifier>association-hidden</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/association</path>
                     </container>
@@ -1413,6 +1420,7 @@
                         </item>
                     </container>
                     <container id="190">
+                        <identifier>configurationProperties</identifier>
                         <visibility>hidden</visibility>
                         <path>connectorConfiguration/configurationProperties</path>
                     </container>
@@ -1461,6 +1469,7 @@
                         </item>
                     </container>
                     <container id="200">
+                        <identifier>configurationProperties</identifier>
                         <visibility>hidden</visibility>
                         <path>connectorConfiguration/configurationProperties</path>
                     </container>
@@ -1509,6 +1518,7 @@
                         </item>
                     </container>
                     <container id="208">
+                        <identifier>configurationProperties</identifier>
                         <visibility>hidden</visibility>
                         <path>connectorConfiguration/configurationProperties</path>
                     </container>

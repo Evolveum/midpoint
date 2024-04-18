@@ -11,12 +11,20 @@ import java.io.IOException;
 import java.util.Collections;
 import javax.xml.XMLConstants;
 
+import com.evolveum.midpoint.prism.impl.key.DefaultNaturalKeyDefinitionImpl;
+import com.evolveum.midpoint.prism.impl.GenericItemMerger;
+import com.evolveum.midpoint.schema.merger.assignment.AssignmentMerger;
+import com.evolveum.midpoint.schema.merger.objdef.LimitationsMerger;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
+import com.evolveum.midpoint.prism.ItemMergerFactory;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.impl.ItemMergerFactoryImpl;
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
@@ -27,14 +35,12 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.merger.resource.ObjectTypeDefinitionMerger;
 import com.evolveum.midpoint.schema.metadata.MidpointProvenanceEquivalenceStrategy;
 import com.evolveum.midpoint.schema.metadata.MidpointValueMetadataFactory;
 import com.evolveum.midpoint.schema.processor.MidPointSchemaDefinitionFactory;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ObjectFactory;
 
 /**
@@ -73,7 +79,124 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         context.setValueMetadataFactory(new MidpointValueMetadataFactory(context));
         context.setProvenanceEquivalenceStrategy(MidpointProvenanceEquivalenceStrategy.INSTANCE);
         context.registerQueryExpressionFactory(new PrismQueryExpressionSupport());
+
+        context.setItemMergerFactory(buildItemMergerFactory());
+
         return context;
+    }
+
+    private ItemMergerFactory buildItemMergerFactory() {
+        ItemMergerFactoryImpl factory = new ItemMergerFactoryImpl();
+
+        factory.registerMergerSupplier(
+                "ResourceObjectTypeDefinitionType",
+                ResourceObjectTypeDefinitionType.class,
+                m -> new ObjectTypeDefinitionMerger(m));
+        factory.registerMergerSupplier(
+                "PropertyLimitationsType",
+                PropertyLimitationsType.class,
+                m -> new LimitationsMerger(m));
+        factory.registerMergerSupplier(
+                "AssignmentType",
+                AssignmentType.class,
+                m -> new AssignmentMerger(m));
+
+        // todo entries below this should be removed and should be handled by annotations in xsd,
+        //  natural keys should be reviewed and most probably changed
+        factory.registerMergerSupplier(
+                "SearchItemType",
+                SearchItemType.class,
+                m -> new GenericItemMerger(
+                        m,
+                        DefaultNaturalKeyDefinitionImpl.of(
+                                SearchItemType.F_PATH, SearchItemType.F_FILTER, SearchItemType.F_FILTER_EXPRESSION)));
+        factory.registerMergerSupplier(
+                "GuiObjectDetailsPageType",
+                GuiObjectDetailsPageType.class,
+                m -> new GenericItemMerger(m, DefaultNaturalKeyDefinitionImpl.of(GuiObjectDetailsPageType.F_TYPE)));
+//        factory.registerMergerSupplier(
+//                "GuiResourceDetailsPageType",
+//                GuiResourceDetailsPageType.class,
+//                m -> new GenericItemMerger(m, DefaultNaturalKeyImpl.of(
+//                        GuiResourceDetailsPageType.F_TYPE,
+//                        GuiResourceDetailsPageType.F_CONNECTOR_REF)));
+        factory.registerMergerSupplier(
+                "ExpressionEvaluatorProfileType",
+                ExpressionEvaluatorProfileType.class,
+                m -> new GenericItemMerger(m, DefaultNaturalKeyDefinitionImpl.of(ExpressionEvaluatorProfileType.F_TYPE)));
+        factory.registerMergerSupplier(
+                "ScriptLanguageExpressionProfileType",
+                ScriptLanguageExpressionProfileType.class,
+                m -> new GenericItemMerger(
+                        m, DefaultNaturalKeyDefinitionImpl.of(ScriptLanguageExpressionProfileType.F_LANGUAGE)));
+//        factory.registerMergerSupplier(
+//                "ClassLoggerLevelOverrideType",
+//                ClassLoggerLevelOverrideType.class,
+//                m -> new GenericItemMerger(m, DefaultNaturalKeyImpl.of(ClassLoggerLevelOverrideType.F_LOGGER)));
+        factory.registerMergerSupplier(
+                "ObjectSelectorType",
+                ObjectSelectorType.class,
+                m -> new GenericItemMerger(
+                        m,
+                        DefaultNaturalKeyDefinitionImpl.of(ObjectSelectorType.F_NAME, ObjectSelectorType.F_TYPE)));
+        factory.registerMergerSupplier(
+                "CollectionSpecificationType",
+                CollectionSpecificationType.class,
+                m -> new GenericItemMerger(
+                        m, DefaultNaturalKeyDefinitionImpl.of(CollectionSpecificationType.F_INTERPRETATION)));
+        factory.registerMergerSupplier(
+                "DashboardWidgetDataFieldType",
+                DashboardWidgetDataFieldType.class,
+                m -> new GenericItemMerger(m, DefaultNaturalKeyDefinitionImpl.of(DashboardWidgetDataFieldType.F_FIELD_TYPE)));
+        factory.registerMergerSupplier(
+                "DashboardWidgetVariationType",
+                DashboardWidgetVariationType.class,
+                m -> new GenericItemMerger(
+                        m,
+                        DefaultNaturalKeyDefinitionImpl.of(
+                                DashboardWidgetVariationType.F_DISPLAY, DashboardWidgetVariationType.F_CONDITION)));
+        factory.registerMergerSupplier(
+                "AssignmentRelationType",
+                AssignmentRelationType.class,
+                m -> new GenericItemMerger(
+                        m,
+                        DefaultNaturalKeyDefinitionImpl.of(
+                                AssignmentRelationType.F_HOLDER_TYPE,
+                                AssignmentRelationType.F_RELATION,
+                                AssignmentRelationType.F_HOLDER_ARCHETYPE_REF)));
+        factory.registerMergerSupplier(
+                "ModificationPolicyConstraintType",
+                ModificationPolicyConstraintType.class,
+                m -> new GenericItemMerger(
+                        m,
+                        DefaultNaturalKeyDefinitionImpl.of(
+                                ModificationPolicyConstraintType.F_NAME,
+                                ModificationPolicyConstraintType.F_OPERATION)));
+        factory.registerMergerSupplier(
+                "AbstractObjectTypeConfigurationType",
+                AbstractObjectTypeConfigurationType.class,
+                m -> new GenericItemMerger(
+                        m,
+                        DefaultNaturalKeyDefinitionImpl.of(AbstractObjectTypeConfigurationType.F_TYPE)));
+        factory.registerMergerSupplier(
+                "GuiShadowDetailsPageType",
+                GuiShadowDetailsPageType.class,
+                m -> new GenericItemMerger(
+                        m, DefaultNaturalKeyDefinitionImpl.of(
+                        GuiShadowDetailsPageType.F_TYPE,
+                        GuiShadowDetailsPageType.F_RESOURCE_REF,
+                        GuiShadowDetailsPageType.F_KIND,
+                        GuiShadowDetailsPageType.F_INTENT)));
+        factory.registerMergerSupplier(
+                "SelectorQualifiedGetOptionType",
+                SelectorQualifiedGetOptionType.class,
+                m -> new GenericItemMerger(
+                        m,
+                        DefaultNaturalKeyDefinitionImpl.of(
+                                SelectorQualifiedGetOptionType.F_OPTIONS,
+                                SelectorQualifiedGetOptionType.F_SELECTOR)));
+
+        return factory;
     }
 
     private SchemaDefinitionFactory createDefinitionFactory() {
@@ -104,7 +227,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
             try {
                 commonMetadata = AxiomModelStatementSource.fromResource("xml/ns/public/common/common-metadata-3.axiom");
             } catch (AxiomSyntaxException | IOException e) {
-               throw new RuntimeException(e);
+                throw new RuntimeException(e);
             }
             axiomRegistry.addAxiomSource(commonMetadata);
         }
@@ -136,7 +259,6 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/query-3.xsd", "q",
                 com.evolveum.prism.xml.ns._public.query_3.ObjectFactory.class.getPackage(), true);          // declared by default
-
 
         // midPoint schemas
         schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/public/common/common-3.xsd", "c",
@@ -171,7 +293,6 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
                 com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory.class.getPackage());
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/noop-3.xsd", "noop");
-
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/jdbc-ping-3.xsd", "jping");
 

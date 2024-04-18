@@ -35,6 +35,7 @@
                     <panel id="3">
                         <identifier>work</identifier>
                         <container id="4">
+                            <identifier>reportImport</identifier>
                             <path>activity/work/reportImport</path>
                         </container>
                     </panel>
