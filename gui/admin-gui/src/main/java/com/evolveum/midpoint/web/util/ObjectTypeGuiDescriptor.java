@@ -89,7 +89,9 @@ public enum ObjectTypeGuiDescriptor {
 
     SIMULATION_RESULT(ObjectTypes.SIMULATION_RESULT, "ObjectType.SimulationResultType", "", ""),
 
-    POLICY(ObjectTypes.POLICY, "ObjectType.PolicyType", "", "");
+    POLICY(ObjectTypes.POLICY, "ObjectType.PolicyType", "", ""),
+
+    SCHEMA(ObjectTypes.SCHEMA, "ObjectType.SchemaType", "", "");
 
     public static final String ERROR_ICON = "fa-solid fa-triangle-exclamation text-warning";
 

@@ -439,6 +439,19 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_PREVIEW_CHANGES_QNAME = new QName(NS_AUTHORIZATION_UI, "previewChanges");
     public static final String AUTZ_UI_PREVIEW_CHANGES_URL = NS_AUTHORIZATION_UI + "#previewChanges";
 
+    //Schema
+    public static final QName AUTZ_UI_SCHEMAS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "schemasAll");
+    public static final String AUTZ_UI_SCHEMAS_ALL_URL = NS_AUTHORIZATION_UI + "#schemasAll";
+
+    public static final QName AUTZ_UI_SCHEMAS_QNAME = new QName(NS_AUTHORIZATION_UI, "schemas");
+    public static final String AUTZ_UI_SCHEMAS_URL = NS_AUTHORIZATION_UI + "#schemas";
+
+    public static final QName AUTZ_UI_SCHEMA_QNAME = new QName(NS_AUTHORIZATION_UI, "schema");
+    public static final String AUTZ_UI_SCHEMA_URL = NS_AUTHORIZATION_UI + "#schema";
+
+    public static final QName AUTZ_UI_SCHEMA_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "schemaDetails");
+    public static final String AUTZ_UI_SCHEMA_DETAILS_URL = NS_AUTHORIZATION_UI + "#schemaDetails";
+
     //About
 //    public static final QName AUTZ_UI_ABOUT_MIDPOINT_QNAME = new QName(NS_AUTHORIZATION, "aboutMidpoint");
 //    public static final String AUTZ_UI_ABOUT_MIDPOINT_URL = QNameUtil.qNameToUri(AUTZ_UI_ABOUT_MIDPOINT_QNAME);

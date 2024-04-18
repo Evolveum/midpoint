@@ -1,0 +1,54 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <form>
+
+        <div class="form-group">
+            <label>Display name</label>
+            <div wicket:id="name" />
+        </div>
+
+<!--        <div class="form-group">-->
+<!--            <label>Display name</label>-->
+<!--            <div wicket:id="typeName" />-->
+<!--        </div>-->
+
+        <div class="form-group">
+            <label>Display name</label>
+            <div wicket:id="displayName" />
+        </div>
+
+        <div class="form-group">
+            <label>Display order</label>
+            <div wicket:id="displayOrder" />
+        </div>
+
+        <div class="form-group">
+            <label>Indexed</label>
+            <div wicket:id="indexed" />
+        </div>
+
+
+        <div class="form-group">
+            <label>Min occurs</label>
+            <div wicket:id="minOccurs" />
+        </div>
+
+        <div class="form-group">
+            <label>Max occurs</label>
+            <div wicket:id="maxOccurs" />
+        </div>
+
+        <button type="submit" wicket:id="save" class="btn btn-primary">Save</button>
+
+    </form>
+</wicket:panel>
+</html>

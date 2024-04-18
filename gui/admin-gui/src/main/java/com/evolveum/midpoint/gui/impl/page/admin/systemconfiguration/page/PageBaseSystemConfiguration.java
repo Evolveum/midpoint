@@ -71,7 +71,7 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
 
     @Override
     protected Panel createSummaryPanel(String id, IModel<SystemConfigurationType> model) {
-        return new ObjectSummaryPanel(id, SystemConfigurationType.class, model, getSummaryPanelSpecification()) {
+        return new ObjectSummaryPanel(id, model, getSummaryPanelSpecification()) {
 
             @Override
             protected String getDefaultIconCssClass() {
