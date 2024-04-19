@@ -1,22 +1,24 @@
 = Access Certification Reports
-:page-nav-title: Reports
+:page-nav-title: Certification Reports
 :page-wiki-name: Access Certification Reports
 :page-wiki-id: 22282416
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2016-02-03T21:58:53.027+01:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2016-02-09T08:31:14.273+01:00
-:page-upkeep-status: red
+:page-upkeep-status: green
 :page-alias: { "parent" : "/midpoint/reference/misc/reports/", "slug" : "certification",  "title" : "Access Certification" }
 
-There are currently four certification-related reports available:
+== Access Certification Reports
+
+There are currently four pre-configured certification-related reports available in the midPoint distribution package:
 
 [%autowidth]
 |===
 | Report name | Content
 
 | Certification definitions report
-| All certification definitions with basic information on related campaigns (number of campaigns, date when a campaing of this type was last started and closed).
+| All certification definitions with basic information on related campaigns (number of campaigns, date when a campaign of this type was last started and closed).
 
 
 | Certification campaigns report
@@ -27,30 +29,26 @@ There are currently four certification-related reports available:
 | Cases within a given certification campaign.
 
 
-| Certification decisions report
+| Certification work items report
 | Decisions of individual reviewers for a certification campaign as a whole or for a given campaign stage.
 This is the most detailed report.
 
 
 |===
 
-For the time being the reports are quite rudimentary, but provide useful information.
-After exporting e.g. to XLS file format the data can be further processed (sorted, filtered, etc.) Any comments/suggestions related to these reports are more than welcome.
-
+The default export type is CSV as a default for object collection based reports.
 
 == Examples
 
-image::image2016-2-3-22-1-51.png[]
-
-
+.*Certification definitions report*
+image::cert-definition-report.png[]
 
 Notes:
 
 . "last closed" is not updated if a campaign is deleted without being properly closed.
 
-image::image2016-2-3-22-2-52.png[]
-
-
+.*Certification campaigns report*
+image::cert-campaign-report.png[]
 
 Notes:
 
@@ -59,9 +57,8 @@ Notes:
 . "% complete" is computed based on a percentage of cases that are missing one or more reviewers' response.
 So if there are e.g. 10 cases total, out of which 8 ones are open in the current stage, out of which are 6 that are completed (i.e. all assigned reviewers have provided their answers), the % complete is shown as 80% (because there are 2 incomplete cases out of 10).
 
-image::image2016-2-3-22-53-49.png[]
-
-
+.*Certification cases report*
+image::cert-case-report.png[]
 
 Notes:
 
@@ -72,8 +69,19 @@ Depending on the xref:/midpoint/reference/roles-policies/certification/determini
 
 . "Reviewed by" is a list of all reviewers for all stages up to now.
 
-. "Result" is a preliminarily computed result for the case for the whole campaign.
+. "Outcome" is a preliminarily computed result for the case for the whole campaign.
 
 . "Comments" are joined comments from all reviewers that have provided them.
 
-image::image2016-2-3-22-55-31.png[]
+.*Certification work items report*
+image::cert-work-item.png[]
+
+
+== See Also
+
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/report-security.adoc[Report Security]
+- xref:/midpoint/reference/misc/reports/configuration/report-task-definition.adoc[Report Task Definition]
