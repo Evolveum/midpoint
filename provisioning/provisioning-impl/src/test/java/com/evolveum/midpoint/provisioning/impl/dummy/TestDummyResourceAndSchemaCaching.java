@@ -60,7 +60,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         // Check that there is no schema before test (pre-condition)
         PrismObject<ResourceType> resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
         ResourceType resourceTypeBefore = resourceBefore.asObjectable();
-        Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceTypeBefore);
+        Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchemaElement(resourceTypeBefore);
         AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
         assertVersion(resourceBefore, "0");
@@ -111,7 +111,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         assertResourceCacheHitsIncrement(0);
         assertResourceCacheMissesIncrement(1);
 
-        rememberResourceSchema(ResourceSchemaFactory.getRawSchema(resourceProvisioning));
+        rememberBareResourceSchema(ResourceSchemaFactory.getBareSchema(resourceProvisioning));
         rememberRefinedResourceSchema(ResourceSchemaFactory.getCompleteSchema(resourceProvisioning));
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 
@@ -151,7 +151,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         assertResourceCacheHitsIncrement(1);
         assertResourceCacheMissesIncrement(0);
 
-        assertResourceSchemaUnchanged(ResourceSchemaFactory.getRawSchema(resourceProvisioning));
+        assertNativeSchemaCached(ResourceSchemaFactory.getBareSchema(resourceProvisioning));
         assertRefinedResourceSchemaUnchanged(ResourceSchemaFactory.getCompleteSchema(resourceProvisioning));
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 
@@ -180,7 +180,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         assertResourceCacheHitsIncrement(1);
         assertResourceCacheMissesIncrement(0);
 
-        assertResourceSchemaUnchanged(ResourceSchemaFactory.getRawSchema(resourceProvisioning));
+        assertNativeSchemaCached(ResourceSchemaFactory.getBareSchema(resourceProvisioning));
         assertRefinedResourceSchemaUnchanged(ResourceSchemaFactory.getCompleteSchema(resourceProvisioning));
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 
@@ -228,7 +228,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         assertResourceCacheHitsIncrement(1);
         assertResourceCacheMissesIncrement(0);
 
-        assertResourceSchemaUnchanged(ResourceSchemaFactory.getRawSchema(resourceProvisioning));
+        assertNativeSchemaCached(ResourceSchemaFactory.getBareSchema(resourceProvisioning));
         assertRefinedResourceSchemaUnchanged(ResourceSchemaFactory.getCompleteSchema(resourceProvisioning));
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
     }
@@ -266,7 +266,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         assertResourceCacheHitsIncrement(1);
         assertResourceCacheMissesIncrement(0);
 
-        assertResourceSchemaUnchanged(ResourceSchemaFactory.getRawSchema(resourceProvisioning));
+        assertNativeSchemaCached(ResourceSchemaFactory.getBareSchema(resourceProvisioning));
         assertRefinedResourceSchemaUnchanged(ResourceSchemaFactory.getCompleteSchema(resourceProvisioning));
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 
@@ -294,7 +294,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         assertResourceCacheHitsIncrement(1);
         assertResourceCacheMissesIncrement(0);
 
-        assertResourceSchemaUnchanged(ResourceSchemaFactory.getRawSchema(resourceProvisioning));
+        assertNativeSchemaCached(ResourceSchemaFactory.getBareSchema(resourceProvisioning));
         assertRefinedResourceSchemaUnchanged(ResourceSchemaFactory.getCompleteSchema(resourceProvisioning));
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 
@@ -353,7 +353,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         assertResourceCacheMissesIncrement(1);
 
         // There are expected to be re-parsed
-        rememberResourceSchema(ResourceSchemaFactory.getRawSchema(resourceProvisioning));
+        rememberBareResourceSchema(ResourceSchemaFactory.getBareSchema(resourceProvisioning));
         rememberRefinedResourceSchema(ResourceSchemaFactory.getCompleteSchema(resourceProvisioning));
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 
@@ -406,7 +406,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         assertResourceCacheHitsIncrement(1);
         assertResourceCacheMissesIncrement(0);
 
-        assertResourceSchemaUnchanged(ResourceSchemaFactory.getRawSchema(resourceProvisioning));
+        assertNativeSchemaCached(ResourceSchemaFactory.getBareSchema(resourceProvisioning));
         assertRefinedResourceSchemaUnchanged(ResourceSchemaFactory.getCompleteSchema(resourceProvisioning));
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
     }
@@ -466,7 +466,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         assertResourceCacheMissesIncrement(1);
 
         // There are expected to be re-parsed
-        rememberResourceSchema(ResourceSchemaFactory.getRawSchema(resourceProvisioning));
+        rememberBareResourceSchema(ResourceSchemaFactory.getBareSchema(resourceProvisioning));
         rememberRefinedResourceSchema(ResourceSchemaFactory.getCompleteSchema(resourceProvisioning));
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 
@@ -559,9 +559,9 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     private PropertyDelta<String> createUselessStringDelta(String newVal) {
         return prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION,
-                        SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
+                        SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME,
                         DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME),
-                prismContext.definitionFactory().createPropertyDefinition(DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME, DOMUtil.XSD_STRING),
+                prismContext.definitionFactory().newPropertyDefinition(DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME, DOMUtil.XSD_STRING),
                 newVal);
     }
 
@@ -598,7 +598,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         assertResourceCacheMissesIncrement(1);
 
         // There are expected to be re-parsed
-        rememberResourceSchema(ResourceSchemaFactory.getRawSchema(resourceProvisioning));
+        rememberBareResourceSchema(ResourceSchemaFactory.getBareSchema(resourceProvisioning));
         rememberRefinedResourceSchema(ResourceSchemaFactory.getCompleteSchema(resourceProvisioning));
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 

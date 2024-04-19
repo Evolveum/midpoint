@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
@@ -51,7 +51,7 @@ class AssociationEvaluation<AH extends AssignmentHolderType>
     }
 
     @Override
-    ResourceObjectTypeDefinition getAssociationTargetObjectDefinition() {
+    ResourceObjectDefinition getAssociationTargetObjectDefinition() {
         return itemDefinition.getTargetObjectDefinition();
     }
 }

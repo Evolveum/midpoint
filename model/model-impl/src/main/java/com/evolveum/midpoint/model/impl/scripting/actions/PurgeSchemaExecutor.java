@@ -63,7 +63,7 @@ public class PurgeSchemaExecutor extends AbstractObjectBasedActionExecutor<Resou
             throws ExpressionEvaluationException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 
-        ResourceUtils.deleteSchema(resource, modelService, prismContext, context.getTask(), result);
+        ResourceUtils.deleteSchema(resource, modelService, context.getTask(), result);
         context.println("Purged schema information from " + resource);
 
         // It is questionable if noFetch should be used here. But it was so for a number of years.

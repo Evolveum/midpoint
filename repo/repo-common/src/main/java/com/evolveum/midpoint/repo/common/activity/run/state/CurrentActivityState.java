@@ -223,7 +223,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     private void createWorkState(ItemPath path, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         Task task = getTask();
-        PrismContainerDefinition<?> def = getPrismContext().definitionFactory().createContainerDefinition(
+        PrismContainerDefinition<?> def = getPrismContext().definitionFactory().newContainerDefinition(
                 ActivityStateType.F_WORK_STATE, workStateComplexTypeDefinition);
         PrismContainer<?> workStateContainer = def.instantiate();
         PrismContainerValue<?> newWorkStateValue = workStateContainer.createNewValue().clone();

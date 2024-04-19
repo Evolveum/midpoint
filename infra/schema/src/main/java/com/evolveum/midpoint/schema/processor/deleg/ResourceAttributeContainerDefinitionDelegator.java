@@ -8,11 +8,9 @@ import com.evolveum.midpoint.schema.processor.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.deleg.ContainerDefinitionDelegator;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public interface ResourceAttributeContainerDefinitionDelegator
         extends ContainerDefinitionDelegator<ShadowAttributesType>, ResourceAttributeContainerDefinition {
@@ -36,48 +34,8 @@ public interface ResourceAttributeContainerDefinitionDelegator
     }
 
     @Override
-    default ResourceAttributeDefinition<?> getDescriptionAttribute() {
-        return delegate().getDescriptionAttribute();
-    }
-
-    @Override
-    default ResourceAttributeDefinition<?> getNamingAttribute() {
-        return delegate().getNamingAttribute();
-    }
-
-    @Override
-    default String getNativeObjectClass() {
-        return delegate().getNativeObjectClass();
-    }
-
-    @Override
-    default boolean isDefaultAccountDefinition() {
-        return delegate().isDefaultAccountDefinition();
-    }
-
-    @Override
-    default ResourceAttributeDefinition<?> getDisplayNameAttribute() {
-        return delegate().getDisplayNameAttribute();
-    }
-
-    @Override
-    default <T> ResourceAttributeDefinition<T> findAttributeDefinition(QName elementQName, boolean caseInsensitive) {
-        return delegate().findAttributeDefinition(elementQName, caseInsensitive);
-    }
-
-    @Override
     default ResourceAttributeDefinition<?> findAttributeDefinition(ItemPath elementPath) {
         return delegate().findAttributeDefinition(elementPath);
-    }
-
-    @Override
-    default ResourceAttributeDefinition<?> findAttributeDefinition(String localName) {
-        return delegate().findAttributeDefinition(localName);
-    }
-
-    @Override
-    default List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
-        return delegate().getAttributeDefinitions();
     }
 
     @Override
@@ -96,7 +54,7 @@ public interface ResourceAttributeContainerDefinitionDelegator
     }
 
     @Override
-    default ResourceObjectDefinition getComplexTypeDefinition() {
+    default ShadowAttributesComplexTypeDefinition getComplexTypeDefinition() {
         return delegate().getComplexTypeDefinition();
     }
 

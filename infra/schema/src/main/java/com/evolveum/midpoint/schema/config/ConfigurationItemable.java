@@ -17,7 +17,9 @@ import com.google.common.base.Strings;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.util.StringUtils;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.Collection;
 
@@ -42,11 +44,24 @@ interface ConfigurationItemable<T extends Serializable & Cloneable> {
      * Checks the value, and if it's `false`, emits a {@link ConfigurationException}.
      *
      * Note that {@link ConfigurationItem#DESC} can be used as a placeholder for {@link #fullDescription()} in the `arguments`.
-     * */
+     */
+    @Contract("false, _, _ -> fail")
     default void configCheck(boolean value, String template, Object... arguments) throws ConfigurationException {
         if (!value) {
             throw configException(template, arguments);
         }
+    }
+
+    default void checkNamespace(@NotNull QName name, String expectedNamespace) throws ConfigurationException {
+        String realNamespace = name.getNamespaceURI();
+        if (StringUtils.hasLength(realNamespace) && !expectedNamespace.equals(realNamespace)) {
+            throw configException("Expected namespace '%s', but got '%s'; in %s", expectedNamespace, name, DESC);
+        }
+    }
+
+    default @NotNull String getLocalPart(@NotNull QName name, String expectedNamespace) throws ConfigurationException {
+        checkNamespace(name, expectedNamespace);
+        return name.getLocalPart();
     }
 
     default @NotNull ConfigurationException configException(Throwable cause, String template, Object... arguments) {

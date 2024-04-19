@@ -697,7 +697,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                 new QName(MidPointConstants.NS_RI, OBJECTCLASS_GROUP_LOCAL_NAME));
 
         ResourceAttributeDefinition<?> attrDef =
-                ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable())
+                ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable())
                         .findObjectClassDefinitionRequired(RI_GROUP_OBJECT_CLASS)
                         .findAttributeDefinitionRequired(SchemaConstants.ICFS_NAME);
         ObjectFilter nameFilter = prismContext.queryFor(ShadowType.class)

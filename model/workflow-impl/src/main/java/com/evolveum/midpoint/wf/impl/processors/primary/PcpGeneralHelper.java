@@ -90,7 +90,7 @@ public class PcpGeneralHelper {
                 .item(CaseType.F_PREREQUISITE_REF)
                 .addRealValues(
                         prerequisites.stream()
-                                .map(c -> ObjectTypeUtil.createObjectRef(c, prismContext))
+                                .map(c -> ObjectTypeUtil.createObjectRef(c))
                                 .collect(Collectors.toList()))
                 .asItemDeltas();
         repositoryService.modifyObject(CaseType.class, subcase.getOid(), modifications, result);

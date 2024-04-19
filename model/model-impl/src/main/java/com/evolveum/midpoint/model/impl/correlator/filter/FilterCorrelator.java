@@ -328,7 +328,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             String shortDesc = "confirmation expression for " + contextDescription;
 
             PrismPropertyDefinition<Boolean> outputDefinition =
-                    PrismContext.get().definitionFactory().createPropertyDefinition(
+                    PrismContext.get().definitionFactory().newPropertyDefinition(
                             ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
             Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression =
                     beans.expressionFactory.makeExpression(

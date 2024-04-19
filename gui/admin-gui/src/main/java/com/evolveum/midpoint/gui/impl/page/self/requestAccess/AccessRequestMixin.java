@@ -56,8 +56,8 @@ public interface AccessRequestMixin {
             PrismContext ctx = page.getPrismContext();
             ObjectFilter filter = ctx.getQueryConverter().parseFilter(filterTemplate, UserType.class);
 
-            PrismPropertyDefinition<String> def = ctx.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_INPUT_QNAME,
-                    DOMUtil.XSD_STRING);
+            PrismPropertyDefinition<String> def =
+                    ctx.definitionFactory().newPropertyDefinition(ExpressionConstants.VAR_INPUT_QNAME, DOMUtil.XSD_STRING);
 
             VariablesMap variables = new VariablesMap();
             variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, text, def);

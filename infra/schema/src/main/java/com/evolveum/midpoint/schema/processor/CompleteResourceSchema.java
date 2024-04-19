@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -17,7 +19,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface CompleteResourceSchema extends ResourceSchema {
 
+    // TODO consider removing
     @NotNull BasicResourceInformation getBasicResourceInformation();
 
     boolean isCaseIgnoreAttributeNames();
+
+    CompleteResourceSchema forLayerImmutable(LayerType layer);
 }

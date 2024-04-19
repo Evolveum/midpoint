@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.correlator.items;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -28,7 +29,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsCorrelatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +55,7 @@ class CorrelationItems implements DebugDumpable {
         List<CorrelationItem> items = new ArrayList<>();
         for (CorrelationItemType itemBean : correlatorContext.getConfigurationBean().getItem()) {
             items.add(
-                    CorrelationItem.create(itemBean, correlatorContext, correlationContext.getPreFocus()));
+                    CorrelationItem.create(itemBean, correlatorContext, correlationContext.getPreFocusContainerable()));
         }
         stateCheck(!items.isEmpty(), "No correlation items in %s", correlatorContext);
         return new CorrelationItems(items);
@@ -74,7 +74,7 @@ class CorrelationItems implements DebugDumpable {
     }
 
     ObjectQuery createIdentityQuery(
-            @NotNull Class<? extends ObjectType> focusType,
+            @NotNull Class<? extends Containerable> focusType,
             @Nullable String archetypeOid,
             @NotNull Set<String> candidateOids,
             @NotNull Task task,

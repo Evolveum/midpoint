@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayCollection;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -23,8 +21,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.test.util.TestUtil;
 
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
@@ -73,6 +69,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 /**
  * @author lazyman
  */
+@SuppressWarnings("CheckStyle")
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ModifyTest extends BaseSQLRepoTest {
@@ -136,7 +133,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 ObjectModificationType.COMPLEX_TYPE);
         modification.setOid(oid);
         Collection<? extends ItemDelta<?, ?>> deltas =
-                DeltaConvertor.toModifications(modification, UserType.class, prismContext);
+                DeltaConvertor.toModifications(modification, UserType.class);
 
         repositoryService.modifyObject(UserType.class, oid, deltas, result);
     }
@@ -147,7 +144,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 MODIFY_USER_ADD_LINK, ObjectModificationType.COMPLEX_TYPE);
 
         Collection<? extends ItemDelta<?, ?>> deltas =
-                DeltaConvertor.toModifications(modification, UserType.class, prismContext);
+                DeltaConvertor.toModifications(modification, UserType.class);
         OperationResult result = new OperationResult("MODIFY");
         repositoryService.modifyObject(UserType.class, "1234", deltas, getModifyOptions(), result);
     }
@@ -171,7 +168,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 ObjectModificationType.COMPLEX_TYPE);
 
         Collection<? extends ItemDelta<?, ?>> deltas =
-                DeltaConvertor.toModifications(modification, UserType.class, prismContext);
+                DeltaConvertor.toModifications(modification, UserType.class);
 
         repositoryService.modifyObject(UserType.class, oid, deltas, getModifyOptions(), result);
 
@@ -207,7 +204,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 MODIFY_USER_ADD_LINK, ObjectModificationType.COMPLEX_TYPE);
         Collection<? extends ItemDelta<?, ?>> deltas =
-                DeltaConvertor.toModifications(modification, UserType.class, prismContext);
+                DeltaConvertor.toModifications(modification, UserType.class);
 
         // WHEN
         repositoryService.modifyObject(UserType.class, oid, deltas, getModifyOptions(), result);
@@ -468,7 +465,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(TEST_DIR + "/modify-user-add-roles.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
 
-        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class);
 
         repositoryService.modifyObject(UserType.class, userToModifyOid, delta.getModifications(), getModifyOptions(), parentResult);
 
@@ -507,12 +504,12 @@ public class ModifyTest extends BaseSQLRepoTest {
         QName attrBazQName = new QName(MidPointConstants.NS_RI, "baz");
         PrismContainer<Containerable> attributesContainerBefore = shadowBefore.findContainer(ShadowType.F_ATTRIBUTES);
         PrismProperty<String> attrBazBefore = prismContext.itemFactory().createProperty(new QName(MidPointConstants.NS_RI, "baz"));
-        MutablePrismPropertyDefinition<String> attrBazDefBefore = prismContext.definitionFactory().createPropertyDefinition(attrBazQName, DOMUtil.XSD_STRING);
-        attrBazDefBefore.setMaxOccurs(-1);
+        PrismPropertyDefinition<String> attrBazDefBefore = prismContext.definitionFactory().newPropertyDefinition(attrBazQName, DOMUtil.XSD_STRING);
+        attrBazDefBefore.mutator().setMaxOccurs(-1);
         // Unless marked as dynamic, the repo XML object will not have xsi:type (and so the repo will parse them as raw when
         // fetching). Normally, the provisioning module is responsible for applying the definition ... but we have
         // no provisioning available here.
-        attrBazDefBefore.setDynamic(true);
+        attrBazDefBefore.mutator().setDynamic(true);
         attrBazBefore.setDefinition(attrBazDefBefore);
         attrBazBefore.addRealValue("BaZ1");
         attrBazBefore.addRealValue("BaZ2");
@@ -683,7 +680,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.addObject(account, null, result);
         accountOid = account.getOid();
 
-        PrismPropertyDefinition<String> definition = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
+        PrismPropertyDefinition<String> definition = prismContext.definitionFactory().newPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
 
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
                 .item(SchemaConstants.ICFS_NAME_PATH, definition)
@@ -704,7 +701,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         assertNotNull("account-attribute was not imported in previous tests", accountOid);
 
-        PrismPropertyDefinition<String> definition = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
+        PrismPropertyDefinition<String> definition = prismContext.definitionFactory().newPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
 
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
                 .item(SchemaConstants.ICFS_NAME_PATH, definition)
@@ -726,7 +723,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObject<UserType> user = prismContext.parseObject(new File(TEST_DIR, "user-with-assignment-extension.xml"));
         repositoryService.addObject(user, null, result);
 
-        PrismPropertyDefinition<String> definition = prismContext.definitionFactory().createPropertyDefinition(QNAME_WEAPON, DOMUtil.XSD_STRING);
+        PrismPropertyDefinition<String> definition = prismContext.definitionFactory().newPropertyDefinition(QNAME_WEAPON, DOMUtil.XSD_STRING);
 
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(UserType.class)
                 .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, QNAME_WEAPON), definition)
@@ -758,8 +755,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 new File(TEST_DIR, "role-modify-change.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
         modification.setOid(oid);
-        Collection<? extends ItemDelta<?, ?>> deltas = DeltaConvertor.toModifications(modification,
-                RoleType.class, prismContext);
+        Collection<? extends ItemDelta<?, ?>> deltas = DeltaConvertor.toModifications(modification, RoleType.class);
 
         repositoryService.modifyObject(RoleType.class, oid, deltas, getModifyOptions(), result);
 
@@ -897,8 +893,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         accountOid = account.getOid();
 
         QName ATTR1_QNAME = new QName(MidPointConstants.NS_RI, "attr1");
-        PrismPropertyDefinition<String> def1 = prismContext.definitionFactory().createPropertyDefinition(ATTR1_QNAME, DOMUtil.XSD_STRING);
-        ShadowAttributesType attributes = new ShadowAttributesType(prismContext);
+        PrismPropertyDefinition<String> def1 = prismContext.definitionFactory().newPropertyDefinition(ATTR1_QNAME, DOMUtil.XSD_STRING);
+        ShadowAttributesType attributes = new ShadowAttributesType();
         PrismProperty<String> attr1 = def1.instantiate();
         attr1.setRealValue("value1");
         attributes.asPrismContainerValue().add(attr1);

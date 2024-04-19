@@ -10,8 +10,6 @@ package com.evolveum.midpoint.schema.util.task;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.PrismContext;
-
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
@@ -55,7 +53,7 @@ public class LegacyTaskInformation extends TaskInformation {
     }
 
     private static @NotNull TaskInformation fromNoTask() {
-        TaskType emptyTask = new TaskType(PrismContext.get());
+        TaskType emptyTask = new TaskType();
         return new LegacyTaskInformation(
                 emptyTask,
                 ActivityWorkersInformation.empty(),

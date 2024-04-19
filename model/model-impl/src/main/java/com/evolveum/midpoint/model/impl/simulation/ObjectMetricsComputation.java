@@ -124,7 +124,7 @@ class ObjectMetricsComputation<O extends ObjectType> {
             return null;
         }
         ItemDefinition<?> outputDefinition = PrismContext.get().definitionFactory()
-                .createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_DECIMAL);
+                .newPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_DECIMAL);
         VariablesMap variables = new VariablesMap();
         variables.put(
                 ExpressionConstants.VAR_PROCESSED_OBJECT, processedObject, ProcessedObjectImpl.class);

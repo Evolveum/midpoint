@@ -1969,7 +1969,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         DummyAccount crmAccount = Objects.requireNonNull(
-                RESOURCE_CRM.controller.getDummyResource().getAccountByUsername(USER_BLAISE_NAME));
+                RESOURCE_CRM.controller.getDummyResource().getAccountByName(USER_BLAISE_NAME));
         crmAccount.removeAttributeValue(ATTR_ORGANIZATION, "Gases");
 
         when();
@@ -2144,7 +2144,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         DummyAccount hrAccount = Objects.requireNonNull(
-                RESOURCE_HR.controller.getDummyResource().getAccountByUsername(USER_BLAISE_NAME));
+                RESOURCE_HR.controller.getDummyResource().getAccountByName(USER_BLAISE_NAME));
         hrAccount.removeAttributeValue(ATTR_ORGANIZATION, "Department of Hydrostatics");
 
         when();

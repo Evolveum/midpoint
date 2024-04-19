@@ -175,15 +175,8 @@ public class Visualizer {
 
         ProjectionContextKey key = context.getKey();
 
-        String resourceOid;
-        if (context.getResource() != null) {
-            resourceOid = context.getResource().getOid();
-        } else {
-            resourceOid = key.getResourceOid();
-        }
-
-        PrismObject<ShadowType> newAccount = objectTypeDef.createBlankShadow(resourceOid, key.getTag());
-        addDelta.setObjectToAdd(newAccount);
+        var newAccount = objectTypeDef.createBlankShadowWithTag(key.getTag());
+        addDelta.setObjectToAdd(newAccount.getPrismObject());
 
         if (executable != null) {
             addDelta.merge(executable);
@@ -931,7 +924,7 @@ public class Visualizer {
             return refValue;
         }
         PrismObject<? extends ObjectType> object = getObject(refValue.getOid(),
-                (Class) refValue.getTargetTypeCompileTimeClass(prismContext), context, task, result);
+                (Class) refValue.getTargetTypeCompileTimeClass(), context, task, result);
         if (object == null) {
             return refValue;
         }

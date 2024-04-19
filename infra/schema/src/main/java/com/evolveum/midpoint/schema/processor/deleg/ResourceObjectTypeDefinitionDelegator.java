@@ -7,7 +7,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -106,11 +105,6 @@ public interface ResourceObjectTypeDefinitionDelegator extends ResourceObjectDef
     @NotNull
     default Collection<? extends ResourceObjectDefinition> getAuxiliaryDefinitions() {
         return delegate().getAuxiliaryDefinitions();
-    }
-
-    @Override
-    default ResourceAttributeContainer instantiate(ItemName elementName) {
-        return delegate().instantiate(elementName);
     }
 
     @Override

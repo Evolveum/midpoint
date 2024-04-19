@@ -66,13 +66,12 @@ class ValueResolutionContext extends ResolutionContext {
     }
 
     @Override
-    ResolutionContext resolveStructuredProperty(ItemPath pathToResolve, PrismPropertyDefinition<?> outputDefinition,
-            PrismContext prismContext) {
+    ResolutionContext resolveStructuredProperty(ItemPath pathToResolve, PrismPropertyDefinition<?> outputDefinition) {
         assert isStructuredProperty();
         //noinspection ConstantConditions
         Object resolvedRealValue = ((Structured) value.getRealValue()).resolve(pathToResolve);
         if (resolvedRealValue != null) {
-            PrismPropertyValue<Object> resolvedPrismValue = prismContext.itemFactory().createPropertyValue(resolvedRealValue);
+            PrismPropertyValue<Object> resolvedPrismValue = PrismContext.get().itemFactory().createPropertyValue(resolvedRealValue);
             return new ValueResolutionContext(resolvedPrismValue, contextDescription);
         } else {
             return null;
@@ -84,14 +83,14 @@ class ValueResolutionContext extends ResolutionContext {
         return false;
     }
 
-    public static ResolutionContext fromRealValue(Object variableValue, String contextDescription, PrismContext prismContext) {
+    static ResolutionContext fromRealValue(Object variableValue, String contextDescription) {
         PrismValue prismValue;
         if (variableValue instanceof Referencable){
             prismValue = ((Referencable) variableValue).asReferenceValue();
         } else if (variableValue instanceof Containerable){
             prismValue = ((Containerable) variableValue).asPrismContainerValue();
         } else {
-            prismValue = prismContext.itemFactory().createPropertyValue(variableValue);
+            prismValue = PrismContext.get().itemFactory().createPropertyValue(variableValue);
         }
         return new ValueResolutionContext(prismValue, contextDescription);
     }

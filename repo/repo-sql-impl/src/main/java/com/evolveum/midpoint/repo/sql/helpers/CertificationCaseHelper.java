@@ -7,8 +7,6 @@
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import java.util.*;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -253,7 +251,7 @@ public class CertificationCaseHelper {
                             AccessCertificationCaseType.class,
                             campaignOid);
                 }
-                AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext);
+                AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject);
 
                 delta = delta.clone();                                      // to avoid changing original modifications
                 delta.setParentPath(delta.getParentPath().rest(2));         // remove "case[id]" from the delta path
@@ -282,7 +280,7 @@ public class CertificationCaseHelper {
                     throw new IllegalStateException("Certification case: expected byte[], got " + o.getClass());
                 }
                 byte[] fullObject = (byte[]) o;
-                AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext);
+                AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject);
                 Long id = aCase.getId();
                 if (id != null && casesAddedOrDeleted != null && !casesAddedOrDeleted.contains(id) && !casesModified.contains(id)) {
                     RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, createRepositoryContext());
@@ -318,7 +316,7 @@ public class CertificationCaseHelper {
             Session session, OperationResult operationResult) throws SchemaException {
 
         byte[] fullObject = result.getFullObject();
-        AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext);
+        AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject);
         generalHelper.validateContainerable(aCase, AccessCertificationCaseType.class);
 
         String ownerOid = result.getOwnerOid();
@@ -409,7 +407,7 @@ public class CertificationCaseHelper {
             AccessCertificationCampaignType campaign = (AccessCertificationCampaignType) object.asObjectable();
             List<AccessCertificationCaseType> jaxbCases = campaign.getCase();
             for (RAccessCertificationCase rCase : cases) {
-                AccessCertificationCaseType jaxbCase = rCase.toJAXB(prismContext);
+                AccessCertificationCaseType jaxbCase = rCase.toJAXB();
                 jaxbCases.add(jaxbCase);
             }
             PrismContainer<AccessCertificationCaseType> caseContainer = object.findContainer(AccessCertificationCampaignType.F_CASE);

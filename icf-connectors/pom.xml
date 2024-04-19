@@ -22,11 +22,6 @@
 
     <name>midPoint Icf Connectors</name>
 
-    <properties>
-        <!-- No test in any of submodules at the moment -->
-        <maven.test.skip>true</maven.test.skip>
-    </properties>
-
     <modules>
         <module>dummy-connector</module>
         <module>dummy-connector-fake</module>

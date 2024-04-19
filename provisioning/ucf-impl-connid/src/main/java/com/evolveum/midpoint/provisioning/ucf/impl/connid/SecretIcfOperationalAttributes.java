@@ -20,9 +20,9 @@ public enum SecretIcfOperationalAttributes {
     GROUPS("__GROUPS__"),
     LAST_LOGIN_DATE("__LAST_LOGIN_DATE__");
 
-    private String name;
+    private final String name;
 
-    private SecretIcfOperationalAttributes(String name) {
+    SecretIcfOperationalAttributes(String name) {
         this.name = name;
     }
 

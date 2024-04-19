@@ -6,61 +6,43 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import static com.evolveum.midpoint.schema.processor.ObjectFactory.createRawResourceAttributeDefinition;
-import static com.evolveum.midpoint.schema.processor.ObjectFactory.createResourceSchema;
-
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdSchemaParser.ParsedSchemaInfo;
+import com.evolveum.midpoint.util.exception.*;
 
-import com.evolveum.midpoint.util.MiscUtil;
-
-import org.identityconnectors.common.security.GuardedByteArray;
-import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.api.operations.*;
-import org.identityconnectors.framework.common.objects.*;
-import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
+import org.identityconnectors.framework.common.objects.OperationOptionInfo;
+import org.identityconnectors.framework.common.objects.OperationOptions;
+import org.identityconnectors.framework.common.objects.Schema;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdSchemaParser.SpecialAttributes;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Class that can parse ConnId capabilities and schema into midPoint format.
  *
- * It is also used to hold the parsed capabilities and schema.
- *
- * This is a "builder" that builds/converts the schema. As such it
- * hides all the intermediary parsing states. Therefore the {@link ConnectorInstance}
- * always has a consistent schema, even during reconfigure and fetch operations.
- * There is either old schema or new schema, but there is no partially-parsed schema.
- *
  * May be used either for parsing both capabilities and schema (see
  * {@link #retrieveResourceCapabilitiesAndSchema(List, OperationResult)}) or for parsing
- * capabilities only (see {@link #retrieveResourceCapabilities(OperationResult)}).
+ * capabilities only (see {@link #fetchAndParseConnIdCapabilities(OperationResult)}).
+ *
+ * Note that these structures are intertwined. Capabilities affect the schema, because they determine if the schema can be
+ * retrieved at all. The retrieved schema affects the capabilities as well: the presence of {@link SpecialAttributes} influence
+ * what capabilities we consider to be present.
  *
  * @author Radovan Semancik
  */
@@ -71,86 +53,19 @@ class ConnIdCapabilitiesAndSchemaParser {
     private static final String OP_GET_SUPPORTED_OPERATIONS = ConnectorFacade.class.getName() + ".getSupportedOperations";
     private static final String OP_SCHEMA = ConnectorFacade.class.getName() + ".schema";
 
-    // INPUT fields
-    private final ConnIdNameMapper connIdNameMapper; // null if schema parsing is not needed
-    private final ConnectorFacade connIdConnectorFacade;
-    private final String connectorHumanReadableName;
+    @NotNull private final ConnectorFacade connIdConnectorFacade;
 
-    // Internal
-    private Set<Class<? extends APIOperation>> connIdSupportedOperations;
+    @NotNull private final ConnectorContext connectorContext;
 
-    // IN/OUT
-    /**
-     * Does the resource use "legacy schema" i.e. `pass:[__ACCOUNT__]` and `pass:[__GROUP__]` object class names?
-     * This information may be configured or detected from pre-configured schema. See {@link #detectLegacySchema(Schema)}.
-     */
-    private Boolean legacySchema;
-
-    // OUTPUT fields
-
-    /**
-     * Is the `SchemaApiOp` capability supported?
-     */
-    private boolean supportsSchema;
-
-    /**
-     * Resource schema is usually parsed from ConnId schema (when {@link #supportsSchema} is `true`).
-     * But if the connector does not have schema capability then resource schema can be null.
-     *
-     * Note that this schema is raw, i.e. `schemaHandling` and the like are not present.
-     */
-    private ResourceSchema rawResourceSchema;
-
-    /**
-     * Parsed capabilities.
-     */
-    private final CapabilityCollectionType capabilities = new CapabilityCollectionType();
+    @NotNull private final String connectorHumanReadableName;
 
     /** When schema parsing is requested. */
     ConnIdCapabilitiesAndSchemaParser(
-            @NotNull ConnIdNameMapper connIdNameMapper,
-            ConnectorFacade connIdConnectorFacade,
-            String connectorHumanReadableName) {
-        this.connIdNameMapper = connIdNameMapper;
+            @NotNull ConnectorFacade connIdConnectorFacade,
+            @NotNull ConnectorContext connectorContext) {
         this.connIdConnectorFacade = connIdConnectorFacade;
-        this.connectorHumanReadableName = connectorHumanReadableName;
-    }
-
-    /** When schema parsing is not necessary. */
-    ConnIdCapabilitiesAndSchemaParser(
-            ConnectorFacade connIdConnectorFacade,
-            String connectorHumanReadableName) {
-        this.connIdNameMapper = null;
-        this.connIdConnectorFacade = connIdConnectorFacade;
-        this.connectorHumanReadableName = connectorHumanReadableName;
-    }
-
-    /**
-     * Returns parsed resource schema or null if it was not available.
-     *
-     * The schema is raw.
-     */
-    ResourceSchema getRawResourceSchema() {
-        return rawResourceSchema;
-    }
-
-    /**
-     * Returns parsed capabilities or null if they were not available.
-     */
-    public @NotNull CapabilityCollectionType getCapabilities() {
-        return capabilities;
-    }
-
-    /**
-     * Returns true if the resource uses legacy object class names (e.g. `pass:[__ACCOUNT__]`),
-     * false if not, and null if this fact could not be determined.
-     */
-    Boolean getLegacySchema() {
-        return legacySchema;
-    }
-
-    void setLegacySchema(Boolean legacySchema) {
-        this.legacySchema = legacySchema;
+        this.connectorContext = connectorContext;
+        this.connectorHumanReadableName = connectorContext.getHumanReadableName();
     }
 
     /**
@@ -158,36 +73,46 @@ class ConnIdCapabilitiesAndSchemaParser {
      *
      * Schema is immutable after this method.
      */
-    void retrieveResourceCapabilitiesAndSchema(@NotNull List<QName> objectClassesToGenerate, OperationResult result)
+    @NotNull NativeCapabilitiesAndSchema retrieveResourceCapabilitiesAndSchema(
+            @NotNull List<QName> objectClassesToParse, OperationResult result)
             throws CommunicationException, ConfigurationException, GenericFrameworkException, SchemaException {
 
-        fetchSupportedOperations(result);
+        LOGGER.debug("Retrieving and parsing schema and capabilities for {}", connectorHumanReadableName);
 
-        // sets supportsSchema flag
-        processOperationCapabilities();
+        var capabilities = fetchAndParseConnIdCapabilities(result);
 
-        if (supportsSchema) {
-
+        ParsedSchemaInfo schemaInfo;
+        if (!capabilities.supportsSchema()) {
+            schemaInfo = null;
+        } else {
             Schema connIdSchema = fetchConnIdSchema(result);
-
             if (connIdSchema == null) {
-                addBasicReadCapability();
+                capabilities.updateWithoutSchema();
+                schemaInfo = null;
             } else {
-                parseResourceSchema(connIdSchema, objectClassesToGenerate);
+                schemaInfo =
+                        new ConnIdSchemaParser(connIdSchema, objectClassesToParse, connectorContext.getConfiguredLegacySchema())
+                                .parse();
+                capabilities.updateFromSchema(connIdSchema, schemaInfo.specialAttributes());
+                schemaInfo.parsedSchema().freeze();
             }
         }
+        return new NativeCapabilitiesAndSchema(
+                capabilities.midPointCapabilities,
+                schemaInfo != null ? schemaInfo.parsedSchema() : null,
+                schemaInfo != null ? schemaInfo.legacySchema() : null);
     }
 
-    /**
-     * Retrieves and parses resource capabilities.
-     */
-    void retrieveResourceCapabilities(OperationResult result)
+    /** Retrieves and parses connector capabilities. */
+    @NotNull Capabilities fetchAndParseConnIdCapabilities(OperationResult result)
             throws CommunicationException, ConfigurationException, GenericFrameworkException {
-        fetchSupportedOperations(result);
-        processOperationCapabilities();
+        var connIdCapabilities = fetchConnIdCapabilities(result);
+        var midPointCapabilities = parseConnIdCapabilities(connIdCapabilities);
+        return new Capabilities(midPointCapabilities, connIdCapabilities);
     }
 
-    private void fetchSupportedOperations(OperationResult parentResult)
+    /** Fetches capabilities i.e. supported operations the from ConnId connector. */
+    private @NotNull Set<Class<? extends APIOperation>> fetchConnIdCapabilities(OperationResult parentResult)
             throws CommunicationException, ConfigurationException, GenericFrameworkException {
         OperationResult result = parentResult.createSubresult(OP_GET_SUPPORTED_OPERATIONS);
         result.addContext("connector", connIdConnectorFacade.getClass());
@@ -196,17 +121,19 @@ class ConnIdCapabilitiesAndSchemaParser {
             LOGGER.debug("Fetching supported connector operations from {}", connectorHumanReadableName);
             InternalMonitor.recordConnectorOperation("getSupportedOperations");
 
-            connIdSupportedOperations = connIdConnectorFacade.getSupportedOperations();
+            var operations = connIdConnectorFacade.getSupportedOperations();
 
-            LOGGER.trace("Connector supported operations: {}", connIdSupportedOperations);
-            result.recordSuccess();
+            LOGGER.trace("Connector supported operations: {}", operations);
+            return Objects.requireNonNull(operations);
 
         } catch (UnsupportedOperationException ex) {
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, ex.getMessage());
+            result.recordNotApplicable(ex.getMessage());
+            return Set.of();
         } catch (Throwable ex) {
             Throwable midpointEx = ConnIdUtil.processConnIdException(ex, connectorHumanReadableName, result);
-            result.recordFatalError(midpointEx.getMessage(), midpointEx);
+            result.recordException(midpointEx);
             castAndThrowException(ex, midpointEx);
+            throw new NotHereAssertionError();
         } finally {
             result.close();
         }
@@ -273,15 +200,15 @@ class ConnIdCapabilitiesAndSchemaParser {
     }
 
     /**
-     * Create capabilities from supported connector operations
+     * Create capabilities from supported connector operations.
      */
-    private void processOperationCapabilities() {
+    private @NotNull CapabilityCollectionType parseConnIdCapabilities(
+            @NotNull Set<Class<? extends APIOperation>> connIdSupportedOperations) {
+
+        CapabilityCollectionType capabilities = new CapabilityCollectionType();
 
         if (connIdSupportedOperations.contains(SchemaApiOp.class)) {
             capabilities.setSchema(new SchemaCapabilityType());
-            supportsSchema = true;
-        } else {
-            supportsSchema = false;
         }
 
         if (connIdSupportedOperations.contains(DiscoverConfigurationApiOp.class)) {
@@ -340,475 +267,156 @@ class ConnIdCapabilitiesAndSchemaParser {
             }
             capabilities.setScript(capScript);
         }
+
+        return capabilities;
     }
 
-    private void addBasicReadCapability() {
-        // Still need to add "read" capability. This capability would be added during schema processing,
-        // because it depends on schema options. But if there is no schema we need to add read capability
-        // anyway. We do not want to end up with non-readable resource.
-        if (connIdSupportedOperations.contains(GetApiOp.class) || connIdSupportedOperations.contains(SearchApiOp.class)) {
-            capabilities.setRead(new ReadCapabilityType());
+    /** Combined ConnId and midPoint-style capabilities. */
+    record Capabilities(
+            @NotNull CapabilityCollectionType midPointCapabilities,
+            @NotNull Set<Class<? extends APIOperation>> connIdCapabilities) {
+
+        boolean supportsSchema() {
+            return midPointCapabilities.getSchema() != null;
         }
-    }
-
-    /**
-     * On exit, {@link #rawResourceSchema} is set and is immutable.
-     */
-    private void parseResourceSchema(@NotNull Schema connIdSchema, @NotNull List<QName> objectClassesToGenerate)
-            throws SchemaException {
-
-        SpecialAttributes specialAttributes = new SpecialAttributes();
-        rawResourceSchema = createResourceSchema();
-
-        if (legacySchema == null) {
-            legacySchema = detectLegacySchema(connIdSchema);
-        }
-        LOGGER.trace("Converting resource schema (legacy mode: {})", legacySchema);
-        LOGGER.trace("Generating object classes: {}", objectClassesToGenerate);
-
-        Set<ObjectClassInfo> objectClassInfoSet = connIdSchema.getObjectClassInfo();
-        for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
-            parseObjectClass(objectClassInfo, objectClassesToGenerate, specialAttributes);
-        }
-
-        updateCapabilitiesFromSchema(connIdSchema, specialAttributes);
-
-        rawResourceSchema.freeze();
-    }
-
-    private void parseObjectClass(
-            @NotNull ObjectClassInfo objectClassInfo,
-            @NotNull List<QName> objectClassesToGenerate,
-            @NotNull SpecialAttributes specialAttributes) throws SchemaException {
-
-        assert connIdNameMapper != null : "accessing schema without mapper?";
-
-        // "Flat" ConnId object class names needs to be mapped to QNames
-        QName objectClassXsdName = connIdNameMapper.objectClassToQname(
-                new ObjectClass(objectClassInfo.getType()), legacySchema);
-
-        if (!shouldBeGenerated(objectClassesToGenerate, objectClassXsdName)) {
-            LOGGER.trace("Skipping object class {} ({})", objectClassInfo.getType(), objectClassXsdName);
-            return;
-        }
-
-        LOGGER.trace("Converting object class {} ({})", objectClassInfo.getType(), objectClassXsdName);
-
-        MutableResourceObjectClassDefinition ocDef = ResourceObjectClassDefinitionImpl.raw(objectClassXsdName);
-        // ocDef is added to the schema at the end
-
-        // The __ACCOUNT__ objectclass in ConnId is a default account objectclass. So mark it appropriately.
-        if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
-            ocDef.setDefaultAccountDefinition(true);
-        }
-
-        MutableRawResourceAttributeDefinition<?> uidDefinition = null;
-        MutableRawResourceAttributeDefinition<?> nameDefinition = null;
-        boolean hasUidDefinition = false;
-
-        int displayOrder = ConnectorFactoryConnIdImpl.ATTR_DISPLAY_ORDER_START;
-
-        for (AttributeInfo attributeInfo : objectClassInfo.getAttributeInfo()) {
-
-            boolean isSpecial = specialAttributes.updateWithAttribute(attributeInfo);
-            if (isSpecial) {
-                continue; // Skip this attribute, capability is sufficient
-            }
-
-            String attrIcfName = attributeInfo.getName();
-            QName attrXsdName = connIdNameMapper.convertAttributeNameToQName(attrIcfName, attributeInfo.getNativeName(), ocDef);
-            QName attrXsdType = connIdTypeToXsdType(attributeInfo);
-
-            LOGGER.trace("  attr conversion ConnId: {}({}) -> XSD: {}({})",
-                    attrIcfName, attributeInfo.getType().getSimpleName(),
-                    PrettyPrinter.prettyPrintLazily(attrXsdName), PrettyPrinter.prettyPrintLazily(attrXsdType));
-
-            RawResourceAttributeDefinition<?> attrDef = createRawResourceAttributeDefinition(attrXsdName, attrXsdType);
-
-            attrDef.setMatchingRuleQName(
-                    connIdAttributeInfoToMatchingRule(attributeInfo));
-
-            if (Name.NAME.equals(attrIcfName)) {
-                nameDefinition = attrDef;
-                if (uidDefinition != null && attrXsdName.equals(uidDefinition.getItemName())) {
-                    attrDef.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
-                    uidDefinition = attrDef;
-                    hasUidDefinition = true;
-                } else {
-                    if (attributeInfo.getNativeName() == null) {
-                        // Set a better display name for __NAME__. The "name" is s very overloaded term,
-                        // so let's try to make things a bit clearer.
-                        attrDef.setDisplayName(ConnectorFactoryConnIdImpl.ICFS_NAME_DISPLAY_NAME);
-                    }
-                    attrDef.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_NAME_DISPLAY_ORDER);
-                }
-
-            } else if (Uid.NAME.equals(attrIcfName)) {
-                // UID can be the same as other attribute
-                //noinspection rawtypes
-                var existingDefinition = (MutableRawResourceAttributeDefinition) ocDef.findAttributeDefinition(attrXsdName);
-                if (existingDefinition != null) {
-                    hasUidDefinition = true;
-                    existingDefinition.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
-                    uidDefinition = existingDefinition;
-                    continue;
-                } else {
-                    uidDefinition = attrDef;
-                    if (attributeInfo.getNativeName() == null) {
-                        attrDef.setDisplayName(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_NAME);
-                    }
-                    attrDef.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
-                }
-
-            } else {
-                // Check conflict with UID definition
-                if (uidDefinition != null && attrXsdName.equals(uidDefinition.getItemName())) {
-                    attrDef.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
-                    uidDefinition = attrDef;
-                    hasUidDefinition = true;
-                } else {
-                    attrDef.setDisplayOrder(displayOrder);
-                    displayOrder += ConnectorFactoryConnIdImpl.ATTR_DISPLAY_ORDER_INCREMENT;
-                }
-            }
-
-            attrDef.setNativeAttributeName(attributeInfo.getNativeName());
-            attrDef.setFrameworkAttributeName(attrIcfName);
-
-            processAttributeFlags(attributeInfo, attrDef);
-
-            if (!Uid.NAME.equals(attrIcfName)) {
-                ocDef.add(attrDef);
-            }
-        }
-
-        if (uidDefinition == null) {
-            // Every object has UID in ConnId, therefore add a default definition if no other was specified
-            MutableRawResourceAttributeDefinition<?> replacement =
-                    createRawResourceAttributeDefinition(SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING);
-            replacement.setMinOccurs(0); // It must not be present on create hence it cannot be mandatory.
-            replacement.setMaxOccurs(1);
-            replacement.setReadOnly();
-            replacement.setDisplayName(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_NAME);
-            replacement.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
-            // Uid is a primary identifier of every object (this is the ConnId way)
-            uidDefinition = replacement;
-        }
-        if (!hasUidDefinition) {
-            ocDef.add(uidDefinition);
-        }
-        ocDef.addPrimaryIdentifierName(uidDefinition.getItemName());
-        if (nameDefinition != null && !uidDefinition.getItemName().equals(nameDefinition.getItemName())) {
-            ocDef.addSecondaryIdentifierName(nameDefinition.getItemName());
-        }
-
-        // Add schema annotations
-        ocDef.setNativeObjectClass(objectClassInfo.getType());
-        if (nameDefinition != null) {
-            ocDef.setDisplayNameAttributeName(nameDefinition.getItemName());
-            ocDef.setNamingAttributeName(nameDefinition.getItemName());
-        }
-        ocDef.setAuxiliary(objectClassInfo.isAuxiliary());
-
-        rawResourceSchema.toMutable().add(ocDef);
-
-        LOGGER.trace("  ... converted object class {}: {}", objectClassInfo.getType(), ocDef);
-    }
-
-    /**
-     * Process flags such as optional and multi-valued - convert them to attribute definition properties.
-     */
-    private void processAttributeFlags(AttributeInfo attributeInfo, MutableRawResourceAttributeDefinition<?> attrDef) {
-        Set<Flags> flagsSet = attributeInfo.getFlags();
-
-        // Default values
-        attrDef.setMinOccurs(0);
-        attrDef.setMaxOccurs(1);
-        attrDef.setCanRead(true);
-        attrDef.setCanAdd(true);
-        attrDef.setCanModify(true);
-        // "returned by default" is null if not specified
-
-        for (Flags flags : flagsSet) {
-            if (flags == Flags.REQUIRED) {
-                attrDef.setMinOccurs(1);
-            }
-            if (flags == Flags.MULTIVALUED) {
-                attrDef.setMaxOccurs(-1);
-            }
-            if (flags == Flags.NOT_READABLE) {
-                attrDef.setCanRead(false);
-            }
-            if (flags == Flags.NOT_CREATABLE) {
-                attrDef.setCanAdd(false);
-            }
-            if (flags == Flags.NOT_UPDATEABLE) {
-                attrDef.setCanModify(false);
-            }
-            if (flags == Flags.NOT_RETURNED_BY_DEFAULT) {
-                attrDef.setReturnedByDefault(false);
-            }
-        }
-    }
-
-    private void updateCapabilitiesFromSchema(
-            @NotNull Schema connIdSchema,
-            SpecialAttributes specialAttributes) {
-        ActivationCapabilityType capAct = null;
-
-        if (specialAttributes.enableAttributeInfo != null) {
-            capAct = new ActivationCapabilityType();
-            ActivationStatusCapabilityType capActStatus = new ActivationStatusCapabilityType();
-            capAct.setStatus(capActStatus);
-            if (!specialAttributes.enableAttributeInfo.isReturnedByDefault()) {
-                capActStatus.setReturnedByDefault(false);
-            }
-        }
-
-        if (specialAttributes.enableDateAttributeInfo != null) {
-            if (capAct == null) {
-                capAct = new ActivationCapabilityType();
-            }
-            ActivationValidityCapabilityType capValidFrom = new ActivationValidityCapabilityType();
-            capAct.setValidFrom(capValidFrom);
-            if (!specialAttributes.enableDateAttributeInfo.isReturnedByDefault()) {
-                capValidFrom.setReturnedByDefault(false);
-            }
-        }
-
-        if (specialAttributes.disableDateAttributeInfo != null) {
-            if (capAct == null) {
-                capAct = new ActivationCapabilityType();
-            }
-            ActivationValidityCapabilityType capValidTo = new ActivationValidityCapabilityType();
-            capAct.setValidTo(capValidTo);
-            if (!specialAttributes.disableDateAttributeInfo.isReturnedByDefault()) {
-                capValidTo.setReturnedByDefault(false);
-            }
-        }
-
-        if (specialAttributes.lockoutAttributeInfo != null) {
-            if (capAct == null) {
-                capAct = new ActivationCapabilityType();
-            }
-            ActivationLockoutStatusCapabilityType capActStatus = new ActivationLockoutStatusCapabilityType();
-            capAct.setLockoutStatus(capActStatus);
-            if (!specialAttributes.lockoutAttributeInfo.isReturnedByDefault()) {
-                capActStatus.setReturnedByDefault(false);
-            }
-        }
-
-        // TODO: activation and credentials should be per-objectclass capabilities
-        if (capAct != null) {
-            capabilities.setActivation(capAct);
-        }
-
-        if (specialAttributes.passwordAttributeInfo != null) {
-            CredentialsCapabilityType capCred = new CredentialsCapabilityType();
-            PasswordCapabilityType capPass = new PasswordCapabilityType();
-            if (!specialAttributes.passwordAttributeInfo.isReturnedByDefault()) {
-                capPass.setReturnedByDefault(false);
-            }
-            if (specialAttributes.passwordAttributeInfo.isReadable()) {
-                capPass.setReadable(true);
-            }
-            capCred.setPassword(capPass);
-            capabilities.setCredentials(capCred);
-        }
-
-        if (specialAttributes.auxiliaryObjectClassAttributeInfo != null) {
-            capabilities.setAuxiliaryObjectClasses(new AuxiliaryObjectClassesCapabilityType());
-        }
-
-        boolean canPageSize = false;
-        boolean canPageOffset = false;
-        boolean canSort = false;
-        boolean supportsReturnDefaultAttributes = false;
-        for (OperationOptionInfo searchOption: connIdSchema.getSupportedOptionsByOperation(SearchApiOp.class)) {
-            switch (searchOption.getName()) {
-                case OperationOptions.OP_PAGE_SIZE:
-                    canPageSize = true;
-                    break;
-                case OperationOptions.OP_PAGED_RESULTS_OFFSET:
-                    canPageOffset = true;
-                    break;
-                case OperationOptions.OP_SORT_KEYS:
-                    canSort = true;
-                    break;
-                case OperationOptions.OP_RETURN_DEFAULT_ATTRIBUTES:
-                    supportsReturnDefaultAttributes = true;
-                    break;
-            }
-        }
-        if (canPageSize || canPageOffset || canSort) {
-            capabilities.setPagedSearch(new PagedSearchCapabilityType());
-        }
-
-        if (connIdSupportedOperations.contains(GetApiOp.class) || connIdSupportedOperations.contains(SearchApiOp.class)) {
-            ReadCapabilityType capRead = new ReadCapabilityType();
-            capRead.setReturnDefaultAttributesOption(supportsReturnDefaultAttributes);
-            capabilities.setRead(capRead);
-        }
-        if (connIdSupportedOperations.contains(UpdateDeltaApiOp.class)) {
-            processUpdateOperationOptions(connIdSchema.getSupportedOptionsByOperation(UpdateDeltaApiOp.class));
-        } else if (connIdSupportedOperations.contains(UpdateApiOp.class)) {
-            processUpdateOperationOptions(connIdSchema.getSupportedOptionsByOperation(UpdateApiOp.class));
-        }
-    }
-
-    private boolean detectLegacySchema(Schema icfSchema) {
-        Set<ObjectClassInfo> objectClassInfoSet = icfSchema.getObjectClassInfo();
-        for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
-            if (objectClassInfo.is(ObjectClass.ACCOUNT_NAME) || objectClassInfo.is(ObjectClass.GROUP_NAME)) {
-                LOGGER.trace("This is legacy schema");
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean shouldBeGenerated(@NotNull List<QName> generateObjectClasses, QName objectClassXsdName) {
-        return generateObjectClasses.isEmpty()
-                || generateObjectClasses.contains(objectClassXsdName);
-    }
-
-    private QName connIdAttributeInfoToMatchingRule(AttributeInfo attributeInfo) {
-        String connIdSubtype = attributeInfo.getSubtype();
-        if (connIdSubtype == null) {
-            return null;
-        }
-        if (AttributeInfo.Subtypes.STRING_CASE_IGNORE.toString().equals(connIdSubtype)) {
-            return PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME;
-        }
-        if (AttributeInfo.Subtypes.STRING_LDAP_DN.toString().equals(connIdSubtype)) {
-            return PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME;
-        }
-        if (AttributeInfo.Subtypes.STRING_XML.toString().equals(connIdSubtype)) {
-            return PrismConstants.XML_MATCHING_RULE_NAME;
-        }
-        if (AttributeInfo.Subtypes.STRING_UUID.toString().equals(connIdSubtype)) {
-            return PrismConstants.UUID_MATCHING_RULE_NAME;
-        }
-        LOGGER.debug("Unknown subtype {} defined for attribute {}, ignoring (no matching rule definition)",
-                connIdSubtype, attributeInfo.getName());
-        return null;
-    }
-
-    private void processUpdateOperationOptions(Set<OperationOptionInfo> supportedOptions) {
-        boolean canRunAsUser = false;
-        for (OperationOptionInfo searchOption: supportedOptions) {
-            //noinspection SwitchStatementWithTooFewBranches
-            switch (searchOption.getName()) {
-                case OperationOptions.OP_RUN_AS_USER:
-                    canRunAsUser = true;
-                    break;
-                // TODO: run as password
-            }
-        }
-        if (canRunAsUser) {
-            capabilities.setRunAs(new RunAsCapabilityType());
-        }
-    }
-
-    private static QName connIdTypeToXsdType(AttributeInfo attrInfo) throws SchemaException {
-        if (Map.class.isAssignableFrom(attrInfo.getType())) {
-            // ConnId type is "Map". We need more precise definition on midPoint side.
-            String subtype = MiscUtil.requireNonNull(
-                    attrInfo.getSubtype(),
-                    () -> "Attribute " + attrInfo.getName() + " defined as Map, but there is no subtype");
-            if (SchemaConstants.ICF_SUBTYPES_POLYSTRING_URI.equals(subtype)) {
-                return PolyStringType.COMPLEX_TYPE;
-            } else {
-                throw new SchemaException(
-                        "Attribute %s defined as Map, but there is unsupported subtype '%s'".formatted(
-                                attrInfo.getName(), subtype));
-            }
-        }
-        return connIdTypeToXsdType(attrInfo.getType(), false);
-    }
-
-    /**
-     * Converts ConnId type (used in connector objects and configuration properties)
-     * to a midPoint type (used in XSD schemas and beans).
-     *
-     * The string attributes are treated as xsd:string at this point. Later on, they may be converted to {@link PolyStringType},
-     * if there are matching/normalization rules defined.
-     */
-    static QName connIdTypeToXsdType(Class<?> type, boolean isConfidential) {
-        // For arrays we are only interested in the component type
-        if (isMultivaluedType(type)) {
-            type = type.getComponentType();
-        }
-        QName propXsdType;
-        if (GuardedString.class.equals(type)
-                || String.class.equals(type) && isConfidential) {
-            // GuardedString is a special case. It is a ICF-specific type implementing Potemkin-like security.
-            propXsdType = ProtectedStringType.COMPLEX_TYPE;
-        } else if (GuardedByteArray.class.equals(type)
-                || Byte.class.equals(type) && isConfidential) {
-            // GuardedByteArray is a special case. It is a ICF-specific type implementing Potemkin-like security.
-            propXsdType = ProtectedByteArrayType.COMPLEX_TYPE;
-        } else {
-            propXsdType = XsdTypeMapper.toXsdType(type);
-        }
-        return propXsdType;
-    }
-
-    static boolean isMultivaluedType(Class<?> type) {
-        // We consider arrays to be multi-valued
-        // ... unless it is byte[] or char[]
-        return type.isArray() && !type.equals(byte[].class) && !type.equals(char[].class);
-    }
-
-    /**
-     * Information about special attributes present in the schema. We use them to determine specific capabilities.
-     */
-    private static class SpecialAttributes {
-        AttributeInfo passwordAttributeInfo;
-        AttributeInfo enableAttributeInfo;
-        AttributeInfo enableDateAttributeInfo;
-        AttributeInfo disableDateAttributeInfo;
-        AttributeInfo lockoutAttributeInfo;
-        AttributeInfo auxiliaryObjectClassAttributeInfo;
 
         /**
-         * Updates the current knowledge about special attributes with the currently parsed attribute.
-         * Returns true if the match was found (i.e. current attribute is "special"), so the current attribute
-         * should not be listed among normal ones.
+         * Still need to add "read" capability. This capability would be added during schema processing,
+         * because it depends on schema options. But if there is no schema we need to add read capability
+         * anyway. We do not want to end up with non-readable resource.
          */
-        boolean updateWithAttribute(@NotNull AttributeInfo attributeInfo) {
-            String icfName = attributeInfo.getName();
-            if (OperationalAttributes.PASSWORD_NAME.equals(icfName)) {
-                passwordAttributeInfo = attributeInfo;
-                return true;
+        void updateWithoutSchema() {
+            if (connIdCapabilities.contains(GetApiOp.class) || connIdCapabilities.contains(SearchApiOp.class)) {
+                midPointCapabilities.setRead(new ReadCapabilityType());
+            }
+        }
+
+        void updateFromSchema(
+                @NotNull Schema connIdSchema,
+                @NotNull SpecialAttributes specialAttributes) {
+
+            ActivationCapabilityType capAct = getActivationCapabilityType(specialAttributes);
+
+            // TODO: activation and credentials should be per-objectclass capabilities
+            if (capAct != null) {
+                midPointCapabilities.setActivation(capAct);
             }
 
-            if (OperationalAttributes.ENABLE_NAME.equals(icfName)) {
-                enableAttributeInfo = attributeInfo;
-                return true;
+            if (specialAttributes.passwordAttributeInfo != null) {
+                CredentialsCapabilityType capCred = new CredentialsCapabilityType();
+                PasswordCapabilityType capPass = new PasswordCapabilityType();
+                if (!specialAttributes.passwordAttributeInfo.isReturnedByDefault()) {
+                    capPass.setReturnedByDefault(false);
+                }
+                if (specialAttributes.passwordAttributeInfo.isReadable()) {
+                    capPass.setReadable(true);
+                }
+                capCred.setPassword(capPass);
+                midPointCapabilities.setCredentials(capCred);
             }
 
-            if (OperationalAttributes.ENABLE_DATE_NAME.equals(icfName)) {
-                enableDateAttributeInfo = attributeInfo;
-                return true;
+            if (specialAttributes.auxiliaryObjectClassAttributeInfo != null) {
+                midPointCapabilities.setAuxiliaryObjectClasses(new AuxiliaryObjectClassesCapabilityType());
             }
 
-            if (OperationalAttributes.DISABLE_DATE_NAME.equals(icfName)) {
-                disableDateAttributeInfo = attributeInfo;
-                return true;
+            boolean canPageSize = false;
+            boolean canPageOffset = false;
+            boolean canSort = false;
+            boolean supportsReturnDefaultAttributes = false;
+            for (OperationOptionInfo searchOption: connIdSchema.getSupportedOptionsByOperation(SearchApiOp.class)) {
+                switch (searchOption.getName()) {
+                    case OperationOptions.OP_PAGE_SIZE:
+                        canPageSize = true;
+                        break;
+                    case OperationOptions.OP_PAGED_RESULTS_OFFSET:
+                        canPageOffset = true;
+                        break;
+                    case OperationOptions.OP_SORT_KEYS:
+                        canSort = true;
+                        break;
+                    case OperationOptions.OP_RETURN_DEFAULT_ATTRIBUTES:
+                        supportsReturnDefaultAttributes = true;
+                        break;
+                }
+            }
+            if (canPageSize || canPageOffset || canSort) {
+                midPointCapabilities.setPagedSearch(new PagedSearchCapabilityType());
             }
 
-            if (OperationalAttributes.LOCK_OUT_NAME.equals(icfName)) {
-                lockoutAttributeInfo = attributeInfo;
-                return true;
+            if (connIdCapabilities.contains(GetApiOp.class) || connIdCapabilities.contains(SearchApiOp.class)) {
+                ReadCapabilityType capRead = new ReadCapabilityType();
+                capRead.setReturnDefaultAttributesOption(supportsReturnDefaultAttributes);
+                midPointCapabilities.setRead(capRead);
+            }
+            if (connIdCapabilities.contains(UpdateDeltaApiOp.class)) {
+                processUpdateOperationOptions(connIdSchema.getSupportedOptionsByOperation(UpdateDeltaApiOp.class));
+            } else if (connIdCapabilities.contains(UpdateApiOp.class)) {
+                processUpdateOperationOptions(connIdSchema.getSupportedOptionsByOperation(UpdateApiOp.class));
+            }
+        }
+
+
+        private static @Nullable ActivationCapabilityType getActivationCapabilityType(@NotNull SpecialAttributes specialAttributes) {
+            ActivationCapabilityType capAct = null;
+
+            if (specialAttributes.enableAttributeInfo != null) {
+                capAct = new ActivationCapabilityType();
+                ActivationStatusCapabilityType capActStatus = new ActivationStatusCapabilityType();
+                capAct.setStatus(capActStatus);
+                if (!specialAttributes.enableAttributeInfo.isReturnedByDefault()) {
+                    capActStatus.setReturnedByDefault(false);
+                }
             }
 
-            if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equals(icfName)) {
-                auxiliaryObjectClassAttributeInfo = attributeInfo;
-                return true;
+            if (specialAttributes.enableDateAttributeInfo != null) {
+                if (capAct == null) {
+                    capAct = new ActivationCapabilityType();
+                }
+                ActivationValidityCapabilityType capValidFrom = new ActivationValidityCapabilityType();
+                capAct.setValidFrom(capValidFrom);
+                if (!specialAttributes.enableDateAttributeInfo.isReturnedByDefault()) {
+                    capValidFrom.setReturnedByDefault(false);
+                }
             }
 
-            return false;
+            if (specialAttributes.disableDateAttributeInfo != null) {
+                if (capAct == null) {
+                    capAct = new ActivationCapabilityType();
+                }
+                ActivationValidityCapabilityType capValidTo = new ActivationValidityCapabilityType();
+                capAct.setValidTo(capValidTo);
+                if (!specialAttributes.disableDateAttributeInfo.isReturnedByDefault()) {
+                    capValidTo.setReturnedByDefault(false);
+                }
+            }
+
+            if (specialAttributes.lockoutAttributeInfo != null) {
+                if (capAct == null) {
+                    capAct = new ActivationCapabilityType();
+                }
+                ActivationLockoutStatusCapabilityType capActStatus = new ActivationLockoutStatusCapabilityType();
+                capAct.setLockoutStatus(capActStatus);
+                if (!specialAttributes.lockoutAttributeInfo.isReturnedByDefault()) {
+                    capActStatus.setReturnedByDefault(false);
+                }
+            }
+            return capAct;
+        }
+
+        private void processUpdateOperationOptions(Set<OperationOptionInfo> supportedOptions) {
+            boolean canRunAsUser = false;
+            for (OperationOptionInfo searchOption : supportedOptions) {
+                //noinspection SwitchStatementWithTooFewBranches,EnhancedSwitchMigration
+                switch (searchOption.getName()) {
+                    case OperationOptions.OP_RUN_AS_USER:
+                        canRunAsUser = true;
+                        break;
+                    // TODO: run as password
+                }
+            }
+            if (canRunAsUser) {
+                midPointCapabilities.setRunAs(new RunAsCapabilityType());
+            }
         }
     }
 }

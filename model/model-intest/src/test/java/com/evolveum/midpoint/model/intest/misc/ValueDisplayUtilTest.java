@@ -73,7 +73,7 @@ public class ValueDisplayUtilTest extends AbstractEmptyModelIntegrationTest {
                                 .expressionEvaluator(new ObjectFactory().createAsIs(new AsIsExpressionEvaluatorType()))
                                 .expressionEvaluator(new ObjectFactory().createValue(
                                         new RawType(new PrismPropertyValueImpl<>(
-                                                XmlTypeConverter.createXMLGregorianCalendar(date)), DOMUtil.XSD_DATETIME, prismContext)
+                                                XmlTypeConverter.createXMLGregorianCalendar(date)), DOMUtil.XSD_DATETIME)
                                 ))
                                 .expressionEvaluator(new ObjectFactory().createValue(new byte[] { 1, 2, 3 }))
                 )

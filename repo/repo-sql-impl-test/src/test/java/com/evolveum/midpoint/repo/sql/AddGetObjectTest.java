@@ -40,7 +40,6 @@ import com.evolveum.midpoint.repo.sqlbase.ConflictWatcherImpl;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -273,7 +272,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         // apply appropriate schema
         PrismObject<ResourceType> resource = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
+        var resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
         ShadowUtil.applyResourceSchema(fileAccount, resourceSchema);
 
         OperationResult result = new OperationResult("ADD");
@@ -445,7 +444,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
             // apply appropriate schema
             PrismObject<ResourceType> resource = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));
-            ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+            var resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
             ShadowUtil.applyResourceSchema(account, resourceSchema);
 
             repositoryService.addObject(account, null, result);
@@ -764,7 +763,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         prismResource
                 .findOrCreateContainer(ResourceType.F_CONNECTOR_CONFIGURATION)
-                .findOrCreateContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES)
+                .findOrCreateContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME)
                 .createNewValue();
 
         System.out.println("Original data before saving: " + prismResource.debugDump());

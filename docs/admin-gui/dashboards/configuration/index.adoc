@@ -2,6 +2,7 @@
 midpoint-feature: dashboard
 doc-type: config
 ---
+
 = Dashboard Configuration
 :page-nav-title: Configuration
 :page-wiki-name: Dashboard configuration
@@ -12,6 +13,9 @@ doc-type: config
 :page-wiki-metadata-modify-date: 2020-12-10T12:36:51.667+01:00
 :page-since: "4.2"
 :page-toc: top
+:page-keywords: [ 'dashboard', 'dashboards', 'configuration' ]
+:search-alias: "advanced report"
+:page-upkeep-status: green
 
 Documentation about dashboards can be found at multiple places in docs. To avoid confusion, please see
 
@@ -338,13 +342,16 @@ This entry contains stat value, together with domain value.
 |===
 
 // TODO no example, add ??
-// ===== `view`
-//
-// Last variable of presentation is `view`, this variable is processed for report, and we will look on it below.
-//
+===== View
 
-Example of `presentation`:
+Last variable of the presentation container is `view`, this variable is also processed in case we create reports.
+The main reason to configure a view would be the customization of the reported or presented object collection on which we based the dashboard widget.
+The widget object collection can be accessed via the IU *"More info"* button.
 
+
+.*Example of `presentation`*:
+[%collapsible]
+====
 [source,xml]
 ----
 <widget>
@@ -379,6 +386,7 @@ Example of `presentation`:
     </presentation>
 </widget>
 ----
+====
 
 === Object Collection
 
@@ -386,6 +394,9 @@ You can see basic configuration for objectCollection on xref:/midpoint/reference
 For dashboard, we can use policyRule with policyTreshold to define some policySituation.
 Example of object collection for resource, which have status set to "UP":
 
+.*Example Object Collection*
+[%collapsible]
+====
 [source,xml]
 ----
 <objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -422,6 +433,7 @@ Example of object collection for resource, which have status set to "UP":
     </domain>
 </objectCollection>
 ----
+====
 
 Variable _domain_ is a set of object that represents "all the objects" used in this collection.
 For example collection of "up resources" will have a domain of "all resources".
@@ -443,7 +455,9 @@ Now we show very simple example for widget of enabled users, that show only numb
 
 As first, we create an object collection with filter for users with value `enabled` in attribute activation/effectiveStatus.
 
-//TODO midPoint query
+[%collapsible]
+.*Example Object Collection*
+====
 [source,xml]
 ----
 <objectCollection oid="00000000-0000-0000-0001-000000147896">
@@ -457,8 +471,13 @@ As first, we create an object collection with filter for users with value `enabl
     </filter>
 </objectCollection>
 ----
+====
 
 And next we create dashboard with one widget for enabled users.
+
+[%collapsible]
+.*Example Dashboard Configuration*
+====
 [source,xml]
 ----
 <dashboard oid="f89709f9-7313-494f-a600-69ea75d95106">
@@ -500,6 +519,7 @@ And next we create dashboard with one widget for enabled users.
     </widget>
 </dashboard>
 ----
+====
 
 Don't forget to add the new dashboard to admin gui in system configuration. After accessing the new dashboard in GUI you can see our new widget.
 
@@ -510,11 +530,15 @@ image::enabled-users.png[]
 To configure an asynchronous widget we have to use the `displaySourceType` attribute in the widget configuration and set it as `widgetData`.
 We set `sourceType` as `objectCollection` because of the redirects to a details page in case of clicking on the widget details.
 
-Also, we need to configure a dashboard report task, which will store data for the widget.
+Also, we need to configure a dashboard report task, which will generate and store data into the widget.
 For this we use a dashboard report with the element `storeExportedWidgetData`.
 
 For example, we will use the same case as in the previous example for enabled users.
-We create same object collection.
+We create the same object collection.
+
+[%collapsible]
+.*Example Object Collection*
+====
 [source,xml]
 ----
 <objectCollection oid="00000000-0000-0000-0001-000000147896">
@@ -528,7 +552,13 @@ We create same object collection.
     </filter>
 </objectCollection>
 ----
-Next, we have to create a dashboard with. We also need to add the attribute `displaySourceType` with value `widgetData`.
+====
+
+Next, we have to create a dashboard. We also need to add the attribute `displaySourceType` with value `widgetData`.
+
+[%collapsible]
+.*Example Dashboard Configuration*
+====
 [source,xml]
 ----
 <dashboard oid="f89709f9-7313-494f-a600-69ea75d95106">
@@ -571,8 +601,13 @@ Next, we have to create a dashboard with. We also need to add the attribute `dis
     </widget>
 </dashboard>
 ----
+====
 
 Finally, we create a report for dashboard.
+
+[%collapsible]
+.*Example Report Configuration*
+====
 [source,xml]
 ----
 <report>
@@ -587,19 +622,21 @@ Finally, we create a report for dashboard.
     </dashboard>
 </report>
 ----
+====
 
-Now we can run the report and midPoint processes the source data for the dashboard. The resulting data is written to the widget in dashboard.
-Next time you open the widget in the GUI midPoint doesn't process the source data, it only shows `savedData` from xml.
+Now we can run the report and midPoint processes the source data for the dashboard. The resulting data is written to the widget in the dashboard.
+Next time you open the widget in the GUI, midPoint doesn't need to process the source data, it shows the saved data present in the object xml.
 
 image::enabled-users.png[]
 
-== View
+== Dashboard views
 
-When we create new dashboard, then we can see it in midpoint gui.
+A dashboard can provide additional info when someone clicks on the *"More info"* button, in this case if we use an "objectCollection" as data "sourceType" we will get tale of objects representing the collection.
+The table can be configured and customized. This is done via the "view" container.
 Next screenshot is from the example dashboard link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard[dashboard-system-status].
 
 image::dashboard-screenshot.png[]
 
-'''
-
-For whole sample please see link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard[dashboard-system-status].
+* xref:/midpoint/referece/admin-gui/dashboards/index.adoc[Dashboards]
+* xref:/midpoint/guides/dashboards-howto/[Dashboards How To]
+* xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Report]

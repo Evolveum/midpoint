@@ -596,8 +596,7 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
 
     @SuppressWarnings("SameParameterValue")
     private PrismPropertyDefinition<String> createStringDefinition(String itemName) {
-        return prismContext.definitionFactory()
-                .createPropertyDefinition(new QName(itemName), DOMUtil.XSD_STRING);
+        return prismContext.definitionFactory().newPropertyDefinition(new QName(itemName), DOMUtil.XSD_STRING);
     }
 
     /**

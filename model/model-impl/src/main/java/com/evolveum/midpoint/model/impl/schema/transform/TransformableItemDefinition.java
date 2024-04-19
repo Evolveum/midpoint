@@ -10,6 +10,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.delta.ItemMerger;
 import com.evolveum.midpoint.prism.impl.key.NaturalKeyDefinitionImpl;
 import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
@@ -190,6 +191,11 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     }
 
     @Override
+    public @NotNull ItemDefinition<I> cloneWithNewName(@NotNull ItemName itemName) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void freeze() {
         // Intentional Noop for now
 
@@ -208,7 +214,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
     @Override
     public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
-        return getPrismContext().itemMergerFactory().createMerger(this, strategy, originMarker);
+        return PrismContext.get().itemMergerFactory().createMerger(this, strategy, originMarker);
     }
 
     @Override
@@ -379,7 +385,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
     }
 
     @Override
-    public MutableItemDefinition<I> toMutable() {
+    public ItemDefinitionMutator mutator() {
         return this;
     }
 

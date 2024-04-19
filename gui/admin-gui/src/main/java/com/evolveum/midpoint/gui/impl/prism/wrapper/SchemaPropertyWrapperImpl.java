@@ -13,7 +13,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
-import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
+import com.evolveum.midpoint.prism.impl.schema.SchemaParsingUtil;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -44,7 +44,8 @@ public class SchemaPropertyWrapperImpl extends PrismPropertyValueWrapper<SchemaD
         }
         Element schemaElement = schemaDefinitionType.getSchema();
         try {
-            PrismSchema newValue = PrismSchemaImpl.parse(schemaElement, true, "schema for ", PrismContext.get());
+            PrismSchemaImpl newValue = SchemaParsingUtil.createAndParse(
+                    schemaElement, true, "schema", false);
             this.namespace = newValue.getNamespace();
             this.definitions = newValue.getDefinitions();
         } catch (SchemaException e) {
@@ -89,7 +90,7 @@ public class SchemaPropertyWrapperImpl extends PrismPropertyValueWrapper<SchemaD
         if (StringUtils.isBlank(namespace)) {
             return null;
         }
-        MutablePrismSchema parsedSchema = new PrismSchemaImpl(namespace);
+        PrismSchemaImpl parsedSchema = new PrismSchemaImpl(namespace);
         definitions.forEach(parsedSchema::add);
         return parsedSchema;
     }

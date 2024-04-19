@@ -135,7 +135,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
     }
 
     protected void replaceIfEmpty(ObjectType object) {
-        ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object, PrismContext.get());
+        ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object);
         getModel().setObject((R) ort);
 
     }

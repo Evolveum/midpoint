@@ -21,8 +21,6 @@ import com.evolveum.midpoint.model.test.TestSimulationResult;
 
 import com.evolveum.midpoint.test.TestObject;
 
-import com.evolveum.midpoint.util.exception.CommonException;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -449,8 +447,8 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
                 continue;
             }
 
-            if (!isNativeRepository() && PolicyType.class.isAssignableFrom(clazz)) {
-                continue; // FIXME temporary hack to make this test pass on generic repository
+            if (!repositoryService.supports(clazz)) {
+                continue;
             }
 
             int count = repositoryService.countObjects(clazz, null, null, result);

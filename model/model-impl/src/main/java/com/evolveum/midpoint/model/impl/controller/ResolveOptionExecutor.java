@@ -118,12 +118,7 @@ class ResolveOptionExecutor {
     }
 
     private static PrismReference findReference(PrismContainerValue<?> baseValue, QName firstName) {
-        PrismReference byCompositeName = baseValue.findReferenceByCompositeObjectElementName(firstName); // e.g. "link"
-        if (byCompositeName != null) {
-            return byCompositeName;
-        } else {
-            return baseValue.findReference(firstName); // e.g. "linkRef"
-        }
+        return baseValue.findReference(firstName); // e.g. "linkRef"
     }
 
     /**

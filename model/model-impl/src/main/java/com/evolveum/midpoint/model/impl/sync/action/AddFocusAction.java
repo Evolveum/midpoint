@@ -36,11 +36,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus",
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser" })
 @ActionDefinitionClass(AddFocusSynchronizationActionType.class)
-public class AddFocusAction<F extends FocusType> extends BaseClockworkAction<F> {
+class AddFocusAction<F extends FocusType> extends BaseClockworkAction<F> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AddFocusAction.class);
 
-    public AddFocusAction(@NotNull ActionInstantiationContext<F> ctx) {
+    AddFocusAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);
     }
 

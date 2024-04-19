@@ -100,44 +100,43 @@ public final class GetAssignmentResult implements Serializable {
                 .lifecycleState(row.getLifecycleState())
                 // .policySituation() to-many fetch, let's avoid it for now
                 // .extension() to-many fetch, skipping now
-                .activation(toActivation(row.getActivation(), prismContext))
-                .targetRef(toObjectRef(row.getTargetRef(), prismContext))
-                .tenantRef(toObjectRef(row.getTenantRef(), prismContext))
-                .orgRef(toObjectRef(row.getOrgRef(), prismContext))
-                .construction(toConstruction(row.getResourceRef(), prismContext))
-                .metadata(MetadataFactory.toJAXB(row, prismContext));
+                .activation(toActivation(row.getActivation()))
+                .targetRef(toObjectRef(row.getTargetRef()))
+                .tenantRef(toObjectRef(row.getTenantRef()))
+                .orgRef(toObjectRef(row.getOrgRef()))
+                .construction(toConstruction(row.getResourceRef()))
+                .metadata(MetadataFactory.toJAXB(row));
     }
 
-    private ActivationType toActivation(RActivation repoActivation, PrismContext prismContext)
+    private ActivationType toActivation(RActivation repoActivation)
             throws DtoTranslationException {
         if (repoActivation == null) {
             return null;
         }
 
-        ActivationType activation = new ActivationType(prismContext);
+        ActivationType activation = new ActivationType();
         RActivation.fromJaxb(activation, repoActivation);
         return activation;
     }
 
-    private ObjectReferenceType toObjectRef(REmbeddedReference repoRef, PrismContext prismContext) {
+    private ObjectReferenceType toObjectRef(REmbeddedReference repoRef) {
         if (repoRef == null) {
             return null;
         }
 
         ObjectReferenceType ref = new ObjectReferenceType();
-        REmbeddedReference.copyToJAXB(repoRef, ref, prismContext);
+        REmbeddedReference.copyToJAXB(repoRef, ref);
         return ref;
     }
 
-    private ConstructionType toConstruction(
-            REmbeddedReference resourceRef, PrismContext prismContext) {
+    private ConstructionType toConstruction(REmbeddedReference resourceRef) {
         if (resourceRef == null) {
             return null;
         }
 
-        ConstructionType construction = new ConstructionType(prismContext);
+        ConstructionType construction = new ConstructionType();
         ObjectReferenceType ref = new ObjectReferenceType();
-        REmbeddedReference.copyToJAXB(resourceRef, ref, prismContext);
+        REmbeddedReference.copyToJAXB(resourceRef, ref);
         construction.setResourceRef(ref);
         return construction;
     }

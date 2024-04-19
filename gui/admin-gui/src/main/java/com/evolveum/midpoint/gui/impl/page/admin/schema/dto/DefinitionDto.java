@@ -8,8 +8,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.schema.dto;
 
 import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutableDefinition;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -23,7 +21,6 @@ public abstract class DefinitionDto<D extends Definition> implements Serializabl
     private QName type;
 
     private D originalDefinition;
-
 
      public DefinitionDto(D definition) {
          this.type = definition.getTypeName();
@@ -40,15 +37,11 @@ public abstract class DefinitionDto<D extends Definition> implements Serializabl
     }
 
     public void setDisplayName(String displayName) {
-         if (originalDefinition instanceof MutableDefinition) {
-             ((MutableDefinition) originalDefinition).setDisplayName(displayName);
-         }
+        originalDefinition.mutator().setDisplayName(displayName);
     }
 
     public void setDisplayOrder(Integer displayOrder) {
-         if (originalDefinition instanceof MutableDefinition) {
-             ((MutableDefinition) originalDefinition).setDisplayOrder(displayOrder);
-         }
+        originalDefinition.mutator().setDisplayOrder(displayOrder);
     }
 
     public D getOriginalDefinition() {

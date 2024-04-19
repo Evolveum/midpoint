@@ -266,9 +266,9 @@ public class ObjectTypeUtil {
 
     @NotNull
     public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object, QName relation) {
-        AssignmentType assignment = new AssignmentType(object.getPrismContext());
+        AssignmentType assignment = new AssignmentType();
         if (object.asObjectable() instanceof ResourceType) {
-            ConstructionType construction = new ConstructionType(object.getPrismContext());
+            ConstructionType construction = new ConstructionType();
             construction.setResourceRef(createObjectRef(object, relation));
             assignment.setConstruction(construction);
         } else {
@@ -300,20 +300,16 @@ public class ObjectTypeUtil {
         return ort;
     }
 
-    @Deprecated
-    public static ObjectReferenceType createObjectRefWithFullObject(ObjectType object, PrismContext prismContext) {
-        return createObjectRefWithFullObject(object);
-    }
-
     public static ObjectReferenceType createObjectRef(ObjectType object) {
-        return createObjectRef(object, PrismContext.get());
-    }
-
-    public static ObjectReferenceType createObjectRef(ObjectType object, PrismContext prismContext) {
         if (object == null) {
             return null;
         }
-        return createObjectRef(object, prismContext.getDefaultRelation());
+        return createObjectRef(object, PrismContext.get().getDefaultRelation());
+    }
+
+    @Deprecated // keeping this as it was quite popular before
+    public static ObjectReferenceType createObjectRef(ObjectType object, PrismContext ignored) {
+        return createObjectRef(object);
     }
 
     /**
@@ -596,7 +592,7 @@ public class ObjectTypeUtil {
     public static <O extends ObjectType> List<ObjectReferenceType> objectListToReferences(Collection<PrismObject<O>> objects) {
         List<ObjectReferenceType> rv = new ArrayList<>();
         for (PrismObject<? extends ObjectType> object : objects) {
-            rv.add(createObjectRef(object.asObjectable(), object.getPrismContext().getDefaultRelation()));
+            rv.add(createObjectRef(object.asObjectable(), PrismContext.get().getDefaultRelation()));
         }
         return rv;
     }
@@ -943,21 +939,21 @@ public class ObjectTypeUtil {
     }
 
     @NotNull
-    public static ObjectQuery createManagerQuery(Class<? extends ObjectType> objectTypeClass, String orgOid,
-            RelationRegistry relationRegistry, PrismContext prismContext) {
+    public static ObjectQuery createManagerQuery(
+            Class<? extends ObjectType> objectTypeClass, String orgOid, RelationRegistry relationRegistry) {
         Collection<QName> managerRelations = relationRegistry.getAllRelationsFor(RelationKindType.MANAGER);
         if (managerRelations.isEmpty()) {
             LOGGER.warn("No manager relation is defined");
-            return prismContext.queryFor(objectTypeClass).none().build();
+            return PrismContext.get().queryFor(objectTypeClass).none().build();
         }
 
         List<PrismReferenceValue> referencesToFind = new ArrayList<>();
         for (QName managerRelation : managerRelations) {
-            PrismReferenceValue parentOrgRefVal = prismContext.itemFactory().createReferenceValue(orgOid, OrgType.COMPLEX_TYPE);
+            PrismReferenceValue parentOrgRefVal = PrismContext.get().itemFactory().createReferenceValue(orgOid, OrgType.COMPLEX_TYPE);
             parentOrgRefVal.setRelation(managerRelation);
             referencesToFind.add(parentOrgRefVal);
         }
-        return prismContext.queryFor(objectTypeClass)
+        return PrismContext.get().queryFor(objectTypeClass)
                 .item(ObjectType.F_PARENT_ORG_REF).ref(referencesToFind)
                 .build();
     }
@@ -1108,7 +1104,8 @@ public class ObjectTypeUtil {
      * Returns the type name for an object.
      * (This really belongs somewhere else, not here.)
      */
-    public static QName getObjectType(ObjectType object, PrismContext prismContext) {
+    @Contract("!null -> !null; null -> null")
+    public static QName getObjectTypeName(ObjectType object) {
         if (object == null) {
             return null;
         }
@@ -1118,14 +1115,21 @@ public class ObjectTypeUtil {
         }
         Class<? extends Objectable> clazz = object.asPrismObject().getCompileTimeClass();
         if (clazz == null) {
-            return null;
+            throw new IllegalStateException("No compile-time class for " + object);
         }
-        PrismObjectDefinition<?> defFromRegistry = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
+        PrismObjectDefinition<?> defFromRegistry =
+                PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
         if (defFromRegistry != null) {
             return defFromRegistry.getTypeName();
         } else {
             return ObjectType.COMPLEX_TYPE;
         }
+    }
+
+    /** A convenience variant of {@link #getObjectTypeName(ObjectType)}. */
+    @Contract("!null -> !null; null -> null")
+    public static QName getObjectTypeName(PrismObject<? extends ObjectType> object) {
+        return getObjectTypeName(asObjectable(object));
     }
 
     public static boolean isIndestructible(@NotNull ObjectType object) {
@@ -1421,5 +1425,13 @@ public class ObjectTypeUtil {
         return refs.stream()
                 .map(ref -> ref.getOid())
                 .collect(Collectors.toSet());
+    }
+
+    public static ObjectType getEmbeddedObjectBean(ObjectReferenceType ref) {
+        if (ref == null) {
+            return null;
+        } else {
+            return asObjectable(ref.getObject());
+        }
     }
 }

@@ -65,7 +65,7 @@ public class TestAsyncUpdateNoCaching extends TestAsyncUpdate {
     @Override
     protected void setDummyAccountTestAttribute(String name, String... values) {
         try {
-            DummyAccount account = dummyResource.getAccountByUsername(name);
+            DummyAccount account = dummyResource.getAccountByName(name);
             account.replaceAttributeValues("test", Arrays.asList(values));
         } catch (SchemaViolationException | ConnectException | FileNotFoundException | ConflictException | InterruptedException e) {
             throw new AssertionError(e);

@@ -12,14 +12,11 @@ import java.util.List;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.MutableItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.expression.Expression;
@@ -74,15 +71,15 @@ public class ExpressionEvaluationHelper {
             boolean multiValued, Function<Object, Object> additionalConvertor, Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        MutableItemDefinition<?> resultDef;
+        ItemDefinition<?> resultDef;
         ItemName resultName = new ItemName(SchemaConstants.NS_C, "result");
         if (QNameUtil.match(typeName, ObjectReferenceType.COMPLEX_TYPE)) {
-            resultDef = prismContext.definitionFactory().createReferenceDefinition(resultName, typeName);
+            resultDef = prismContext.definitionFactory().newReferenceDefinition(resultName, typeName);
         } else {
-            resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, typeName);
+            resultDef = prismContext.definitionFactory().newPropertyDefinition(resultName, typeName);
         }
         if (multiValued) {
-            resultDef.setMaxOccurs(-1);
+            resultDef.mutator().setMaxOccurs(-1);
         }
         Expression<?,?> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDescription, task);

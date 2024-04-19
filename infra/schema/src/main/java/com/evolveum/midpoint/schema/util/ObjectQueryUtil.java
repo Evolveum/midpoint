@@ -43,55 +43,55 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class ObjectQueryUtil {
 
-    public static ObjectQuery createNameQuery(String name, PrismContext prismContext) throws SchemaException {
+    public static ObjectQuery createNameQuery(String name) throws SchemaException {
         PolyString polyName = new PolyString(name);
-        return createNameQuery(polyName, prismContext);
+        return createNameQuery(polyName);
     }
 
-    public static ObjectQuery createOrigNameQuery(String name, PrismContext prismContext) {
+    public static ObjectQuery createOrigNameQuery(String name) {
         PolyString polyName = new PolyString(name);
-        return createOrigNameQuery(polyName, prismContext);
+        return createOrigNameQuery(polyName);
     }
 
-    public static ObjectQuery createNameQuery(PolyStringType name, PrismContext prismContext) throws SchemaException {
-        return createNameQuery(name.toPolyString(), prismContext);
+    public static ObjectQuery createNameQuery(PolyStringType name) throws SchemaException {
+        return createNameQuery(name.toPolyString());
     }
 
-    public static ObjectQuery createNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
-        return prismContext.queryFor(ObjectType.class)
+    public static ObjectQuery createNameQuery(PolyString name) throws SchemaException {
+        return PrismContext.get().queryFor(ObjectType.class)
                 .item(ObjectType.F_NAME).eq(name)
                 .build();
     }
 
     public static <O extends ObjectType> ObjectQuery createOidQuery(PrismObject<O> object) throws SchemaException {
-        return createOidQuery(object.getOid(), object.getPrismContext());
+        return createOidQuery(object.getOid());
     }
 
-    public static ObjectQuery createOidQuery(String oid, PrismContext prismContext) {
-        return prismContext.queryFor(ObjectType.class)
+    public static ObjectQuery createOidQuery(String oid) {
+        return PrismContext.get().queryFor(ObjectType.class)
                 .id(oid)
                 .build();
     }
 
-    public static ObjectQuery createOrigNameQuery(PolyString name, PrismContext prismContext) {
-        return prismContext.queryFor(ObjectType.class)
+    public static ObjectQuery createOrigNameQuery(PolyString name) {
+        return PrismContext.get().queryFor(ObjectType.class)
                 .item(ObjectType.F_NAME).eq(name).matchingOrig()
                 .build();
     }
 
-    public static ObjectQuery createNormNameQuery(PolyString name, PrismContext prismContext) {
+    public static ObjectQuery createNormNameQuery(PolyString name) {
         name.recompute();
-        return prismContext.queryFor(ObjectType.class)
+        return PrismContext.get().queryFor(ObjectType.class)
                 .item(ObjectType.F_NAME).eq(name).matchingNorm()
                 .build();
     }
 
     public static ObjectQuery createNameQuery(ObjectType object) throws SchemaException {
-        return createNameQuery(object.getName(), object.asPrismObject().getPrismContext());
+        return createNameQuery(object.getName());
     }
 
     public static <O extends ObjectType> ObjectQuery createNameQuery(PrismObject<O> object) throws SchemaException {
-        return createNameQuery(object.asObjectable().getName(), object.getPrismContext());
+        return createNameQuery(object.asObjectable().getName());
     }
 
     @Deprecated
@@ -176,8 +176,8 @@ public class ObjectQueryUtil {
                 .buildFilter();
     }
 
-    public static <T extends ObjectType> ObjectQuery createNameQuery(Class<T> clazz, PrismContext prismContext, String name) throws SchemaException {
-        return prismContext.queryFor(clazz)
+    public static <T extends ObjectType> ObjectQuery createNameQuery(Class<T> clazz, String name) throws SchemaException {
+        return PrismContext.get().queryFor(clazz)
                 .item(ObjectType.F_NAME).eqPoly(name)
                 .build();
     }
@@ -716,8 +716,8 @@ public class ObjectQueryUtil {
         return updatedQuery;
     }
 
-    public static ObjectPaging convertToObjectPaging(PagingType pagingType, PrismContext prismContext) {
-        return PagingConvertor.createObjectPaging(pagingType, prismContext);
+    public static ObjectPaging convertToObjectPaging(PagingType pagingType) {
+        return PagingConvertor.createObjectPaging(pagingType);
     }
 
     public static @NotNull ObjectQuery openItemsQuery() {

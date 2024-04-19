@@ -20,8 +20,6 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.SerializationOptions;
-
 import com.google.common.base.Strings;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -32,7 +30,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.metamodel.MappingMetamodel;
-import org.hibernate.metamodel.model.domain.internal.JpaMetamodelImpl;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.Joinable;
@@ -42,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
 import com.evolveum.midpoint.repo.sql.data.common.*;
@@ -81,10 +79,10 @@ public final class RUtil {
         throw new AssertionError("utility class can't be instantiated");
     }
 
-    public static void revive(Objectable object, PrismContext prismContext)
+    public static void revive(Objectable object)
             throws DtoTranslationException {
         try {
-            prismContext.adopt(object);
+            PrismContext.get().adopt(object);
         } catch (SchemaException ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -224,8 +222,8 @@ public final class RUtil {
         }
     }
 
-    public static void copyResultFromJAXB(QName itemName, OperationResultType jaxb,
-            ROperationResult repo, PrismContext prismContext) throws DtoTranslationException {
+    public static void copyResultFromJAXB(
+            QName itemName, OperationResultType jaxb, ROperationResult repo) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
 
         if (jaxb == null) {
@@ -247,7 +245,7 @@ public final class RUtil {
                         .serializeUnsupportedTypesAsString(true)
                         .escapeInvalidCharacters(true);
                 // TODO MID-6303 should this be affected by configured fullObjectFormat?
-                String full = prismContext.xmlSerializer().options(options).serializeRealValue(jaxb, itemName);
+                String full = PrismContext.get().xmlSerializer().options(options).serializeRealValue(jaxb, itemName);
                 byte[] data = RUtil.getBytesFromSerializedForm(full, true);
                 ((ROperationResultFull) repo).setFullResult(data);
             } catch (Exception ex) {
@@ -362,8 +360,7 @@ public final class RUtil {
         SessionFactory factory = session.getSessionFactory();
         MappingMetamodel model = (MappingMetamodel) factory.getMetamodel();
         EntityPersister ep = model.getEntityDescriptor(hqlType); // model.entityPersister(hqlType);
-        if (ep instanceof Joinable) {
-            Joinable joinable = (Joinable) ep;
+        if (ep instanceof Joinable joinable) {
             return joinable.getTableName();
         }
 

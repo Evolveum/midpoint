@@ -423,14 +423,14 @@ public class CertCampaignTypeUtil {
         return rv;
     }
 
-    public static ObjectQuery createCasesForCampaignQuery(String campaignOid, PrismContext prismContext) {
-        return prismContext.queryFor(AccessCertificationCaseType.class)
+    public static ObjectQuery createCasesForCampaignQuery(String campaignOid) {
+        return PrismContext.get().queryFor(AccessCertificationCaseType.class)
                 .ownerId(campaignOid)
                 .build();
     }
 
-    public static ObjectQuery createWorkItemsForCampaignQuery(String campaignOid, PrismContext prismContext) {
-        return prismContext.queryFor(AccessCertificationWorkItemType.class)
+    public static ObjectQuery createWorkItemsForCampaignQuery(String campaignOid) {
+        return PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
                 .exists(PrismConstants.T_PARENT)
                    .ownerId(campaignOid)
                 .build();

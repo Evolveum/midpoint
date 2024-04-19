@@ -30,30 +30,30 @@ public class CorrelationResult implements Serializable, DebugDumpable {
     /**
      * Candidate owners along with their confidence values. See {@link CandidateOwner}.
      */
-    @NotNull private final CandidateOwnersMap candidateOwnersMap;
+    @NotNull private final CandidateOwners candidateOwners;
 
     public CorrelationResult(
-            @NotNull CandidateOwnersMap candidateOwnersMap) {
-        this.candidateOwnersMap = candidateOwnersMap;
+            @NotNull CandidateOwners candidateOwners) {
+        this.candidateOwners = candidateOwners;
     }
 
     public static CorrelationResult empty() {
         return new CorrelationResult(
-                new CandidateOwnersMap());
+                new CandidateOwners());
     }
 
-    public static CorrelationResult of(@NotNull CandidateOwnersMap candidateOwnersMap) {
-        return new CorrelationResult(candidateOwnersMap);
+    public static CorrelationResult of(@NotNull CandidateOwners candidateOwners) {
+        return new CorrelationResult(candidateOwners);
     }
 
-    public @NotNull CandidateOwnersMap getCandidateOwnersMap() {
-        return candidateOwnersMap;
+    public @NotNull CandidateOwners getCandidateOwners() {
+        return candidateOwners;
     }
 
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-        DebugUtil.debugDumpWithLabel(sb, "candidateOwners", candidateOwnersMap, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "candidateOwners", candidateOwners, indent + 1);
         return sb.toString();
     }
 }

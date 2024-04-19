@@ -18,13 +18,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CreateCorrelationCas
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 @ActionDefinitionClass(CreateCorrelationCaseSynchronizationActionType.class)
-public class CreateCorrelationCaseAction<F extends FocusType> extends BaseAction<F> {
+class CreateCorrelationCaseAction<F extends FocusType> extends BaseAction<F> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CreateCorrelationCaseAction.class);
 
     private static final String OP_HANDLE = CreateCorrelationCaseAction.class.getName() + ".handle";
 
-    public CreateCorrelationCaseAction(@NotNull ActionInstantiationContext<F> ctx) {
+    CreateCorrelationCaseAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);
     }
 

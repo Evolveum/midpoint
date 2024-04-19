@@ -6,17 +6,14 @@
  */
 package com.evolveum.midpoint.model.impl.schema.transform;
 
-
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.xml.namespace.QName;
 
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.deleg.DefinitionDelegator;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 
 public abstract class TransformableDefinition implements DefinitionDelegator {
 
@@ -50,7 +47,6 @@ public abstract class TransformableDefinition implements DefinitionDelegator {
         return DefinitionDelegator.super.getAnnotation(qname);
     }
 
-    @Override
     public <A> void setAnnotation(QName qname, A value) {
         Object newVal = value != null ? value : NullObject.VALUE;
         if (annotations == null) {
@@ -64,7 +60,7 @@ public abstract class TransformableDefinition implements DefinitionDelegator {
     }
 
     @Override
-    public Definition clone() {
+    public @NotNull Definition clone() {
         throw new UnsupportedOperationException();
     }
 }

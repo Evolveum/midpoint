@@ -6,33 +6,27 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.schema.processor.ResourceSchema.qualifyTypeName;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 import java.io.Serial;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.prism.DeepCloneOperation;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 /**
  * Default implementation of {@link ResourceObjectClassDefinition}.
@@ -43,74 +37,32 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
  */
 public class ResourceObjectClassDefinitionImpl
         extends AbstractResourceObjectDefinitionImpl
-        implements MutableResourceObjectClassDefinition {
+        implements ResourceObjectClassDefinition {
 
     @Serial private static final long serialVersionUID = 1L;
 
     @NotNull private final QName objectClassName;
 
     /**
-     * Definition of the raw resource object class definition.
-     * Null if the object itself is raw.
-     * Immutable.
+     * Native resource object class definition.
      */
-    @Nullable private final ResourceObjectClassDefinition rawObjectClassDefinition;
-
-    /** See {@link ResourceObjectDefinition#getDescriptionAttribute()}. Set only for raw schema! */
-    private QName descriptionAttributeName;
-
-    /** See {@link ResourceObjectDefinition#getNamingAttribute()}. Set only for raw schema! */
-    private QName namingAttributeName;
-
-    /** See {@link ResourceObjectClassDefinition#isDefaultAccountDefinition()}. Set only for raw schema! */
-    private boolean defaultAccountDefinition;
-
-    /** Set only for raw schema! */
-    private String nativeObjectClass;
-
-    /** Set only for raw schema! */
-    private boolean auxiliary;
+    @NotNull private final NativeObjectClassDefinition nativeObjectClassDefinition;
 
     // Some day, we will use ConfigurationItem for definition bean here.
     private ResourceObjectClassDefinitionImpl(
             @NotNull LayerType layer,
-            @Nullable BasicResourceInformation basicResourceInformation,
-            @NotNull ResourceObjectTypeDefinitionType definitionBean,
-            @NotNull QName objectClassName,
-            @Nullable ResourceObjectClassDefinition rawObjectClassDefinition)
+            @NotNull BasicResourceInformation basicResourceInformation,
+            @NotNull NativeObjectClassDefinition nativeObjectClassDefinition,
+            @NotNull ResourceObjectTypeDefinitionType definitionBean)
             throws SchemaException, ConfigurationException {
         super(layer, basicResourceInformation, definitionBean);
-
-        Preconditions.checkArgument(rawObjectClassDefinition == null || basicResourceInformation != null,
-                "Basic resource information must be present for refined object class definition");
-        this.objectClassName = objectClassName;
-        this.rawObjectClassDefinition = rawObjectClassDefinition;
-        if (rawObjectClassDefinition == null) {
-            // This definition itself is a raw one.
-            // Looks like a hack - TODO resolve this
-            setDelineation(
-                    ResourceObjectTypeDelineation.of(objectClassName));
-        }
+        this.objectClassName = qualifyTypeName(nativeObjectClassDefinition.getName());
+        this.nativeObjectClassDefinition = nativeObjectClassDefinition;
     }
 
-    public static ResourceObjectClassDefinitionImpl raw(@NotNull QName objectClassName) {
-        try {
-            return new ResourceObjectClassDefinitionImpl(
-                    DEFAULT_LAYER,
-                    null,
-                    new ResourceObjectTypeDefinitionType(),
-                    objectClassName,
-                    null);
-        } catch (SchemaException | ConfigurationException e) {
-            // These exceptions can currently occur only when merging resource-level with object-level definitions.
-            // In this case, both are empty, so this cannot happen.
-            throw SystemException.unexpected(e, "when creating raw object class definition");
-        }
-    }
-
-    public static ResourceObjectClassDefinitionImpl refined(
+    public static ResourceObjectClassDefinitionImpl create(
             @NotNull BasicResourceInformation basicResourceInformation,
-            @NotNull ResourceObjectClassDefinition rawObjectClassDefinition,
+            @NotNull NativeObjectClassDefinition nativeObjectClassDefinition,
             @Nullable ResourceObjectTypeDefinitionType definitionBean)
             throws ConfigurationException, SchemaException {
         if (definitionBean != null) {
@@ -119,11 +71,14 @@ public class ResourceObjectClassDefinitionImpl
         return new ResourceObjectClassDefinitionImpl(
                 DEFAULT_LAYER,
                 basicResourceInformation,
-                Objects.requireNonNullElseGet(definitionBean, ResourceObjectTypeDefinitionType::new),
-                rawObjectClassDefinition.getObjectClassName(),
-                rawObjectClassDefinition.attachTo(basicResourceInformation));
+                nativeObjectClassDefinition,
+                Objects.requireNonNullElseGet(definitionBean, ResourceObjectTypeDefinitionType::new));
     }
 
+    /**
+     * Object class definition reuses {@link ResourceObjectTypeDefinitionType} but has some restrictions on its content.
+     * We check them here.
+     */
     private static void checkDefinitionSanity(@NotNull ResourceObjectTypeDefinitionType bean) throws ConfigurationException {
         QName name = getObjectClassName(bean);
         configCheck(name != null,
@@ -165,170 +120,42 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public @NotNull ResourceObjectClassDefinition getRawObjectClassDefinition() {
-        return Objects.requireNonNullElse(rawObjectClassDefinition, this);
-    }
-
-    @Override
-    public void delete(QName itemName) {
-        attributeDefinitions.removeIf(
-                def -> QNameUtil.match(def.getItemName(), itemName));
-    }
-
-    @Override
-    public MutablePrismPropertyDefinition<?> createPropertyDefinition(QName name, QName typeName) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public MutablePrismPropertyDefinition<?> createPropertyDefinition(String name, QName typeName) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void addPrimaryIdentifierName(QName name) {
-        checkMutable();
-        primaryIdentifiersNames.add(name);
-    }
-
-    @Override
-    public void addSecondaryIdentifierName(QName name) {
-        checkMutable();
-        secondaryIdentifiersNames.add(name);
-    }
-
-    @Override
-    public @Nullable QName getDescriptionAttributeName() {
-        ResourceObjectClassDefinition rawDef = rawObjectClassDefinition;
-        return rawDef != null ? rawDef.getDescriptionAttributeName() : descriptionAttributeName;
-    }
-
-    @Override
-    public void setDescriptionAttributeName(QName name) {
-        checkMutable();
-        this.descriptionAttributeName = name;
+    public @NotNull NativeObjectClassDefinition getNativeObjectClassDefinition() {
+        return nativeObjectClassDefinition;
     }
 
     @Override
     public @Nullable QName getNamingAttributeName() {
-        ResourceObjectClassDefinition rawDef = rawObjectClassDefinition;
-        return rawDef != null ? rawDef.getNamingAttributeName() : namingAttributeName;
-    }
-
-    @Override
-    public void setNamingAttributeName(QName name) {
-        checkMutable();
-        this.namingAttributeName = name;
+        return nativeObjectClassDefinition.getNamingAttributeName();
     }
 
     @Override
     public @Nullable QName getDisplayNameAttributeName() {
-        ResourceObjectClassDefinition rawDef = rawObjectClassDefinition;
-        return rawDef != null ? rawDef.getDisplayNameAttributeName() : displayNameAttributeName;
+        return nativeObjectClassDefinition.getDisplayNameAttributeName();
     }
 
     @Override
-    public String getNativeObjectClass() {
-        ResourceObjectClassDefinition rawDef = rawObjectClassDefinition;
-        return rawDef != null ? rawDef.getNativeObjectClass() : nativeObjectClass;
+    public @Nullable QName getDescriptionAttributeName() {
+        return nativeObjectClassDefinition.getDescriptionAttributeName();
     }
 
     @Override
-    public void setNativeObjectClass(String nativeObjectClass) {
-        checkMutable();
-        this.nativeObjectClass = nativeObjectClass;
+    public String getNativeObjectClassName() {
+        return nativeObjectClassDefinition.getNativeObjectClassName();
     }
 
     @Override
     public boolean isAuxiliary() {
-        ResourceObjectClassDefinition rawDef = rawObjectClassDefinition;
-        return rawDef != null ? rawDef.isAuxiliary() : auxiliary;
-    }
-
-    @Override
-    public void setAuxiliary(boolean auxiliary) {
-        checkMutable();
-        this.auxiliary = auxiliary;
+        return nativeObjectClassDefinition.isAuxiliary();
     }
 
     @Override
     public boolean isDefaultAccountDefinition() {
-        ResourceObjectClassDefinition rawDef = rawObjectClassDefinition;
-        return rawDef != null ? rawDef.isDefaultAccountDefinition() : defaultAccountDefinition;
+        return nativeObjectClassDefinition.isDefaultAccountDefinition();
     }
 
     @Override
-    public void setDefaultAccountDefinition(boolean value) {
-        checkMutable();
-        this.defaultAccountDefinition = value;
-    }
-
-    @VisibleForTesting
-    @Override
-    public <T> ResourceAttributeDefinition<T> createAttributeDefinition(
-            @NotNull QName name,
-            @NotNull QName typeName,
-            @NotNull Consumer<MutableRawResourceAttributeDefinition<?>> consumer) {
-        RawResourceAttributeDefinition<T> rawDefinition = new RawResourceAttributeDefinition<>(name, typeName);
-        consumer.accept(rawDefinition);
-        //noinspection unchecked
-        return (ResourceAttributeDefinition<T>) addInternal(rawDefinition);
-    }
-
-    @Override
-    public ResourceAttributeContainer instantiate(@NotNull ItemName elementName) {
-        return instantiate(elementName, this);
-    }
-
-    // TODO is this needed to be exposed publicly?
-    public static ResourceAttributeContainer instantiate(
-            @NotNull QName elementName,
-            @NotNull ResourceObjectClassDefinition objectClassDefinition) {
-        return new ResourceAttributeContainerImpl(
-                elementName,
-                objectClassDefinition.toResourceAttributeContainerDefinition(elementName));
-    }
-
-    @Override
-    public void accept(Visitor<Definition> visitor) {
-        super.accept(visitor);
-        if (rawObjectClassDefinition != null) {
-            rawObjectClassDefinition.accept(visitor);
-        }
-    }
-
-    @Override
-    public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
-        if (!super.accept(visitor, visitation)) {
-            return false;
-        } else {
-            if (rawObjectClassDefinition != null) {
-                rawObjectClassDefinition.accept(visitor, visitation);
-            }
-            return true;
-        }
-    }
-
-    @Override
-    public void trimTo(@NotNull Collection<ItemPath> paths) {
-        if (isImmutable()) {
-            return; // This would fail anyway
-        }
-        super.trimTo(paths);
-        if (rawObjectClassDefinition != null) {
-            // It is most probably immutable, but let us give it a chance.
-            rawObjectClassDefinition.trimTo(paths);
-        }
-    }
-
-    @Override
-    public @Nullable QName getDefaultItemTypeName() {
-        return null;
-    }
-
-    @NotNull
-    @Override
-    public ResourceObjectClassDefinitionImpl clone() {
+    public @NotNull ResourceObjectClassDefinitionImpl clone() {
         try {
             return clone(currentLayer, basicResourceInformation);
         } catch (SchemaException | ConfigurationException e) {
@@ -351,167 +178,11 @@ public class ResourceObjectClassDefinitionImpl
             @NotNull LayerType newLayer, BasicResourceInformation newInformation) throws SchemaException, ConfigurationException {
         ResourceObjectClassDefinitionImpl clone =
                 new ResourceObjectClassDefinitionImpl(
-                        newLayer, newInformation, definitionBean, objectClassName, rawObjectClassDefinition);
+                        newLayer, newInformation, nativeObjectClassDefinition.clone(), definitionBean.clone());
         clone.copyDefinitionDataFrom(newLayer, this);
         return clone;
     }
 
-    @Override
-    public void setExtensionForType(QName type) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setAbstract(boolean value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setSuperType(QName superType) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setObjectMarker(boolean value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setContainerMarker(boolean value) {
-        argCheck(value, "Container marker cannot be turned off for %s", this);
-    }
-
-    @Override
-    public void setReferenceMarker(boolean value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setDefaultItemTypeName(QName value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setDefaultNamespace(String namespace) {
-        argCheck(namespace == null, "Default namespace cannot be set for %s", this);
-    }
-
-    @Override
-    public void setIgnoredNamespaces(@NotNull List<String> ignoredNamespaces) {
-        argCheck(ignoredNamespaces.isEmpty(), "Ignored namespaces cannot be set for %s", this);
-    }
-
-    @Override
-    public void setXsdAnyMarker(boolean value) {
-        argCheck(value, "Cannot set xsd:any flag to 'false' for %s", this);
-    }
-
-    @Override
-    public void setListMarker(boolean value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setCompileTimeClass(Class<?> compileTimeClass) {
-        argCheck(compileTimeClass == null, "Compile-time class cannot be set for %s", this);
-    }
-
-    @Override
-    public void addSubstitution(ItemDefinition<?> itemDef, ItemDefinition<?> maybeSubst) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setProcessing(ItemProcessing processing) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setDeprecated(boolean deprecated) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setRemoved(boolean removed) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setOptionalCleanup(boolean optionalCleanup) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setRemovedSince(String removedSince) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setExperimental(boolean experimental) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setDisplayHint(DisplayHint displayHint) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setEmphasized(boolean emphasized) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setDisplayName(String displayName) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setDisplayOrder(Integer displayOrder) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setMergerIdentifier(String mergerIdentifier) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setNaturalKeyConstituents(List<QName> naturalKeyConstituents) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setHelp(String help) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setRuntimeSchema(boolean value) {
-        argCheck(value, "Cannot set runtime schema flag to 'false' for %s", this);
-    }
-
-    @Override
-    public void setTypeName(QName typeName) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setDocumentation(String value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void addSchemaMigration(SchemaMigration schemaMigration) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void addDiagram(ItemDiagramSpecification diagram) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void setInstantiationOrder(Integer order) {
         argCheck(order == null, "Instantiation order is not supported for %s", this);
     }
@@ -519,12 +190,13 @@ public class ResourceObjectClassDefinitionImpl
     @NotNull
     @Override
     public ResourceObjectClassDefinition deepClone(@NotNull DeepCloneOperation operation) {
-        // We do not need to do deep cloning of item definitions, because they are of simple types.
-        return (ResourceObjectClassDefinition) operation.execute(
-                this,
-                this::clone,
-                clone -> clone.getDefinitions()
-                        .forEach(operation::executePostCloneAction));
+        throw new UnsupportedOperationException();
+//        // We do not need to do deep cloning of item definitions, because they are of simple types.
+//        return (ResourceObjectClassDefinition) operation.execute(
+//                this,
+//                this::clone,
+//                clone -> clone.getDefinitions()
+//                        .forEach(operation::executePostCloneAction));
     }
 
     @Override
@@ -534,42 +206,18 @@ public class ResourceObjectClassDefinitionImpl
 
     @Override
     public boolean isRaw() {
-        return rawObjectClassDefinition == null;
+        return !hasRefinements();
     }
 
     @Override
     public boolean hasRefinements() {
-        return !isRaw() && !definitionBean.asPrismContainerValue().hasNoItems();
-    }
-
-    @Override
-    public boolean hasSubstitutions() {
-        // TODO
-        return false;
-    }
-
-    @Override
-    public Optional<ItemDefinition<?>> substitution(QName name) {
-        // TODO
-        return Optional.empty();
-    }
-
-    @SuppressWarnings("WeakerAccess") // open for subclassing
-    protected void copyDefinitionDataFrom(@NotNull LayerType layer, ResourceObjectClassDefinition source) {
-        super.copyDefinitionDataFrom(layer, source);
-        descriptionAttributeName = source.getDescriptionAttributeName();
-        displayNameAttributeName = source.getDisplayNameAttributeName();
-        namingAttributeName = source.getNamingAttributeName();
-        defaultAccountDefinition = source.isDefaultAccountDefinition();
-        nativeObjectClass = source.getNativeObjectClass();
-        auxiliary = source.isAuxiliary();
+        return !definitionBean.asPrismContainerValue().hasNoItems();
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
+        if (this == o)
             return true;
-        }
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
@@ -577,25 +225,12 @@ public class ResourceObjectClassDefinitionImpl
             return false;
         }
         ResourceObjectClassDefinitionImpl that = (ResourceObjectClassDefinitionImpl) o;
-        return defaultAccountDefinition == that.defaultAccountDefinition
-                && auxiliary == that.auxiliary
-                && objectClassName.equals(that.objectClassName)
-                && Objects.equals(descriptionAttributeName, that.descriptionAttributeName)
-                && Objects.equals(displayNameAttributeName, that.displayNameAttributeName)
-                && Objects.equals(namingAttributeName, that.namingAttributeName)
-                && Objects.equals(nativeObjectClass, that.nativeObjectClass);
+        return Objects.equals(objectClassName, that.objectClassName) && Objects.equals(nativeObjectClassDefinition, that.nativeObjectClassDefinition);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), objectClassName, descriptionAttributeName, displayNameAttributeName,
-                namingAttributeName, defaultAccountDefinition, nativeObjectClass, auxiliary);
-    }
-
-    @Override
-    public MutableResourceObjectClassDefinition toMutable() {
-        checkMutable();
-        return this;
+        return Objects.hash(super.hashCode(), objectClassName, nativeObjectClassDefinition);
     }
 
     @Override
@@ -604,9 +239,8 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass, ResourceType resource) {
-        // we have no refinements here, so we look only at the level of resource
-        return ResourceTypeUtil.getEnabledCapability(resource, capabilityClass);
+    public @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -635,40 +269,14 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public @NotNull ResourceObjectClassDefinition attachTo(@NotNull BasicResourceInformation newInformation)
-            throws SchemaException, ConfigurationException {
-        if (basicResourceInformation == null) {
-            return clone(currentLayer, newInformation);
-        } else {
-            stateCheck(
-                    basicResourceInformation.equals(newInformation),
-                    "Trying to attach %s (already attached to %s) to a different resource information of %s",
-                    this, basicResourceInformation, newInformation);
-            return this;
-        }
-    }
-
-    @Override
     public String toString() {
-        ResourceObjectClassDefinition rawDef = rawObjectClassDefinition;
-        if (rawDef != null) {
-            return "ResourceObjectClassDefinitionImpl (refined) {" +
-                    "raw=" + rawDef +
-                    ", attributeDefinitions: " + attributeDefinitions.size() +
-                    ", primaryIdentifiersNames: " + primaryIdentifiersNames.size() +
-                    ", secondaryIdentifiersNames: " + secondaryIdentifiersNames.size() +
-                    "}";
-        } else {
-            return "ResourceObjectClassDefinitionImpl (raw) {" +
-                    "objectClassName=" + objectClassName.getLocalPart() +
-                    ", attributeDefinitions: " + attributeDefinitions.size() +
-                    ", primaryIdentifiersNames: " + primaryIdentifiersNames.size() +
-                    ", secondaryIdentifiersNames: " + secondaryIdentifiersNames.size() +
-                    ", defaultAccountDefinition=" + defaultAccountDefinition +
-                    ", nativeObjectClass='" + nativeObjectClass + '\'' +
-                    ", auxiliary=" + auxiliary +
-                    "}";
-        }
+        return getClass().getSimpleName() + "{" +
+                "native=" + nativeObjectClassDefinition +
+                ", attributeDefinitions: " + attributeDefinitions.size() +
+                ", associationDefinitions: " + associationDefinitions.size() +
+                ", primaryIdentifiersNames: " + primaryIdentifiersNames.size() +
+                ", secondaryIdentifiersNames: " + secondaryIdentifiersNames.size() +
+                "}";
     }
 
     @Override
@@ -678,14 +286,10 @@ public class ResourceObjectClassDefinitionImpl
 
     @Override
     protected void addDebugDumpHeaderExtension(StringBuilder sb) {
-        if (isRaw()) {
-            sb.append(",raw");
+        if (hasRefinements()) {
+            sb.append(", with refinements");
         } else {
-            if (hasRefinements()) {
-                sb.append(",refined (with refinements)");
-            } else {
-                sb.append(",refined (no refinements)");
-            }
+            sb.append(", no refinements");
         }
     }
 
@@ -695,12 +299,27 @@ public class ResourceObjectClassDefinitionImpl
         DebugUtil.debugDumpWithLabelLn(sb, "description attribute name", getDescriptionAttributeName(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "naming attribute name", getNamingAttributeName(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "default account definition", isDefaultAccountDefinition(), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "native object class", getNativeObjectClass(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "native object class", getNativeObjectClassName(), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "auxiliary", isAuxiliary(), indent + 1);
     }
 
     @Override
     public @NotNull String getShortIdentification() {
         return getObjectClassName().getLocalPart();
+    }
+
+    @Override
+    public @NotNull FocusSpecification getFocusSpecification() {
+        return FocusSpecification.empty();
+    }
+
+    @Override
+    public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+        return List.of();
+    }
+
+    @Override
+    public boolean hasAnyInbounds() {
+        return false;
     }
 }

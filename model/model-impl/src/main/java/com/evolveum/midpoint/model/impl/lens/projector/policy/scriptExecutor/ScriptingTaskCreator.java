@@ -90,7 +90,7 @@ abstract class ScriptingTaskCreator {
         newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
         newTask.setOid(null);
         newTask.setTaskIdentifier(null);
-        newTask.setOwnerRef(createObjectRef(principal.getFocus(), beans.prismContext));
+        newTask.setOwnerRef(createObjectRef(principal.getFocus()));
         newTask.setExecutionState(RUNNABLE);
         newTask.setSchedulingState(READY);
         return newTask;

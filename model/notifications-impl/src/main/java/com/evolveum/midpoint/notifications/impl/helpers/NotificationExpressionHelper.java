@@ -84,7 +84,7 @@ public class NotificationExpressionHelper {
         var task = ctx.task();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<Boolean> resultDef =
-                prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN);
+                prismContext.definitionFactory().newPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN);
         Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression =
                 expressionFactory.makeExpression(
                         expressionCI,
@@ -129,8 +129,8 @@ public class NotificationExpressionHelper {
             CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        MutablePrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
-        resultDef.setMaxOccurs(-1);
+        PrismPropertyDefinition<String> resultDef =
+                prismContext.definitionFactory().newPropertyDefinition(resultName, DOMUtil.XSD_STRING, 0, -1);
 
         var task = ctx.task();
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
@@ -169,11 +169,11 @@ public class NotificationExpressionHelper {
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
-        MutablePrismPropertyDefinition<RecipientExpressionResultType> resultDef =
-                prismContext.definitionFactory().createPropertyDefinition(
+        PrismPropertyDefinition<RecipientExpressionResultType> resultDef =
+                prismContext.definitionFactory().newPropertyDefinition(
                         new QName(SchemaConstants.NS_C, "result"),
-                        RecipientExpressionResultType.COMPLEX_TYPE);
-        resultDef.setMaxOccurs(-1);
+                        RecipientExpressionResultType.COMPLEX_TYPE,
+                        0, -1);
 
         var task = ctx.task();
         Expression<PrismPropertyValue<RecipientExpressionResultType>, PrismPropertyDefinition<RecipientExpressionResultType>> expression =
@@ -243,7 +243,7 @@ public class NotificationExpressionHelper {
         var task = ctx.task();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<NotificationMessageAttachmentType> resultDef =
-                prismContext.definitionFactory().createPropertyDefinition(
+                prismContext.definitionFactory().newPropertyDefinition(
                         resultName, NotificationMessageAttachmentType.COMPLEX_TYPE);
         Expression<PrismPropertyValue<NotificationMessageAttachmentType>, PrismPropertyDefinition<NotificationMessageAttachmentType>> expression =
                 expressionFactory.makeExpression(

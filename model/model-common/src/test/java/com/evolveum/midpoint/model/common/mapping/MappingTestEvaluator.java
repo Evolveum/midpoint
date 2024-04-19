@@ -14,44 +14,34 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.ModelCommonBeans;
-
-import com.evolveum.midpoint.model.common.mapping.metadata.MetadataMappingEvaluator;
-
-import com.evolveum.midpoint.model.common.mapping.metadata.builtin.BuiltinMetadataMappingsRegistry;
-
-import com.evolveum.midpoint.model.common.mapping.metadata.builtin.ProvenanceBuiltinMapping;
-
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
+import com.evolveum.midpoint.model.common.mapping.metadata.MetadataMappingEvaluator;
+import com.evolveum.midpoint.model.common.mapping.metadata.builtin.BuiltinMetadataMappingsRegistry;
+import com.evolveum.midpoint.model.common.mapping.metadata.builtin.ProvenanceBuiltinMapping;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -104,7 +94,7 @@ public class MappingTestEvaluator {
             provenanceBuiltinMapping.register();
 
             beans.metadataMappingEvaluator =
-                    new MetadataMappingEvaluator(mappingFactory, prismContext, builtinMetadataMappingsRegistry);
+                    new MetadataMappingEvaluator(mappingFactory, builtinMetadataMappingsRegistry);
         }
 
         mappingFactory = new MappingFactory();

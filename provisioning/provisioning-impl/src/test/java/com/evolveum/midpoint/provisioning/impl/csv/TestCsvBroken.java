@@ -312,8 +312,8 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
 
     private void setCsvFile(String resourceOid, String file, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         QName propertyName = new QName("filePath");
-        ItemPath propertyPath = ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME, propertyName);
-        PrismPropertyDefinition<String> propertyDefinition = prismContext.definitionFactory().createPropertyDefinition(propertyName, DOMUtil.XSD_STRING);
+        ItemPath propertyPath = ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME, propertyName);
+        PrismPropertyDefinition<String> propertyDefinition = prismContext.definitionFactory().newPropertyDefinition(propertyName, DOMUtil.XSD_STRING);
         List<ItemDelta<?, ?>> deltas = deltaFor(ResourceType.class)
                 .item(propertyPath, propertyDefinition)
                 .replace(file)

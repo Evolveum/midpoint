@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
+import org.jetbrains.annotations.VisibleForTesting;
+
 /**
  * Provides information about primary and secondary identifiers.
  */
@@ -34,6 +36,7 @@ public interface IdentifiersDefinitionStore {
      */
     @NotNull Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers();
 
+    /** Currently, there must be exactly one primary identifier. */
     default <T> @NotNull ResourceAttributeDefinition<T> getPrimaryIdentifierRequired() {
         Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = getPrimaryIdentifiers();
         //noinspection unchecked
@@ -74,6 +77,17 @@ public interface IdentifiersDefinitionStore {
      * @return definition of secondary identifier attributes
      */
     @NotNull Collection<? extends ResourceAttributeDefinition<?>> getSecondaryIdentifiers();
+
+    /** In general, there may be more (or zero) secondary identifiers present. But in special cases we may expect just one. */
+    @VisibleForTesting
+    default <T> @NotNull ResourceAttributeDefinition<T> getSecondaryIdentifierRequired() {
+        Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifiers = getSecondaryIdentifiers();
+        //noinspection unchecked
+        return (ResourceAttributeDefinition<T>) MiscUtil.extractSingletonRequired(
+                secondaryIdentifiers,
+                () -> new IllegalStateException("No secondary identifier in " + this),
+                () -> new IllegalStateException("Multiple secondary identifiers in " + this + ": " + secondaryIdentifiers));
+    }
 
     /**
      * Returns names of secondary identifiers.

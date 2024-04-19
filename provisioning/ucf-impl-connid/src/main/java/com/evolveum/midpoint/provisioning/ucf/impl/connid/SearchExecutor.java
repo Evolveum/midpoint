@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.ucfAttributeNameToConnId;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -55,7 +56,7 @@ class SearchExecutor {
     private final ObjectQuery query;
     private final Filter connIdFilter;
     @NotNull private final UcfObjectHandler handler;
-    private final AttributesToReturn attributesToReturn;
+    private final ShadowItemsToReturn shadowItemsToReturn;
     private final PagedSearchCapabilityType pagedSearchConfiguration;
     private final SearchHierarchyConstraints searchHierarchyConstraints;
     private final UcfFetchErrorReportingMethod errorReportingMethod;
@@ -72,7 +73,7 @@ class SearchExecutor {
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             ObjectQuery query,
             @NotNull UcfObjectHandler handler,
-            AttributesToReturn attributesToReturn,
+            ShadowItemsToReturn shadowItemsToReturn,
             PagedSearchCapabilityType pagedSearchConfiguration,
             SearchHierarchyConstraints searchHierarchyConstraints,
             UcfFetchErrorReportingMethod errorReportingMethod,
@@ -84,7 +85,7 @@ class SearchExecutor {
         this.query = query;
         this.connIdFilter = connectorInstance.convertFilterToIcf(query, resourceObjectDefinition);
         this.handler = handler;
-        this.attributesToReturn = attributesToReturn;
+        this.shadowItemsToReturn = shadowItemsToReturn;
         this.pagedSearchConfiguration = pagedSearchConfiguration;
         this.searchHierarchyConstraints = searchHierarchyConstraints;
         this.errorReportingMethod = errorReportingMethod;
@@ -126,7 +127,7 @@ class SearchExecutor {
     }
 
     private void setupAttributesToGet(OperationOptionsBuilder optionsBuilder) throws SchemaException {
-        connectorInstance.convertToIcfAttrsToGet(resourceObjectDefinition, attributesToReturn, optionsBuilder);
+        connectorInstance.convertToIcfAttrsToGet(resourceObjectDefinition, shadowItemsToReturn, optionsBuilder);
     }
 
     private void setupPagingAndSorting(OperationOptionsBuilder optionsBuilder) throws SchemaException {
@@ -158,8 +159,7 @@ class SearchExecutor {
             desc = "(default orderBy attribute from capability definition)";
         }
         if (orderByAttributeName != null) {
-            String orderByIcfName = connectorInstance.connIdNameMapper.convertAttributeNameToConnId(
-                    orderByAttributeName, resourceObjectDefinition, desc);
+            String orderByIcfName = ucfAttributeNameToConnId(orderByAttributeName, resourceObjectDefinition, desc);
             optionsBuilder.setSortKeys(new SortKey(orderByIcfName, isAscending));
         }
     }
@@ -350,9 +350,8 @@ class SearchExecutor {
                     }
                 }
 
-                var ucfObject = connectorInstance.connIdConvertor.convertToUcfObject(
-                        connectorObject, resourceObjectDefinition, connectorInstance.getResourceSchema(),
-                        connectorInstance.isLegacySchema(), errorReportingMethod, result);
+                var ucfObject = connectorInstance.connIdObjectConvertor.convertToUcfObject(
+                        connectorObject, resourceObjectDefinition, connectorInstance, errorReportingMethod, result);
 
                 return handler.handle(ucfObject, result);
 

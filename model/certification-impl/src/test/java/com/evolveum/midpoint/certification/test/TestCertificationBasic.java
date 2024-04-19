@@ -234,7 +234,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         when();
         List<AccessCertificationCaseType> caseList = modelService.searchContainers(
-                AccessCertificationCaseType.class, CertCampaignTypeUtil.createCasesForCampaignQuery(campaignOid, prismContext),
+                AccessCertificationCaseType.class, CertCampaignTypeUtil.createCasesForCampaignQuery(campaignOid),
                 null, task, result);
 
         then();
@@ -398,7 +398,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         when();
         List<AccessCertificationWorkItemType> workItems =
                 certificationService.searchOpenWorkItems(
-                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
+                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid),
                         false, null, task, result);
 
         then();
@@ -506,7 +506,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         when();
         List<AccessCertificationWorkItemType> workItems =
                 certificationService.searchOpenWorkItems(
-                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
+                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid),
                         false, null, task, result);
 
         then();
@@ -528,7 +528,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         when();
         List<AccessCertificationWorkItemType> workItems =
                 certificationService.searchOpenWorkItems(
-                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
+                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid),
                         false, null, task, result);
 
         then();

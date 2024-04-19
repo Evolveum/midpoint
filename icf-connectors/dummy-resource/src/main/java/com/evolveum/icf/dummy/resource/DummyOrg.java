@@ -6,14 +6,15 @@
  */
 package com.evolveum.icf.dummy.resource;
 
-import java.io.FileNotFoundException;
-import java.net.ConnectException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Radovan Semancik
  *
  */
 public class DummyOrg extends DummyObject {
+
+    public static final String OBJECT_CLASS_NAME = "org";
 
     public DummyOrg() {
         super();
@@ -24,13 +25,8 @@ public class DummyOrg extends DummyObject {
     }
 
     @Override
-    protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException {
-        return resource.getOrgObjectClass();
-    }
-
-    @Override
-    protected DummyObjectClass getObjectClassNoExceptions() {
-        return resource.getOrgObjectClass();
+    public @NotNull String getObjectClassName() {
+        return OBJECT_CLASS_NAME;
     }
 
     @Override

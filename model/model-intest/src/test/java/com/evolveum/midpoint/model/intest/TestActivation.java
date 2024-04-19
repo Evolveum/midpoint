@@ -1513,7 +1513,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         DummyAccount dummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
-        dummyAccount.setLockout(true);
+        dummyAccount.setLockoutStatus(true);
 
         // WHEN
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
@@ -1549,7 +1549,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess("executeChanges result", result);
 
         DummyAccount dummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
-        assertFalse("Dummy account was not unlocked", dummyAccount.isLockout());
+        assertFalse("Dummy account was not unlocked", dummyAccount.getLockoutStatus());
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -1570,7 +1570,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         DummyAccount dummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
-        dummyAccount.setLockout(true);
+        dummyAccount.setLockoutStatus(true);
 
         // WHEN
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, task, result,
@@ -1581,7 +1581,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess("executeChanges result", result);
 
         DummyAccount dummyAccountAfter = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
-        assertFalse("Dummy account was not unlocked", dummyAccountAfter.isLockout());
+        assertFalse("Dummy account was not unlocked", dummyAccountAfter.getLockoutStatus());
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -2342,7 +2342,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
         display("Account shadow after", accountMancomb);
 
-        DummyAccount dummyAccountAfter = getDummyResource(RESOURCE_DUMMY_GREEN_NAME).getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount dummyAccountAfter = getDummyResource(RESOURCE_DUMMY_GREEN_NAME).getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         displayDumpable("Account after", dummyAccountAfter);
 
         assertNotNull("No mancomb account shadow", accountMancomb);
@@ -2746,7 +2746,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         user1 = getUser(ObjectDeltaOperation.findFocusDeltaOidInCollection(executedChanges));
         display("User after change execution", user1);
 
-        DummyAccount dummyAccount = dummyResourceCoral.getAccountByUsername("user1");
+        DummyAccount dummyAccount = dummyResourceCoral.getAccountByName("user1");
         displayDumpable("Dummy account", dummyAccount);
         checkSuspendedAttribute(dummyAccount, Boolean.TRUE);
 
@@ -2784,7 +2784,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         user1 = getUser(user1.getOid());
         display("User after change execution", user1);
 
-        DummyAccount dummyAccount = dummyResourceCoral.getAccountByUsername("user1");
+        DummyAccount dummyAccount = dummyResourceCoral.getAccountByName("user1");
         displayDumpable("Dummy account", dummyAccount);
         checkSuspendedAttribute(dummyAccount, Boolean.FALSE);
 
@@ -3039,7 +3039,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
                 LIFECYCLE_SUSPENDED);
 
         and("account is manually enabled");
-        var account = RESOURCE_DUMMY_KHAKI.getDummyResource().getAccountByUsername(userName);
+        var account = RESOURCE_DUMMY_KHAKI.getDummyResource().getAccountByName(userName);
         account.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "alive");
 
         when("account is imported");

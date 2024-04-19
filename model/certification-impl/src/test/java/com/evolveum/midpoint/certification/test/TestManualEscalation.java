@@ -97,7 +97,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         // WHEN
         when();
         List<AccessCertificationCaseType> caseList = modelService.searchContainers(
-                AccessCertificationCaseType.class, CertCampaignTypeUtil.createCasesForCampaignQuery(campaignOid, prismContext),
+                AccessCertificationCaseType.class, CertCampaignTypeUtil.createCasesForCampaignQuery(campaignOid),
                 null, task, result);
 
         // THEN
@@ -176,7 +176,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         when();
         List<AccessCertificationWorkItemType> workItems =
                 certificationService.searchOpenWorkItems(
-                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
+                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid),
                         false, null, task, result);
 
         // THEN
@@ -254,8 +254,8 @@ public class TestManualEscalation extends AbstractCertificationTest {
         AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
         assertObjectRefs("assignees", false, workItem.getAssigneeRef(), USER_JACK_OID, USER_ADMINISTRATOR_OID);
         assertEquals("Wrong originalAssignee OID", USER_ADMINISTRATOR_OID, workItem.getOriginalAssigneeRef().getOid());
-        final WorkItemEscalationLevelType NEW_ESCALATION_LEVEL = new WorkItemEscalationLevelType().number(1).name("ESC-1");
-        assertEquals("Wrong escalation info", NEW_ESCALATION_LEVEL, workItem.getEscalationLevel());
+        final WorkItemEscalationLevelType newEscalationLevel = new WorkItemEscalationLevelType().number(1).name("ESC-1");
+        assertEquals("Wrong escalation info", newEscalationLevel, workItem.getEscalationLevel());
         assertEquals("Wrong # of events", 1, ceoCase.getEvent().size());
         WorkItemEscalationEventType event = (WorkItemEscalationEventType) ceoCase.getEvent().get(0);
         assertNotNull("No timestamp in event", event.getTimestamp());
@@ -264,7 +264,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         assertObjectRefs("assigneeBefore", false, event.getAssigneeBefore(), USER_ADMINISTRATOR_OID);
         assertObjectRefs("delegatedTo", false, event.getDelegatedTo(), USER_JACK_OID);
         assertEquals("Wrong delegationMethod", WorkItemDelegationMethodType.ADD_ASSIGNEES, event.getDelegationMethod());
-        assertEquals("Wrong new escalation level", NEW_ESCALATION_LEVEL, event.getNewEscalationLevel());
+        assertEquals("Wrong new escalation level", newEscalationLevel, event.getNewEscalationLevel());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         assertPercentCompleteAll(campaign, Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f));
@@ -300,9 +300,9 @@ public class TestManualEscalation extends AbstractCertificationTest {
         assertNotNull("No work item found", workItem);
         assertObjectRefs("assignees", false, workItem.getAssigneeRef(), USER_ELAINE_OID);
         assertEquals("Wrong originalAssignee OID", USER_ADMINISTRATOR_OID, workItem.getOriginalAssigneeRef().getOid());
-        final WorkItemEscalationLevelType OLD_ESCALATION_LEVEL = new WorkItemEscalationLevelType().number(1).name("ESC-1");
-        final WorkItemEscalationLevelType NEW_ESCALATION_LEVEL = new WorkItemEscalationLevelType().number(2).name("ESC-2");
-        assertEquals("Wrong escalation info", NEW_ESCALATION_LEVEL, workItem.getEscalationLevel());
+        final WorkItemEscalationLevelType oldEscalationLevel = new WorkItemEscalationLevelType().number(1).name("ESC-1");
+        final WorkItemEscalationLevelType newEscalationLevel = new WorkItemEscalationLevelType().number(2).name("ESC-2");
+        assertEquals("Wrong escalation info", newEscalationLevel, workItem.getEscalationLevel());
         assertEquals("Wrong # of events", 2, ceoCase.getEvent().size());
         WorkItemEscalationEventType event = (WorkItemEscalationEventType) ceoCase.getEvent().get(1);
         assertNotNull("No timestamp in event", event.getTimestamp());
@@ -311,8 +311,8 @@ public class TestManualEscalation extends AbstractCertificationTest {
         assertObjectRefs("assigneeBefore", false, event.getAssigneeBefore(), USER_ADMINISTRATOR_OID, USER_JACK_OID);
         assertObjectRefs("delegatedTo", false, event.getDelegatedTo(), USER_ELAINE_OID);
         assertEquals("Wrong delegationMethod", WorkItemDelegationMethodType.REPLACE_ASSIGNEES, event.getDelegationMethod());
-        assertEquals("Wrong old escalation level", OLD_ESCALATION_LEVEL, event.getEscalationLevel());
-        assertEquals("Wrong new escalation level", NEW_ESCALATION_LEVEL, event.getNewEscalationLevel());
+        assertEquals("Wrong old escalation level", oldEscalationLevel, event.getEscalationLevel());
+        assertEquals("Wrong new escalation level", newEscalationLevel, event.getNewEscalationLevel());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         assertPercentCompleteAll(campaign, Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f));
@@ -355,8 +355,8 @@ public class TestManualEscalation extends AbstractCertificationTest {
         assertNotNull("No work item found", workItem);
         assertObjectRefs("assignees", false, workItem.getAssigneeRef(), USER_ADMINISTRATOR_OID, USER_JACK_OID);
         assertEquals("Wrong originalAssignee OID", USER_ADMINISTRATOR_OID, workItem.getOriginalAssigneeRef().getOid());
-        final WorkItemEscalationLevelType OLD_ESCALATION_LEVEL = new WorkItemEscalationLevelType().number(2).name("ESC-2");
-        assertEquals("Wrong escalation info", OLD_ESCALATION_LEVEL, workItem.getEscalationLevel());
+        final WorkItemEscalationLevelType oldEscalationLevel = new WorkItemEscalationLevelType().number(2).name("ESC-2");
+        assertEquals("Wrong escalation info", oldEscalationLevel, workItem.getEscalationLevel());
         assertEquals("Wrong # of events", 3, ceoCase.getEvent().size());
         WorkItemDelegationEventType event = (WorkItemDelegationEventType) ceoCase.getEvent().get(2);
         assertFalse("Event is Escalation one, although it shouldn't", event instanceof WorkItemEscalationEventType);
@@ -366,13 +366,13 @@ public class TestManualEscalation extends AbstractCertificationTest {
         assertObjectRefs("assigneeBefore", false, event.getAssigneeBefore(), USER_ELAINE_OID);
         assertObjectRefs("delegatedTo", false, event.getDelegatedTo(), USER_ADMINISTRATOR_OID, USER_JACK_OID);
         assertEquals("Wrong delegationMethod", WorkItemDelegationMethodType.REPLACE_ASSIGNEES, event.getDelegationMethod());
-        assertEquals("Wrong old escalation level", OLD_ESCALATION_LEVEL, event.getEscalationLevel());
+        assertEquals("Wrong old escalation level", oldEscalationLevel, event.getEscalationLevel());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         assertPercentCompleteAll(campaign, Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f));
     }
 
-    protected void checkAllCases(Collection<AccessCertificationCaseType> caseList) {
+    private void checkAllCases(Collection<AccessCertificationCaseType> caseList) {
         assertEquals("Wrong number of certification cases", 7, caseList.size());
         checkCaseSanity(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, userAdministrator);
         checkCaseSanity(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, userAdministrator);
@@ -382,7 +382,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         checkCaseSanity(caseList, USER_JACK_OID, ORG_EROOT_OID, userJack);
     }
 
-    protected void checkAllWorkItems(Collection<AccessCertificationWorkItemType> workItems) {
+    private void checkAllWorkItems(Collection<AccessCertificationWorkItemType> workItems) {
         assertEquals("Wrong number of certification work items", 7, workItems.size());
         checkWorkItemSanity(workItems, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, userAdministrator);
         checkWorkItemSanity(workItems, USER_ADMINISTRATOR_OID, ROLE_COO_OID, userAdministrator);
@@ -391,5 +391,4 @@ public class TestManualEscalation extends AbstractCertificationTest {
         checkWorkItemSanity(workItems, USER_JACK_OID, ROLE_CEO_OID, userJack, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
         checkWorkItemSanity(workItems, USER_JACK_OID, ORG_EROOT_OID, userJack);
     }
-
 }

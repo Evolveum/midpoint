@@ -47,13 +47,8 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  *
  * [NOTE]
  * ====
- * This class intentionally does not implement {@link ResourceAttributeDefinition} interface. The reason is that the
- * required {@link ResourceAttributeDefinition#getRawAttributeDefinition()} method is parameterized with the native
- * attribute type (e.g. {@link String}), and that type would need to be the `T` type parameter value for this type as well.
- * However, that's not possible. This class converts normalized attributes to {@link PolyString}. Hence, here we must provide
- * a very custom implementation of a more abstract (property) definition.
- *
- * We cannot even use {@link ResourceAttributeDefinitionDelegator} because of the type conflict.
+ * This class intentionally does not implement {@link ResourceAttributeDefinition} interface. It should not be used
+ * in place of attribute definition.
  * ====
  */
 public class NormalizationAwareResourceAttributeDefinition<T>
@@ -229,11 +224,6 @@ public class NormalizationAwareResourceAttributeDefinition<T>
     }
 
     @Override
-    public <A> void setAnnotation(QName qname, A value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public @Nullable Map<QName, Object> getAnnotations() {
         return originalDefinition.getAnnotations();
     }
@@ -346,21 +336,8 @@ public class NormalizationAwareResourceAttributeDefinition<T>
 
     @Override
     public <T1 extends ItemDefinition<?>> T1 findItemDefinition(@NotNull ItemPath path, @NotNull Class<T1> clazz) {
-        if (path.isEmpty()) {
-            if (clazz.isAssignableFrom(this.getClass())) {
-                //noinspection unchecked
-                return (T1) this;
-            } else {
-                throw new IllegalArgumentException("Looking for definition of class " + clazz + " but found " + this);
-            }
-        } else {
-            return null; // There should be no sub-definitions
-        }
-    }
-
-    @Override
-    public void adoptElementDefinitionFrom(ItemDefinition<?> otherDef) {
-        throw new UnsupportedOperationException("Implement if needed");
+        //noinspection unchecked
+        return LivePrismItemDefinition.matchesThisDefinition(path, clazz, this) ? (T1) this : null;
     }
 
     @Override
@@ -381,23 +358,8 @@ public class NormalizationAwareResourceAttributeDefinition<T>
     }
 
     @Override
-    public boolean canBeDefinitionOf(PrismProperty<T> item) {
-        throw new UnsupportedOperationException("Implement if needed");
-    }
-
-    @Override
-    public boolean canBeDefinitionOf(@NotNull PrismValue pvalue) {
-        throw new UnsupportedOperationException("Implement if needed");
-    }
-
-    @Override
     public Optional<ComplexTypeDefinition> structuredType() {
         return Optional.empty();
-    }
-
-    @Override
-    public PrismContext getPrismContext() {
-        return PrismContext.get();
     }
 
     @Override
@@ -448,7 +410,7 @@ public class NormalizationAwareResourceAttributeDefinition<T>
 
     @Override
     public @NotNull PropertyDelta<T> createEmptyDelta(ItemPath path) {
-        return new PropertyDeltaImpl<>(path, this, PrismContext.get());
+        return new PropertyDeltaImpl<>(path, this);
     }
 
     public @NotNull PropertyDelta<T> createEmptyDelta() {
@@ -476,16 +438,16 @@ public class NormalizationAwareResourceAttributeDefinition<T>
 
     @Override
     public @NotNull PrismProperty<T> instantiate() {
-        return new PrismPropertyImpl<>(getItemName(), this, PrismContext.get());
+        return new PrismPropertyImpl<>(getItemName(), this);
     }
 
     @Override
     public @NotNull PrismProperty<T> instantiate(QName name) {
-        return new PrismPropertyImpl<>(name, this, PrismContext.get());
+        return new PrismPropertyImpl<>(name, this);
     }
 
     @Override
-    public MutablePrismPropertyDefinition<T> toMutable() {
+    public PrismPropertyDefinitionMutator<T> mutator() {
         throw new UnsupportedOperationException("Implement if needed");
     }
 
@@ -583,6 +545,11 @@ public class NormalizationAwareResourceAttributeDefinition<T>
     public @NotNull NormalizationAwareResourceAttributeDefinition<T> clone() {
         return new NormalizationAwareResourceAttributeDefinition<>(
                 originalDefinition.clone());
+    }
+
+    @Override
+    public @NotNull ItemDefinition<PrismProperty<T>> cloneWithNewName(@NotNull ItemName itemName) {
+        throw new UnsupportedOperationException("Implement if needed");
     }
 
     @Override

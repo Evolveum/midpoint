@@ -112,7 +112,7 @@ public class AccCertOpenerHelper {
         newCampaign.setDescription(definition.getDescription());
         newCampaign.setOwnerRef(securityContextManager.getPrincipal().toObjectReference());
         newCampaign.setTenantRef(definition.getTenantRef());
-        newCampaign.setDefinitionRef(ObjectTypeUtil.createObjectRef(definition, prismContext));
+        newCampaign.setDefinitionRef(ObjectTypeUtil.createObjectRef(definition));
 
         if (definition.getHandlerUri() != null) {
             newCampaign.setHandlerUri(definition.getHandlerUri());
@@ -185,7 +185,7 @@ public class AccCertOpenerHelper {
     }
 
     private boolean campaignExists(String name, OperationResult result) throws SchemaException {
-        ObjectQuery query = ObjectQueryUtil.createNameQuery(AccessCertificationCampaignType.class, prismContext, name);
+        ObjectQuery query = ObjectQueryUtil.createNameQuery(AccessCertificationCampaignType.class, name);
         SearchResultList<PrismObject<AccessCertificationCampaignType>> existingCampaigns =
                 repositoryService.searchObjects(AccessCertificationCampaignType.class, query, null, result);
         return !existingCampaigns.isEmpty();

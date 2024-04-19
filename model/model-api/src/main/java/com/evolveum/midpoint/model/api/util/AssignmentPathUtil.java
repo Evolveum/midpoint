@@ -26,8 +26,8 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchColl
 public class AssignmentPathUtil {
 
     // works with native assignment path (AssignmentPath)
-    public static ExtensionType collectExtensions(AssignmentPath path, int startAt, PrismContext prismContext) throws SchemaException {
-        ExtensionType rv = new ExtensionType(prismContext);
+    public static ExtensionType collectExtensions(AssignmentPath path, int startAt) throws SchemaException {
+        ExtensionType rv = new ExtensionType();
         PrismContainerValue<?> pcv = rv.asPrismContainerValue();
         for (int i = startAt; i < path.getSegments().size(); i++) {
             AssignmentPathSegment segment = path.getSegments().get(i);

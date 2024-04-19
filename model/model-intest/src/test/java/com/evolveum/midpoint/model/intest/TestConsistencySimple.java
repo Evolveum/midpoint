@@ -17,6 +17,7 @@ import java.util.List;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.test.DummyTestResource;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -92,10 +92,10 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
     private enum ResourceObjectOperation {KEEP, DELETE}
 
-    private ResourceObjectDefinition getAccountObjectClassDefinition() throws SchemaException {
-        ResourceSchema schema = ResourceSchemaFactory.getRawSchema(getDummyResourceObject());
-        assertNotNull(schema);
-        return schema.findDefinitionForObjectClass(dummyResourceCtl.getAccountObjectClassQName());
+    private ResourceObjectDefinition getAccountObjectClassDefinition() throws SchemaException, ConfigurationException {
+        return ResourceSchemaFactory
+                .getCompleteSchemaRequired(getDummyResourceObject())
+                .findDefinitionForObjectClass(dummyResourceCtl.getAccountObjectClassQName());
     }
 
     @Test
@@ -280,7 +280,8 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         cleanUpAfterTest(task, result);
     }
 
-    private List<PrismObject<ShadowType>> assertLiveShadows(int expected, OperationResult result) throws SchemaException {
+    private List<PrismObject<ShadowType>> assertLiveShadows(int expected, OperationResult result)
+            throws SchemaException, ConfigurationException {
         List<PrismObject<ShadowType>> shadowsAfter = getJacksShadows(result);
         display("Shadows for 'jack' on dummy resource", shadowsAfter);
         PrismObject<ShadowType> liveShadowAfter = null;
@@ -338,7 +339,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         assertNoDummyAccount(null, "jack");
     }
 
-    private List<PrismObject<ShadowType>> getJacksShadows(OperationResult result) throws SchemaException {
+    private List<PrismObject<ShadowType>> getJacksShadows(OperationResult result) throws SchemaException, ConfigurationException {
         ObjectQuery shadowQuery = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
                 .and().item(SchemaConstants.ICFS_NAME_PATH,

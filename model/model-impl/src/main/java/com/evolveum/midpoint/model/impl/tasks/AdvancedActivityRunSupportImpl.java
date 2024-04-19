@@ -97,7 +97,7 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
         PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(result);
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(null, null, null, asObjectable(configuration));
         try {
-            ModelExpressionEnvironment<?,?,?> env = new ModelExpressionEnvironment<>(task, result);
+            ModelExpressionEnvironment<?, ?> env = new ModelExpressionEnvironment<>(task, result);
             ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(env);
             return ExpressionUtil.evaluateQueryExpressions(query, variables, expressionProfile,
                     expressionFactory, "evaluate query expressions",

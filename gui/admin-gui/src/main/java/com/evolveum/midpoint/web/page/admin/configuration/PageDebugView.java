@@ -318,11 +318,6 @@ public class PageDebugView extends PageAdminConfiguration {
 
                 ObjectDelta<? extends ObjectType> delta = oldObject.diff((PrismObject) newObject, EquivalenceStrategy.LITERAL);
 
-                if (delta.getPrismContext() == null) {
-                    LOGGER.warn("No prism context in delta {} after diff, adding it", delta);
-                    delta.revive(getPrismContext());
-                }
-
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Delta to be applied:\n{}", delta.debugDump());
                 }

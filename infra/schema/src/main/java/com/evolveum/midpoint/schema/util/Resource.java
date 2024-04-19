@@ -26,11 +26,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
@@ -74,14 +74,6 @@ public class Resource {
         return resourceBean;
     }
 
-    public @Nullable ResourceSchema getRawSchema() throws SchemaException {
-        return ResourceSchemaFactory.getRawSchema(resourceBean);
-    }
-
-    public @NotNull ResourceSchema getRawSchemaRequired() throws SchemaException, ConfigurationException {
-        return ResourceSchemaFactory.getRawSchemaRequired(resourceBean);
-    }
-
     public @Nullable ResourceSchema getCompleteSchema() throws SchemaException, ConfigurationException {
         return ResourceSchemaFactory.getCompleteSchema(resourceBean);
     }
@@ -120,8 +112,12 @@ public class Resource {
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClassName);
     }
 
-    // Beware, no kind/intent/OC filter is set here. Must be private.
-    private S_FilterExit queryFor(@NotNull ResourceObjectDefinition objectDefinition) {
+    /**
+     * Beware, no kind/intent/OC filter is set here. Use with care, only for resources that do not have own schema,
+     * e.g., in low-level tests.
+     */
+    @VisibleForTesting
+    public @NotNull S_FilterExit queryFor(@NotNull ResourceObjectDefinition objectDefinition) {
         return PrismContext.get().queryFor(ShadowType.class, new ResourceItemDefinitionResolver(objectDefinition))
                 .item(ShadowType.F_RESOURCE_REF).ref(resourceBean.getOid());
     }
@@ -146,6 +142,7 @@ public class Resource {
         return resourceBean.toString();
     }
 
+    @SuppressWarnings("ClassCanBeRecord")
     private static class ResourceItemDefinitionResolver implements ItemDefinitionResolver {
 
         @NotNull private final ResourceObjectDefinition definition;

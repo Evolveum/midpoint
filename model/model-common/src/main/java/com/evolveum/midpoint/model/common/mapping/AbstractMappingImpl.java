@@ -79,7 +79,6 @@ import org.jetbrains.annotations.VisibleForTesting;
  * @param <MBT> mapping bean type: MappingType or MetadataMappingType
  * @author Radovan Semancik
  */
-@SuppressWarnings("JavadocReference")
 public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDefinition<?>, MBT extends AbstractMappingType>
         implements Mapping<V, D>, DebugDumpable, PrismValueDeltaSetTripleProducer<V, D> {
 
@@ -96,7 +95,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     /** "Rich" definition of the mapping. */
     @NotNull final ConfigurationItem<MBT> mappingConfigItem;
 
-    /** "Pure" definition of the mapping. Just for convenience. */
+    /** "Pure" definition of the mapping. Just for convenience. Derived from {@link #mappingConfigItem}. */
     @NotNull final MBT mappingBean;
 
     /** Classification of the mapping (for reporting and diagnostic purposes). */
@@ -147,28 +146,38 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
     /**
      * Information about the implicit target for a mapping. It is provided here for reporting and diagnostic purposes only.
-     * An example: $shadow/activation for activation mapping.
-     * Useful when defaultTargetPath is not specified.
+     * An example: `$shadow/activation` for activation mapping.
+     * Useful when {@link #defaultTargetPath} is not specified.
      */
     private final ItemPath implicitTargetPath;
 
     /**
-     * Redirects the target to another item, for example `identities/identity[x]/personalNumber` instead
-     * of `extension/personalNumber` when multi-inbounds are enabled.
+     * Overrides the target path from the mapping bean. Used e.g. for associated objects mappings;
+     * e.g. the bean says `targetRef` but the actual path will be `assignment/[123]/targetRef`.
      */
-    final ItemPath targetPathOverride;
+    @Nullable final ItemPath targetPathOverride;
 
     /**
-     * Default target path if "target" or "target/path" is missing.
+     * Redirects the target to another item, for example `identities/identity[x]/personalNumber` instead
+     * of `extension/personalNumber` when multi-source properties are enabled.
+     *
+     * This redirection takes place when the mapping is executed. So, e.g., the definition is still taken from the original path.
+     */
+    @Nullable final ItemPath targetPathExecutionOverride;
+
+    /**
+     * Default target path if "target" or "target/path" in the mapping bean is missing.
      * Used e.g. for outbound mappings.
      */
+    @Deprecated // use targetPathOverride instead
     final ItemPath defaultTargetPath;
 
     /**
-     * Value for {@link #outputDefinition} to be used when there's no target path specified.
+     * Value for {@link #getOutputDefinition()} to be used when there's no target path specified.
      * (For some cases it perhaps could be derived using {@link #defaultTargetPath} but we currently
      * do not use this option.)
      */
+    @Deprecated // use targetPathOverride instead
     final D defaultTargetDefinition;
 
     /**
@@ -395,6 +404,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         implicitSourcePath = builder.getImplicitSourcePath();
         implicitTargetPath = builder.getImplicitTargetPath();
         targetPathOverride = builder.getTargetPathOverride();
+        targetPathExecutionOverride = builder.getTargetPathExecutionOverride();
         defaultSource = builder.getDefaultSource();
         defaultTargetDefinition = builder.getDefaultTargetDefinition();
         explicitExpressionProfile = builder.getExplicitExpressionProfile();
@@ -438,6 +448,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         this.implicitSourcePath = prototype.implicitSourcePath;
         this.implicitTargetPath = prototype.implicitTargetPath;
         this.targetPathOverride = prototype.targetPathOverride;
+        this.targetPathExecutionOverride = prototype.targetPathExecutionOverride;
         this.sources.addAll(prototype.sources);
         this.variables = prototype.variables;
 
@@ -691,7 +702,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                     .mappingKind(mappingKind)
                     .implicitSourcePath(implicitSourcePath != null ? new ItemPathType(implicitSourcePath) : null)
                     .implicitTargetPath(implicitTargetPath != null ? new ItemPathType(implicitTargetPath) : null)
-                    .targetPathOverride(targetPathOverride != null ? new ItemPathType(targetPathOverride) : null)
+                    .targetPathOverride(targetPathExecutionOverride != null ? new ItemPathType(targetPathExecutionOverride) : null)
                     .containingObjectRef(ObjectTypeUtil.createObjectRef(originObject));
             result.addTrace(trace);
         } else {
@@ -1210,10 +1221,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         sb.append(" in ");
         sb.append(contextDescription);
         sb.append("]---------------------------");
-        MappingStrengthType strength = getStrength();
-        if (strength != null) {
-            sb.append("\nStrength: ").append(strength);
-        }
+        sb.append("\nStrength: ").append(getStrength());
         if (!isAuthoritative()) {
             sb.append("\nNot authoritative");
         }
@@ -1223,7 +1231,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
         sb.append("\nTarget: ").append(MiscUtil.toString(getOutputDefinition()));
         sb.append("\nTarget path: ").append(getOutputPath());
-        if (targetPathOverride != null) {
+        if (targetPathExecutionOverride != null) {
             sb.append(" (specified as: ").append(parser.getOriginalOutputPath()).append(")");
         }
 

@@ -451,7 +451,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     @Test
     public void test020Schema() throws Exception {
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getBareSchema(resource);
         displayDumpable("Raw resource schema", resourceSchema);
 
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);

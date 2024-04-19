@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.test.util;
 import static com.evolveum.midpoint.model.test.util.SynchronizationRequest.SynchronizationStyle.*;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 import static com.evolveum.midpoint.test.AbstractIntegrationTest.DEFAULT_SHORT_TASK_WAIT_TIMEOUT;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -44,7 +45,6 @@ import com.evolveum.midpoint.schema.util.expression.ExpressionTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestSpringBeans;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -212,21 +212,18 @@ public class SynchronizationRequest {
                         createGetOperationOptions(),
                         task,
                         result);
-        String shadowOid =
-                MiscUtil.extractSingletonRequired(
-                                shadows,
-                                () -> new AssertionError("Multiple matching shadows: " + shadows),
-                                () -> new AssertionError("No shadow" + accountsSpecification.describeQuery()))
-                        .getOid();
-
+        stateCheck(!shadows.isEmpty(), "No shadows: %s", accountsSpecification.describeQuery());
         TaskExecutionMode oldMode = task.setExecutionMode(taskExecutionMode);
         try {
-            if (tracingProfile != null) {
-                test.traced(
-                        tracingProfile,
-                        () -> executeImportOnForeground(result, shadowOid));
-            } else {
-                executeImportOnForeground(result, shadowOid);
+            for (var shadow : shadows) {
+                var shadowOid = shadow.getOid();
+                if (tracingProfile != null) {
+                    test.traced(
+                            tracingProfile,
+                            () -> executeImportOnForeground(result, shadowOid));
+                } else {
+                    executeImportOnForeground(result, shadowOid);
+                }
             }
         } finally {
             task.setExecutionMode(oldMode);

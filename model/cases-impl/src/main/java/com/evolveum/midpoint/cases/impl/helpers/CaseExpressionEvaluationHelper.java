@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.cases.impl.helpers;
 
-import com.evolveum.midpoint.prism.MutableItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.expression.*;
@@ -70,15 +67,15 @@ public class CaseExpressionEvaluationHelper {
             boolean multiValued, Function<Object, Object> additionalConvertor, Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        MutableItemDefinition<?> resultDef;
+        ItemDefinition<?> resultDef;
         ItemName resultName = new ItemName(SchemaConstants.NS_C, "result");
         if (QNameUtil.match(typeName, ObjectReferenceType.COMPLEX_TYPE)) {
-            resultDef = prismContext.definitionFactory().createReferenceDefinition(resultName, typeName);
+            resultDef = prismContext.definitionFactory().newReferenceDefinition(resultName, typeName);
         } else {
-            resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, typeName);
+            resultDef = prismContext.definitionFactory().newPropertyDefinition(resultName, typeName);
         }
         if (multiValued) {
-            resultDef.setMaxOccurs(-1);
+            resultDef.mutator().setMaxOccurs(-1);
         }
         Expression<?,?> expression = expressionFactory.makeExpression(
                 expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);

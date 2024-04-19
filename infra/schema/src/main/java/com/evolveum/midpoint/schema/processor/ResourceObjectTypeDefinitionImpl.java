@@ -7,9 +7,9 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -89,11 +89,6 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
-    public @NotNull BasicResourceInformation getBasicResourceInformation() {
-        return Objects.requireNonNull(basicResourceInformation);
-    }
-
-    @Override
     public @NotNull ResourceObjectTypeIdentification getTypeIdentification() {
         return identification;
     }
@@ -120,8 +115,8 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
-    public @NotNull ResourceObjectClassDefinition getRawObjectClassDefinition() {
-        return refinedObjectClassDefinition.getRawObjectClassDefinition();
+    public @NotNull NativeObjectClassDefinition getNativeObjectClassDefinition() {
+        return refinedObjectClassDefinition.getNativeObjectClassDefinition();
     }
 
     @Override
@@ -186,11 +181,6 @@ public final class ResourceObjectTypeDefinitionImpl
         }
         super.trimTo(paths);
         refinedObjectClassDefinition.trimTo(paths);
-    }
-
-    @Override
-    public @Nullable QName getDefaultItemTypeName() {
-        return null;
     }
 
     //region Cloning ========================================================
@@ -285,24 +275,9 @@ public final class ResourceObjectTypeDefinitionImpl
     //endregion
 
     @Override
-    public MutableResourceObjectClassDefinition toMutable() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void performFreeze() {
         super.performFreeze();
         refinedObjectClassDefinition.freeze(); // TODO really?
-    }
-
-    @Override
-    public boolean hasSubstitutions() {
-        return false;
-    }
-
-    @Override
-    public Optional<ItemDefinition<?>> substitution(QName name) {
-        return Optional.empty();
     }
 
     @Override
@@ -344,18 +319,33 @@ public final class ResourceObjectTypeDefinitionImpl
         return definitionBean.getSynchronization() != null;
     }
 
+    // FIXME TEMPORARY, reconsider
+    @Override
+    public @NotNull FocusSpecification getFocusSpecification() {
+        return new FocusSpecification() {
+            @Override
+            public ItemPath getFocusItemPath() {
+                var focusSpec = getDefinitionBean().getFocus();
+                return focusSpec != null && focusSpec.getItemPath() != null ? focusSpec.getItemPath().getItemPath() : null;
+            }
+
+            @Override
+            public String getAssignmentSubtype() {
+                var focusSpec = getDefinitionBean().getFocus();
+                return focusSpec != null ? focusSpec.getAssignmentSubtype() : null;
+            }
+
+            @Override
+            public String getArchetypeOid() {
+                return ResourceObjectTypeDefinitionImpl.this.getArchetypeOid();
+            }
+        };
+    }
+
     @Override
     public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
-        SynchronizationReactionsType reactions = definitionBean.getSynchronization();
-        if (reactions == null) {
-            return List.of();
-        } else {
-            SynchronizationReactionsDefaultSettingsType defaultSettings = reactions.getDefaultSettings();
-            ClockworkSettings reactionLevelSettings = ClockworkSettings.of(defaultSettings);
-            return reactions.getReaction().stream()
-                    .map(bean -> SynchronizationReactionDefinition.of(bean, reactionLevelSettings))
-                    .collect(Collectors.toList());
-        }
+        return SynchronizationReactionDefinition.modern(
+                definitionBean.getSynchronization());
     }
 
     @Override
@@ -378,12 +368,12 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
-    public PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag) {
-        return super.createBlankShadow(resourceOid, tag)
-                .asObjectable()
+    public AbstractShadow createBlankShadowWithTag(String tag) {
+        var shadow = super.createBlankShadowWithTag(tag);
+        shadow.getBean()
                 .kind(getKind())
-                .intent(getIntent())
-                .asPrismObject();
+                .intent(getIntent());
+        return shadow;
     }
 
     @Override
@@ -394,13 +384,13 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     protected void addDebugDumpHeaderExtension(StringBuilder sb) {
         if (isDefaultForKind()) {
-            sb.append(",default-for-kind");
+            sb.append(", default-for-kind");
         }
         if (isDefaultForObjectClass()) {
-            sb.append(",default-for-class");
+            sb.append(", default-for-class");
         }
-        sb.append(",kind=").append(getKind().value());
-        sb.append(",intent=").append(getIntent());
+        sb.append(", kind=").append(getKind().value());
+        sb.append(", intent=").append(getIntent());
     }
 
     @Override
@@ -412,5 +402,11 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     public @NotNull String getShortIdentification() {
         return identification.toString();
+    }
+
+    @Override
+    public boolean hasAnyInbounds() {
+        return getShadowItemDefinitions().stream()
+                .anyMatch(def -> def.hasInboundMapping());
     }
 }

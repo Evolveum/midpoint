@@ -93,7 +93,7 @@ public class ImportFromResourceLauncher {
 
         task.setName(new PolyStringType("Import from resource " + resource.getName()));
 
-        ObjectReferenceType resourceRef = ObjectTypeUtil.createObjectRef(resource, prismContext);
+        ObjectReferenceType resourceRef = ObjectTypeUtil.createObjectRef(resource);
 
         // Not strictly necessary but nice to do (activity would fill-in these when started)
         task.setObjectRef(resourceRef.clone());

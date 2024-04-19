@@ -173,7 +173,7 @@ public class ProfilingModelInspector
     }
 
     @Override
-    public <F extends ObjectType> void afterMappingEvaluation(ModelContext<F> context, Mapping<?, ?> evaluatedMapping) {
+    public void afterMappingEvaluation(Mapping<?, ?> evaluatedMapping) {
         totalMappingTimeMillis += ObjectUtils.defaultIfNull(evaluatedMapping.getEtime(), 0L);
         projectorMappingTotalMillis += ObjectUtils.defaultIfNull(evaluatedMapping.getEtime(), 0L);
         projectorMappingTotalCount++;

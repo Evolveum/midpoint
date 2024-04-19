@@ -112,14 +112,14 @@
                             itemDelta = new ItemDeltaType()
                             itemDelta.modificationType = eventType == 'MEMBERSHIP_ADD' ? ModificationTypeType.ADD : ModificationTypeType.DELETE
                             itemDelta.path = new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, 'group'))
-                            itemDelta.value.add(RawType.fromPropertyRealValue(groupName, null, prismContext))
+                            itemDelta.value.add(RawType.fromPropertyRealValue(groupName, null))
                             delta = new ObjectDeltaType()
                             delta.changeType = ChangeTypeType.MODIFY
                             delta.itemDelta.add(itemDelta)
                         } else {
                             delta = null
                         }
-                        return UcfChangeUtil.create(RI_ACCOUNT_OBJECT_CLASS, identifiers, delta, prismContext)
+                        return UcfChangeUtil.create(RI_ACCOUNT_OBJECT_CLASS, identifiers, delta)
                     } else if (eventType == 'GROUP_ADD' || eventType == 'GROUP_DELETE') {
                         groupName = esbEvent['name']
                         groupId = esbEvent['id']
@@ -138,7 +138,7 @@
                         } else {
                             delta = null
                         }
-                        return UcfChangeUtil.create(RI_GROUP_OBJECT_CLASS, identifiers, delta, prismContext)
+                        return UcfChangeUtil.create(RI_GROUP_OBJECT_CLASS, identifiers, delta)
                     } else {
                         log.warn('Unsupported event type: {} -> {}', eventType, esbEvent)
                         return null

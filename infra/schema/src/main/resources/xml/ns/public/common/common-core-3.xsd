@@ -6769,8 +6769,21 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Relation that will be set for new reference.
+                                Mutually exclusive with "relationExpression".
                             </xsd:documentation>
                             <xsd:appinfo>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="relationExpression" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that will provide the relation for the new reference.
+                                Should provide at most one value.
+                                Mutually exclusive with "relation".
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.9</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -6779,6 +6792,31 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="referenceSearch" type="tns:ReferenceSearchExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+    <xsd:complexType name="ShadowOwnerReferenceSearchExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An expression evaluator that provides a reference to the owner of the shadow in question.
+                Applicable to association values.
+
+                Some of the inherited properties have little sense here and/or are simply ignored.
+                In particular, explicit filter(s) are not allowed when this expression evaluator is used.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+            <!-- Later: applicable to shadows and references to shadows. -->
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ReferenceSearchExpressionEvaluatorType">
+                <xsd:sequence>
+                    <!-- Nothing for now -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="shadowOwnerReferenceSearch" type="tns:ShadowOwnerReferenceSearchExpressionEvaluatorType"
+            substitutionGroup="tns:expressionEvaluator"/>
 
     <xsd:complexType name="ShadowDiscriminatorExpressionEvaluatorType">
         <xsd:annotation>
@@ -11597,7 +11635,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="secretsProviders" type="tns:SecretsProvidersType"/>
+                    <xsd:element name="secretsProviders" type="tns:SecretsProvidersType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

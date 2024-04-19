@@ -271,9 +271,9 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
         Collection<ResourceAttributeDefinition<?>> readReplaceAttributes = determineReadReplace(ctx, operationsWave, objectDefinition);
         LOGGER.trace("Read+Replace attributes: {}", readReplaceAttributes);
         if (!readReplaceAttributes.isEmpty()) {
-            AttributesToReturn attributesToReturn = new AttributesToReturn();
-            attributesToReturn.setReturnDefaultAttributes(false);
-            attributesToReturn.setAttributesToReturn(readReplaceAttributes);
+            ShadowItemsToReturn shadowItemsToReturn = new ShadowItemsToReturn();
+            shadowItemsToReturn.setReturnDefaultAttributes(false);
+            shadowItemsToReturn.setItemsToReturn(readReplaceAttributes);
             // TODO eliminate this fetch if this is first wave and there are no explicitly requested attributes
             //  but make sure currentShadow contains all required attributes
             LOGGER.trace("Fetching object because of READ+REPLACE mode");
@@ -292,7 +292,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             } else {
                 fetchedResourceObject =
                         b.resourceObjectConverter.fetchResourceObject(
-                                        ctx, identification, attributesToReturn, false, result)
+                                        ctx, identification, shadowItemsToReturn, false, result)
                                 .resourceObject();
             }
             operationsWave = convertToReplace(ctx, operationsWave, fetchedResourceObject, false);

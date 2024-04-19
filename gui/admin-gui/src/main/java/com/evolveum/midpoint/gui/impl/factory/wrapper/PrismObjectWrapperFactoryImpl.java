@@ -130,30 +130,31 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
                 continue;
             }
 
-            MutableComplexTypeDefinition mCtd = getPrismContext().definitionFactory().createComplexTypeDefinition(VIRTUAL_CONTAINER_COMPLEX_TYPE);
+            ComplexTypeDefinition mCtd = getPrismContext().definitionFactory().newComplexTypeDefinition(VIRTUAL_CONTAINER_COMPLEX_TYPE);
             DisplayType display = virtualContainer.getDisplay();
 
             //TODO: support full polystring -> translations could be defined directly there.
             if (display == null || display.getLabel() == null) {
-                mCtd.setDisplayName("N/A");
+                mCtd.mutator().setDisplayName("N/A");
             } else {
-                mCtd.setDisplayName(WebComponentUtil.getOrigStringFromPoly(display.getLabel()));
-                mCtd.setHelp(WebComponentUtil.getOrigStringFromPoly(display.getHelp()));
+                mCtd.mutator().setDisplayName(WebComponentUtil.getOrigStringFromPoly(display.getLabel()));
+                mCtd.mutator().setHelp(WebComponentUtil.getOrigStringFromPoly(display.getHelp()));
             }
 
-            mCtd.setRuntimeSchema(true);
+            mCtd.mutator().setRuntimeSchema(true);
 
-            MutablePrismContainerDefinition<?> def = getPrismContext().definitionFactory().createContainerDefinition(VIRTUAL_CONTAINER, mCtd);
-            def.setMaxOccurs(1);
+            PrismContainerDefinition<?> def =
+                    getPrismContext().definitionFactory().newContainerDefinition(VIRTUAL_CONTAINER, mCtd);
+            def.mutator().setMaxOccurs(1);
             if (display != null && display.getLabel() != null) {
                 if (display.getLabel().getTranslation() != null && StringUtils.isNotEmpty(display.getLabel().getTranslation().getKey())) {
-                    def.setDisplayName(display.getLabel().getTranslation().getKey());
+                    def.mutator().setDisplayName(display.getLabel().getTranslation().getKey());
                 } else {
-                    def.setDisplayName(WebComponentUtil.getTranslatedPolyString(display.getLabel()));
+                    def.mutator().setDisplayName(WebComponentUtil.getTranslatedPolyString(display.getLabel()));
                 }
             }
-            def.setDynamic(true);
-            def.setRuntimeSchema(true);
+            def.mutator().setDynamic(true);
+            def.mutator().setRuntimeSchema(true);
 
             ItemWrapperFactory<?, ?, ?> factory = getRegistry().findWrapperFactory(def, null);
             if (factory == null) {
@@ -172,8 +173,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
                 continue;
             }
 
-            if (iw instanceof PrismContainerWrapper) {
-                PrismContainerWrapper<?> cw = (PrismContainerWrapper<?>) iw;
+            if (iw instanceof PrismContainerWrapper<?> cw) {
                 cw.setIdentifier(virtualContainer.getIdentifier());
                 cw.setVirtual(true);
                 if (virtualContainer.isExpanded() != null) {

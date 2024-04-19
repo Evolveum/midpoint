@@ -172,8 +172,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
             throws SchemaException, IOException {
         ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(
                 file, ObjectModificationType.COMPLEX_TYPE);
-        ObjectDelta<O> focusDelta = DeltaConvertor.createObjectDelta(
-                modElement, context.getFocusClass(), prismContext);
+        ObjectDelta<O> focusDelta = DeltaConvertor.createObjectDelta(modElement, context.getFocusClass());
         return addFocusDeltaToContext(context, focusDelta);
     }
 

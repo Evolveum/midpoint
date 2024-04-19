@@ -152,7 +152,7 @@ public class CustomMessageTransport implements Transport<CustomTransportConfigur
             CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<String> resultDef = transportSupport.prismContext().definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
+        PrismPropertyDefinition<String> resultDef = transportSupport.prismContext().definitionFactory().newPropertyDefinition(resultName, DOMUtil.XSD_STRING);
 
         var task = ctx.task();
         ExpressionFactory expressionFactory = transportSupport.expressionFactory();
