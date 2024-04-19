@@ -14,7 +14,7 @@ In case you are interested in some more advanced configuration topics regarding 
 - xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
 - xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
 
-The following article contain some user story examples:
+If you are interested in some *more advanced examples* please have a look at the following set of articles:
 
 - xref:/midpoint/reference/misc/reports/examples/[Report Examples]
 
@@ -66,11 +66,11 @@ image::reports-all.png[75%]
 
 image::users-in-mp.png[75%]
 
-* A window called "Report configuration before run" will pop up, click on *"Run Report"*
+* Because the report has configurable *parameters* a window called "Report configuration before run" will pop up, click on *"Run Report"*
 
 image::conf-b-run.png[75%]
 
-* A blue banner will show up, click the *"show tas"k* string which is on it
+* A blue banner will show up, click the *"show task"* string which is on it
 
 image::run-usrs-in-mp.png[75%]
 
@@ -80,7 +80,7 @@ image::download-usrs-in-mp.png[75%]
 
 == Intermediate Report Customization
 
-If you want an *example with more customization* please see the xref:/midpoint/reference/misc/reports/create-report-guide/intermediate[intermediate use-case]
+If you want an *example with more customization* regarding the report columns and the output format, please see the xref:/midpoint/reference/misc/reports/create-report-guide/intermediate[intermediate use-case]
 
 == Advanced Reporting Use-Case
 

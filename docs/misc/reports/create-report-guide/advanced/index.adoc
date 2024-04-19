@@ -2,7 +2,7 @@
 
 :page-upkeep-status: green
 :page-keywords: [ 'report', 'create', 'reporting', 'advanced' ]
-:search-alias: "create an advanced report"
+:search-alias: "advanced report"
 
 This guide describes how to create a report in the GUI.
 We chose and example report of accounts with resource as parameter and with columns which shows some attributes from the owner of the account.
@@ -74,6 +74,8 @@ After the collection is added
 ====
 
 The name of the parameter will be *'resource'* , so we have to use it in the collection filter.
+The following are examples of the filter needed in this sample. The filter writen in "midPoint query" is currently also mentioned
+in the following work-case bug:MID-9618[] because of the current complexity of filters containing parametric expressions, and will be simplified in the future.
 
 .Filter
 [source,midpoint-query]

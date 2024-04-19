@@ -86,8 +86,10 @@ image::report-task-converting.png[]
 
 == See Also
 
-* xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+== See Also
 
-* xref:/midpoint/reference/security/security-guide/[Security Guide]
-
-* xref:/midpoint/reference/tasks/activities/distribution[Task Distribution]
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/tasks/activities/distribution[Task Distribution]

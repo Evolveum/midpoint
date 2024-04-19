@@ -20,7 +20,7 @@ MidPoint contains a *native* reporting *mechanism* which is *highly flexible* an
 
 Each deployment has its own requirements on reporting, with midPoint we already prepared a large number of *pre-configured reports* from which you can choose.
 Also, there is a large number of places through the *GUI* where you are capable of *creating a report from what you currently see* on your screen.
-Alternatively both possibilities can be also customized, or you can create your own custom report completely from scratch.
+Alternatively both possibilities can be customized, or you can create your own custom report completely from scratch.
 
 As in the case with a large portion of midPoint objects, reports can be *customized* via configuration.
 This is done either *directly in the GUI* or in case of some advanced scenarios by *editing* the *raw report object definition*.
@@ -36,15 +36,15 @@ You can execute a report in a couple of clicks *from dedicated places in the GUI
 Or you can create your own report completely *from scratch*, or modify any existing one to serve your needs.
 A more in depth look regarding this is documented xref:/midpoint/reference/misc/reports/configuration/index.adoc[here].
 
-In any case this creates a *report definition*, a sort of prescription how a report should look like, what should be present and from where we get the data.
+Both cases work with a *report definition*, a sort of prescription how a report should look like, what should be present and from where we get the data.
 
 The report it-self has to be generated.
-For this you need to specify the format of the generated file, and when you are confident with the report definition *"run" the report*.
+For this you need to specify the format of the generated file, and if you are confident with the report definition *"run" the report*.
 
 == Generating Reports
 
 Current implementation supports exporting reports to *CSV* and *HTML* files, other formats such as *XSLX* are planned to be added later.
-The report is "run" or generated via an asynchronous task, which is automatically generated via the "run" action.
+The report is "run" or generated via an asynchronous task, which is automatically created by the "run" action.
 
 Every report output is stored in export subdirectory in xref:/midpoint/reference/deployment/midpoint-home-directory/[`midpoint.home`] directory.
 It is also possible to send generated reports via email xref:/midpoint/reference/misc/notifications[notifications].

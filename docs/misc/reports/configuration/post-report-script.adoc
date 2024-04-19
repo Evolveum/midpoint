@@ -66,11 +66,11 @@ Following script copies the report to the /tmp directory:
 <report>
     ...
     <postReportScript>
-        <macro> <!--<1>-->
-            <name>file</name> <!--<2> -->
+        <macro> <!--1-->
+            <name>file</name> <!--2-->
             <asIs/>
         </macro>
-        <macro><!--<3> -->
+        <macro><!--3-->
             <name>name</name>
             <script>
                 <code>
@@ -79,7 +79,7 @@ Following script copies the report to the /tmp directory:
             </script>
         </macro>
         <executionMethod>shell</executionMethod>
-        <code>cp %file% /tmp/%name%.pdf</code> <!--<4> <5>-->
+        <code>cp %file% /tmp/%name%.pdf</code> <!--4--><!--5-->
     </postReportScript>
 </report>
 ----
