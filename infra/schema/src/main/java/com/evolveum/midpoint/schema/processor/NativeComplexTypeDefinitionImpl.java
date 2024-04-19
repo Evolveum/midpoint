@@ -266,6 +266,11 @@ public class NativeComplexTypeDefinitionImpl
     }
 
     @Override
+    public @Nullable QName getExtensionForType() {
+        return null;
+    }
+
+    @Override
     public @NotNull Collection<? extends SerializableItemDefinition> getDefinitionsToSerialize() {
         return itemDefinitions;
     }

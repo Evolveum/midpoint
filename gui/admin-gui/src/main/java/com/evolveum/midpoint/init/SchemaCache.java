@@ -7,31 +7,24 @@
 
 package com.evolveum.midpoint.init;
 
-import java.io.IOException;
 import java.util.*;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.Freezable;
-
-import com.evolveum.midpoint.prism.impl.schema.SchemaParsingUtil;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
-
-import com.evolveum.midpoint.util.DOMUtil;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.prism.impl.schema.SchemaParsingUtil;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.repo.api.Cache;
+import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -79,8 +72,8 @@ public class SchemaCache implements Cache {
                 SchemaDefinitionType def = schemaType.getDefinition();
                 Element schemaElement = def.getSchema();
 
-                PrismSchemaImpl extensionSchema = new PrismSchemaImpl(DOMUtil.getSchemaTargetNamespace(schemaElement));
-                SchemaParsingUtil.parse(extensionSchema, schemaElement, true, "schema for " + extensionForType, false);
+                PrismSchemaImpl extensionSchema = SchemaParsingUtil.createAndParse(
+                        schemaElement, true, "schema for " + extensionForType, false);
                 ComplexTypeDefinition finalDef = detectExtensionSchemas(extensionSchema, dbExtensions);
                 if (finalDef != null) {
                     dbExtensions.put(extensionForType, finalDef);

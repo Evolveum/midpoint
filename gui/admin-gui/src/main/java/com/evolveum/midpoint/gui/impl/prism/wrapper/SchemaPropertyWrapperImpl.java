@@ -44,8 +44,8 @@ public class SchemaPropertyWrapperImpl extends PrismPropertyValueWrapper<SchemaD
         }
         Element schemaElement = schemaDefinitionType.getSchema();
         try {
-            PrismSchemaImpl newValue = new PrismSchemaImpl(DOMUtil.getSchemaTargetNamespace(schemaElement));
-            SchemaParsingUtil.parse(newValue, schemaElement, true, "schema", false);
+            PrismSchemaImpl newValue = SchemaParsingUtil.createAndParse(
+                    schemaElement, true, "schema", false);
             this.namespace = newValue.getNamespace();
             this.definitions = newValue.getDefinitions();
         } catch (SchemaException e) {
