@@ -94,7 +94,7 @@ public class TestDeltaPerformance extends AbstractSchemaPerformanceTest {
 
     private PrismPropertyDefinition<String> def(String name) {
         return getPrismContext().definitionFactory()
-                .createPropertyDefinition(new QName(NS_FOO, name), DOMUtil.XSD_STRING);
+                .newPropertyDefinition(new QName(NS_FOO, name), DOMUtil.XSD_STRING);
     }
 
     @Test

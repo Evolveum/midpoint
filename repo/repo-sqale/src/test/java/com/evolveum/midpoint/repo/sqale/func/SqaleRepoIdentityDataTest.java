@@ -159,8 +159,8 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
         given("query by focus identity normalized item");
         ItemName familyNameQName = new ItemName(SchemaConstants.NS_C, "familyName");
         var def = PrismContext.get().definitionFactory()
-                .createPropertyDefinition(familyNameQName, DOMUtil.XSD_STRING, null, null);
-        def.toMutable().setMaxOccurs(-1);
+                .newPropertyDefinition(familyNameQName, DOMUtil.XSD_STRING, null, null);
+        def.mutator().setMaxOccurs(-1);
 
         ObjectQuery query = PrismContext.get().queryFor(UserType.class)
                 .itemWithDef(def,
@@ -199,8 +199,8 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
         given("query by focus identity normalized item using levenshtein");
         ItemName familyNameQName = new ItemName(SchemaConstants.NS_C, "familyName");
         var def = PrismContext.get().definitionFactory()
-                .createPropertyDefinition(familyNameQName, DOMUtil.XSD_STRING, null, null);
-        def.toMutable().setMaxOccurs(-1);
+                .newPropertyDefinition(familyNameQName, DOMUtil.XSD_STRING, null, null);
+        def.mutator().setMaxOccurs(-1);
 
         ObjectQuery query = PrismContext.get().queryFor(UserType.class)
                 .itemWithDef(def,
@@ -298,7 +298,7 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
         given("delta adding focus identity normalized item");
         ItemName familyNameQName = new ItemName(SchemaConstants.NS_C, "familyName");
         var def = PrismContext.get().definitionFactory()
-                .createPropertyDefinition(familyNameQName, DOMUtil.XSD_STRING, null, null);
+                .newPropertyDefinition(familyNameQName, DOMUtil.XSD_STRING, null, null);
 
         ItemPath itemPath = PATH_FOCUS_NORMALIZED_DATA.append(familyNameQName);
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)

@@ -6,8 +6,6 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -18,7 +16,7 @@
     <xsd:complexType name="AccountObjectClass">
         <xsd:annotation>
             <xsd:appinfo>
-                <r:identifier ref="icfs:uid" />
+                <r:identifier>icfs:uid</r:identifier>
                 <r:resourceObject/>
                 <r:kind>account</r:kind>
                 <r:default/>
@@ -49,7 +47,7 @@
         <xsd:annotation>
             <xsd:appinfo>
                 <r:resourceObject/>
-                <r:identifier ref="icfs:uid" />
+                <r:identifier>icfs:uid</r:identifier>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

@@ -150,7 +150,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     protected WorkItemDelegationRequestType getDelegationRequest(UserType delegate) {
         PrismContext prismContext = getPrismContext();
         return new WorkItemDelegationRequestType()
-                .delegate(ObjectTypeUtil.createObjectRef(delegate, prismContext))
+                .delegate(ObjectTypeUtil.createObjectRef(delegate))
                 .method(WorkItemDelegationMethodType.REPLACE_ASSIGNEES);
     }
 

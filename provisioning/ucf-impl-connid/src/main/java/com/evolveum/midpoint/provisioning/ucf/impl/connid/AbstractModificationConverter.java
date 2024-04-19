@@ -40,6 +40,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.*;
+
 /**
  * @author semancik
  */
@@ -54,7 +56,6 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
     private String connectorDescription;
     private ConnectorOperationOptions options;
 
-    private ConnIdNameMapper connIdNameMapper;
     private Protector protector;
 
     public Collection<Operation> getChanges() {
@@ -95,14 +96,6 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 
     public void setConnectorDescription(String connectorDescription) {
         this.connectorDescription = connectorDescription;
-    }
-
-    public ConnIdNameMapper getConnIdNameMapper() {
-        return connIdNameMapper;
-    }
-
-    public void setConnIdNameMapper(ConnIdNameMapper connIdNameMapper) {
-        this.connIdNameMapper = connIdNameMapper;
     }
 
     public Protector getProtector() {
@@ -214,7 +207,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                     }
 
                     // Change in (ordinary) attributes. Transform to the ConnId attributes.
-                    String connIdAttrName = connIdNameMapper.convertAttributeNameToConnId(delta, objectDefinition);
+                    String connIdAttrName = ucfAttributeNameToConnId(delta, objectDefinition);
                     collect(connIdAttrName, delta, isInModifiedAuxilaryClass);
 
                 } else if (delta.getParentPath().equivalent(ShadowType.F_ACTIVATION)) {
@@ -332,7 +325,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
         for (PrismPropertyValue<QName> pval : pvals) {
             QName auxQName = pval.getValue();
             auxiliaryObjectClassMap.put(auxQName, resourceSchema.findDefinitionForObjectClassRequired(auxQName));
-            ObjectClass icfOc = connIdNameMapper.objectClassToConnId(pval.getValue(), connectorType, false);
+            ObjectClass icfOc = ucfObjectClassNameToConnId(pval.getValue(), false);
             connIdVals.add(icfOc.getObjectClassValue());
         }
         return connIdVals;

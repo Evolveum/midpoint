@@ -24,14 +24,14 @@ public class StandardActionsRegistrar {
 
     @PostConstruct
     public void register() {
-        synchronizationActionFactory.register(AddFocusAction.class);
-        synchronizationActionFactory.register(DeleteFocusAction.class);
-        synchronizationActionFactory.register(DeleteResourceObjectAction.class);
-        synchronizationActionFactory.register(SynchronizeAction.class);
-        synchronizationActionFactory.register(InactivateFocusAction.class);
-        synchronizationActionFactory.register(InactivateResourceObjectAction.class);
-        synchronizationActionFactory.register(LinkAction.class);
-        synchronizationActionFactory.register(UnlinkAction.class);
-        synchronizationActionFactory.register(CreateCorrelationCaseAction.class);
+        synchronizationActionFactory.register(AddFocusAction.class, AddFocusAction::new);
+        synchronizationActionFactory.register(DeleteFocusAction.class, DeleteFocusAction::new);
+        synchronizationActionFactory.register(DeleteResourceObjectAction.class, DeleteResourceObjectAction::new);
+        synchronizationActionFactory.register(SynchronizeAction.class, SynchronizeAction::new);
+        synchronizationActionFactory.register(InactivateFocusAction.class, InactivateFocusAction::new);
+        synchronizationActionFactory.register(InactivateResourceObjectAction.class, InactivateResourceObjectAction::new);
+        synchronizationActionFactory.register(LinkAction.class, LinkAction::new);
+        synchronizationActionFactory.register(UnlinkAction.class, UnlinkAction::new);
+        synchronizationActionFactory.register(CreateCorrelationCaseAction.class, CreateCorrelationCaseAction::new);
     }
 }

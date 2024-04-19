@@ -181,7 +181,7 @@ abstract class NormalizationStep<B extends AbstractNormalizationStepType> {
             VariablesMap variablesMap = new VariablesMap();
             variablesMap.put(ExpressionConstants.VAR_INPUT, new TypedValue<>(input, String.class));
             PrismPropertyDefinition<String> outputDefinition =
-                    PrismContext.get().definitionFactory().createPropertyDefinition(
+                    PrismContext.get().definitionFactory().newPropertyDefinition(
                             ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
             PrismValue output = ExpressionUtil.evaluateExpression(
                     variablesMap,

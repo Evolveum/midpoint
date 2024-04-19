@@ -29,7 +29,7 @@ public final class ShadowAssociationsContainerImpl
      * Use the factory methods in the {@link ResourceObjectDefinition} instead.
      */
     ShadowAssociationsContainerImpl(QName name, ShadowAssociationsContainerDefinition definition) {
-        super(name, definition, PrismContext.get());
+        super(name, definition);
     }
 
     @Override

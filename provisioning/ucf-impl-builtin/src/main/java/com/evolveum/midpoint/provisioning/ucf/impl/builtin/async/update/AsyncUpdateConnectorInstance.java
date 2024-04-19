@@ -263,7 +263,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     //region Unsupported operations
     @Override
-    public ResourceSchema fetchResourceSchema(OperationResult parentResult) {
+    public NativeResourceSchema fetchResourceSchema(OperationResult parentResult) {
         // Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
         InternalMonitor.recordConnectorOperation("schema");
         return null;
@@ -272,7 +272,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     @Override
     public UcfResourceObject fetchObject(
             ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
-            AttributesToReturn attributesToReturn,
+            ShadowItemsToReturn shadowItemsToReturn,
             UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
         return null;
@@ -280,7 +280,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public SearchResultMetadata search(@NotNull ResourceObjectDefinition objectDefinition, ObjectQuery query,
-            @NotNull UcfObjectHandler handler, @Nullable AttributesToReturn attributesToReturn,
+            @NotNull UcfObjectHandler handler, @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @Nullable PagedSearchCapabilityType pagedSearchConfiguration, @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
             @Nullable UcfFetchErrorReportingMethod ucfErrorReportingMethod,
             @NotNull UcfExecutionContext ctx, @NotNull OperationResult parentResult) {
@@ -334,7 +334,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public UcfFetchChangesResult fetchChanges(ResourceObjectDefinition objectDefinition, UcfSyncToken lastToken,
-            AttributesToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
+            ShadowItemsToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
             @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
         return null;
     }

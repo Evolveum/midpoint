@@ -29,11 +29,12 @@ public class ResourceObjectFound extends AbstractLazilyInitializableResourceEnti
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectFound.class);
 
-    /** Used for some clients. */
+    /** The initial information that came from UCF. Used for some clients. */
     @NotNull private final UcfResourceObject initialUcfResourceObject;
 
     /**
-     * The resource object, as provided by UCF. Its content may be modified during processing here (no cloning is done).
+     * The resource object, as provided by UCF, with the simple conversion only (no simulated associations, activation, etc).
+     * Its content may be modified during processing here (no cloning is done).
      * Ultimately, it should be transformed into {@link #completeResourceObject}.
      */
     @NotNull private final ExistingResourceObject initialResourceObject;

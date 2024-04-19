@@ -22,16 +22,14 @@ public class DummyAttributeDefinition {
     private boolean sensitive;
 
     public DummyAttributeDefinition(String attributeName, Class<?> attributeType) {
-        super();
         this.attributeName = attributeName;
         this.attributeType = attributeType;
         isRequired = false;
         isMulti = false;
     }
 
-    public DummyAttributeDefinition(String attributeName, Class<?> attributeType, boolean isRequired,
-            boolean isMulti) {
-        super();
+    public DummyAttributeDefinition(
+            String attributeName, Class<?> attributeType, boolean isRequired, boolean isMulti) {
         this.attributeName = attributeName;
         this.attributeType = attributeType;
         this.isRequired = isRequired;

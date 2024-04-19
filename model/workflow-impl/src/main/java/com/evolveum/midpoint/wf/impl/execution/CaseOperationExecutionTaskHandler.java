@@ -12,7 +12,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -90,7 +89,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
 
     private void executeLocalChanges(CaseType subcase, RunningTask task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException,
-            CommunicationException, PolicyViolationException, PreconditionViolationException, ObjectAlreadyExistsException,
+            CommunicationException, PolicyViolationException, ObjectAlreadyExistsException,
             SecurityViolationException {
         CaseType rootCase = repositoryService.getObject(CaseType.class, subcase.getParentRef().getOid(), null, result)
                 .asObjectable();
@@ -111,7 +110,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
 
     private void executeAllChanges(CaseType rootCase, RunningTask task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException, ObjectAlreadyExistsException,
+            ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
             SecurityViolationException {
         List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
         LensContext<?> modelContext = lensContextHelper.collectApprovedDeltasToModelContext(rootCase, subcases, task, result);

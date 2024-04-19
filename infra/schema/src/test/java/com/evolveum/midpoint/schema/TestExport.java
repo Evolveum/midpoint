@@ -34,26 +34,26 @@ public class TestExport extends AbstractSchemaTest {
                 .asPrismObject();
         PrismContainer<Containerable> attributes = shadow.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
 
-        final QName INT_ATTRIBUTE_NAME = new QName(MidPointConstants.NS_RI, "intAttribute");
-        MutablePrismPropertyDefinition<Integer> intAttributeDef = prismContext.definitionFactory().createPropertyDefinition(
-                INT_ATTRIBUTE_NAME, DOMUtil.XSD_INT);
-        intAttributeDef.setRuntimeSchema(true);
+        QName intAttributeName = new QName(MidPointConstants.NS_RI, "intAttribute");
+        PrismPropertyDefinition<Integer> intAttributeDef =
+                prismContext.definitionFactory().newPropertyDefinition(intAttributeName, DOMUtil.XSD_INT);
+        intAttributeDef.mutator().setRuntimeSchema(true);
         PrismProperty<Integer> intAttribute = intAttributeDef.instantiate();
         intAttribute.addRealValue(101);
         attributes.add(intAttribute);
 
-        final QName STRING_ATTRIBUTE_NAME = new QName(MidPointConstants.NS_RI, "stringAttribute");
-        MutablePrismPropertyDefinition<String> stringAttributeDef = prismContext.definitionFactory().createPropertyDefinition(
-                STRING_ATTRIBUTE_NAME, DOMUtil.XSD_STRING);
-        stringAttributeDef.setRuntimeSchema(true);
+        QName stringAttributeName = new QName(MidPointConstants.NS_RI, "stringAttribute");
+        PrismPropertyDefinition<String> stringAttributeDef =
+                prismContext.definitionFactory().newPropertyDefinition(stringAttributeName, DOMUtil.XSD_STRING);
+        stringAttributeDef.mutator().setRuntimeSchema(true);
         PrismProperty<String> stringAttribute = stringAttributeDef.instantiate();
         stringAttribute.addRealValue("abc");
         attributes.add(stringAttribute);
 
         // intentionally created ad-hoc, not retrieved from the registry
-        MutablePrismPropertyDefinition<Long> longTypeExtensionDef = prismContext.definitionFactory().createPropertyDefinition(
+        PrismPropertyDefinition<Long> longTypeExtensionDef = prismContext.definitionFactory().newPropertyDefinition(
                 SchemaTestConstants.EXTENSION_LONG_TYPE_ELEMENT, DOMUtil.XSD_LONG);
-        longTypeExtensionDef.setRuntimeSchema(true);
+        longTypeExtensionDef.mutator().setRuntimeSchema(true);
         PrismProperty<Long> longExtension = longTypeExtensionDef.instantiate();
         longExtension.addRealValue(110L);
         shadow.addExtensionItem(longExtension);
@@ -72,10 +72,10 @@ public class TestExport extends AbstractSchemaTest {
         System.out.println("Reparsed:\n" + shadowReparsed.debugDump());
         PrismAsserts.assertEquals("objects differ", shadow, shadowReparsed);
 
-        Item<?, ?> intAttributeReparsed = shadowReparsed.findItem(ItemPath.create(ShadowType.F_ATTRIBUTES, INT_ATTRIBUTE_NAME));
+        Item<?, ?> intAttributeReparsed = shadowReparsed.findItem(ItemPath.create(ShadowType.F_ATTRIBUTES, intAttributeName));
         assertNotNull(intAttributeReparsed);
         assertFalse(intAttributeReparsed.getAnyValue().isRaw());
-        Item<?, ?> stringAttributeReparsed = shadowReparsed.findItem(ItemPath.create(ShadowType.F_ATTRIBUTES, STRING_ATTRIBUTE_NAME));
+        Item<?, ?> stringAttributeReparsed = shadowReparsed.findItem(ItemPath.create(ShadowType.F_ATTRIBUTES, stringAttributeName));
         assertNotNull(stringAttributeReparsed);
         assertFalse(stringAttributeReparsed.getAnyValue().isRaw());
         Item<?, ?> longExtensionReparsed = shadowReparsed.findItem(ItemPath.create(ShadowType.F_EXTENSION, SchemaTestConstants.EXTENSION_LONG_TYPE_ELEMENT));

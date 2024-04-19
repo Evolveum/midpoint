@@ -134,7 +134,7 @@ public class ManualResourceTest extends AbstractWfTest {
         display("Manual Connector", repoConnector);
 
         // Check connector schema
-        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector, prismContext);
+        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector);
 
         PrismObject<UserType> userWill = getUser(userWillOid);
         assertUser(userWill, userWillOid, USER_WILL_NAME, USER_WILL_FULL_NAME, USER_WILL_GIVEN_NAME, USER_WILL_FAMILY_NAME);

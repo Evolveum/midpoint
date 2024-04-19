@@ -9,8 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.schema.dto;
 
 import com.evolveum.midpoint.prism.*;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-
 import org.apache.commons.lang3.BooleanUtils;
 
 import java.io.Serializable;
@@ -42,8 +40,8 @@ public class ItemDefinitionDto<ID extends ItemDefinition> extends DefinitionDto<
      }
 
      public void setMinOccurs(String minOccurs) {
-        if (getOriginalDefinition() instanceof MutableItemDefinition<?>) {
-            ((MutableItemDefinition<?>) getOriginalDefinition()).setMinOccurs(Integer.valueOf(minOccurs));
+        if (getOriginalDefinition() instanceof ItemDefinition<?>) {
+            ((ItemDefinition<?>) getOriginalDefinition()).mutator().setMinOccurs(Integer.valueOf(minOccurs));
         }
      }
 
@@ -52,8 +50,8 @@ public class ItemDefinitionDto<ID extends ItemDefinition> extends DefinitionDto<
      }
 
      public void setMaxOccurs(String maxOccurs) {
-        if (getOriginalDefinition() instanceof MutableItemDefinition<?>) {
-            ((MutableItemDefinition<?>) getOriginalDefinition()).setMaxOccurs(Integer.valueOf(maxOccurs));
+        if (getOriginalDefinition() instanceof ItemDefinition<?>) {
+            ((ItemDefinition<?>) getOriginalDefinition()).mutator().setMaxOccurs(Integer.valueOf(maxOccurs));
         }
      }
 
@@ -66,14 +64,15 @@ public class ItemDefinitionDto<ID extends ItemDefinition> extends DefinitionDto<
      }
 
      public void setIndexed(boolean indexed) {
-        if (getOriginalDefinition() instanceof MutablePrismPropertyDefinition<?>) {
-            ((MutablePrismPropertyDefinition<?>) getOriginalDefinition()).setIndexed(indexed);
+        if (getOriginalDefinition() instanceof PrismPropertyDefinition<?> ppd) {
+            ppd.mutator().setIndexed(indexed);
         }
      }
 
      public void setName(String name) {
-        if (getOriginalDefinition() instanceof MutableItemDefinition<?>) {
-            ((MutableItemDefinition<?>) getOriginalDefinition()).setItemName(new ItemName(getOriginalDefinition().getItemName().getNamespaceURI(), name));
+        if (getOriginalDefinition() instanceof ItemDefinition<?>) {
+            // FIXME - item name is now immutable
+            // ((ItemDefinition<?>) getOriginalDefinition()).mutator().setItemName(new ItemName(getOriginalDefinition().getItemName().getNamespaceURI(), name));
         }
      }
 

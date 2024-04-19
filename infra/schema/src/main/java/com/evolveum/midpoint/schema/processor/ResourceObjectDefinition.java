@@ -11,7 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.impl.ComplexTypeDefinitionImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -35,84 +36,42 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  * A definition that describes either an object class (as fetched from the resource, optionally refined by `schemaHandling`),
  * or an object type (as defined in `schemaHandling` part of resource definition).
  *
- * It is used as a common interface to both "raw" and "refined" definitions. (Raw definitions are used e.g. in cases
- * when there is no `schemaHandling` for given object class, or for the resource as a whole.)
+ * Since 4.9, it is no longer a {@link ComplexTypeDefinition}; see {@link ShadowItemsComplexTypeDefinition} for explanation.
  *
- * Note: Before midPoint 4.5, this interface was known as `ObjectClassComplexTypeDefinition`.
- * So the hierarchy was:
- *
- *                          ComplexTypeDefinition
- *                                   ^
- *                                   |
- *                    ObjectClassComplexTypeDefinition
- *                                   ^
- *                                   |
- *                      RefinedObjectClassDefinition
- *
- * Now the hierarchy is like this:
- *
- *                          ComplexTypeDefinition
- *                                   ^
- *                                   |
  *                       ResourceObjectDefinition
  *                                   ^
  *                                   |
  *                +------------------+-------------------+
  *                |                                      |
  *     ResourceObjectClassDefinition  ResourceObjectTypeDefinition
- *
- * This change eliminates e.g. the need to create "artificial" refined object class definitions just to allow
- * model and provisioning modules to work with object classes not described in schema handling. (Confusion stemmed
- * e.g. from the fact that `RefinedObjectClassDefinition` had to have kind/intent. This is now fixed.)
- *
- * NOTE: The object definition can be _attached to the resource_ or not. The attached definition has the basic
- * information about the resource present, see {@link #getBasicResourceInformation()}. Only raw object class
- * definitions can be unattached. Refined definitions are always attached.
  */
 public interface ResourceObjectDefinition
     extends
-        ComplexTypeDefinition,
         IdentifiersDefinitionStore,
         AttributeDefinitionStore,
-        AssociationDefinitionStore, // no-op for object class definitions
-        LayeredDefinition {
+        AssociationDefinitionStore,
+        LayeredDefinition,
+        FrameworkNameResolver,
+        ResourceObjectInboundDefinition,
+        TypeDefinition {
 
     /**
      * The basic information about the resource (like name, OID, selected configuration beans).
      * Replaces the hard-coded resource OID; necessary also for determination of default values for some features,
      * e.g., shadow caching, and useful for diagnostics.
-     *
-     * May or may not be null for raw object class definitions.
-     * Must be non-null for refined definitions.
-     *
-     * Note: The nullity for raw object class definitions is because such definitions are created (among other places)
-     * deep in UCF code, where we know nothing about the resources. Fortunately, we do not need such information
-     * for raw definitions, at least not for now.
-     *
-     * Definitions that have this information are called _attached_.
-     *
-     * @see #assertAttached()
      */
-    @Nullable BasicResourceInformation getBasicResourceInformation();
+    @NotNull BasicResourceInformation getBasicResourceInformation();
 
     /** The resource OID, if known. */
     default String getResourceOid() {
-        var info = getBasicResourceInformation();
-        return info != null ? info.oid() : null;
+        return getBasicResourceInformation().oid();
     }
 
-    /**
-     * Returns the (raw or refined) object class definition.
-     *
-     * It is either this object itself (for object classes), or the linked object class definition (for object types).
-     */
+    /** Returns the [structural] object class definition. */
     @NotNull ResourceObjectClassDefinition getObjectClassDefinition();
 
-    /**
-     * Returns the raw object class definition. It is either this object itself (if it represents the raw class definition),
-     * or the linked raw object class definition (for object types and refined object class definitions).
-     */
-    @NotNull ResourceObjectClassDefinition getRawObjectClassDefinition();
+    /** Returns the [structural] native object class definition, typically obtained from the connector. */
+    @NotNull NativeObjectClassDefinition getNativeObjectClassDefinition();
 
     /**
      * Returns the name of the object class.
@@ -126,8 +85,7 @@ public interface ResourceObjectDefinition
      * For dynamically composed definitions ({@link CompositeObjectDefinition} only the statically-defined ones
      * (i.e. those from the structural definition) are returned.
      */
-    @Experimental
-    Collection<QName> getConfiguredAuxiliaryObjectClassNames();
+    @NotNull Collection<QName> getConfiguredAuxiliaryObjectClassNames();
 
     /**
      * TODO define semantics (it's different for {@link CompositeObjectDefinition} and the others!
@@ -210,8 +168,6 @@ public interface ResourceObjectDefinition
 
     /**
      * Returns name of the display name attribute.
-     *
-     * @see #getDisplayNameAttribute()
      */
     @Nullable QName getDisplayNameAttributeName();
     //endregion
@@ -306,23 +262,8 @@ public interface ResourceObjectDefinition
      * TODO Rarely used, consider removing from the interface
      */
     default ResourceBidirectionalMappingType getActivationBidirectionalMappingType(ItemName itemName) {
-        ResourceActivationDefinitionType activationSchemaHandling = getActivationSchemaHandling();
-        if (activationSchemaHandling == null) {
-            return null;
-        }
-        if (QNameUtil.match(ActivationType.F_ADMINISTRATIVE_STATUS, itemName)) {
-            return activationSchemaHandling.getAdministrativeStatus();
-        } else if (QNameUtil.match(ActivationType.F_VALID_FROM, itemName)) {
-            return activationSchemaHandling.getValidFrom();
-        } else if (QNameUtil.match(ActivationType.F_VALID_TO, itemName)) {
-            return activationSchemaHandling.getValidTo();
-        } else if (QNameUtil.match(ActivationType.F_LOCKOUT_STATUS, itemName)) {
-            return activationSchemaHandling.getLockoutStatus();
-        } else if (QNameUtil.match(ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP, itemName)) {
-            return null; // todo implement this
-        } else {
-            throw new IllegalArgumentException("Unknown activation property " + itemName);
-        }
+        return ResourceObjectDefinitionUtil.getActivationBidirectionalMappingType(
+                getActivationSchemaHandling(), itemName);
     }
 
     /**
@@ -378,30 +319,36 @@ public interface ResourceObjectDefinition
     //  The reason is that the first two are called from the context where there should be no kind/intent present.
     //  But that stinks. Something is broken here. We should define what "blank shadow" is. E.g., should aux OCs be there?
 
-    /** Creates a blank, empty {@link ShadowType} object. It contains only the object class name. Kind/intent are not set. */
-    default PrismObject<ShadowType> createBlankShadow() {
+    /**
+     * Creates a blank, empty {@link ShadowType} object.
+     * It contains only the object class name and resource OID.
+     * Kind/intent are not set.
+     */
+    default AbstractShadow createBlankShadow() {
         try {
-            var shadow = getPrismObjectDefinition().instantiate();
-            shadow.asObjectable().setObjectClass(getObjectClassName());
-            return shadow;
+            var shadowBean = getPrismObjectDefinition().instantiate().asObjectable();
+            shadowBean.setObjectClass(getObjectClassName());
+            var resourceOid = getResourceOid();
+            if (resourceOid != null) {
+                shadowBean.resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
+            }
+            return AbstractShadow.of(shadowBean);
         } catch (SchemaException e) {
             throw SystemException.unexpected(e, "while instantiating shadow from " + this);
         }
     }
 
     /** As {@link #createBlankShadow()} but with the specified primary identifier. */
-    default PrismObject<ShadowType> createBlankShadow(@NotNull Object primaryIdentifierValue) throws SchemaException {
+    default AbstractShadow createBlankShadowWithPrimaryId(@NotNull Object primaryIdentifierValue) throws SchemaException {
         var shadow = createBlankShadow();
-        ShadowUtil.addPrimaryIdentifierValue(shadow.asObjectable(), primaryIdentifierValue);
+        ShadowUtil.addPrimaryIdentifierValue(shadow.getBean(), primaryIdentifierValue);
         return shadow;
     }
 
     /** As {@link #createBlankShadow()} but having the correct resource OID, kind/intent (if applicable), and tag set.  */
-    default PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag) {
-        PrismObject<ShadowType> shadow = createBlankShadow();
-        shadow.asObjectable()
-                .tag(tag)
-                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
+    default AbstractShadow createBlankShadowWithTag(String tag) {
+        var shadow = createBlankShadow();
+        shadow.getBean().tag(tag);
         return shadow;
     }
 
@@ -414,37 +361,13 @@ public interface ResourceObjectDefinition
      * Creates {@link ResourceAttributeContainerDefinition} with this definition as a complex type definition.
      */
     default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
-        return toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES);
-    }
-
-    /**
-     * Creates {@link ResourceAttributeContainerDefinition} (with given item name) with this definition
-     * as a complex type definition.
-     */
-    default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
-        return ObjectFactory.createResourceAttributeContainerDefinition(elementName, this);
+        return new ResourceAttributeContainerDefinitionImpl(ShadowType.F_ATTRIBUTES, getAttributesComplexTypeDefinition());
     }
 
     default @NotNull ShadowAssociationsContainerDefinition toShadowAssociationsContainerDefinition() {
-        return new ShadowAssociationsContainerDefinitionImpl(ShadowType.F_ASSOCIATIONS, toAssociationsComplexTypeDefinition());
+        return new ShadowAssociationsContainerDefinitionImpl(ShadowType.F_ASSOCIATIONS, getAssociationsComplexTypeDefinition());
     }
 
-    default @NotNull ComplexTypeDefinition toAssociationsComplexTypeDefinition() {
-        var ctd = new ComplexTypeDefinitionImpl(ShadowAssociationsType.COMPLEX_TYPE);
-        for (ShadowAssociationDefinition associationDefinition : getAssociationDefinitions()) {
-            ctd.add(associationDefinition);
-        }
-        return ctd;
-    }
-
-    /**
-     * Creates a {@link ResourceAttributeContainer} instance with this definition as its complex type definition.
-     */
-    default ResourceAttributeContainer instantiate(ItemName itemName) {
-        return new ResourceAttributeContainerImpl(
-                itemName,
-                toResourceAttributeContainerDefinition(itemName));
-    }
     //endregion
 
     //region Capabilities
@@ -462,6 +385,7 @@ public interface ResourceObjectDefinition
 
     //region Diagnostics and administration
 
+    void trimTo(@NotNull Collection<ItemPath> paths);
     /**
      * Executes some basic checks on this object type.
      * Moved from `validateObjectClassDefinition()` method in {@link ResourceTypeUtil}.
@@ -489,7 +413,6 @@ public interface ResourceObjectDefinition
      * BEWARE, the mutable {@link CompositeObjectDefinition} is significantly slower than its immutable counterpart.
      * See MID-9156.
      */
-    @Override
     @NotNull ResourceObjectDefinition clone();
 
     /**
@@ -498,7 +421,6 @@ public interface ResourceObjectDefinition
      * BEWARE, the mutable {@link CompositeObjectDefinition} is significantly slower than its immutable counterpart.
      * See MID-9156.
      */
-    @Override
     @NotNull
     ResourceObjectDefinition deepClone(@NotNull DeepCloneOperation operation);
 
@@ -577,6 +499,7 @@ public interface ResourceObjectDefinition
     }
     //endregion
 
+    /** Call {@link #getPrismObjectDefinition()} for the cached version. */
     default @NotNull PrismObjectDefinition<ShadowType> toPrismObjectDefinition() {
         return ObjectFactory.constructObjectDefinition(
                 toResourceAttributeContainerDefinition(),
@@ -589,5 +512,60 @@ public interface ResourceObjectDefinition
         } else {
             return CompositeObjectDefinition.of(this, auxiliaryDefinitions);
         }
+    }
+
+    /** TODO ... ignoreCase will be part of the schema, soon ... */
+    default ShadowItemDefinition<?, ?> findShadowItemDefinitionRequired(
+            @NotNull ItemName itemName, boolean ignoreCase, Object errorCtx) throws SchemaException {
+
+        var attributeDefinition = findAttributeDefinition(itemName, ignoreCase);
+        var associationDefinition = findAssociationDefinition(itemName);
+
+        stateCheck(attributeDefinition == null || associationDefinition == null,
+                "'%s' is both an attribute and an association in '%s' (should be checked already)",
+                itemName, this);
+        if (attributeDefinition != null) {
+            return attributeDefinition;
+        } else if (associationDefinition != null) {
+            return associationDefinition;
+        } else {
+            throw new SchemaException("Unknown attribute/association '%s' in '%s'; %s".formatted(itemName, this, errorCtx));
+        }
+    }
+
+    /** Returns both attribute and association definitions. */
+    @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions();
+
+    default @NotNull ShadowAttributesComplexTypeDefinition getAttributesComplexTypeDefinition() {
+        return ShadowAttributesComplexTypeDefinitionImpl.of(this);
+    }
+
+    default @NotNull ShadowAssociationsComplexTypeDefinition getAssociationsComplexTypeDefinition() {
+        return ShadowAssociationsComplexTypeDefinitionImpl.of(this);
+    }
+
+    @Override
+    default @Nullable Class<?> getCompileTimeClass() {
+        return null;
+    }
+
+    @Override
+    default @Nullable QName getSuperType() {
+        return null;
+    }
+
+    @Override
+    default @NotNull Collection<TypeDefinition> getStaticSubTypes() {
+        return List.of();
+    }
+
+    @Override
+    default Integer getInstantiationOrder() {
+        return null;
+    }
+
+    @Override
+    default boolean canRepresent(QName typeName) {
+        return QNameUtil.match(typeName, getTypeName());
     }
 }

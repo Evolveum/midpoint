@@ -20,8 +20,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfigurationOptions;
+import com.evolveum.midpoint.schema.processor.ConnectorSchema;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
@@ -98,11 +98,11 @@ class ConnIdConfigurationTransformer {
         String connectorConfNs = connectorBean.getNamespace();
 
         PrismContainer<?> configurationPropertiesContainer = configuration
-                .findContainer(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
+                .findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
         if (configurationPropertiesContainer == null) {
             // Also try this. This is an older way.
             configurationPropertiesContainer = configuration.findContainer(new QName(connectorConfNs,
-                    SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME));
+                    SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME));
         }
 
         transformConnectorConfigurationProperties(configProps, configurationPropertiesContainer, connectorConfNs);
@@ -143,15 +143,11 @@ class ConnIdConfigurationTransformer {
         // The namespace of all the configuration properties specific to the
         // connector instance will have a connector instance namespace.
         String connectorConfNs = connectorBean.getNamespace();
-        PrismSchema schema;
+        ConnectorSchema schema;
         try {
             schema = ConnectorTypeUtil.parseConnectorSchema(connectorBean);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't parse connector schema: " + e.getMessage(), e);
-        }
-        PrismContainerDefinition<ConnectorConfigurationType> connectorConfigDef = ConnectorTypeUtil.findConfigurationContainerDefinition(connectorBean, schema);
-        if (connectorConfigDef == null) {
-            throw new SystemException("Couldn't find container definition of connector configuration in connector: " + connectorBean.getConnectorType());
         }
 
         Collection<PrismProperty<?>> convertedSuggestions = new ArrayList<>();
@@ -171,8 +167,9 @@ class ConnIdConfigurationTransformer {
             }
 
             QName qNameOfProperty = new QName(connectorConfNs, propertyName);
-            PrismPropertyDefinition<?> propertyDef = connectorConfigDef.findPropertyDefinition(
-                    ItemPath.create(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME, qNameOfProperty));
+            PrismPropertyDefinition<?> propertyDef = schema
+                    .getConnectorConfigurationContainerDefinition()
+                    .findPropertyDefinition(ItemPath.create(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME, qNameOfProperty));
             if (propertyDef == null) {
                 LOGGER.debug("Couldn't find property definition of configuration property for suggestion with name " + propertyName);
                 continue;
@@ -180,33 +177,33 @@ class ConnIdConfigurationTransformer {
 
             PrismContext prismContext = PrismContext.get();
             QName qNameOfType = propertyDef.getTypeName();
-            MutablePrismPropertyDefinition def = prismContext.definitionFactory().createPropertyDefinition(qNameOfProperty, qNameOfType);
+            PrismPropertyDefinition<?> def = prismContext.definitionFactory().newPropertyDefinition(qNameOfProperty, qNameOfType);
             if (ValueListOpenness.OPEN.equals(values.getOpenness())) {
                 Collection suggestedValues = values.getValues().stream()
                         .map((value) -> new DisplayableValueImpl<>(value, null, null)).collect(Collectors.toList());
-                def.setSuggestedValues(suggestedValues);
+                def.mutator().setSuggestedValues(suggestedValues);
             } else if (ValueListOpenness.CLOSED.equals(values.getOpenness())) {
                 Collection allowedValues = values.getValues().stream()
                         .map((value) -> new DisplayableValueImpl<>(value, null, null)).collect(Collectors.toList());
-                def.setAllowedValues(allowedValues);
+                def.mutator().setAllowedValues(allowedValues);
             } else {
                 LOGGER.debug("Suggestion " + propertyName + " contains unsupported type of ValueListOpenness: " + values.getOpenness());
                 continue;
             }
 
             if (propertyDef.isMandatory()) {
-                def.setMinOccurs(1);
+                def.mutator().setMinOccurs(1);
             } else {
-                def.setMinOccurs(0);
+                def.mutator().setMinOccurs(0);
             }
 
-            def.setDynamic(true);
-            def.setRuntimeSchema(true);
-            def.setDisplayName(propertyDef.getDisplayName());
-            def.setHelp(propertyDef.getHelp());
-            def.setDisplayOrder(propertyDef.getDisplayOrder());
-            def.setDocumentation(propertyDef.getDocumentation());
-            def.setMaxOccurs(propertyDef.isMultiValue() ? -1 : 1);
+            def.mutator().setDynamic(true);
+            def.mutator().setRuntimeSchema(true);
+            def.mutator().setDisplayName(propertyDef.getDisplayName());
+            def.mutator().setHelp(propertyDef.getHelp());
+            def.mutator().setDisplayOrder(propertyDef.getDisplayOrder());
+            def.mutator().setDocumentation(propertyDef.getDocumentation());
+            def.mutator().setMaxOccurs(propertyDef.isMultiValue() ? -1 : 1);
 
             PrismProperty<Object> property = (PrismProperty<Object>) def.instantiate();
             convertedSuggestions.add(property);

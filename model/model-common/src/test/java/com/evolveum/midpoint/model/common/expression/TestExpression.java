@@ -42,7 +42,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.prism.PrismValueDeltaSetTripleAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -333,7 +332,7 @@ public class TestExpression extends AbstractModelCommonTest {
         // otherwise the tests will fail on unknown data types
         PrismObjectDefinition<ShadowType> shadowDef = account.getDefinition().deepClone(DeepCloneOperation.notUltraDeep());
         PrismContainerDefinition<Containerable> attrsDef = shadowDef.findContainerDefinition(ShadowType.F_ATTRIBUTES);
-        attrsDef.toMutable().createPropertyDefinition(new QName(MidPointConstants.NS_RI, "quote"), PrimitiveType.STRING.getQname());
+        attrsDef.mutator().createPropertyDefinition(new QName(MidPointConstants.NS_RI, "quote"), PrimitiveType.STRING.getQname());
         account.setDefinition(shadowDef);
         IntegrationTestTools.display("Account", account);
 
@@ -367,7 +366,7 @@ public class TestExpression extends AbstractModelCommonTest {
 
     protected Source<PrismPropertyValue<String>, PrismPropertyDefinition<String>> prepareStringSource() throws SchemaException {
         PrismPropertyDefinition<String> propDef = prismContext.definitionFactory()
-                .createPropertyDefinition(ExpressionConstants.VAR_INPUT_QNAME, PrimitiveType.STRING.getQname());
+                .newPropertyDefinition(ExpressionConstants.VAR_INPUT_QNAME, PrimitiveType.STRING.getQname());
         PrismProperty<String> inputProp = prismContext.itemFactory().createProperty(ExpressionConstants.VAR_INPUT_QNAME, propDef);
         PrismPropertyValue<String> pval = prismContext.itemFactory().createPropertyValue(INPUT_VALUE);
         inputProp.add(pval);
@@ -405,7 +404,7 @@ public class TestExpression extends AbstractModelCommonTest {
             ExpressionEvaluationContext expressionContext, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
+        PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().newPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, outputType);
         return evaluateExpression(expressionType, outputDefinition, expressionContext, result);
     }
@@ -451,7 +450,7 @@ public class TestExpression extends AbstractModelCommonTest {
             QName outputType, ExpressionEvaluationContext expressionContext, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException {
-        PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
+        PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().newPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, outputType);
         evaluateExpressionRestricted(expressionType, outputDefinition, expressionContext, result);
     }

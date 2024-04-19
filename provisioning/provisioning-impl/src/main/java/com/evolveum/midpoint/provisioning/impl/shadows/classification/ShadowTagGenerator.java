@@ -87,7 +87,7 @@ public class ShadowTagGenerator {
                         shadow,
                         resource,
                         systemObjectCache.getSystemConfigurationBean(result));
-                ItemDefinition<?> outputDefinition = PrismContext.get().definitionFactory().createPropertyDefinition(
+                ItemDefinition<?> outputDefinition = PrismContext.get().definitionFactory().newPropertyDefinition(
                         ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
                 try {
                     String shortDesc = "tag expression for " + shadow;

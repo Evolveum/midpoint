@@ -34,30 +34,30 @@ public class TraceUtil {
     public static final Integer DEFAULT_RECORD_OBJECTS_FOUND = 5;
     public static final Integer DEFAULT_RECORD_OBJECT_REFERENCES_FOUND = 10;
 
-    public static Collection<AnyValueType> toAnyValueTypeList(Object object, PrismContext prismContext) {
+    public static Collection<AnyValueType> toAnyValueTypeList(Object object) {
         if (object instanceof Collection<?>) {
             return ((Collection<?>) object).stream()
-                    .map(o -> toAnyValueType(o, prismContext))
+                    .map(o -> toAnyValueType(o))
                     .collect(Collectors.toList());
         } else {
-            return singleton(toAnyValueType(object, prismContext));
+            return singleton(toAnyValueType(object));
         }
     }
 
-    private static AnyValueType toAnyValueType(Object object, PrismContext prismContext) {
+    private static AnyValueType toAnyValueType(Object object) {
         AnyValueType rv = new AnyValueType();
-        setAnyValueTypeContent(object, rv, prismContext);
+        setAnyValueTypeContent(object, rv);
         return rv;
     }
 
-    public static NamedValueType toNamedValueType(Object object, QName name, PrismContext prismContext) {
+    public static NamedValueType toNamedValueType(Object object, QName name) {
         NamedValueType rv = new NamedValueType();
         rv.setName(name);
-        setAnyValueTypeContent(object, rv, prismContext);
+        setAnyValueTypeContent(object, rv);
         return rv;
     }
 
-    private static void setAnyValueTypeContent(Object object, AnyValueType anyValue, PrismContext prismContext) {
+    private static void setAnyValueTypeContent(Object object, AnyValueType anyValue) {
         if (object instanceof PrismValue) {
             PrismValue prismValue = (PrismValue) object;
             boolean emptyEmbeddedValue = prismValue instanceof PrismPropertyValue && ((PrismPropertyValue) prismValue).getValue() == null;
@@ -65,23 +65,23 @@ public class TraceUtil {
                 // very strange case - let's simply skip it; there's nothing to store to AnyValueType here
             } else {
                 if (prismValue.hasRealClass() && !prismValue.hasValueMetadata()) {
-                    setAnyValueReal(prismValue.getRealValue(), anyValue, prismContext);
+                    setAnyValueReal(prismValue.getRealValue(), anyValue);
                 } else {
-                    setAnyValueDynamic(prismValue, anyValue, prismContext);
+                    setAnyValueDynamic(prismValue, anyValue);
                 }
             }
         } else {
-            setAnyValueReal(object, anyValue, prismContext);
+            setAnyValueReal(object, anyValue);
         }
     }
 
-    private static void setAnyValueDynamic(PrismValue prismValue, AnyValueType anyValue, PrismContext prismContext) {
-        anyValue.setValue(new RawType(prismValue, prismValue.getTypeName(), prismContext));
+    private static void setAnyValueDynamic(PrismValue prismValue, AnyValueType anyValue) {
+        anyValue.setValue(new RawType(prismValue, prismValue.getTypeName()));
     }
 
-    private static void setAnyValueReal(Object object, AnyValueType anyValue, PrismContext prismContext) {
+    private static void setAnyValueReal(Object object, AnyValueType anyValue) {
         if (object != null) {
-            QName typeName = prismContext.getSchemaRegistry().determineTypeForClass(object.getClass());
+            QName typeName = PrismContext.get().getSchemaRegistry().determineTypeForClass(object.getClass());
             if (typeName != null) {
                 // assuming we'll be able to serialize this value
                 anyValue.setValue(object);

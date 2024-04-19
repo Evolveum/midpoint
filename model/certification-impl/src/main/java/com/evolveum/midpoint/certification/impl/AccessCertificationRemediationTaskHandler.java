@@ -166,7 +166,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         task.setName(polyString);
 
         // Set reference to the resource
-        task.setObjectRef(ObjectTypeUtil.createObjectRef(campaign, prismContext));
+        task.setObjectRef(ObjectTypeUtil.createObjectRef(campaign));
 
         task.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result));
 

@@ -45,7 +45,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -53,7 +52,6 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -135,7 +133,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + shortTestName + ".xml");
         PrismPropertyDefinition<String> outputDefinition =
-                getPrismContext().definitionFactory().createPropertyDefinition(
+                getPrismContext().definitionFactory().newPropertyDefinition(
                         PROPERTY_NAME, DOMUtil.XSD_STRING);
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
                 scriptType, outputDefinition, MiscSchemaUtil.getExpressionProfile(),
@@ -173,7 +171,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + testName + ".xml");
         PrismPropertyDefinition<Boolean> outputDefinition =
-                getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_BOOLEAN);
+                getPrismContext().definitionFactory().newPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_BOOLEAN);
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition,
                 MiscSchemaUtil.getExpressionProfile(), testName, result);
 
@@ -366,7 +364,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + shortTestName + ".xml");
         ItemDefinition<?> outputDefinition =
-                getPrismContext().definitionFactory().createPropertyDefinition(
+                getPrismContext().definitionFactory().newPropertyDefinition(
                         PROPERTY_NAME, DOMUtil.XSD_STRING);
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
                 scriptType, outputDefinition, MiscSchemaUtil.getExpressionProfile(),

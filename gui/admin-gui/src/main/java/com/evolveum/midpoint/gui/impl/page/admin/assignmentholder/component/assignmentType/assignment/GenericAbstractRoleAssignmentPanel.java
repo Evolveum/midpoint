@@ -47,7 +47,7 @@ public class GenericAbstractRoleAssignmentPanel<F extends FocusType> extends Abs
             return null;
         }
         // This should do customPostSearch on repository level.
-        return QueryBuilder.queryFor(AssignmentType.class, getPrismContext())
+        return QueryBuilder.queryFor(AssignmentType.class)
                 .ref(AssignmentType.F_TARGET_REF, OrgType.COMPLEX_TYPE, null)
                 .item(ObjectType.F_SUBTYPE).contains("access")
                 .build();

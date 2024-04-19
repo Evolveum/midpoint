@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.impl.controller.SchemaTransformer;
 
+import com.evolveum.midpoint.prism.ItemDefinition.ItemDefinitionMutator;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,7 +20,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutableItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
@@ -136,7 +136,7 @@ public class DefinitionAccessProcessor {
         }
     }
 
-    private MutableItemDefinition<?> mutable(ItemDefinition<?> itemDef) {
-        return itemDef.toMutable();
+    private ItemDefinitionMutator mutable(ItemDefinition<?> itemDef) {
+        return itemDef.mutator();
     }
 }

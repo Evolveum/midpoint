@@ -49,7 +49,6 @@ public class AccountPasswordPolicyProcessor implements UpgradeObjectProcessor<Ob
     @Override
     public boolean process(PrismObject<ObjectType> object, ItemPath path) throws Exception {
         LensProjectionContextType parent = getItemParent(object, path);
-        parent.setAccountPasswordPolicy(null);
         parent.setAccountPasswordPolicyRef(null);
 
         return true;

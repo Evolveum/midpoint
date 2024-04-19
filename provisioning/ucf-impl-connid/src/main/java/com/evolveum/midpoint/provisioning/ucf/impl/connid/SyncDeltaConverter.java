@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.connIdObjectClassNameToUcf;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.TokenUtil.toUcf;
 
 import java.util.ArrayList;
@@ -25,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -44,14 +44,12 @@ class SyncDeltaConverter {
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorInstanceConnIdImpl.class);
 
     private final ConnectorInstanceConnIdImpl connectorInstance;
-    private final ConnIdNameMapper nameMapper;
-    private final ConnIdConvertor connIdConvertor;
+    private final ConnIdObjectConvertor connIdObjectConvertor;
     private final ResourceObjectDefinition requestedObjectDefinition;
 
     SyncDeltaConverter(ConnectorInstanceConnIdImpl connectorInstance, ResourceObjectDefinition requestedObjectDefinition) {
         this.connectorInstance = connectorInstance;
-        this.nameMapper = connectorInstance.connIdNameMapper;
-        this.connIdConvertor = connectorInstance.connIdConvertor;
+        this.connIdObjectConvertor = connectorInstance.connIdObjectConvertor;
         this.requestedObjectDefinition = requestedObjectDefinition;
     }
 
@@ -89,12 +87,11 @@ class SyncDeltaConverter {
                 // We use the "object" error reporting method here, to be able to proceed with partial object.
                 // This is to avoid having to artificially add e.g. identifiers to the object later. If not done here,
                 // we have no possibility to guess the identifiers later! This is the best place to do that.
-                resourceObject = connIdConvertor
+                resourceObject = connIdObjectConvertor
                         .convertToUcfObject(
                                 connIdDelta.getObject(),
                                 actualObjectDefinition,
-                                connectorInstance.getResourceSchema(),
-                                connectorInstance.isLegacySchema(),
+                                connectorInstance,
                                 UcfFetchErrorReportingMethod.UCF_OBJECT,
                                 result);
 
@@ -134,10 +131,10 @@ class SyncDeltaConverter {
         }
 
         ObjectClass deltaConnIdObjectClass = connIdDelta.getObjectClass();
-        QName deltaObjectClassName = nameMapper.objectClassToQname(deltaConnIdObjectClass, connectorInstance.isLegacySchema());
+        QName deltaObjectClassName = connIdObjectClassNameToUcf(deltaConnIdObjectClass, connectorInstance.isLegacySchema());
         ResourceObjectDefinition deltaObjectClass;
         if (deltaConnIdObjectClass != null) {
-            deltaObjectClass = connectorInstance.getResourceSchema().findDefinitionForObjectClass(deltaObjectClassName);
+            deltaObjectClass = connectorInstance.getResourceSchemaRequired().findDefinitionForObjectClass(deltaObjectClassName);
         } else {
             deltaObjectClass = null;
         }

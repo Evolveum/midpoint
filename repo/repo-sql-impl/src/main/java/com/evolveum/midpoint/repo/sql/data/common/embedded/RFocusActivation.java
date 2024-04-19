@@ -41,8 +41,8 @@ public class RFocusActivation extends RActivation {
         repo.setLockoutStatus(RUtil.getRepoEnumValue(jaxb.getLockoutStatus(), RLockoutStatus.class));
     }
 
-    public static void copyToJAXB(RFocusActivation repo, ActivationType jaxb, PrismContext prismContext) {
-        RActivation.copyToJAXB(repo, jaxb, prismContext);
+    public static void copyToJAXB(RFocusActivation repo, ActivationType jaxb) {
+        RActivation.copyToJAXB(repo, jaxb);
 
         if (repo.getLockoutStatus() != null) {
             jaxb.setLockoutStatus(repo.getLockoutStatus().getSchemaValue());

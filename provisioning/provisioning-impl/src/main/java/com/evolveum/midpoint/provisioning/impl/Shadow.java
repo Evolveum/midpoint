@@ -114,7 +114,7 @@ public class Shadow implements AbstractShadow {
     }
 
     @Override
-    public @NotNull String getResourceOid() {
+    public String getResourceOid() {
         return resource.getOid();
     }
 }

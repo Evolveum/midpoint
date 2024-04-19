@@ -7,13 +7,17 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -21,13 +25,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabilityType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Fetches the schema from the "real" resource.
@@ -48,7 +46,7 @@ public class SchemaFetcher {
      * @param capabilityMap Known native capabilities of the connectors (keyed by connector local name).
      * Used to select the schema-aware connector.
      */
-    @Nullable ResourceSchema fetchResourceSchema(
+    @Nullable NativeResourceSchema fetchResourceSchema(
             @NotNull ResourceType resource,
             @Nullable NativeConnectorsCapabilities capabilityMap,
             @NotNull OperationResult parentResult)
@@ -64,11 +62,11 @@ public class SchemaFetcher {
         ConnectorInstance connectorInstance = connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, parentResult);
 
         LOGGER.debug("Trying to get schema from {}", connectorSpec);
-        ResourceSchema rawResourceSchema = connectorInstance.fetchResourceSchema(parentResult);
+        var nativeResourceSchema = connectorInstance.fetchResourceSchema(parentResult);
 
-        if (rawResourceSchema != null && ResourceTypeUtil.isValidateSchema(resource)) {
-            rawResourceSchema.validate();
-        }
-        return rawResourceSchema;
+//        if (nativeResourceSchema != null && ResourceTypeUtil.isValidateSchema(resource)) {
+//            nativeResourceSchema.validate(); // FIXME
+//        }
+        return nativeResourceSchema;
     }
 }

@@ -13,6 +13,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.delta.ObjectDeltaImpl;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 
+import java.io.Serial;
+
 /**
  * An {@link ObjectDelta} enriched by {@link ResourceShadowCoordinates} (pointing to a resource object type).
  *
@@ -22,12 +24,12 @@ public class ShadowCoordinatesQualifiedObjectDeltaImpl<T extends Objectable>
         extends ObjectDeltaImpl<T>
         implements ShadowCoordinatesQualifiedObjectDelta<T> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private ResourceShadowCoordinates coordinates;
 
-    ShadowCoordinatesQualifiedObjectDeltaImpl(Class<T> objectTypeClass, ChangeType changeType, PrismContext prismContext) {
-        super(objectTypeClass, changeType, prismContext);
+    ShadowCoordinatesQualifiedObjectDeltaImpl(Class<T> objectTypeClass, ChangeType changeType) {
+        super(objectTypeClass, changeType);
     }
 
     @Override
@@ -60,7 +62,7 @@ public class ShadowCoordinatesQualifiedObjectDeltaImpl<T extends Objectable>
     @Override
     public ShadowCoordinatesQualifiedObjectDeltaImpl<T> clone() {
         ShadowCoordinatesQualifiedObjectDeltaImpl<T> clone = new ShadowCoordinatesQualifiedObjectDeltaImpl<>(
-                this.getObjectTypeClass(), this.getChangeType(), this.getPrismContext());
+                this.getObjectTypeClass(), this.getChangeType());
         copyValues(clone);
         return clone;
     }

@@ -267,11 +267,6 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
         return metadataValueWrapper.isValidFor(elementQName, clazz, caseInsensitive);
     }
 
-    @Override
-    public void adoptElementDefinitionFrom(ItemDefinition<?> otherDef) {
-        metadataValueWrapper.adoptElementDefinitionFrom(otherDef);
-    }
-
     @NotNull
     @Override
     public PrismContainer<ValueMetadataType> instantiate() throws SchemaException {
@@ -300,6 +295,21 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
+    public @NotNull ItemDefinition<PrismContainer<ValueMetadataType>> cloneWithNewName(@NotNull ItemName itemName) {
+        throw new UnsupportedOperationException("Implement if needed");
+    }
+
+    @Override
+    public @NotNull PrismContainerDefinition<?> cloneWithNewType(@NotNull QName newTypeName, @NotNull ComplexTypeDefinition newCtd) {
+        throw new UnsupportedOperationException("Implement if needed");
+    }
+
+    @Override
+    public Boolean isIndexed() {
+        return metadataValueWrapper.isIndexed();
+    }
+
+    @Override
     public ItemDefinition<PrismContainer<ValueMetadataType>> deepClone(@NotNull DeepCloneOperation operation) {
         return metadataValueWrapper.deepClone(operation);
     }
@@ -318,19 +328,9 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public boolean canBeDefinitionOf(PrismContainer<ValueMetadataType> item) {
-        return metadataValueWrapper.canBeDefinitionOf(item);
-    }
-
-    @Override
-    public boolean canBeDefinitionOf(@NotNull PrismValue pvalue) {
-        return metadataValueWrapper.canBeDefinitionOf(pvalue);
-    }
-
-    @Override
-    public PrismContainerDefinition<ValueMetadataType> cloneWithReplacedDefinition(
-            QName itemName, ItemDefinition<?> newDefinition) {
-        return metadataValueWrapper.cloneWithReplacedDefinition(itemName, newDefinition);
+    public PrismContainerDefinition<ValueMetadataType> cloneWithNewDefinition(
+            QName newItemName, ItemDefinition<?> newDefinition) {
+        return metadataValueWrapper.cloneWithNewDefinition(newItemName, newDefinition);
     }
 
     @Override
@@ -354,8 +354,8 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public MutablePrismContainerDefinition<ValueMetadataType> toMutable() {
-        return metadataValueWrapper.toMutable();
+    public PrismContainerDefinitionMutator<ValueMetadataType> mutator() {
+        return metadataValueWrapper.mutator();
     }
 
     @Override
@@ -366,11 +366,6 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     @Override
     public <A> A getAnnotation(QName qname) {
         return metadataValueWrapper.getAnnotation(qname);
-    }
-
-    @Override
-    public <A> void setAnnotation(QName qname, A value) {
-        metadataValueWrapper.setAnnotation(qname, value);
     }
 
     @Override
@@ -629,11 +624,6 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     @Override
     public void freeze() {
         metadataValueWrapper.freeze();
-    }
-
-    @Override
-    public PrismContext getPrismContext() {
-        return metadataValueWrapper.getPrismContext();
     }
 
     @Override

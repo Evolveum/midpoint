@@ -59,7 +59,7 @@ public class TestImmutable extends AbstractSchemaTest {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN
-        PrismPropertyDefinition<XMLGregorianCalendar> datePPD = prismContext.definitionFactory().createPropertyDefinition(
+        PrismPropertyDefinition<XMLGregorianCalendar> datePPD = prismContext.definitionFactory().newPropertyDefinition(
                 new QName(SchemaConstants.NS_C, "dateTime"), DOMUtil.XSD_DATETIME);
         PrismProperty<XMLGregorianCalendar> datePP = datePPD.instantiate();
         Date now = new Date();
@@ -95,7 +95,7 @@ public class TestImmutable extends AbstractSchemaTest {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN
-        PrismReferenceDefinition refPRD = prismContext.definitionFactory().createReferenceDefinition(new QName(SchemaConstants.NS_C, "ref"), ObjectReferenceType.COMPLEX_TYPE);
+        PrismReferenceDefinition refPRD = prismContext.definitionFactory().newReferenceDefinition(new QName(SchemaConstants.NS_C, "ref"), ObjectReferenceType.COMPLEX_TYPE);
         PrismReference refPR = refPRD.instantiate();
         refPR.add(ObjectTypeUtil.createObjectRef("oid1", ObjectTypes.USER).asReferenceValue());
         refPR.freeze();

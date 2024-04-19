@@ -82,7 +82,7 @@ class IdiResolutionContext extends ResolutionContext {
 
     @Override
     ResolutionContext resolveStructuredProperty(
-            ItemPath pathToResolve, PrismPropertyDefinition<?> outputDefinition, PrismContext prismContext) {
+            ItemPath pathToResolve, PrismPropertyDefinition<?> outputDefinition) {
         return new IdiResolutionContext(
                 ((ItemDeltaItem<?, ?>) abstractItemDeltaItem).resolveStructuredProperty(pathToResolve, outputDefinition));
     }

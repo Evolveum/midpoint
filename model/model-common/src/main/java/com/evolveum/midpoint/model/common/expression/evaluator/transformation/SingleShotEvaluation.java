@@ -70,7 +70,7 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
         Collection<V> outputForOldState = context.isSkipEvaluationMinus() ? null : evaluateExpressionInState(false);
         Collection<V> outputForNewState = context.isSkipEvaluationPlus() ? null : evaluateExpressionInState(true);
 
-        return DeltaSetTripleUtil.diffPrismValueDeltaSetTriple(outputForOldState, outputForNewState, evaluator.getPrismContext());
+        return DeltaSetTripleUtil.diffPrismValueDeltaSetTriple(outputForOldState, outputForNewState);
     }
 
     @NotNull
@@ -79,7 +79,7 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
         // No need to execute twice. There is no change.
         Collection<V> outputForNewState = evaluateExpressionInState(true);
 
-        return DeltaSetTripleUtil.allToZeroSet(outputForNewState, evaluator.getPrismContext());
+        return DeltaSetTripleUtil.allToZeroSet(outputForNewState);
     }
 
     private Collection<V> evaluateExpressionInState(boolean useNewValues) throws ExpressionEvaluationException, ObjectNotFoundException,
@@ -97,9 +97,11 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
             addSourcesToStaticVariables(staticVariables, useNewValues);
             assert !staticVariables.haveDeltas();
 
-            List<V> evalResults = evaluator.transformSingleValue(staticVariables, null, useNewValues, context,
-                    (useNewValues ? "(new) " : "(old) " ) + context.getContextDescription(),
-                    context.getTask(), result);
+            var vtCtx = new ValueTransformationContext(
+                    context, staticVariables, useNewValues,
+                    (useNewValues ? "(new) " : "(old) ") + context.getContextDescription());
+
+            List<V> evalResults = evaluator.transformSingleValue(vtCtx, result);
 
             return removeEmptyOutputValues(evalResults);
         } catch (Throwable t) {

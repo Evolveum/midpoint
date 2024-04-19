@@ -51,7 +51,10 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
     /** Path of the output item (i.e. target) in the targetContext. */
     private ItemPath outputPath;
 
-    /** Original output path, as specified in the mapping bean (or implicit one) - i.e., before being overridden. */
+    /**
+     * Original output path, as specified in the mapping bean (or implicit one) - i.e., before being overridden.
+     * Without variable. For diagnostics purposes now.
+     */
     private ItemPath originalOutputPath;
 
     MappingParser(AbstractMappingImpl<?, D, MBT> mapping) {
@@ -72,7 +75,10 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
     }
 
     private void parseTarget() throws SchemaException {
-        ItemPath targetPath = ExpressionUtil.getPath(m.mappingBean.getTarget());
+        ItemPath targetPath =
+                m.targetPathOverride != null ?
+                        m.targetPathOverride :
+                        ExpressionUtil.getPath(m.mappingBean.getTarget());
         if (targetPath == null) {
             outputDefinition = m.defaultTargetDefinition;
             originalOutputPath = m.defaultTargetPath;
@@ -83,15 +89,16 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
                     m.targetContext,
                     "target definition in " + m.getMappingContextDescription());
             if (outputDefinition == null) {
-                throw new SchemaException("No target item that would conform to the path "
-                        + targetPath + " in " + m.getMappingContextDescription());
+                throw new SchemaException(
+                        "No target item that would conform to the path %s in %s".formatted(
+                                targetPath, m.getMappingContextDescription()));
             }
             originalOutputPath = targetPath.stripVariableSegment();
         }
 
-        if (m.targetPathOverride != null) {
-            LOGGER.trace("Overriding output path from {} to {}", outputPath, m.targetPathOverride);
-            outputPath = m.targetPathOverride;
+        if (m.targetPathExecutionOverride != null) {
+            LOGGER.trace("Overriding output path from {} to {}", targetPath, m.targetPathExecutionOverride);
+            outputPath = m.targetPathExecutionOverride;
         } else {
             outputPath = originalOutputPath;
         }

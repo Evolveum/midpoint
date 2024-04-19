@@ -16,7 +16,7 @@ public class EnumerationTypeDefinitionDto extends DefinitionDto {
     Collection<EnumerationTypeDefinition.ValueDefinition> values;
 
     public EnumerationTypeDefinitionDto(EnumerationTypeDefinition definition) {
-        super(definition.toMutable());
+        super(definition);
 
         values = definition.getValues();
     }

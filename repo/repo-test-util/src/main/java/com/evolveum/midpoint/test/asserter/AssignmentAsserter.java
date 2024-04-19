@@ -11,11 +11,14 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.util.List;
+import javax.naming.Referenceable;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -62,6 +65,52 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
 
     public AssignmentAsserter<R> assertTargetType(QName expected) {
         assertEquals("Wrong target type in " + desc(), expected, getAssignment().getTargetRef().getType());
+        return this;
+    }
+
+    public AssignmentAsserter<R> assertTargetRelationMatches(QName expected) {
+        QName real = getAssignment().getTargetRef().getRelation();
+        if (!QNameUtil.match(real, expected)) {
+            fail("Wrong target relation in " + desc() + "; expected: " + expected + "; real: " + real);
+        }
+        return this;
+    }
+
+    public AssignmentAsserter<R> assertTargetRef(String expectedOid, QName expectedTypeName) {
+        assertTargetOid(expectedOid);
+        assertTargetType(expectedTypeName);
+        return this;
+    }
+
+    public AssignmentAsserter<R> assertTargetRef(String expectedOid, QName expectedTypeName, QName relation) {
+        assertTargetOid(expectedOid);
+        assertTargetType(expectedTypeName);
+        assertTargetRelationMatches(relation);
+        return this;
+    }
+
+    public String getOrgOid() {
+        return Referencable.getOid(getAssignment().getOrgRef());
+    }
+
+    public QName getOrgType() {
+        var ref = getAssignment().getOrgRef();
+        return ref != null ? ref.getType() : null;
+    }
+
+    public AssignmentAsserter<R> assertOrgOid(String expected) {
+        assertEquals("Wrong orgRef OID in " + desc(), expected, getOrgOid());
+        return this;
+    }
+
+    public AssignmentAsserter<R> assertOrgType(QName expected) {
+        assertEquals("Wrong orgRef target type in " + desc(), expected, getOrgType());
+        return this;
+    }
+
+    public AssignmentAsserter<R> assertOrgRef(String expectedOid, QName expectedTypeName) {
+        assertOrgOid(expectedOid);
+        assertOrgType(expectedTypeName);
         return this;
     }
 
@@ -174,6 +223,19 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
         assertThat(assignment.getPolicySituation())
                 .as("policy situation in " + assignment)
                 .containsExactlyInAnyOrder(expected);
+        return this;
+    }
+
+    public ExtensionAsserter<AssignmentType, AssignmentAsserter<R>> extension() {
+        var extensionAsserter = new ExtensionAsserter<>(assignment, this, "extension in " + desc());
+        copySetupTo(extensionAsserter);
+        return extensionAsserter;
+    }
+
+    public AssignmentAsserter<R> assertDescription(String expected) {
+        assertThat(assignment.getDescription())
+                .as("description in " + assignment)
+                .isEqualTo(expected);
         return this;
     }
 }

@@ -405,7 +405,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
                 ItemName varQName = new ItemName(SchemaConstants.NS_C, varName);
                 // Only String values are supported now
                 var def = PrismContext.get().definitionFactory()
-                        .createPropertyDefinition(varQName, PrimitiveType.STRING.getQname());
+                        .newPropertyDefinition(varQName, PrimitiveType.STRING.getQname());
                 Object variableValue;
                 if (value instanceof String) {
                     variableValue = value;

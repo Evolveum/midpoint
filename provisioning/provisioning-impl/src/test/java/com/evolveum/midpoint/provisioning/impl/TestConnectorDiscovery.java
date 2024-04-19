@@ -64,7 +64,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
             ConnectorType conn = connector.asObjectable();
             display("Found connector " + conn, conn);
             IntegrationTestTools.assertConnectorSanity(conn); // MID-6581
-            IntegrationTestTools.assertConnectorSchemaSanity(conn, prismContext);
+            IntegrationTestTools.assertConnectorSchemaSanity(conn);
         }
 
         assertEquals("Unexpected number of connectors found", 11, connectors.size());

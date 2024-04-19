@@ -39,7 +39,6 @@ import com.evolveum.midpoint.notifications.api.transports.SendingContext;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
 import com.evolveum.midpoint.notifications.impl.util.HttpUtil;
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -317,10 +316,10 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
             return multipleValues ? emptyList() : singletonList(null);
         }
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        MutablePrismPropertyDefinition<String> resultDef =
-                transportSupport.prismContext().definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
+        PrismPropertyDefinition<String> resultDef =
+                transportSupport.prismContext().definitionFactory().newPropertyDefinition(resultName, DOMUtil.XSD_STRING);
         if (multipleValues) {
-            resultDef.setMaxOccurs(-1);
+            resultDef.mutator().setMaxOccurs(-1);
         }
 
         var task = ctx.task();

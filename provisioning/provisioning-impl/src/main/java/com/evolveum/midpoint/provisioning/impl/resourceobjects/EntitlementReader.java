@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import static com.evolveum.midpoint.provisioning.impl.resourceobjects.EntitlementUtils.*;
+
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
@@ -14,14 +16,11 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.config.AssociationConfigItem.AttributeBinding;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationClassSimulationDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import static com.evolveum.midpoint.provisioning.impl.resourceobjects.EntitlementUtils.*;
 
 /**
  * Reads the entitlements of a subject (resource object): either from the values of the subject itself,
@@ -63,8 +62,8 @@ class EntitlementReader {
         LOGGER.trace("Starting simulated associations read operation");
         for (ShadowAssociationDefinition associationDef : subjectCtx.getAssociationDefinitions()) {
             if (!isSimulated(associationDef)
-                    && !isVisible(associationDef, subjectCtx)
-                    && !doesMatchSubjectDelineation(associationDef, subjectCtx)) {
+                    || !isVisible(associationDef, subjectCtx)
+                    || !doesMatchSubjectDelineation(associationDef, subjectCtx)) {
                 continue;
             }
             var simulationDefinition = Objects.requireNonNull(associationDef.getSimulationDefinition());
@@ -187,17 +186,14 @@ class EntitlementReader {
      *
      * then the result would be:
      *
-     *     ri:group:
-     *       PCV: identifiers: { dn: "cn=wheel,ou=Groups,dc=example,dc=com" }
+     *     ri:groups:
+     *       PCV: shadowRef: object: attributes: { dn: "cn=wheel,ou=Groups,dc=example,dc=com" }
      */
     private void addAssociationValueFromEntitlementObject(
             @NotNull ShadowAssociationClassSimulationDefinition simulationDefinition,
             @NotNull ExistingResourceObject entitlementObject) throws SchemaException {
-        ResourceAttributeContainer identifiersContainer = entitlementObject.getIdentifiersAsContainer();
-        // Remember the full shadow. This is used later as an optimization to create the shadow in repo
-        identifiersContainer.setUserData(ResourceObjectConverter.ENTITLEMENT_OBJECT_KEY, entitlementObject);
         subject.getOrCreateAssociationsContainer()
                 .findOrCreateAssociation(simulationDefinition.getLocalSubjectItemName())
-                .createNewValueWithIdentifiers(identifiersContainer);
+                .createNewValueWithFullObject(entitlementObject);
     }
 }

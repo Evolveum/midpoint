@@ -144,7 +144,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition<?>,
         return sets.stream().allMatch(set -> set == null || set == PlusMinusZero.ZERO);
     }
 
-    private void transform(List<PlusMinusZero> sets, PlusMinusZero outputSet) {
+    private void transform(List<PlusMinusZero> sets, @NotNull PlusMinusZero outputSet) {
         List<Collection<PrismValue>> domains = createDomainsForSets(sets);
         logDomainsForSets(domains, sets, outputSet);
         MiscUtil.carthesian(domains, valuesTuple -> {
@@ -250,7 +250,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition<?>,
     }
 
     private SourceTriple<V, D> createSourceTriple(Source<V, D> source) throws SchemaException {
-        SourceTriple<V, D> sourceTriple = new SourceTriple<>(source, prismContext);
+        SourceTriple<V, D> sourceTriple = new SourceTriple<>(source);
         ItemDelta<V, D> delta = source.getDelta();
         if (delta != null) {
             sourceTriple.merge(delta.toDeltaSetTriple(source.getItemOld()));

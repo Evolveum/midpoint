@@ -82,7 +82,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         connector = repositoryService.getObject(ConnectorType.class, resourceTypeBefore.getConnectorRef().getOid(), null, result);
         ConnectorType connectorType = connector.asObjectable();
         assertNotNull(connectorType);
-        Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceTypeBefore);
+        Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchemaElement(resourceTypeBefore);
         AssertJUnit.assertNull("Found schema element before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
         // WHEN
@@ -96,7 +96,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
         displayValue("Resource after testResource (repository, XML)", PrismTestUtil.serializeToXml(resourceTypeRepoAfter));
 
-        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
+        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchemaElement(resourceTypeRepoAfter);
         assertNull("Schema after test connection (and should not be)", resourceXsdSchemaElementAfter);
     }
 
@@ -107,7 +107,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         // WHEN
         // This should NOT throw an exception. It should just indicate the failure in results
         resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
-        ResourceType resourceType = resource.asObjectable();
 
         // THEN
         result.computeStatus();
@@ -115,7 +114,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         TestUtil.assertFailure(result);
         TestUtil.assertFailure(resource.asObjectable().getFetchResult());
 
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getBareSchema(resource);
         assertNull("Resource schema found", resourceSchema);
 
         // WHEN
@@ -136,7 +135,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
         assertTrue("Configurations not equals", configurationContainer.equals(configurationContainerAgain));
 
-        ResourceSchema resourceSchemaAgain = ResourceSchemaFactory.getRawSchema(resourceAgain);
+        ResourceSchema resourceSchemaAgain = ResourceSchemaFactory.getBareSchema(resourceAgain);
         assertNull("Resource schema (again)", resourceSchemaAgain);
     }
 
@@ -289,7 +288,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         OperationResult result = getTestOperationResult();
 
         ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
-        ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
+        ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class);
         displayDumpable("Object change", delta);
 
         try {
@@ -628,7 +627,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
-        ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
+        ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class);
         displayDumpable("Object change", delta);
 
         // WHEN

@@ -59,8 +59,8 @@ public class ExpressionValidator<T, IW extends ItemWrapper> implements INullAcce
         PrismContext prismContext = serviceLocator.getPrismContext();
         Object valueToValidate = getValueToValidate(validatable);
         String contextDesc = " form component expression validation ";
-        PrismPropertyDefinition<OperationResultType> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
-                OperationResultType.COMPLEX_TYPE);
+        PrismPropertyDefinition<OperationResultType> outputDefinition = prismContext.definitionFactory().newPropertyDefinition(
+                        ExpressionConstants.OUTPUT_ELEMENT_NAME, OperationResultType.COMPLEX_TYPE);
         Task task = serviceLocator.createSimpleTask(OPERATION_EVALUATE_EXPRESSION);
         OperationResult result = new OperationResult(OPERATION_EVALUATE_EXPRESSION);
         ExpressionFactory expressionFactory = serviceLocator.getExpressionFactory();

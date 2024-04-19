@@ -9,9 +9,10 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType.*;
 
 import java.util.*;
-import java.util.Map.Entry;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -40,10 +41,10 @@ import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsum
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.APrioriDeltaProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.FixedTargetSpecification;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.TargetObjectSpecification;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
@@ -54,7 +55,6 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
@@ -93,7 +93,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class AssignmentProcessor implements ProjectorProcessor {
 
     @Autowired private ReferenceResolver referenceResolver;
-    @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private PrismContext prismContext;
     @Autowired private ConstructionProcessor constructionProcessor;
@@ -346,7 +345,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 request.getEvaluatedAssignment().addFocusMapping(mapping);
             };
 
-            TargetObjectSpecification<AH> targetSpecification = new FixedTargetSpecification<>(focusOdoRelative.getNewObject(), true);
+            var targetSpecification = new FixedTargetSpecification<>(focusOdoRelative.getNewObject(), true);
 
             MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(
                     "focus mappings in assignments of " + focusContext.getHumanReadableName(),
@@ -368,21 +367,19 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     .build();
             mappingSetEvaluation.evaluateMappingsToTriples();
 
-            PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> focusOutputTripleMap =
-                    mappingSetEvaluation.getOutputTripleMap();
+            DeltaSetTripleMap focusOutputTripleMap = mappingSetEvaluation.getOutputTripleMap();
 
             logOutputTripleMap(focusOutputTripleMap);
 
             DeltaSetTripleMapConsolidation<AH> consolidation = new DeltaSetTripleMapConsolidation<>(
                     focusOutputTripleMap,
-                    focusOdoRelative.getNewObject(),
-                    focusOdoRelative.getObjectDelta(),
+                    ObjectTypeUtil.getValue(focusOdoRelative.getNewObject()),
+                    APrioriDeltaProvider.forDelta(focusOdoRelative.getObjectDelta()),
                     context::primaryFocusItemDeltaExists,
                     null,
                     null,
                     ItemDefinitionProvider.forObjectDefinition(focusContext.getObjectDefinition()),
                     env,
-                    beans,
                     context,
                     result);
             consolidation.computeItemDeltas();
@@ -398,11 +395,9 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    private void logOutputTripleMap(
-            Map<ItemPath, DeltaSetTriple<ItemValueWithOrigin<?, ?>>> focusOutputTripleMap) {
+    private void logOutputTripleMap(DeltaSetTripleMap focusOutputTripleMap) {
         if (LOGGER.isTraceEnabled()) {
-            for (Entry<ItemPath, DeltaSetTriple<ItemValueWithOrigin<?, ?>>> entry : focusOutputTripleMap
-                    .entrySet()) {
+            for (var entry : focusOutputTripleMap.entrySet()) {
                 LOGGER.trace("Resulting output triple for {}:\n{}", entry.getKey(), entry.getValue().debugDump(1));
             }
         }

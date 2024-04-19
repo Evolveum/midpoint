@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 @ActionDefinitionClass(DeleteResourceObjectSynchronizationActionType.class)
 public class DeleteResourceObjectAction<F extends FocusType> extends BaseClockworkAction<F> {
 
-    public DeleteResourceObjectAction(@NotNull ActionInstantiationContext<F> ctx) {
+    DeleteResourceObjectAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);
     }
 

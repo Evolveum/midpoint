@@ -208,7 +208,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
     @Override
     public OrgType getOrgByName(String name, boolean preAuthorized) throws SchemaException, SecurityViolationException {
         PolyString polyName = new PolyString(name);
-        ObjectQuery q = ObjectQueryUtil.createNameQuery(polyName, prismContext);
+        ObjectQuery q = ObjectQueryUtil.createNameQuery(polyName);
         List<PrismObject<OrgType>> result = searchObjects(OrgType.class, q, midpointFunctions.getCurrentResult(), preAuthorized);
         if (result.isEmpty()) {
             return null;
@@ -306,7 +306,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
         Set<UserType> retval = new HashSet<>();
         OperationResult result = new OperationResult("getManagerOfOrg");
 
-        ObjectQuery objectQuery = ObjectTypeUtil.createManagerQuery(ObjectType.class, orgOid, relationRegistry, prismContext);
+        ObjectQuery objectQuery = ObjectTypeUtil.createManagerQuery(ObjectType.class, orgOid, relationRegistry);
         List<PrismObject<ObjectType>> members = searchObjects(ObjectType.class, objectQuery, result, preAuthorized);
         for (PrismObject<ObjectType> member : members) {
             if (member.asObjectable() instanceof UserType) {

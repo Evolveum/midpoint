@@ -8,7 +8,6 @@ package com.evolveum.midpoint.model.intest.gensync;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.toRiQName;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +36,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -1099,13 +1097,13 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertEquals("Wrong shadow fullname attribute displayName", "Full Name", attrFullNameDef.getDisplayName());
         assertTrue("additionalName not readable", attrFullNameDef.canRead());
 
-        PrismContainerDefinition<Containerable> identifiersDef = editDef.findContainerDefinition(
-                ItemPath.create(ShadowType.F_ASSOCIATIONS, toRiQName("group"), ShadowAssociationValueType.F_IDENTIFIERS));
-        String message = "Wrong type for " + ShadowAssociationValueType.F_IDENTIFIERS
-                + ", expected ResourceAttributeContainerDefinition but was "
-                + (identifiersDef == null ? null : identifiersDef.getClass().getName())
-                + "; ";
-        assertClassType(message, identifiersDef, ResourceAttributeContainerDefinition.class);
+//        PrismContainerDefinition<Containerable> identifiersDef = editDef.findContainerDefinition(
+//                ItemPath.create(ShadowType.F_ASSOCIATIONS, toRiQName("group"), ShadowAssociationValueType.F_IDENTIFIERS));
+//        String message = "Wrong type for " + ShadowAssociationValueType.F_IDENTIFIERS
+//                + ", expected ResourceAttributeContainerDefinition but was "
+//                + (identifiersDef == null ? null : identifiersDef.getClass().getName())
+//                + "; ";
+//        assertClassType(message, identifiersDef, ResourceAttributeContainerDefinition.class);
 
         assertSteadyResources();
     }

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -100,7 +102,7 @@ public class Synchronizer {
         if (forceAdd) {
             // We should provide shadow in the state before the change. But we are
             // pretending that it has not existed before, so we will not provide it.
-            ObjectDelta<ShadowType> shadowDelta = shadowObject.getPrismContext().deltaFactory().object()
+            ObjectDelta<ShadowType> shadowDelta = PrismContext.get().deltaFactory().object()
                     .create(ShadowType.class, ChangeType.ADD);
             shadowDelta.setObjectToAdd(shadowObject);
             shadowDelta.setOid(shadowObject.getOid());

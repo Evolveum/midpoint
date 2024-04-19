@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.intest.mapping;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * Various advanced tests related to mappings.
  *
- * NOT a subclass of AbstractMappingTest.
+ * NOT a subclass of {@link AbstractMappingTest}: it is not an {@link AbstractInitializedModelIntegrationTest}.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -232,7 +233,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount magnus = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getAccountByUsername(MAGNUS);
+        DummyAccount magnus = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getAccountByName(MAGNUS);
         magnus.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
         magnus.addAttributeValue(ATTR_ORGANIZATION, "valid");
 
@@ -276,7 +277,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount magnus = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getAccountByUsername(MAGNUS);
+        DummyAccount magnus = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getAccountByName(MAGNUS);
         magnus.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
 
         DummyGroup testers = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getGroupByName(MP_TESTERS);
@@ -348,7 +349,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount vladimir = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getAccountByUsername(VLADIMIR);
+        DummyAccount vladimir = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getAccountByName(VLADIMIR);
         vladimir.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
         vladimir.addAttributeValue(ATTR_ORGANIZATION, "valid");
 
@@ -391,7 +392,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount vladimir = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getAccountByUsername(VLADIMIR);
+        DummyAccount vladimir = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getAccountByName(VLADIMIR);
         vladimir.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
 
         DummyGroup testers = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getGroupByName(MP_TESTERS);

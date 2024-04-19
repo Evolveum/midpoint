@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.util.Collection;
+import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationsTy
  *
  * @see ResourceAttributeContainer
  */
-public interface ShadowAssociationsContainer extends PrismContainer<ShadowAssociationsType> {
+public interface ShadowAssociationsContainer extends ShadowItemsContainer, PrismContainer<ShadowAssociationsType> {
 
     static ShadowAssociationsContainer convertFromPrismContainer(
             @NotNull PrismContainer<?> origPrismContainer, @NotNull ResourceObjectDefinition resourceObjectDefinition)
@@ -75,4 +76,9 @@ public interface ShadowAssociationsContainer extends PrismContainer<ShadowAssoci
 
     @Override
     ShadowAssociationsContainer clone();
+
+    default @NotNull Collection<? extends ShadowAssociationValue> getAssociationValues(QName assocName) {
+        var association = findAssociation(assocName);
+        return association != null ? association.getAssociationValues() : List.of();
+    }
 }

@@ -135,6 +135,13 @@
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
+    <bean id="shadowOwnerReferenceSearchExpressionEvaluatorFactory"
+            class="com.evolveum.midpoint.model.common.expression.evaluator.ShadowOwnerReferenceSearchExpressionEvaluatorFactory">
+        <constructor-arg ref="expressionFactory"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <property name="objectResolver" ref="modelObjectResolver"/>
+    </bean>
+
     <bean id="associationTargetSearchExpressionEvaluatorFactory"
             class="com.evolveum.midpoint.model.common.expression.evaluator.AssociationTargetSearchExpressionEvaluatorFactory">
         <constructor-arg ref="expressionFactory"/>

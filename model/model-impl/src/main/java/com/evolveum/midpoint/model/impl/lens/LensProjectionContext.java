@@ -268,7 +268,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * - Target: ReconciliationProcessor
      */
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes;
-    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>,ShadowAssociationDefinition>>> squeezedAssociations;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>>> squeezedAssociations;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses;
 
     /** Dependency-defining beans *with the defaults filled-in*. All of resource OID, kind, and intent are not null. */
@@ -444,7 +444,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             } else if (shouldCreateObjectCurrent()) {
                 ResourceObjectDefinition rOCD = getCompositeObjectDefinition();
                 if (rOCD != null) {
-                    return rOCD.createBlankShadow(getResourceOid(), key.getTag());
+                    return rOCD
+                            .createBlankShadowWithTag(key.getTag())
+                            .getPrismObject();
                 } else {
                     return null;
                 }
@@ -895,12 +897,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.squeezedAttributes = squeezedAttributes;
     }
 
-    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>,ShadowAssociationDefinition>>> getSqueezedAssociations() {
+    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>>> getSqueezedAssociations() {
         return squeezedAssociations;
     }
 
     public void setSqueezedAssociations(
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>,ShadowAssociationDefinition>>> squeezedAssociations) {
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>>> squeezedAssociations) {
         this.squeezedAssociations = squeezedAssociations;
     }
 
@@ -1177,11 +1179,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 // We need to convert modify delta to ADD
                 ObjectDelta<ShadowType> addDelta = PrismContext.get().deltaFactory().object().create(getObjectTypeClass(),
                     ChangeType.ADD);
-                ResourceObjectDefinition objectTypeDef = getCompositeObjectDefinitionRequired();
-                PrismObject<ShadowType> newAccount = objectTypeDef.createBlankShadow(
-                        getResourceOid(), key.getTag());
-                addDelta.setObjectToAdd(newAccount);
-
+                addDelta.setObjectToAdd(
+                        getCompositeObjectDefinitionRequired()
+                                .createBlankShadowWithTag(key.getTag())
+                                .getPrismObject());
                 if (origDelta != null) {
                     addDelta.merge(origDelta);
                 }
@@ -1943,8 +1944,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (objectDefinition == null) {
             return null;
         }
-        ResourceObjectTypeDefinition typeDefinition = objectDefinition.getTypeDefinition();
-        return typeDefinition != null ? typeDefinition.getArchetypeOid() : null;
+        return objectDefinition.getFocusSpecification().getArchetypeOid();
     }
 
     /** Returns focus identity source information for data created from this projection. */

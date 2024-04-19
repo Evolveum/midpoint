@@ -697,7 +697,7 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
     public class ShadowAttributesHelper {
 
         private final ShadowAttributesType attributesContainer;
-        private final MutablePrismContainerDefinition<Containerable> attrsDefinition;
+        private final PrismContainerDefinition<Containerable> attrsDefinition;
 
         /**
          * Creates the attribute helper for the shadow, adding attributes container to the shadow.
@@ -708,12 +708,12 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             // let's create the container+PCV inside the shadow object
             object.attributes(attributesContainer);
 
-            MutableComplexTypeDefinition ctd = prismContext.definitionFactory()
-                    .createComplexTypeDefinition(ShadowAttributesType.COMPLEX_TYPE);
+            ComplexTypeDefinition ctd =
+                    prismContext.definitionFactory().newComplexTypeDefinition(ShadowAttributesType.COMPLEX_TYPE);
             //noinspection unchecked
-            attrsDefinition = (MutablePrismContainerDefinition<Containerable>)
+            attrsDefinition = (PrismContainerDefinition<Containerable>)
                     prismContext.definitionFactory()
-                            .createContainerDefinition(ShadowType.F_ATTRIBUTES, ctd);
+                            .newContainerDefinition(ShadowType.F_ATTRIBUTES, ctd);
             object.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES)
                     .applyDefinition(attrsDefinition);
         }
@@ -723,8 +723,8 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         public final <V> ShadowAttributesHelper set(
                 QName attributeName, QName type, int minOccurrence, int maxOccurrence,
                 V... values) throws SchemaException {
-            var def = attrsDefinition.createPropertyDefinition(attributeName, type, minOccurrence, maxOccurrence);
-            def.setDynamic(true); // MID-2119 (reconsider)
+            var def = attrsDefinition.mutator().createPropertyDefinition(attributeName, type, minOccurrence, maxOccurrence);
+            def.mutator().setDynamic(true); // MID-2119 (reconsider)
             addExtensionValue(attributesContainer, attributeName.getLocalPart(), values);
             return this;
         }

@@ -271,7 +271,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(MODIFY_ORG_ADD_REF_FILENAME),
                 ObjectModificationType.COMPLEX_TYPE);
-        ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
+        ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class);
 
         List<ROrgClosure> orgClosure;
 
@@ -339,7 +339,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(MODIFY_ORG_INCORRECT_ADD_REF_FILENAME),
                 ObjectModificationType.COMPLEX_TYPE);
-        ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
+        ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class);
 
         repositoryService.modifyObject(OrgType.class, MODIFY_ORG_INCORRECT_ADD_REF_OID, delta.getModifications(), opResult);
 
@@ -382,7 +382,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(MODIFY_ORG_DELETE_REF_FILENAME),
                 ObjectModificationType.COMPLEX_TYPE);
 
-        ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
+        ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class);
 
         Session session = open();
         try {
@@ -412,7 +412,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(MODIFY_ORG_INCORRECT_DELETE_REF_FILENAME),
                 ObjectModificationType.COMPLEX_TYPE);
 
-        ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
+        ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class);
 
         Session session = open();
         try {

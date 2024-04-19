@@ -102,11 +102,6 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public RawResourceAttributeDefinition<T> getRawAttributeDefinition() {
-        return getRefinedAttributeDefinition().getRawAttributeDefinition();
-    }
-
-    @Override
     public @Nullable MappingType getOutboundMappingBean() {
         return getRefinedAttributeDefinition().getOutboundMappingBean();
     }
@@ -147,7 +142,7 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public AttributeFetchStrategyType getFetchStrategy() {
+    public @NotNull AttributeFetchStrategyType getFetchStrategy() {
         return getRefinedAttributeDefinition().getFetchStrategy();
     }
 
@@ -233,7 +228,7 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public @Nullable ItemCorrelatorDefinitionType getCorrelatorDefinition() {
+    public ItemCorrelatorDefinitionType getCorrelatorDefinition() {
         return getRefinedAttributeDefinition().getCorrelatorDefinition();
     }
 
@@ -260,8 +255,13 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public @NotNull MutableRawResourceAttributeDefinition<T> toMutable() {
-        return getRefinedAttributeDefinition().toMutable();
+    public String getHumanReadableDescription() {
+        return getRefinedAttributeDefinition().getHumanReadableDescription();
+    }
+
+    @Override
+    public boolean isSimulated() {
+        return getRefinedAttributeDefinition().isSimulated();
     }
 
     @Override
@@ -292,5 +292,10 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     @Override
     public @NotNull LayerType getCurrentLayer() {
         return getRefinedAttributeDefinition().getCurrentLayer();
+    }
+
+    @Override
+    public void shortDump(StringBuilder sb) {
+        getRefinedAttributeDefinition().shortDump(sb);
     }
 }

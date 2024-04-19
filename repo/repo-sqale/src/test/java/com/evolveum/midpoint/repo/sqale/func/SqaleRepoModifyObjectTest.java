@@ -3396,16 +3396,17 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .intent("intent");
         ItemName attrName = new ItemName(NS_RI, "a520");
         ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrName);
+        //noinspection RedundantTypeArguments // actually, it is needed because of ambiguity resolution
         new ShadowAttributesHelper(shadow)
                 .<String>set(attrName, DOMUtil.XSD_STRING, 0, 1, "jack");
         var shadowOid = repositoryService.addObject(shadow.asPrismObject(), null, result);
 
         when("attribute is replaced by PolyString version");
-        MutablePrismPropertyDefinition<PolyString> updatedAttrDef =
-                prismContext.definitionFactory().createPropertyDefinition(attrName, PolyStringType.COMPLEX_TYPE);
-        updatedAttrDef.setMinOccurs(0);
-        updatedAttrDef.setMaxOccurs(1);
-        updatedAttrDef.setDynamic(true);
+        PrismPropertyDefinition<PolyString> updatedAttrDef =
+                prismContext.definitionFactory().newPropertyDefinition(attrName, PolyStringType.COMPLEX_TYPE);
+        updatedAttrDef.mutator().setMinOccurs(0);
+        updatedAttrDef.mutator().setMaxOccurs(1);
+        updatedAttrDef.mutator().setDynamic(true);
         var deltas = prismContext.deltaFor(ShadowType.class)
                 .item(attrPath, updatedAttrDef)
                 .replace(PolyString.fromOrig("JACK2"))

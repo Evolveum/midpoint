@@ -320,7 +320,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
                                 .code(libraryMethodExecutionCode)));
         PrismPropertyDefinition<String> outputDefinition =
                 PrismContext.get().definitionFactory()
-                        .createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
+                        .newPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
                 expressionFactory.makeExpression(
                         ExpressionConfigItem.of(expressionBean, ConfigurationItemOrigin.generated()),
@@ -490,7 +490,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
                                 .name(functionName)));
         PrismPropertyDefinition<?> outputDefinition =
                 PrismContext.get().definitionFactory()
-                        .createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, outputTypeName);
+                        .newPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, outputTypeName);
         Expression<PrismPropertyValue<?>, PrismPropertyDefinition<?>> expression =
                 expressionFactory.makeExpression(
                         ExpressionConfigItem.of(expressionBean, ConfigurationItemOrigin.generated()),

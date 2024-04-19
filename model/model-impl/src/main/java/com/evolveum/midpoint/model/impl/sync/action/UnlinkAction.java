@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 @ActionDefinitionClass(UnlinkSynchronizationActionType.class)
 public class UnlinkAction<F extends FocusType> extends BaseClockworkAction<F> {
 
-    public UnlinkAction(@NotNull ActionInstantiationContext<F> ctx) {
+    UnlinkAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);
     }
 

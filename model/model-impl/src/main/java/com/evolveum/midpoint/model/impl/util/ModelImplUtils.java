@@ -680,7 +680,7 @@ public class ModelImplUtils {
             ConfigurationException, SecurityViolationException {
 
         ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
-                new ExpressionEnvironmentBuilder<F, PrismValue, ItemDefinition<?>>()
+                new ExpressionEnvironmentBuilder<PrismValue, ItemDefinition<?>>()
                         .lensContext(lensContext)
                         .currentResult(parentResult)
                         .currentTask(task)

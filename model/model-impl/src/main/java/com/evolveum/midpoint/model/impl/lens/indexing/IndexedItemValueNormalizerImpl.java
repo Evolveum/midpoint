@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.impl.lens.indexing;
 
 import com.evolveum.midpoint.model.api.indexing.IndexedItemValueNormalizer;
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -102,11 +101,9 @@ public class IndexedItemValueNormalizerImpl implements IndexedItemValueNormalize
 
     @Override
     public @NotNull PrismPropertyDefinition<?> getIndexItemDefinition() {
-        MutablePrismPropertyDefinition<String> definition = PrismContext.get().definitionFactory()
-                .createPropertyDefinition(getIndexItemName(), DOMUtil.XSD_STRING);
-        definition.setMinOccurs(0);
-        definition.setMaxOccurs(-1);
-        definition.setDynamic(true);
+        PrismPropertyDefinition<String> definition = PrismContext.get().definitionFactory()
+                .newPropertyDefinition(getIndexItemName(), DOMUtil.XSD_STRING, 0, -1);
+        definition.mutator().setDynamic(true);
         return definition;
     }
 

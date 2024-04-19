@@ -173,7 +173,8 @@ public class ResourceObjectFuturizer {
             }
         }
 
-        shadowDefinitionApplicator.applyToAssociationIdentifiers(currentResourceObject.getBean());
+        // I am not sure why there is still PrismContainerDefinition in associated objects.
+        shadowDefinitionApplicator.applyToAssociationValues(currentResourceObject.getBean());
 
         // TODO: check schema, remove non-readable attributes, activation, password, etc.
 //        CredentialsType creds = resultShadowType.getCredentials();

@@ -15,23 +15,20 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityS
 import java.util.List;
 import java.util.function.Supplier;
 
-import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
-import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.ResourceCompletionMode;
-import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.TestMode;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
+import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.ResourceCompletionMode;
+import com.evolveum.midpoint.provisioning.api.ResourceTestOptions.TestMode;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -39,6 +36,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 /**
@@ -81,7 +82,7 @@ class ResourceTestOperation {
     /**
      * Resource schema that is fetched during the operation. Should not be modified afterwards. (TODO what about adjusting?)
      */
-    private ResourceSchema rawResourceSchema;
+    private NativeResourceSchema nativeResourceSchema;
 
     private boolean resourceSchemaWasFetched;
 
@@ -295,7 +296,7 @@ class ResourceTestOperation {
         try {
             fetchSchema(result);
 
-            if (!PrismSchema.isNullOrEmpty(rawResourceSchema)) {
+            if (!NativeResourceSchema.isNullOrEmpty(nativeResourceSchema)) {
                 resourceSchemaWasFetched = true;
             } else {
                 // Resource does not support schema. If there is a static schema in resource definition this may still be OK.
@@ -316,7 +317,7 @@ class ResourceTestOperation {
 
     private void fetchSchema(OperationResult result) throws TestFailedException {
         try {
-            rawResourceSchema = beans.resourceManager.schemaFetcher.fetchResourceSchema(
+            nativeResourceSchema = beans.resourceManager.schemaFetcher.fetchResourceSchema(
                     resource, nativeConnectorsCapabilities, result);
         } catch (CommunicationException e) {
             onSchemaFetchProblem(e, "Communication error", DOWN, result);
@@ -335,7 +336,7 @@ class ResourceTestOperation {
 
     private void readStoredSchema(OperationResult result) throws TestFailedException {
         try {
-            rawResourceSchema = ResourceSchemaFactory.getRawSchema(resource);
+            nativeResourceSchema = ResourceSchemaFactory.getNativeSchema(resource);
         } catch (Exception e) {
             throw TestFailedException.record(
                     "Couldn't read stored schema",
@@ -343,7 +344,7 @@ class ResourceTestOperation {
                     BROKEN, e, result);
         }
 
-        if (PrismSchema.isNullOrEmpty(rawResourceSchema)) {
+        if (NativeResourceSchema.isNullOrEmpty(nativeResourceSchema)) {
             throw TestFailedException.record(
                     "Connector does not support schema and no static schema is available",
                     operationDesc + " failed: Connector does not support schema and no static schema is available",
@@ -353,12 +354,9 @@ class ResourceTestOperation {
 
     /** Currently we simply check the schema by parsing it. Later we can extend this to more elaborate checks. */
     private void adjustAndCheckSchema(OperationResult result) throws TestFailedException {
-        assert !PrismSchema.isNullOrEmpty(rawResourceSchema);
+        assert !NativeResourceSchema.isNullOrEmpty(nativeResourceSchema);
         try {
-            rawResourceSchema =
-                    new ResourceSchemaAdjuster(resource, rawResourceSchema)
-                            .adjustSchema();
-            var completeSchema = ResourceSchemaFactory.parseCompleteSchema(resource, rawResourceSchema);
+            var completeSchema = ResourceSchemaFactory.parseCompleteSchema(resource, nativeResourceSchema);
             schemaHelper.updateSchemaToConnectors(resource, completeSchema, result);
         } catch (Exception e) {
             throw TestFailedException.record(
@@ -390,8 +388,8 @@ class ResourceTestOperation {
         }
 
         if (resourceSchemaWasFetched) {
-            updater.updateSchema(rawResourceSchema);
-        } else if (areSchemaCachingMetadataMissing() && PrismSchema.isNotEmpty(rawResourceSchema)) {
+            updater.updateSchema(nativeResourceSchema);
+        } else if (areSchemaCachingMetadataMissing() && NativeResourceSchema.isNotEmpty(nativeResourceSchema)) {
             updater.updateSchemaCachingMetadata();
         }
 
@@ -432,8 +430,7 @@ class ResourceTestOperation {
         }
 
         private void instantiateConnector(OperationResult parentResult) throws TestFailedException {
-            OperationResult result = parentResult
-                    .createSubresult(TestResourceOpNames.CONNECTOR_INSTANTIATION.getOperation());
+            OperationResult result = parentResult.createSubresult(TestResourceOpNames.CONNECTOR_INSTANTIATION.getOperation());
 
             try {
                 // TODO The original comment here was "Make sure we are getting non-configured instance."
@@ -471,8 +468,7 @@ class ResourceTestOperation {
 
         /** Configures and initializes the connector. */
         private void initializeConnector(OperationResult parentResult) throws TestFailedException {
-            OperationResult result = parentResult
-                    .createSubresult(TestResourceOpNames.CONNECTOR_INITIALIZATION.getOperation());
+            OperationResult result = parentResult.createSubresult(TestResourceOpNames.CONNECTOR_INITIALIZATION.getOperation());
 
             try {
                 PrismObjectDefinition<ResourceType> resourceDefinition = resource.asPrismObject().getDefinition();
@@ -549,8 +545,7 @@ class ResourceTestOperation {
         }
 
         private void fetchConnectorCapabilities(OperationResult parentResult) throws TestFailedException {
-            OperationResult result = parentResult
-                    .createSubresult(TestResourceOpNames.CONNECTOR_CAPABILITIES.getOperation());
+            OperationResult result = parentResult.createSubresult(TestResourceOpNames.CONNECTOR_CAPABILITIES.getOperation());
             try {
                 InternalMonitor.recordCount(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
                 CapabilityCollectionType retrievedCapabilities = connector.fetchCapabilities(result);

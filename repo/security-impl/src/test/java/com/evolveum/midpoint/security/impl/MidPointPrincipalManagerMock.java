@@ -127,13 +127,13 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
 
     private PrismObject<? extends FocusType> findByUsername(String username, Class<? extends FocusType> focusType, OperationResult result) throws SchemaException, ObjectNotFoundException {
         PolyString usernamePoly = new PolyString(username);
-        ObjectQuery query = ObjectQueryUtil.createNormNameQuery(usernamePoly, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createNormNameQuery(usernamePoly);
         LOGGER.trace("Looking for user, query:\n" + query.debugDump());
 
-        List<? extends PrismObject<? extends FocusType>> list = repositoryService.searchObjects(focusType, query, null,
-                result);
-        LOGGER.trace("Users found: {}.", (list != null ? list.size() : 0));
-        if (list == null || list.size() != 1) {
+        List<? extends PrismObject<? extends FocusType>> list =
+                repositoryService.searchObjects(focusType, query, null, result);
+        LOGGER.trace("Users found: {}.", list.size());
+        if (list.size() != 1) {
             return null;
         }
 

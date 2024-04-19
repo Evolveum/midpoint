@@ -259,18 +259,18 @@ public class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType>
 
             registerEvaluationAndCheckThatParentsWereEvaluated(childConfiguration);
 
-            CandidateOwnersMap childCandidateOwnersMap =
+            CandidateOwners childCandidateOwners =
                     MiscUtil.requireNonNull(
-                            childResult.getCandidateOwnersMap(),
+                            childResult.getCandidateOwners(),
                             () -> new IllegalStateException(
                                     String.format("No candidate owner map obtained from the child correlator: %s",
                                             childConfiguration.identify())));
 
-            for (CandidateOwner candidateOwner : childCandidateOwnersMap.values()) {
+            for (CandidateOwner.ObjectBased candidateOwner : childCandidateOwners.objectBasedValues()) {
                 String candidateOwnerOid = candidateOwner.getOid();
 
                 LOGGER.trace("Considering candidate owner {}", candidateOwner);
-                allCandidates.add(candidateOwner.getObject());
+                allCandidates.add(candidateOwner.getValue());
                 registerExternalId(candidateOwner);
 
                 Set<String> ignoredBecause = registerMatchAndCheckIfIgnored(childConfiguration, candidateOwnerOid);
@@ -279,7 +279,7 @@ public class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType>
             }
         }
 
-        private void registerExternalId(CandidateOwner candidateOwner) {
+        private void registerExternalId(CandidateOwner.ObjectBased candidateOwner) {
             String externalId = candidateOwner.getExternalId();
             if (externalId != null) {
                 LOGGER.trace("Registering external ID: {}", externalId);
@@ -293,14 +293,14 @@ public class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType>
         }
 
         private CorrelationResult createCorrelationResult() {
-            CandidateOwnersMap candidateOwnersMap = new CandidateOwnersMap();
+            CandidateOwners candidateOwners = new CandidateOwners();
             currentConfidences.forEach(
                     (oid, confidence) ->
-                            candidateOwnersMap.put(
+                            candidateOwners.putObject(
                                     allCandidates.get(oid),
                                     externalIds.get(oid),
                                     confidence));
-            return CorrelationResult.of(candidateOwnersMap);
+            return CorrelationResult.of(candidateOwners);
         }
 
         private Collection<String> getCertainOwners() {

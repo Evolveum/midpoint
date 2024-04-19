@@ -889,7 +889,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         //  - low-level "shadow-simulated" import -> produces classification simulation result
 
         when("account 'type' attribute is changed to 'person'");
-        resource.controller.getDummyResource().getAccountByUsername(accountName)
+        resource.controller.getDummyResource().getAccountByName(accountName)
                 .addAttributeValue(ATTR_TYPE, "person");
 
         and("the account is imported with shadow-simulation (on background)");
@@ -1058,7 +1058,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .assertIntent(INTENT_DEFAULT);
 
         when("shadow is changed so it will belong to 'person' type");
-        resource.controller.getDummyResource().getAccountByUsername(accountName)
+        resource.controller.getDummyResource().getAccountByName(accountName)
                 .addAttributeValue(ATTR_TYPE, "person");
 
         and("shadow is retrieved in development-low-level-simulation mode");

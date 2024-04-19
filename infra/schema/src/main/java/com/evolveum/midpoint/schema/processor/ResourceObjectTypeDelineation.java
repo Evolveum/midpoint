@@ -9,7 +9,6 @@ package com.evolveum.midpoint.schema.processor;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.BaseContextClassificationUseType.IF_APPLICABLE;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -17,6 +16,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
+import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,8 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @see ResourceObjectTypeDelineationType
  */
 public class ResourceObjectTypeDelineation
-        extends ResourceObjectSetDelineation
-        implements Serializable {
+        extends ResourceObjectSetDelineation {
 
     @NotNull private final Collection<QName> auxiliaryObjectClassNames;
     @Nullable private final ExpressionType condition;
@@ -123,5 +122,18 @@ public class ResourceObjectTypeDelineation
         DebugUtil.debugDumpWithLabelLn(sb, "auxiliaryObjectClassNames", auxiliaryObjectClassNames, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "condition", String.valueOf(condition), indent + 1); // TODO
         DebugUtil.debugDumpWithLabel(sb, "classificationOrder", getClassificationOrder(), indent + 1);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("auxiliaryObjectClassNames", auxiliaryObjectClassNames)
+                .add("condition", condition)
+                .add("delineationBean", delineationBean)
+                .add("objectClassName", objectClassName)
+                .add("baseContext", baseContext)
+                .add("searchHierarchyScope", searchHierarchyScope)
+                .add("filterClauses", filterClauses)
+                .toString();
     }
 }

@@ -45,12 +45,12 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
                 ArchetypePolicyType.F_DISPLAY,
                 DisplayType.F_ICON));
         @NotNull PrismPropertyDefinition<Object> cssDef = iconContainerDefinition.findPropertyDefinition(IconType.F_CSS_CLASS).clone();
-        cssDef.toMutable().setDisplayName("ResourceObjectTypeArchetypeValueWrapperImpl.icon");
+        cssDef.mutator().setDisplayName("ResourceObjectTypeArchetypeValueWrapperImpl.icon");
         iconContainerDefinition.replaceDefinition(IconType.F_CSS_CLASS, cssDef);
 
         @NotNull PrismReferenceDefinition superArchetype = def.findReferenceDefinition(ArchetypeType.F_SUPER_ARCHETYPE_REF).clone();
-        superArchetype.toMutable().setDisplayName("ResourceObjectTypeArchetypeValueWrapperImpl.superArchetype");
-        superArchetype.toMutable().setDisplayOrder(0);
+        superArchetype.mutator().setDisplayName("ResourceObjectTypeArchetypeValueWrapperImpl.superArchetype");
+        superArchetype.mutator().setDisplayOrder(0);
         def.replaceDefinition(ArchetypeType.F_SUPER_ARCHETYPE_REF, superArchetype);
 
         PrismObjectWrapper<ObjectType> objectWrapper = getParent().findObjectWrapper();

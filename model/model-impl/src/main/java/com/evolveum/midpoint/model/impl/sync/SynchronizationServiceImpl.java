@@ -371,30 +371,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         LOGGER.debug("Correlation result:\n{}", correlationResult.debugDumpLazily(1));
 
-        SynchronizationSituationType state;
-        F owner;
-        switch (correlationResult.getSituation()) {
-            case EXISTING_OWNER:
-                state = SynchronizationSituationType.UNLINKED;
-                //noinspection unchecked
-                owner = (F) correlationResult.getOwner();
-                break;
-            case NO_OWNER:
-                state = SynchronizationSituationType.UNMATCHED;
-                owner = null;
-                break;
-            case UNCERTAIN:
-            case ERROR:
-                state = SynchronizationSituationType.DISPUTED;
-                owner = null;
-                break;
-            default:
-                throw new AssertionError(correlationResult.getSituation());
-        }
-        LOGGER.debug("Determined synchronization situation: {} with owner: {}", state, owner);
+        SynchronizationState<F> syncState = SynchronizationState.fromCorrelationResult(correlationResult);
+        LOGGER.debug("Determined synchronization state: {}", syncState);
 
-        syncCtx.setCorrelatedOwner(owner);
-        syncCtx.setSituationIfNull(state);
+        syncCtx.setCorrelatedOwner(syncState.owner());
+        syncCtx.setSituationIfNull(syncState.situation());
 
         if (correlationResult.isError()) {
             // This is a very crude and preliminary error handling: we just write pending deltas to the shadow
@@ -421,7 +402,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     private <F extends FocusType> void evaluatePreMappings(SynchronizationContext<F> syncCtx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-        new PreMappingsEvaluation<>(syncCtx, beans)
+        new PreMappingsEvaluation<>(syncCtx)
                 .evaluate(result);
     }
 

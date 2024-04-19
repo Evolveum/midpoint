@@ -63,6 +63,7 @@
                 <ref>icfs:name</ref>
                 <displayName>Username</displayName>
                 <outbound>
+                    <name>name</name>
                     <strength>strong</strength>
                     <source>
                         <path>$user/name</path>
@@ -91,6 +92,7 @@
                 <ref>ri:fullname</ref>
                 <displayName>Full Name</displayName>
                 <outbound>
+                    <name>fullName</name>
                     <source>
                         <path>fullName</path>
                     </source>
@@ -122,11 +124,10 @@
                 <ref>ri:location</ref>
                 <displayName>Location</displayName>
                 <outbound>
+                    <name>locality</name>
                     <strength>strong</strength>
                     <source>
-                        <path>
-                            $user/locality
-                        </path>
+                        <path>$user/locality</path>
                     </source>
                 </outbound>
                 <inbound>
@@ -172,6 +173,7 @@
                 <displayName>Loot</displayName>
                 <fetchStrategy>explicit</fetchStrategy>
                 <outbound>
+                    <name>loot</name>
                     <channel>http://pirates.net/avast</channel>
                     <expression>
                         <script>
@@ -184,6 +186,7 @@
                 <ref>ri:weapon</ref>
                 <displayName>Weapon</displayName>
                 <outbound>
+                    <name>weapon</name>
                     <strength>weak</strength>
                     <source>
                         <path>
@@ -198,6 +201,7 @@
                 <displayName>Drink</displayName>
                 <tolerant>false</tolerant>
                 <outbound>
+                    <name>drink</name>
                     <strength>strong</strength>
                     <expression>
                         <value>rum</value>
@@ -209,6 +213,7 @@
                 <displayName>Quote</displayName>
                 <tolerant>true</tolerant>
                 <outbound>
+                    <name>quote</name>
                     <strength>strong</strength>
                     <expression>
                         <value>Arr!</value>
@@ -231,6 +236,7 @@
                     <processing>ignore</processing>
                 </limitations>
                 <outbound>
+                    <name>water</name>
                     <!-- Make sure this mapping is really ignored -->
                     <expression>
                         <value>fishy</value>
@@ -246,6 +252,12 @@
                     </target>
                 </inbound>
             </attribute>
+            <association>
+                <ref>ri:group</ref>
+                <tolerant>false</tolerant>
+                <tolerantValuePattern>LaNdLuBeRs</tolerantValuePattern>
+                <tolerantValuePattern>mapmakers</tolerantValuePattern>
+            </association>
 
             <iteration>
                 <maxIterations>5</maxIterations>
@@ -396,6 +408,16 @@
                     </condition>
                 </inbound>
             </attribute>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <expression>
+                        <value>
+                            <shadowRef oid="20000000-0000-0000-3333-000000000002"/> <!-- "testers" group -->
+                        </value>
+                    </expression>
+                </outbound>
+            </association>
 
             <iteration>
                 <maxIterations>5</maxIterations>
@@ -468,6 +490,10 @@
                 <ref>ri:members</ref>
                 <fetchStrategy>minimal</fetchStrategy>
             </attribute>
+            <association>
+                <ref>ri:group</ref>
+                <!-- nothing to configure here -->
+            </association>
         </objectType>
 
         <objectType>
@@ -477,47 +503,6 @@
             <objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
 
-        <associationType>
-            <name>ri:groupMembershipForDefaultAccount</name>
-            <associationClass>ri:groupMembership</associationClass>
-            <subject>
-                <type>
-                    <kind>account</kind>
-                    <intent>default</intent>
-                </type>
-                <tolerant>false</tolerant>
-                <tolerantValuePattern>LaNdLuBeRs</tolerantValuePattern>
-                <tolerantValuePattern>mapmakers</tolerantValuePattern>
-            </subject>
-        </associationType>
-        <associationType>
-            <name>ri:groupMembershipForTestAccount</name>
-            <associationClass>ri:groupMembership</associationClass>
-            <subject>
-                <type>
-                    <kind>account</kind>
-                    <intent>test</intent>
-                </type>
-                <outbound>
-                    <expression>
-                        <value>
-                            <!-- "testers" group -->
-                            <shadowRef oid="20000000-0000-0000-3333-000000000002" type="ShadowType"/>
-                        </value>
-                    </expression>
-                </outbound>
-            </subject>
-        </associationType>
-        <associationType>
-            <name>ri:groupMembershipForGroup</name>
-            <associationClass>ri:groupMembership</associationClass>
-            <subject>
-                <type>
-                    <kind>entitlement</kind>
-                    <intent>group</intent>
-                </type>
-            </subject>
-        </associationType>
         <!-- account privilege is applied automatically, no need to refine the definition -->
     </schemaHandling>
 

@@ -8,12 +8,11 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.*;
-
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
+import javax.xml.namespace.QName;
 
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -25,8 +24,9 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectIdentifiersType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectIdentityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Identification of a resource object using its primary and/or secondary identifiers.
@@ -98,33 +98,6 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
                         ResourceObjectIdentifier.Secondary.of(secondaryIdentifierAttributes)));
     }
 
-    /** Gets identifiers from the association value, applying definitions if needed. */
-    private static @NotNull Collection<ResourceAttribute<?>> getIdentifiersAttributes(
-            PrismContainerValue<ShadowAssociationValueType> associationCVal, ResourceObjectDefinition entitlementDef)
-            throws SchemaException {
-        PrismContainer<?> container =
-                MiscUtil.requireNonNull(
-                        associationCVal.findContainer(ShadowAssociationValueType.F_IDENTIFIERS),
-                        () -> "No identifiers in association value: " + associationCVal);
-        if (container instanceof ResourceAttributeContainer resourceAttributeContainer) {
-            return resourceAttributeContainer.getAttributes();
-        }
-        // TODO shouldn't we have the definition applied here?
-        Collection<ResourceAttribute<?>> identifierAttributes = new ArrayList<>();
-        for (Item<?, ?> rawIdentifierItem : container.getValue().getItems()) {
-            // TODO use instantiateFromRealValues?
-            ResourceAttribute<Object> attribute =
-                    entitlementDef
-                            .findAttributeDefinitionRequired(rawIdentifierItem.getElementName())
-                            .instantiate();
-            for (Object val : rawIdentifierItem.getRealValues()) {
-                attribute.addRealValue(val);
-            }
-            identifierAttributes.add(attribute);
-        }
-        return identifierAttributes;
-    }
-
     /** Enriches current identification with a primary identifier. */
     public WithPrimary withPrimaryAdded(@NotNull ResourceObjectIdentifier.Primary<?> primaryIdentifier) {
         return new WithPrimary(resourceObjectDefinition, identifiers.withPrimary(primaryIdentifier));
@@ -168,15 +141,6 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
         return fromIdentifiersOrAttributes(objectDefinition, allIdentifiers, false);
     }
 
-    public static @NotNull ResourceObjectIdentification<?> fromAssociationValue(
-            @NotNull ResourceObjectDefinition targetObjDef,
-            @NotNull PrismContainerValue<ShadowAssociationValueType> associationValue)
-            throws SchemaException {
-        return fromIdentifiers(
-                targetObjDef,
-                getIdentifiersAttributes(associationValue, targetObjDef));
-    }
-
     public static @NotNull ResourceObjectIdentification<?> fromAttributes(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull Collection<? extends ResourceAttribute<?>> attributes) {
@@ -204,13 +168,6 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
         } else {
             throw new IllegalStateException("Shadow " + shadow + " does not have a primary identifier");
         }
-    }
-
-    /** Returns identification for a shadow. The shadow must have at least one identifier, not necessarily the primary one. */
-    public static @NotNull ResourceObjectIdentification<?> fromIncompleteShadow(
-            @NotNull ResourceObjectDefinition resourceObjectDefinition,
-            @NotNull ShadowType shadow) {
-        return fromAttributes(resourceObjectDefinition, ShadowUtil.getAttributes(shadow));
     }
 
     public @NotNull I getIdentifiers() {

@@ -9,14 +9,11 @@ package com.evolveum.midpoint.gui.impl.component.table;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.component.ButtonBar;
-import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.component.ItemDefinitionPanel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.ItemDefinitionDto;
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
@@ -133,7 +130,7 @@ public class DefinitionTablePanel<T extends ItemDefinitionDto> extends BasePanel
             public void onClick(AjaxRequestTarget target) {
 
                 //TODO ugly hack
-                MutablePrismPropertyDefinition ppd = createNewDefinition();
+                PrismPropertyDefinition ppd = createNewDefinition();
                 ItemDefinitionPanel itemDefPanel = new ItemDefinitionPanel(getPageBase().getMainPopupBodyId(), new Model<>(new ItemDefinitionDto(ppd)), true) {
 
                     @Override
@@ -153,7 +150,7 @@ public class DefinitionTablePanel<T extends ItemDefinitionDto> extends BasePanel
 
     }
 
-    protected MutablePrismPropertyDefinition createNewDefinition() {
+    protected PrismPropertyDefinition createNewDefinition() {
         throw new UnsupportedOperationException("Not implemented");
     }
 

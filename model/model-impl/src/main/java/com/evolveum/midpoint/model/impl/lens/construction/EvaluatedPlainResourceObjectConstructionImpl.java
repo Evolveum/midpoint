@@ -13,9 +13,6 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -96,14 +93,13 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
     }
 
     @Override
-    List<AssociationEvaluation<AH>> getAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
-            throws ConfigurationException {
+    List<AssociationEvaluation<AH>> getAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) {
         List<AssociationEvaluation<AH>> associationsToEvaluate = new ArrayList<>();
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
-        for (ShadowAssociationDefinition associationDefinition : objectDefinition.getAssociationDefinitions()) {
-            var outboundMapping = associationDefinition.getOutboundMapping();
-            if (outboundMapping == null) {
+        for (var associationDefinition : objectDefinition.getAssociationDefinitions()) {
+            var outboundMappingBean = associationDefinition.getOutboundMappingBean();
+            if (outboundMappingBean == null) {
                 continue;
             }
             if (!associationDefinition.isVisible(constructionEvaluation.task)) {
@@ -112,10 +108,12 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
                 continue;
             }
 
+            var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
+
             associationsToEvaluate.add(
                     new AssociationEvaluation<>(
                             constructionEvaluation, associationDefinition,
-                            outboundMapping,
+                            MappingConfigItem.of(outboundMappingBean, origin),
                             OriginType.OUTBOUND, MappingKindType.OUTBOUND));
         }
         return associationsToEvaluate;

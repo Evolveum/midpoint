@@ -6,12 +6,15 @@
  */
 package com.evolveum.icf.dummy.resource;
 
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Radovan Semancik
  *
  */
 public class DummyPrivilege extends DummyObject {
+
+    public static final String OBJECT_CLASS_NAME = "privilege";
 
     public DummyPrivilege() {
         super();
@@ -22,13 +25,8 @@ public class DummyPrivilege extends DummyObject {
     }
 
     @Override
-    protected DummyObjectClass getObjectClass() {
-        return resource.getPrivilegeObjectClass();
-    }
-
-    @Override
-    protected DummyObjectClass getObjectClassNoExceptions() {
-        return resource.getPrivilegeObjectClass();
+    public @NotNull String getObjectClassName() {
+        return OBJECT_CLASS_NAME;
     }
 
     @Override
@@ -40,6 +38,4 @@ public class DummyPrivilege extends DummyObject {
     public String toStringContent() {
         return super.toStringContent();
     }
-
-
 }

@@ -270,13 +270,4 @@ public class TypedValue<T> implements ShortDumpable {
             sb.append(", definition/class=null");
         }
     }
-
-    // TODO - or revive? Or make sure prismContext is set here?
-    public void setPrismContext(PrismContext prismContext) {
-        if (value instanceof PrismValue) {
-            ((PrismValue) value).setPrismContext(prismContext);
-        } else if (value instanceof Item) {
-            ((Item) value).setPrismContext(prismContext);
-        }
-    }
 }

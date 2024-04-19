@@ -9,10 +9,13 @@ package com.evolveum.midpoint.model.impl.sync;
 import java.util.Collection;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.task.api.TaskUtil;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.BooleanUtils;
@@ -20,13 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContext;
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -103,7 +104,7 @@ public abstract class SynchronizationContext<F extends FocusType>
     /**
      * Definition of corresponding object (currently found by kind+intent).
      */
-    @Nullable private final ResourceObjectDefinition resourceObjectDefinition;
+    @Nullable protected final ResourceObjectDefinition resourceObjectDefinition;
 
     @Nullable private final SynchronizationPolicy synchronizationPolicy;
 
@@ -147,8 +148,6 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     @NotNull private final PrismContext prismContext = PrismContext.get();
 
-    @NotNull private final ModelBeans beans;
-
     /** TODO maybe will be removed */
     @Experimental
     private final String itemProcessingIdentifier;
@@ -175,7 +174,6 @@ public abstract class SynchronizationContext<F extends FocusType>
         this.systemConfiguration = processingContext.getSystemConfiguration();
         this.task = processingContext.getTask();
         this.executionMode = TaskUtil.getExecutionMode(task);
-        this.beans = processingContext.getBeans();
         this.typeIdentification = typeIdentification;
         this.resourceObjectDefinition = objectDefinition;
         this.synchronizationPolicy = synchronizationPolicy;
@@ -192,7 +190,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         } else {
             this.forceClassificationUpdate = false;
         }
-        this.updater = new ShadowUpdater(this, beans);
+        this.updater = new ShadowUpdater(this);
     }
 
     boolean isSynchronizationEnabled() {
@@ -331,12 +329,6 @@ public abstract class SynchronizationContext<F extends FocusType>
             throw SystemException.unexpected(e, "when creating pre-focus");
         }
         return preFocus;
-    }
-
-    @Override
-    public @NotNull PrismObject<F> getPreFocusAsPrismObject() {
-        //noinspection unchecked
-        return (PrismObject<F>) preFocus.asPrismObject();
     }
 
     ObjectTemplateType getObjectTemplateForCorrelation() {
@@ -479,11 +471,6 @@ public abstract class SynchronizationContext<F extends FocusType>
         return systemConfiguration;
     }
 
-    @Override
-    public @NotNull ModelBeans getBeans() {
-        return beans;
-    }
-
     public @NotNull ExecutionModeType getExecutionMode() {
         return executionMode;
     }
@@ -562,6 +549,11 @@ public abstract class SynchronizationContext<F extends FocusType>
         public boolean isComplete() {
             return true;
         }
+
+        @Override
+        public @NotNull ResourceObjectInboundDefinition getInboundDefinition() throws SchemaException, ConfigurationException {
+            return getObjectDefinitionRequired();
+        }
     }
 
     /**
@@ -583,6 +575,15 @@ public abstract class SynchronizationContext<F extends FocusType>
         @Override
         public boolean isComplete() {
             return false;
+        }
+
+        @Override
+        public @NotNull ResourceObjectInboundDefinition getInboundDefinition() throws SchemaException, ConfigurationException {
+            if (resourceObjectDefinition != null) {
+                return resourceObjectDefinition;
+            } else {
+                throw new IllegalStateException("No object definition in " + this + ", this method should not have been called");
+            }
         }
     }
 }

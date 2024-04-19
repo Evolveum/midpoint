@@ -173,15 +173,15 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
     public <T> ShadowAttributesAsserter<R> assertValueRaw(QName attrName, T... expectedValues) {
         PrismProperty<T> property = findAttribute(attrName);
         assertNotNull("No attribute "+attrName+" in "+desc(), property);
-        RawType[] expectedRaw = rawize(attrName, getPrismContext(), expectedValues);
+        RawType[] expectedRaw = rawize(attrName, expectedValues);
         PrismAsserts.assertPropertyValueDesc(property, desc(), (T[])expectedRaw);
         return this;
     }
 
-    private <T> RawType[] rawize(QName attrName, PrismContext prismContext, T[] expectedValues) {
+    private <T> RawType[] rawize(QName attrName, T[] expectedValues) {
         RawType[] raws = new RawType[expectedValues.length];
         for(int i = 0; i < expectedValues.length; i++) {
-            raws[i] = new RawType(prismContext.itemFactory().createPropertyValue(expectedValues[i]), attrName, prismContext);
+            raws[i] = new RawType(PrismContext.get().itemFactory().createPropertyValue(expectedValues[i]), attrName);
         }
         return raws;
     }
