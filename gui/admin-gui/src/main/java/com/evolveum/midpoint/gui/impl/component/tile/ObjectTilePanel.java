@@ -37,7 +37,7 @@ import java.io.Serializable;
 /**
  * @author lskublik
  */
-public class FocusTilePanel<F extends Serializable, T extends Tile<F>> extends BasePanel<T> {
+public class ObjectTilePanel<F extends Serializable, T extends Tile<F>> extends BasePanel<T> {
 
     private static final long serialVersionUID = 1L;
 
@@ -47,7 +47,7 @@ public class FocusTilePanel<F extends Serializable, T extends Tile<F>> extends B
     private static final String ID_ICON = "icon";
     private static final String ID_TITLE = "title";
 
-    public FocusTilePanel(String id, IModel<T> model) {
+    public ObjectTilePanel(String id, IModel<T> model) {
         super(id, model);
 
         initLayout();
@@ -92,7 +92,7 @@ public class FocusTilePanel<F extends Serializable, T extends Tile<F>> extends B
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                FocusTilePanel.this.onDetails(target);
+                ObjectTilePanel.this.onDetails(target);
             }
         };
     }

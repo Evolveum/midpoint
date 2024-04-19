@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.web.page.admin.certification.component.CampaignCartPanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -173,18 +175,22 @@ public class PageCertCampaigns extends PageAdminCertification {
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
-        CertCampaignListItemDtoProvider provider = createProvider();
-        provider.setQuery(createCampaignsQuery());
-        BoxedTablePanel<CertCampaignListItemDto> table = new BoxedTablePanel<>(ID_CAMPAIGNS_TABLE, provider,
-                initColumns(), UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL) {
-            @Override
-            protected WebMarkupContainer createHeader(String headerId) {
-                return new SearchFragment(headerId, ID_TABLE_HEADER, PageCertCampaigns.this, searchModel);
-            }
-        };
-        table.setShowPaging(true);
-        table.setOutputMarkupId(true);
-        mainForm.add(table);
+        CampaignCartPanel campaignCartPanel = new CampaignCartPanel(ID_CAMPAIGNS_TABLE);
+        campaignCartPanel.setOutputMarkupId(true);
+        mainForm.add(campaignCartPanel);
+
+//        CertCampaignListItemDtoProvider provider = createProvider();
+//        provider.setQuery(createCampaignsQuery());
+//        BoxedTablePanel<CertCampaignListItemDto> table = new BoxedTablePanel<>(ID_CAMPAIGNS_TABLE, provider,
+//                initColumns(), UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL) {
+//            @Override
+//            protected WebMarkupContainer createHeader(String headerId) {
+//                return new SearchFragment(headerId, ID_TABLE_HEADER, PageCertCampaigns.this, searchModel);
+//            }
+//        };
+//        table.setShowPaging(true);
+//        table.setOutputMarkupId(true);
+//        mainForm.add(table);
     }
 
     private static class SearchFragment extends Fragment {

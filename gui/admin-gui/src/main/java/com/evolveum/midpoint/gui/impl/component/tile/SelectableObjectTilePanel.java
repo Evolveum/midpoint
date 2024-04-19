@@ -25,9 +25,9 @@ import org.apache.wicket.request.resource.IResource;
 /**
  * @author lskublik
  */
-public class SelectableFocusTilePanel<O extends ObjectType> extends FocusTilePanel<SelectableBean<O>, TemplateTile<SelectableBean<O>>> {
+public class SelectableObjectTilePanel<O extends ObjectType> extends ObjectTilePanel<SelectableBean<O>, TemplateTile<SelectableBean<O>>> {
 
-    public SelectableFocusTilePanel(String id, IModel<TemplateTile<SelectableBean<O>>> model) {
+    public SelectableObjectTilePanel(String id, IModel<TemplateTile<SelectableBean<O>>> model) {
         super(id, model);
     }
 
