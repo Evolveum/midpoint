@@ -187,6 +187,11 @@ public class PageRoleAnalysis extends PageAdmin {
             }
 
             @Override
+            protected boolean isReportObjectButtonVisible() {
+                return false;
+            }
+
+            @Override
             protected IColumn<SelectableBean<RoleAnalysisSessionType>, String> createIconColumn() {
                 return super.createIconColumn();
             }

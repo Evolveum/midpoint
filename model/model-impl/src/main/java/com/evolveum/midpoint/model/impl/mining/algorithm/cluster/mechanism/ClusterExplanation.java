@@ -53,15 +53,29 @@ public class ClusterExplanation implements Serializable {
             return null;
         }
 
-        if (session.getMatchingRule() == null) {
-            return null;
-        }
-
-        Set<String> ruleIdentifiers = extractRuleIdentifiers(session.getMatchingRule());
-
-        AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+        Set<String> ruleIdentifiers;
+
+        if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+            UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+            if (userModeOptions == null
+                    || userModeOptions.getClusteringAttributeSetting() == null
+                    || userModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() == null) {
+                return null;
+            }
+            ruleIdentifiers = extractRuleIdentifiers(userModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule());
+        } else {
+            RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
+            if (roleModeOptions == null
+                    || roleModeOptions.getClusteringAttributeSetting() == null
+                    || roleModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() == null) {
+                return null;
+            }
+            ruleIdentifiers = extractRuleIdentifiers(roleModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule());
+        }
+
+        AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
 
         Set<String> candidateNames = new HashSet<>();
         if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
@@ -81,7 +95,35 @@ public class ClusterExplanation implements Serializable {
                         if (attribute.getIdentifierType().equals(RoleAnalysisAttributeDef.IdentifierType.FINAL)) {
                             candidateName = itemPath + "-" + value;
                         } else {
-                            Class<? extends ObjectType> classType = attribute.getClassType();
+                            Class<? extends ObjectType> classType = attribute.getTargetClassType();
+                            PrismObject<? extends ObjectType> object = null;
+                            if (classType != null) {
+                                object = roleAnalysisService.getObject(classType, value, task, result);
+                            }
+                            candidateName = object != null ? itemPath + "-" + object.getName() : itemPath + "-" + value;
+                        }
+                        candidateNames.add(candidateName);
+                    }
+                }
+            }
+        } else {
+            RoleAnalysisAttributeAnalysisResult roleAttributeResult = clusterStatistics.getRoleAttributeAnalysisResult();
+            List<RoleAnalysisAttributeAnalysis> attributeAnalysisList = roleAttributeResult.getAttributeAnalysis();
+
+            for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysisList) {
+                String itemPath = analysis.getItemPath();
+                if (ruleIdentifiers.contains(itemPath) && analysis.getDensity() == 100) {
+                    List<RoleAnalysisAttributeStatistics> attributeStatisticsList = analysis.getAttributeStatistics();
+                    if (attributeStatisticsList.size() == 1) {
+                        RoleAnalysisAttributeStatistics attributeStatistic = attributeStatisticsList.get(0);
+                        String value = attributeStatistic.getAttributeValue();
+                        RoleAnalysisAttributeDef attribute = getAttributeByDisplayValue(itemPath);
+
+                        String candidateName;
+                        if (attribute.getIdentifierType().equals(RoleAnalysisAttributeDef.IdentifierType.FINAL)) {
+                            candidateName = itemPath + "-" + value;
+                        } else {
+                            Class<? extends ObjectType> classType = attribute.getTargetClassType();
                             PrismObject<? extends ObjectType> object = null;
                             if (classType != null) {
                                 object = roleAnalysisService.getObject(classType, value, task, result);
@@ -97,9 +139,9 @@ public class ClusterExplanation implements Serializable {
         return candidateNames.size() == 1 ? candidateNames.iterator().next() : null;
     }
 
-    private static @NotNull Set<String> extractRuleIdentifiers(@NotNull List<RoleAnalysisMatchingRuleType> matchingRule) {
+    private static @NotNull Set<String> extractRuleIdentifiers(@NotNull List<ClusteringAttributeRuleType> matchingRule) {
         Set<String> ruleIdentifiers = new HashSet<>();
-        for (RoleAnalysisMatchingRuleType ruleType : matchingRule) {
+        for (ClusteringAttributeRuleType ruleType : matchingRule) {
             ruleIdentifiers.add(ruleType.getAttributeIdentifier());
         }
         return ruleIdentifiers;
@@ -112,9 +154,30 @@ public class ClusterExplanation implements Serializable {
     private static boolean isValidAnalysisOption(@NotNull RoleAnalysisSessionType session) {
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisProcessModeType processMode = analysisOption != null ? analysisOption.getProcessMode() : null;
-        List<RoleAnalysisMatchingRuleType> matchingRule = session.getMatchingRule();
 
-        return analysisOption != null && processMode != null && matchingRule != null && !matchingRule.isEmpty();
+        if (processMode == null) {
+            return false;
+        }
+
+        if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+            UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+            if (userModeOptions == null
+                    || userModeOptions.getClusteringAttributeSetting() == null
+                    || userModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() == null) {
+                return false;
+            }
+            List<ClusteringAttributeRuleType> clusteringAttributeRule = userModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule();
+            return clusteringAttributeRule != null && !clusteringAttributeRule.isEmpty();
+        } else {
+            RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
+            if (roleModeOptions == null
+                    || roleModeOptions.getClusteringAttributeSetting() == null
+                    || roleModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() == null) {
+                return false;
+            }
+            List<ClusteringAttributeRuleType> clusteringAttributeRule = roleModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule();
+            return clusteringAttributeRule != null && !clusteringAttributeRule.isEmpty();
+        }
     }
 
     public static String getClusterExplanationDescription(Set<ClusterExplanation> clusterExplanationSet) {

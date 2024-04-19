@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -388,7 +390,7 @@ public interface RoleAnalysisService {
      * @param roleOid The OID of the RoleType PrismObject to retrieve.
      * @param task The task associated with the operation.
      * @param result The operation result.
-     * @param option
+     * @param option The cache option.
      * @return The RoleType PrismObject fetched from the cache or ModelService, or null if not found.
      */
     @Nullable
@@ -407,7 +409,7 @@ public interface RoleAnalysisService {
      * @param userOid The OID of the UserType PrismObject to retrieve.
      * @param task The task associated with the operation.
      * @param result The operation result.
-     * @param option
+     * @param option The cache option.
      * @return The UserType PrismObject fetched from the cache or ModelService, or null if not found.
      */
     @Nullable
@@ -625,46 +627,65 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult parentResult);
 
-
     /**
      * Performs attribute analysis for user objects.
      *
      * @param prismUsers Set of PrismObject representing user objects to analyze.
      * @param membershipDensity The density of membership.
-     * @param task
-     * @param result
+     * @param task Task used for processing the attribute analysis.
+     * @param result OperationResult containing the result of the operation.
+     * @param attributeDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for user analysis.
      * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
      */
     List<AttributeAnalysisStructure> userTypeAttributeAnalysis(
             @NotNull Set<PrismObject<UserType>> prismUsers,
-            Double membershipDensity, @NotNull Task task, @NotNull OperationResult result);
+            Double membershipDensity,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet);
 
     /**
      * Performs attribute analysis for role objects.
      *
      * @param prismRoles Set of PrismObject representing role objects to analyze.
      * @param membershipDensity The density of membership.
-     * @param task
-     * @param result
+     * @param task Task used for processing the attribute analysis.
+     * @param result OperationResult containing the result of the operation.
+     * @param attributeRoleDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for role analysis.
      * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
      */
     List<AttributeAnalysisStructure> roleTypeAttributeAnalysis(
             @NotNull Set<PrismObject<RoleType>> prismRoles,
-            Double membershipDensity, @NotNull Task task, @NotNull OperationResult result);
+            Double membershipDensity,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeDef> attributeRoleDefSet);
 
     /**
      * Performs attribute analysis for role members.
      *
+     * @param attributeDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for analysis.
      * @param objectOid The OID of the object to analyze.
      * @param task Task used for processing the attribute analysis.
      * @param result OperationResult containing the result of the operation.
      * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
      */
     List<AttributeAnalysisStructure> roleMembersAttributeAnalysis(
+            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet,
             @NotNull String objectOid,
             @NotNull Task task,
             @NotNull OperationResult result);
+
+    /**
+     * Performs attribute analysis for user roles.
+     * @param attributeRoleDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for role analysis.
+     * @param objectOid The OID of the object to analyze.
+     * @param task Task used for processing the attribute analysis.
+     * @param result OperationResult containing the result of the operation.
+     * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
+     */
     List<AttributeAnalysisStructure> userRolesAttributeAnalysis(
+            @NotNull List<RoleAnalysisAttributeDef> attributeRoleDefSet,
             @NotNull String objectOid,
             @NotNull Task task,
             @NotNull OperationResult result);
@@ -681,13 +702,17 @@ public interface RoleAnalysisService {
      * @param task Task used for processing the attribute analysis.
      * @param result OperationResult containing the result of the operation.
      * Any errors or status information will be recorded here.
+     * @param attributeRoleDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for role analysis.
+     * @param attributeUserDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for user analysis.
      */
-    void processAttributeAnalysis(
+    void resolveDetectedPatternsAttributes(
             @NotNull List<RoleAnalysisDetectionPatternType> detectedPatterns,
             @NotNull Map<String, PrismObject<UserType>> userExistCache,
             @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeDef> attributeRoleDefSet,
+            @NotNull List<RoleAnalysisAttributeDef> attributeUserDefSet);
 
     /**
      * Searches for clusters associated with a specific role analysis session.
@@ -713,10 +738,14 @@ public interface RoleAnalysisService {
      * Any errors or status information will be recorded here.
      * @return String representing the icon color of the focus object.
      */
-    String resolveFocusObjectIconColor(@NotNull FocusType focusObject, @NotNull Task task, @NotNull OperationResult result);
+    String resolveFocusObjectIconColor(
+            @NotNull FocusType focusObject,
+            @NotNull Task task,
+            @NotNull OperationResult result);
 
     /**
      * Retrieves the attribute definition for a specific attribute path.
+     *
      * @param type The type of object for which the attribute definition is being retrieved.
      * @param query The query specifying the conditions for searching the object.
      * @param options Collection of SelectorOptions specifying additional options for the search operation.
@@ -733,6 +762,7 @@ public interface RoleAnalysisService {
 
     /**
      * Calculates the confidence of an attribute based on the specified process mode and cluster statistics.
+     *
      * @param processModeType The process mode type.
      * @param clusterStatistics The cluster statistics.
      * @return String representing the calculated attribute confidence.
@@ -741,5 +771,16 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisProcessModeType processModeType,
             @NotNull AnalysisClusterStatisticType clusterStatistics);
 
+    /**
+     * Resolves the analysis attributes based on the provided session and complex type.
+     *
+     * @param session The RoleAnalysisSessionType object that contains the analysis options.
+     * @param complexType The QName object that represents the complex type of the attribute.
+     * @return A list of RoleAnalysisAttributeDef objects that match the provided complex type.
+     *         Returns null if no matching attributes are found or if the analysis option or process mode is not set in the session.
+     */
+    @Nullable List<RoleAnalysisAttributeDef> resolveAnalysisAttributes(
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull QName complexType);
 
 }

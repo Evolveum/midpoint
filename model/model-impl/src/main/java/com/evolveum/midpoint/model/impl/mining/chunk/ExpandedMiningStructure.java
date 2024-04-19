@@ -11,16 +11,13 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 
 import java.util.*;
 
-import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
@@ -28,11 +25,10 @@ import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressI
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * This class is responsible for preparing the expanded structure for role analysis in the Midpoint system.
@@ -96,23 +92,24 @@ public class ExpandedMiningStructure extends BasePrepareAction {
         for (String clusterMember : membersOidSet) {
             List<String> users = mapRoleMembers.get(clusterMember);
 
-            PrismObject<RoleType> roleTypePrismObject = roleExistCache.get(clusterMember);
+            PrismObject<RoleType> role = roleExistCache.get(clusterMember);
 
-            if (roleTypePrismObject == null) {
+            if (role == null) {
                 continue;
             }
 
             String chunkName = "unknown";
-            String iconColor = roleAnalysisService.resolveFocusObjectIconColor(roleTypePrismObject.asObjectable(), task, result);
+            String iconColor = roleAnalysisService.resolveFocusObjectIconColor(role.asObjectable(), task, result);
 
-            if (option != null && option.getRoleItemValuePath() != null) {
-                ItemPath roleItemValuePath = option.getRoleItemValuePath();
-                Item<PrismValue, ItemDefinition<?>> item = roleTypePrismObject.findItem(roleItemValuePath);
-                if (item != null && item.getRealValue() != null) {
-                    chunkName = item.getRealValue().toString();
+            if (option != null && option.getRoleAnalysisRoleDef() != null) {
+                RoleAnalysisAttributeDef roleAnalysisRoleDef = option.getRoleAnalysisRoleDef();
+                ItemPath path = roleAnalysisRoleDef.getPath();
+                String value = roleAnalysisRoleDef.resolveSingleValueItem(role, path);
+                if (value != null) {
+                    chunkName = value;
                 }
-            } else if (roleTypePrismObject.getName() != null) {
-                chunkName = roleTypePrismObject.getName().toString();
+            } else if (role.getName() != null) {
+                chunkName = role.getName().toString();
             }
 
             MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(
@@ -161,11 +158,12 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                 iconColor = roleAnalysisService.resolveFocusObjectIconColor(user.asObjectable(), task, result);
             }
 
-            if (user != null && option != null && option.getUserItemValuePath() != null) {
-                ItemPath userItemValuePath = option.getUserItemValuePath();
-                Item<PrismValue, ItemDefinition<?>> item = user.findItem(userItemValuePath);
-                if (item != null && item.getRealValue() != null) {
-                    chunkName = item.getRealValue().toString();
+            if (user != null && option != null && option.getUserAnalysisUserDef() != null) {
+                RoleAnalysisAttributeDef roleAnalysisUserDef = option.getUserAnalysisUserDef();
+                ItemPath path = roleAnalysisUserDef.getPath();
+                String value = roleAnalysisUserDef.resolveSingleValueItem(user, path);
+                if (value != null) {
+                    chunkName = value;
                 }
             } else if (user != null && user.getName() != null) {
                 chunkName = user.getName().toString();
@@ -220,11 +218,12 @@ public class ExpandedMiningStructure extends BasePrepareAction {
             String chunkName = "unknown";
             String iconColor = roleAnalysisService.resolveFocusObjectIconColor(user.asObjectable(), task, result);
 
-            if (option != null && option.getUserItemValuePath() != null) {
-                ItemPath userItemValuePath = option.getUserItemValuePath();
-                Item<PrismValue, ItemDefinition<?>> item = user.findItem(userItemValuePath);
-                if (item != null && item.getRealValue() != null) {
-                    chunkName = item.getRealValue().toString();
+            if (option != null && option.getUserAnalysisUserDef() != null) {
+                RoleAnalysisAttributeDef roleAnalysisUserDef = option.getUserAnalysisUserDef();
+                ItemPath path = roleAnalysisUserDef.getPath();
+                String value = roleAnalysisUserDef.resolveSingleValueItem(user, path);
+                if (value != null) {
+                    chunkName = value;
                 }
             } else if (user.getName() != null) {
                 chunkName = user.getName().toString();
@@ -288,11 +287,12 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                 iconColor = roleAnalysisService.resolveFocusObjectIconColor(role.asObjectable(), task, result);
             }
 
-            if (role != null && option != null && option.getRoleItemValuePath() != null) {
-                ItemPath roleItemValuePath = option.getRoleItemValuePath();
-                Item<PrismValue, ItemDefinition<?>> item = role.findItem(roleItemValuePath);
-                if (item != null && item.getRealValue() != null) {
-                    chunkName = item.getRealValue().toString();
+            if (role != null && option != null && option.getRoleAnalysisRoleDef() != null) {
+                RoleAnalysisAttributeDef roleAnalysisRoleDef = option.getRoleAnalysisRoleDef();
+                ItemPath path = roleAnalysisRoleDef.getPath();
+                String value = roleAnalysisRoleDef.resolveSingleValueItem(role, path);
+                if (value != null) {
+                    chunkName = value;
                 }
             } else if (role != null) {
                 chunkName = role.getName().toString();
