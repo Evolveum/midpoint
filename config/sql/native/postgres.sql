@@ -148,7 +148,8 @@ CREATE TYPE PredefinedConfigurationType AS ENUM ( 'PRODUCTION', 'DEVELOPMENT' );
 
 CREATE TYPE ResourceAdministrativeStateType AS ENUM ('ENABLED', 'DISABLED');
 
-CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'UNKNOWN');
+-- ASSOCIATED is maybe temporary
+CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'ASSOCIATED', 'UNKNOWN');
 
 CREATE TYPE SynchronizationSituationType AS ENUM (
     'DELETED', 'DISPUTED', 'LINKED', 'UNLINKED', 'UNMATCHED');
@@ -2270,4 +2271,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(28, $$ SELECT 1 $$, true);
+call apply_change(31, $$ SELECT 1 $$, true);

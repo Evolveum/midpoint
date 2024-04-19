@@ -523,6 +523,11 @@ CREATE TRIGGER m_schema_oid_delete_tr AFTER DELETE ON m_schema
 
 $aa$);
 
+-- associations (maybe temporary)
+call apply_change(31, $aa$
+ALTER TYPE ShadowKindType ADD VALUE IF NOT EXISTS 'ASSOCIATED' AFTER 'GENERIC';
+$aa$);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql
