@@ -576,7 +576,7 @@ public class RoleAnalysisAlgorithmUtils {
         List<RoleAnalysisDetectionPatternType> detectedPatterns = cluster.getDetectedPattern();
 
         for (RoleAnalysisDetectionPatternType detectedPattern : detectedPatterns) {
-            PatternConfidenceCalculator patternConfidenceCalculator = new PatternConfidenceCalculator(detectedPattern, maxReduction);
+            PatternConfidenceCalculator patternConfidenceCalculator = new PatternConfidenceCalculator(session, detectedPattern, maxReduction);
             double itemConfidence = patternConfidenceCalculator.calculateItemConfidence();
             double reductionFactorConfidence = patternConfidenceCalculator.calculateReductionFactorConfidence();
             detectedPattern.setItemConfidence(itemConfidence);

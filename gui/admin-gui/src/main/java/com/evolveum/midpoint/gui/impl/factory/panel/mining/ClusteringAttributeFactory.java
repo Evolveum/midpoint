@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel.mining;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import jakarta.annotation.PostConstruct;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -22,10 +24,6 @@ import com.evolveum.midpoint.gui.impl.factory.panel.AbstractInputGuiComponentFac
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.ClusteringAttributeSelectorPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeSettingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 @Component
 public class ClusteringAttributeFactory extends AbstractInputGuiComponentFactory<ClusteringAttributeSettingType> {
@@ -55,18 +53,6 @@ public class ClusteringAttributeFactory extends AbstractInputGuiComponentFactory
         return 100;
     }
 
-
-    @Override
-    public void configure(PrismPropertyPanelContext<ClusteringAttributeSettingType> panelCtx, org.apache.wicket.Component
-            component) {
-//        RoleAnalysisOptionType analysisOption = getAnalysisOption(panelCtx);
-//        if(analysisOption == null) {
-//            return;
-//        }
-//        if (!analysisOption.getAnalysisCategory().equals(RoleAnalysisCategoryType.ADVANCED)) {
-//            panelCtx.setVisibleEnableBehaviour(new VisibleEnableBehaviour());
-//        }
-    }
 
     public @Nullable RoleAnalysisOptionType getAnalysisOption
             (@NotNull PrismPropertyPanelContext<ClusteringAttributeSettingType> panelCtx) {

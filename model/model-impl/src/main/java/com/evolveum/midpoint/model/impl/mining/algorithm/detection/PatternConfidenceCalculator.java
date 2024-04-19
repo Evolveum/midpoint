@@ -1,9 +1,11 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.detection;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -11,66 +13,84 @@ import java.util.List;
  * <p> This class calculates confidence values for reduction factor and item density.
  * <p> The confidence values are calculated based on the analysis results provided by detection patterns.
  */
-public class PatternConfidenceCalculator {
+public class PatternConfidenceCalculator implements Serializable {
 
-    double itemsConfidence = 0.0;
-    double reductionFactorConfidence = 0.0;
+    protected double itemsConfidence = 0.0;
+    protected double reductionFactorConfidence = 0.0;
 
-    RoleAnalysisDetectionPatternType pattern;
+    protected RoleAnalysisDetectionPatternType pattern;
+    protected RoleAnalysisSessionType session;
+    protected double maxReduction;
+    protected int itemCount;
 
-    double maxReduction;
-
-    public PatternConfidenceCalculator(RoleAnalysisDetectionPatternType pattern, double maxReduction) {
+    public PatternConfidenceCalculator(
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull RoleAnalysisDetectionPatternType pattern,
+            double maxReduction) {
         this.pattern = pattern;
         this.maxReduction = maxReduction;
+        this.session = session;
+        initializeItemCount();
+    }
+
+    private void initializeItemCount() {
+        AbstractAnalysisSessionOptionType sessionOptions = getSessionOptions();
+        AnalysisAttributeSettingType analysisAttributeSetting = getAnalysisAttributeSetting(sessionOptions);
+        List<AnalysisAttributeRuleType> analysisAttributeRule = getAnalysisAttributeRule(analysisAttributeSetting);
+        itemCount = analysisAttributeRule == null ? 0 : analysisAttributeRule.size();
+    }
+
+    private AbstractAnalysisSessionOptionType getSessionOptions() {
+        return session.getAnalysisOption().getProcessMode().equals(RoleAnalysisProcessModeType.USER) ?
+                session.getUserModeOptions() : session.getRoleModeOptions();
+    }
+
+    private AnalysisAttributeSettingType getAnalysisAttributeSetting(AbstractAnalysisSessionOptionType sessionOptions) {
+        if (sessionOptions == null || sessionOptions.getAnalysisAttributeSetting() == null) {
+            return null;
+        }
+        return sessionOptions.getAnalysisAttributeSetting();
+    }
+
+    private List<AnalysisAttributeRuleType> getAnalysisAttributeRule(
+            @Nullable AnalysisAttributeSettingType analysisAttributeSetting) {
+        if (analysisAttributeSetting == null) {
+            return null;
+        }
+        return analysisAttributeSetting.getAnalysisAttributeRule();
     }
 
     public double calculateReductionFactorConfidence() {
         Double clusterMetric = pattern.getClusterMetric();
-
-        if (clusterMetric == null) {
-            return this.reductionFactorConfidence = 0.0;
-        } else {
-            return this.reductionFactorConfidence = (clusterMetric / maxReduction) * 100;
-        }
+        return reductionFactorConfidence = (clusterMetric == null ? 0.0 : (clusterMetric / maxReduction) * 100);
     }
 
     public double calculateItemConfidence() {
-        double averageDensity = 0.0;
+        double totalDensity = 0.0;
+        int totalCount = 0;
         RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = pattern.getRoleAttributeAnalysisResult();
         RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = pattern.getUserAttributeAnalysisResult();
 
-        if (roleAttributeAnalysisResult == null || userAttributeAnalysisResult == null) {
-            return this.itemsConfidence = 0.0;
+        if (roleAttributeAnalysisResult != null) {
+            totalDensity += calculateDensity(roleAttributeAnalysisResult.getAttributeAnalysis());
+            totalCount += roleAttributeAnalysisResult.getAttributeAnalysis().size();
+        }
+        if (userAttributeAnalysisResult != null) {
+            totalDensity += calculateDensity(userAttributeAnalysisResult.getAttributeAnalysis());
+            totalCount += userAttributeAnalysisResult.getAttributeAnalysis().size();
         }
 
-        List<RoleAnalysisAttributeAnalysis> roleAttributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
-        List<RoleAnalysisAttributeAnalysis> userAttributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
-
-        double totalDensity = 0.0;
-        int totalCount = 0;
-
-        for (RoleAnalysisAttributeAnalysis attributeAnalysis : roleAttributeAnalysis) {
-            Double density = attributeAnalysis.getDensity();
-            if (density != null) {
-                totalDensity += density;
-                totalCount++;
-            }
-        }
-
-        for (RoleAnalysisAttributeAnalysis attributeAnalysis : userAttributeAnalysis) {
-            Double density = attributeAnalysis.getDensity();
-            if (density != null) {
-                totalDensity += density;
-                totalCount++;
-            }
-        }
-
-        if (totalCount > 0) {
-            averageDensity = totalDensity / totalCount;
-        }
-
-        return this.itemsConfidence = averageDensity;
+        return itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
     }
 
+    private double calculateDensity(@NotNull List<RoleAnalysisAttributeAnalysis> attributeAnalysisList) {
+        double totalDensity = 0.0;
+        for (RoleAnalysisAttributeAnalysis attributeAnalysis : attributeAnalysisList) {
+            Double density = attributeAnalysis.getDensity();
+            if (density != null) {
+                totalDensity += density;
+            }
+        }
+        return totalDensity;
+    }
 }

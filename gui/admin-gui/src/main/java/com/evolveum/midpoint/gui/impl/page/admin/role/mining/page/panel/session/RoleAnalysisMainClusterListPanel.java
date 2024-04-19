@@ -138,6 +138,11 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
             }
 
             @Override
+            protected boolean isReportObjectButtonVisible() {
+                return false;
+            }
+
+            @Override
             protected IColumn<SelectableBean<RoleAnalysisClusterType>, String> createIconColumn() {
                 return new CompositedIconColumn<>(Model.of("")) {
 

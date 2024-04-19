@@ -174,7 +174,7 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
         for (AnalysisAttributeRuleType poiRef : poiRefs) {
             String identifier = getIdentifier(poiRef);
             if (identifiers.contains(identifier)) {
-                identifiers.remove(poiRef.getAttributeIdentifier());
+                identifiers.remove(identifier);
                 continue;
             }
 
@@ -183,7 +183,7 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
         }
 
         if (!identifiers.isEmpty()) {
-            clusteringAttributeRule.removeIf(rule -> identifiers.contains(rule.getAttributeIdentifier()));
+            clusteringAttributeRule.removeIf(rule -> identifiers.contains(getIdentifier(rule)));
         }
 
         getSelectedObject().setObject(new ArrayList<>(poiRefs));
