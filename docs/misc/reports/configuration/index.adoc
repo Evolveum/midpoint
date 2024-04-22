@@ -156,4 +156,4 @@ Please have a look at xref:../configuration/report-security.adoc[this] page for 
 - xref:/midpoint/security/security-guide/[Security Guide]
 - xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
 - xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
-- xref:/midpoint/reference/misc/reports/configuration/import-repor.adoc[Import From Report]
+- xref:/midpoint/reference/misc/reports/configuration/import-report.adoc[Import From Report]
