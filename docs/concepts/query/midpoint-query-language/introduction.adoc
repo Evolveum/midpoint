@@ -403,7 +403,7 @@ All roles and organization units which are organization tree roots.
 
 This chapter provides information and examples of queries in midPoint Query Language, mainly used in objects while configuration of midPoint itself.
 
-Additional examples can be found in xref:/midpoint/guides/gui-midpoint-query-examples[Advanced search - EXAMPLES].
+Additional examples can be found in xref:/midpoint/reference/concepts/query/midpoint-query-language/query-examples[Advanced search - EXAMPLES].
 
 === Searching by Archetype Name
 
