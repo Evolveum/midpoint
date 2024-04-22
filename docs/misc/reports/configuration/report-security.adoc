@@ -31,7 +31,7 @@ Therefore, do not let any unauthorized user to set up any kind of expression in 
 Some expression security can be achieved by using xref:/midpoint/reference/expressions/expressions/profiles/[expression profiles].
 Expression profiles can be used to limit the capabilities of report expressions, e.g. to limit them to safe operations that just manipulate strings and basic data structures.
 
-See xref:/midpoint/reference/security/security-guide/[Security Guide] for more detail regarding security-related functionality of midPoint.
+See xref:/midpoint/security/security-guide/[Security Guide] for more detail regarding security-related functionality of midPoint.
 
 == See Also
 
