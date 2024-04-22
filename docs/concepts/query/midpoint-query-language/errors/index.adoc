@@ -162,7 +162,7 @@ a| The schema defines enumerated value for this attribute. In this case the allo
 
 | Troubleshooting hints
 a| * Search for allowed values in schema definition. Schemas are described in
-xref:../../../../schema/schemadoc.adoc[SchemaDoc].
+xref:/midpoint/reference/schema/schemadoc.adoc[SchemaDoc].
 Select version according your midPoint version. +
 In this case search in schema "common/common-3" for "LockoutStatusType"
 
@@ -201,5 +201,6 @@ For polystring you need to use `origIgnoreCase` matching rule.
 
 | Troubleshooting hints
 a| * For more information about matching rules in query see xref:../introduction.adoc#_matching_rules[matching rules chapter] in introduction to Midpoint Query Language.
-* List of all matching rules is defined in xref:../../matching-rules.adoc[matching rules] page.
+* List of all matching rules is defined in xref:/midpoint/reference/concepts/matching-rules.adoc[matching rules] page.
 
+|====
