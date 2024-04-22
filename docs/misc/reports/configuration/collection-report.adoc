@@ -133,7 +133,7 @@ If sub-reports are used to multiply rows (see below), this object contains the s
 If no `path` was specified for the column, it has the same value as `object` variable.
 
 | `report`
-| xref:/midpoint/reference/misc/reports/configuration/report-functions.adoc/[Report Script Library]
+| xref:/midpoint/reference/misc/reports/configuration/report-functions/[Report Script Library]
 provides functions supporting report processing.
 
 | `basic`
@@ -328,7 +328,7 @@ This is a single object from the collection, e.g. one result from a query.
 If sub-reports are used to multiply rows (see below), this object contains the same object for all such rows.
 
 | `report`
-| xref:/midpoint/reference/misc/reports/report-functions/[Report Script Library]
+| xref:/midpoint/reference/misc/reports/configuration/report-functions/[Report Script Library]
 provides functions supporting report processing.
 
 | `basic`
