@@ -40,7 +40,9 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     private static final String ID_TITLE = "title";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_PROGRESS_BAR = "progressBar";
-    private static final String ID_INFO_PANEL = "infoPanel";
+    private static final String ID_DEADLINE = "deadline";
+    private static final String ID_STAGE = "stage";
+    private static final String ID_ITERATION = "iteration";
     private static final String ID_BUTTONS_PANEL = "buttonsPanel";
 
     public CampaignTilePanel(String id, IModel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> model) {
@@ -88,6 +90,18 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         ProgressBarPanel progressBar = new ProgressBarPanel(ID_PROGRESS_BAR, createProgressBarModel());
         progressBar.setOutputMarkupId(true);
         add(progressBar);
+
+        Label deadline = new Label(ID_DEADLINE, Model.of("1"));
+        deadline.setOutputMarkupId(true);
+        add(deadline);
+
+        Label stage = new Label(ID_STAGE, Model.of("2"));
+        stage.setOutputMarkupId(true);
+        add(stage);
+
+        Label iteration = new Label(ID_ITERATION, Model.of("3"));
+        iteration.setOutputMarkupId(true);
+        add(iteration);
 
     }
 

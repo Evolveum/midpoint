@@ -17,13 +17,18 @@
     </div>
     <div class="font-weight-bold text-truncate w-100" wicket:id="title"/>
     <div class="tile-description mt-2 text-center text-secondary flex-grow-1 info-box-icon w-100" wicket:id="description"/>
-    <div class="w-100">
-        <span wicket:message="CampaignTilePanel.progress" />
-        <div wicket:id="progressBar" />
+    <div class="w-100 mt-3">
+        <label>
+            <wicket:message key="CampaignTilePanel.progress"/>
+        </label>
+        <div wicket:id="progressBar"/>
+    </div>
+    <div class="d-flex flex-wrap w-100">
+        <div class="d-flex flex-wrap flex-grow-1 justify-content-start" wicket:id="deadline"/>
+        <div class="d-flex flex-wrap flex-grow-1 justify-content-end" wicket:id="stage"/>
+        <div class="d-flex flex-wrap flex-grow-1 justify-content-end" wicket:id="iteration"/>
     </div>
 
-
-<!--    <div wicket:id="infoPanel"/>-->
-<!--    <div wicket:id="buttonsPanel"/>-->
+    <!--    <div wicket:id="buttonsPanel"/>-->
 </wicket:panel>
 </html>
