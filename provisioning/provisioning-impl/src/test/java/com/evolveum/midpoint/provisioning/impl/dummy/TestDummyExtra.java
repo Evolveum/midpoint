@@ -278,12 +278,9 @@ public class TestDummyExtra extends TestDummy {
                             latch.await();
                             long time = System.nanoTime();
                             ConnectorType connector = getCsvConnector(result);
-                            Element elem = ConnectorTypeUtil.getConnectorXsdSchemaElement(connector);
-                            if (elem != null) {
-                                ConnectorTypeUtil.parseConnectorSchema(connector);
-                            }
-                            System.out.println(time + ": " + Thread.currentThread().getId() + ": " + System.identityHashCode(elem));
-                            return elem != null;
+                            var schema = ConnectorTypeUtil.parseConnectorSchemaIfPresent(connector);
+                            System.out.println(time + ": " + Thread.currentThread().getId() + ": " + System.identityHashCode(schema));
+                            return schema != null;
                         } catch (SchemaException e) {
                             throw new AssertionError(e);
                         }
