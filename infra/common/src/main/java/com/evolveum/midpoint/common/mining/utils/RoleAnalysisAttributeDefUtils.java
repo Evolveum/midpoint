@@ -7,23 +7,21 @@
 
 package com.evolveum.midpoint.common.mining.utils;
 
+import static com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef.extractRealValue;
+
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.*;
+
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
-import org.jetbrains.annotations.UnmodifiableView;
-
-import javax.xml.namespace.QName;
-import java.util.*;
 
 public class RoleAnalysisAttributeDefUtils {
 
@@ -36,6 +34,28 @@ public class RoleAnalysisAttributeDefUtils {
     public static final ItemName F_COST_CENTER = new ItemName(ObjectFactory.NAMESPACE, "costCenter");
     public static final ItemName F_LIFECYCLE_STATE = new ItemName(ObjectFactory.NAMESPACE, "lifecycleState");
     public static final ItemName F_RISK_LEVEL = new ItemName(ObjectFactory.NAMESPACE, "riskLevel");
+
+    public static RoleAnalysisAttributeDef getObjectNameDef() {
+        return name;
+    }
+
+    public static RoleAnalysisAttributeDef name = new RoleAnalysisAttributeDef(
+            F_NAME,
+            false,
+            "name",
+            ObjectType.class,
+            RoleAnalysisAttributeDef.IdentifierType.FINAL) {
+        @Override
+        public ObjectQuery getQuery(String value) {
+            return PrismContext.get().queryFor(ObjectType.class)
+                    .item(getPath()).eq(value)
+                    .build();
+        }
+    };
+
+    public static RoleAnalysisAttributeDef getOrgAssignment() {
+        return orgAssignment;
+    }
 
     public static RoleAnalysisAttributeDef orgAssignment = getRoleAnalysisItemDefAssignment(
             FocusType.F_ASSIGNMENT, "org assignment", OrgType.COMPLEX_TYPE);
@@ -60,10 +80,14 @@ public class RoleAnalysisAttributeDefUtils {
     public static RoleAnalysisAttributeDef archetypeInducement = getRoleAnalysisItemDefAssignment(
             ArchetypeType.F_INDUCEMENT, "archetype inducement", ArchetypeType.COMPLEX_TYPE);
 
+    public static RoleAnalysisAttributeDef getArchetypeRef() {
+        return archetypeRef;
+    }
+
     public static RoleAnalysisAttributeDef archetypeRef = new RoleAnalysisAttributeDef(
             ItemPath.create(FocusType.F_ARCHETYPE_REF),
             false,
-            "archetypeRef",
+            "archetype ref",
             ArchetypeType.class,
             RoleAnalysisAttributeDef.IdentifierType.OID) {
 
@@ -75,7 +99,7 @@ public class RoleAnalysisAttributeDefUtils {
         }
 
         @Override
-        public String resolveSingleValueItem(PrismObject<?> prismObject, ItemPath itemPath) {
+        public String resolveSingleValueItem(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
             Item<PrismValue, ItemDefinition<?>> property = prismObject.findItem(itemPath);
 
             if (property == null) {
@@ -89,6 +113,10 @@ public class RoleAnalysisAttributeDefUtils {
             return null;
         }
     };
+
+    public static RoleAnalysisAttributeDef getTitle() {
+        return title;
+    }
 
     public static RoleAnalysisAttributeDef title = new RoleAnalysisAttributeDef(
             F_TITLE,
@@ -117,6 +145,10 @@ public class RoleAnalysisAttributeDefUtils {
                     .build();
         }
     };
+
+    public static RoleAnalysisAttributeDef getLocality() {
+        return locality;
+    }
 
     public static RoleAnalysisAttributeDef locality = new RoleAnalysisAttributeDef(
             F_LOCALITY,
@@ -179,7 +211,7 @@ public class RoleAnalysisAttributeDefUtils {
         return attributeMap.get(displayValue);
     }
 
-    private static @NotNull @UnmodifiableView Map<String, RoleAnalysisAttributeDef> createAttributeMap() {
+    public static @NotNull @UnmodifiableView Map<String, RoleAnalysisAttributeDef> createAttributeMap() {
         Map<String, RoleAnalysisAttributeDef> attributeMap = new HashMap<>();
         attributeMap.put(orgAssignment.getDisplayValue(), orgAssignment);
         attributeMap.put(roleAssignment.getDisplayValue(), roleAssignment);
@@ -197,11 +229,13 @@ public class RoleAnalysisAttributeDefUtils {
         attributeMap.put(costCenter.getDisplayValue(), costCenter);
         attributeMap.put(lifecycleState.getDisplayValue(), lifecycleState);
         attributeMap.put(riskLevel.getDisplayValue(), riskLevel);
+
+        loadRoleExtension().forEach(attribute -> attributeMap.put(attribute.getDisplayValue(), attribute));
+        loadUserExtension().forEach(attribute -> attributeMap.put(attribute.getDisplayValue(), attribute));
         return Collections.unmodifiableMap(attributeMap);
     }
 
-    @Contract(pure = true)
-    public static @Unmodifiable @NotNull List<RoleAnalysisAttributeDef> getAttributesForRoleAnalysis() {
+    public static @NotNull List<RoleAnalysisAttributeDef> getAttributesForRoleAnalysis() {
 
         List<RoleAnalysisAttributeDef> analysisAttributeDefs = new ArrayList<>(List.of(
                 lifecycleState,
@@ -220,11 +254,10 @@ public class RoleAnalysisAttributeDefUtils {
         ));
         analysisAttributeDefs.addAll(loadRoleExtension());
 
-        return analysisAttributeDefs;
+        return Collections.unmodifiableList(analysisAttributeDefs);
     }
 
-    @Contract(pure = true)
-    public static @Unmodifiable @NotNull List<RoleAnalysisAttributeDef> getAttributesForUserAnalysis() {
+    public static @NotNull List<RoleAnalysisAttributeDef> getAttributesForUserAnalysis() {
         List<RoleAnalysisAttributeDef> analysisAttributeDefs = new ArrayList<>(List.of(
                 title,
                 locale,
@@ -240,11 +273,15 @@ public class RoleAnalysisAttributeDefUtils {
         ));
 
         analysisAttributeDefs.addAll(loadUserExtension());
-        return analysisAttributeDefs;
+
+        return Collections.unmodifiableList(analysisAttributeDefs);
     }
 
     @NotNull
-    private static RoleAnalysisAttributeDef getRoleAnalysisItemDefAssignment(ItemName itemName, String displayValue, QName targetType) {
+    private static RoleAnalysisAttributeDef getRoleAnalysisItemDefAssignment(
+            @NotNull ItemName itemName,
+            @NotNull String displayValue,
+            @NotNull QName targetType) {
         return new RoleAnalysisAttributeDef(
                 ItemPath.create(itemName, AssignmentType.F_TARGET_REF),
                 true,
@@ -259,7 +296,7 @@ public class RoleAnalysisAttributeDefUtils {
             }
 
             @Override
-            public Class<? extends ObjectType> getClassType() {
+            public Class<? extends ObjectType> getTargetClassType() {
                 Class<? extends ObjectType> objectClass = null;
                 if (targetType.equals(OrgType.COMPLEX_TYPE)) {
                     objectClass = OrgType.class;
@@ -318,11 +355,30 @@ public class RoleAnalysisAttributeDefUtils {
         return resolvedValues;
     }
 
+    @NotNull
+    private static Set<String> resolveRefs(
+            @NotNull PrismObject<?> prismObject,
+            @NotNull ItemPath itemPath) {
+        Set<String> resolvedValues = new HashSet<>();
+        Collection<Item<?, ?>> allItems = prismObject.getAllItems(itemPath);
+        for (Item<?, ?> item : allItems) {
+            Object realValue = item.getRealValue();
+            if (realValue instanceof ObjectReferenceType objectReference) {
+                resolvedValues.add(objectReference.getOid());
+            }
+        }
+
+        return resolvedValues;
+    }
+
     private static @NotNull List<RoleAnalysisAttributeDef> loadRoleExtension() {
+
         List<RoleAnalysisAttributeDef> attributes = new ArrayList<>();
         PrismContainerDefinition<?> itemDefinitionByFullPath;
+
         try {
-            itemDefinitionByFullPath = PrismContext.get().getSchemaRegistry().findItemDefinitionByFullPath(RoleType.class, PrismContainerDefinition.class, UserType.F_EXTENSION);
+            itemDefinitionByFullPath = PrismContext.get().getSchemaRegistry()
+                    .findItemDefinitionByFullPath(UserType.class, PrismContainerDefinition.class, UserType.F_EXTENSION);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
@@ -330,28 +386,31 @@ public class RoleAnalysisAttributeDefUtils {
         List<?> definitions = itemDefinitionByFullPath.getDefinitions();
 
         for (Object definition : definitions) {
-            if (definition instanceof PrismPropertyDefinition<?> containerDefinition) {
-                //TODO resolve if string polyString targetRef complexObject etc...
-                Class<?> typeClass = containerDefinition.getTypeClass();
-                ItemPath itemName = containerDefinition.getItemName();
-
-                RoleAnalysisAttributeDef attribute = new RoleAnalysisAttributeDef(
-                        ItemPath.create(RoleType.F_EXTENSION, itemName),
-                        false, itemName + " extension", RoleType.class,
-                        RoleAnalysisAttributeDef.IdentifierType.FINAL);
+            if (definition instanceof PrismReferenceDefinition prismReferenceDefinition) {
+                RoleAnalysisAttributeDef attribute = createRoleAttribute(
+                        prismReferenceDefinition);
                 attributes.add(attribute);
+            }
+            if (definition instanceof PrismPropertyDefinition<?> prismPropertyDefinition) {
 
+                RoleAnalysisAttributeDef attribute = createRoleAttribute(
+                        prismPropertyDefinition);
+                if (attribute != null) {
+                    attributes.add(attribute);
+                }
             }
         }
+
         return attributes;
     }
 
     private static @NotNull List<RoleAnalysisAttributeDef> loadUserExtension() {
-
         List<RoleAnalysisAttributeDef> attributes = new ArrayList<>();
         PrismContainerDefinition<?> itemDefinitionByFullPath;
+
         try {
-            itemDefinitionByFullPath = PrismContext.get().getSchemaRegistry().findItemDefinitionByFullPath(UserType.class, PrismContainerDefinition.class, UserType.F_EXTENSION);
+            itemDefinitionByFullPath = PrismContext.get().getSchemaRegistry()
+                    .findItemDefinitionByFullPath(UserType.class, PrismContainerDefinition.class, UserType.F_EXTENSION);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
@@ -359,32 +418,209 @@ public class RoleAnalysisAttributeDefUtils {
         List<?> definitions = itemDefinitionByFullPath.getDefinitions();
 
         for (Object definition : definitions) {
-            if (definition instanceof PrismPropertyDefinition<?> containerDefinition) {
-                //TODO resolve if string polyString targetRef complexObject etc...
-                ItemPath itemName = containerDefinition.getItemName();
-
-                RoleAnalysisAttributeDef attribute = new RoleAnalysisAttributeDef(
-                        ItemPath.create(UserType.F_EXTENSION, itemName),
-                        false,
-                        itemName + " extension", UserType.class,
-                        RoleAnalysisAttributeDef.IdentifierType.FINAL) {
-                    @Override
-                    public ObjectQuery getQuery(String value) {
-                        return PrismContext.get().queryFor(UserType.class)
-                                .item(getPath()).eq(value)
-                                .build();
-                    }
-                };
+            if (definition instanceof PrismReferenceDefinition prismReferenceDefinition) {
+                RoleAnalysisAttributeDef attribute = createUserAttribute(
+                        prismReferenceDefinition);
                 attributes.add(attribute);
+            }
+            if (definition instanceof PrismPropertyDefinition<?> prismPropertyDefinition) {
 
+                RoleAnalysisAttributeDef attribute = createUserAttribute(
+                        prismPropertyDefinition);
+                if (attribute != null) {
+                    attributes.add(attribute);
+                }
             }
         }
+
         return attributes;
     }
 
-    private static boolean isPolyStringOrString(@NotNull ItemDefinition<?> def) {
-        return def.getTypeName().getLocalPart().equals(PolyStringType.COMPLEX_TYPE.getLocalPart())
-                || def.getTypeName().getLocalPart().equals("string")
-                || def.getTypeName().getLocalPart().equals("PolyString");
+    private static @NotNull RoleAnalysisAttributeDef createUserAttribute(
+            @NotNull PrismReferenceDefinition prismReferenceDefinition) {
+        boolean isSingleValue = prismReferenceDefinition.isSingleValue();
+
+        ItemPath itemName = prismReferenceDefinition.getItemName();
+        String attributeName = itemName + " extension";
+
+        return new RoleAnalysisAttributeDef(
+                ItemPath.create(UserType.F_EXTENSION, itemName),
+                isSingleValue,
+                attributeName,
+                UserType.class,
+                RoleAnalysisAttributeDef.IdentifierType.OID) {
+            @Override
+            public ObjectQuery getQuery(String value) {
+                return PrismContext.get().queryFor(UserType.class)
+                        .item(getPath()).ref(value)
+                        .build();
+            }
+
+            @Override
+            public String resolveSingleValueItem(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
+                return resolveRef(prismObject, itemPath);
+            }
+
+            @Override
+            public @NotNull Set<String> resolveMultiValueItem(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
+                return resolveRefs(prismObject, itemPath);
+            }
+        };
+
+    }
+
+    private static @Nullable RoleAnalysisAttributeDef createUserAttribute(
+            @NotNull PrismPropertyDefinition<?> prismPropertyDefinition) {
+
+        Class<?> typeClass = prismPropertyDefinition.getTypeClass();
+        boolean isSingleValue = prismPropertyDefinition.isSingleValue();
+
+        ItemPath itemName = prismPropertyDefinition.getItemName();
+        String attributeName = itemName + " extension";
+
+        if (isSupportedPropertyType(typeClass)) {
+
+            return new RoleAnalysisAttributeDef(
+                    ItemPath.create(UserType.F_EXTENSION, prismPropertyDefinition.getItemName()),
+                    isSingleValue,
+                    attributeName,
+                    UserType.class,
+                    RoleAnalysisAttributeDef.IdentifierType.FINAL) {
+
+                @Override
+                public ObjectQuery getQuery(String value) {
+                    return PrismContext.get().queryFor(UserType.class)
+                            .item(getPath()).eq(value)
+                            .build();
+                }
+            };
+        } else if (typeClass.equals(ObjectReferenceType.class)) {
+            return new RoleAnalysisAttributeDef(
+                    ItemPath.create(UserType.F_EXTENSION, prismPropertyDefinition.getItemName()),
+                    isSingleValue,
+                    attributeName,
+                    UserType.class,
+                    RoleAnalysisAttributeDef.IdentifierType.OID) {
+                @Override
+                public ObjectQuery getQuery(String value) {
+                    return PrismContext.get().queryFor(UserType.class)
+                            .item(getPath()).ref(value)
+                            .build();
+                }
+
+                @Override
+                public String resolveSingleValueItem(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
+                    return resolveRef(prismObject, itemPath);
+                }
+
+                @Override
+                public @NotNull Set<String> resolveMultiValueItem(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
+                    return resolveRefs(prismObject, itemPath);
+                }
+            };
+        }
+        return null;
+    }
+
+    private static @NotNull RoleAnalysisAttributeDef createRoleAttribute(
+            @NotNull PrismReferenceDefinition prismReferenceDefinition) {
+        boolean isSingleValue = prismReferenceDefinition.isSingleValue();
+
+        ItemPath itemName = prismReferenceDefinition.getItemName();
+        String attributeName = itemName + " extension";
+
+        return new RoleAnalysisAttributeDef(
+                ItemPath.create(RoleType.F_EXTENSION, itemName),
+                isSingleValue,
+                attributeName,
+                RoleType.class,
+                RoleAnalysisAttributeDef.IdentifierType.OID) {
+            @Override
+            public ObjectQuery getQuery(String value) {
+                return PrismContext.get().queryFor(RoleType.class)
+                        .item(getPath()).ref(value)
+                        .build();
+            }
+
+            @Override
+            public String resolveSingleValueItem(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
+                return resolveRef(prismObject, itemPath);
+            }
+
+            @Override
+            public @NotNull Set<String> resolveMultiValueItem(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
+                return resolveRefs(prismObject, itemPath);
+            }
+        };
+
+    }
+
+    private static @Nullable RoleAnalysisAttributeDef createRoleAttribute(
+            @NotNull PrismPropertyDefinition<?> prismPropertyDefinition) {
+
+        Class<?> typeClass = prismPropertyDefinition.getTypeClass();
+        boolean isSingleValue = prismPropertyDefinition.isSingleValue();
+
+        ItemPath itemName = prismPropertyDefinition.getItemName();
+        String attributeName = itemName + " extension";
+
+        if (isSupportedPropertyType(typeClass)) {
+            return new RoleAnalysisAttributeDef(
+                    ItemPath.create(RoleType.F_EXTENSION, itemName),
+                    isSingleValue,
+                    attributeName,
+                    RoleType.class,
+                    RoleAnalysisAttributeDef.IdentifierType.FINAL) {
+                @Override
+                public ObjectQuery getQuery(String value) {
+                    return PrismContext.get().queryFor(RoleType.class)
+                            .item(getPath()).eq(value)
+                            .build();
+                }
+            };
+        } else if (typeClass.equals(ObjectReferenceType.class)) {
+            return new RoleAnalysisAttributeDef(
+                    ItemPath.create(RoleType.F_EXTENSION, prismPropertyDefinition.getItemName()),
+                    isSingleValue,
+                    attributeName,
+                    RoleType.class,
+                    RoleAnalysisAttributeDef.IdentifierType.OID) {
+                @Override
+                public ObjectQuery getQuery(String value) {
+                    return PrismContext.get().queryFor(RoleType.class)
+                            .item(getPath()).ref(value)
+                            .build();
+                }
+
+                @Override
+                public String resolveSingleValueItem(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
+                    return resolveRef(prismObject, itemPath);
+                }
+
+                @Override
+                public @NotNull Set<String> resolveMultiValueItem(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
+                    return resolveRefs(prismObject, itemPath);
+                }
+            };
+        }
+        return null;
+    }
+
+    private static boolean isSupportedPropertyType(@NotNull Class<?> typeClass) {
+        return typeClass.equals(Integer.class) || typeClass.equals(Long.class) || typeClass.equals(Boolean.class)
+                || typeClass.equals(Double.class) || typeClass.equals(String.class) || typeClass.equals(PolyString.class);
+    }
+
+    @Nullable
+    private static String resolveRef(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
+        Item<PrismValue, ItemDefinition<?>> property = prismObject.findItem(itemPath);
+        if (property != null) {
+            Object object = property.getRealValue();
+            if (object instanceof ObjectReferenceType objectReference) {
+                return objectReference.getOid();
+            }
+            return extractRealValue(object);
+        }
+        return null;
     }
 }

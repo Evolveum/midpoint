@@ -15,6 +15,7 @@ import java.util.Set;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisStackedAttributeChartModel;
 
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -44,6 +45,7 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
     private static final String ID_CONTAINER_CHART = "container";
     private static final String ID_CHART = "chart";
     private static final String ID_CARD_TITLE = "cardTitle";
+    private static final String ID_CARD_CONTAINER = "card";
     List<AttributeAnalysisStructure> attributeAnalysisStructureList;
     RoleAnalysisClusterType cluster;
 
@@ -58,23 +60,32 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initChartPart();
+        WebMarkupContainer cardContainer = new WebMarkupContainer(ID_CARD_CONTAINER);
+        if (isExpanded()) {
+            cardContainer.add(AttributeAppender.append("class", "card card-light"));
+        } else {
+            cardContainer.add(AttributeAppender.replace("class", "card card-light collapsed-card"));
+        }
+        cardContainer.setOutputMarkupId(true);
+        add(cardContainer);
+
+        initChartPart(cardContainer);
 
         if (cluster != null) {
-            initAttributeStatisticsPanel(cluster);
+            initAttributeStatisticsPanel(cluster, cardContainer);
         } else {
-            initTargetedAttributeStatisticsPanel(attributeAnalysisStructureList);
+            initTargetedAttributeStatisticsPanel(attributeAnalysisStructureList, cardContainer);
         }
     }
 
-    private void initChartPart() {
+    private void initChartPart(@NotNull WebMarkupContainer cardContainer) {
         WebMarkupContainer chartContainer = new WebMarkupContainer(ID_CONTAINER_CHART);
         chartContainer.setOutputMarkupId(true);
-        add(chartContainer);
+        cardContainer.add(chartContainer);
 
         Label cardTitle = new Label(ID_CARD_TITLE, getChartTitle());
         cardTitle.setOutputMarkupId(true);
-        add(cardTitle);
+        cardContainer.add(cardTitle);
 
         ChartJsPanel<ChartConfiguration> roleAnalysisChart =
                 new ChartJsPanel<>(ID_CHART, new LoadableModel<>() {
@@ -94,9 +105,23 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
         chartContainer.add(roleAnalysisChart);
 
         Form<?> toolForm = new MidpointForm<>(ID_TOOL_FORM);
-        toolForm.setOutputMarkupId(true);
-        add(toolForm);
 
+        WebMarkupContainer image = new WebMarkupContainer("image");
+        if(isExpanded()) {
+            image.add(AttributeAppender.append("class", "fa fa-minus"));
+        } else {
+            image.add(AttributeAppender.append("class", "fa fa-plus"));
+        }
+        image.setOutputMarkupId(true);
+        toolForm.add(image);
+
+        toolForm.setOutputMarkupId(true);
+        cardContainer.add(toolForm);
+
+    }
+
+    public boolean isExpanded() {
+        return true;
     }
 
     public List<AttributeAnalysisStructure> getStackedNegativeValue() {
@@ -147,7 +172,9 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
         return "#206F9D";
     }
 
-    public void initAttributeStatisticsPanel(@NotNull RoleAnalysisClusterType cluster) {
+    public void initAttributeStatisticsPanel(
+            @NotNull RoleAnalysisClusterType cluster,
+            @NotNull WebMarkupContainer cardContainer) {
 
         RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = null;
         RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = null;
@@ -160,7 +187,7 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
 
         WebMarkupContainer webMarkupContainerUser = new WebMarkupContainer(ID_FIRST_COLLAPSABLE_CONTAINER);
         webMarkupContainerUser.setOutputMarkupId(true);
-        add(webMarkupContainerUser);
+        cardContainer.add(webMarkupContainerUser);
 
         if (userAttributeAnalysisResult != null) {
             RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
@@ -190,7 +217,7 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
 
         WebMarkupContainer webMarkupContainerRole = new WebMarkupContainer(ID_SECOND_COLLAPSABLE_CONTAINER);
         webMarkupContainerRole.setOutputMarkupId(true);
-        add(webMarkupContainerRole);
+        cardContainer.add(webMarkupContainerRole);
 
         if (roleAttributeAnalysisResult != null) {
             RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
@@ -219,7 +246,9 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
         }
     }
 
-    public void initTargetedAttributeStatisticsPanel(@NotNull List<AttributeAnalysisStructure> attributeAnalysisStructureList) {
+    public void initTargetedAttributeStatisticsPanel(
+            @NotNull List<AttributeAnalysisStructure> attributeAnalysisStructureList,
+            @NotNull WebMarkupContainer cardContainer) {
 
         RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
         for (AttributeAnalysisStructure attributeAnalysisStructure : attributeAnalysisStructureList) {
@@ -242,7 +271,7 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
 
         WebMarkupContainer webMarkupContainerUser = new WebMarkupContainer(ID_FIRST_COLLAPSABLE_CONTAINER);
         webMarkupContainerUser.setOutputMarkupId(true);
-        add(webMarkupContainerUser);
+        cardContainer.add(webMarkupContainerUser);
 
         RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
                 ID_COLLAPSABLE_CONTENT, userAnalysis, new HashSet<>(), getProcessMode()) {
@@ -270,7 +299,7 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
 
         WebMarkupContainer webMarkupContainerRole = new WebMarkupContainer(ID_SECOND_COLLAPSABLE_CONTAINER);
         webMarkupContainerRole.setOutputMarkupId(true);
-        add(webMarkupContainerRole);
+        cardContainer.add(webMarkupContainerRole);
 
         WebMarkupContainer label = new WebMarkupContainer(ID_COLLAPSABLE_CONTENT);
         label.setOutputMarkupId(true);

@@ -1,22 +1,23 @@
 <!--
   ~ Copyright (C) 2010-2023 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
+  ~ This work is dual-licensed under the Apache License 2.0O
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!DOCTYPE html>
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
+
     <div class="d-flex flex-column gap-2">
 
-        <div class="col-xl-12" style="max-height: 800px; max-width: 1000px; overflow: auto;">
-            <div id="imageScaleContainer" class="col-xl-12">
+        <div class="col-xl-12" style="max-height: 800px; max-width: 800px;">
+            <div id="imageScaleContainer" class="col-xl-12 d-flex" style="max-height: 800px; max-width: 800px;">
                 <img wicket:id="image" alt="Generated Image" style="
                 image-rendering: pixelated;
-                 width: 100%; height: auto;
-                  max-height: 800;
-                  max-width: 1000px;
+                 width: 100%; height: 100%;
+                  max-height: 800px;
+                  max-width: 800px;
                    will-change: transform;">
             </div>
         </div>

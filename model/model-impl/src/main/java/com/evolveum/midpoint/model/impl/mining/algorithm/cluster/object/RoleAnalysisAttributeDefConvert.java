@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisMatchingRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +23,7 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDef
 /**
  * Represents an attribute match with associated extension properties.
  */
-public class AttributeMatch implements Serializable {
+public class RoleAnalysisAttributeDefConvert implements Serializable {
 
     RoleAnalysisAttributeDef roleAnalysisAttributeDef;
     private String attributeDisplayValue;
@@ -31,17 +31,18 @@ public class AttributeMatch implements Serializable {
     double similarity;
     double weight;
 
-    public AttributeMatch(RoleAnalysisMatchingRuleType rule, @NotNull RoleAnalysisProcessModeType processMode) {
+    public RoleAnalysisAttributeDefConvert(ClusteringAttributeRuleType rule, @NotNull RoleAnalysisProcessModeType processMode) {
         if (rule == null
-                || rule.getMatchRule() == null
-                || rule.getWeight() == null) {
+                || rule.getSimilarity() == null
+                || rule.getWeight() == null
+                || rule.getAttributeIdentifier() == null
+                || rule.isIsMultiValue() == null) {
             return;
         }
 
-        this.isMultiValue = rule.getMatchRule().isIsMultiValue();
-        this.similarity = rule.getMatchRule().getMatchSimilarity();
+        this.isMultiValue = rule.isIsMultiValue();
+        this.similarity = rule.getSimilarity();
         this.weight = rule.getWeight();
-
 
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
             for (RoleAnalysisAttributeDef attributesForRoleAnalysis : getAttributesForRoleAnalysis()) {
@@ -59,21 +60,19 @@ public class AttributeMatch implements Serializable {
             }
         }
 
-        if (rule.getMatchRule().getMatchSimilarity() != null) {
-            Double matchSimilarity = rule.getMatchRule().getMatchSimilarity();
-            this.similarity = matchSimilarity * 0.01;
-        }
+        this.similarity = similarity * 0.01;
+
     }
 
-    public static @NotNull List<AttributeMatch> generateMatchingRulesList(
-            @NotNull List<RoleAnalysisMatchingRuleType> matchingRule,
+    public static @NotNull List<RoleAnalysisAttributeDefConvert> generateMatchingRulesList(
+            @NotNull List<ClusteringAttributeRuleType> matchingRule,
             @NotNull RoleAnalysisProcessModeType processMode) {
-        List<AttributeMatch> attributeMatches = new ArrayList<>();
-        for (RoleAnalysisMatchingRuleType rule : matchingRule) {
-            AttributeMatch attributeMatch = new AttributeMatch(rule, processMode);
-            attributeMatches.add(attributeMatch);
+        List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts = new ArrayList<>();
+        for (ClusteringAttributeRuleType rule : matchingRule) {
+            RoleAnalysisAttributeDefConvert roleAnalysisAttributeDefConvert = new RoleAnalysisAttributeDefConvert(rule, processMode);
+            roleAnalysisAttributeDefConverts.add(roleAnalysisAttributeDefConvert);
         }
-        return attributeMatches;
+        return roleAnalysisAttributeDefConverts;
     }
 
     public boolean isMultiValue() {

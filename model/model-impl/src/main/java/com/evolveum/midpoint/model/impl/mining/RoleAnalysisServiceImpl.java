@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.mining;
 
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.createAttributeMap;
+
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
@@ -303,13 +305,30 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
 
-        processAttributeAnalysis(roleAnalysisClusterDetectionTypes, userExistCache, roleExistCache, task, result);
-
         PrismObject<RoleAnalysisClusterType> clusterTypeObject = getClusterTypeObject(clusterOid, task, result);
 
         if (clusterTypeObject == null) {
             return;
         }
+
+        RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
+        ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
+
+        PrismObject<RoleAnalysisSessionType> sessionPrismObject = this.getSessionTypeObject(
+                roleAnalysisSessionRef.getOid(), task, result);
+
+        if (sessionPrismObject == null) {
+            return;
+        }
+        RoleAnalysisSessionType session = sessionPrismObject.asObjectable();
+
+        List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = this.resolveAnalysisAttributes(session, UserType.COMPLEX_TYPE);
+        List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = this.resolveAnalysisAttributes(session, RoleType.COMPLEX_TYPE);
+        if (userAnalysisAttributeDef != null && roleAnalysisAttributeDef != null) {
+            resolveDetectedPatternsAttributes(roleAnalysisClusterDetectionTypes, userExistCache, roleExistCache, task, result,
+                    roleAnalysisAttributeDef, userAnalysisAttributeDef);
+        }
+
         AnalysisClusterStatisticType clusterStatistics = clusterTypeObject.asObjectable().getClusterStatistics();
 
         AnalysisClusterStatisticType analysisClusterStatisticType = getUpdatedAnalysisClusterStatistic(max, clusterStatistics);
@@ -1543,9 +1562,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull Set<PrismObject<UserType>> prismUsers,
             Double membershipDensity,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet) {
         List<AttributeAnalysisStructure> attributeAnalysisStructures = new ArrayList<>();
-        runUserAttributeAnalysis(this, prismUsers, attributeAnalysisStructures, task, result);
+        runUserAttributeAnalysis(this, prismUsers, attributeAnalysisStructures, task, result, attributeDefSet);
         return attributeAnalysisStructures;
     }
 
@@ -1554,15 +1574,17 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull Set<PrismObject<RoleType>> prismRoles,
             Double membershipDensity,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeDef> attributeRoleDefSet) {
         List<AttributeAnalysisStructure> attributeAnalysisStructures = new ArrayList<>();
 
-        runRoleAttributeAnalysis(this, prismRoles, attributeAnalysisStructures, task, result);
+        runRoleAttributeAnalysis(this, prismRoles, attributeAnalysisStructures, task, result, attributeRoleDefSet);
         return attributeAnalysisStructures;
     }
 
     @Override
     public List<AttributeAnalysisStructure> roleMembersAttributeAnalysis(
+            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet,
             @NotNull String objectOid,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -1576,11 +1598,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         Set<PrismObject<UserType>> prismUsers = new HashSet<>(userExistCache.values());
         userExistCache.clear();
 
-        return userTypeAttributeAnalysis(prismUsers, 100.0, task, result);
+        return userTypeAttributeAnalysis(prismUsers, 100.0, task, result, attributeDefSet);
     }
 
     @Override
     public List<AttributeAnalysisStructure> userRolesAttributeAnalysis(
+            @NotNull List<RoleAnalysisAttributeDef> attributeRoleDefSet,
             @NotNull String objectOid,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -1591,15 +1614,17 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
         List<String> rolesOidAssignment = getRolesOidAssignment(userTypeObject.asObjectable());
         Set<PrismObject<RoleType>> prismRolesSet = fetchPrismRoles(this, new HashSet<>(rolesOidAssignment), task, result);
-        return roleTypeAttributeAnalysis(prismRolesSet, 100.0, task, result);
+        return roleTypeAttributeAnalysis(prismRolesSet, 100.0, task, result, attributeRoleDefSet);
     }
 
-    public void processAttributeAnalysis(
+    public void resolveDetectedPatternsAttributes(
             @NotNull List<RoleAnalysisDetectionPatternType> detectedPatterns,
             @NotNull Map<String, PrismObject<UserType>> userExistCache,
             @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeDef> attributeRoleDefSet,
+            @NotNull List<RoleAnalysisAttributeDef> attributeUserDefSet) {
 
         for (RoleAnalysisDetectionPatternType detectedPattern : detectedPatterns) {
 
@@ -1617,9 +1642,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                     .filter(Objects::nonNull).collect(Collectors.toSet());
 
             List<AttributeAnalysisStructure> userAttributeAnalysisStructures = this
-                    .userTypeAttributeAnalysis(users, 100.0, task, result);
+                    .userTypeAttributeAnalysis(users, 100.0, task, result, attributeUserDefSet);
             List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = this
-                    .roleTypeAttributeAnalysis(roles, 100.0, task, result);
+                    .roleTypeAttributeAnalysis(roles, 100.0, task, result, attributeRoleDefSet);
 
             RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
             for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
@@ -1758,6 +1783,62 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
         attributeConfidence /= attributeAnalysis.size();
         return String.format("%.2f", attributeConfidence);
+    }
+
+    @Override
+    public @Nullable List<RoleAnalysisAttributeDef> resolveAnalysisAttributes(
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull QName complexType) {
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        if (analysisOption == null) {
+            return null;
+        }
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+        if (processMode == null) {
+            return null;
+        }
+
+        AnalysisAttributeSettingType analysisAttributeSetting = null;
+
+        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+            RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
+            if (roleModeOptions == null) {
+                return null;
+            }
+            analysisAttributeSetting = roleModeOptions.getAnalysisAttributeSetting();
+        } else if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+            UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+            if (userModeOptions == null) {
+                return null;
+            }
+            analysisAttributeSetting = userModeOptions.getAnalysisAttributeSetting();
+        }
+
+        if (analysisAttributeSetting == null) {
+            return null;
+        }
+
+        List<AnalysisAttributeRuleType> analysisAttributeRule = analysisAttributeSetting.getAnalysisAttributeRule();
+
+        if (analysisAttributeRule == null || analysisAttributeRule.isEmpty()) {
+            return null;
+        }
+
+        Map<String, RoleAnalysisAttributeDef> attributeMap = createAttributeMap();
+        List<RoleAnalysisAttributeDef> attributeDefs = new ArrayList<>();
+
+        for (AnalysisAttributeRuleType rule : analysisAttributeRule) {
+            if (!rule.getPropertyType().equals(complexType)) {
+                continue;
+            }
+
+            String key = rule.getAttributeIdentifier();
+            RoleAnalysisAttributeDef attributeDef = attributeMap.get(key);
+            if (attributeDef != null) {
+                attributeDefs.add(attributeDef);
+            }
+        }
+        return attributeDefs;
     }
 
 }

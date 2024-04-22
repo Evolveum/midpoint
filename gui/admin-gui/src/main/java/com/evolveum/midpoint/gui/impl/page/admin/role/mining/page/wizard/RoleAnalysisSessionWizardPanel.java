@@ -101,7 +101,7 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
         });
 
-        steps.add(new RoleAnalysisSessionSimpleObjectsWizardPanel(getHelper().getDetailsModel()) {
+        steps.add(new FilteringRoleAnalysisSessionOptionWizardPanel(getHelper().getDetailsModel()) {
             @Override
             public VisibleEnableBehaviour getBackBehaviour() {
                 return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
@@ -118,29 +118,22 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
             }
         });
 
-        RoleAnalysisSessionType session = getAssignmentHolderModel().getObjectType();
-        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+        steps.add(new ClusteringRoleAnalysisSessionOptionWizardPanel(getHelper().getDetailsModel()) {
+            @Override
+            public VisibleEnableBehaviour getBackBehaviour() {
+                return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
+            }
 
-        if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
-            steps.add(new RoleAnalysisMatchingRulesWizardPanel(getHelper().getDetailsModel()) {
-                @Override
-                public VisibleEnableBehaviour getBackBehaviour() {
-                    return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
-                }
+            @Override
+            public boolean onNextPerformed(AjaxRequestTarget target) {
+                return super.onNextPerformed(target);
+            }
 
-                @Override
-                public boolean onNextPerformed(AjaxRequestTarget target) {
-                    return super.onNextPerformed(target);
-                }
-
-                @Override
-                protected void onExitPerformed(AjaxRequestTarget target) {
-                    RoleAnalysisSessionWizardPanel.this.onExitPerformed();
-                }
-            });
-        }
-
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                RoleAnalysisSessionWizardPanel.this.onExitPerformed();
+            }
+        });
 
         steps.add(new RoleAnalysisSessionDetectionOptionsWizardPanel(getHelper().getDetailsModel()) {
             @Override

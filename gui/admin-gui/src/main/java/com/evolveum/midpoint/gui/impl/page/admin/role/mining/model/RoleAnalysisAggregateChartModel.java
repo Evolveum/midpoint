@@ -76,7 +76,7 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
             int rolesCount = roleAnalysisModel.getRolesCount();
             datasetUsers.addData(roleAnalysisModel.getUsersCount());
             datasetRoles.addData(rolesCount);
-            chartData.addLabel("Roles: " + rolesCount);
+            chartData.addLabel(String.valueOf(rolesCount));
         }
 
         chartData.addDataset(datasetRoles);
