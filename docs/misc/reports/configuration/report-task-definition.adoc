@@ -46,7 +46,7 @@ The reports can be either "Export" reports or "Import" reports.
 
 The second kind of reports are the *"Import"* reports, these work the other way around.
 A CSV is uploaded into midPoint in a similar format as a report, based on this midPoint will create or update objects.
-For some more information on Import reports, have a look at xref:/midpoint/reference/misc/reports/configuration/import-repor.adoc[this] page.
+For some more information on Import reports, have a look at xref:/midpoint/reference/misc/reports/configuration/import-report.adoc[this] page.
 
 - Supports multithreading but not bucketing (multi-node mode). Contains only one parameter 'reportRef'.
 
@@ -101,4 +101,4 @@ To see which activities are supported in regard to workload distribution please 
 - xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
 - xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
 - xref:/midpoint/reference/tasks/activities/distribution[Task Distribution]
-- xref:/midpoint/reference/misc/reports/configuration/import-repor.adoc[Import From Report]
+- xref:/midpoint/reference/misc/reports/configuration/import-report.adoc[Import From Report]
