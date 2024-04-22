@@ -1,23 +1,16 @@
 = PolyString Normalization Configuration
 :page-nav-title: PolyString Normalization
-:page-wiki-name: PolyString Normalization Configuration
-:page-wiki-id: 24676549
-:page-wiki-metadata-create-user: semancik
-:page-wiki-metadata-create-date: 2018-02-22T16:25:02.749+01:00
-:page-wiki-metadata-modify-user: dantrob
-:page-wiki-metadata-modify-date: 2019-07-15T16:32:44.297+02:00
 :page-upkeep-status: green
-:page-since: "3.8"
 
 == Introduction
 
 xref:/midpoint/reference/concepts/polystring/[PolyString] is a flexible data structure that has several purposes.
 One of the purposes is to allow comfortable text search in international environment.
-The basic idea is that is the user is searching for user `naiveboy123` then the users `naveBOY123` and `NaiveBoy123` are found.
-The other effect is that if someone already registered `naiveboy123` username then other user cannot register `naveBOY123`, `NaiveBoy123` and `NAIVEboy123` usernames.
+The basic idea is that is the user is searching for user `naiveboy123` then the users `naiveBOY123` and `NaiveBoy123` are found.
+The other effect is that if someone already registered `naiveboy123` username then other user cannot register `naiveBOY123`, `NaiveBoy123` and `NAIVEboy123` usernames.
 
 This functionality is sometimes achieved by using a native full text search capabilities of the database.
-However, those database features are often difficult to configure and they may also be somehow expensive.
+However, those database features are often difficult to configure, and they may also be somehow expensive.
 But most importantly of all they are specific to individual databases, there is no practical standard.
 As midPoint supports several databases it would be very difficult to support those capabilities in all the databases.
 Therefore midPoint is using a much simpler approach.
@@ -31,7 +24,7 @@ E.g. ``Coup D'état``.
 * *Normalized form (_norm_)*: the text that was simplified, cleaned up, transformed to canonical form or otherwise prepared for storage. E.g. `coup detat`.
 
 Both _orig_ and _norm_ forms are stored in the database.
-The _orig_ form is used for vast majority of purposes: displaying the value, editing the value and so on.
+The _orig_ form is used for the vast majority of purposes: displaying the value, editing the value and so on.
 However, when it comes to searching or uniqueness check then the norm value is used.
 Searching works like this:
 
@@ -55,14 +48,14 @@ Yet, this is nice, simple and elegant method for many practical use cases.
 
 The effectiveness of the method depends heavily on the normalization algorithm.
 Given the right algorithm and the system will work flawlessly.
-However wrong normalization algorithm may cause a lot of problems.
-Therefore since midPoint 3.8 the normalization algorithm is configurable and there is an option for a completely custom normalization algorithm.
+However, wrong normalization algorithm may cause a lot of problems.
+Therefore, the normalization algorithm is configurable and there is an option for a completely custom normalization algorithm.
 
 All normalization algorithms bundled with midPoint go through the same set of steps:
 
 . *Trimming (_trim_):* removing whitespaces at the start and the end of the string.
 
-. *Decomposition (_nfkd_)*: composed characters (such as ) are decomposed to the constituent parts (e and '). Unicode Normalization Form Compatibility Decomposition (NFKD) is used for this purpose.
+. *Decomposition (_nfkd_)*: composed characters (such as é) are decomposed to the constituent parts (e and '). Unicode Normalization Form Compatibility Decomposition (NFKD) is used for this purpose.
 
 . *Core normalization algorithm:* e.g. removing all non-alphanumeric characters, removing all non-ASCII characters and so on.
 
