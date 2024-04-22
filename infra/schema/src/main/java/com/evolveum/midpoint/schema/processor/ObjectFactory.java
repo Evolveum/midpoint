@@ -9,10 +9,14 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.processor.NativeResourceSchema.NativeResourceSchemaBuilder;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -32,16 +36,15 @@ public class ObjectFactory {
      * The created definition is effectively immutable.
      */
     @VisibleForTesting
-    public static <T> ResourceAttributeDefinition<T> createResourceAttributeDefinition(QName name, QName typeName) {
+    public static <T> ResourceAttributeDefinition<T> createResourceAttributeDefinition(
+            @NotNull QName name, @NotNull QName typeName) throws SchemaException {
         return ResourceAttributeDefinitionImpl.create(
-                createRawResourceAttributeDefinition(name, typeName));
+                createNativeItemDefinition(name, typeName));
     }
 
-    /**
-     * Creates {@link ResourceAttributeDefinition}. It is mutable but not directly instantiable.
-     */
-    public static <T> RawResourceAttributeDefinition<T> createRawResourceAttributeDefinition(QName name, QName typeName) {
-        return new RawResourceAttributeDefinition<>(name, typeName);
+    public static <T> NativeShadowItemDefinitionImpl<T> createNativeItemDefinition(
+            @NotNull QName name, @NotNull QName typeName) {
+        return new NativeShadowItemDefinitionImpl<>(ItemName.fromQName(name), typeName);
     }
 
     public static ResourceAttributeContainer createResourceAttributeContainer(
@@ -49,13 +52,8 @@ public class ObjectFactory {
         return new ResourceAttributeContainerImpl(name, definition);
     }
 
-    public static ResourceAttributeContainerDefinition createResourceAttributeContainerDefinition(
-            QName name, ResourceObjectDefinition resourceObjectDefinition) {
-        return new ResourceAttributeContainerDefinitionImpl(name, resourceObjectDefinition);
-    }
-
-    public static MutableResourceSchema createResourceSchema() {
-        return new ResourceSchemaImpl();
+    public static NativeResourceSchemaBuilder createNativeResourceSchemaBuilder() {
+        return new NativeResourceSchemaImpl();
     }
 
     public static PrismObjectDefinition<ShadowType> constructObjectDefinition(
@@ -66,7 +64,7 @@ public class ObjectFactory {
                 PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
         // FIXME eliminate double cloning!
         return shadowDefinition
-                .cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, rACD)
-                .cloneWithReplacedDefinition(ShadowType.F_ASSOCIATIONS, rAsCD);
+                .cloneWithNewDefinition(ShadowType.F_ATTRIBUTES, rACD)
+                .cloneWithNewDefinition(ShadowType.F_ASSOCIATIONS, rAsCD);
     }
 }

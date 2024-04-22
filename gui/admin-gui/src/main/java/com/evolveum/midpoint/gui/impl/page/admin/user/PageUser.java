@@ -268,7 +268,9 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
             ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
 
             delta.setParentPath(WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
-            delta.applyDefinition(deltaDef);
+            if (deltaDef != null) {
+                delta.applyDefinition(deltaDef);
+            }
 
             focusDelta.addModification(delta);
         }

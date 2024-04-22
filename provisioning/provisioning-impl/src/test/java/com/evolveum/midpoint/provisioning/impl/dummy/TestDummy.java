@@ -6,17 +6,14 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.*;
 import static com.evolveum.midpoint.test.DummyResourceContoller.*;
-
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
-
-import static java.util.Objects.requireNonNull;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.AssertJUnit.*;
 
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
@@ -24,17 +21,6 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.provisioning.api.*;
-
-import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
-
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-
-import com.evolveum.midpoint.schema.util.*;
-
-import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
-import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
@@ -52,16 +38,25 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.api.ItemComparisonResult;
+import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ProvisioningScriptSpec;
+import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.*;
@@ -1589,7 +1584,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = createOperationResult();
 
         DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
-        dummyAccount.setLockout(true);
+        dummyAccount.setLockoutStatus(true);
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -1662,7 +1657,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         display("Retrieved account shadow", accountType);
 
         DummyAccount dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
-        assertTrue("Account is not locked", dummyAccount.isLockout());
+        assertTrue("Account is not locked", dummyAccount.getLockoutStatus());
 
         syncServiceMock.reset();
 
@@ -1684,7 +1679,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         delta.checkConsistence();
         // check if activation was changed
         dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
-        assertFalse("Dummy account " + getWillNameOnResource() + " is locked, expected unlocked", dummyAccount.isLockout());
+        assertFalse("Dummy account " + getWillNameOnResource() + " is locked, expected unlocked", dummyAccount.getLockoutStatus());
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
@@ -1983,9 +1978,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSuccess(result);
     }
 
-    private ObjectQuery createOnOffQuery() throws SchemaException {
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
-        assertNotNull(resourceSchema);
+    private ObjectQuery createOnOffQuery() throws SchemaException, ConfigurationException {
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         ResourceObjectClassDefinition objectClassDef =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
         ResourceAttributeDefinition<?> attrDef = objectClassDef.findAttributeDefinition(
@@ -2011,7 +2005,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     <T> void testSearchIterativeSingleAttrFilter(QName attrQName, T attrVal,
             GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountNames) throws Exception {
-        ResourceSchema resourceSchema = requireNonNull(ResourceSchemaFactory.getRawSchema(resource));
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         ResourceObjectClassDefinition objectClassDef =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
         ResourceAttributeDefinition<?> attrDef = objectClassDef.findAttributeDefinitionRequired(attrQName);
@@ -2844,7 +2838,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = createEntitleDeltaIdentifiers(
-                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME);
+                ACCOUNT_WILL_OID, getAccountDefaultDefinition(),
+                DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2871,7 +2866,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = createDetitleDeltaIdentifiers(
-                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME);
+                ACCOUNT_WILL_OID, getAccountDefaultDefinition(),
+                DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2898,7 +2894,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = createEntitleDeltaIdentifiers(
-                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_UID, piratesIcfUid);
+                ACCOUNT_WILL_OID, getAccountDefaultDefinition(),
+                DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_UID, piratesIcfUid);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2925,7 +2922,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = createDetitleDeltaIdentifiers(
-                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_UID, piratesIcfUid);
+                ACCOUNT_WILL_OID, getAccountDefaultDefinition(),
+                DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_UID, piratesIcfUid);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -3593,7 +3591,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         Collection<PropertyDelta<String>> modifications = new ArrayList<>(1);
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
         ResourceObjectClassDefinition defaultAccountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
         ResourceAttributeDefinition<String> fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
@@ -3688,8 +3686,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         testAddAccount("somebody-ADM");
     }
 
-    private PrismObject<ShadowType> createAccountShadow(String username) throws SchemaException {
-        ResourceSchema resourceSchema = requireNonNull(ResourceSchemaFactory.getRawSchema(resource));
+    private PrismObject<ShadowType> createAccountShadow(String username) throws SchemaException, ConfigurationException {
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         ResourceObjectClassDefinition defaultAccountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
         ShadowType shadowType = new ShadowType();
@@ -4537,11 +4535,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         and("the association has correct definition");
         var associationValues = ShadowAssociationsCollection.ofShadow(accountAfter.asObjectable()).getAllValues();
         assertThat(associationValues).as("associations").hasSize(1);
-        PrismContainerDefinition<?> identifiersDefinition =
-                associationValues.iterator().next().value().getIdentifiers().asPrismContainerValue().getParent().getDefinition();
-        assertThat(identifiersDefinition)
-                .as("definition of identifiers")
-                .isInstanceOf(ResourceAttributeContainerDefinition.class);
+        associationValues.iterator().next().associationValue().getAttributesContainerRequired().getDefinitionRequired();
 
         and("the title has correct definition");
         PrismPropertyDefinition<Object> titleDefinition =
@@ -4549,6 +4543,78 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertThat(titleDefinition)
                 .as("definition of title")
                 .isInstanceOf(ResourceAttributeDefinition.class);
+    }
+
+    /**
+     * Checks that the "apply definition" for association deltas works well, for various degrees of "rawness" of input deltas.
+     */
+    @Test
+    public void test930AssociationDeltaAdaptation() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("a testing account and some groups");
+
+        initializeResourceIfNeeded();
+
+        var accountName = "account930";
+        var accountOid = provisioningService.addObject(
+                ShadowBuilder.withDefinition(getAccountDefaultDefinition())
+                        .withAttribute(SchemaConstants.ICFS_NAME, accountName)
+                        .asPrismObject(),
+                null, null, task, result);
+
+        String groupName = "group930";
+        var groupOid = provisioningService.addObject(
+                ShadowBuilder.withDefinition(getGroupDefaultDefinition())
+                        .withAttribute(SchemaConstants.ICFS_NAME, groupName)
+                        .asPrismObject(),
+                null, null, task, result);
+
+        var assocDef = getAccountDefaultDefinition().findAssociationDefinitionRequired(ASSOCIATION_GROUP_NAME);
+
+        when("account is entitled/detitled in the most raw way (raw value, raw definition)");
+        var rawValue = new ShadowAssociationValueType().shadowRef(groupOid, ShadowType.COMPLEX_TYPE);
+        var rawDef = prismContext.definitionFactory().newContainerDefinition(
+                assocDef.getItemName(),
+                prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowAssociationValueType.class));
+
+        testEntitleDetitle(accountOid, rawValue, rawDef, task, result);
+    }
+
+    private void testEntitleDetitle(
+            String accountOid,
+            ShadowAssociationValueType assocValue, PrismContainerDefinition<?> assocDef,
+            Task task, OperationResult result) throws CommonException {
+
+        var path = ItemPath.create(ShadowType.F_ASSOCIATIONS, assocDef.getItemName());
+        when("association is added");
+        provisioningService.modifyObject(
+                ShadowType.class, accountOid,
+                deltaFor(ShadowType.class)
+                        .item(path, assocDef)
+                        .add(assocValue.clone())
+                        .asItemDeltas(),
+                null, null, task, result);
+
+        then("the association is there");
+        assertShadowProvisioning(accountOid)
+                .associations()
+                .assertValuesCount(1);
+
+        when("association is deleted");
+        provisioningService.modifyObject(
+                ShadowType.class, accountOid,
+                deltaFor(ShadowType.class)
+                        .item(path, assocDef)
+                        .delete(assocValue.clone())
+                        .asItemDeltas(),
+                null, null, task, result);
+
+        then("the association is not there");
+        assertShadowProvisioning(accountOid)
+                .associations()
+                .assertValuesCount(0);
     }
 
     // test999 shutdown in the superclass

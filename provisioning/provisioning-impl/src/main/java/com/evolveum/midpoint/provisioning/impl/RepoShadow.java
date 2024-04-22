@@ -185,10 +185,6 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
         return ObjectTypeUtil.createObjectRef(bean);
     }
 
-    public boolean isClassified() {
-        return ShadowUtil.isClassified(bean);
-    }
-
     public boolean hasPendingAddOperation() {
         return ProvisioningUtil.hasPendingAddOperation(bean);
     }

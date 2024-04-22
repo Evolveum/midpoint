@@ -6,13 +6,13 @@
   -->
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <div class="card card-light">
+    <div class="card card-light" wicket:id="card">
         <div class="card-header">
             <h3 class="card-title" wicket:id="cardTitle"></h3>
             <div class="card-tools">
                 <form wicket:id="toolForm">
                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                        <i class="fas fa-minus"></i>
+                        <i wicket:id="image" class="fas fa-minus"></i>
                     </button>
                 </form>
 

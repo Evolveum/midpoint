@@ -248,8 +248,7 @@ public class TreeTablePanel extends BasePanel<String> {
     }
 
     private ObjectQuery createManagerQuery(OrgType org) {
-        ObjectQuery query = ObjectTypeUtil.createManagerQuery(FocusType.class, org.getOid(),
-                getPageBase().getRelationRegistry(), getPageBase().getPrismContext());
+        ObjectQuery query = ObjectTypeUtil.createManagerQuery(FocusType.class, org.getOid(), getPageBase().getRelationRegistry());
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Searching members of org {} with query:\n{}", org.getOid(), query.debugDump());
         }
@@ -409,7 +408,7 @@ public class TreeTablePanel extends BasePanel<String> {
                     public void onClick(AjaxRequestTarget target) {
                         try {
                             initObjectForAdd(
-                                    ObjectTypeUtil.createObjectRef(org.getValue(), getPageBase().getPrismContext()), target);
+                                    ObjectTypeUtil.createObjectRef(org.getValue()), target);
                         } catch (SchemaException e) {
                             throw new SystemException(e.getMessage(), e);
                         }
@@ -502,7 +501,7 @@ public class TreeTablePanel extends BasePanel<String> {
         //  see also DetailsPageUtil.initNewObjectWithReference
         if (parentOrgRef == null) {
             ObjectType org = getTreePanel().getSelected().getValue();
-            parentOrgRef = ObjectTypeUtil.createObjectRef(org, prismContext);
+            parentOrgRef = ObjectTypeUtil.createObjectRef(org);
             parentOrgRef.setRelation(null);
             objType.getParentOrgRef().add(parentOrgRef);
         } else {
@@ -571,7 +570,7 @@ public class TreeTablePanel extends BasePanel<String> {
             }
 
             AssignmentType newRoot = new AssignmentType();
-            newRoot.setTargetRef(ObjectTypeUtil.createObjectRef(selected.getValue(), getPageBase().getPrismContext()));
+            newRoot.setTargetRef(ObjectTypeUtil.createObjectRef(selected.getValue()));
             moveOrgDelta.addModification(getPrismContext().deltaFactory().container().createModificationAdd(OrgType.F_ASSIGNMENT,
                     OrgType.class, newRoot.asPrismContainerValue()));
 

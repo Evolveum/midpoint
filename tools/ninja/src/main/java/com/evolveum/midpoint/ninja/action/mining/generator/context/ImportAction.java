@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.ninja.action.mining.generator.context;
 
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGeneratorUtils.*;
+import static com.evolveum.midpoint.ninja.action.mining.generator.object.InitialObjectsDefinition.getNoiseRolesObjects;
 
 import java.io.IOException;
 import java.util.*;
@@ -69,7 +70,7 @@ public class ImportAction {
 
         if (generatorOptions.isTransform()) {
             log.info("Make sure that RoleType objects is recomputed");
-            remakeUsersBusinessRoles(context, result, null, null);
+            remakeUsersBusinessRoles(context, result, generatorOptions, null, null);
         }
     }
 
@@ -82,9 +83,13 @@ public class ImportAction {
             importArchetypes(initialObjectsDefinition, repositoryService, result, log);
         }
 
-        importPlanktonRoles(initialObjectsDefinition, repositoryService, result, log);
+        if (!generatorOptions.isPlanktonDisable()) {
+            importPlanktonRoles(initialObjectsDefinition, repositoryService, result, log);
+        }
+
         importMultipliedBasicRoles(initialObjectsDefinition, repositoryService, result, log);
         importBusinessRoles(initialObjectsDefinition, repositoryService, result, log);
+        importNoiseRoles(repositoryService, result, log);
         log.info("Initial role objects imported");
     }
 
@@ -137,6 +142,26 @@ public class ImportAction {
         log.info("Importing plankton roles: 0/{}", rolesObjects.size());
         for (int i = 0; i < rolesObjects.size(); i++) {
             log.info("Importing plankton roles: {}/{}", i + 1, rolesObjects.size());
+            RoleType role = rolesObjects.get(i);
+            try {
+                repositoryService.addObject(role.asPrismObject(), null, result);
+            } catch (ObjectAlreadyExistsException e) {
+                log.warn("Role {} already exists", role.getName());
+            } catch (SchemaException e) {
+                log.error("Error adding role {}", role.getName(), e);
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void importNoiseRoles(
+            @NotNull RepositoryService repositoryService,
+            @NotNull OperationResult result,
+            @NotNull Log log) {
+        List<RoleType> rolesObjects = getNoiseRolesObjects();
+        log.info("Importing noise roles: 0/{}", rolesObjects.size());
+        for (int i = 0; i < rolesObjects.size(); i++) {
+            log.info("Importing noise roles: {}/{}", i + 1, rolesObjects.size());
             RoleType role = rolesObjects.get(i);
             try {
                 repositoryService.addObject(role.asPrismObject(), null, result);
@@ -339,7 +364,7 @@ public class ImportAction {
             String locationBusinessRoleOidValue = randomLocationBusinessRole.getOidValue();
             PolyStringType locale = PolyStringType.fromOrig(randomLocationBusinessRole.getLocale());
             String randomlyJobTitleStructure = getRandomlyJobTitlesWithNone();
-            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(0);
+            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(0, generatorOptions);
 
             UserType user = new UserType();
             user.setName(getNameFromSet(PolyStringType.fromOrig("Semi-Regular User " + i)));
@@ -381,7 +406,7 @@ public class ImportAction {
         for (int i = 0; i < irregularUsersCount; i++) {
             log.info("Importing irregular users: {}/{}", i + 1, irregularUsersCount);
             String randomlyJobTitleStructureWithNone = getRandomlyJobTitlesWithNone();
-            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(7);
+            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(7, generatorOptions);
             UserType user = new UserType();
             user.setName(getNameFromSet(PolyStringType.fromOrig("Irregular User " + i)));
             user.getAssignment().add(createOrgAssignment(organizationOid));
@@ -423,7 +448,7 @@ public class ImportAction {
             InitialObjectsDefinition.LocationInitialBusinessRole randomLocationBusinessRole = getRandomLocationBusinessRole();
             String locationBusinessRoleOidValue = randomLocationBusinessRole.getOidValue();
             PolyStringType locale = PolyStringType.fromOrig(randomLocationBusinessRole.getLocale());
-            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(0);
+            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(0, generatorOptions);
 
             UserType user = new UserType();
             user.setName(getNameFromSet(PolyStringType.fromOrig("Manager User " + i)));
@@ -541,7 +566,7 @@ public class ImportAction {
 
         for (int i = 0; i < contractorsCount; i++) {
             log.info("Importing contractor users: {}/{}", i + 1, contractorsCount);
-            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(0);
+            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(0, generatorOptions);
 
             UserType user = new UserType();
             user.setName(getNameFromSet(PolyStringType.fromOrig("Contractor User " + i)));
@@ -571,6 +596,7 @@ public class ImportAction {
      */
     public static void remakeUsersBusinessRoles(@NotNull NinjaContext context,
             @NotNull OperationResult result,
+            @NotNull GeneratorOptions generatorOptions,
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
 
@@ -579,7 +605,7 @@ public class ImportAction {
         log.info("Replace business role for their inducements on users started");
 
         ResultHandler<UserType> handler = (object, parentResult) -> {
-            executeChangesOnUser(result, object, repository, log);
+            executeChangesOnUser(result, object, generatorOptions, repository, log);
             return true;
         };
 
@@ -603,7 +629,12 @@ public class ImportAction {
      * @param log The log used for logging the operation.
      * @throws RuntimeException If an error occurs during the process.
      */
-    private static void executeChangesOnUser(@NotNull OperationResult result, @NotNull PrismObject<UserType> object, RepositoryService repository, Log log) {
+    private static void executeChangesOnUser(
+            @NotNull OperationResult result,
+            @NotNull PrismObject<UserType> object,
+            @NotNull GeneratorOptions generatorOptions,
+            @NotNull RepositoryService repository,
+            @NotNull Log log) {
         String userOid = object.getOid();
         PolyString name = object.getName();
         if (name == null) {
@@ -633,7 +664,19 @@ public class ImportAction {
             List<ItemDelta<?, ?>> modifications = new ArrayList<>();
             try {
 
+                RoleType noiseRole = getAdditionNoiseRole(generatorOptions.getAdditionNoise());
+                if (noiseRole != null) {
+                    modifications.add(PrismContext.get().deltaFor(UserType.class)
+                            .item(UserType.F_ASSIGNMENT).add(createRoleAssignment(noiseRole.getOid()))
+                            .asItemDelta());
+                }
+
                 for (AssignmentType assignmentType : inducement) {
+                    boolean allowed = isForgetRole(generatorOptions.getForgetNoise());
+                    if (allowed) {
+                        continue;
+                    }
+
                     modifications.add(PrismContext.get().deltaFor(UserType.class)
                             .item(UserType.F_ASSIGNMENT).add(createRoleAssignment(assignmentType.getTargetRef().getOid()))
                             .asItemDelta());

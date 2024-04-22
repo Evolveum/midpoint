@@ -38,7 +38,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisAggregateChartModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.RoleAnalysisAggregateChartModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisModel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -101,7 +101,8 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
         chartContainer.setOutputMarkupId(true);
         add(chartContainer);
 
-        Label cardTitle = new Label(ID_CARD_TITLE, createStringResource("PageRoleAnalysis.chart.title"));
+        Label cardTitle = new Label(ID_CARD_TITLE,
+                createStringResource("PageRoleAnalysis.chart.access.distribution.title"));
         cardTitle.setOutputMarkupId(true);
         add(cardTitle);
 
@@ -246,7 +247,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
             Form<?> toolForm) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon("fa fa-refresh",
                 LayeredIconCssStyle.IN_ROW_STYLE);
-        AjaxCompositedIconSubmitButton reset = new AjaxCompositedIconSubmitButton(ID_SCALE_BUTTON, iconBuilder.build(),
+        AjaxCompositedIconSubmitButton scaleButton = new AjaxCompositedIconSubmitButton(ID_SCALE_BUTTON, iconBuilder.build(),
                 new LoadableModel<>() {
                     @Override
                     protected String load() {
@@ -284,10 +285,11 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
                 target.add(((PageBase) getPage()).getFeedbackPanel());
             }
         };
-        reset.titleAsLabel(true);
-        reset.setOutputMarkupId(true);
-        reset.add(AttributeAppender.append("class", "btn btn-tool"));
-        toolForm.add(reset);
+        scaleButton.titleAsLabel(true);
+        scaleButton.setOutputMarkupId(true);
+        scaleButton.setVisible(false);
+        scaleButton.add(AttributeAppender.append("class", "btn btn-tool"));
+        toolForm.add(scaleButton);
     }
 
     @NotNull
@@ -332,7 +334,27 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
             protected List<RoleAnalysisModel> load() {
                 return prepareRoleAnalysisData();
             }
-        }, isLineChart);
+        }, isLineChart){
+            @Override
+            public String getXAxisTitle() {
+                return getPageBase().createStringResource("PageRoleAnalysis.chart.xAxis.title").getString();
+            }
+
+            @Override
+            public String getYAxisTitle() {
+                return getPageBase().createStringResource("PageRoleAnalysis.chart.yAxis.title").getString();
+            }
+
+            @Override
+            public String getDatasetUserLabel() {
+                return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.user.label").getString();
+            }
+
+            @Override
+            public String getDatasetRoleLabel() {
+                return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.role.label").getString();
+            }
+        };
     }
 
     private List<RoleAnalysisModel> prepareRoleAnalysisData() {

@@ -34,6 +34,7 @@ public class MidPointConstants {
     public static final QName RA_SECONDARY_IDENTIFIER = new QName(NS_RA, "secondaryIdentifier");
     public static final QName RA_DEFAULT = new QName(NS_RA, "default");
     public static final QName RA_AUXILIARY = new QName(NS_RA, "auxiliary");
+    public static final QName RA_ASSOCIATION_PARTICIPANT_ROLE = new QName(NS_RA, "associationParticipantRole");
 
     public static final String NS_RI = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/instance-3";
     public static final String PREFIX_NS_RI = "ri";

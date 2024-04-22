@@ -20,6 +20,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *
  * TODO
  */
+@SuppressWarnings("ClassCanBeRecord")
 @Experimental
 public class MappingEvaluationEnvironment {
 

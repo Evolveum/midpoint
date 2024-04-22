@@ -297,7 +297,7 @@ public class ProvisioningObjectsUtil {
         if (oc == null) {
             return null;
         }
-        Collection<ShadowAssociationDefinition> shadowAssociationDefinitions = oc.getAssociationDefinitions();
+        var shadowAssociationDefinitions = oc.getAssociationDefinitions();
 
         for (ShadowAssociationDefinition shadowAssociationDefinition : shadowAssociationDefinitions) {
             if (association != null && !shadowAssociationDefinition.getItemName().equivalent(association)) {
@@ -489,7 +489,7 @@ public class ProvisioningObjectsUtil {
         OperationResult result = new OperationResult(operation);
 
         try {
-            ResourceUtils.deleteSchema(resource, pageBase.getModelService(), pageBase.getPrismContext(), task, result);
+            ResourceUtils.deleteSchema(resource, pageBase.getModelService(), task, result);
             pageBase.getModelService().testResource(resource.getOid(), task, result); // try to load fresh schema
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                 | ExpressionEvaluationException | CommunicationException | ConfigurationException
@@ -527,11 +527,11 @@ public class ProvisioningObjectsUtil {
 
     public static Collection<QName> loadResourceObjectClassValues(ResourceType resource, PageBase pageBase) {
         try {
-            ResourceSchema schema = ResourceSchemaFactory.getRawSchema(resource);
+            ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
             if (schema != null) {
                 return schema.getObjectClassNames();
             }
-        } catch (SchemaException | RuntimeException e) {
+        } catch (SchemaException | ConfigurationException | RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
             pageBase.error("Couldn't load object class list from resource.");
         }

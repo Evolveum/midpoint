@@ -58,13 +58,14 @@ public class RangePanelFactory extends AbstractInputGuiComponentFactory<RangeTyp
     }
 
     @Override
+    public void configure(PrismPropertyPanelContext<RangeType> panelCtx, org.apache.wicket.Component component) {
+        component.setEnabled(panelCtx.getVisibleEnableBehavior().isEnabled());
+    }
+
+    @Override
     public Integer getOrder() {
         return 10000;
     }
 
-    @Override
-    public void configure(PrismPropertyPanelContext<RangeType> panelCtx, org.apache.wicket.Component component) {
-        component.setEnabled(panelCtx.getVisibleEnableBehavior().isEnabled());
-    }
 
 }

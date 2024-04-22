@@ -18,7 +18,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -50,8 +49,8 @@ public class ModifyTestReindex extends ModifyTest {
         PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
                 .name("unstable")
                 .asPrismObject();
-        ItemPath UNSTABLE_PATH = ItemPath.create(UserType.F_EXTENSION, "unstable");
-        PrismPropertyDefinition<String> unstableDef = user.getDefinition().findPropertyDefinition(UNSTABLE_PATH);
+        ItemPath unstablePath = ItemPath.create(UserType.F_EXTENSION, "unstable");
+        PrismPropertyDefinition<String> unstableDef = user.getDefinition().findPropertyDefinition(unstablePath);
         PrismProperty<String> unstable = unstableDef.instantiate();
         unstable.setRealValue("hi");
         user.addExtensionItem(unstable);
@@ -59,12 +58,12 @@ public class ModifyTestReindex extends ModifyTest {
         String oid = repositoryService.addObject(user, null, result);
 
         // brutal hack -- may stop working in the future!
-        unstableDef.toMutable().setIndexed(true);
+        unstableDef.mutator().setIndexed(true);
 
         repositoryService.modifyObject(UserType.class, oid, emptySet(), getModifyOptions(), result);
 
         ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(UNSTABLE_PATH).eq("hi")
+                .item(unstablePath).eq("hi")
                 .build();
         int count = repositoryService.countObjects(UserType.class, query, null, result);
         assertEquals("Wrong # of objects found", 1, count);
@@ -77,8 +76,8 @@ public class ModifyTestReindex extends ModifyTest {
         PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
                 .name(getTestNameShort())
                 .asPrismObject();
-        ItemPath INDEX_ONLY_PATH = ItemPath.create(UserType.F_EXTENSION, "indexOnly");
-        PrismPropertyDefinition<String> indexOnlyDef = user.getDefinition().findPropertyDefinition(INDEX_ONLY_PATH);
+        ItemPath indexOnlyPath = ItemPath.create(UserType.F_EXTENSION, "indexOnly");
+        PrismPropertyDefinition<String> indexOnlyDef = user.getDefinition().findPropertyDefinition(indexOnlyPath);
         PrismProperty<String> indexOnlyProperty = indexOnlyDef.instantiate();
         indexOnlyProperty.setRealValue("hi");
         user.addExtensionItem(indexOnlyProperty);
@@ -98,7 +97,7 @@ public class ModifyTestReindex extends ModifyTest {
         displayValue("user after", userAfter.asPrismObject());
 
         ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(INDEX_ONLY_PATH).eq("hi")
+                .item(indexOnlyPath).eq("hi")
                 .build();
         int count = repositoryService.countObjects(UserType.class, query, null, result);
         assertEquals("Wrong # of objects found", 1, count);
@@ -108,11 +107,11 @@ public class ModifyTestReindex extends ModifyTest {
     public void testReindexPhoto() throws Exception {
         OperationResult result = createOperationResult();
 
-        byte[] PHOTO = new byte[] { 1, 2, 3, 4 };
+        byte[] photo = new byte[] { 1, 2, 3, 4 };
 
         PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
                 .name(getTestNameShort())
-                .jpegPhoto(PHOTO)
+                .jpegPhoto(photo)
                 .asPrismObject();
 
         String oid = repositoryService.addObject(user, null, result);
@@ -123,7 +122,7 @@ public class ModifyTestReindex extends ModifyTest {
                 .getObject(UserType.class, oid, schemaService.getOperationOptionsBuilder().retrieve().build(), result)
                 .asObjectable();
 
-        assertEquals("Missing or wrong photo", PHOTO, userAfter.getJpegPhoto());
+        assertEquals("Missing or wrong photo", photo, userAfter.getJpegPhoto());
     }
 
     @Test // MID-5112
@@ -152,7 +151,7 @@ public class ModifyTestReindex extends ModifyTest {
     public void testReindexLookupTableRow() throws Exception {
         OperationResult result = createOperationResult();
 
-        LookupTableRowType row = new LookupTableRowType(prismContext)
+        LookupTableRowType row = new LookupTableRowType()
                 .key("key")
                 .label("label");
         PrismObject<LookupTableType> table = prismContext.createObjectable(LookupTableType.class)
@@ -176,7 +175,7 @@ public class ModifyTestReindex extends ModifyTest {
     public void testReindexCertificationCampaignCase() throws Exception {
         OperationResult result = createOperationResult();
 
-        AccessCertificationCaseType aCase = new AccessCertificationCaseType(prismContext)
+        AccessCertificationCaseType aCase = new AccessCertificationCaseType()
                 .stageNumber(1);
         PrismObject<AccessCertificationCampaignType> campaign = prismContext.createObjectable(AccessCertificationCampaignType.class)
                 .name(getTestNameShort())
@@ -203,21 +202,21 @@ public class ModifyTestReindex extends ModifyTest {
     public void testReindexShadow() throws Exception {
         OperationResult result = createOperationResult();
 
-        String APPROVER_OID = "9123090439201432";
+        String approverOid = "9123090439201432";
         PrismObject<ShadowType> shadow = prismContext.createObjectable(ShadowType.class)
                 .name("unstable")
                 .beginMetadata()
-                .modifyApproverRef(APPROVER_OID, UserType.COMPLEX_TYPE)
+                .modifyApproverRef(approverOid, UserType.COMPLEX_TYPE)
                 .<ShadowType>end()
                 .asPrismObject();
-        MutablePrismPropertyDefinition<String> def = prismContext.definitionFactory().createPropertyDefinition(new QName("http://temp/", "attr1"), DOMUtil.XSD_STRING);
-        def.setIndexed(true);
+        PrismPropertyDefinition<String> def = prismContext.definitionFactory().newPropertyDefinition(new QName("http://temp/", "attr1"), DOMUtil.XSD_STRING);
+        def.mutator().setIndexed(true);
         PrismProperty<String> attribute = def.instantiate();
         attribute.addRealValue("value");
         shadow.findOrCreateContainer(ShadowType.F_ATTRIBUTES).add(attribute);
 
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
-                .item(ShadowType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).ref(APPROVER_OID, UserType.COMPLEX_TYPE)
+                .item(ShadowType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).ref(approverOid, UserType.COMPLEX_TYPE)
                 .build();
 
         // add shadow and check metadata search

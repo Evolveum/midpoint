@@ -35,7 +35,7 @@ public class ObjectDeltaSchemaLevelUtil {
     }
 
     public static void resolveNames(
-            ObjectDelta<? extends ObjectType> delta, NameResolver nameResolver, PrismContext prismContext) {
+            ObjectDelta<? extends ObjectType> delta, NameResolver nameResolver) {
         Map<String, PolyString> resolvedOids = new HashMap<>();
         Visitor namesResolver = visitable -> {
             if (visitable instanceof PrismReferenceValue) {
@@ -55,7 +55,7 @@ public class ObjectDeltaSchemaLevelUtil {
                 } else {
                     PrismObjectDefinition<? extends ObjectType> objectDefinition = null;
                     if (refVal.getTargetType() != null) {
-                        objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(refVal.getTargetType());
+                        objectDefinition = PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(refVal.getTargetType());
                     }
                     Class<? extends ObjectType> objectClass = null;
                     if (objectDefinition != null) {

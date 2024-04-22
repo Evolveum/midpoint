@@ -123,15 +123,15 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     private void prepareItemDefinitions() {
         DefinitionFactory factory = prismContext.definitionFactory();
-        fooDefinition = extItemDictionary.createOrFindItemDefinition(factory.createPropertyDefinition(FOO_QNAME, DOMUtil.XSD_STRING), false);
-        shoeSizeDefinition = extItemDictionary.createOrFindItemDefinition(factory.createPropertyDefinition(SHOE_SIZE_QNAME, DOMUtil.XSD_INT), false);
-        a1Definition = extItemDictionary.createOrFindItemDefinition(factory.createPropertyDefinition(A1_QNAME, DOMUtil.XSD_STRING), false);
-        stringTypeDefinition = extItemDictionary.findItemByDefinition(factory.createPropertyDefinition(STRING_TYPE_QNAME, DOMUtil.XSD_STRING));
-        intTypeDefinition = extItemDictionary.findItemByDefinition(factory.createPropertyDefinition(INT_TYPE_QNAME, DOMUtil.XSD_INT));
-        longTypeDefinition = extItemDictionary.findItemByDefinition(factory.createPropertyDefinition(LONG_TYPE_QNAME, DOMUtil.XSD_LONG));
-        weaponDefinition = extItemDictionary.createOrFindItemDefinition(factory.createPropertyDefinition(WEAPON_QNAME, DOMUtil.XSD_STRING), false);
-        overrideActivationDefinition = extItemDictionary.createOrFindItemDefinition(factory.createPropertyDefinition(OVERRIDE_ACTIVATION_QNAME, ACTIVATION_STATUS_TYPE_QNAME), false);
-        skipAutogenerationDefinition = extItemDictionary.findItemByDefinition(factory.createPropertyDefinition(SKIP_AUTOGENERATION_QNAME, DOMUtil.XSD_BOOLEAN));
+        fooDefinition = extItemDictionary.createOrFindItemDefinition(factory.newPropertyDefinition(FOO_QNAME, DOMUtil.XSD_STRING), false);
+        shoeSizeDefinition = extItemDictionary.createOrFindItemDefinition(factory.newPropertyDefinition(SHOE_SIZE_QNAME, DOMUtil.XSD_INT), false);
+        a1Definition = extItemDictionary.createOrFindItemDefinition(factory.newPropertyDefinition(A1_QNAME, DOMUtil.XSD_STRING), false);
+        stringTypeDefinition = extItemDictionary.findItemByDefinition(factory.newPropertyDefinition(STRING_TYPE_QNAME, DOMUtil.XSD_STRING));
+        intTypeDefinition = extItemDictionary.findItemByDefinition(factory.newPropertyDefinition(INT_TYPE_QNAME, DOMUtil.XSD_INT));
+        longTypeDefinition = extItemDictionary.findItemByDefinition(factory.newPropertyDefinition(LONG_TYPE_QNAME, DOMUtil.XSD_LONG));
+        weaponDefinition = extItemDictionary.createOrFindItemDefinition(factory.newPropertyDefinition(WEAPON_QNAME, DOMUtil.XSD_STRING), false);
+        overrideActivationDefinition = extItemDictionary.createOrFindItemDefinition(factory.newPropertyDefinition(OVERRIDE_ACTIVATION_QNAME, ACTIVATION_STATUS_TYPE_QNAME), false);
+        skipAutogenerationDefinition = extItemDictionary.findItemByDefinition(factory.newPropertyDefinition(SKIP_AUTOGENERATION_QNAME, DOMUtil.XSD_BOOLEAN));
     }
 
     @Test
@@ -1306,11 +1306,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void test086QueryTrigger() throws Exception {
-        final Date NOW = new Date();
+        final Date now = new Date();
 
         Session session = open();
         try {
-            XMLGregorianCalendar thisScanTimestamp = XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime());
+            XMLGregorianCalendar thisScanTimestamp = XmlTypeConverter.createXMLGregorianCalendar(now.getTime());
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
                     .item(ObjectType.F_TRIGGER, F_TIMESTAMP).le(thisScanTimestamp)
                     .build();
@@ -1330,12 +1330,12 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void test088QueryTriggerBeforeAfter() throws Exception {
-        final Date NOW = new Date();
+        final Date now = new Date();
 
         Session session = open();
         try {
-            XMLGregorianCalendar lastScanTimestamp = XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime());
-            XMLGregorianCalendar thisScanTimestamp = XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime());
+            XMLGregorianCalendar lastScanTimestamp = XmlTypeConverter.createXMLGregorianCalendar(now.getTime());
+            XMLGregorianCalendar thisScanTimestamp = XmlTypeConverter.createXMLGregorianCalendar(now.getTime());
 
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
                     .exists(ObjectType.F_TRIGGER)
@@ -1441,7 +1441,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void test094QueryUserByActivationDouble() throws Exception {
-        Date NOW = new Date();
+        Date now = new Date();
 
         Session session = open();
         try {
@@ -1454,7 +1454,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
              */
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.ENABLED)
-                    .and().item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).eq(XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime()))
+                    .and().item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).eq(XmlTypeConverter.createXMLGregorianCalendar(now.getTime()))
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query);
 
@@ -1474,11 +1474,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void test096QueryTriggerTimestampDoubleWrong() throws Exception {
-        final Date NOW = new Date();
+        final Date now = new Date();
 
         Session session = open();
         try {
-            XMLGregorianCalendar thisScanTimestamp = XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime());
+            XMLGregorianCalendar thisScanTimestamp = XmlTypeConverter.createXMLGregorianCalendar(now.getTime());
 
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
                     .item(ObjectType.F_TRIGGER, F_TIMESTAMP).gt(thisScanTimestamp)
@@ -2719,7 +2719,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void test184QueryAssignmentExtensionBoolean() throws Exception {
         Session session = open();
         try {
-            PrismPropertyDefinition<?> propDef = prismContext.definitionFactory().createPropertyDefinition(
+            PrismPropertyDefinition<?> propDef = prismContext.definitionFactory().newPropertyDefinition(
                     SKIP_AUTOGENERATION_QNAME, DOMUtil.XSD_BOOLEAN);
 
             ObjectQuery objectQuery = prismContext.queryFor(UserType.class)
@@ -3640,9 +3640,9 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             /*
              * ### User: preferredLanguage = 'SK', 'HU'
              */
-            MutablePrismPropertyDefinition<String> multivalDef = prismContext.definitionFactory().createPropertyDefinition(UserType.F_PREFERRED_LANGUAGE,
-                    DOMUtil.XSD_STRING);
-            multivalDef.setMaxOccurs(-1);
+            PrismPropertyDefinition<String> multivalDef =
+                    prismContext.definitionFactory().newPropertyDefinition(UserType.F_PREFERRED_LANGUAGE, DOMUtil.XSD_STRING);
+            multivalDef.mutator().setMaxOccurs(-1);
             PrismProperty<String> multivalProperty = multivalDef.instantiate();
             multivalProperty.addRealValue("SK");
             multivalProperty.addRealValue("HU");

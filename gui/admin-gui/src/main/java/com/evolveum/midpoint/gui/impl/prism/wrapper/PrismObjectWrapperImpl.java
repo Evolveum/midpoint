@@ -41,7 +41,7 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
 
     @Override
     public ObjectDelta<O> getObjectDelta() throws CommonException {
-        ObjectDelta<O> objectDelta = getPrismContext().deltaFor(getObject().getCompileTimeClass())
+        ObjectDelta<O> objectDelta = PrismContext.get().deltaFor(getObject().getCompileTimeClass())
                 .asObjectDelta(getObject().getOid());
 
         Collection<ItemDelta> deltas = new ArrayList<>();

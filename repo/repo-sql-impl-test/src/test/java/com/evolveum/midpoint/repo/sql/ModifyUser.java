@@ -10,9 +10,12 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -63,7 +66,7 @@ public class ModifyUser extends BaseSQLRepoTest {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002.xml"), ObjectModificationType.COMPLEX_TYPE);
 
-        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class);
         delta.setOid(userOid);
 
         // WHEN
@@ -87,7 +90,7 @@ public class ModifyUser extends BaseSQLRepoTest {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002a.xml"), ObjectModificationType.COMPLEX_TYPE);
 
-        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class);
         delta.setOid(userOid);
 
         // WHEN
@@ -111,7 +114,7 @@ public class ModifyUser extends BaseSQLRepoTest {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002b.xml"), ObjectModificationType.COMPLEX_TYPE);
 
-        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class);
         delta.setOid(userOid);
 
         // WHEN
@@ -133,7 +136,7 @@ public class ModifyUser extends BaseSQLRepoTest {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t003.xml"), ObjectModificationType.COMPLEX_TYPE);
 
-        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, ShadowType.class, prismContext);
+        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, ShadowType.class);
         delta.setOid(userOid);
 
         repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), new OperationResult("asdf"));
@@ -163,7 +166,7 @@ public class ModifyUser extends BaseSQLRepoTest {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t004.xml"), ObjectModificationType.COMPLEX_TYPE);
 
-        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class);
 
         repositoryService.modifyObject(UserType.class, userBigOid, delta.getModifications(), new OperationResult("asdf"));
     }
@@ -191,7 +194,7 @@ public class ModifyUser extends BaseSQLRepoTest {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "user-auth-behavior-modification.xml"), ObjectModificationType.COMPLEX_TYPE);
 
-        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class);
         //repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), new OperationResult("addAuthenticationBehavior"));
         //PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, userOid, null, createOperationResult());
 

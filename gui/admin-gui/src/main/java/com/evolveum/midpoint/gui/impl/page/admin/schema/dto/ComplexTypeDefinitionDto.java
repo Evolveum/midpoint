@@ -8,20 +8,19 @@
 package com.evolveum.midpoint.gui.impl.page.admin.schema.dto;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.*;
 
-public class ComplexTypeDefinitionDto extends DefinitionDto<MutableComplexTypeDefinition> implements Serializable {
+public class ComplexTypeDefinitionDto extends DefinitionDto<ComplexTypeDefinition> implements Serializable {
 
     public static final String F_DEFINITIONS = "definitionDtos";
 
     private List<? extends ItemDefinitionDto> definitionDtos;
 
     public ComplexTypeDefinitionDto(ComplexTypeDefinition ctd) {
-        super(ctd.toMutable());
+        super(ctd);
     }
 
     public List<? extends ItemDefinitionDto> getDefinitionDtos() {
@@ -39,7 +38,7 @@ public class ComplexTypeDefinitionDto extends DefinitionDto<MutableComplexTypeDe
     }
 
     private ItemDefinitionDto createDefinitionDto(ItemDefinition<?> def) {
-        return new ItemDefinitionDto(def.toMutable());
+        return new ItemDefinitionDto(def);
     }
 
 

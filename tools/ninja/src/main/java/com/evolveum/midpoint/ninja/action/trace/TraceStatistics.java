@@ -25,29 +25,27 @@ public class TraceStatistics {
 
     private final Map<String, Info> operationsMap = new HashMap<>();
 
-    private final PrismContext prismContext;
     private final boolean extra;
 
-    private TraceStatistics(PrismContext prismContext, boolean extra) {
-        this.prismContext = prismContext;
+    private TraceStatistics(boolean extra) {
         this.extra = extra;
     }
 
     static TraceStatistics extra(TracingOutputType tracingOutput) {
-        TraceStatistics traceStatistics = new TraceStatistics(tracingOutput.asPrismContainerValue().getPrismContext(), true);
+        TraceStatistics traceStatistics = new TraceStatistics(true);
         traceStatistics.update(tracingOutput.getResult());
         return traceStatistics;
     }
 
     static TraceStatistics simple(TracingOutputType tracingOutput) {
-        TraceStatistics traceStatistics = new TraceStatistics(tracingOutput.asPrismContainerValue().getPrismContext(), false);
+        TraceStatistics traceStatistics = new TraceStatistics(false);
         traceStatistics.update(tracingOutput.getResult());
         return traceStatistics;
     }
 
     private void update(OperationResultType result) {
         operationsMap.compute(result.getOperation(),
-                (op, info) -> Info.update(result, info, extra, prismContext));
+                (op, info) -> Info.update(result, info, extra));
 
         result.getPartialResults().forEach(this::update);
     }
@@ -95,21 +93,21 @@ public class TraceStatistics {
         private int count;
         private int size;
 
-        private static Info update(OperationResultType result, Info info, boolean extra, PrismContext prismContext) {
+        private static Info update(OperationResultType result, Info info, boolean extra) {
             if (info == null) {
                 info = new Info();
             }
             info.count++;
             if (extra) {
-                info.size += getSize(result, prismContext);
+                info.size += getSize(result);
             }
             return info;
         }
 
-        private static int getSize(OperationResultType result, PrismContext prismContext) {
+        private static int getSize(OperationResultType result) {
             OperationResultType resultNoChildren = OperationResultUtil.shallowClone(result, false, true, true);
             try {
-                return prismContext.xmlSerializer().serializeRealValue(resultNoChildren).length();
+                return PrismContext.get().xmlSerializer().serializeRealValue(resultNoChildren).length();
             } catch (SchemaException e) {
                 throw new SystemException(e);
             }

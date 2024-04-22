@@ -135,7 +135,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceProperty(ResourceType.class, RESOURCE_OID, ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION,
-                        SchemaConstants.ICF_CONFIGURATION_PROPERTIES, new QName(NS_RESOURCE_CSV, "filePath")),
+                        SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME, new QName(NS_RESOURCE_CSV, "filePath")),
                         newRealValue);
         provisioningService.applyDefinition(objectDelta, task, result);
         provisioningService.modifyObject(ResourceType.class, objectDelta.getOid(), objectDelta.getModifications(), null, null, task, result);

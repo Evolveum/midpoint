@@ -440,7 +440,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         // Check if resource view of the model has changed as well
         resourceDummyFake = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, null, task, result);
         display("Upgraded fake resource (model)", resourceDummyFake);
-        Element resourceDummyFakeSchemaElement = ResourceTypeUtil.getResourceXsdSchema(resourceDummyFake);
+        Element resourceDummyFakeSchemaElement = ResourceTypeUtil.getResourceXsdSchemaElement(resourceDummyFake);
         displayValue("Upgraded fake resource schema (model)", DOMUtil.serializeDOMToString(resourceDummyFakeSchemaElement));
         assertNotNull("Null fake resource after getObject (model)", resourceDummyFake);
         assertEquals("Oooops. The OID of fake resource mysteriously changed. Call the police! (model)", RESOURCE_DUMMY_FAKE_OID, resourceDummyFake.getOid());

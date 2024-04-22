@@ -107,7 +107,7 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
         for (int maxOps : DELTA_OP_COUNT) {
             int opCount = Math.min(config.count, maxOps);
             measureDelta(config, monitorName("replace",config.monitorId(), Integer.toString(opCount)), assignments -> {
-                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext(), null);
+                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, null);
                 for (int i = assignments.size() - opCount; i < assignments.size(); i++) {
                     AssignmentType assignment = assignments.get(i).clone();
                     assignment.description("Modified");
@@ -123,7 +123,7 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
         for (int maxOps : DELTA_OP_COUNT) {
             int opCount = maxOps;
             measureDelta(config, monitorName("add",config.monitorId(), Integer.toString(opCount)), assignments -> {
-                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext(), null);
+                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, null);
                 for (int i = 0; i < opCount; i++) {
                     AssignmentType assignment = assignments.get(0).clone();
                     assignment.getConstruction().resourceRef(newUuid(), assignment.getConstruction().getResourceRef().getType());
@@ -140,7 +140,7 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
         for (int maxOps : DELTA_OP_COUNT) {
             int opCount = Math.min(config.count, maxOps);
             measureDelta(config, monitorName("delete",config.monitorId(), Integer.toString(opCount)), assignments -> {
-                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext(), null);
+                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, null);
                 for (int i = assignments.size() - opCount; i < assignments.size(); i++) {
                     AssignmentType assignment = assignments.get(i).clone();
                     delta = (DeltaBuilder<UserType>) delta.item(UserType.F_ASSIGNMENT).delete(assignment.asPrismContainerValue());
@@ -156,7 +156,7 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
         for (int maxOps : DELTA_OP_COUNT) {
             int opCount = Math.min(config.count, maxOps);
             measureDelta(config, monitorName("delete.no.id",config.monitorId(), Integer.toString(opCount)), assignments -> {
-                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext(), null);
+                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class,  null);
                 for (int i = assignments.size() - opCount; i < assignments.size(); i++) {
                     AssignmentType assignment = assignments.get(i).clone();
                     delta = (DeltaBuilder<UserType>) delta.item(UserType.F_ASSIGNMENT).delete(assignment.asPrismContainerValue());
@@ -166,7 +166,7 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
         }
     }
 
-    private static final List<String> generateUUIDs(int count) {
+    private static List<String> generateUUIDs(int count) {
         List<String> ret = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             ret.add(newUuid());
@@ -207,7 +207,7 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
         super.measure(label, note, producer, EXECUTION, REPEATS);
     }
 
-    private static final RootXNode generateTestObject(int count, int conflicts, boolean withIds) throws SchemaException, IOException {
+    private static RootXNode generateTestObject(int count, int conflicts, boolean withIds) throws SchemaException, IOException {
         @NotNull
         PrismObject<UserType> baseObject = getJack();
 
@@ -233,10 +233,10 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
     }
 
 
-    private static final MapXNodeImpl createXNodeAssignment(String uuid, int id) {
+    private static MapXNodeImpl createXNodeAssignment(String uuid, int id) {
         MapXNodeImpl assignment = new MapXNodeImpl();
         if(id > 0) {
-            assignment.put(CONTAINER_ID, attribute(Long.valueOf(id)));
+            assignment.put(CONTAINER_ID, attribute((long) id));
         }
         MapXNodeImpl construction = new MapXNodeImpl();
         assignment.put(AssignmentType.F_CONSTRUCTION, construction);
@@ -275,6 +275,7 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
         }
 
         public String monitorId() {
+            //noinspection StringBufferReplaceableByString
             return new StringBuilder()
                     .append(count)
                     .append(".")
@@ -286,6 +287,7 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
         }
 
         public String testNote() {
+            //noinspection StringBufferReplaceableByString
             return new StringBuilder("container count: ")
                     .append(count)
                     .append(", conflicting content count: ")

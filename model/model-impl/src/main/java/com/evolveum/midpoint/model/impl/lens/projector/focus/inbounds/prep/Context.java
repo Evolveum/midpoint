@@ -19,32 +19,32 @@ import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
 /**
- * Overall context of the mappings preparation: environment, result, beans.
+ * Overall context of the mappings preparation: system configuration, environment (time, task), operation result, and the like.
  */
 abstract class Context implements ExecutionModeProvider {
 
     /** The environment: context description, now (the clock), task. */
     @NotNull protected final MappingEvaluationEnvironment env;
 
-    /** The operation result. (Beware: Do *not* create subresults from it here unless certainly knowing what you're doing!) */
-    @NotNull protected final OperationResult result;
-
     /** Useful Spring beans. */
-    @NotNull final ModelBeans beans;
+    @NotNull final ModelBeans beans = ModelBeans.get();
 
-    Context(@NotNull MappingEvaluationEnvironment env, @NotNull OperationResult result, @NotNull ModelBeans beans) {
+    Context(@NotNull MappingEvaluationEnvironment env) {
         this.env = env;
-        this.result = result;
-        this.beans = beans;
     }
 
     abstract String getOperation();
 
     abstract PrismObject<SystemConfigurationType> getSystemConfiguration();
+
+    SystemConfigurationType getSystemConfigurationBean() {
+        return asObjectable(getSystemConfiguration());
+    }
 
     /**
      * Provides value policy when needed (e.g. in `generate` expression evaluator).

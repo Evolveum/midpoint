@@ -156,8 +156,8 @@ class SynchronizationContextCreator {
             // exotic channels, like "external changes"? Let us try the classification once more.
             //
             // Note that the sorter result is used here (if it contains the classification)
-            ResourceObjectClassification classification = beans.provisioningService
-                    .classifyResourceObject(
+            ResourceObjectClassification classification =
+                    beans.provisioningService.classifyResourceObject(
                             shadow,
                             processingContext.getResource(),
                             sorterResult,

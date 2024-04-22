@@ -29,15 +29,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * @author semancik
- *
  */
 @ActionUris({
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateFocus",
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#disableUser" })
 @ActionDefinitionClass(InactivateFocusSynchronizationActionType.class)
-public class InactivateFocusAction<F extends FocusType> extends BaseClockworkAction<F> {
+class InactivateFocusAction<F extends FocusType> extends BaseClockworkAction<F> {
 
-    public InactivateFocusAction(@NotNull ActionInstantiationContext<F> ctx) {
+    InactivateFocusAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);
     }
 

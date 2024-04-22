@@ -247,7 +247,7 @@ public class AssignmentPathImpl implements AssignmentPath {
 
     @Override
     public ExtensionType collectExtensions(int startAt) throws SchemaException {
-        return AssignmentPathUtil.collectExtensions(this, startAt, getPrismContext());
+        return AssignmentPathUtil.collectExtensions(this, startAt);
     }
 
     @Override

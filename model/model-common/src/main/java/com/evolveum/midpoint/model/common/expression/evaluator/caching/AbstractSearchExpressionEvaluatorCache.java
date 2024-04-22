@@ -71,8 +71,8 @@ public abstract class AbstractSearchExpressionEvaluatorCache<
             Class<O> type,
             Collection<ObjectQuery> queries,
             ObjectSearchStrategyType searchStrategy,
-            ExpressionEvaluationContext params) {
-        QK key = createKey(type, queries, searchStrategy, params);
+            ExpressionEvaluationContext eeCtx) {
+        QK key = createKey(type, queries, searchStrategy, eeCtx);
         QR result = cachedSearches.get(key);
         if (result != null) {
             return result.getResultingList();
@@ -95,7 +95,7 @@ public abstract class AbstractSearchExpressionEvaluatorCache<
             Class<O> type,
             Collection<ObjectQuery> queries,
             ObjectSearchStrategyType searchStrategy,
-            ExpressionEvaluationContext params);
+            ExpressionEvaluationContext eeCtx);
 
     protected abstract QR createQueryResult(Collection<? extends ObjectFound<O, V>> objectsFound);
 

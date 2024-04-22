@@ -101,7 +101,7 @@ public abstract class AbstractBaseDummyConnector implements PoolableConnector, T
         }
         resource = DummyResource.getInstance(instanceName);
 
-        resource.setCaseIgnoreId(this.configuration.getCaseIgnoreId());
+        resource.setCaseIgnoreName(this.configuration.getCaseIgnoreId());
         resource.setCaseIgnoreValues(this.configuration.getCaseIgnoreValues());
         resource.setEnforceUniqueName(this.configuration.isEnforceUniqueName());
         resource.setTolerateDuplicateValues(this.configuration.getTolerateDuplicateValues());
@@ -125,7 +125,7 @@ public abstract class AbstractBaseDummyConnector implements PoolableConnector, T
             uselessGuardedString.access(chars -> resource.setUselessGuardedString(new String(chars)));
         }
         resource.setMonsterization(this.configuration.isMonsterized());
-        resource.setUidMode(this.configuration.getUidMode());
+        resource.setUidMode(UidMode.of(this.configuration.getUidMode()));
         resource.setHierarchicalObjectsEnabled(this.configuration.isHierarchicalObjectsEnabled());
 
         if (connected) {

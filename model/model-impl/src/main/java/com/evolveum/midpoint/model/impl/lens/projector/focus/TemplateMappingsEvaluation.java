@@ -15,21 +15,22 @@ import java.util.List;
 import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.util.ObjectTemplateIncludeProcessor;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.APrioriDeltaProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -284,7 +285,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
 
     private void consolidateToItemDeltas() throws ExpressionEvaluationException, SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-        PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> outputTripleMap = mappingSetEvaluation.getOutputTripleMap();
+        DeltaSetTripleMap outputTripleMap = mappingSetEvaluation.getOutputTripleMap();
         LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLineLazily(outputTripleMap));
 
         // TODO for chained mappings: what exactly should be the target object?
@@ -293,14 +294,13 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
 
         consolidation = new DeltaSetTripleMapConsolidation<>(
                 outputTripleMap,
-                targetObject,
-                targetAPrioriDelta,
+                ObjectTypeUtil.getValue(targetObject),
+                APrioriDeltaProvider.forDelta(targetAPrioriDelta),
                 itemDeltaExistsProvider,
                 null,
                 null,
                 ItemDefinitionProvider.forObjectDefinition(targetDefinition),
                 env,
-                beans,
                 context,
                 result);
         consolidation.computeItemDeltas();

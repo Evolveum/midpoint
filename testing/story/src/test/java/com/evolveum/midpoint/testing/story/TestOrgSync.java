@@ -490,7 +490,7 @@ public class TestOrgSync extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         given("the responsibility is removed from redskipp");
-        DummyAccount account = dummyResourceHr.getAccountByUsername(ACCOUNT_REDSKULL_USERNAME);
+        DummyAccount account = dummyResourceHr.getAccountByName(ACCOUNT_REDSKULL_USERNAME);
         account.removeAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES, RESP_CANIBALISM);
 
         skipIfNotNativeRepository();

@@ -353,7 +353,7 @@ public class ClusterManager {
 
     public PrismObject<NodeType> getNodeById(String nodeIdentifier, OperationResult result) throws ObjectNotFoundException {
         try {
-            ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, taskManager.getPrismContext(), nodeIdentifier);
+            ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, nodeIdentifier);
             List<PrismObject<NodeType>> nodes =
                     taskManager.getRepositoryService().searchObjects(NodeType.class, q, null, result);
             if (nodes.isEmpty()) {

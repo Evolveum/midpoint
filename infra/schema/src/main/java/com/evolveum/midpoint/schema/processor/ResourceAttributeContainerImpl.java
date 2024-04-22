@@ -47,7 +47,7 @@ public final class ResourceAttributeContainerImpl
      * Use the factory methods in the {@link ResourceObjectDefinition} instead.
      */
     ResourceAttributeContainerImpl(QName name, ResourceAttributeContainerDefinition definition) {
-        super(name, definition, PrismContext.get());
+        super(name, definition);
     }
 
     @Override
@@ -117,43 +117,16 @@ public final class ResourceAttributeContainerImpl
     }
 
     @Override
-    public ResourceAttribute<String> getDescriptionAttribute() {
-        if (getDefinition() == null) {
-            return null;
-        }
-        return findAttribute(getDefinition().getDescriptionAttribute());
-    }
-
-    @Override
     public ResourceAttribute<String> getNamingAttribute() {
         ResourceAttributeContainerDefinition containerDef = getDefinition();
         if (containerDef == null) {
             return null;
         }
-        ResourceAttributeDefinition<?> namingAttrDef = containerDef.getNamingAttribute();
+        ResourceAttributeDefinition<?> namingAttrDef = containerDef.getResourceObjectDefinition().getNamingAttribute();
         if (namingAttrDef == null) {
             return null;
         }
         return findAttribute(namingAttrDef);
-    }
-
-    @Override
-    public ResourceAttribute getDisplayNameAttribute() {
-        if (getDefinition() == null) {
-            return null;
-        }
-        return findAttribute(getDefinition().getDisplayNameAttribute());
-    }
-
-    @Override
-    public String getNativeObjectClass() {
-        return getDefinition() == null ? null : getDefinition().getNativeObjectClass();
-    }
-
-    @Override
-    public boolean isDefaultInAKind() {
-        ResourceAttributeContainerDefinition definition = getDefinition();
-        return definition != null && definition.isDefaultAccountDefinition();
     }
 
     @Override
@@ -185,6 +158,7 @@ public final class ResourceAttributeContainerImpl
         return getValue().contains(attr);
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public ResourceAttributeContainer clone() {
         return cloneComplex(CloneStrategy.LITERAL);
@@ -197,7 +171,7 @@ public final class ResourceAttributeContainerImpl
         return clone;
     }
 
-    protected void copyValues(CloneStrategy strategy, ResourceAttributeContainerImpl clone) {
+    private void copyValues(CloneStrategy strategy, ResourceAttributeContainerImpl clone) {
         super.copyValues(strategy, clone);
         // Nothing to copy
     }

@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static java.util.Objects.requireNonNull;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
@@ -126,7 +125,7 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         Collection<PropertyDelta<String>> modifications = new ArrayList<>(1);
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         ResourceObjectClassDefinition defaultAccountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
         ResourceAttributeDefinition<String> fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
@@ -210,8 +209,8 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
         assertSteadyResource();
     }
 
-    private PrismObject<ShadowType> createAccountShadow(String username) throws SchemaException {
-        ResourceSchema resourceSchema = requireNonNull(ResourceSchemaFactory.getRawSchema(resource));
+    private PrismObject<ShadowType> createAccountShadow(String username) throws SchemaException, ConfigurationException {
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         ResourceObjectClassDefinition defaultAccountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
         ShadowType shadowType = new ShadowType();

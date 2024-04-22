@@ -18,14 +18,18 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcherAware;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
+import com.evolveum.midpoint.prism.schema.PrismSchemaBuildingUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.ConnectorSchema;
+import com.evolveum.midpoint.schema.processor.ConnectorSchemaFactory;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityContextManagerAware;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerAware;
 import com.evolveum.midpoint.task.api.Tracer;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +52,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
+import static com.evolveum.midpoint.schema.processor.ConnectorSchema.CONNECTOR_CONFIGURATION_LOCAL_NAME;
+import static com.evolveum.midpoint.schema.processor.ConnectorSchema.CONNECTOR_CONFIGURATION_TYPE_LOCAL_NAME;
 
 /**
  * Connector factory for the connectors built-in to midPoint, such as
@@ -131,7 +137,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
             type = connectorClass.getSimpleName();
         }
         String version = annotation.version();
-        UcfUtil.addConnectorNames(connectorType, "Built-in", bundleName, type, version, null);
+        UcfUtil.addConnectorNames(connectorType, "Built-in", type, version, null);
         connectorType.setConnectorBundle(bundleName);
         connectorType.setConnectorType(type);
         connectorType.setConnectorVersion(version);
@@ -144,8 +150,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         PrismSchema connectorSchema = generateConnectorConfigurationSchema(struct);
         //noinspection ConstantConditions (probably can be null in the future)
         if (connectorSchema != null) {
-            LOGGER.trace("Generated connector schema for {}: {} definitions",
-                    connectorType, connectorSchema.getDefinitions().size());
+            LOGGER.trace("Generated connector schema for {}: {} definitions", connectorType, connectorSchema.size());
             UcfUtil.setConnectorSchema(connectorType, connectorSchema);
             struct.connectorConfigurationSchema = connectorSchema;
         } else {
@@ -167,23 +172,25 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
     }
 
     @Override
-    public PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType)
+    public @Nullable ConnectorSchema generateConnectorConfigurationSchema(@NotNull ConnectorType connectorBean)
             throws ObjectNotFoundException {
-        ConnectorStruct struct = getConnectorStruct(connectorType);
-        return generateConnectorConfigurationSchema(struct);
+        return generateConnectorConfigurationSchema(
+                getConnectorStruct(connectorBean));
     }
 
-    private PrismSchema generateConnectorConfigurationSchema(ConnectorStruct struct) {
+    private ConnectorSchema generateConnectorConfigurationSchema(ConnectorStruct struct) {
 
         Class<? extends ConnectorInstance> connectorClass = struct.connectorClass;
 
         PropertyDescriptor connectorConfigurationProp = UcfUtil.findAnnotatedProperty(connectorClass, ManagedConnectorConfiguration.class);
 
-        MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema(struct.connectorObject.getNamespace());
-        // Create configuration type - the type used by the "configuration" element
-        MutablePrismContainerDefinition<?> configurationContainerDef = connectorSchema.createContainerDefinition(
-                ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
-                SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
+        var connectorSchema = ConnectorSchemaFactory.newConnectorSchema(struct.connectorObject.getNamespace());
+
+        // Definition of "connectorConfiguration" container - the root one
+        var configurationContainerDef =
+                PrismSchemaBuildingUtil.addNewContainerDefinition(
+                        connectorSchema, CONNECTOR_CONFIGURATION_LOCAL_NAME, CONNECTOR_CONFIGURATION_TYPE_LOCAL_NAME);
+        configurationContainerDef.mutator().setMaxOccurs(1);
 
         Class<?> configurationClass = connectorConfigurationProp.getPropertyType();
         BeanWrapper configurationClassBean = new BeanWrapperImpl(configurationClass);
@@ -197,8 +204,8 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         return connectorSchema;
     }
 
-    private ItemDefinition<?> createConfigurationItemDefinition(MutablePrismContainerDefinition<?> configurationContainerDef,
-            PropertyDescriptor prop) {
+    private ItemDefinition<?> createConfigurationItemDefinition(
+            PrismContainerDefinition<?> configurationContainerDef, PropertyDescriptor prop) {
         String itemLocalName = prop.getName();
         Class<?> itemType = prop.getPropertyType();
         Class<?> baseType;
@@ -241,16 +248,16 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         String namespaceURI = configurationContainerDef.getItemName().getNamespaceURI();
         QName itemName = new QName(namespaceURI, itemLocalName);
         if (complexTypeDefinition != null) {
-            return configurationContainerDef.createContainerDefinition(itemName, complexTypeDefinition, minOccurs, maxOccurs);
+            return configurationContainerDef.mutator().createContainerDefinition(itemName, complexTypeDefinition, minOccurs, maxOccurs);
         } else {
-            return configurationContainerDef.createPropertyDefinition(itemName, itemTypeName, minOccurs, maxOccurs);
+            return configurationContainerDef.mutator().createPropertyDefinition(itemName, itemTypeName, minOccurs, maxOccurs);
         }
     }
 
     @Override
-    public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String instanceName,
-            String desc) throws ObjectNotFoundException {
-        ConnectorStruct struct = getConnectorStruct(connectorType);
+    public @NotNull ConnectorInstance createConnectorInstance
+            (ConnectorType connectorBean, String instanceName, String desc) throws ObjectNotFoundException {
+        ConnectorStruct struct = getConnectorStruct(connectorBean);
         Class<? extends ConnectorInstance> connectorClass = struct.connectorClass;
         ConnectorInstance connectorInstance;
         try {
@@ -266,7 +273,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         }
         if (connectorInstance instanceof AbstractManagedConnectorInstance) {
             setupAbstractConnectorInstance(
-                    (AbstractManagedConnectorInstance)connectorInstance, instanceName, connectorType, struct);
+                    (AbstractManagedConnectorInstance)connectorInstance, instanceName, connectorBean, struct);
         }
         if (connectorInstance instanceof RepositoryAware) {
             ((RepositoryAware)connectorInstance).setRepositoryService(repositoryService);
@@ -297,8 +304,6 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
             ConnectorType connectorObject, ConnectorStruct struct) {
         connectorInstance.setInstanceName(instanceName);
         connectorInstance.setConnectorObject(connectorObject);
-        connectorInstance.setResourceSchemaNamespace(MidPointConstants.NS_RI);
-        connectorInstance.setPrismContext(prismContext);
         connectorInstance.setConnectorConfigurationSchema(struct.connectorConfigurationSchema);
     }
 

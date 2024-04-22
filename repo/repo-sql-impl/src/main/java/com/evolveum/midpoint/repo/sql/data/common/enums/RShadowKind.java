@@ -20,6 +20,7 @@ public enum RShadowKind implements SchemaEnum<ShadowKindType> {
     ACCOUNT(ShadowKindType.ACCOUNT),
     ENTITLEMENT(ShadowKindType.ENTITLEMENT),
     GENERIC(ShadowKindType.GENERIC),
+    ASSOCIATED(ShadowKindType.ASSOCIATED),
     UNKNOWN(ShadowKindType.UNKNOWN);
 
     private ShadowKindType kind;

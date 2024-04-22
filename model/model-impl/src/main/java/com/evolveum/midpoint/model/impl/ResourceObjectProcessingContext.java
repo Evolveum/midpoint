@@ -63,7 +63,4 @@ public interface ResourceObjectProcessingContext {
     default @NotNull VariablesMap createDefaultVariablesMap() {
         return ModelImplUtils.getDefaultVariablesMap(null, getShadowedResourceObject(), getResource(), getSystemConfiguration());
     }
-
-    /** Useful Spring beans. */
-    @NotNull ModelBeans getBeans();
 }

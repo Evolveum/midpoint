@@ -34,7 +34,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import static com.evolveum.midpoint.schema.SchemaConstantsGenerated.ICF_C_RESULTS_HANDLER_CONFIGURATION;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICF_CONFIGURATION_PROPERTIES;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there
@@ -65,7 +65,7 @@ public class ResourceTypeUtil {
         return existingConnectorRef.getValue().getObject();
     }
 
-    public static Element getResourceXsdSchema(ResourceType resource) {
+    public static Element getResourceXsdSchemaElement(ResourceType resource) {
         XmlSchemaType xmlSchemaType = resource.getSchema();
         if (xmlSchemaType == null) {
             return null;
@@ -73,7 +73,7 @@ public class ResourceTypeUtil {
         return ObjectTypeUtil.findXsdElement(xmlSchemaType);
     }
 
-    public static Element getResourceXsdSchema(PrismObject<ResourceType> resource) {
+    public static Element getResourceXsdSchemaElement(PrismObject<ResourceType> resource) {
         PrismContainer<XmlSchemaType> xmlSchema = resource.findContainer(ResourceType.F_SCHEMA);
         return xmlSchema != null ? ObjectTypeUtil.findXsdElement(xmlSchema) : null;
     }
@@ -389,7 +389,7 @@ public class ResourceTypeUtil {
         }
         //noinspection unchecked
         PrismContainer<ConfigurationPropertiesType> propertiesContainer =
-                config.asPrismContainerValue().findContainer(ICF_CONFIGURATION_PROPERTIES);
+                config.asPrismContainerValue().findContainer(ICF_CONFIGURATION_PROPERTIES_NAME);
         if (propertiesContainer == null || propertiesContainer.hasNoValues()) {
             return null;
         }
@@ -676,7 +676,7 @@ public class ResourceTypeUtil {
     }
 
     public static boolean hasSchema(ResourceType resource) {
-        return getResourceXsdSchema(resource) != null;
+        return getResourceXsdSchemaElement(resource) != null;
     }
 
     public static boolean isAbstract(@NotNull ResourceType resource) {

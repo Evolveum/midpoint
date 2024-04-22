@@ -19,25 +19,24 @@ Current implementation supports exporting reports to the formats mentioned in th
 
 == How to Configure Reports
 
-Every report object consists of configuration of three basic parts:
+Every report object consists of the configuration of three basic parts:
 
 * `behavior` - represents the direction of the report.
 There are two possible types of `behavior`: _export_ and _import_.
 +
-_Export_ behavior represents basic reporting mechanism, where the file with reported objects is generated.
-This behavior is default and was common also in versions before 4.4.
+_Export_ behavior represents the basic reporting mechanism, where the file with reported objects is generated.
 +
-_Import_ behavior can be used in situations, when the objects need to be imported to the midPoint from external file.
-Supported format is the CSV.
+_Import_ behavior can be used in situations, when the objects need to be imported midPoint from an external file.
+The supported format is CSV.
 Import behavior is experimental.
 * `engine` - defines the report generation base.
-There are two supported options, reports based on object collections and reports based on dashboard.
+There are two supported options, reports based on object collections and reports based on a dashboard.
 Only one can be defined at the same time.
 * `fileFormat` - represents format of the generated report file.
 Supported formats for now are CSV and HTML.
 Default format for the dashboard-based reports is HTML and for object collection based reports is CSV.
 
-All configuration attributes of report:
+.*All Configuration Attributes of a Report*
 [%collapsible]
 ====
 
@@ -86,19 +85,19 @@ include::../raw/file-format.adoc[]
 
 Report engine defines the source of data which is used in the report definition, either you use `objectCollection` or `dashboard` elements in report.
 
-In the case you use *Object Collections*, have a look at xref:../configuration/collection-report.adoc[this] article dedicated to the related configuration.
+In the case you want to use *Object Collections*, have a look at xref:../configuration/collection-report.adoc[this] article dedicated to the related configuration.
 
-In case of *Dashboards* checkout out xref:../configuration/dashboard-report.adoc[this] article dedicated to the related configuration.
+In case of *Dashboards* checkout out xref:../configuration/dashboard-report.adoc[this] configuration article.
 
 == Report Creation
 
-You have multiple possibilities how to do this.
+You have multiple possibilities how to create a report.
 One is using the classical flow for creating a new object.
 In this case look for the Report menu item on left side of screen in the main vertical menu, and select *new Report*.
 Here you have two types of reports to choose from, the "Dashboard" reports and "Collection" reports.
 
-There another simplified way how to create a report.
-You can click on the 'Create report' button under, most of the tables on object list pages (e.g. All users page).
+
+Alternatively you can click on the 'Create report' button under, most of the tables on object list pages (e.g. All users page).
 In this case, midPoint will automatically use the list as an implicit collection in the report.
 
 image::users.png[]
@@ -113,17 +112,22 @@ Naturally you can use them as a basis for your custom reports.
 
 You can create and configure reports also with the use of the xref:/midpoint/reference/interfaces/rest/endpoints/reports.adoc[REST API].
 
+Examples on how to create a report can be found in our xref:/midpoint/reference/misc/reports/create-report-guide/[*Create a Report Guide*]
+
+For additional configuration details chose from the following articles based on the type of report:
+
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+
 == How to Generate The Report
 
 The actual report (i.e. report file) has to be generated.
 This is done usually by clicking the "run" ("Save and run" or "Run original report") button from the report definition.
 This will execute a special task object which generated the actual report.
 After the "run" button is clicked you can access the task either directly through the "notification" prompt which will appear at the header of the page ("show task" button).
-Or you can access the report through the left vertical menu "Server tasks" > "Report tasks" button.
-Here your task will be present.
+Or you can access the report through the left vertical menu "Server tasks" > "Report tasks" button and find your task amongst the list of tasks.
 
 The actual report file can be downloaded when the task successfully finished, for this the task GUI contains the "Download report" button.
-
 
 There are multiple ways how tasks are build when executed from a report definition, for more information on this and also information how you can distribute the workload of the task to multiple nodes see xref:../configuration/report-task-definition.adoc[this] page
 
@@ -134,24 +138,22 @@ We call this "Import" or "Reverse" reports, for more information regarding them 
 
 xref:../configuration/report-task-definition.adoc[Import From Report]
 
-== Multithreading and Bucketing
+== Reports With Large Datasets
 
-Multithreading is fully supported for all possible kinds of reported objects such as containers, objects and audit records.
-Bucketing is supported for objects and audit records, because currently bucketing of task don't support containers.
+The way how a report is generated by default might need to be customized in case you are working with a large set of data.
+For this you need to specify the resources which midPoint can allocate for such process.
+For some more details please have a look at this xref:/midpoint/reference/misc/reports/configuration/report-task-definition#_multithreading_and_bucketing[article].
 
-Configuration options in regard to workload distribution for tasks can be found xref:/midpoint/reference/tasks/activities/distribution.adoc[here]
-The support of specific distribution options depends on the task "activity" xref:../configuration/report-task-definition.adoc[used].
-To see which activities are supported in regard to workload distribution please have a look at this xref:/midpoint/reference/tasks/activities/work.adoc[page]
-
-== Security Of Report Expressions
+== Report Security
 
 Reports quite often use midPoint expressions, which in some cases might cause security concerns if not used with caution.
 Please have a look at xref:../configuration/report-security.adoc[this] page for a more detailed description.
 
 == See Also
 
-* xref:/midpoint/reference/misc/reports/examples/[Report Examples]
-
-* xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profiles]
-
-* xref:/midpoint/reference/security/security-guide/[Security Guide]
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profiles]
+- xref:/midpoint/security/security-guide/[Security Guide]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/import-report.adoc[Import From Report]

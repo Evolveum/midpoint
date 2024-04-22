@@ -299,7 +299,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         MappingType mappingType = new MappingType();
         mappingType.setStrength(MappingStrengthType.STRONG);
         ExpressionType expressionType = new ExpressionType();
-        expressionType.getExpressionEvaluator().add(new ObjectFactory().createValue(RawType.create("pistol", prismContext)));
+        expressionType.getExpressionEvaluator().add(new ObjectFactory().createValue(RawType.create("pistol")));
         mappingType.setExpression(expressionType);
         attributeDefinitionType.setOutbound(mappingType);
         constructionType.getAttribute().add(attributeDefinitionType);
@@ -1735,7 +1735,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         dummyAuditService.clear();
 
-        DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByUsername(ACCOUNT_SHINETOP_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByName(ACCOUNT_SHINETOP_USERNAME);
 
         // WHEN
         when();
@@ -1757,7 +1757,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         dummyAuditService.clear();
 
-        DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByUsername(ACCOUNT_SHINETOP_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByName(ACCOUNT_SHINETOP_USERNAME);
 
         // WHEN
         when();
@@ -1976,7 +1976,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         dummyAuditService.clear();
 
-        DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByUsername(ACCOUNT_MILLONARIO_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByName(ACCOUNT_MILLONARIO_USERNAME);
 
         // WHEN
         when();
@@ -2001,7 +2001,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         dummyAuditService.clear();
 
-        DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByUsername(ACCOUNT_MILLONARIO_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByName(ACCOUNT_MILLONARIO_USERNAME);
 
         // WHEN
         when();
@@ -2027,7 +2027,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         dummyAuditService.clear();
 
-        DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByUsername(ACCOUNT_MATUSALEM_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByName(ACCOUNT_MATUSALEM_USERNAME);
 
         // WHEN
         when();

@@ -118,10 +118,10 @@ public class MiscSchemaUtil {
     }
 
     public static Collection<ItemPath> itemReferenceListTypeToItemPathList(
-            PropertyReferenceListType resolve, PrismContext prismContext) {
+            PropertyReferenceListType resolve) {
         Collection<ItemPath> itemPathList = new ArrayList<>(resolve.getProperty().size());
         for (ItemPathType itemXPathElement : resolve.getProperty()) {
-            itemPathList.add(prismContext.toPath(itemXPathElement));
+            itemPathList.add(PrismContext.get().toPath(itemXPathElement));
         }
         return itemPathList;
     }

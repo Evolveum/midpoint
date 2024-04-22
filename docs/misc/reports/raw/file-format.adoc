@@ -7,7 +7,7 @@ If nothing is specified then there are defaults which are used based on the sour
 The default for xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[dashboard] based reports is *HTML*.
 For object collection based reports it is *CSV*.
 
-.Show *Configuration attributes*:
+.Show *Configuration Attributes*:
 [%collapsible]
 ====
 
@@ -33,11 +33,11 @@ Possible values: _csv_ and _html_.
 
 ====
 
-=== HTML
+== HTML
 
 Configuration for HTML file format doesn't contain any other format specific attributes.
 
-=== CSV
+== CSV
 
 Configuration for CSV file format contains the following attributes specific for the used format:
 

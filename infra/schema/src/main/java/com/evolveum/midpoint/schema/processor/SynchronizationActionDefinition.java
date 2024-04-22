@@ -15,6 +15,8 @@ import org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.Comparator;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
 /**
  * Wraps both {@link SynchronizationActionType} and {@link AbstractSynchronizationActionType}.
  */
@@ -63,6 +65,11 @@ public abstract class SynchronizationActionDefinition implements Comparable<Sync
     public abstract @Nullable String getLegacyActionUri();
 
     public abstract @Nullable Class<? extends AbstractSynchronizationActionType> getNewDefinitionBeanClass();
+
+    public @NotNull Class<? extends AbstractSynchronizationActionType> getNewDefinitionBeanClassRequired() {
+        return stateNonNull(getNewDefinitionBeanClass(),
+                "Action definition bean class not present in %s", this);
+    }
 
     @VisibleForTesting
     public abstract @Nullable AbstractSynchronizationActionType getNewDefinitionBean();

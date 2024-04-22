@@ -42,6 +42,24 @@ public class BaseGeneratorOptions {
     public static final String P_INCLUDE_AUX = "-ia";
     public static final String P_INCLUDE_AUX_LONG = "--include-aux";
 
+    public static final String P_FORGET_NOISE = "-fn";
+    public static final String P_FORGET_NOISE_LONG = "--forget-noise";
+
+    public static final String P_ADDITION_NOISE = "-an";
+    public static final String P_ADDITION_NOISE_LONG = "--addition-noise";
+
+    public static final String P_PLANKTON_DISABLE = "-pd";
+    public static final String P_PLANKTON_DISABLE_LONG = "--plankton-disable";
+
+    @Parameter(names = { P_PLANKTON_DISABLE, P_PLANKTON_DISABLE_LONG }, descriptionKey = "baseGeneratorOptions.planktonDisable")
+    private boolean isPlanktonDisable = false;
+
+    @Parameter(names = { P_ADDITION_NOISE, P_ADDITION_NOISE_LONG }, descriptionKey = "baseGeneratorOptions.forget.noise")
+    private int forgetNoise = 0;
+
+    @Parameter(names = { P_FORGET_NOISE, P_FORGET_NOISE_LONG }, descriptionKey = "baseGeneratorOptions.addition.noise")
+    private int additionNoise = 0;
+
     @Parameter(names = { P_INCLUDE_AUX, P_INCLUDE_AUX_LONG }, descriptionKey = "baseGeneratorOptions.includeAux")
     private boolean isAuxInclude = false;
 
@@ -50,13 +68,16 @@ public class BaseGeneratorOptions {
 
     @Parameter(names = { P_ARCHETYPE_ROLE, P_ARCHETYPE_ROLE_LONG }, descriptionKey = "baseGeneratorOptions.archetypeRole")
     private boolean isArchetypeRoleEnable = false;
+
     @Parameter(names = { P_ARCHETYPE_USER, P_ARCHETYPE_USER_LONG }, descriptionKey = "baseGeneratorOptions.archetypeUser")
     private boolean isArchetypeUserEnable = false;
 
     @Parameter(names = { P_IMPORT, P_IMPORT_LONG }, descriptionKey = "baseGeneratorOptions.import")
     private boolean isImport = false;
+
     @Parameter(names = { P_NAME_CSV_FILE, P_NAME_CSV_FILE_LONG }, descriptionKey = "baseGeneratorOptions.nameCsvFile")
     private String csvPath;
+
     @Parameter(names = { P_TRANSFORM, P_TRANSFORM_LONG }, descriptionKey = "baseGeneratorOptions.transform")
     private boolean isTransform = false;
 
@@ -104,4 +125,17 @@ public class BaseGeneratorOptions {
     public boolean isAuxInclude() {
         return isAuxInclude;
     }
+
+    public int getForgetNoise() {
+        return forgetNoise;
+    }
+
+    public int getAdditionNoise() {
+        return additionNoise;
+    }
+
+    public boolean isPlanktonDisable() {
+        return isPlanktonDisable;
+    }
+
 }

@@ -311,6 +311,7 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
                                                 return entitlement?.name
                                             </code>
                                         </script>
+                                        <queryInterpretationOfNoValue>filterNone</queryInterpretationOfNoValue>
                                     </expression>
                                 </q:equal>
                             </filter>

@@ -168,7 +168,7 @@ public class TestAddAssociation extends AbstractWfTest {
                 LensProjectionContext accountContext = fillContextWithAccount(context, jackAccountShadowOid, task, result);
 
                 ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(REQ_ADD_ENTITLEMENT_TESTERS, ObjectModificationType.COMPLEX_TYPE);
-                ObjectDelta<ShadowType> shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class, prismContext);
+                ObjectDelta<ShadowType> shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class);
                 shadowDelta.setOid(jackAccountShadowOid);
                 provisioningService.applyDefinition(shadowDelta, task, result);
                 accountContext.setPrimaryDelta(shadowDelta);
@@ -249,7 +249,7 @@ public class TestAddAssociation extends AbstractWfTest {
                 LensProjectionContext accountContext = fillContextWithAccount(context, elisabethAccountShadowOid, task, result);
 
                 ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(REQ_ADD_ENTITLEMENT_TESTERS, ObjectModificationType.COMPLEX_TYPE);
-                var shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class, prismContext);
+                var shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class);
                 shadowDelta.setOid(elisabethAccountShadowOid);
                 provisioningService.applyDefinition(shadowDelta, task, result);
                 accountContext.setPrimaryDelta(shadowDelta);
@@ -318,7 +318,7 @@ public class TestAddAssociation extends AbstractWfTest {
         LensProjectionContext accountContext = fillContextWithAccount(context, jackAccountShadowOid, modelTask, result);
 
         ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(REQ_ADD_ENTITLEMENT_GUESTS, ObjectModificationType.COMPLEX_TYPE);
-        var shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class, prismContext);
+        var shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class);
         shadowDelta.setOid(jackAccountShadowOid);
         provisioningService.applyDefinition(shadowDelta, modelTask, result);
         accountContext.setPrimaryDelta(shadowDelta);

@@ -22,7 +22,6 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.audit.spi.AuditServiceRegistry;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -65,7 +64,6 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     @Qualifier("securityContextManager")
     private SecurityContextManager securityContextManager;
 
-    @Autowired private PrismContext prismContext;
     @Autowired private SchemaService schemaService;
 
     private final List<AuditService> services = new ArrayList<>();
@@ -223,7 +221,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
                         new OperationResult(AuditServiceProxy.class.getName() + ".completeRecord.resolveName"));
                 return object.getName();
             };
-            resolveNames(delta, nameResolver, prismContext);
+            resolveNames(delta, nameResolver);
         }
     }
 

@@ -10,22 +10,18 @@ import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -33,7 +29,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class UcfUtil {
 
-    public static void addConnectorNames(ConnectorType connectorType, String frameworkPrefix, String bundle, String type, String version, ConnectorHostType hostType) {
+    public static void addConnectorNames(ConnectorType connectorType, String frameworkPrefix, String type, String version, ConnectorHostType hostType) {
         StringBuilder connectorName = new StringBuilder();
         connectorName.append(frameworkPrefix).append(" ");
         connectorName.append(type);
@@ -53,21 +49,6 @@ public class UcfUtil {
         }
         connectorType.setName(new PolyStringType(connectorName.toString()));
         connectorType.setDisplayName(new PolyStringType(displayName.toString()));
-    }
-
-    public static PrismSchema getConnectorSchema(ConnectorType connectorType, PrismContext prismContext) throws SchemaException {
-        XmlSchemaType xmlSchema = connectorType.getSchema();
-        if (xmlSchema == null) {
-            return null;
-        }
-        Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchema);
-        if (xsdElement == null) {
-            return null;
-        }
-        MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema(
-                DOMUtil.getSchemaTargetNamespace(xsdElement));
-        connectorSchema.parseThis(xsdElement, true, connectorType.toString(), prismContext);
-        return connectorSchema;
     }
 
     public static void setConnectorSchema(ConnectorType connectorType, PrismSchema connectorSchema) throws SchemaException {

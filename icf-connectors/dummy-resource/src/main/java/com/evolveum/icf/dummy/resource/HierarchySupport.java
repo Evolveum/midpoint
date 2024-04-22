@@ -24,7 +24,7 @@ import java.util.Optional;
  *
  * When an org is renamed, all contained objects are renamed as well. An org cannot be deleted if it contains any object.
  *
- * Normally, this option should not be used with {@link DummyResource#UID_MODE_NAME}.
+ * Normally, this option should not be used with {@link UidMode#NAME}.
  * {@link DummyResource#enforceUniqueName} must be set to `true` for this option to work.
  *
  * See MID-8929.
@@ -56,7 +56,7 @@ class HierarchySupport {
         if (!isCorrectlyEnabled()) {
             return;
         }
-        String normName = normalize(name);
+        String normName = normalizeName(name);
         HierarchicalName parentNormHName = HierarchicalName.of(normName).getParent();
         if (parentNormHName == null) {
             return; // object is top level
@@ -90,7 +90,7 @@ class HierarchySupport {
         if (!isCorrectlyEnabled() || !(object instanceof DummyOrg)) {
             return;
         }
-        String orgNormName = normalize(object.getName());
+        String orgNormName = normalizeName(object.getName());
         HierarchicalName orgNormHName = HierarchicalName.of(orgNormName);
         Optional<DummyObject> sampleContainedObject = dummyResource.getAllObjectsStream()
                 .filter(o -> o.containedByOrg(orgNormHName))
@@ -107,16 +107,16 @@ class HierarchySupport {
             String name = object.getName();
             object.setNormalizedHierarchicalName(
                     name != null ?
-                            HierarchicalName.of(normalize(name)) : null);
+                            HierarchicalName.of(normalizeName(name)) : null);
         }
     }
 
-    private String normalize(String name) {
-        return dummyResource.normalize(name);
+    private String normalizeName(String name) {
+        return dummyResource.normalizeName(name);
     }
 
     private HierarchicalName getNormalizedHName(String name) {
-        return HierarchicalName.of(normalize(name));
+        return HierarchicalName.of(normalizeName(name));
     }
 
     /**
@@ -129,7 +129,7 @@ class HierarchySupport {
         if (!isCorrectlyEnabled() || !(object instanceof DummyOrg)) {
             return;
         }
-        HierarchicalName oldOrgNormHName = HierarchicalName.of(normalize(oldName));
+        HierarchicalName oldOrgNormHName = HierarchicalName.of(normalizeName(oldName));
         HierarchicalName newOrgNormHName = getNormalizedHName(object.getName());
         List<DummyObject> containedObjects = dummyResource.getAllObjectsStream()
                 .filter(o -> o.containedByOrg(oldOrgNormHName))
@@ -142,13 +142,12 @@ class HierarchySupport {
     private <T extends DummyObject> void renameContainedObject(
             T object, HierarchicalName oldOrgNormHName, HierarchicalName newOrgNormHName)
             throws ObjectDoesNotExistException, ObjectAlreadyExistsException {
-        String oldObjectNormName = normalize(object.getName());
+        String oldObjectNormName = normalizeName(object.getName());
         HierarchicalName oldObjectNormHName = getNormalizedHName(object.getName());
         HierarchicalName newObjectNormHName = oldObjectNormHName.move(oldOrgNormHName, newOrgNormHName);
         String newObjectNormName = newObjectNormHName.asString();
         object.setName(newObjectNormName);
-        Map<String, T> map = dummyResource.getSpecificObjectMap(object);
-        //noinspection unchecked
-        DummyResource.updateSpecificObjectMap(map, (Class<T>) object.getClass(), oldObjectNormName, newObjectNormName);
+        dummyResource.getObjectStore(object)
+                .renameObject(oldObjectNormName, newObjectNormName);
     }
 }

@@ -6,8 +6,15 @@
  */
 package com.evolveum.icf.dummy.resource;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 /**
  * @author Radovan Semancik
@@ -15,13 +22,12 @@ import java.util.Collection;
  */
 public class DummyObjectClass {
 
-    private Collection<DummyAttributeDefinition> attributeDefinitions;
+    @NotNull private final Collection<DummyAttributeDefinition> attributeDefinitions = new ArrayList<>();
 
-    public DummyObjectClass() {
-        attributeDefinitions = new ArrayList<>();
-    }
+    /** Links relevant to this object class. Maintained by the resource itself. Indexed by (non-null) local link name.*/
+    @NotNull private final Map<String, LinkDefinition> linkDefinitionsMap = new ConcurrentHashMap<>();
 
-    public Collection<DummyAttributeDefinition> getAttributeDefinitions() {
+    public @NotNull Collection<DummyAttributeDefinition> getAttributeDefinitions() {
         return attributeDefinitions;
     }
 
@@ -40,24 +46,30 @@ public class DummyObjectClass {
 
     public void clear() {
         attributeDefinitions.clear();
+        linkDefinitionsMap.clear();
     }
 
     public void addAttributeDefinition(String attributeName) {
-        addAttributeDefinition(attributeName,String.class,false,false);
+        addAttributeDefinition(attributeName, String.class, false, false);
     }
 
-    public void addAttributeDefinition(String attributeName, Class<?> attributeType) {
-        addAttributeDefinition(attributeName,attributeType,false,false);
+    public void addAttributeDefinition(
+            String attributeName, Class<?> attributeType, boolean isRequired, boolean isMulti) {
+        add(new DummyAttributeDefinition(attributeName, attributeType, isRequired, isMulti));
     }
 
-    public void addAttributeDefinition(String attributeName, Class<?> attributeType, boolean isOptional) {
-        addAttributeDefinition(attributeName,attributeType,isOptional,false);
+    public Collection<LinkDefinition> getLinkDefinitions() {
+        return Collections.unmodifiableCollection(
+                linkDefinitionsMap.values());
     }
 
-    public void addAttributeDefinition(String attributeName, Class<?> attributeType, boolean isRequired,
-            boolean isMulti) {
-        DummyAttributeDefinition attrDef = new DummyAttributeDefinition(attributeName,attributeType,isRequired,isMulti);
-        add(attrDef);
+    LinkDefinition getLinkDefinition(@NotNull String linkName) {
+        return linkDefinitionsMap.get(linkName);
     }
 
+    synchronized void addLinkDefinition(LinkDefinition definition) {
+        var name = argNonNull(definition.getLinkName(), "No link name in %s", definition);
+        stateCheck(!linkDefinitionsMap.containsKey(name), "Link definition for %s already exists", name);
+        linkDefinitionsMap.put(name, definition);
+    }
 }

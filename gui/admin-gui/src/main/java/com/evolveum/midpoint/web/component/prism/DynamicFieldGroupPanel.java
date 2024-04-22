@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.prism;
 
+import java.io.Serial;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
@@ -13,12 +14,12 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyPanel;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismReferencePanel;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
@@ -26,7 +27,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -34,7 +34,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
-import com.evolveum.midpoint.prism.MutableItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -47,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<PrismObjectWrapper<O>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(DynamicFieldGroupPanel.class);
 
@@ -153,18 +152,18 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
             return;
         }
 
-        MutableItemDefinition<?> itemDef = itemWrapper.toMutable();
+        ItemDefinition.ItemDefinitionMutator itemDefMutator = itemWrapper.mutator();
         if (PolyStringUtils.isNotEmpty(displayType.getLabel())) {
-            itemDef.setDisplayName(displayType.getLabel().getOrig());
+            itemDefMutator.setDisplayName(displayType.getLabel().getOrig());
         }
         if (PolyStringUtils.isNotEmpty(displayType.getHelp())) {
-            itemDef.setHelp(displayType.getHelp().getOrig());
+            itemDefMutator.setHelp(displayType.getHelp().getOrig());
         }
         if (StringUtils.isNotEmpty(displayType.getMaxOccurs())) {
-            itemDef.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(displayType.getMaxOccurs()));
+            itemDefMutator.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(displayType.getMaxOccurs()));
         }
         if (StringUtils.isNotEmpty(displayType.getMinOccurs())) {
-            itemDef.setMinOccurs(XsdTypeMapper.multiplicityToInteger(displayType.getMinOccurs()));
+            itemDefMutator.setMinOccurs(XsdTypeMapper.multiplicityToInteger(displayType.getMinOccurs()));
         }
     }
 
@@ -185,8 +184,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
         getRepeatingPropertyView().visitChildren((component, iVisit) -> {
             if (component instanceof PrismPropertyPanel) {
                 IModel<?> model = component.getDefaultModel();
-                if (model != null && model.getObject() instanceof ItemWrapper) {
-                    ItemWrapper<?, ?> itemWrapper = (ItemWrapper<?, ?>) model.getObject();
+                if (model != null && model.getObject() instanceof ItemWrapper<?, ?> itemWrapper) {
                     if (!itemWrapper.checkRequired()) {
                         rvHolder.setValue(false);
                     }

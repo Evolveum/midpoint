@@ -115,7 +115,7 @@ public class TestBucketsPerformance extends AbstractStoryTest {
                 .end()
                 .getObject().asObjectable();
 
-        var operationStats = TaskOperationStatsUtil.getOperationStatsFromTree(tree, prismContext);
+        var operationStats = TaskOperationStatsUtil.getOperationStatsFromTree(tree);
         displayValue("Operation statistics", TaskOperationStatsUtil.format(operationStats));
 
         var activityStats = ActivityStatisticsUtil.getActivityStatsFromTree(tree, ActivityPath.empty());

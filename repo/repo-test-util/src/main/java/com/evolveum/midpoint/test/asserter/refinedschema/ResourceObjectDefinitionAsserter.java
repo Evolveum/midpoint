@@ -10,25 +10,28 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.test.asserter.prism.ComplexTypeDefinitionAsserter;
+import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
  * @author Radovan semancik
- *
  */
-public class ResourceObjectDefinitionAsserter<RA> extends ComplexTypeDefinitionAsserter<RA> {
+public class ResourceObjectDefinitionAsserter<RA> extends AbstractAsserter<RA> {
+
+    private ResourceObjectDefinition resourceObjectDefinition;
 
     public ResourceObjectDefinitionAsserter(ResourceObjectDefinition objectDefinition) {
-        super(objectDefinition);
+        this.resourceObjectDefinition = objectDefinition;
     }
 
     public ResourceObjectDefinitionAsserter(ResourceObjectDefinition objectDefinition, String detail) {
-        super(objectDefinition, detail);
+        super(detail);
+        this.resourceObjectDefinition = objectDefinition;
     }
 
     public ResourceObjectDefinitionAsserter(ResourceObjectDefinition objectDefinition, RA returnAsserter, String detail) {
-        super(objectDefinition, returnAsserter, detail);
+        super(returnAsserter, detail);
+        this.resourceObjectDefinition = objectDefinition;
     }
 
     public static ResourceObjectDefinitionAsserter<Void> forObjectClassDefinition(ResourceObjectDefinition objectDefinition) {
@@ -36,7 +39,7 @@ public class ResourceObjectDefinitionAsserter<RA> extends ComplexTypeDefinitionA
     }
 
     public ResourceObjectDefinition getComplexTypeDefinition() {
-        return (ResourceObjectDefinition) super.getComplexTypeDefinition();
+        return resourceObjectDefinition;
     }
 
     public <T> ResourceAttributeDefinitionAsserter<T, ResourceObjectDefinitionAsserter<RA>> attribute(QName attrName) {

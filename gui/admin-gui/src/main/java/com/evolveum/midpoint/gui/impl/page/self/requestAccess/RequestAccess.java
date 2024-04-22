@@ -688,8 +688,8 @@ public class RequestAccess implements Serializable {
             return;
         }
 
-        PrismContext ctx = def.getPrismContext();
-        ContainerDelta<AssignmentType> delta = ctx.deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getItemName(), def);
+        ContainerDelta<AssignmentType> delta =
+                PrismContext.get().deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getItemName(), def);
 
         for (AssignmentType a : assignments) {
             PrismContainerValue<AssignmentType> newValue = a.asPrismContainerValue();

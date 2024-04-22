@@ -165,7 +165,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         assertResourceDummy(resource, false, false);
 
-        assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
+        assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchemaElement(resource));
 
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
@@ -212,7 +212,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         assertResourceDummy(resource, false);
 
-        assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
+        assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchemaElement(resource));
 
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 1); // First "real" read
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
@@ -259,7 +259,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         assertResourceDummy(resource, false);
 
-        assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
+        assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchemaElement(resource));
 
         // Previous noFetch read did NOT place resource in the cache. Because the resource
         // may not be complete.
@@ -309,7 +309,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         assertResourceDummy(resource, false);
 
-        assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
+        assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchemaElement(resource));
 
         // Previous noFetch read did NOT place resource in the cache. Because the resource
         // may not be complete.
@@ -664,8 +664,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = configurationContainer.getDefinition();
         assertDummyConfigurationContainerDefinition(configurationContainerDefinition, "from container");
 
-        PrismContainer<Containerable> configurationPropertiesContainer = configurationContainer.findContainer(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
-        assertNotNull("No container " + SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME, configurationPropertiesContainer);
+        PrismContainer<Containerable> configurationPropertiesContainer = configurationContainer.findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
+        assertNotNull("No container " + SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME, configurationPropertiesContainer);
 
         assertConfigurationPropertyDefinition(configurationPropertiesContainer,
                 "uselessString", DOMUtil.XSD_STRING, 0, 1, "UI_INSTANCE_USELESS_STRING", "UI_INSTANCE_USELESS_STRING_HELP");
@@ -688,8 +688,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
             PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition,
             String desc) {
         displayDumpable("Dummy configuration container definition " + desc, configurationContainerDefinition);
-        PrismContainerDefinition<Containerable> configurationPropertiesContainerDefinition = configurationContainerDefinition.findContainerDefinition(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
-        assertNotNull("No container definition for " + SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME + " " + desc, configurationPropertiesContainerDefinition);
+        PrismContainerDefinition<Containerable> configurationPropertiesContainerDefinition = configurationContainerDefinition.findContainerDefinition(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
+        assertNotNull("No container definition for " + SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME + " " + desc, configurationPropertiesContainerDefinition);
 
         assertConfigurationPropertyDefinition(configurationPropertiesContainerDefinition,
                 "uselessString", DOMUtil.XSD_STRING, 0, 1, "UI_INSTANCE_USELESS_STRING", "UI_INSTANCE_USELESS_STRING_HELP");
@@ -740,7 +740,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         resource.checkConsistence(true, prohibitRaw);
 
-        Element schema = ResourceTypeUtil.getResourceXsdSchema(resource);
+        Element schema = ResourceTypeUtil.getResourceXsdSchemaElement(resource);
         if (expectSchema) {
             assertNotNull("no schema in " + resource, schema);
         } else {
@@ -1014,7 +1014,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
     private ObjectDelta<ResourceType> createConfigurationPropertyDelta(QName elementQName, String newValue) {
         ItemPath propPath = getConfigurationPropertyPath(elementQName);
-        PrismPropertyDefinition<String> propDef = prismContext.definitionFactory().createPropertyDefinition(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
+        PrismPropertyDefinition<String> propDef = prismContext.definitionFactory().newPropertyDefinition(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
                 DOMUtil.XSD_STRING);
         PropertyDelta<String> propDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(propPath, propDef, newValue);
         ObjectDelta<ResourceType> resourceDelta = prismContext.deltaFactory().object()
@@ -1024,7 +1024,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     }
 
     private ItemPath getConfigurationPropertyPath(QName elementQName) {
-        return ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
+        return ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME,
                 elementQName);
     }
 
@@ -1104,7 +1104,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         lastVersion = resourceAfter.getVersion();
         displayValue("Version", lastVersion);
 
-        Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resourceAfter);
+        Element xsdSchema = ResourceTypeUtil.getResourceXsdSchemaElement(resourceAfter);
         if (xsdSchema != null) {
             String targetNamespace = xsdSchema.getAttribute("targetNamespace");
             assertNotNull("No targetNamespace in schema after application of " + objectDelta, targetNamespace);

@@ -19,7 +19,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.provisioning.util.AttributesToReturnProvider;
+import com.evolveum.midpoint.provisioning.util.ShadowItemsToReturnProvider;
 import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -280,6 +280,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return evaluatedProtectedObjectPatterns;
     }
 
+    // Uses only the resource information from the context; TODO make that more explicit
     // we don't use additionalAuxiliaryObjectClassQNames as we don't know if they are initialized correctly [med] TODO: reconsider this
     public @NotNull ResourceObjectDefinition computeCompositeObjectDefinition(
             @NotNull ResourceObjectDefinition objectDefinition,
@@ -384,10 +385,10 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     /**
      * Creates an exact copy of the context but with different resource object class.
      *
-     * This method looks fort the "real" raw object class definition (i.e. not a default object type
-     * definition for given object class name)
+     * This method looks for the "real" object class definition (i.e. not a default object type
+     * definition for given object class name).
      */
-    public @NotNull ProvisioningContext spawnForObjectClassWithRawDefinition(@NotNull QName objectClassName)
+    public @NotNull ProvisioningContext spawnForObjectClassWithClassDefinition(@NotNull QName objectClassName)
             throws SchemaException, ConfigurationException {
         return contextFactory.spawnForObjectClass(this, task, objectClassName, true);
     }
@@ -659,18 +660,20 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     /**
      * Returns association definitions, or an empty list if we do not have appropriate definition available.
      */
-    public @NotNull Collection<ShadowAssociationDefinition> getAssociationDefinitions() {
+    public @NotNull Collection<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
         return resourceObjectDefinition != null ?
                 resourceObjectDefinition.getAssociationDefinitions() : List.of();
     }
 
-    public @NotNull Collection<ShadowAssociationDefinition> getVisibleAssociationDefinitions() {
+    // TODO consider removal
+    public @NotNull Collection<? extends ShadowAssociationDefinition> getVisibleAssociationDefinitions() {
         return getAssociationDefinitions().stream()
                 .filter(def -> def.isVisible(this))
                 .toList();
     }
 
-    public @NotNull Collection<ShadowAssociationDefinition> getVisibleSimulatedAssociationDefinitions() {
+    // TODO consider removal
+    public @NotNull Collection<? extends ShadowAssociationDefinition> getVisibleSimulatedAssociationDefinitions() {
         return getAssociationDefinitions().stream()
                 .filter(def -> def.isVisible(this))
                 .filter(def -> def.isSimulated())
@@ -705,8 +708,8 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
      * It's more logical to call this method right on {@link ProvisioningContext}. The exact placement of the implementation
      * is to be decided yet.
      */
-    public AttributesToReturn createAttributesToReturn() {
-        return new AttributesToReturnProvider(resource, getObjectDefinitionRequired(), getOperationOptions)
+    public ShadowItemsToReturn createAttributesToReturn() {
+        return new ShadowItemsToReturnProvider(resource, getObjectDefinitionRequired(), getOperationOptions)
                 .createAttributesToReturn();
     }
 

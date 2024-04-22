@@ -48,7 +48,7 @@ public class CsvTestResource extends TestResource {
     private static final ItemPath FILE_PATH_PATH =
             ItemPath.create(
                     ResourceType.F_CONNECTOR_CONFIGURATION,
-                    SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
+                    SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME,
                     FILE_PATH_NAME);
 
     @NotNull private final File dir;

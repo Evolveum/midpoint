@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.mining.analysis;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis;
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
-
 import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -41,10 +38,10 @@ public class AttributeAnalysisUtil {
             @NotNull Set<PrismObject<UserType>> prismUsers,
             @NotNull List<AttributeAnalysisStructure> attributeAnalysisStructures,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet) {
 
-        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
-        processUserItemPathsNew(roleAnalysisService, prismUsers, attributesForUserAnalysis, attributeAnalysisStructures,
+        processUserItemPathsNew(roleAnalysisService, prismUsers, attributeDefSet, attributeAnalysisStructures,
                 task, result);
 
     }
@@ -54,10 +51,10 @@ public class AttributeAnalysisUtil {
             @NotNull Set<PrismObject<RoleType>> prismRoles,
             @NotNull List<AttributeAnalysisStructure> attributeAnalysisStructures,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeDef> attributeRoleDefSet) {
 
-        List<RoleAnalysisAttributeDef> attributesForRoleAnalysis = getAttributesForRoleAnalysis();
-        processRoleItemPathsNew(roleAnalysisService, prismRoles, attributesForRoleAnalysis, attributeAnalysisStructures,
+        processRoleItemPathsNew(roleAnalysisService, prismRoles, attributeRoleDefSet, attributeAnalysisStructures,
                 task, result);
     }
 

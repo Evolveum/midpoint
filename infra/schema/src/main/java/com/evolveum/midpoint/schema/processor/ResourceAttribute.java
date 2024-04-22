@@ -9,21 +9,18 @@ package com.evolveum.midpoint.schema.processor;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -47,7 +44,8 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  *
  * @author Radovan Semancik
  */
-public interface ResourceAttribute<T> extends PrismProperty<T> {
+public interface ResourceAttribute<T>
+        extends ShadowItem<PrismPropertyValue<T>, T>, PrismProperty<T> {
 
     /** Converts the {@link PrismProperty} into {@link ResourceAttribute}, if needed. */
     static <T> ResourceAttribute<T> of(@NotNull Item<?, ?> item) {
@@ -165,7 +163,7 @@ public interface ResourceAttribute<T> extends PrismProperty<T> {
      * Creates normalization-aware "eq" filter (i.e., suitable for the execution against the repository) for the current
      * value of this attribute. It must have a definition and exactly one value.
      */
-    default <N> @NotNull ObjectFilter normalizationAwareEqFilter() throws SchemaException {
+    default @NotNull ObjectFilter normalizationAwareEqFilter() throws SchemaException {
         var normAwareDef = getDefinitionRequired().toNormalizationAware();
         var normAwareRealValue = MiscUtil.extractSingletonRequired(normAwareDef.adoptRealValues(getRealValues()));
         return PrismContext.get().queryFor(ShadowType.class)
@@ -204,5 +202,10 @@ public interface ResourceAttribute<T> extends PrismProperty<T> {
                 expectedDefinition.equals(actualDefinition),
                 "Definition of %s is %s, expected %s",
                 this, actualDefinition, expectedDefinition);
+    }
+
+    @Override
+    default boolean hasNoValues() {
+        return PrismProperty.super.hasNoValues();
     }
 }

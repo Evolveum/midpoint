@@ -123,7 +123,7 @@ public class TestDummyLimited extends TestDummy {
 
         delta.checkConsistence();
         // check if activation was unchanged
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+        DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_WILL_USERNAME);
         assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
 
         syncServiceMock.assertSingleNotifyFailureOnly();
@@ -168,7 +168,7 @@ public class TestDummyLimited extends TestDummy {
 
         delta.checkConsistence();
         // check if activation was unchanged
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+        DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_WILL_USERNAME);
         assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
 
         syncServiceMock.assertSingleNotifyFailureOnly();
@@ -209,7 +209,7 @@ public class TestDummyLimited extends TestDummy {
 
         delta.checkConsistence();
         // check if activation was unchanged
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+        DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_WILL_USERNAME);
         assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
 
         syncServiceMock.assertSingleNotifyFailureOnly();
@@ -254,7 +254,7 @@ public class TestDummyLimited extends TestDummy {
 
         delta.checkConsistence();
         // check if activation was not changed
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+        DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_WILL_USERNAME);
         assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
         assertNull("Unexpected account validFrom in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
         assertNull("Unexpected account validTo in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
@@ -296,7 +296,7 @@ public class TestDummyLimited extends TestDummy {
 
         delta.checkConsistence();
         // check if activation was changed
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+        DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_WILL_USERNAME);
         assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
         assertNull("Unexpected account validFrom in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
         assertNull("Unexpected account validTo in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
@@ -342,7 +342,7 @@ public class TestDummyLimited extends TestDummy {
 
         delta.checkConsistence();
         // check if activation was changed
-        DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+        DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_WILL_USERNAME);
         assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
         assertNull("Unexpected account validFrom in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
         assertNull("Unexpected account validTo in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());

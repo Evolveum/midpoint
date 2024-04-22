@@ -25,10 +25,8 @@
  *
  * | `resourceobjects`
  * | Deals with resource objects (represented by `ShadowType` objects in midPoint), and their relatives, like live sync
- * and async update events. Handles the interaction with resources via UCF. Works with entitlements. Does _not_ contact
- * repository, except for very special cases.
- *
- * It can be seen as a lower layer dealing with resource objects.
+ * and async update events. Handles the interaction with resources via UCF. Works with simulated associations.
+ * Does _not_ contact repository, except for very special cases.
  *
  * | `shadows`
  * | Provides all the necessary functionality above the "resource objects" layer: manages repository shadows,
@@ -37,6 +35,7 @@
  *
  * |===
  *
+ * @see com.evolveum.midpoint.provisioning.impl.resourceobjects
  * @see com.evolveum.midpoint.provisioning.impl.shadows
  */
 package com.evolveum.midpoint.provisioning.impl;

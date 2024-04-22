@@ -511,10 +511,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return modelService.getObject(type, oid, null, task, result);
     }
 
-    /**
-     * This is not the real thing. It is just for the tests.
-     */
-    protected void applyResourceSchema(ShadowType accountType, ResourceType resourceType) throws SchemaException {
+    protected void applyResourceSchema(ShadowType accountType, ResourceType resourceType)
+            throws SchemaException, ConfigurationException {
         IntegrationTestTools.applyResourceSchema(accountType, resourceType);
     }
 
@@ -1530,7 +1528,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
 
         PrismContainerDefinition<AssignmentType> assignmentDef = getUserDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
-        assignmentDelta.applyDefinition(assignmentDef);
+        if (assignmentDef != null) {
+            assignmentDelta.applyDefinition(assignmentDef);
+        }
 
         return assignmentDelta;
     }
@@ -1870,7 +1870,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected ObjectQuery createNameQuery(String name) throws SchemaException {
-        return ObjectQueryUtil.createNameQuery(PrismTestUtil.createPolyString(name), prismContext);
+        return ObjectQueryUtil.createNameQuery(PolyString.fromOrig(name));
     }
 
     protected PrismObject<UserType> findUserByUsernameFullRequired(String username)
@@ -2872,9 +2872,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected <T> void addAttributeToShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, String attrName, T attrValue) throws SchemaException {
         ResourceAttributeContainer attrs = ShadowUtil.getAttributesContainer(shadow);
-        ResourceAttributeDefinition attrSnDef = attrs.getDefinition().findAttributeDefinition(
-                new ItemName(MidPointConstants.NS_RI, attrName));
-        ResourceAttribute<T> attr = attrSnDef.instantiate();
+        ResourceAttribute<T> attr = attrs.getDefinition()
+                .<T>findAttributeDefinition(new ItemName(MidPointConstants.NS_RI, attrName))
+                .instantiate();
         attr.setRealValue(attrValue);
         attrs.add(attr);
     }
@@ -3091,7 +3091,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <T extends ObjectType> PrismObject<T> searchObjectByName(Class<T> type, String name, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ObjectQuery query = ObjectQueryUtil.createNameQuery(name, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createNameQuery(name);
         List<PrismObject<T>> foundObjects = modelService.searchObjects(type, query, null, task, result);
         if (foundObjects.isEmpty()) {
             return null;
@@ -4328,7 +4328,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected DummyAccount getDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException, InterruptedException {
         DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
         try {
-            return dummyResource.getAccountByUsername(username);
+            return dummyResource.getAccountByName(username);
         } catch (ConnectException | FileNotFoundException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }

@@ -1,18 +1,16 @@
 package com.evolveum.midpoint.schema.processor.deleg;
 
-import com.evolveum.midpoint.schema.processor.BasicResourceInformation;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
 import java.util.Collection;
 
 public interface ResourceObjectClassDefinitionDelegator extends ResourceObjectDefinitionDelegator, ResourceObjectClassDefinition {
@@ -21,8 +19,8 @@ public interface ResourceObjectClassDefinitionDelegator extends ResourceObjectDe
     ResourceObjectClassDefinition delegate();
 
     @Override
-    default String getNativeObjectClass() {
-        return delegate().getNativeObjectClass();
+    default String getNativeObjectClassName() {
+        return delegate().getNativeObjectClassName();
     }
 
     @Override
@@ -46,6 +44,21 @@ public interface ResourceObjectClassDefinitionDelegator extends ResourceObjectDe
     }
 
     @Override
+    default @Nullable QName getNamingAttributeName() {
+        return ResourceObjectDefinitionDelegator.super.getNamingAttributeName();
+    }
+
+    @Override
+    default @Nullable QName getDisplayNameAttributeName() {
+        return ResourceObjectDefinitionDelegator.super.getDisplayNameAttributeName();
+    }
+
+    @Override
+    default @Nullable QName getDescriptionAttributeName() {
+        return ResourceObjectDefinitionDelegator.super.getDescriptionAttributeName();
+    }
+
+    @Override
     default @NotNull ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
         return delegate().createShadowSearchQuery(resourceOid);
     }
@@ -54,16 +67,5 @@ public interface ResourceObjectClassDefinitionDelegator extends ResourceObjectDe
     @NotNull
     default Collection<? extends ResourceObjectDefinition> getAuxiliaryDefinitions() {
         return delegate().getAuxiliaryDefinitions();
-    }
-
-    @Override
-    default ResourceAttributeContainer instantiate(ItemName elementName) {
-        return delegate().instantiate(elementName);
-    }
-
-    @Override
-    default @NotNull ResourceObjectClassDefinition attachTo(@NotNull BasicResourceInformation resourceInformation)
-            throws SchemaException, ConfigurationException {
-        return delegate().attachTo(resourceInformation);
     }
 }

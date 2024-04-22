@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.schema.component;
 
 import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.ItemDefinitionDto;
-import com.evolveum.midpoint.prism.MutableComplexTypeDefinition;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -110,7 +110,7 @@ public class SchemaPanel<T extends DefinitionDto> extends AbstractObjectMainPane
                 PrismSchemaImpl newSchema = new PrismSchemaImpl(namespace);
                 newSchema.setRuntime(true);
 
-                MutableComplexTypeDefinition def = PrismContext.get().definitionFactory().createComplexTypeDefinition(new QName(namespace, name));
+                ComplexTypeDefinition def = PrismContext.get().definitionFactory().newComplexTypeDefinition(new QName(namespace, name));
                 newSchema.add(def);
 
                 Document newXsdSchemaDoc = null;

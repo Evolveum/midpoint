@@ -38,9 +38,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateResourceObject" // not officially supported
 })
 @ActionDefinitionClass(InactivateResourceObjectSynchronizationActionType.class)
-public class InactivateResourceObjectAction<F extends FocusType> extends BaseClockworkAction<F> {
+class InactivateResourceObjectAction<F extends FocusType> extends BaseClockworkAction<F> {
 
-    public InactivateResourceObjectAction(@NotNull ActionInstantiationContext<F> ctx) {
+    InactivateResourceObjectAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);
     }
 

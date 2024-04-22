@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.DataPoint;
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.AttributeMatch;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.RoleAnalysisAttributeDefConvert;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -316,7 +316,7 @@ public class ClusteringUtils {
     public static @NotNull List<DataPoint> prepareDataPointsUserModeRules(
             @NotNull ListMultimap<List<String>, String> chunkMap,
             @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull List<AttributeMatch> attributeMatches,
+            @NotNull List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts,
             @NotNull Task task) {
         List<DataPoint> dataPoints = new ArrayList<>();
 
@@ -327,7 +327,7 @@ public class ClusteringUtils {
                 if (userTypeObject != null) {
                     ExtensionProperties extensionProperties = new ExtensionProperties();
 
-                    for (AttributeMatch rule : attributeMatches) {
+                    for (RoleAnalysisAttributeDefConvert rule : roleAnalysisAttributeDefConverts) {
 
                         //TODO
                         RoleAnalysisAttributeDef roleAnalysisItemDef = rule.getRoleAnalysisItemDef();
@@ -358,7 +358,7 @@ public class ClusteringUtils {
     public static @NotNull List<DataPoint> prepareDataPointsRoleModeRules(
             @NotNull ListMultimap<List<String>, String> chunkMap,
             @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull List<AttributeMatch> attributeMatches,
+            @NotNull List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts,
             @NotNull Task task) {
         List<DataPoint> dataPoints = new ArrayList<>();
 
@@ -369,7 +369,7 @@ public class ClusteringUtils {
                 if (roleType != null) {
                     ExtensionProperties extensionProperties = new ExtensionProperties();
 
-                    for (AttributeMatch rule : attributeMatches) {
+                    for (RoleAnalysisAttributeDefConvert rule : roleAnalysisAttributeDefConverts) {
 
                         //TODO
                         RoleAnalysisAttributeDef roleAnalysisItemDef = rule.getRoleAnalysisItemDef();

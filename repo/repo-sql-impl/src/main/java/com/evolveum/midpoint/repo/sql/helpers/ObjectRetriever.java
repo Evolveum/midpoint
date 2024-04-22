@@ -650,8 +650,9 @@ public class ObjectRetriever {
                         PrismProperty attribute = attributeContainer.findProperty(extItemName);
                         if (attribute == null) {
                             if (raw) {
-                                attribute = ((PrismPropertyDefinition) createDynamicDefinition(extItem, extItemName))
-                                        .instantiate();
+                                attribute =
+                                        ((PrismPropertyDefinition<?>) createDynamicDefinition(extItem, extItemName))
+                                                .instantiate();
                             } else {
                                 attribute = prismContext.itemFactory().createProperty(extItemName);
                             }
@@ -710,7 +711,7 @@ public class ObjectRetriever {
             ItemName name = RUtil.stringToQName(extItem.getName());
             Item item = attributes.findItem(name);
             if (item != null && item.getDefinition() == null) {
-                MutableItemDefinition<?> def = createDynamicDefinition(extItem, name);
+                ItemDefinition<?> def = createDynamicDefinition(extItem, name);
                 //noinspection unchecked
                 item.applyDefinition(def);
             }
@@ -718,21 +719,21 @@ public class ObjectRetriever {
     }
 
     @NotNull
-    private MutableItemDefinition<?> createDynamicDefinition(RExtItem extItem, ItemName name) {
+    private ItemDefinition<?> createDynamicDefinition(RExtItem extItem, ItemName name) {
         QName type = RUtil.stringToQName(extItem.getType());
         RItemKind rValType = extItem.getKind();
-        MutableItemDefinition<?> def;
+        ItemDefinition<?> def;
         if (rValType == RItemKind.PROPERTY) {
-            def = prismContext.definitionFactory().createPropertyDefinition(name, type);
+            def = prismContext.definitionFactory().newPropertyDefinition(name, type);
         } else if (rValType == RItemKind.REFERENCE) {
-            def = prismContext.definitionFactory().createReferenceDefinition(name, type);
+            def = prismContext.definitionFactory().newReferenceDefinition(name, type);
         } else {
             throw new UnsupportedOperationException("Unsupported value type " + rValType);
         }
-        def.setMinOccurs(0);
-        def.setMaxOccurs(-1);
-        def.setRuntimeSchema(true);
-        def.setDynamic(true);
+        def.mutator().setMinOccurs(0);
+        def.mutator().setMaxOccurs(-1);
+        def.mutator().setRuntimeSchema(true);
+        def.mutator().setDynamic(true);
         return def;
     }
 

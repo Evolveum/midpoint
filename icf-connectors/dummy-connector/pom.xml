@@ -21,6 +21,11 @@
 
     <name>Dummy Connector</name>
 
+    <properties>
+        <!-- no tests here -->
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>net.tirasa.connid</groupId>

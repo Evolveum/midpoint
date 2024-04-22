@@ -146,11 +146,11 @@ public class RObjectTextInfo implements Serializable {
                 if (realValue == null) {
                     // skip
                 } else if (realValue instanceof String) {
-                    append(allWords, (String) realValue, repositoryContext.prismContext);
+                    append(allWords, (String) realValue);
                 } else if (realValue instanceof PolyString) {
-                    append(allWords, (PolyString) realValue, repositoryContext.prismContext);
+                    append(allWords, (PolyString) realValue);
                 } else {
-                    append(allWords, realValue.toString(), repositoryContext.prismContext);
+                    append(allWords, realValue.toString());
                 }
             }
         }
@@ -189,11 +189,11 @@ public class RObjectTextInfo implements Serializable {
         return rv;
     }
 
-    private static void append(List<String> allWords, String text, PrismContext prismContext) {
+    private static void append(List<String> allWords, String text) {
         if (StringUtils.isBlank(text)) {
             return;
         }
-        String normalized = prismContext.getDefaultPolyStringNormalizer().normalize(text);
+        String normalized = PrismContext.get().getDefaultPolyStringNormalizer().normalize(text);
         String[] words = StringUtils.split(normalized);
         for (String word : words) {
             if (StringUtils.isNotBlank(word)) {
@@ -204,9 +204,9 @@ public class RObjectTextInfo implements Serializable {
         }
     }
 
-    private static void append(List<String> allWords, PolyString text, PrismContext prismContext) {
+    private static void append(List<String> allWords, PolyString text) {
         if (text != null) {
-            append(allWords, text.getOrig(), prismContext);
+            append(allWords, text.getOrig());
         }
     }
 

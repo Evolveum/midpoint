@@ -174,7 +174,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
                     ScriptVariableEvaluationTraceType variableTrace = new ScriptVariableEvaluationTraceType();
                     variableTrace.setName(new QName(variableName));
                     Object clonedValue = cloneIfPossible(variableTypedValue.getValue());
-                    variableTrace.getValue().addAll(TraceUtil.toAnyValueTypeList(clonedValue, prismContext));
+                    variableTrace.getValue().addAll(TraceUtil.toAnyValueTypeList(clonedValue));
                     variables.getAliases(variableName).forEach(alias -> variableTrace.getAlias().add(new QName(alias)));
                     context.getTrace().getVariable().add(variableTrace);
                 }

@@ -218,7 +218,7 @@ class ScriptExecutor<O extends ObjectType> {
 
         final QName fakeScriptArgumentName = new QName(SchemaConstants.NS_C, "arg");
 
-        PrismPropertyDefinition<String> scriptArgumentDefinition = b.prismContext.definitionFactory().createPropertyDefinition(
+        PrismPropertyDefinition<String> scriptArgumentDefinition = b.prismContext.definitionFactory().newPropertyDefinition(
                 fakeScriptArgumentName, DOMUtil.XSD_STRING);
         scriptArgumentDefinition.freeze();
         String shortDesc = "Provisioning script argument expression";
@@ -228,7 +228,7 @@ class ScriptExecutor<O extends ObjectType> {
 
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variables, shortDesc, task);
         eeContext.setExpressionFactory(b.expressionFactory);
-        ModelExpressionEnvironment<?, ?, ?> env = new ModelExpressionEnvironment<>(context, projCtx, task, result);
+        ModelExpressionEnvironment<?, ?> env = new ModelExpressionEnvironment<>(context, projCtx, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
                 ExpressionUtil.evaluateExpressionInContext(expression, eeContext, env, result);
 
@@ -243,7 +243,7 @@ class ScriptExecutor<O extends ObjectType> {
         argument.getExpressionEvaluator().clear();
         if (values.isEmpty()) {
             // We need to create at least one evaluator. Otherwise the expression code will complain
-            JAXBElement<RawType> el = new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class, new RawType(b.prismContext));
+            JAXBElement<RawType> el = new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class, new RawType());
             argument.getExpressionEvaluator().add(el);
 
         } else {
@@ -251,7 +251,7 @@ class ScriptExecutor<O extends ObjectType> {
                 XNodeFactory factory = b.prismContext.xnodeFactory();
                 PrimitiveXNode<String> prim = factory.primitive(val.getValue(), DOMUtil.XSD_STRING);
                 JAXBElement<RawType> el = new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class,
-                        new RawType(prim.frozen(), b.prismContext));
+                        new RawType(prim.frozen()));
                 argument.getExpressionEvaluator().add(el);
             }
         }

@@ -8,28 +8,19 @@
 package com.evolveum.midpoint.model.api.correlation;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Set;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.PathSet;
-import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-
-import com.evolveum.midpoint.model.api.correlator.CorrelatorConfiguration;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateCorrelationType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CandidateDescription;
+import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * Contains correlation-related methods that should be accessible from the outside of `model` module.

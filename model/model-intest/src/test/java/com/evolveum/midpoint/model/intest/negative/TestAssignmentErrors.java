@@ -16,7 +16,6 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoThread
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -97,7 +96,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
         assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
         assertFalse("No nativeObjectClass in account",
-                StringUtils.isEmpty(accountDef.getObjectClassDefinition().getNativeObjectClass()));
+                StringUtils.isEmpty(accountDef.getObjectClassDefinition().getNativeObjectClassName()));
 
         assertFalse("Account definition is deprecated", accountDef.isDeprecated());
         assertFalse("Account definition in auxiliary", accountDef.getObjectClassDefinition().isAuxiliary());

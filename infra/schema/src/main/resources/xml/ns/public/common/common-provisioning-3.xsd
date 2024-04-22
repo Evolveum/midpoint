@@ -578,10 +578,29 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="associatedObjectType" type="tns:AssociatedResourceObjectTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Types of objects that are associated to traditional resource objects (their owners).
+                        They have kind of "associated".
+                        They must contain associationClass name that binds them to their owner.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="associationType" type="tns:ShadowAssociationTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Definition of types of associations between resource objects.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="associationTypeNew" type="tns:ShadowAssociationTypeNewDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.9</a:since>
@@ -1069,6 +1088,35 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
+    <xsd:complexType name="AssociatedResourceObjectTypeDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of an associated object.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ResourceObjectTypeDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="associationClass" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Association class through which is this associated object connected to its owner.
+                                TODO specify more precisely
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AssociatedResourceObjectTypeDefinitionType.associationClass</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
     <xsd:complexType name="ResourceObjectTypeIdentificationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1112,10 +1160,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="type" type="xsd:QName" minOccurs="0" default="c:UserType">
+            <xsd:element name="type" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Type of the focus objects.
+                        Type of the focus objects. The default is derived from associated object type, or UserType (otherwise).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1148,6 +1196,22 @@
                             <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
                         </xsd:appinfo>
                     </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="itemPath" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the item to which this resource object should be mapped.
+                        If not specified, the resource object corresponds to the whole focus object.
+                        (A special case is when "assignmentSubtype" is present, then the default path is "assignment".)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="assignmentSubtype" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Subtype of the assignment to which this resource object is mapped (if applicable).
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -1642,37 +1706,159 @@
     </xsd:complexType>
     <xsd:element name="shadowAssociationTypeDefinition" type="tns:ShadowAssociationTypeDefinitionType"/>
 
+    <xsd:complexType name="ShadowAssociationTypeNewDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The name of the association type. The namespace must be "ri:" or none.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element ref="tns:lifecycleState" minOccurs="0"/>
+            <xsd:element name="subject" type="tns:ShadowAssociationTypeNewSubjectDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="focus" type="tns:ShadowAssociationTypeFocusDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="attribute" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of activation handling for this account type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="correlation" type="tns:CorrelationDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How objects of this type are correlated to focus objects?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="synchronization" type="tns:SynchronizationReactionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines reactions to specific synchronization-related situations (like "unmatched resource object",
+                        or "disputed" (owner), and so on.
+
+                        Before 4.6, this information was part of the "synchronization" section of the resource definition.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="shadowAssociationTypeNewDefinition" type="tns:ShadowAssociationTypeNewDefinitionType"/>
+
+    <xsd:complexType name="ShadowAssociationTypeNewSubjectDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="objectType" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object type of the subject of this association type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="item" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Association item in the subject.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="focus" type="tns:ShadowAssociationTypeFocusDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Focus-side representation of this association type (usually an assignment of give subtype).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="shadowAssociationTypeNewSubjectDefinition" type="tns:ShadowAssociationTypeNewSubjectDefinitionType"/>
+
+    <xsd:complexType name="ShadowAssociationTypeFocusDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="item" type="t:ItemPathType" minOccurs="0" default="assignment">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Item that represents the association (the default is "assignment").
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="subtype" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Assignment subtype (if the item is assignment).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="shadowAssociationTypeFocusDefinition" type="tns:ShadowAssociationTypeFocusDefinitionType"/>
+
     <xsd:complexType name="ShadowAssociationTypeSubjectDefinitionType">
         <xsd:complexContent>
             <xsd:extension base="tns:ShadowAssociationTypeParticipantDefinitionType">
                 <xsd:sequence>
-
-                    <!--
-                        The following are taken from the legacy association definition.
-                        They describe the _association item_ that is present on the subject shadow.
-
-                        In the future, the legalization specification should be added here.
-
-                        Should they be here, or right in the subject objectType? To be decided.
-                    -->
-
-                    <xsd:element ref="tns:displayName" minOccurs="0"/>
-                    <xsd:element name="help" type="xsd:string" minOccurs="0"/>
-                    <xsd:element ref="tns:description" minOccurs="0"/>
-                    <xsd:element ref="tns:documentation" minOccurs="0"/>
-                    <xsd:element name="displayOrder" type="xsd:int" minOccurs="0"/>
-                    <!-- limitations? -->
-                    <xsd:element name="tolerant" type="xsd:boolean" minOccurs="0" default="true"/>
-                    <xsd:element name="tolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-                    <xsd:element name="intolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-                    <xsd:element name="displayHint" type="tns:DisplayHintType" minOccurs="0"/>
-                    <xsd:element name="deprecated" type="xsd:boolean" minOccurs="0"/>
-                    <!-- experimental? -->
-                    <!-- validation? -->
-                    <!-- fetch strategy? -->
-                    <xsd:element name="cached" type="xsd:boolean" minOccurs="0"/>
-                    <xsd:element name="outbound" type="tns:MappingType" minOccurs="0"/>
-                    <xsd:element name="inbound" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -4795,7 +4981,7 @@
     <xsd:simpleType name="ShadowKindType">
         <xsd:annotation>
             <xsd:documentation>
-                Defines the kind of a shadow.
+                Defines the kind of shadow.
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -4823,6 +5009,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="GENERIC"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="associated">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ASSOCIATED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -5123,19 +5316,18 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
+                        <a:composite>true</a:composite>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="identifiers" type="tns:ShadowIdentifiersType" minOccurs="0">
+            <xsd:element name="identifiersOnly" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Set of identifiers (names and values) that identify the association target.
-                        May or may not be known, depending on the processing state.
-                        At least one of "shadowRef" and "identifiers" should be known, though.
+                        If we have (some) attributes, are they identifiers only, or the full shadow?
+                        Not applicable if there are no attributes.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- attributes/parameters -->
             <!-- others, last usage timestamp -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>

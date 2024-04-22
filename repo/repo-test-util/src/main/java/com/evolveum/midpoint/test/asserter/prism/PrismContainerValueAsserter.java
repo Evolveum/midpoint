@@ -183,15 +183,15 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
     public <T> PrismContainerValueAsserter<C, RA> assertPropertyValuesEqualRaw(ItemPath path, T... expectedValues) {
         PrismProperty<T> property = findProperty(path);
         assertNotNull("No attribute " + path + " in " + desc(), property);
-        RawType[] expectedRaw = rawize(path, getPrismContext(), expectedValues);
+        RawType[] expectedRaw = rawize(path, expectedValues);
         PrismAsserts.assertPropertyValueDesc(property, desc(), (T[]) expectedRaw);
         return this;
     }
 
-    private <T> RawType[] rawize(ItemPath path, PrismContext prismContext, T[] expectedValues) {
+    private <T> RawType[] rawize(ItemPath path, T[] expectedValues) {
         RawType[] raws = new RawType[expectedValues.length];
         for (int i = 0; i < expectedValues.length; i++) {
-            raws[i] = new RawType(prismContext.itemFactory().createPropertyValue(expectedValues[i]), path.lastName(), prismContext);
+            raws[i] = new RawType(PrismContext.get().itemFactory().createPropertyValue(expectedValues[i]), path.lastName());
         }
         return raws;
     }

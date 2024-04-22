@@ -757,9 +757,9 @@ public class ActivationProcessor implements ProjectorProcessor {
             return false;
         });
 
-        MutablePrismPropertyDefinition<Boolean> shadowExistenceTargetDef = prismContext.definitionFactory().createPropertyDefinition(SHADOW_EXISTS_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN);
-        shadowExistenceTargetDef.setMinOccurs(1);
-        shadowExistenceTargetDef.setMaxOccurs(1);
+        PrismPropertyDefinition<Boolean> shadowExistenceTargetDef =
+                prismContext.definitionFactory().newPropertyDefinition(
+                        SHADOW_EXISTS_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN, 1, 1);
         shadowExistenceTargetDef.freeze();
         params.setTargetItemDefinition(shadowExistenceTargetDef);
         params.setSourceContext(focusOdoAbsolute);
@@ -1126,10 +1126,8 @@ public class ActivationProcessor implements ProjectorProcessor {
     @NotNull
     private <T> ItemDeltaItem<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createIdi(
             QName propertyName, QName typeName, T old, T current) throws SchemaException {
-        MutablePrismPropertyDefinition<T> definition =
-                prismContext.definitionFactory().createPropertyDefinition(propertyName, typeName);
-        definition.setMinOccurs(1);
-        definition.setMaxOccurs(1);
+        PrismPropertyDefinition<T> definition =
+                prismContext.definitionFactory().newPropertyDefinition(propertyName, typeName, 1, 1);
         PrismProperty<T> property = definition.instantiate();
         if (current != null) {
             property.add(prismContext.itemFactory().createPropertyValue(current));
@@ -1161,10 +1159,9 @@ public class ActivationProcessor implements ProjectorProcessor {
 
     private <F extends ObjectType> ItemDeltaItem<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> getFocusExistsIdi(
             LensFocusContext<F> lensFocusContext) throws SchemaException {
-        MutablePrismPropertyDefinition<Boolean> existsDef =
-                prismContext.definitionFactory().createPropertyDefinition(FOCUS_EXISTS_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN);
-        existsDef.setMinOccurs(1);
-        existsDef.setMaxOccurs(1);
+        PrismPropertyDefinition<Boolean> existsDef =
+                prismContext.definitionFactory().newPropertyDefinition(
+                        FOCUS_EXISTS_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN, 1, 1);
         PrismProperty<Boolean> existsProp = existsDef.instantiate();
 
         Boolean existsOld;

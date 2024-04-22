@@ -53,9 +53,9 @@ public class ExclusionCertificationHandler extends BaseCertificationHandler {
     }
 
     private void processAssignment(AssignmentType assignment, ObjectType object, List<AccessCertificationCaseType> caseList) {
-        AccessCertificationAssignmentCaseType assignmentCase = new AccessCertificationAssignmentCaseType(prismContext);
+        AccessCertificationAssignmentCaseType assignmentCase = new AccessCertificationAssignmentCaseType();
         assignmentCase.setAssignment(assignment.clone());
-        assignmentCase.setObjectRef(ObjectTypeUtil.createObjectRef(object, prismContext));
+        assignmentCase.setObjectRef(ObjectTypeUtil.createObjectRef(object));
         assignmentCase.setTenantRef(assignment.getTenantRef());
         assignmentCase.setOrgRef(assignment.getOrgRef());
         assignmentCase.setActivation(assignment.getActivation());

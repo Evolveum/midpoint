@@ -2245,7 +2245,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private ObjectQuery checkOrdering(ObjectQuery query, ItemPath defaultOrderBy) {
         if (query != null) {
             if (query.getPaging() == null) {
-                ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(new PagingType(), prismContext);
+                ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(new PagingType());
                 paging.setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
                 query.setPaging(paging);
             } else if (query.getPaging().getPrimaryOrderingPath() == null) {
@@ -2261,7 +2261,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private void processContainerByHandler(SearchResultList<? extends Containerable> containers, Predicate<PrismContainer> handler) throws SchemaException {
         for (Containerable container : containers) {
             PrismContainerValue prismValue = container.asPrismContainerValue();
-            prismValue.setPrismContext(prismContext);
             PrismContainer prismContainer = prismValue.asSingleValuedContainer(prismValue.getTypeName());
             if (!handler.test(prismContainer)) {
                 return;
@@ -2372,7 +2371,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
 
         ObjectQuery query = prismContext.queryFactory().createQuery();
-        query.setPaging(usedPaging == null ? ObjectQueryUtil.convertToObjectPaging(compiledCollection.getPaging(), prismContext) : usedPaging);
+        query.setPaging(usedPaging == null ? ObjectQueryUtil.convertToObjectPaging(compiledCollection.getPaging()) : usedPaging);
         query.setFilter(filter);
         return query;
     }

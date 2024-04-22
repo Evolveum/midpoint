@@ -667,7 +667,7 @@ public class TestUtil {
     }
 
     public static ItemDefinition createPrimitivePropertyDefinition(PrismContext prismContext, String name, PrimitiveType pType) {
-        return prismContext.definitionFactory().createPropertyDefinition(new ItemName(SchemaConstants.NS_C, name), pType.getQname());
+        return prismContext.definitionFactory().newPropertyDefinition(new ItemName(SchemaConstants.NS_C, name), pType.getQname());
     }
 
     public static void waitForCompletion(List<Thread> threads, long timeout) throws InterruptedException {

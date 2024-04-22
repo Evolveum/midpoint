@@ -772,19 +772,19 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
             if (exportType == LensContext.ExportType.REDUCED) {
                 bean.setObjectOldRef(ObjectTypeUtil.createObjectRef(objectOld));
             } else {
-                bean.setObjectOld(objectOld.asObjectable().clone());
+                bean.setObjectOldRef(ObjectTypeUtil.createObjectRefWithFullObject(objectOld.clone()));
             }
         }
         PrismObject<O> objectCurrent = state.getCurrentObject();
         if (objectCurrent != null && exportType == LensContext.ExportType.TRACE) {
-            bean.setObjectCurrent(objectCurrent.asObjectable().clone());
+            bean.setObjectCurrentRef(ObjectTypeUtil.createObjectRefWithFullObject(objectCurrent.clone()));
         }
         PrismObject<O> objectNew = state.getNewObject();
         if (objectNew != null && exportType != LensContext.ExportType.MINIMAL) {
             if (exportType == LensContext.ExportType.REDUCED) {
                 bean.setObjectNewRef(ObjectTypeUtil.createObjectRef(objectNew));
             } else {
-                bean.setObjectNew(objectNew.asObjectable().clone());
+                bean.setObjectNewRef(ObjectTypeUtil.createObjectRefWithFullObject(objectNew.clone()));
             }
         }
         if (exportType != LensContext.ExportType.MINIMAL) {
@@ -807,10 +807,10 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     void retrieveFromLensElementContextBean(LensElementContextType bean, Task task, OperationResult result)
             throws SchemaException {
 
-        PrismObject<O> oldObject = asPrismObjectCast(bean.getObjectOld());
+        PrismObject<O> oldObject = asPrismObjectCast(ObjectTypeUtil.getEmbeddedObjectBean(bean.getObjectOldRef()));
         applyProvisioningDefinition(oldObject, task, result);
 
-        PrismObject<O> currentObject = asPrismObjectCast(bean.getObjectCurrent());
+        PrismObject<O> currentObject = asPrismObjectCast(ObjectTypeUtil.getEmbeddedObjectBean(bean.getObjectCurrentRef()));
         applyProvisioningDefinition(currentObject, task, result);
 
         // Not using "getAnyObject" because the state is not yet set up.

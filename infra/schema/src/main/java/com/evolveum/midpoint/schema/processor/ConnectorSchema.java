@@ -7,26 +7,41 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
-import java.util.Collection;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 
+/** The schema for connector configuration. */
 public interface ConnectorSchema extends PrismSchema {
 
-    Collection<ResourceObjectClassDefinition> getObjectClassDefinitions();
+    /**
+     * This is the container that holds the whole configuration. Its content is defined by the connector
+     * and the connector framework.
+     *
+     * E.g., for ConnId, there is a connector-specific part defined by the particular connector
+     * (see {@link SchemaConstants#ICF_CONFIGURATION_PROPERTIES_NAME}), and generic parts prescribed
+     * by ConnId itself, like `connectorPoolConfiguration` or `timeouts`).
+     */
+    String CONNECTOR_CONFIGURATION_LOCAL_NAME = "connectorConfiguration";
+    String CONNECTOR_CONFIGURATION_TYPE_LOCAL_NAME = "ConfigurationType";
 
-    default ResourceObjectClassDefinition findObjectClassDefinition(@NotNull ShadowType shadow) {
-        return findObjectClassDefinition(shadow.getObjectClass());
+    default @NotNull ItemName getConnectorConfigurationContainerName() {
+        return new ItemName(getNamespace(), CONNECTOR_CONFIGURATION_LOCAL_NAME);
     }
 
-    default ResourceObjectClassDefinition findObjectClassDefinition(@NotNull String localName) {
-        return findObjectClassDefinition(new QName(getNamespace(), localName));
+    default @NotNull PrismContainerDefinition<ConnectorConfigurationType> getConnectorConfigurationContainerDefinition()
+            throws SchemaException {
+        var containerName = getConnectorConfigurationContainerName();
+        return MiscUtil.requireNonNull(
+                findContainerDefinitionByElementName(containerName),
+        "No definition for container %s in schema %s", containerName, this);
     }
-
-    ResourceObjectClassDefinition findObjectClassDefinition(QName qName);
 
     String getUsualNamespacePrefix();
 }

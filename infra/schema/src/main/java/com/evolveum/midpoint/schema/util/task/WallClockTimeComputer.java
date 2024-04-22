@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -206,7 +205,7 @@ public class WallClockTimeComputer {
             }
 
             return new Interval(newFromMillis, newToMillis, useRecords ?
-                    new ActivityRunRecordType(PrismContext.get())
+                    new ActivityRunRecordType()
                         .startTimestamp(newFromXml)
                         .endTimestamp(newToXml) : null);
         }
