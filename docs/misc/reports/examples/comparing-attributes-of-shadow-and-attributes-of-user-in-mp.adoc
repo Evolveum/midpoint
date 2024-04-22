@@ -1,6 +1,6 @@
-= Collection report: Comparing attributes of shadow and attributes of user in midPoint
-:page-nav-title: Comparing attributes of shadow and attributes of user in midPoint
-:page-wiki-name: Collection report: Comparing attributes of shadow and attributes of user in midPoint
+= Collection report: Comparing Attributes of Shadow and Attributes of User in MidPoint
+:page-nav-title: Comparing Attributes of Shadow and Attributes of User in MidPoint
+:page-wiki-name: Collection report: Comparing Attributes of Shadow and Attributes of User in MidPoint
 :page-wiki-id: 52003075
 :page-wiki-metadata-create-user: lskublik
 :page-wiki-metadata-create-date: 2020-08-18T14:15:45.548+02:00

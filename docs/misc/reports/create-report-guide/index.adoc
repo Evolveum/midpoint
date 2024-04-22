@@ -10,9 +10,9 @@ This Guide contains a list of possibilities how you are capable to create a Repo
 
 In case you are interested in some more advanced configuration topics regarding reports please have a look at the following pages.
 
-- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
-- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
-- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/[General Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports Configuration]
 
 If you are interested in some *more advanced examples* please have a look at the following set of articles:
 

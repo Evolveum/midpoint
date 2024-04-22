@@ -13,6 +13,7 @@ The task is executed asynchronously with a special kind of configuration which w
 As the name might imply, "Activity" is a kind of definition of what work should be done inside the task, and also how the work load should be processed.
 Activity is quite a large topic on itself, if you want some more information regarding "Activity", please see this xref:/midpoint/reference/tasks/activities[page].
 
+[#_default_report_task_work_items]
 == Default Report Task Work Items
 
 The task "Activity" can be defined by one of three different types of work items.
@@ -45,7 +46,7 @@ The reports can be either "Export" reports or "Import" reports.
 
 The second kind of reports are the *"Import"* reports, these work the other way around.
 A CSV is uploaded into midPoint in a similar format as a report, based on this midPoint will create or update objects.
-For some more information on Import reports, have a look at xref:TODO[this] page.
+For some more information on Import reports, have a look at xref:/midpoint/reference/misc/reports/configuration/import-repor.adoc[this] page.
 
 - Supports multithreading but not bucketing (multi-node mode). Contains only one parameter 'reportRef'.
 
@@ -83,8 +84,15 @@ And finally you need to add configuration for xref:/midpoint/reference/tasks/act
 
 image::report-task-converting.png[]
 
+[#_multithreading_and_bucketing]
+== Multithreading and Bucketing
 
-== See Also
+Multithreading is fully supported for all possible kinds of reported objects such as containers, objects and audit records.
+Bucketing is supported only for full objects and audit records, because currently bucketing of task don't support containers.
+
+Configuration options in regard to workload distribution for tasks can be found xref:/midpoint/reference/tasks/activities/distribution.adoc[here]
+The support of specific distribution options depends on the task "activity", have a look at <<_default_report_task_work_items>> for more information.
+To see which activities are supported in regard to workload distribution please have a look at this xref:/midpoint/reference/tasks/activities/work.adoc[page]
 
 == See Also
 
@@ -93,3 +101,4 @@ image::report-task-converting.png[]
 - xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
 - xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
 - xref:/midpoint/reference/tasks/activities/distribution[Task Distribution]
+- xref:/midpoint/reference/misc/reports/configuration/import-repor.adoc[Import From Report]
