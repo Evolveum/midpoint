@@ -989,11 +989,12 @@ public class IntegrationTestTools {
         assertTrue("Group " + group.getName() + " has members while not expecting it, members: " + members, members == null || members.isEmpty());
     }
 
-    public static ShadowAssociationValue assertAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
+    public static @NotNull ShadowAssociationValueType assertAssociation(
+            PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
         for (var value : ShadowUtil.getAssociationValues(shadow, associationName)) {
             ObjectReferenceType ref = value.getShadowRef();
             if (ref != null && entitlementOid.equals(ref.getOid())) {
-                return ShadowAssociationValue.of(value);
+                return value;
             }
         }
         AssertJUnit.fail("No association for entitlement " + entitlementOid + " in " + shadow);

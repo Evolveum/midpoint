@@ -3495,9 +3495,12 @@ public class TestOpenDj extends AbstractOpenDjTest {
         }
     }
 
+    // Account must be non-raw (deeply), i.e. it has to have RAC/SAssocC instead of PrismContainer for attributes/associations
     private void assertEntitlementGroup(PrismObject<ShadowType> account, String entitlementOid) {
-        var associationValue = IntegrationTestTools.assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
-        var dnProp = associationValue.getAttributesContainerRequired().findAttribute(getSecondaryIdentifierQName());
+        var associationValueBean = IntegrationTestTools.assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
+        var dnProp = ((ShadowAssociationValue) associationValueBean.asPrismContainerValue())
+                .getAttributesContainerRequired()
+                .findAttribute(getSecondaryIdentifierQName());
         assertNotNull("No DN identifier in group association in " + account, dnProp);
     }
 

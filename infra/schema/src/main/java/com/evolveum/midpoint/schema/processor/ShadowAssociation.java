@@ -68,9 +68,6 @@ public class ShadowAssociation
     /**
      * This method will clone the item and convert it to a {@link ShadowAssociation}.
      * (A typical use case is that the provided item is not a {@link ShadowAssociation}.)
-     *
-     * Currently, this method ignores the identifiers: they are used "as is". No eventual definition application,
-     * and conversion to resource attributes is done.
      */
     static ShadowAssociation convertFromPrismItem(
             @NotNull Item<?, ?> item, @NotNull ShadowAssociationDefinition associationDef) {
@@ -79,7 +76,9 @@ public class ShadowAssociation
             if (value instanceof PrismContainerValue<?> pcv) {
                 try {
                     association.addIgnoringEquivalents(
-                            ShadowAssociationValue.of(((ShadowAssociationValueType) pcv.asContainerable()).clone()));
+                            ShadowAssociationValue.of(
+                                    ((ShadowAssociationValueType) pcv.asContainerable()).clone(),
+                                    associationDef));
                 } catch (SchemaException e) {
                     throw new IllegalArgumentException("Couldn't add PCV: " + value, e);
                 }
@@ -98,7 +97,9 @@ public class ShadowAssociation
             return super.addInternalExecution(newValue);
         } else {
             // FIXME we should have resolved this (for deltas) in applyDefinition call, but that's not possible now
-            return super.addInternalExecution(ShadowAssociationValue.of(newValue.asContainerable()));
+            return super.addInternalExecution(ShadowAssociationValue.of(
+                    newValue.asContainerable(),
+                    getDefinitionRequired()));
         }
     }
 
