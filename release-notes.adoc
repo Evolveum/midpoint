@@ -74,7 +74,7 @@ See xrefv:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-statu
 
 Please contact our xref:https://evolveum.com/partners/find-a-partner/[official partners] or mailto:sales@evolveum.com to inquire about your subscription options.
 
-* xref:/midpoint/reference/roles-policies/mining/[Role Mining] Analysis Optimization:
+* xrefv:/midpoint/reference/support-4.8/roles-policies/mining/[Role Mining] Analysis Optimization:
 - Improved efficiency and stability in Role Mining analysis.
 - Added progress status tracer for enhanced visibility.
 - Improved work with Role Mining analysis results.
@@ -86,7 +86,7 @@ Please contact our xref:https://evolveum.com/partners/find-a-partner/[official p
 * Various fixes in Self Service - Credentials
 - Removed trimming of whitespaces in passwords.
 - Fixed incorrect forced password change on all resources.
-- Adding new configuration attribute _passwordHintConfigurability_, which affects password hint configurability, can be found on the xref:https://docs.evolveum.com/midpoint/reference/support-4.8/admin-gui/self-service/#credentials-page[Credentials Page].
+- Adding new configuration attribute _passwordHintConfigurability_, which affects password hint configurability, can be found on the xrefv:/midpoint/reference/support-4.8/admin-gui/self-service/#credentials-page[Credentials Page].
 
 * Docker Image updated to *JDK 21*
 
@@ -120,28 +120,28 @@ To see full list of fixes see https://support.evolveum.com/projects/midpoint/wor
 
 === New Features and Major Improvements
 
-* xref:/midpoint/reference/roles-policies/mining/[Role Mining].
+* xrefv:/midpoint/reference/support-4.8/roles-policies/mining/[Role Mining].
 Introduction of role mining functionality.
 A tool to simplify access management that uses artificial intelligence (AI) algorithms and analytical techniques to sift through the complex network of user and access mappings and group them into cohesive business roles based on access patterns.
 
-* xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/[Anonymous Data Export].
+* xrefv:/midpoint/reference/support-4.8/roles-policies/mining/anonymous-data-export/[Anonymous Data Export].
 Introduction of anonymous role mining data export. This feature allows users to export relationships between roles, users, and organizations while ensuring the privacy and security of exported data.
 The following options are available for exporting anonymized role mining data:
 ** Ninja: For configuration details, refer to the
-xref:/midpoint/reference/deployment/ninja/#role-mining-exportimport[Ninja documentation].
+xrefv:/midpoint/reference/support-4.8/deployment/ninja/#role-mining-exportimport[Ninja documentation].
 ** Repository object (GUI): For detailed information, see the
-xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/#user-interface-export[Anonymous Export of Role Mining Data documentation].
+xrefv:/midpoint/reference/support-4.8/roles-policies/mining/anonymous-data-export/#user-interface-export[Anonymous Export of Role Mining Data documentation].
 
-* xref:/midpoint/reference/security/credentials/identity-recovery/[Identity Recovery] feature brings a possibility to recover forgotten user's data.
+* xrefv:/midpoint/reference/support-4.8/security/credentials/identity-recovery/[Identity Recovery] feature brings a possibility to recover forgotten user's data.
 
-* xref:/midpoint/reference/security/audit/#_auditing_of_resource_object_changes[Auditing of resource-related operations]. Shadow changes are now being audited with the new auditing stage `RESOURCE`.
+* xrefv:/midpoint/reference/support-4.8/security/audit/#_auditing_of_resource_object_changes[Auditing of resource-related operations]. Shadow changes are now being audited with the new auditing stage `RESOURCE`.
 
-* xref:/midpoint/reference/deployment/ninja[Ninja tool] was greatly improved.
+* xrefv:/midpoint/reference/support-4.8/deployment/ninja[Ninja tool] was greatly improved.
 It now facilitates midPoint upgrade process significantly.
 
-* xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation.adoc#_predefined_activation_mappings[Predefined activation mappings]. Built-in support for configuring advanced activation mappings, such as disable instead of delete, delayed delete and pre-provision was added.
+* xrefv:/midpoint/reference/support-4.8/resources/resource-configuration/schema-handling/activation.adoc#_predefined_activation_mappings[Predefined activation mappings]. Built-in support for configuring advanced activation mappings, such as disable instead of delete, delayed delete and pre-provision was added.
 
-* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration.adoc#_duo[DUO 2FA authentication]. New authentication module for DUO was implemented.
+* xrefv:/midpoint/reference/support-4.8/security/authentication/flexible-authentication/configuration.adoc#_duo[DUO 2FA authentication]. New authentication module for DUO was implemented.
 
 * GUI was significantly improved in various areas.
 Details are described below.
@@ -152,16 +152,16 @@ Details are described below.
 
 ==== Data Model
 
-* xref:/midpoint/reference/concepts/object-lifecycle/[Lifecycle state] `suspended` was introduced to represent temporarily-disabled objects.
+* xrefv:/midpoint/reference/support-4.8/concepts/object-lifecycle/[Lifecycle state] `suspended` was introduced to represent temporarily-disabled objects.
 
-* New xref:/midpoint/reference/schema/archetypes/person/[builtin archetype `Person`] with its own object template  (bug:MID-8465[]).
+* New xrefv:/midpoint/reference/support-4.8/schema/archetypes/person/[builtin archetype `Person`] with its own object template  (bug:MID-8465[]).
 
 * New `personalNumber` user property was added (bug:MID-9016[]).
 
 NOTE: The support in the generic repository is limited, as this repository is deprecated now: the `personalNumber` is not searchable there.
 
 * Shadow creation and modification timestamps are now being consistently added for all shadows at all times.
-This may change the behavior related to dead shadows retention, as described xref:/midpoint/reference/synchronization/consistency/#configuration[here].
+This may change the behavior related to dead shadows retention, as described xrefv:/midpoint/reference/support-4.8/synchronization/consistency/#configuration[here].
 
 * Audit records are now searchable by the following automatically determined delta properties: `delta/objectOid`, `delta/objectName`, `delta/resourceRef`, `delta/shadowKind`, `delta/shadowIntent`.
 This applies to native repository only.
@@ -172,10 +172,10 @@ This item can then be used to search for tasks in the native repository.
 
 ==== GUI
 
-* The xref:/midpoint/reference/admin-gui/resource-wizard/[Resource wizard] was improved:
-** Configuration of xref:/midpoint/reference/admin-gui/resource-wizard/#activation[activation mappings] (such as delayed delete, pre-create or disable instead or delete) using resource wizard was simplified.
-** Configuration of xref:/midpoint/reference/admin-gui/resource-wizard/#credentials[password mappings] using resource wizard was simplified.
-** Two-steps wizard for xref:/midpoint/reference/admin-gui/resource-wizard/#attribute-mapping[attribute mappings] configuration was introduced.
+* The xrefv:/midpoint/reference/support-4.8/admin-gui/resource-wizard/[Resource wizard] was improved:
+** Configuration of xrefv:/midpoint/reference/support-4.8/admin-gui/resource-wizard/#activation[activation mappings] (such as delayed delete, pre-create or disable instead or delete) using resource wizard was simplified.
+** Configuration of xrefv:/midpoint/reference/support-4.8/admin-gui/resource-wizard/#credentials[password mappings] using resource wizard was simplified.
+** Two-steps wizard for xrefv:/midpoint/reference/support-4.8/admin-gui/resource-wizard/#attribute-mapping[attribute mappings] configuration was introduced.
 For now, attributes shown in the first and the second step are hardcoded and can only be hidden by the configuration.
 *** Main configuration contains attributes name, source, target, ref (resource attribute), strength, expression and condition.
 *** Optional configuration contains attributes description, exclusive, authoritative, channel and except channel.
@@ -188,13 +188,13 @@ It is now much simpler and easier to use.
 Now it expects the midPoint (Axiom) query language.
 Also, possibility to convert filter defined in XML to the one in midPoint (Axiom) query language was added.
 
-* There are smaller improvements in xref:/midpoint/reference/admin-gui/request-access[Request Access] feature usability (e.g., bug:MID-8907[], bug:MID-8317[]).
+* There are smaller improvements in xrefv:/midpoint/reference/support-4.8/admin-gui/request-access[Request Access] feature usability (e.g., bug:MID-8907[], bug:MID-8317[]).
 
 * It is now possible to use a collection view for the All Accesses panel (bug:MID-8880[]).
 
 * Multi-tab use of midPoint was improved (bug:MID-6342[]), although the solution is still not complete.
 
-* xref:/midpoint/reference/resources/resource-configuration/inheritance/[Resource templates] can now be configured through the object collection view in the Admin GUI configuration.
+* xrefv:/midpoint/reference/support-4.8/resources/resource-configuration/inheritance/[Resource templates] can now be configured through the object collection view in the Admin GUI configuration.
 ** Archetype `Resource template` object can be associated with resource (`ResourceType`) objects that either represent or serve as templates, facilitating the customization of guide views for template objects.
 ** Object Collection `All resource templates` for the purpose of displaying all resource templates within the system.
 
@@ -202,19 +202,19 @@ Also, possibility to convert filter defined in XML to the one in midPoint (Axiom
 
 * The performance of security-related post-processing of objects retrieved xref:/midpoint/devel/design/apply-schemas-and-security-4.8/summary.adoc[was improved].
 
-* Faster and more flexible xref:/midpoint/reference/security/privilege-elevation/[privilege elevation feature] is now available, including more precise auditing.
+* Faster and more flexible xrefv:/midpoint/reference/support-4.8/security/privilege-elevation/[privilege elevation feature] is now available, including more precise auditing.
 
-* The xref:/midpoint/reference/expressions/expressions/profiles/configuration.adoc[expression profiles] feature was improved in 4.8.
-In particular, xref:/midpoint/reference/security/trusted-actions/[trusted bulk actions] can now be run by unprivileged users.
+* The xrefv:/midpoint/reference/support-4.8/expressions/expressions/profiles/configuration.adoc[expression profiles] feature was improved in 4.8.
+In particular, xrefv:/midpoint/reference/support-4.8/security/trusted-actions/[trusted bulk actions] can now be run by unprivileged users.
 Assigning expression profiles to arbitrary expressions is a limited, experimental feature.
-See xref:/midpoint/reference/expressions/expressions/profiles/coverage/[].
+See xrefv:/midpoint/reference/support-4.8/expressions/expressions/profiles/coverage/[].
 
 * Selected items smaller than an object (e.g. case work items, certification cases, certification cases work items, operation execution records, partially also assignments and simulation-related processed objects records) can be authorized regarding getting, searching, and completion (for work items).
 This improves flexibility when defining authorizations for them.
-See also xref:/midpoint/reference/security/authorization/configuration/selectors/type-and-parent/[].
+See also xrefv:/midpoint/reference/support-4.8/security/authorization/configuration/selectors/type-and-parent/[].
 Various legacy authorizations like `#readOwnCertificationDecisions` are now https://docs.evolveum.com/midpoint/devel/design/schema-cleanup-4.8/authorizations/[deprecated], as they can be written in the new, flexible, style.
 
-* The new fine-grained `bulk-3#` xref:/midpoint/reference/security/authorization/bulk-actions/[authorizations] were introduced, replacing now-deprecated `#executeScript` one.
+* The new fine-grained `bulk-3#` xrefv:/midpoint/reference/support-4.8/security/authorization/bulk-actions/[authorizations] were introduced, replacing now-deprecated `#executeScript` one.
 
 * New `model-3#use` authorization was created.
 Currently, it covers submitting tasks from templates.
@@ -228,10 +228,10 @@ See https://docs.evolveum.com/midpoint/reference/security/authentication/flexibl
 
 ==== Scripting
 
-* Helper functions xref:/midpoint/reference/concepts/query/midpoint-query-language/query-language-in-groovy/[`midpoint.queryFor()` for Groovy] to use Query language directly from scripts were added.
+* Helper functions xrefv:/midpoint/reference/support-4.8/concepts/query/midpoint-query-language/query-language-in-groovy/[`midpoint.queryFor()` for Groovy] to use Query language directly from scripts were added.
 
 * Library functions (and other kinds of expressions) can now be called directly from the bulk actions, using the new `expressionEvaluation` action.
-See xref:/midpoint/reference/misc/bulk/actions/script-and-expression/[].
+See xrefv:/midpoint/reference/support-4.8/misc/bulk/actions/script-and-expression/[].
 
 ==== MidPoint Studio
 
@@ -256,7 +256,7 @@ See https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 Release Note
 * Selected third-party dependencies underwent major updates - to Spring Framework 6, Hibernate 6, and Wicket 10.
 Note that this resulted in migration from Java EE `javax` package names to `jakarta` package names.
 
-* Documentation improvements: for example, a xref:/midpoint/reference/concepts/query/midpoint-query-language/searchable-items/[list of searchable items].
+* Documentation improvements: for example, a xrefv:/midpoint/reference/support-4.8/concepts/query/midpoint-query-language/searchable-items/[list of searchable items].
 
 === Releases Of Other Components
 
@@ -276,41 +276,41 @@ Note that this resulted in migration from Java EE `javax` package names to `jaka
 
 * xref:/midpoint/devel/prism/[Prism] data representation library {release-version} was released together with midPoint {release-version}.
 
-* xref:/midpoint/reference/interfaces/midpoint-client-java/[Midpoint client Java library] will be released soon after midPoint {release-version} release.
+* xrefv:/midpoint/reference/support-4.8/interfaces/midpoint-client-java/[Midpoint client Java library] will be released soon after midPoint {release-version} release.
 
 [#_changes_with_respect_to_version_4_4]
 == Changes With Respect To Version 4.4 LTS
 
-* xref:/midpoint/reference/simulation/[Simulations]. They cover various mechanisms of "what-if" analysis in midPoint.
+* xrefv:/midpoint/reference/support-4.8/simulation/[Simulations]. They cover various mechanisms of "what-if" analysis in midPoint.
 Now we can see expected effects of actions without the risk of damaging the system state.
 We can separate production-ready parts of the configuration from those being developed, and choose what configuration should be engaged during specific simulation.
 We can define binary "event marks" tagging individual objects being processed during simulation, as well as quantitative metrics for these objects and their changes.
 All these metrics can be aggregated, analyzed, and reported on, along with details of individual changes.
 
-* xref:/midpoint/reference/concepts/mark/[Object Marks] and Object Operation Policies. Added new mechanism for lightweight administrative / policy marking of objects (for now only shadows are supported).
+* xrefv:/midpoint/reference/support-4.8/concepts/mark/[Object Marks] and Object Operation Policies. Added new mechanism for lightweight administrative / policy marking of objects (for now only shadows are supported).
 
 * Significantly improved IGA reporting, such as report answering the question
-xref:/midpoint/reference/misc/reports/examples/reference-search-based-report.adoc[Who has access to what and why].
+xrefv:/midpoint/reference/support-4.8/misc/reports/examples/reference-search-based-report.adoc[Who has access to what and why].
 
 * The whole look-and-feel was greatly improved along with upgrading AdminLTE from 2.4 to 3.2, Bootstrap from 3.4 to 4.6, Font-Awesome from 5.15 to 6.1.
 
-* New xref:/midpoint/reference/admin-gui/request-access/[request access] wizard was implemented with the emphasis of better UX.
-Also, xref:/midpoint/reference/admin-gui/request-access/configuration/[more configuration options] were added.
+* New xrefv:/midpoint/reference/support-4.8/admin-gui/request-access/[request access] wizard was implemented with the emphasis of better UX.
+Also, xrefv:/midpoint/reference/support-4.8/admin-gui/request-access/configuration/[more configuration options] were added.
 
-* xref:/midpoint/reference/correlation/[Smart correlation].
+* xrefv:/midpoint/reference/support-4.8/correlation/[Smart correlation].
 MidPoint now supports very flexible correlation of resource objects (accounts, groups, and so on) to respective focus objects (users, roles, orgs, ...).
 Multiple weighted correlation rules can be used.
 Matching based on fuzzy logic (Levenshtein distance, trigram similarity) is supported.
 As experimental features, custom normalization and matching data from multiple sources are available.
 
-* xref:/midpoint/reference/resources/resource-configuration/inheritance/[Resource templates]. No more copying-and-pasting of resource configuration fragments!
+* xrefv:/midpoint/reference/support-4.8/resources/resource-configuration/inheritance/[Resource templates]. No more copying-and-pasting of resource configuration fragments!
 MidPoint now supports the inheritance between resources and resource object types.
 This means the administrator can define features common to multiple resources, and put them in the "super-resource" (or resource template) definition.
 The same is true at the level of resource object types.
 
-* Generic Repository with PostgreSQL is not supported, if you are using PostgreSQL with generic repository, please migrate to xref:/midpoint/reference/repository/native-postgresql/[PostgreSQL native repository].
+* Generic Repository with PostgreSQL is not supported, if you are using PostgreSQL with generic repository, please migrate to xrefv:/midpoint/reference/support-4.8/repository/native-postgresql/[PostgreSQL native repository].
 
-* Full support for midPoint query language. Since 4.8 it is possible to use xref:/midpoint/reference/concepts/query/midpoint-query-language/expressions/[expressions in filters] when using midPoint (Axiom) query language. In addition to this, new xref:/midpoint/reference/concepts/query/midpoint-query-language/query-language-in-groovy/[helper functions] were added to simplify usage of filters in script expressions. Those helper functions might be considered as public API for writing filters in scripts.
+* Full support for midPoint query language. Since 4.8 it is possible to use xrefv:/midpoint/reference/support-4.8/concepts/query/midpoint-query-language/expressions/[expressions in filters] when using midPoint (Axiom) query language. In addition to this, new xrefv:/midpoint/reference/support-4.8/concepts/query/midpoint-query-language/query-language-in-groovy/[helper functions] were added to simplify usage of filters in script expressions. Those helper functions might be considered as public API for writing filters in scripts.
 
 * Native fail-over support in xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector]
 
@@ -363,7 +363,7 @@ Even though midPoint may work well on mobile devices, the support for small scre
 Partial support for small screens (e.g. only for self-service purposes) may be provided, but it has to be explicitly negotiated in a subscription contract.
 
 * There are several add-ons and extensions for midPoint that are not explicitly distributed with midPoint.
-This includes xref:/midpoint/reference/interfaces/midpoint-client-java/[Java client library],
+This includes xrefv:/midpoint/reference/support-4.8/interfaces/midpoint-client-java/[Java client library],
 various https://github.com/Evolveum/midpoint-samples[samples], scripts, connectors and other non-bundled items.
 Support for these non-bundled items is limited.
 Generally speaking, those non-bundled items are supported only for platform subscribers and those that explicitly negotiated the support in their contract.
@@ -423,19 +423,19 @@ Use of open source OpenJDK builds with public support is recommended instead of 
 Since midPoint 4.4, midPoint comes with two repository implementations: _native_ and _generic_.
 Native PostgreSQL repository implementation is strongly recommended for all production deployments.
 
-See xref:/midpoint/reference/repository/repository-database-support/[] for more details.
+See xrefv:/midpoint/reference/support-4.8/repository/repository-database-support/[] for more details.
 
 Since midPoint 4.0, *PostgreSQL is the recommended database* for midPoint deployments.
 Our strategy is to officially support the latest stable version of PostgreSQL database (to the practically possible extent).
 PostgreSQL database is the only database with clear long-term support plan in midPoint.
 We make no commitments for future support of any other database engines.
-See xref:/midpoint/reference/repository/repository-database-support/[] page for the details.
+See xrefv:/midpoint/reference/support-4.8/repository/repository-database-support/[] page for the details.
 Only a direct connection from midPoint to the database engine is supported.
 Database and/or SQL proxies, database load balancers or any other devices (e.g. firewalls) that alter the communication are not supported.
 
 ==== Native Database Support
 
-xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL repository implementation] is developed and tuned
+xrefv:/midpoint/reference/support-4.8/repository/native-postgresql/[Native PostgreSQL repository implementation] is developed and tuned
 specially for PostgreSQL database, taking advantage of native database features, providing improved performance and scalability.
 
 This is now the *primary and recommended repository* for midPoint deployments.
@@ -447,7 +447,7 @@ PostgreSQL 16 is recommended.
 
 ==== Generic Database Support (deprecated)
 
-xref:/midpoint/reference/repository/generic/[Generic repository implementation] is based on object-relational
+xrefv:/midpoint/reference/support-4.8/repository/generic/[Generic repository implementation] is based on object-relational
 mapping abstraction (Hibernate), supporting several database engines with the same code.
 Following database engines are supported with this implementation:
 
@@ -462,9 +462,9 @@ Also, upgrade of deployments based on H2 database are not supported.
 * Oracle 21c
 * Microsoft SQL Server 2019
 
-Support for xref:/midpoint/reference/repository/generic/[generic repository implementation] together with all the database engines supported by this implementation is *deprecated*.
-It is *strongly recommended* to migrate to xref:/midpoint/reference/repository/native-postgresql/[native PostgreSQL repository implementation] as soon as possible.
-See xref:/midpoint/reference/repository/repository-database-support/[] for more details.
+Support for xrefv:/midpoint/reference/support-4.8/repository/generic/[generic repository implementation] together with all the database engines supported by this implementation is *deprecated*.
+It is *strongly recommended* to migrate to xrefv:/midpoint/reference/support-4.8/repository/native-postgresql/[native PostgreSQL repository implementation] as soon as possible.
+See xrefv:/midpoint/reference/support-4.8/repository/repository-database-support/[] for more details.
 
 === Supported Browsers
 
@@ -530,7 +530,7 @@ Although we try to our best, it is not possible to foresee all possible uses of 
 Therefore, the information provided in this section are for information purposes only without any guarantees of completeness.
 In case of any doubts about upgrade or behavior changes please use services associated with xref:/support/subscription-sponsoring/[midPoint subscription programs].
 
-Please refer to the xref:/midpoint/reference/upgrade/upgrade-guide/[] for general instructions and description of the upgrade process.
+Please refer to the xrefv:/midpoint/reference/support-4.8/upgrade/upgrade-guide/[] for general instructions and description of the upgrade process.
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
@@ -541,7 +541,7 @@ Please check if there is a need to add authorizations to specific users due to x
 === Upgrade From MidPoint 4.7.x
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
-Please follow our xref:/midpoint/reference/upgrade/upgrade-guide/[Upgrade guide] carefully.
+Please follow our xrefv:/midpoint/reference/support-4.8/upgrade/upgrade-guide/[Upgrade guide] carefully.
 
 [IMPORTANT]
 Be sure to be on the latest maintenance version for 4.7, at least version 4.7.2, otherwise you will
@@ -549,25 +549,25 @@ not be warned about all the necessary schema changes and other possible incompat
 
 Note that:
 
-* There are database schema changes (see xref:/midpoint/reference/upgrade/database-schema-upgrade/[Database schema upgrade]).
+* There are database schema changes (see xrefv:/midpoint/reference/support-4.8/upgrade/database-schema-upgrade/[Database schema upgrade]).
 
 * Version numbers of some bundled connectors have changed.
 Connector references from the resource definitions that are using the bundled connectors need to be updated.
 
 * See also the _Actions required_ information below.
 
-It is strongly recommended migrating to the xref:/midpoint/reference/repository/native-postgresql/[new native PostgreSQL repository implementation]
+It is strongly recommended migrating to the xrefv:/midpoint/reference/support-4.8/repository/native-postgresql/[new native PostgreSQL repository implementation]
 for all deployments that have not migrated yet.
 However, it is *not* recommended upgrading the system and migrating the repositories in one step.
 It is recommended doing it in two separate steps.
-Please see xref:/midpoint/reference/repository/native-postgresql/migration/[] for the details.
+Please see xrefv:/midpoint/reference/support-4.8/repository/native-postgresql/migration/[] for the details.
 
 === Upgrade From MidPoint 4.4.x LTS
 
 Both midPoint 4.4 and midPoint 4.8 are xref:/support/long-term-support/[long-term support (LTS)] releases.
 Therefore, there is a direct upgrade path from midPoint 4.4 to midPoint 4.8.
 Please follow our
-xref:/midpoint/reference/upgrade/upgrade-guide/[upgrade guide] carefully.
+xrefv:/midpoint/reference/support-4.8/upgrade/upgrade-guide/[upgrade guide] carefully.
 
 [IMPORTANT]
 *Be sure to be on the latest maintenance version for 4.4 LTS*, at least version 4.4.6, otherwise you will
@@ -607,7 +607,7 @@ Since 4.8 we recommend to use midPoint (axiom) query language instead.
 Query converter was improved to provide the possibility to convert XML filters to midPoint query language.
 
 * Ninja command line options were consolidated, some options were renamed.
-More info xref:/midpoint/reference/deployment/ninja[here] and in bug:MID-7483[].
+More info xrefv:/midpoint/reference/support-4.8/deployment/ninja[here] and in bug:MID-7483[].
 
 === Changes In Initial Objects Since 4.7
 
@@ -624,7 +624,7 @@ The following list contains a description of changes to the initial objects in t
 The complete new set of initial objects is in the `config/initial-objects` directory in both the source and binary distributions.
 
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
-For more information see xref:/midpoint/reference/deployment/ninja/upgrade-with-ninja/#initial-objects[here].
+For more information see xrefv:/midpoint/reference/support-4.8/deployment/ninja/upgrade-with-ninja/#initial-objects[here].
 
 * References to removed `category`, `handlerUri`, and `reportOutputOid` properties of tasks were deleted: from task archetypes and from GUI configurations.
 See https://github.com/Evolveum/midpoint/commit/1fe4b60057d040f7424523cf24194bfcb7920f90[1fe4b6], https://github.com/Evolveum/midpoint/commit/b5a331b377a4fff0dbabd82e64da60f0b8c96c2b[b5a331], and https://github.com/Evolveum/midpoint/commit/6887e980c48e45a5ae22642932ed22e0c8b5f665[6887e9].
@@ -820,9 +820,9 @@ See commit https://github.com/Evolveum/midpoint/commit/c9b1ceb18ead45cc193b1991c
 
 * Using a task template (e.g., to implement custom GUI actions) no longer requires `#read` authorization for the task template object.
 Instead, a new `model-3#use` authorization was created to cover this use case.
-See also xref:/midpoint/reference/security/authorization/configuration/#object-authorization-actions[] and commit https://github.com/Evolveum/midpoint/commit/58096e01e18084b577ef459b7ef4faddf4d6421b[58096e].
+See also xrefv:/midpoint/reference/support-4.8/security/authorization/configuration/#object-authorization-actions[] and commit https://github.com/Evolveum/midpoint/commit/58096e01e18084b577ef459b7ef4faddf4d6421b[58096e].
 
-* The new `bulk-3#` xref:/midpoint/reference/security/authorization/bulk-actions/[authorizations] replace (now deprecated and long-time confusing) `#executeScript` one.
+* The new `bulk-3#` xrefv:/midpoint/reference/support-4.8/security/authorization/bulk-actions/[authorizations] replace (now deprecated and long-time confusing) `#executeScript` one.
 See also commits https://github.com/Evolveum/midpoint/commit/291313570a62cea67addc43d3dc310c142810581[291313] and https://github.com/Evolveum/midpoint/commit/3c50c95c2f351bed92165dc4b9bed8140fd06839[3c50c9].
 
 * Some authorizations were deprecated and removed, please see xref:/midpoint/devel/design/schema-cleanup-4.8/authorizations/[here].
@@ -902,23 +902,23 @@ This works (it has to as there were previously no alternatives), but takes time 
 
 One of the biggest challenges when preparing midPoint 4.8 was this: prepare midPoint in a way that such tools will not be necessary.
 This required not just midPoint development, but also creation of the new deployment methodology which we named xref:/midpoint/methodology/first-steps/[].
-Using the new midPoint features such as xref:/midpoint/reference/admin-gui/simulations/[], xref:/midpoint/reference/concepts/mark/[] you can now deploy midPoint safely even if the target system data quality is low.
+Using the new midPoint features such as xrefv:/midpoint/reference/support-4.8/admin-gui/simulations/[], xrefv:/midpoint/reference/support-4.8/concepts/mark/[] you can now deploy midPoint safely even if the target system data quality is low.
 midPoint allows you to see "what would happen if you turn this configuration on" and avoid any unexpected data modification or even deletion.
 
 Custom data comparison tools should be no more needed.
 
-You should familiarize yourselves with the concept of xref:/midpoint/reference/admin-gui/simulations/[simulations] to simplify your new resources integration from now on.
+You should familiarize yourselves with the concept of xrefv:/midpoint/reference/support-4.8/admin-gui/simulations/[simulations] to simplify your new resources integration from now on.
 
 ==== Resource Wizard
 
 In previous versions of midPoint, administrators needed to define the resource configuration in midPoint XML language.
 Even though there were https://github.com/Evolveum/midpoint-samples/[numerous samples] for many resources, creating the first resources was definitely not an easy process.
 
-Starting with midPoint 4.8, xref:/midpoint/reference/admin-gui/resource-wizard/[] is at help.
+Starting with midPoint 4.8, xrefv:/midpoint/reference/support-4.8/admin-gui/resource-wizard/[] is at help.
 It allows creation and subsequent editing of midPoint resource configuration using only GUI and no XML language.
 This is especially helpful when you are starting with midPoint or want just to try if midPoint would fit in your environment.
 
-You should familiarize yourselves with the xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard] and try its features in order to simplify your resource creation and configuration.
+You should familiarize yourselves with the xrefv:/midpoint/reference/support-4.8/admin-gui/resource-wizard/[resource wizard] and try its features in order to simplify your resource creation and configuration.
 
 NOTE: The XML language can be still used for midPoint configuration. Resource wizard should not remove any configuration which is not supported in the wizard yet.
 
@@ -936,29 +936,29 @@ This is how midPoint allows definition of exceptions for existing resource data 
 
 The object marks references are stored in midPoint Shadow objects in addition to the protected accounts policy defined in the resource.
 
-You should familiarize yourselves with the concept of xref:/midpoint/reference/concepts/mark/[object marks] to significantly simplify definition of the provisioning exceptions for your resource objects.
+You should familiarize yourselves with the concept of xrefv:/midpoint/reference/support-4.8/concepts/mark/[object marks] to significantly simplify definition of the provisioning exceptions for your resource objects.
 
 ==== Object Lifecycle Status
 
 In previous versions of midPoint, multiple properties were used to activate/deactivate users or other parts of configuration.
 For example, `activation/administrativeStatus` was used to enable/disable users; resource mappings had `enabled` property etc.
-Starting with midPoint 4.8, xref:/midpoint/reference/concepts/object-lifecycle/[object lifecycle state] becomes more prominent as it is used in xref:/midpoint/reference/admin-gui/simulations/[simulations].
+Starting with midPoint 4.8, xrefv:/midpoint/reference/support-4.8/concepts/object-lifecycle/[object lifecycle state] becomes more prominent as it is used in xrefv:/midpoint/reference/support-4.8/admin-gui/simulations/[simulations].
 The same lifecycle state is used to enable/disable mappings (`lifecycleState=draft`).
 It is also used for activation and deactivation of users in the xref:/midpoint/methodology/first-steps/[], perhaps even more concrete for Automation.
 
 We plan to extend the usage of lifecycle state even more in the upcoming versions of midPoint.
 
-You should familiarize yourselves with the concept of xref:/midpoint/reference/concepts/object-lifecycle/[object lifecycle] if you have not yet used it and also with its usage in the xref:/midpoint/methodology/first-steps/[].
+You should familiarize yourselves with the concept of xrefv:/midpoint/reference/support-4.8/concepts/object-lifecycle/[object lifecycle] if you have not yet used it and also with its usage in the xref:/midpoint/methodology/first-steps/[].
 
 ==== Archetypes vs Object Templates for Birthright Provisioning
 
-Starting with midPoint 4.8, we emphasize the usage of xref:/midpoint/reference/schema/archetypes/[archetypes] for birthright provisioning over
-xref:/midpoint/reference/expressions/object-template/[object templates].
-Using archetypes is simpler from GUI perspective: archetype can be assigned to users automatically during synchronization from source system without mappings (refer to xref:/midpoint/reference/admin-gui/resource-wizard/#basic-configuration[Resource wizard - part Basic Configuration] for more information).
+Starting with midPoint 4.8, we emphasize the usage of xrefv:/midpoint/reference/support-4.8/schema/archetypes/[archetypes] for birthright provisioning over
+xrefv:/midpoint/reference/support-4.8/expressions/object-template/[object templates].
+Using archetypes is simpler from GUI perspective: archetype can be assigned to users automatically during synchronization from source system without mappings (refer to xrefv:/midpoint/reference/support-4.8/admin-gui/resource-wizard/#basic-configuration[Resource wizard - part Basic Configuration] for more information).
 
-midPoint 4.8 contains a new built-in xref:/midpoint/reference/schema/archetypes/person/[Person archetype] which you can use, customize or create a new archetype based on it.
+midPoint 4.8 contains a new built-in xrefv:/midpoint/reference/support-4.8/schema/archetypes/person/[Person archetype] which you can use, customize or create a new archetype based on it.
 
-As the archetypes behave as roles, editing archetype to specify the birthrights is similar to editing of a role inducement(s); actually xref:/midpoint/reference/admin-gui/role-wizard/#sub-wizards[part of the role wizard] is used for access specification.
+As the archetypes behave as roles, editing archetype to specify the birthrights is similar to editing of a role inducement(s); actually xrefv:/midpoint/reference/support-4.8/admin-gui/role-wizard/#sub-wizards[part of the role wizard] is used for access specification.
 
 Object templates currently lack a wizard to create new mappings with assignments.
 Of course, they can be still used.
@@ -966,13 +966,13 @@ They are suitable for mappings which generate username (with iteration) or other
 But please consider using inducements in archetypes instead of assignments in object templates for your new deployments to specify the birthrights.
 
 Also, if you plan to use object templates, consider using object templates references from the archetypes instead of global object templates references from System Configuration object.
-In midPoint 4.8, xref:/midpoint/reference/schema/archetypes/person/#person-object-template[Person object template] built-in object is referenced from xref:/midpoint/reference/schema/archetypes/person/[Person archetype].
+In midPoint 4.8, xrefv:/midpoint/reference/support-4.8/schema/archetypes/person/#person-object-template[Person object template] built-in object is referenced from xrefv:/midpoint/reference/support-4.8/schema/archetypes/person/[Person archetype].
 
 ==== Emphasis on Iterative Approach
 
 We have always recommended the xref:/iam/identity-management-project/[iterative approach]  to identity projects with midPoint.
 With the xref:/midpoint/methodology/first-steps/[First Steps Methodology] this is now much more than just a recommendation.
-The new midPoint features as xref:/midpoint/reference/admin-gui/simulations/[simulations], xref:/midpoint/reference/concepts/mark/[object marks]  and xref:/midpoint/reference/admin-gui/resource-wizard/[resource wizard] encourage you to work in iterations and update your configurations based on results of simulations.
+The new midPoint features as xrefv:/midpoint/reference/support-4.8/admin-gui/simulations/[simulations], xrefv:/midpoint/reference/support-4.8/concepts/mark/[object marks]  and xrefv:/midpoint/reference/support-4.8/admin-gui/resource-wizard/[resource wizard] encourage you to work in iterations and update your configurations based on results of simulations.
 
 ++++
 {% include release-issues.html %}
