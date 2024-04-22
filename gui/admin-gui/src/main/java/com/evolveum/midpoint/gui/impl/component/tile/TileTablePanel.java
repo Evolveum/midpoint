@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -102,6 +103,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         ISortableDataProvider<O, String> provider = createProvider();
         WebMarkupContainer tilesContainer = createTilesContainer(ID_TILES_CONTAINER, provider, tableId);
         tilesContainer.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TILE));
+        tilesContainer.add(AttributeModifier.append("class", getTilesContainerAdditionalClass()));
         tilesContainer.setOutputMarkupId(true);
         add(tilesContainer);
 
@@ -336,5 +338,9 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     private void onSearchPerformed(AjaxRequestTarget target) {
         refresh(target);
+    }
+
+    protected String getTilesContainerAdditionalClass() {
+        return "card-footer";
     }
 }

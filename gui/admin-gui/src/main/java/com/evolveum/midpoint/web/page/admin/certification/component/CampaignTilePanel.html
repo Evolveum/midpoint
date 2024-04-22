@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (c) 2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-wrap w-100">
+        <div class="d-flex flex-wrap flex-grow-1 justify-content-start" wicket:id="selectTileCheckbox"/>
+        <div class="d-flex flex-wrap flex-grow-1 justify-content-end" wicket:id="status"/>
+        <a wicket:id="menu" class="d-flex flex-wrap flex-grow-1 justify-content-end">
+            <i class="fa fa-ellipsis-v"/>
+        </a>
+    </div>
+    <div class="font-weight-bold text-truncate w-100" wicket:id="title"/>
+    <div class="tile-description mt-2 text-center text-secondary flex-grow-1 info-box-icon w-100" wicket:id="description"/>
+    <div class="w-100">
+        <span wicket:message="CampaignTilePanel.progress" />
+        <div wicket:id="progressBar" />
+    </div>
+
+
+<!--    <div wicket:id="infoPanel"/>-->
+<!--    <div wicket:id="buttonsPanel"/>-->
+</wicket:panel>
+</html>

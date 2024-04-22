@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.web.page.admin.certification.component.CampaignCartPanel;
+import com.evolveum.midpoint.web.page.admin.certification.component.CampaignsPanel;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -21,7 +21,6 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -53,7 +52,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -70,7 +68,6 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignStateF
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignsSearchDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.CertCampaignsStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -175,9 +172,9 @@ public class PageCertCampaigns extends PageAdminCertification {
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
-        CampaignCartPanel campaignCartPanel = new CampaignCartPanel(ID_CAMPAIGNS_TABLE);
-        campaignCartPanel.setOutputMarkupId(true);
-        mainForm.add(campaignCartPanel);
+        CampaignsPanel campaignsPanel = new CampaignsPanel(ID_CAMPAIGNS_TABLE);
+        campaignsPanel.setOutputMarkupId(true);
+        mainForm.add(campaignsPanel);
 
 //        CertCampaignListItemDtoProvider provider = createProvider();
 //        provider.setQuery(createCampaignsQuery());

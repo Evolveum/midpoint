@@ -11,20 +11,13 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
-import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionGroupStepPanel;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -32,7 +25,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaign;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDto;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.CertCampaignsStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -44,7 +36,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -52,13 +43,12 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.io.Serial;
 
 import static com.evolveum.midpoint.gui.api.page.PageAdminLTE.createStringResourceStatic;
 
-public class CampaignCartPanel extends BasePanel {
+public class CampaignsPanel extends BasePanel {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -66,7 +56,7 @@ public class CampaignCartPanel extends BasePanel {
     private static final String ID_CAMPAIGNS_PANEL = "campaignsPanel";
     private LoadableDetachableModel<Search> searchModel;
 
-    public CampaignCartPanel(String id) {
+    public CampaignsPanel(String id) {
         super(id);
     }
 
@@ -103,7 +93,7 @@ public class CampaignCartPanel extends BasePanel {
                     @Serial private static final long serialVersionUID = 1L;
                     @Override
                     protected List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> createColumns() {
-                        return CampaignCartPanel.this.initColumns();
+                        return CampaignsPanel.this.initColumns();
                     }
 
                     @Override
@@ -115,6 +105,11 @@ public class CampaignCartPanel extends BasePanel {
                         }
 
                         return header;
+                    }
+
+                    @Override
+                    protected String getTilesContainerAdditionalClass() {
+                        return null;
                     }
 
 //                    @Override
@@ -140,55 +135,16 @@ public class CampaignCartPanel extends BasePanel {
 //                        return tile;
 //                    }
 
-//                    @Override
-//                    protected Component createTile(String id,
-//                            IModel<CatalogTile<SelectableBean<AccessCertificationCampaignType>>> model) {
-//                        return new CatalogTilePanel<>(id, model) {
-//
-//                            @Override
-//                            protected void onAdd(AjaxRequestTarget target) {
-////                                SelectableBean<AccessCertificationCampaignType> bean = model.getObject().getValue();
-////                                addItemsPerformed(target, Arrays.asList(bean.getValue()));
-//                            }
-//
-//                            @Override
-//                            protected void onDetails(AjaxRequestTarget target) {
-////                                SelectableBean<ObjectType> bean = model.getObject().getValue();
-////                                itemDetailsPerformed(target, bean.getValue());
-//                            }
-//
-//                            @Override
-//                            protected void onClick(AjaxRequestTarget target) {
-//                                // no selection to be done
-//                            }
-//
-//                            @Override
-//                            protected Component createAddButton(String id) {
-//                                Component details = super.createAddButton(id);
-////                                WebComponentUtil.addDisabledClassBehavior(details);
-////
-////                                details.add(new EnableBehaviour(() -> {
-////                                    ObjectType object = model.getObject().getValue().getValue();
-////
-////                                    RequestAccess access = RoleCatalogPanel.this.getModelObject();
-////
-////                                    ObjectReferenceType newTargetRef = new ObjectReferenceType()
-////                                            .oid(object.getOid())
-////                                            .type(object.asPrismObject().getDefinition().getTypeName())
-////                                            .relation(access.getRelation());
-////
-////                                    return access.canAddTemplateAssignment(newTargetRef);
-////                                }));
-//                                return details;
-//                            }
-//
-////                            @Override
-////                            protected IModel<IResource> createPreferredImage(
-////                                    IModel<CatalogTile<SelectableBean<AccessCertificationCampaignType>>> model) {
-////                                return () -> null;
-////                            }
-//                        };
-//                    }
+                    @Override
+                    protected Component createTile(String id,
+                            IModel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> model) {
+                        return new CampaignTilePanel(id, model);
+                    }
+
+                    @Override
+                    protected boolean isSelectedItemsPanelVisible() {
+                        return false;
+                    }
 
                     @Override
                     protected SelectableBeanObjectDataProvider<AccessCertificationCampaignType> createProvider() {
@@ -254,7 +210,7 @@ public class CampaignCartPanel extends BasePanel {
 
                 tilesTable.getViewToggleModel().setObject(item.getObject().getValue());
                 tilesTable.getTable().refreshSearch();
-                target.add(CampaignCartPanel.this);
+                target.add(CampaignsPanel.this);
             }
         };
         viewToggle.add(new VisibleEnableBehaviour(() -> items.getObject().size() > 1));
@@ -376,7 +332,7 @@ public class CampaignCartPanel extends BasePanel {
                 AccessCertificationCampaignType campaign = getRowModel().getObject().getValue();
                 String button = determineAction(campaign);
                 if (button != null) {
-                    return CampaignCartPanel.this.createStringResource(button).getString();
+                    return CampaignsPanel.this.createStringResource(button).getString();
                 } else {
                     return "";
                 }
@@ -462,7 +418,7 @@ public class CampaignCartPanel extends BasePanel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new HeaderMenuAction(CampaignCartPanel.this) {
+                return new HeaderMenuAction(CampaignsPanel.this) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -478,7 +434,7 @@ public class CampaignCartPanel extends BasePanel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new HeaderMenuAction(CampaignCartPanel.this) {
+                return new HeaderMenuAction(CampaignsPanel.this) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -494,7 +450,7 @@ public class CampaignCartPanel extends BasePanel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new HeaderMenuAction(CampaignCartPanel.this) {
+                return new HeaderMenuAction(CampaignsPanel.this) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -510,7 +466,7 @@ public class CampaignCartPanel extends BasePanel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new HeaderMenuAction(CampaignCartPanel.this) {
+                return new HeaderMenuAction(CampaignsPanel.this) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
