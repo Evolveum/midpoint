@@ -91,12 +91,13 @@ public class SchemaCache implements Cache {
             throw new RuntimeException(e);
         }
 
-        //TODO reload schema registry
-        ((SchemaRegistryImpl) prismContext.getSchemaRegistry()).registerDbSchemaExtensions(dbExtensions);
-        try {
-             prismContext.reload();
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
+        if (!dbExtensions.isEmpty()) {
+            ((SchemaRegistryImpl) prismContext.getSchemaRegistry()).registerDbSchemaExtensions(dbExtensions);
+            try {
+                prismContext.reload();
+            } catch (SchemaException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -125,7 +126,6 @@ public class SchemaCache implements Cache {
     public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
         if (type == null || INVALIDATION_RELATED_CLASSES.contains(type)) {
             init();
-//                prismContext.initialize();
         }
     }
 
