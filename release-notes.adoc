@@ -42,7 +42,7 @@ In specific situations the user-supplied code could be executed before the autho
 See bug:MID-9459[].
 
 ** Added missing authorizations checks for some less frequently used operations.
-See xref:_behavior_changes_since_4_8_1[behavior changes since 4.8.1] and bug:MID-9460[].
+See xref:#_behavior_changes_since_4_8_1[behavior changes since 4.8.1] and bug:MID-9460[].
 
 ** Introduced fine-grained authorizations that grant access at the level of a single REST operation.
 See xrefv:/midpoint/reference/support-4.8/security/authorization/service/[].
@@ -536,7 +536,7 @@ Following sections provide details regarding release {release-version}.
 
 === Upgrade From MidPoint 4.8.x
 
-Please check if there is a need to add authorizations to specific users due to xref:_behavior_changes_since_4_8_1[behavior changes since 4.8.1].
+Please check if there is a need to add authorizations to specific users due to xref:#_behavior_changes_since_4_8_1[behavior changes since 4.8.1].
 
 === Upgrade From MidPoint 4.7.x
 
