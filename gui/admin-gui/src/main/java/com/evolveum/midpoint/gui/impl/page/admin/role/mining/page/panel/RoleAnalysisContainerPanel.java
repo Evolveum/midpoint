@@ -123,8 +123,18 @@ public class RoleAnalysisContainerPanel<AH extends AssignmentHolderType> extends
 
     private @NotNull ItemVisibility getBasicTabVisibility(@NotNull ItemPath path) {
         RoleAnalysisCategoryType analysisCategory = null;
+        RoleAnalysisProcessModeType processMode = null;
         if (getObjectWrapper().getObject().getRealValue() instanceof RoleAnalysisSessionType session) {
-            analysisCategory = session.getAnalysisOption().getAnalysisCategory();
+            RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+            analysisCategory = analysisOption.getAnalysisCategory();
+            processMode = analysisOption.getProcessMode();
+        }
+
+        if (processMode != null && processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+            if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS,
+                    AbstractAnalysisSessionOptionType.F_IS_INDIRECT))) {
+                return ItemVisibility.HIDDEN;
+            }
         }
 
         if (analysisCategory == null || analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {

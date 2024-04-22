@@ -1,13 +1,18 @@
 /*
- * Copyright (C) 2023 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.model;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model;
 
 import java.util.List;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.*;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.ChartTitleOption;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisModel;
 
 import org.apache.wicket.model.LoadableDetachableModel;
 
@@ -57,11 +62,11 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
         ChartData chartData = new ChartData();
 
         ChartDataset datasetUsers = new ChartDataset();
-        datasetUsers.setLabel("Users");
+        datasetUsers.setLabel(getDatasetUserLabel());
         datasetUsers.addBackgroudColor("Red");
 
         ChartDataset datasetRoles = new ChartDataset();
-        datasetRoles.setLabel("Roles");
+        datasetRoles.setLabel(getDatasetRoleLabel());
         datasetRoles.addBackgroudColor("Green");
 
         if (isLineChart) {
@@ -90,9 +95,32 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
         options.setLegend(createLegendOptions());
         options.setIndexAxis(IndexAxis.AXIS_X.getValue());
 
-//        if (roleAnalysisModels.getObject().size() < 10) {
-//            options.setBarPercentage(0.2);
-//        }
+        ChartInteractionOption interaction = new ChartInteractionOption();
+        interaction.setMode("index");
+        interaction.setIntersect(false);
+        options.setInteraction(interaction);
+
+        ChartScaleAxisOption chartScaleXAxisOption = new ChartScaleAxisOption();
+        chartScaleXAxisOption.setDisplay(true);
+        ChartTitleOption chartTitleXOption =
+                new ChartTitleOption();
+        chartTitleXOption.setDisplay(true);
+        chartTitleXOption.setText(getXAxisTitle());
+        chartScaleXAxisOption.setTitle(chartTitleXOption);
+
+        ChartScaleAxisOption chartScaleYAxisOption = new ChartScaleAxisOption();
+        chartScaleYAxisOption.setDisplay(true);
+        ChartTitleOption chartTitleYOption =
+                new ChartTitleOption();
+        chartTitleYOption.setDisplay(true);
+        chartTitleYOption.setText(getYAxisTitle());
+        chartScaleYAxisOption.setTitle(chartTitleYOption);
+
+        ChartScaleOption scales = new ChartScaleOption();
+        scales.setX(chartScaleXAxisOption);
+        scales.setY(chartScaleYAxisOption);
+        options.setScales(scales);
+
         return options;
     }
 
@@ -103,6 +131,22 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
         label.setBoxWidth(15);
         legend.setLabels(label);
         return legend;
+    }
+
+    public String getXAxisTitle() {
+        return "Roles occupation";
+    }
+
+    public String getYAxisTitle() {
+        return "Users occupation";
+    }
+
+    public String getDatasetUserLabel() {
+        return "Users";
+    }
+
+    public String getDatasetRoleLabel() {
+        return "Roles";
     }
 
 }

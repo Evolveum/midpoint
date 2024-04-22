@@ -209,6 +209,11 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
                             case CONFIGURE_GOVERNANCE_MEMBERS -> showGovernanceMembersPanel(target);
                         }
                     }
+
+                    @Override
+                    protected void onExitPerformed(AjaxRequestTarget target) {
+                        BusinessRoleWizardPanel.this.onExitPerformed(target);
+                    }
                 });
     }
 

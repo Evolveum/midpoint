@@ -6,13 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyImageScaleScript;
-
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -87,21 +82,6 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
         imageResource = new CustomImageResource(miningOperationChunk, processMode);
 
         Image image = new Image(ID_IMAGE, imageResource);
-
-        image.add(new AbstractDefaultAjaxBehavior() {
-            @Override
-            protected void respond(AjaxRequestTarget target) {
-                target.appendJavaScript(applyImageScaleScript());
-
-            }
-
-            @Override
-            public void renderHead(Component component, IHeaderResponse response) {
-                super.renderHead(component, response);
-                response.render(OnDomReadyHeaderItem.forScript(applyImageScaleScript()));
-
-            }
-        });
 
         add(image);
 

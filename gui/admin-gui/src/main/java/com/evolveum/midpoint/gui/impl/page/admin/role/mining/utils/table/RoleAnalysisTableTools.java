@@ -43,7 +43,77 @@ public class RoleAnalysisTableTools {
      * @return The JavaScript script for applying table scale adjustments.
      */
     public static String applyTableScaleScript() {
-        return "MidPointTheme.initScaleResize('#tableScaleContainer');";
+            return "function initScaleResize() {\n" +
+                    "    let containerId = '#tableScaleContainer';\n" +
+                    "    let div = document.querySelector(containerId);\n" +
+                    "    let scale = 0.5;\n" +
+                    "    let component = null;\n" +
+                    "\n" +
+                    "    if (!div) {\n" +
+                    "        console.error('Container not found');\n" +
+                    "        return;\n" +
+                    "    }\n" +
+                    "\n" +
+                    "    if (containerId === '#tableScaleContainer') {\n" +
+                    "        component = div.querySelector('table');\n" +
+                    "    } else if (containerId === '#imageScaleContainer') {\n" +
+                    "        component = div.querySelector('img');\n" +
+                    "    } else if (containerId === '#chartScaleContainer') {\n" +
+                    "        component = div.querySelector('canvas');\n" +
+                    "    }\n" +
+                    "\n" +
+                    "    if (component) {\n" +
+                    "        div.addEventListener('wheel', handleZoom);\n" +
+                    "    } else {\n" +
+                    "        console.error('Component not found');\n" +
+                    "    }\n" +
+                    "\n" +
+                    "    function handleZoom(e) {\n" +
+                    "        e.preventDefault();\n" +
+                    "        let rectBefore = component.getBoundingClientRect();\n" +
+                    "        let x = (e.clientX - rectBefore.left) / rectBefore.width * 100;\n" +
+                    "        let y = (e.clientY - rectBefore.top) / rectBefore.height * 100;\n" +
+                    "\n" +
+                    "        if (e.deltaY < 0) {\n" +
+                    "            zoomIn(rectBefore, x, y);\n" +
+                    "        } else if (e.deltaY > 0) {\n" +
+                    "            zoomOut(rectBefore);\n" +
+                    "        }\n" +
+                    "    }\n" +
+                    "\n" +
+                    "    function zoomIn(rectBefore, x, y) {\n" +
+                    "        console.log('Zooming in');\n" +
+                    "        scale += 0.01;\n" +
+                    "\n" +
+                    "        let prevScale = scale - 0.01;\n" +
+                    "        let scaleFactor = scale / prevScale;\n" +
+                    "\n" +
+                    "        if (scale > 1) {\n" +
+                    "            let deltaX = (x / 100) * rectBefore.width * (scaleFactor - 1);\n" +
+                    "            let deltaY = (y / 100) * rectBefore.height * (scaleFactor - 1);\n" +
+                    "            setTransform(x, y, scale, rectBefore, deltaX, deltaY, scaleFactor);\n" +
+                    "        }\n" +
+                    "    }\n" +
+                    "\n" +
+                    "    function zoomOut(rectBefore, x, y) {\n" +
+                    "        console.log('Zooming out');\n" +
+                    "        scale -= 0.01;\n" +
+                    "        scale = Math.max(0.1, scale);\n" +
+                    "\n" +
+                    "        setTransform(0, 0, scale, rectBefore, 0, 0, 1);\n" +
+                    "    }\n" +
+                    "\n" +
+                    "    function setTransform(x, y, scale, rectBefore, deltaX, deltaY, scaleFactor) {\n" +
+                    "        component.style.transformOrigin = `${x}% ${y}%`;\n" +
+                    "        component.style.transition = 'transform 0.3s';\n" +
+                    "        component.style.transform = `scale(${scale})`;\n" +
+                    "\n" +
+                    "        let rectAfter = component.getBoundingClientRect();\n" +
+                    "        div.scrollLeft += (rectAfter.left - rectBefore.left) + deltaX - (e.clientX - rectBefore.left) * (scaleFactor - 1);\n" +
+                    "        div.scrollTop += (rectAfter.top - rectBefore.top) + deltaY - (e.clientY - rectBefore.top) * (scaleFactor - 1);\n" +
+                    "    }\n" +
+                    "}";
+
     }
 
     /**
