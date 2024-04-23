@@ -94,6 +94,7 @@ public class ProjectionValueMetadataCreator {
                         metadata = metadataSupplier.get();
                     }
                     try {
+                        // FIXME: Use different opion of setValueMetadata (PCV instead of Containerable?)
                         value.setValueMetadata(CloneUtil.clone(metadata));
                     } catch (SchemaException e) {
                         throw new SystemException("Unexpected schema exception", e);

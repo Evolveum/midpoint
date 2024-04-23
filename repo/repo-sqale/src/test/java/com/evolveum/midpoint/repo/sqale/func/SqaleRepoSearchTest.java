@@ -27,6 +27,7 @@ import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 
@@ -1448,6 +1449,16 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 T_OBJECT_REFERENCE, F_NAME)
                         .eq(new PolyString("creator")),
                 user1Oid);
+    }
+    @Test
+    public void test420ValueMetadataSearchObjectBySingleValueRefTargetItem() throws SchemaException {
+        searchUsersTest("via valueMetadata with object creator name",
+                f -> f.item(InfraItemName.METADATA, ValueMetadataType.F_STORAGE, MetadataType.F_CREATOR_REF,
+                                T_OBJECT_REFERENCE, F_NAME)
+                        .eq(new PolyString("creator")),
+                user1Oid);
+        assertThat(searchObjects(UserType.class, "@metadata/storage/creatorRef/@/name = 'creator'", createOperationResult())
+                .map(UserType::getOid)).contains(user1Oid);
     }
 
     @Test
