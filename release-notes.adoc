@@ -44,6 +44,9 @@ For more information see xref:/midpoint/reference//security/credentials/secrets-
 * Query Support for searching in value metadata of objects
 ** Native Repository: Object metadata stored in `metadata` property of `MetadataType` are also indexed and searchable as value metadata. Eg. original `metadata/creatorRef` is `@metadata/storage/creatorRef` as value metadata path.
 
+* Ninja
+** Added support for new verification categories: `MULTI_VALUE_REF_WITHOUT_OID`, `MISSING_NATURAL_KEY`, `MULTIVALUE_BYTE_ARRAY`, `PROTECTED_DATA_NOT_EXTERNAL`.
+For more information see xref:/midpoint/reference/deployment/ninja/command/verify.adoc[].
 
 === Other Improvements
 
