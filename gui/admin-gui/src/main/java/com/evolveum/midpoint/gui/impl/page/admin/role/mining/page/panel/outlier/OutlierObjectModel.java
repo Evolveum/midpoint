@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -11,13 +12,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.Serializable;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
 
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 
-public class OutlierObjectModel {
+public class OutlierObjectModel implements Serializable {
 
     String outlierName;
     String outlierDescription;
@@ -271,8 +275,9 @@ public class OutlierObjectModel {
         RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = cluster.getClusterStatistics()
                 .getUserAttributeAnalysisResult();
 
+        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
         RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService
-                .resolveRoleMembersAttribute(roleTypePrismObject.getOid(), task, result);
+                .resolveRoleMembersAttribute(roleTypePrismObject.getOid(), task, result, attributesForUserAnalysis);
 
         RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService
                 .resolveSimilarAspect(userAttributes, userAttributeAnalysisResult);
@@ -416,8 +421,9 @@ public class OutlierObjectModel {
                 roleMemberDescription, "fe fe-user");
         outlierObjectModel.addOutlierItemModel(roleMemberItemModel);
 
+        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
         RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService
-                .resolveRoleMembersAttribute(roleTypeObject.getOid(), task, result);
+                .resolveRoleMembersAttribute(roleTypeObject.getOid(), task, result, attributesForUserAnalysis);
 
         RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject);
 

@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -468,8 +470,9 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
                             return;
                         }
 
+                        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
                         List<AttributeAnalysisStructure> attributeAnalysisStructures = roleAnalysisService
-                                .roleMembersAttributeAnalysis(object.getOid(), task, operationResult);
+                                .roleMembersAttributeAnalysis(attributesForUserAnalysis, object.getOid(), task, operationResult);
 
                         PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(targetObjectOid, task, task.getResult());
 
@@ -477,10 +480,9 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
                             return;
                         }
 
-                        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
                         Set<String> userPathToMark = roleAnalysisService.resolveUserValueToMark(userTypeObject, attributesForUserAnalysis);
 
-                        RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService.resolveRoleMembersAttribute(object.getOid(), task, operationResult);
+                        RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService.resolveRoleMembersAttribute(object.getOid(), task, operationResult, getAttributesForRoleAnalysis());
                         RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject);
 
                         RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService.resolveSimilarAspect(userAttributes, roleAnalysisAttributeAnalysisResult);
@@ -523,8 +525,10 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
                 String title = "Member attributes";
 
+                List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
+
                 List<AttributeAnalysisStructure> attributeAnalysisStructures = roleAnalysisService
-                        .userRolesAttributeAnalysis(ref.getOid(), task, operationResult);
+                        .userRolesAttributeAnalysis(attributesForUserAnalysis, ref.getOid(), task, operationResult);
 
                 item.add(new AjaxLinkPanel(componentId, Model.of(title)) {
                     @Override

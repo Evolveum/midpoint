@@ -644,14 +644,8 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
             protected String getConfirmMessageKeyForSingleObject() {
                 return "pageUsers.message.confirmationMessageForSingleObject";
             }
-
-            @Override
-            protected void createReportPerformed(AjaxRequestTarget target) {
-                super.createReportPerformed(target);
-            }
         };
         basicTable.setOutputMarkupId(true);
-
 
         return basicTable;
     }

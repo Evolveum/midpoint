@@ -59,6 +59,8 @@ public class IconAndStylesUtil {
             return createRoleAnalysisSessionIcon();
         } else if (type == RoleAnalysisClusterType.class) {
             return createRoleAnalysisClusterIcon();
+        } else if (type == RoleAnalysisOutlierType.class) {
+            return createRoleAnalysisOutlierIcon();
         }
         return "";
     }
@@ -100,6 +102,8 @@ public class IconAndStylesUtil {
             return GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON;
         } else if (QNameUtil.match(RoleAnalysisSessionType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
+        } else if (QNameUtil.match(RoleAnalysisOutlierType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_ICON_OUTLIER;
         } else {
             return "";
         }
@@ -148,6 +152,8 @@ public class IconAndStylesUtil {
         } else if (QNameUtil.match(MappingType.COMPLEX_TYPE, objectType)) {
             //TODO fix icon style for mapping type
             return "";
+        } else if (QNameUtil.match(RoleAnalysisOutlierType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_ICON_OUTLIER;
         } else {
             return "";
         }
@@ -357,6 +363,10 @@ public class IconAndStylesUtil {
 
     private static String createRoleAnalysisClusterIcon() {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON);
+    }
+
+    private static String createRoleAnalysisOutlierIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_ICON_OUTLIER);
     }
 
     private static String createSimulationResultIcon() {

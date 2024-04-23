@@ -40,6 +40,7 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
             LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
             RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
             RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
+            RoleAnalysisCategoryType analysisCategory = processModeObject.getAnalysisCategory();
 
             PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType = getContainerFormModel().getObject()
                     .getValue();
@@ -60,7 +61,7 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
             }
 
             double minObject = maxPropertiesObjects < 10 ? 1.0 : 10;
-            boolean isIndirect = false;
+            boolean isIndirect = analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS);
 
             if (sessionType.getNewValue().getValue().isIsIndirect() == null) {
                 setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_IS_INDIRECT, isIndirect);

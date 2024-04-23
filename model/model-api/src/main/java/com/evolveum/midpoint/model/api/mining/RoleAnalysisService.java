@@ -14,6 +14,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
+
+import com.evolveum.midpoint.common.mining.utils.values.ZScoreData;
+
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -783,4 +787,73 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisSessionType session,
             @NotNull QName complexType);
 
+    /**
+     * Imports a RoleAnalysisOutlierType object into the system.
+     *
+     * @param outlier The outlier for importing.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
+    void importOutlier(
+            @NotNull RoleAnalysisOutlierType outlier,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    RoleAnalysisAttributeAnalysisResult resolveUserAttributes(@NotNull PrismObject<UserType> prismUser);
+
+    @Nullable RoleAnalysisAttributeAnalysisResult resolveSimilarAspect(
+            @NotNull RoleAnalysisAttributeAnalysisResult compared,
+            @NotNull RoleAnalysisAttributeAnalysisResult comparison);
+
+    RoleAnalysisAttributeAnalysisResult resolveRoleMembersAttribute(
+            @NotNull String objectOid,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet);
+
+    <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(@NotNull List<T> data, double negativeThreshold, double positiveThreshold);
+
+    <T extends MiningBaseTypeChunk> double calculateZScore(@NotNull T data, ZScoreData zScoreData);
+
+    <T extends MiningBaseTypeChunk> double calculateZScoreConfidence(@NotNull T item, ZScoreData zScoreData);
+
+    List<RoleAnalysisAttributeDef> resolveRoleAttributes(@NotNull RoleAnalysisSessionType session);
+
+    List<RoleAnalysisAttributeDef> resolveUserAttributes(@NotNull RoleAnalysisSessionType session);
+
+
+    @Nullable Set<String> resolveUserValueToMark(
+            @NotNull PrismObject<UserType> prismUser,
+            @NotNull List<RoleAnalysisAttributeDef> itemDef);
+
+    /**
+     * Resolve object attribute value.
+     *
+     * @param prismRole The role object.
+     * @param itemDef The attribute definition.
+     * @return Set of attribute values that role has.
+     */
+    @Nullable Set<String> resolveRoleValueToMark(
+            @NotNull PrismObject<RoleType> prismRole,
+            @NotNull List<RoleAnalysisAttributeDef> itemDef);
+
+    /**
+     * Resolves outliers for a given role analysis outlier type.
+     * This method retrieves the target object reference from the provided outlier type and performs the following steps:
+     * 1. Searches for existing outliers with the same target object reference.
+     * 2. If no outliers are found, imports the provided outlier.
+     * 3. If outliers are found, updates the existing outlier with new outlier descriptions and removes outdated descriptions.
+     * <p>
+     * This method is responsible for handling exceptions that may occur during the process and logs errors accordingly.
+     *
+     * @param roleAnalysisOutlierType The role analysis outlier type containing the outlier information.
+     * @param task The task associated with the operation.
+     * @param result The operation result.
+     * @param sessionOid The OID of the session associated with the outlier.
+     */
+    void resolveOutliers(
+            @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull String sessionOid);
 }

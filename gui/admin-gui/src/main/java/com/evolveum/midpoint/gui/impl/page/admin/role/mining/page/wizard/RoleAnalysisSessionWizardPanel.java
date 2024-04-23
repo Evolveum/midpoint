@@ -157,11 +157,6 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
             }
 
             @Override
-            protected ItemVisibilityHandler getVisibilityHandler() {
-                return wrapper -> ItemVisibility.AUTO;
-            }
-
-            @Override
             protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
                 return super.isVisibleSubContainer(c);
             }

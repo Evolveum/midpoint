@@ -7,14 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -56,10 +56,16 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
             }
 
             setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_DETECTION_PROCESS_MODE, RoleAnalysisDetectionProcessType.PARTIAL);
-            setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE, new RangeType()
-                    .min(DEFAULT_MIN_FREQUENCY)
-                    .max(DEFAULT_MAX_FREQUENCY));
 
+            if (analysisOption.getAnalysisCategory().equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE, new RangeType()
+                        .min(2.0)
+                        .max(2.0));
+            } else {
+                setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE, new RangeType()
+                        .min(DEFAULT_MIN_FREQUENCY)
+                        .max(DEFAULT_MAX_FREQUENCY));
+            }
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
@@ -119,5 +125,27 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
             return true;
         }
         return itemWrapper.isMandatory();
+    }
+
+    @Override
+    protected ItemVisibilityHandler getVisibilityHandler() {
+
+        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
+        RoleAnalysisOptionType option = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
+        RoleAnalysisCategoryType analysisCategory = option.getAnalysisCategory();
+
+        return wrapper -> {
+            ItemName itemName = wrapper.getItemName();
+
+            if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
+                    || itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY)) {
+
+                if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                    return ItemVisibility.HIDDEN;
+                }
+            }
+
+            return ItemVisibility.AUTO;
+        };
     }
 }
