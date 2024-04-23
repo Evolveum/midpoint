@@ -229,7 +229,7 @@ Views in assignments panels display content of the "assignment" attribute. So na
 
 |All assignments (roles or other) with name starting with "C"
 |`targetRef/@/name startsWith "C"`
-|Dereferencing (search with @) is working in the assignment panel only when xref:/midpoint/quides/assignment-repository-search/index.adoc[repository search is enabled].
+|Dereferencing (search with @) is working in the assignment panel only when xref:/midpoint/guides/assignment-repository-search/index.adoc[repository search is enabled].
 |===
 
 === Searching in Tasks
