@@ -8,9 +8,9 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import com.evolveum.midpoint.gui.impl.prism.wrapper.SchemaPropertyWrapperImpl;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +19,6 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.SchemaService;
@@ -42,8 +41,10 @@ public class SchemaWrapperFactoryImpl
     private static final String DOT_CLASS = SchemaWrapperFactoryImpl.class.getSimpleName() + ".";
 
     @Override
-    public boolean match(ItemDefinition<?> def) {
-        return QNameUtil.match(SchemaDefinitionType.COMPLEX_TYPE, def.getTypeName());
+    public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {
+        return QNameUtil.match(SchemaDefinitionType.COMPLEX_TYPE, def.getTypeName())
+                && parent != null
+                && QNameUtil.match(parent.getTypeName(), SchemaType.COMPLEX_TYPE);
     }
 
     @Override

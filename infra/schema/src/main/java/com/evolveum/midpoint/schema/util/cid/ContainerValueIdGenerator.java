@@ -182,6 +182,7 @@ public class ContainerValueIdGenerator {
         } else {
             pcvsWithoutId.add(val);
         }
+        checkExistingContainers(val.getValueMetadataAsContainer());
     }
 
     /** Generates container IDs for {@link #pcvsWithoutId} and clears the list. */

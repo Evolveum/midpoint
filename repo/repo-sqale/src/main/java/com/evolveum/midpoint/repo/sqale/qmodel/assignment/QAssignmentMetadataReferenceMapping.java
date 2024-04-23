@@ -29,49 +29,49 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  *
  * @param <AOR> type of the row (M-bean) of the owner (assignment)
  */
-public class QAssignmentReferenceMapping<AOR extends MObject>
-        extends QReferenceMapping<QAssignmentReference<MAssignment>, MAssignmentReference, QAssignment<AOR>, MAssignment> {
+public class QAssignmentMetadataReferenceMapping<AOR extends MObject>
+        extends QReferenceMapping<QAssignmentReference<MAssignmentMetadata>, MAssignmentReference, QAssignmentMetadata, MAssignmentMetadata> {
 
-    private static QAssignmentReferenceMapping<?> instanceAssignmentCreateApprover;
-    private static QAssignmentReferenceMapping<?> instanceAssignmentModifyApprover;
+    private static QAssignmentMetadataReferenceMapping<?> instanceAssignmentCreateApprover;
+    private static QAssignmentMetadataReferenceMapping<?> instanceAssignmentModifyApprover;
 
-    public static final Class<QAssignmentReference<MAssignment>> TYPE = (Class) QAssignmentReference.class;
+    public static final Class<QAssignmentReference<MAssignmentMetadata>> TYPE = (Class) QAssignmentReference.class;
 
-    public static <OR extends MObject> QAssignmentReferenceMapping<OR>
+    public static <OR extends MObject> QAssignmentMetadataReferenceMapping<OR>
     initForAssignmentCreateApprover(@NotNull SqaleRepoContext repositoryContext) {
         if (needsInitialization(instanceAssignmentCreateApprover, repositoryContext)) {
-            instanceAssignmentCreateApprover = new QAssignmentReferenceMapping<>(
+            instanceAssignmentCreateApprover = new QAssignmentMetadataReferenceMapping<>(
                     "m_assignment_ref_create_approver", "arefca", repositoryContext,
                     QUserMapping::getUserMapping);
         }
         return getForAssignmentCreateApprover();
     }
 
-    public static <OR extends MObject> QAssignmentReferenceMapping<OR>
+    public static <OR extends MObject> QAssignmentMetadataReferenceMapping<OR>
     getForAssignmentCreateApprover() {
         //noinspection unchecked
-        return (QAssignmentReferenceMapping<OR>)
+        return (QAssignmentMetadataReferenceMapping<OR>)
                 Objects.requireNonNull(instanceAssignmentCreateApprover);
     }
 
-    public static <OR extends MObject> QAssignmentReferenceMapping<OR>
+    public static <OR extends MObject> QAssignmentMetadataReferenceMapping<OR>
     initForAssignmentModifyApprover(@NotNull SqaleRepoContext repositoryContext) {
         if (needsInitialization(instanceAssignmentModifyApprover, repositoryContext)) {
-            instanceAssignmentModifyApprover = new QAssignmentReferenceMapping<>(
+            instanceAssignmentModifyApprover = new QAssignmentMetadataReferenceMapping<>(
                     "m_assignment_ref_modify_approver", "arefma", repositoryContext,
                     QUserMapping::getUserMapping);
         }
         return getForAssignmentModifyApprover();
     }
 
-    public static <OR extends MObject> QAssignmentReferenceMapping<OR>
+    public static <OR extends MObject> QAssignmentMetadataReferenceMapping<OR>
     getForAssignmentModifyApprover() {
         //noinspection unchecked
-        return (QAssignmentReferenceMapping<OR>)
+        return (QAssignmentMetadataReferenceMapping<OR>)
                 Objects.requireNonNull(instanceAssignmentModifyApprover);
     }
 
-    private <TQ extends QObject<TR>, TR extends MObject> QAssignmentReferenceMapping(
+    private <TQ extends QObject<TR>, TR extends MObject> QAssignmentMetadataReferenceMapping(
             String tableName,
             String defaultAliasName,
             @NotNull SqaleRepoContext repositoryContext,
@@ -87,19 +87,19 @@ public class QAssignmentReferenceMapping<AOR extends MObject>
     }
 
     @Override
-    public MAssignmentReference newRowObject(MAssignment ownerRow) {
+    public MAssignmentReference newRowObject(MAssignmentMetadata ownerRow) {
         MAssignmentReference row = new MAssignmentReference();
         row.ownerOid = ownerRow.ownerOid;
         row.ownerType = ownerRow.ownerType;
-        row.assignmentCid = ownerRow.cid;
+        row.assignmentCid = ownerRow.assignmentCid;
+        row.metadataCid = ownerRow.cid;
         return row;
     }
 
     @Override
-    public BiFunction<QAssignment<AOR>, QAssignmentReference<MAssignment>, Predicate> correlationPredicate() {
+    public BiFunction<QAssignmentMetadata, QAssignmentReference<MAssignmentMetadata>, Predicate> correlationPredicate() {
         return (a, r) -> a.ownerOid.eq(r.ownerOid)
-                .and(a.cid.eq(r.assignmentCid)
-                .and(r.metadataCid.isNull())
-                );
+                .and(a.assignmentCid.eq(r.assignmentCid))
+                .and(a.cid.eq(r.metadataCid));
     }
 }
