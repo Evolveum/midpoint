@@ -8,15 +8,30 @@
 package com.evolveum.midpoint.web.page.admin.certification.helpers;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.AccessCertificationService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+
+import org.apache.wicket.Component;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CampaignStateHelper implements Serializable {
@@ -41,6 +56,10 @@ public class CampaignStateHelper implements Serializable {
                 .label("CampaignAction.startCampaign")
                 .cssClass("btn-primary")
                 .icon(new IconType().cssClass("fa fa-play"))),
+        OPEN_NEXT_STAGE(new DisplayType()
+                .label("CampaignAction.openNextStage")
+                .cssClass("btn-primary")
+                .icon(new IconType().cssClass("fa fa-play"))),
         CLOSE_STAGE(new DisplayType()
                 .label("CampaignAction.closeStage")
                 .cssClass("btn-secondary")
@@ -49,6 +68,10 @@ public class CampaignStateHelper implements Serializable {
                 .label("CampaignAction.startRemediation")
                 .cssClass("btn-warning")
                 .icon(new IconType().cssClass("fa fa-solid fa-badge-check"))),
+        REITERATE_CAMPAIGN(new DisplayType()
+                .label("CampaignAction.reiterateCampaign")
+                .cssClass("btn-primary")
+                .icon(new IconType().cssClass("fa fa-rotate-right"))),
         CLOSE_CAMPAIGN(new DisplayType()
                 .label("CampaignAction.closeCampaign")
                 .cssClass("btn-secondary")
@@ -79,9 +102,9 @@ public class CampaignStateHelper implements Serializable {
         Map<AccessCertificationCampaignStateType, CampaignAction> map = new HashMap<>();
         map.put(AccessCertificationCampaignStateType.CREATED, CampaignAction.START_CAMPAIGN);
         map.put(AccessCertificationCampaignStateType.IN_REVIEW_STAGE, CampaignAction.CLOSE_STAGE);
-        map.put(AccessCertificationCampaignStateType.IN_REMEDIATION, CampaignAction.CLOSE_CAMPAIGN);
-        map.put(AccessCertificationCampaignStateType.REVIEW_STAGE_DONE, CampaignAction.CLOSE_STAGE);
-        map.put(AccessCertificationCampaignStateType.CLOSED, CampaignAction.CLOSE_CAMPAIGN);
+        map.put(AccessCertificationCampaignStateType.IN_REMEDIATION, CampaignAction.CLOSE_CAMPAIGN);    //todo is this correct?
+        map.put(AccessCertificationCampaignStateType.REVIEW_STAGE_DONE, CampaignAction.OPEN_NEXT_STAGE);
+        map.put(AccessCertificationCampaignStateType.CLOSED, CampaignAction.REITERATE_CAMPAIGN);
 
         campaignStateNextActionMap = Collections.unmodifiableMap(map);
     }
@@ -103,4 +126,5 @@ public class CampaignStateHelper implements Serializable {
     public String getNextActionKey() {
         return getNextAction().getActionLabelKey();
     }
+
 }

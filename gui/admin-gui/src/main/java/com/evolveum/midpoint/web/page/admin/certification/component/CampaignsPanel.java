@@ -120,25 +120,6 @@ public class CampaignsPanel extends BasePanel {
                     }
 
                     @Override
-                    protected Fragment createHeaderFragment(String id) {
-                        Fragment headerFragment = super.createHeaderFragment(id);
-
-                        AjaxButton button = new AjaxButton("bulkActionButton", createStringResource("PageBase.button.bulkOperation")) {
-                            @Serial private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public void onClick(AjaxRequestTarget target) {
-                                // TODO implement
-                            }
-                        };
-                        button.setOutputMarkupId(true);
-//                        selectedItemsContainer.add(new VisibleBehaviour(() -> isSelectedItemsPanelVisible()));
-                        headerFragment.add(button);
-
-                        return headerFragment;
-                    }
-
-                    @Override
                     protected Component createTile(String id,
                             IModel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> model) {
                         return new CampaignTilePanel(id, model);
@@ -209,20 +190,6 @@ public class CampaignsPanel extends BasePanel {
                 return list;
             }
         };
-
-//        TogglePanel<ViewToggle> viewToggle = new TogglePanel<>(ID_VIEW_TOGGLE, items) {
-//
-//            @Override
-//            protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
-//                super.itemSelected(target, item);
-//
-//                tilesTable.getViewToggleModel().setObject(item.getObject().getValue());
-//                tilesTable.getTable().refreshSearch();
-//                target.add(CampaignsPanel.this);
-//            }
-//        };
-//        viewToggle.add(new VisibleEnableBehaviour(() -> items.getObject().size() > 1));
-//        add(viewToggle);
 
     }
 

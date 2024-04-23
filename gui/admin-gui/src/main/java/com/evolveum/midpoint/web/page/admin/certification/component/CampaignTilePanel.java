@@ -13,16 +13,27 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.model.api.AccessCertificationService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDto;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignStateHelper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -39,6 +50,7 @@ import java.util.List;
 public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> {
 
     @Serial private static final long serialVersionUID = 1L;
+    private static final Trace LOGGER = TraceManager.getTrace(CampaignTilePanel.class);
 
     private static final String ID_SELECT_TILE_CHECKBOX = "selectTileCheckbox";
     private static final String ID_STATUS = "status";
@@ -122,7 +134,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                // TODO implement
+                campaignActionPerformed(target);
             }
         };
         actionButton.add(AttributeModifier.append("class", campaignStateHelper.getNextAction().getActionCssClass()));
@@ -190,6 +202,58 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
     private IModel<String> getIterationModel() {
         return Model.of("" + CertCampaignTypeUtil.norm(getCampaign().getIteration()));
+    }
+
+    //todo unify with PageCertCampaigns menu actions
+    private void campaignActionPerformed(AjaxRequestTarget target) {
+        int processed = 0;
+        AccessCertificationService acs = getPageBase().getCertificationService();
+
+        CampaignStateHelper.CampaignAction action = campaignStateHelper.getNextAction();
+        String operationName = LocalizationUtil.translate(action.getActionLabelKey());
+
+        OperationResult result = new OperationResult(operationName);
+        try {
+            Task task = getPageBase().createSimpleTask(operationName);
+            if (CampaignStateHelper.CampaignAction.START_CAMPAIGN.equals(action)) {
+//                if (campaign.getState() == AccessCertificationCampaignStateType.CREATED) {
+                    acs.openNextStage(getCampaign().getOid(), task, result);
+                    processed++;
+//                }
+            } else if (CampaignStateHelper.CampaignAction.CLOSE_CAMPAIGN.equals(operationName)) {
+//                if (campaign.getState() != AccessCertificationCampaignStateType.CLOSED) {
+                    acs.closeCampaign(getCampaign().getOid(), task, result);
+                    processed++;
+//                }
+            } else if (CampaignStateHelper.CampaignAction.REITERATE_CAMPAIGN.equals(operationName)) {
+                //todo
+//                if (item.isReiterable()) {
+                    acs.reiterateCampaign(getCampaign().getOid(), task, result);
+                    processed++;
+//                }
+            } else {
+                throw new IllegalStateException("Unknown action: " + operationName);
+            }
+        } catch (Exception ex) {
+            result.recordPartialError(createStringResource(
+                    "PageCertCampaigns.message.actOnCampaignsPerformed.partialError").getString(), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't process campaign", ex);
+        }
+
+        if (processed == 0) {
+            warn(getString("PageCertCampaigns.message.noCampaignsSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        result.recomputeStatus();
+        if (result.isSuccess()) {
+            result.recordStatus(OperationResultStatus.SUCCESS, createStringResource(
+                    "PageCertCampaigns.message.actOnCampaignsPerformed.success", processed).getString());
+        }
+        WebComponentUtil.safeResultCleanup(result, LOGGER);
+        showResult(result);
+        target.add(this);
     }
 
 }
