@@ -1,6 +1,6 @@
 = Report from Collections
 :page-nav-title: Report from Collections
-:page-display-order: 300
+:page-display-order: 100
 :page-toc: top
 :page-keywords: [ 'report', 'collection' ,'collections' ]
 :page-upkeep-status: green
