@@ -39,6 +39,7 @@ TODO
 * Added support for external data in protected strings, that can be resolved via secrets providers.
 This allows to store secrets in external systems, such as HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, etc.
 For more information see xref:/midpoint/reference//security/credentials/secrets-provider-configuration.adoc[].
+** Adding support for GUI of passwords in connector configuration and password of focus (visible only when it is configured in xml)
 * Shadow associations
 
 * Query Support for searching in value metadata of objects
@@ -68,7 +69,11 @@ TODO
 
 * The indication of official vs. unofficial build was added to the About page.
 See xref:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-status/[MidPoint JAR Signature Status] for details.
-* #TODO some restrictions regarding running midPoint without subscription were added#
+* We have added a new algorithm to detect which users are in the production-like environment. It would have the following impact, depending on your subscription status.
+- *active subscribers*: none
+- *subscribers who are in the renewal period*: none during the grace period of 90 days
+- *non-subscribers*: disabled cluster communication; if a non-H2 generic repository is used, the GUI would be disabled and the only option would be to set a subscription ID
+- For more information, feel free to read link:https://evolveum.com/statement-midpoint-release-changes/[this blog post].
 
 * Duplication function of object or container showed in table.
 * Adding panel in gui, that support of creating new archetype for reference in resource object type.
