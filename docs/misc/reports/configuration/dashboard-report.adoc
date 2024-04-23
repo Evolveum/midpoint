@@ -1,6 +1,6 @@
 = Report from Dashboard
 :page-nav-title: Report from Dashboard
-:page-display-order: 300
+:page-display-order: 200
 :page-toc: top
 :page-keywords: [ 'report', 'collection' ,'collections' ]
 :page-upkeep-status: green
@@ -155,6 +155,7 @@ image::dashboard-example.png[75%]
 
 == See Also
 
+- xref:/midpoint/reference/admin-gui/dashboards/index.adoc[Customizable Dashboards]
 - xref:/midpoint/reference/misc/reports/examples/[Report Examples]
 - xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
 - xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
