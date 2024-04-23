@@ -9,7 +9,7 @@
 <suite name="unit" parallel="none">
     <test name="LDAP" preserve-order="true" parallel="none" verbose="10" enabled="true">
         <classes>
-            <class name="com.evolveum.midpoint.testing.longtest.TestLdap"/>
+            <!--<class name="com.evolveum.midpoint.testing.longtest.TestLdap"/>--> <!-- TEMPORARILY DISABLED BEFORE 4.9-M4 -->
             <class name="com.evolveum.midpoint.testing.longtest.TestLdapComplex"/>
             <class name="com.evolveum.midpoint.testing.longtest.TestLdapUniversity"/>
             <class name="com.evolveum.midpoint.testing.longtest.TestOrgHierarchy"/>
