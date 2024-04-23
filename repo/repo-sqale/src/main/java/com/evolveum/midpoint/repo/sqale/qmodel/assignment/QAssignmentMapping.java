@@ -364,8 +364,7 @@ public class QAssignmentMapping<OR extends MObject>
                     QAssignmentReferenceMapping.getForAssignmentModifyApprover(), jdbcSession);
         }
 
-
-	    for(var obj :  assignment.asPrismContainerValue().getValueMetadataAsContainer().getRealValues()) {
+        for(var obj :  assignment.asPrismContainerValue().getValueMetadataAsContainer().getRealValues()) {
             if (obj instanceof ValueMetadataType valueMetadata) {
                 QAssignmentMetadataMapping.get().insert(valueMetadata, row, jdbcSession);
             }

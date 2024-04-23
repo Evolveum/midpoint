@@ -38,7 +38,7 @@ public class QAssignmentMetadataMapping extends QValueMetadataMapping<MAssignmen
                                 repositoryContext))
                 .addRefMapping(MetadataType.F_MODIFY_APPROVER_REF,
                         QAssignmentMetadataReferenceMapping.initForAssignmentModifyApprover(
-                                repositoryContext));;
+                                repositoryContext));
     }
 
     @Override
