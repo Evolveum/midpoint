@@ -78,10 +78,7 @@ You can use midPoint Query Language for xref:/midpoint/tools/studio/usage#_brows
 === Query Playground
 
 To experiment with the query language, there is hardly a better place than the actual running midPoint.
-MidPoint provides xref:./query-playground/index.adoc#_query_playground[query playground] feature that allows administrator more advanced experimenting with midPoint queries.
-
-You may need to convert existing configuration using XML queries to midPoint Query Language.
-There is xref:./query-playground/index.adoc#_query_converter[query converter] in midPoint that is helpful with such query conversion.
+MidPoint provides query playground feature that allows administrator more advanced experimenting with midPoint queries.
 
 
 == Motivation, Origin and Future

@@ -9,7 +9,7 @@ This document provides introduction to the *midPoint Query Language*.
 Some details are omitted, and there are some simplifications for clarity.
 
 After completing this document, reader should be able to apply midPoint Query Language in configuration.
-We encourage to test the queries using the xref:./query-playground/index.adoc#_query_playground[query playground], which provides convenient and interactive environment for experimenting with queries.
+We encourage to test the queries using the query playground, which provides convenient and interactive environment for experimenting with queries.
 
 == Language Description
 
