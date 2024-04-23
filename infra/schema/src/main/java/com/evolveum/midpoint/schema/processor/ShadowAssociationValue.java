@@ -75,13 +75,29 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
      *
      * We should not use the original value any more, e.g. because of the copied "parent" value.
      */
-    public static @NotNull ShadowAssociationValue of(@NotNull ShadowAssociationValueType bean) {
+    public static @NotNull ShadowAssociationValue of(
+            @NotNull ShadowAssociationValueType bean,
+            @NotNull ShadowAssociationDefinition definition) {
         PrismContainerValue<?> pcv = bean.asPrismContainerValue();
+        if (pcv instanceof ShadowAssociationValue shadowAssociationValue) {
+            return shadowAssociationValue;
+        }
+
         var newValue = new ShadowAssociationValue();
         try {
-            newValue.addAll(
-                    CloneUtil.cloneCollectionMembers(
-                            pcv.getItems()));
+            for (Item<?, ?> sourceItem : pcv.getItems()) {
+                var sourceItemClone = sourceItem.clone();
+                if (sourceItem.getElementName().matches(ShadowAssociationValueType.F_SHADOW_REF)) {
+                    // The shadow can be "raw"
+                    var shadowRef = sourceItemClone.getRealValue(ObjectReferenceType.class);
+                    var shadow = (ShadowType) shadowRef.getObjectable();
+                    if (shadow != null && ShadowUtil.isRaw(shadow)) {
+                        new ShadowDefinitionApplicator(definition.getTargetObjectDefinition())
+                                .applyTo(shadow);
+                    }
+                }
+                newValue.add(sourceItemClone);
+            }
         } catch (SchemaException e) {
             throw SystemException.unexpected(e, "when transferring association value items to a SAV");
         }

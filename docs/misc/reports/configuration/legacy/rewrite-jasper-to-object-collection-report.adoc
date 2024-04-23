@@ -1,0 +1,6 @@
+= Rewrite Jasper to Object Collection Report Guide
+:page-moved-from: /midpoint/reference/misc/reports/rewrite-jasper-to-object-collection-report/
+:page-since: "4.4"
+:page-deprecated-since: "4.4.8"
+:page-visibility: hidden
+

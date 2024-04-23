@@ -1,10 +1,12 @@
+= Report Script Library
 :page-nav-title: Report Functions Library
-:page-display-order: 500
+:page-display-order: 700
 :page-toc: top
 :page-keywords: [ 'report', 'functions' ,'scripts', library ]
 :page-upkeep-status: green
 
-= Report Script Library
+
+== Description
 
 In addition to the common xref:/midpoint/reference/expressions/expressions/script/functions/[script expression libraries]
 (`midpoint`, `basic` and `log`), you can also use the `report` library inside report expressions.

@@ -1,6 +1,6 @@
-= Collection report: Users without account
-:page-nav-title: Users without account
-:page-wiki-name: Example of new report: Users without account
+= Collection report: Users Without Account
+:page-nav-title: Users Without Account
+:page-wiki-name: Example of new report: Users Without Account
 :page-wiki-id: 52003073
 :page-wiki-metadata-create-user: lskublik
 :page-wiki-metadata-create-date: 2020-08-18T13:56:23.128+02:00

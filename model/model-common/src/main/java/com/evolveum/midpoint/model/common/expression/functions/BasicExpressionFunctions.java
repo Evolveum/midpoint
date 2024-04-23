@@ -1275,23 +1275,4 @@ public class BasicExpressionFunctions {
         activity.getDistribution().setWorkerThreads(value);
         // Maybe we could delete empty distribution container if value is null - but most probably we shouldn't.
     }
-
-    /**
-     * Returns the name of the associated object - according to what attribute is designated as the naming one.
-     * Note that the attribute itself may or may not be present: but usually it is the same attribute that is used
-     * to do the binding.
-     */
-    public String getAssociatedObjectName(ShadowAssociationValueType associationValue) {
-        if (associationValue == null) {
-            return null;
-        }
-        var namingAttribute = ShadowAssociationValue.of(associationValue)
-                .getAttributesContainerRequired()
-                .getNamingAttribute();
-        if (namingAttribute != null) {
-            return namingAttribute.getRealValue();
-        } else {
-            return null;
-        }
-    }
 }

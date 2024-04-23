@@ -1,6 +1,6 @@
-= Collection report: Audit report, attribute changes
-:page-nav-title: Audit report with changed attributes
-:page-wiki-name: Collection report: Audit report, attribute changes
+= Collection report: Audit Report, Attribute Changes
+:page-nav-title: Audit Report With Changed Attributes
+:page-wiki-name: Collection report: Audit Report, Attribute Changes
 :page-wiki-id: 52003081
 :page-wiki-metadata-create-user: lskublik
 :page-wiki-metadata-create-date: 2020-08-18T15:06:52.473+02:00
