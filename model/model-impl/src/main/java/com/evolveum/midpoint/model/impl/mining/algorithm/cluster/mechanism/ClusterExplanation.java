@@ -95,11 +95,9 @@ public class ClusterExplanation implements Serializable {
                         if (attribute.getIdentifierType().equals(RoleAnalysisAttributeDef.IdentifierType.FINAL)) {
                             candidateName = itemPath + "-" + value;
                         } else {
-                            Class<? extends ObjectType> classType = attribute.getTargetClassType();
-                            PrismObject<? extends ObjectType> object = null;
-                            if (classType != null) {
-                                object = roleAnalysisService.getObject(classType, value, task, result);
-                            }
+                            PrismObject<? extends ObjectType> object;
+                            object = roleAnalysisService.getObject(FocusType.class, value, task, result);
+
                             candidateName = object != null ? itemPath + "-" + object.getName() : itemPath + "-" + value;
                         }
                         candidateNames.add(candidateName);
@@ -123,11 +121,8 @@ public class ClusterExplanation implements Serializable {
                         if (attribute.getIdentifierType().equals(RoleAnalysisAttributeDef.IdentifierType.FINAL)) {
                             candidateName = itemPath + "-" + value;
                         } else {
-                            Class<? extends ObjectType> classType = attribute.getTargetClassType();
-                            PrismObject<? extends ObjectType> object = null;
-                            if (classType != null) {
-                                object = roleAnalysisService.getObject(classType, value, task, result);
-                            }
+                            PrismObject<? extends ObjectType> object;
+                            object = roleAnalysisService.getObject(FocusType.class, value, task, result);
                             candidateName = object != null ? itemPath + "-" + object.getName() : itemPath + "-" + value;
                         }
                         candidateNames.add(candidateName);

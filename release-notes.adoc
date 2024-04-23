@@ -32,7 +32,7 @@ TODO
 === New Features and Major Improvements
 
 * Shadow caching
-* Native Repository Support for searchContainersIteratively for all container types
+* Native Repository Support for `searchContainersIteratively` for all container types
 ** Removed upper record limit for  reports for Assignments, Certfication Cases, Certification Work items and others.
 ** Changed transaction isolation from READ_COMMITED to REPEATABLE_READ.
 ** Changed storage strategy for complex container types - actual data stored inside their own table istead of parent object JSON.
@@ -40,6 +40,10 @@ TODO
 This allows to store secrets in external systems, such as HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, etc.
 For more information see xref:/midpoint/reference//security/credentials/secrets-provider-configuration.adoc[].
 * Shadow associations
+
+* Query Support for searching in value metadata of objects
+** Native Repository: Object metadata stored in `metadata` property of `MetadataType` are also indexed and searchable as value metadata. Eg. original `metadata/creatorRef` is `@metadata/storage/creatorRef` as value metadata path.
+
 
 === Other Improvements
 
@@ -56,6 +60,7 @@ See xref:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-status
 * Adding 'Shadow reclassification' task as a new separate activity of the task type.
 ** Adding button for creating simulated/production 'Reclassification' task on unrecognized resource objects panel.
 * New implementation and look of date time picker.
+* Support for item deltas targeting value metadata only (without need to replace whole container value)
 
 === Releases Of Other Components
 

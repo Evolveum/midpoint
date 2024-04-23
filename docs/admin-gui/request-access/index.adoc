@@ -14,7 +14,7 @@ The request is then routed through an xref:/midpoint/reference/cases/approval/[a
 
 However, this approach requires _end users_ to take part in the interaction.
 End users are usually not experts on RBAC and they do not have comprehensive knowledge about role design and structures used in the organization.
-Therefore, midPoint has a simplified view of xref:/midpoint/reference/admin-gui/role-catalog/[role catalog] that is suitable for end users.
+Therefore, midPoint has a simplified view of <<Role catalog>> that is suitable for end users.
 The role catalog is used to present the roles in a similar way as an e-shop presents the products.
 The roles are sorted into categories and sub-categories.
 The user may browse the role catalog and select the roles.
@@ -143,7 +143,7 @@ Menu in role catalog consists of 3 types of items also defined in configuration:
 * Collections of objects
 * Roles of teammate
 
-=== Role catalog
+=== Catalog
 
 Role catalog is defined via reference to organization tree.
 Org. tree is then used to load hierarchical menu.

@@ -5,10 +5,15 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.model;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.ChartScaleAxisOption;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.ChartScaleOption;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.RoleAnalysisChartDataSet;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.RoleAnalysisChartOptions;
 
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
@@ -56,14 +61,18 @@ public class RoleAnalysisStackedAttributeChartModel extends LoadableModel<ChartC
         ChartAnimationOption chartAnimationOption = new ChartAnimationOption();
         chartAnimationOption.setDuration(0);
         options.setAnimation(chartAnimationOption);
-        options.setScales("{\n"
-                + "      x: {\n"
-                + "        stacked: true,\n"
-                + "      },\n"
-                + "      y: {\n"
-                + "        stacked: true\n"
-                + "      }\n"
-                + "    }");
+
+        ChartScaleAxisOption chartScaleXAxisOption = new ChartScaleAxisOption();
+        chartScaleXAxisOption.setStacked(true);
+
+        ChartScaleAxisOption chartScaleYAxisOption = new ChartScaleAxisOption();
+        chartScaleYAxisOption.setStacked(true);
+
+        ChartScaleOption scales = new ChartScaleOption();
+        scales.setX(chartScaleXAxisOption);
+        scales.setY(chartScaleYAxisOption);
+
+        options.setScales(scales);
         return options;
     }
 
@@ -155,8 +164,6 @@ public class RoleAnalysisStackedAttributeChartModel extends LoadableModel<ChartC
 
     private void createNegativeSideData(ChartData chartData) {
 
-
-
         ChartDataset datasetAttributeDensity = new ChartDataset();
         datasetAttributeDensity.setLabel("Density");
         datasetAttributeDensity.addBackgroudColor(getColor());
@@ -182,7 +189,6 @@ public class RoleAnalysisStackedAttributeChartModel extends LoadableModel<ChartC
         for (String indexedLabel : indexedLabels) {
             if (itemPathMap.containsKey(indexedLabel)) {
                 List<AttributeAnalysisStructure> filteredObjects = itemPathMap.get(indexedLabel);
-                String itemPath = indexedLabel;
 
                 if (filteredObjects.size() == 2) {
                     AttributeAnalysisStructure userAttribute = null;
@@ -213,7 +219,7 @@ public class RoleAnalysisStackedAttributeChartModel extends LoadableModel<ChartC
                     }
                 }
 
-                chartData.addLabel(itemPath);
+                chartData.addLabel(indexedLabel);
 
             }
         }

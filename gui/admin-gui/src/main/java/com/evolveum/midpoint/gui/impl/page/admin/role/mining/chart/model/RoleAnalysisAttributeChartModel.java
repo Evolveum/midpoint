@@ -1,16 +1,18 @@
 /*
- * Copyright (C) 2023 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.model;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.RoleAnalysisChartOptions;
 
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
@@ -61,9 +63,10 @@ public class RoleAnalysisAttributeChartModel extends LoadableModel<ChartConfigur
         return options;
     }
 
-    public ChartData generateDataset(){
-       return createDataset();
+    public ChartData generateDataset() {
+        return createDataset();
     }
+
     private @NotNull ChartData createDataset() {
         ChartData chartData = new ChartData();
 

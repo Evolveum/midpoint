@@ -31,7 +31,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import org.jetbrains.annotations.VisibleForTesting;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Provides a nicer API for working with the shadow associations. Currently, it provides a read-only access:
@@ -45,7 +45,7 @@ import org.jetbrains.annotations.VisibleForTesting;
  *
  * @see ResourceAttributeContainer
  */
-@VisibleForTesting
+@TestOnly
 @Experimental
 public class ShadowAssociationsMap implements Map<QName, ShadowAssociationsMap.RawAssociation>, Serializable {
 

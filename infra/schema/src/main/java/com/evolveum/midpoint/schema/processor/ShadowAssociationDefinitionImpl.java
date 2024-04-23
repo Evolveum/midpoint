@@ -155,6 +155,7 @@ public class ShadowAssociationDefinitionImpl
         return associationTypeDefinition;
     }
 
+    /** TODO inspect calls to this method; take specific embedded shadow into account (if possible)! */
     public @NotNull ResourceObjectDefinition getTargetObjectDefinition() {
         return getAssociationClassDefinition().getRepresentativeObjectDefinition();
     }
@@ -210,21 +211,10 @@ public class ShadowAssociationDefinitionImpl
                 if (value instanceof ShadowAssociationValue) {
                     return value;
                 } else {
-                    ShadowAssociationValueType bean = (ShadowAssociationValueType) value.asContainerable();
-                    var shadowRef = bean.getShadowRef();
-                    if (shadowRef != null) {
-                        var shadow = (ShadowType) shadowRef.getObjectable();
-                        if (shadow != null) {
-                            try {
-                                new ShadowDefinitionApplicator(getTargetObjectDefinition())
-                                        .applyTo(shadow);
-                            } catch (SchemaException e) {
-                                throw SystemException.unexpected(e); // FIXME
-                            }
-                        }
-                    }
                     //noinspection unchecked
-                    return (PrismContainerValue<C>) ShadowAssociationValue.of(bean);
+                    return (PrismContainerValue<C>) ShadowAssociationValue.of(
+                            (ShadowAssociationValueType) value.asContainerable(),
+                            ShadowAssociationDefinitionImpl.this);
                 }
             }
         });

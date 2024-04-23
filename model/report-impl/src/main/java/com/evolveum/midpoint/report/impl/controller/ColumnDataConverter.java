@@ -334,7 +334,7 @@ class ColumnDataConverter<C> {
                 segments.add(name);
             }
             var shadow = shadowRef.getObject();
-            if (shadow != null) {
+            if (segments.isEmpty() && shadow != null) {
                 var attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
                 if (attributesContainer != null) {
                     // HACK HACK HACK - what if there are all attributes, not only the identifiers?
