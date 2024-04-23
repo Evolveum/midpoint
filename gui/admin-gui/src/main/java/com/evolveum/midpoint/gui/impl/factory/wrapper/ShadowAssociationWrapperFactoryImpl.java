@@ -11,10 +11,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
@@ -23,15 +24,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ShadowAssociationWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -53,12 +50,17 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
 
     @Override
     public boolean match(ItemDefinition<?> def) {
-        return QNameUtil.match(def.getTypeName(), ShadowAssociationValueType.COMPLEX_TYPE);
+        return def instanceof ShadowAssociationDefinition;
     }
 
     @Override
     public int getOrder() {
         return 10;
+    }
+
+    @Override
+    public void registerWrapperPanel(PrismContainerWrapper<ShadowAssociationValueType> wrapper) {
+        getRegistry().registerWrapperPanel(ShadowAssociationValueType.COMPLEX_TYPE, PrismContainerPanel.class);
     }
 
     @Override

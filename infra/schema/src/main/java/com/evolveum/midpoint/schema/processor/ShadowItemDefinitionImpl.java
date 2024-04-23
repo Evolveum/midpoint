@@ -620,11 +620,6 @@ public abstract class ShadowItemDefinitionImpl<
         return currentLayer;
     }
 
-    @Override
-    public @NotNull QName getTypeName() {
-        return nativeDefinition.getTypeName();
-    }
-
     public boolean isRuntimeSchema() {
         return true;
     }
