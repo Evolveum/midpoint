@@ -86,6 +86,8 @@ See xref:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-status
 ** Adding button for creating simulated/production 'Reclassification' task on unrecognized resource objects panel.
 * New implementation and look of date time picker.
 * Support for item deltas targeting value metadata only (without need to replace whole container value)
+* Resolving the issue for creating a new member object with predefined by archetype options on members panel.
+* Resolving several issues for Self Service -> Credentials page.
 
 === Releases Of Other Components
 
