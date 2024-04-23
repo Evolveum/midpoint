@@ -41,6 +41,20 @@ This allows to store secrets in external systems, such as HashiCorp Vault, AWS S
 For more information see xref:/midpoint/reference//security/credentials/secrets-provider-configuration.adoc[].
 * Shadow associations
 
+* Role mining
+** Attribute Clustering Support:
+*** Enabled attribute clustering with customizable conditions, providing flexibility in defining attribute rules for clustering procedures. Available in advanced mode.
+** Attribute Analysis Functionality:
+*** Attribute analysis capabilities allowing the definition of attributes used for cluster and detected pattern analysis. Available in advanced mode.
+** Indirect Access Right Clustering:
+*** Added support for clustering over indirect access rights.
+** Detected Pattern Migration Improvements:
+*** Streamlined detected pattern migration process, enabling the creation of candidates from detected patterns. This allows the role definition to be refined.
+** User Permission Table Enhancements:
+*** Expanded user permission table settings, providing administrators with additional control and customization options.
+** Performance and GUI Enhancements:
+*** Performance optimizations and user interface enhancements to improve overall user experience and efficiency.
+
 === Other Improvements
 
 TODO
