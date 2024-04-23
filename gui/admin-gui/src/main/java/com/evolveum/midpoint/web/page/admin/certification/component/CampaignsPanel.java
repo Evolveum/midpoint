@@ -18,10 +18,12 @@ import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaign;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDto;
@@ -37,6 +39,11 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -112,28 +119,24 @@ public class CampaignsPanel extends BasePanel {
                         return null;
                     }
 
-//                    @Override
-//                    protected CatalogTile<SelectableBean<AccessCertificationCampaignType>> createTileObject(
-//                            SelectableBean<AccessCertificationCampaignType> campaign) {
-//                        if (campaign == null) {
-//                            return new CatalogTile();
-//                        }
-//                        PrismObject<AccessCertificationCampaignType> campaignObject = campaign.getValue().asPrismObject();
-//                        String icon = IconAndStylesUtil.createDefaultColoredIcon(campaignObject.getValue().getTypeName());
-//
-//                        SelectableObjectTilePanel<AccessCertificationCampaignType> tile =
-//                                new SelectableObjectTilePanel<>(icon, Model.of(campaign));
-//                        tile.setDescription(campaign.getValue().getDescription());
-//                        tile.setValue(campaign);
-//
-////                        RoundedIconPanel.State checkState = computeCheckState(campaign.getOid());
-////                        tile.setCheckState(checkState);
-////
-////                        String checkTitle = computeCheckTitle(campaign.getOid());
-////                        tile.setCheckTitle(checkTitle);
-//
-//                        return tile;
-//                    }
+                    @Override
+                    protected Fragment createHeaderFragment(String id) {
+                        Fragment headerFragment = super.createHeaderFragment(id);
+
+                        AjaxButton button = new AjaxButton("bulkActionButton", createStringResource("PageBase.button.bulkOperation")) {
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                // TODO implement
+                            }
+                        };
+                        button.setOutputMarkupId(true);
+//                        selectedItemsContainer.add(new VisibleBehaviour(() -> isSelectedItemsPanelVisible()));
+                        headerFragment.add(button);
+
+                        return headerFragment;
+                    }
 
                     @Override
                     protected Component createTile(String id,
@@ -153,7 +156,7 @@ public class CampaignsPanel extends BasePanel {
 
                     @Override
                     protected String getTileCssClasses() {
-                        return "col-12 col-md-6 col-lg-4 col-xxl-5i px-2";
+                        return "col-12 col-md-6 col-lg-4 col-xxl-6i px-2";
                     }
 
                     @Override
@@ -174,6 +177,11 @@ public class CampaignsPanel extends BasePanel {
                     @Override
                     protected IModel<List<AccessCertificationCampaignType>> getSelectedItemsModel() {
                         return () -> new ArrayList<>(getProvider().getSelected());
+                    }
+
+                    @Override
+                    protected boolean isTogglePanelVisible() {
+                        return true;
                     }
 
                 };
@@ -202,19 +210,19 @@ public class CampaignsPanel extends BasePanel {
             }
         };
 
-        TogglePanel<ViewToggle> viewToggle = new TogglePanel<>(ID_VIEW_TOGGLE, items) {
-
-            @Override
-            protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
-                super.itemSelected(target, item);
-
-                tilesTable.getViewToggleModel().setObject(item.getObject().getValue());
-                tilesTable.getTable().refreshSearch();
-                target.add(CampaignsPanel.this);
-            }
-        };
-        viewToggle.add(new VisibleEnableBehaviour(() -> items.getObject().size() > 1));
-        add(viewToggle);
+//        TogglePanel<ViewToggle> viewToggle = new TogglePanel<>(ID_VIEW_TOGGLE, items) {
+//
+//            @Override
+//            protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
+//                super.itemSelected(target, item);
+//
+//                tilesTable.getViewToggleModel().setObject(item.getObject().getValue());
+//                tilesTable.getTable().refreshSearch();
+//                target.add(CampaignsPanel.this);
+//            }
+//        };
+//        viewToggle.add(new VisibleEnableBehaviour(() -> items.getObject().size() > 1));
+//        add(viewToggle);
 
     }
 

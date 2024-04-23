@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.component;
 
+import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
@@ -17,10 +19,14 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignStateHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -43,7 +49,11 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     private static final String ID_DEADLINE = "deadline";
     private static final String ID_STAGE = "stage";
     private static final String ID_ITERATION = "iteration";
-    private static final String ID_BUTTONS_PANEL = "buttonsPanel";
+    private static final String ID_ACTION_BUTTON = "actionButton";
+    private static final String ID_ACTION_BUTTON_LABEL = "actionButtonLabel";
+    private static final String ID_ACTION_BUTTON_ICON = "actionButtonIcon";
+
+    CampaignStateHelper campaignStateHelper;
 
     public CampaignTilePanel(String id, IModel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> model) {
         super(id, model);
@@ -52,12 +62,15 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     @Override
     protected void onInitialize() {
         super.onInitialize();
+
+        campaignStateHelper = new CampaignStateHelper(getCampaign().getState());
+
         initLayout();
     }
 
     protected void initLayout() {
         add(AttributeAppender.append("class",
-                "catalog-tile-panel d-flex flex-column align-items-center bordered p-4"));
+                "campaign-tile-panel catalog-tile-panel d-flex flex-column align-items-center bordered p-4"));
 
         setOutputMarkupId(true);
 
@@ -65,7 +78,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         selectTileCheckbox.setOutputMarkupId(true);
         add(selectTileCheckbox);
 
-        Label status = new Label(ID_STATUS, getStatusModel());
+        BadgePanel status = new BadgePanel(ID_STATUS, getStatusModel());
         status.setOutputMarkupId(true);
         add(status);
 
@@ -104,6 +117,29 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         iteration.setOutputMarkupId(true);
         add(iteration);
 
+        AjaxLink<Void> actionButton = new AjaxLink<>(ID_ACTION_BUTTON) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                // TODO implement
+            }
+        };
+        actionButton.add(AttributeModifier.append("class", campaignStateHelper.getNextAction().getActionCssClass()));
+        actionButton.setOutputMarkupId(true);
+        add(actionButton);
+
+        Label actionButtonLabel = new Label(ID_ACTION_BUTTON_LABEL,
+                createStringResource(campaignStateHelper.getNextAction().getActionLabelKey()));
+        actionButtonLabel.setOutputMarkupId(true);
+        actionButton.add(actionButtonLabel);
+
+        WebMarkupContainer actionButtonIcon = new WebMarkupContainer(ID_ACTION_BUTTON_ICON);
+        actionButtonIcon.add(AttributeModifier.append("class", campaignStateHelper.getNextAction().getActionIcon().getCssClass()));
+        actionButtonIcon.setOutputMarkupId(true);
+        actionButton.add(actionButtonIcon);
+
+
     }
 
     private IModel<Boolean> getSelectedModel() {
@@ -120,8 +156,8 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
             }
         };
     }
-    private IModel<String> getStatusModel() {
-        return Model.of(LocalizationUtil.translateEnum(getCampaign().getState()));
+    private IModel<Badge> getStatusModel() {
+        return Model.of(campaignStateHelper.createBadge());
     }
 
     private IModel<String> getTitleModel() {
@@ -155,4 +191,5 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     private IModel<String> getIterationModel() {
         return Model.of("" + CertCampaignTypeUtil.norm(getCampaign().getIteration()));
     }
+
 }

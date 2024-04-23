@@ -8,11 +8,36 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="row">
-        <div class="col-sm-12 col-md-5 col-lg-4 col-xxl-2 d-flex flex-column align-items-stretch gap-3">
-            <div wicket:id="viewToggle"/>
-        </div>
-        <div class="col-sm-12 col-md-7 col-lg-8 col-xxl-10 role-catalog-tiles-table" wicket:id="campaignsPanel"/>
+        <div class="w-100 role-catalog-tiles-table" wicket:id="campaignsPanel"/>
     </div>
+    <wicket:fragment wicket:id="headerFragment">
+        <div class="d-flex flex-column">
+            <div class="card-header d-flex">
+                <wicket:enclosure child="viewToggle">
+                    <div class="mr-auto pr-4 justify-content-start">
+                        <div wicket:id="viewToggle"/>
+                    </div>
+                </wicket:enclosure>
+                <div class="btn btn-default" wicket:id="bulkActionButton"/>
+                <div class="ml-auto flex-grow-1 justify-content-end" wicket:id="panelHeader"/>
+            </div>
+            <div class="card-header d-flex flex-column" style="min-height: 5.4rem;" wicket:id="selectedItemsContainer">
+                <span>
+                    <wicket:message key="SelectObjectClassesStepPanel.selectedItem"/>
+                </span>
+                <div class="d-flex flex-wrap gap-2">
+                    <wicket:container wicket:id="selectedItemContainer">
+                        <div class="btn-sm btn-primary d-flex mr-2" style="cursor: auto;">
+                            <div class="text-break" wicket:id="selectedItem"/>
+                            <a wicket:id="deselectButton">
+                                <i class="fa fa-xmark ml-2 text-white"></i>
+                            </a>
+                        </div>
+                    </wicket:container>
+                </div>
+            </div>
+        </div>
+    </wicket:fragment>
 </wicket:panel>
 
 </html>

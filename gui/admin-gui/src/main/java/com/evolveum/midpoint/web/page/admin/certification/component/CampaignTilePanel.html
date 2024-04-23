@@ -10,12 +10,12 @@
 <wicket:panel>
     <div class="d-flex flex-wrap w-100">
         <div class="d-flex flex-wrap flex-grow-1 justify-content-start" wicket:id="selectTileCheckbox"/>
-        <span class="d-flex flex-wrap flex-grow-1 justify-content-end" wicket:id="status"/>
-        <a wicket:id="menu" class="d-flex flex-wrap flex-grow-1 justify-content-end">
+        <span class="d-flex flex-wrap flex-grow-1 justify-content-end col-md-3" wicket:id="status"/>
+        <a wicket:id="menu" class="d-flex flex-wrap flex-grow-1 justify-content-end col-md-1">
             <i class="fa fa-ellipsis-v"/>
         </a>
     </div>
-    <div class="font-weight-bold text-truncate w-100" wicket:id="title"/>
+    <div class="font-weight-bold text-truncate w-100 mt-2" wicket:id="title"/>
     <div class="tile-description mt-2 text-center text-secondary flex-grow-1 info-box-icon w-100" wicket:id="description"/>
     <div class="w-100 mt-3">
         <label>
@@ -25,16 +25,19 @@
     </div>
     <div class="d-flex flex-wrap w-100 text-secondary">
         <div class="d-flex flex-wrap flex-grow-1 justify-content-start" wicket:id="deadline"/>
-        <div class="d-flex flex-wrap flex-grow-1 justify-content-end" >
+        <div class="d-flex flex-wrap flex-grow-1 justify-content-end col-md-2" >
             <i class="fa fa-circle-half-stroke mt-1 mr-1"></i>
             <div wicket:id="stage"/>
         </div>
-        <div class="d-flex flex-wrap flex-grow-1 justify-content-end" >
+        <div class="d-flex flex-wrap flex-grow-1 justify-content-end col-md-2" >
             <i class="fa fa-rotate-right mt-1 mr-1"></i>
             <div wicket:id="iteration"/>
         </div>
     </div>
 
-    <!--    <div wicket:id="buttonsPanel"/>-->
+    <a class="w-100 mt-3 btn btn-sm" wicket:id="actionButton">
+        <i class="mr-1" wicket:id="actionButtonIcon"></i>
+        <span wicket:id="actionButtonLabel" />
+    </a>
 </wicket:panel>
 </html>
