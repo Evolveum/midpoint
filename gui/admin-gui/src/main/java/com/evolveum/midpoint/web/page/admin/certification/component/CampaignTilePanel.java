@@ -56,7 +56,8 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     }
 
     protected void initLayout() {
-        add(AttributeAppender.append("class", "catalog-tile-panel d-flex flex-column align-items-center bordered p-4"));
+        add(AttributeAppender.append("class",
+                "catalog-tile-panel d-flex flex-column align-items-center bordered p-4"));
 
         setOutputMarkupId(true);
 
@@ -91,15 +92,15 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         progressBar.setOutputMarkupId(true);
         add(progressBar);
 
-        Label deadline = new Label(ID_DEADLINE, Model.of("1"));
+        Label deadline = new Label(ID_DEADLINE, getDeadlineModel());
         deadline.setOutputMarkupId(true);
         add(deadline);
 
-        Label stage = new Label(ID_STAGE, Model.of("2"));
+        Label stage = new Label(ID_STAGE, getStageModel());
         stage.setOutputMarkupId(true);
         add(stage);
 
-        Label iteration = new Label(ID_ITERATION, Model.of("3"));
+        Label iteration = new Label(ID_ITERATION, getIterationModel());
         iteration.setOutputMarkupId(true);
         add(iteration);
 
@@ -139,5 +140,19 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
             ProgressBar progressBar = new ProgressBar(completed, ProgressBar.State.INFO);
             return Collections.singletonList(progressBar);
         };
+    }
+
+    private IModel<String> getDeadlineModel() {
+        return Model.of(WebComponentUtil.formatDate(getCampaign().getEndTimestamp()));
+    }
+
+    private IModel<String> getStageModel() {
+        int stageNumber = getCampaign().getStageNumber();
+        int numberOfStages = CertCampaignTypeUtil.getNumberOfStages(getCampaign());
+        return Model.of(stageNumber + "/" + numberOfStages);
+    }
+
+    private IModel<String> getIterationModel() {
+        return Model.of("" + CertCampaignTypeUtil.norm(getCampaign().getIteration()));
     }
 }
