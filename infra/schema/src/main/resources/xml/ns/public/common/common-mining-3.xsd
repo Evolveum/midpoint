@@ -329,7 +329,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Object clustering options.
+                                    Session process options.
 
                                     Specification of parameters utilized for establishing cluster
                                     generation conditions, specifically pertaining to the role analysis clusters.
@@ -353,7 +353,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Object clustering options.
+                                    Session process options.
 
                                     Specification of parameters utilized for establishing cluster
                                     generation conditions, specifically pertaining to the role analysis clusters.
@@ -551,7 +551,7 @@
     <xsd:complexType name="AbstractAnalysisSessionOptionType">
         <xsd:annotation>
             <xsd:documentation>
-                Object clustering options.
+                Session process options.
 
                 Specification of parameters utilized for establishing cluster
                 generation conditions, specifically pertaining to the RoleAnalysisClusterType.
@@ -631,7 +631,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Contains information about the attribute analysis settings.
+                            Contains information about the clustering attribute analysis settings.
+                            It allows for configuration of settings related to attribute analysis within clustering process.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
@@ -641,7 +642,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Contains information about the attribute analysis settings.
+                            Contains information about attribute analysis settings.
+                            It allows for configuration of settings related to attribute analysis within the analysis process.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
@@ -1486,7 +1488,7 @@
     <xsd:complexType name="ClusteringAttributeSettingType">
         <xsd:annotation>
             <xsd:documentation>
-                <p>Contains information about matching rules for role analysis.</p>
+                <p>Contains information about matching rules for clustering process.</p>
                 <p>Matching rule presupposes the business logic for the comparison of objects.</p>
             </xsd:documentation>
         </xsd:annotation>
@@ -1509,19 +1511,13 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:element name="clusteringAttributeSettingType" type="tns:ClusteringAttributeSettingType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Settings for attribute clustering.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
+    <xsd:element name="clusteringAttributeSettingType" type="tns:ClusteringAttributeSettingType"/>
 
 
     <xsd:complexType name="AnalysisAttributeSettingType">
         <xsd:annotation>
             <xsd:documentation>
-                <p>Contains information about matching rules for role analysis.</p>
+                <p>Contains information about matching rules for object analysis process.</p>
                 <p>Matching rule presupposes the business logic for the comparison of objects.</p>
             </xsd:documentation>
         </xsd:annotation>
@@ -1543,19 +1539,12 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-
-    <xsd:element name="analysisAttributeSettingType" type="tns:AnalysisAttributeSettingType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Settings for attribute analysis.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
+    <xsd:element name="analysisAttributeSettingType" type="tns:AnalysisAttributeSettingType"/>
 
     <xsd:complexType name="ClusteringAttributeRuleType">
         <xsd:annotation>
             <xsd:documentation>
-                <p>Contains information about matching rules for role analysis.</p>
+                <p>Contains information about matching rules for clustering process.</p>
                 <p>Matching rule presupposes the business logic for the comparison of objects.</p>
             </xsd:documentation>
             <xsd:appinfo>
@@ -1803,7 +1792,17 @@
     <xsd:complexType name="RoleAnalysisOptionType">
         <xsd:annotation>
             <xsd:documentation>
-                Contains information about outliers regarding cluster objects.
+                This complex type defines options for role analysis.
+                It encapsulates elements related to the process mode and analysis category,
+                providing flexibility in configuring the specific approach for analysis.
+
+                The "processMode" element determines the methodology used during the analysis,
+                considering either a role perspective or a user perspective.
+
+                The "analysisCategory" element specifies the mode for categorizing the analysis,
+                allowing for differentiation between standard and advanced approaches.
+
+                The "id" attribute uniquely identifies each role analysis option.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -1838,7 +1837,25 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="analysisCategory" type="tns:RoleAnalysisCategoryType" minOccurs="0"/>
+            <xsd:element name="analysisCategory" type="tns:RoleAnalysisCategoryType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Analysis category mode for role analysis. It determines the specific approach
+                            or methodology used during the analysis.
+
+                            We currently use an enum type to identify the mode (STANDARD MODE, ADVANCED MODE)
+                            For Standard Mode (STANDARD):
+                            This mode represents a basic approach to role analysis, focusing on fundamental criteria
+                            and techniques for identifying and analyzing roles within the system.
+
+                            For Advanced Mode (ADVANCED):
+                            This mode represents a more sophisticated approach, often involving complex matching rules
+                            and additional criteria for role identification and analysis.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
