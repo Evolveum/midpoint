@@ -433,7 +433,8 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                             return false;
                         }
 
-                        return StringUtils.isNotEmpty(data.getStoredData()) || !metricValues.getObject().isEmpty();
+                        return (StringUtils.isNotEmpty(data.getStoredData()) && !"0".equals(data.getStoredData()))
+                                || !metricValues.getObject().isEmpty();
                     }
 
                     @Override

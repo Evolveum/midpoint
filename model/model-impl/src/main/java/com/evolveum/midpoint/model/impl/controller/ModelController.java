@@ -2281,7 +2281,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
         for (String identifier : identifiers) {
             PrismObject<NodeType> existingObject;
-            ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, prismContext, identifier);
+            ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, identifier);
             List<PrismObject<NodeType>> nodes = cacheRepositoryService.searchObjects(NodeType.class, q, createReadOnlyCollection(), parentResult);
             if (nodes.isEmpty()) {
                 throw new ObjectNotFoundException(

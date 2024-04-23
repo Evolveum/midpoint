@@ -67,7 +67,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
 
     @Override
     public ObjectDelta<ResourceType> getObjectDelta() throws SchemaException {
-        ObjectDelta<ResourceType> objectDelta = getPrismContext().deltaFor(getObject().getCompileTimeClass())
+        ObjectDelta<ResourceType> objectDelta = PrismContext.get().deltaFor(getObject().getCompileTimeClass())
                 .asObjectDelta(getObject().getOid());
 
         Collection<ItemDelta<PrismValue, ItemDefinition<?>>> deltas = new ArrayList<>();

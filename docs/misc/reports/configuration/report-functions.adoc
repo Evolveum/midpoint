@@ -1,0 +1,54 @@
+= Report Script Library
+:page-nav-title: Report Functions Library
+:page-display-order: 700
+:page-toc: top
+:page-keywords: [ 'report', 'functions' ,'scripts', library ]
+:page-upkeep-status: green
+
+
+== Description
+
+In addition to the common xref:/midpoint/reference/expressions/expressions/script/functions/[script expression libraries]
+(`midpoint`, `basic` and `log`), you can also use the `report` library inside report expressions.
+
+Functions from the `report` library are tailored for report creation, making it more convenient.
+
+It contains functions like:
+
+* resolving functions - references to objects, assignment to their target objects, etc.,
+* support for reports related to certification campaigns and cases,
+* functions for audit searching,
+* functions for simulation reports,
+* and more...
+
+For the complete list of functions check the
+https://github.com/Evolveum/midpoint/blob/master/model/report-impl/src/main/java/com/evolveum/midpoint/report/impl/ReportFunctions.java[source code]
+(see the table below for links to concrete versions).
+
+== Source Code
+
+// TODO there is no Javadoc currently, as the ReportFunctions is only in report-impl
+
+++++
+{% versionlinks
+since: "4.0"
+development: true
+columns:
+#  - heading: JavaDoc
+#    linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/report/impl/ReportFunctions.html"
+#    linkText: "JavaDoc"
+  - heading: Source Code
+    linkUrlPattern: "https://github.com/Evolveum/midpoint/blob/${git-tag}/model/report-impl/src/main/java/com/evolveum/midpoint/report/impl/ReportFunctions.java"
+    linkText: "Source"
+%}
+++++
+
+== See Also
+
+- xref:/midpoint/reference/expressions/expressions/script/functions/[Script Expression Functions]
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/report-security.adoc[Report Security]
+- xref:/midpoint/reference/misc/reports/configuration/report-task-definition.adoc[Report Task Definition]

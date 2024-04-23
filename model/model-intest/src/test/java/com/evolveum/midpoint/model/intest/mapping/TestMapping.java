@@ -300,7 +300,7 @@ public class TestMapping extends AbstractMappingTest {
         assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "SystemConfiguration");
-        DummyAccount accountJackBlue = getDummyResource(RESOURCE_DUMMY_BLUE_NAME).getAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME);
+        DummyAccount accountJackBlue = getDummyResource(RESOURCE_DUMMY_BLUE_NAME).getAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         String drinkBlue = accountJackBlue.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
         assertNotNull("No blue drink", drinkBlue);
         UUID drinkUuidBlue = UUID.fromString(drinkBlue);
@@ -3332,7 +3332,7 @@ public class TestMapping extends AbstractMappingTest {
                 .assertPassword(password);
 
         DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_OUTBOUND.name);
-        DummyAccount account = resource.getAccountByUsername(SERVICE_ROUTER_NAME);
+        DummyAccount account = resource.getAccountByName(SERVICE_ROUTER_NAME);
         new DummyAccountAsserter<>(account, RESOURCE_DUMMY_SERVICES_OUTBOUND.name)
                 .display()
                 .assertPassword(password);
@@ -3367,7 +3367,7 @@ public class TestMapping extends AbstractMappingTest {
                 .assertPassword(newPassword);
 
         DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_OUTBOUND.name);
-        DummyAccount account = resource.getAccountByUsername(SERVICE_ROUTER_NAME);
+        DummyAccount account = resource.getAccountByName(SERVICE_ROUTER_NAME);
         new DummyAccountAsserter<>(account, RESOURCE_DUMMY_SERVICES_OUTBOUND.name)
                 .display()
                 .assertPassword(newPassword);
@@ -3409,7 +3409,7 @@ public class TestMapping extends AbstractMappingTest {
         final String newPassword = "SeCrEt123";
 
         DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY.name);
-        resource.getAccountByUsername(SERVICE_BRIDGE_NAME).setPassword(newPassword);
+        resource.getAccountByName(SERVICE_BRIDGE_NAME).setPassword(newPassword);
 
         when();
         rerunTask(TASK_IMPORT_PWD_COPY.oid);
@@ -3462,7 +3462,7 @@ public class TestMapping extends AbstractMappingTest {
         System.out.println("Generated password = " + clearValueBefore);
 
         DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE.name);
-        resource.getAccountByUsername(SERVICE_GATEWAY_NAME).setPassword(newPassword);
+        resource.getAccountByName(SERVICE_GATEWAY_NAME).setPassword(newPassword);
 
         when();
         rerunTask(TASK_IMPORT_PWD_GENERATE.oid);

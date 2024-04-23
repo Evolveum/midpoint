@@ -914,7 +914,7 @@
             <xsd:element name="name" type="xsd:QName">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The name of the association class. The default namespace is "ri:".
+                        The name of the association class. The namespace must be empty or "ri:".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

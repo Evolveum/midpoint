@@ -350,6 +350,17 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return false;
     }
 
+    protected boolean isReportObjectButtonVisible() {
+
+        try {
+            return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_URI);
+        } catch (Exception ex) {
+            LOGGER.error("Failed to check authorization for REPORT action for " + getType().getSimpleName()
+                    + " object, ", ex);
+        }
+        return false;
+    }
+
     private AjaxCompositedIconButton createCreateReportButton(String buttonId) {
         final CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(IconAndStylesUtil.createReportIcon(), IconCssStyle.IN_ROW_STYLE);
@@ -368,7 +379,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
         };
         createReport.add(AttributeAppender.append("class", "mr-2 btn btn-default btn-sm"));
-        createReport.add(new VisibleBehaviour(() -> WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_URI)));
+        createReport.add(new VisibleBehaviour(this::isReportObjectButtonVisible));
         return createReport;
     }
 

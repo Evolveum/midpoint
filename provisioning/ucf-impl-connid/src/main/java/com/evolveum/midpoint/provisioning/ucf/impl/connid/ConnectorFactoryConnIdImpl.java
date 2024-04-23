@@ -6,7 +6,12 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static com.evolveum.midpoint.prism.schema.PrismSchemaBuildingUtil.addNewComplexTypeDefinition;
+import static com.evolveum.midpoint.prism.schema.PrismSchemaBuildingUtil.addNewContainerDefinition;
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdTypeMapper.connIdTypeToXsdTypeInfo;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICF_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME;
+import static com.evolveum.midpoint.schema.processor.ConnectorSchema.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,12 +25,17 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+
+import com.evolveum.midpoint.prism.PrismPropertyDefinition.PrismPropertyDefinitionMutator;
+import com.evolveum.midpoint.schema.processor.ConnectorSchema;
+import com.evolveum.midpoint.schema.processor.ConnectorSchemaFactory;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
+
 import jakarta.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.commons.configuration2.Configuration;
 import org.identityconnectors.common.Version;
@@ -35,6 +45,8 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.*;
 import org.identityconnectors.framework.api.operations.*;
 import org.identityconnectors.framework.common.FrameworkUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +55,6 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorDiscoveryListener;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
@@ -63,7 +74,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * Implementation of the UCF Connector Manager API interface for ConnId framework.
@@ -77,17 +87,12 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     public static final int ICFS_NAME_DISPLAY_ORDER = 110;
     public static final String ICFS_UID_DISPLAY_NAME = "ConnId UID";
     public static final int ICFS_UID_DISPLAY_ORDER = 100;
-    public static final QName ICFS_ACCOUNT = new QName(SchemaConstants.NS_ICF_SCHEMA, "account");
-
-    public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";
-    public static final QName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_QNAME = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
-            CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME);
 
     public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME = "connectorPoolConfiguration";
-    public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
-            "connectorPoolConfiguration");
-    public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
-            "ConnectorPoolConfigurationType");
+    public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT =
+            new QName(SchemaConstants.NS_ICF_CONFIGURATION, "connectorPoolConfiguration");
+    public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE =
+            new QName(SchemaConstants.NS_ICF_CONFIGURATION, "ConnectorPoolConfigurationType");
     protected static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS = "minEvictableIdleTimeMillis";
     public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE = "minIdle";
     public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE = "maxIdle";
@@ -200,7 +205,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      * connector instance.
      */
     @Override
-    public ConnectorInstance createConnectorInstance(ConnectorType connectorBean, String instanceName, String instanceDescription)
+    public @NotNull ConnectorInstance createConnectorInstance(
+            ConnectorType connectorBean, String instanceName, String instanceDescription)
             throws ObjectNotFoundException, SchemaException {
 
         ConnectorInfo cinfo = getConnectorInfo(connectorBean);
@@ -227,8 +233,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                             connectorBean.getConnectorVersion()));
         }
 
-        PrismSchema connectorSchema;
-        var storedConnectorSchema = UcfUtil.getConnectorSchema(connectorBean, prismContext);
+        ConnectorSchema connectorSchema;
+        var storedConnectorSchema = ConnectorTypeUtil.parseConnectorSchemaIfPresent(connectorBean);
         if (storedConnectorSchema != null) {
             connectorSchema = storedConnectorSchema;
         } else {
@@ -330,7 +336,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType) throws SchemaException {
         ConnectorType connectorType = new ConnectorType();
         ConnectorKey key = cinfo.getConnectorKey();
-        UcfUtil.addConnectorNames(connectorType, "ConnId", key.getBundleName(), key.getConnectorName(), key.getBundleVersion(), hostType);
+        UcfUtil.addConnectorNames(connectorType, "ConnId", key.getConnectorName(), key.getBundleVersion(), hostType);
         String stringID = keyToNamespaceSuffix(key);
         connectorType.setFramework(SchemaConstants.ICF_FRAMEWORK_URI);
         connectorType.setConnectorType(key.getConnectorName());
@@ -346,9 +352,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             connectorType.setConnectorHostRef(ref);
         }
 
-        PrismSchema connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorType);
-        LOGGER.trace("Generated connector schema for {}: {} definitions",
-                connectorType, connectorSchema.getDefinitions().size());
+        PrismSchema connectorSchema = Objects.requireNonNull(generateConnectorConfigurationSchema(cinfo, connectorType));
+        LOGGER.trace("Generated connector schema for {}: {} definitions", connectorType, connectorSchema.size());
         UcfUtil.setConnectorSchema(connectorType, connectorSchema);
 
         return connectorType;
@@ -369,61 +374,54 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     }
 
     @Override
-    public PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType) throws ObjectNotFoundException {
-        ConnectorInfo cinfo = getConnectorInfo(connectorType);
+    public @Nullable ConnectorSchema generateConnectorConfigurationSchema(@NotNull ConnectorType connectorBean)
+            throws ObjectNotFoundException, SchemaException {
+        ConnectorInfo cinfo = getConnectorInfo(connectorBean);
         if (cinfo == null) {
             throw new ObjectNotFoundException(
-                    "Connector " + connectorType + " cannot be found by ConnId framework",
-                    ConnectorType.class, connectorType.getOid());
+                    "Connector " + connectorBean + " cannot be found by ConnId framework",
+                    ConnectorType.class, connectorBean.getOid());
         }
-        return generateConnectorConfigurationSchema(cinfo, connectorType);
+        return generateConnectorConfigurationSchema(cinfo, connectorBean);
     }
 
-    private PrismSchema generateConnectorConfigurationSchema(ConnectorInfo cinfo, ConnectorType connectorType) {
+    private @Nullable ConnectorSchema generateConnectorConfigurationSchema(ConnectorInfo cinfo, ConnectorType connectorBean) throws SchemaException {
 
         LOGGER.trace("Generating configuration schema for {}", this);
-        APIConfiguration defaultAPIConfiguration = cinfo.createDefaultAPIConfiguration();
-        ConfigurationProperties icfConfigurationProperties = defaultAPIConfiguration
-                .getConfigurationProperties();
 
-        if (icfConfigurationProperties == null || icfConfigurationProperties.getPropertyNames() == null
+        // Configuration properties as provided by ConnId
+        ConfigurationProperties icfConfigurationProperties = cinfo.createDefaultAPIConfiguration().getConfigurationProperties();
+
+        if (icfConfigurationProperties == null
+                || icfConfigurationProperties.getPropertyNames() == null
                 || icfConfigurationProperties.getPropertyNames().isEmpty()) {
             LOGGER.debug("No configuration schema for {}", this);
             return null;
         }
 
-        MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema(connectorType.getNamespace());
+        var connectorSchema = ConnectorSchemaFactory.newConnectorSchema(connectorBean.getNamespace());
 
-        // Create configuration type - the type used by the "configuration"
-        // element
-        MutablePrismContainerDefinition<?> configurationContainerDef = connectorSchema.createContainerDefinition(
-                ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
-                SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
+        // Definition of "connectorConfiguration" container - the root one; contains both generic ConnId items + specific ones
+        var configurationContainerDef =
+                addNewContainerDefinition(
+                        connectorSchema, CONNECTOR_CONFIGURATION_LOCAL_NAME, CONNECTOR_CONFIGURATION_TYPE_LOCAL_NAME);
 
-        // element with "ConfigurationPropertiesType" - the dynamic part of
-        // configuration schema
-        ComplexTypeDefinition configPropertiesTypeDef = connectorSchema.createComplexTypeDefinition(new QName(
-                connectorType.getNamespace(),
-                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME));
+        // CTD for its "configurationProperties" child - these are properties specific to the connector
+        var configPropertiesCtd =
+                addNewComplexTypeDefinition(connectorSchema, ICF_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME);
 
-        // Create definition of "configurationProperties" type
-        // (CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME)
         int displayOrder = 1;
         for (String icfPropertyName : icfConfigurationProperties.getPropertyNames()) {
             ConfigurationProperty icfProperty = icfConfigurationProperties.getProperty(icfPropertyName);
 
-            QName propXsdType = ConnIdCapabilitiesAndSchemaParser.connIdTypeToXsdType(icfProperty.getType(), icfProperty.isConfidential());
+            var propXsdTypeInfo = connIdTypeToXsdTypeInfo(icfProperty.getType(), null, icfProperty.isConfidential());
             LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", this,
-                    icfPropertyName, icfProperty.getType(), propXsdType);
-            MutablePrismPropertyDefinition<?> propertyDefinition = configPropertiesTypeDef.toMutable().createPropertyDefinition(
-                    icfPropertyName, propXsdType);
+                    icfPropertyName, icfProperty.getType(), propXsdTypeInfo);
+            PrismPropertyDefinitionMutator<?> propertyDefinition =
+                    configPropertiesCtd.mutator().createPropertyDefinition(icfPropertyName, propXsdTypeInfo.xsdTypeName());
             propertyDefinition.setDisplayName(icfProperty.getDisplayName(null));
             propertyDefinition.setHelp(icfProperty.getHelpMessage(null));
-            if (ConnIdCapabilitiesAndSchemaParser.isMultivaluedType(icfProperty.getType())) {
-                propertyDefinition.setMaxOccurs(-1);
-            } else {
-                propertyDefinition.setMaxOccurs(1);
-            }
+            propertyDefinition.setMaxOccurs(propXsdTypeInfo.getMaxOccurs());
             if (icfProperty.isRequired() && icfProperty.getValue() == null) {
                 // If ICF says that the property is required it may not be in fact really required if it also has a default value
                 propertyDefinition.setMinOccurs(1);
@@ -434,34 +432,28 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             displayOrder++;
         }
 
-        // Create common ICF configuration property containers as a references
-        // to a static schema
-        configurationContainerDef.createContainerDefinition(
+        // Create common ICF configuration property containers as a references to a static schema
+        configurationContainerDef.mutator().createContainerDefinition(
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT,
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE, 0, 1);
-        configurationContainerDef.createPropertyDefinition(
+        configurationContainerDef.mutator().createPropertyDefinition(
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT,
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE, 0, 1);
-        configurationContainerDef.createContainerDefinition(
+        configurationContainerDef.mutator().createContainerDefinition(
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT,
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_TIMEOUTS_TYPE, 0, 1);
-        configurationContainerDef.createContainerDefinition(
+        configurationContainerDef.mutator().createContainerDefinition(
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT,
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_TYPE, 0, 1);
-        configurationContainerDef.createPropertyDefinition(
+        configurationContainerDef.mutator().createPropertyDefinition(
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT,
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_TYPE, 0, 1);
 
-        // No need to create definition of "configuration" element.
-        // midPoint will look for this element, but it will be generated as part
-        // of the PropertyContainer serialization to schema
+        configurationContainerDef.mutator().createContainerDefinition(
+                SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME,
+                configPropertiesCtd, 1, 1);
 
-        configurationContainerDef.createContainerDefinition(
-                SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
-                configPropertiesTypeDef, 1, 1);
-
-        LOGGER.debug("Generated configuration schema for {}: {} definitions", this, connectorSchema.getDefinitions()
-                .size());
+        LOGGER.debug("Generated configuration schema for {}: {} definitions", this, connectorSchema.size());
         return connectorSchema;
     }
 
@@ -738,19 +730,19 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     /**
      * Get connector information.
      */
-    private ConnectorInfo getConnectorInfo(ConnectorType connectorType) throws ObjectNotFoundException {
-        if (!SchemaConstants.ICF_FRAMEWORK_URI.equals(connectorType.getFramework())) {
+    private ConnectorInfo getConnectorInfo(ConnectorType connectorBean) throws ObjectNotFoundException {
+        if (!SchemaConstants.ICF_FRAMEWORK_URI.equals(connectorBean.getFramework())) {
             throw new ObjectNotFoundException(
                     String.format("Requested connector for framework %s cannot be found in framework %s",
-                            connectorType.getFramework(), SchemaConstants.ICF_FRAMEWORK_URI),
+                            connectorBean.getFramework(), SchemaConstants.ICF_FRAMEWORK_URI),
                     ConnectorType.class, null);
         }
-        ConnectorKey key = getConnectorKey(connectorType);
-        if (connectorType.getConnectorHostRef() == null) {
+        ConnectorKey key = getConnectorKey(connectorBean);
+        if (connectorBean.getConnectorHostRef() == null) {
             // Local connector
             return getLocalConnectorInfoManager().findConnectorInfo(key);
         }
-        PrismObject<ConnectorHostType> host = connectorType.getConnectorHostRef().asReferenceValue().getObject();
+        PrismObject<ConnectorHostType> host = connectorBean.getConnectorHostRef().asReferenceValue().getObject();
         if (host == null) {
             throw new ObjectNotFoundException(
                     "Attempt to use remote connector without ConnectorHostType resolved (there is only ConnectorHostRef)");
@@ -831,12 +823,9 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             // This should encrypt it
             GuardedString guardedString = new GuardedString(origString.toCharArray());
             // and this should decrypt it
-            guardedString.access(new GuardedString.Accessor() {
-                @Override
-                public void access(char[] decryptedChars) {
-                    if (!(new String(decryptedChars)).equals(origString)) {
-                        guardedStringSubresult.recordFatalError("GuardedString roundtrip failed; encrypted=" + origString + ", decrypted=" + (new String(decryptedChars)));
-                    }
+            guardedString.access(decryptedChars -> {
+                if (!(new String(decryptedChars)).equals(origString)) {
+                    guardedStringSubresult.recordFatalError("GuardedString roundtrip failed; encrypted=" + origString + ", decrypted=" + (new String(decryptedChars)));
                 }
             });
             guardedStringSubresult.recordSuccessIfUnknown();
@@ -853,18 +842,18 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     }
 
     static {
-        API_OP_MAP.put("create", Arrays.asList(CreateApiOp.class));
-        API_OP_MAP.put("get", Arrays.asList(GetApiOp.class));
-        API_OP_MAP.put("update", Arrays.asList(UpdateApiOp.class, UpdateDeltaApiOp.class));
-        API_OP_MAP.put("delete", Arrays.asList(DeleteApiOp.class));
-        API_OP_MAP.put("test", Arrays.asList(TestApiOp.class));
-        API_OP_MAP.put("scriptOnConnector", Arrays.asList(ScriptOnConnectorApiOp.class));
-        API_OP_MAP.put("scriptOnResource", Arrays.asList(ScriptOnResourceApiOp.class));
-        API_OP_MAP.put("authentication", Arrays.asList(AuthenticationApiOp.class));
-        API_OP_MAP.put("search", Arrays.asList(SearchApiOp.class));
-        API_OP_MAP.put("validate", Arrays.asList(ValidateApiOp.class));
-        API_OP_MAP.put("sync", Arrays.asList(SyncApiOp.class));
-        API_OP_MAP.put("schema", Arrays.asList(SchemaApiOp.class));
+        API_OP_MAP.put("create", List.of(CreateApiOp.class));
+        API_OP_MAP.put("get", List.of(GetApiOp.class));
+        API_OP_MAP.put("update", List.of(UpdateApiOp.class, UpdateDeltaApiOp.class));
+        API_OP_MAP.put("delete", List.of(DeleteApiOp.class));
+        API_OP_MAP.put("test", List.of(TestApiOp.class));
+        API_OP_MAP.put("scriptOnConnector", List.of(ScriptOnConnectorApiOp.class));
+        API_OP_MAP.put("scriptOnResource", List.of(ScriptOnResourceApiOp.class));
+        API_OP_MAP.put("authentication", List.of(AuthenticationApiOp.class));
+        API_OP_MAP.put("search", List.of(SearchApiOp.class));
+        API_OP_MAP.put("validate", List.of(ValidateApiOp.class));
+        API_OP_MAP.put("sync", List.of(SyncApiOp.class));
+        API_OP_MAP.put("schema", List.of(SchemaApiOp.class));
     }
 
     @Override

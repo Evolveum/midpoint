@@ -8,7 +8,6 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceResolutionFrequencyType.*;
 
@@ -109,7 +108,7 @@ class ResourceObjectReferenceResolver {
                                 "No object class name in object reference in %s", desc),
                         MidPointConstants.NS_RI);
 
-        ProvisioningContext subCtx = ctx.spawnForObjectClassWithRawDefinition(objectClassName);
+        ProvisioningContext subCtx = ctx.spawnForObjectClassWithClassDefinition(objectClassName);
         subCtx.assertDefinition();
 
         ObjectQuery refQuery =

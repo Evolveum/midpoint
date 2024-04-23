@@ -149,26 +149,14 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
         loadMiningTable(webMarkupContainer, analysePattern);
 
-//        Double membershipDensity = clusterStatistics.getMembershipDensity();
-//        List<AttributeAnalysisStructure> attributeAnalysisStructures;
-//        List<ObjectReferenceType> member = cluster.getMember();
-//        Set<String> objectOid = new HashSet<>();
-//        member.forEach(object -> objectOid.add(object.getOid()));
-//
-//        assert mode != null;
-//        List<ItemPath> itemPaths = resolveProcessModePath(mode);
-//
-//        attributeAnalysisStructures = roleAnalysisService.attributeAnalysis(
-//                objectOid,
-//                mode,
-//                itemPaths,
-//                membershipDensity,
-//                task,
-//                result);
-
         List<AttributeAnalysisStructure> attributeAnalysisStructures = extractAttributeAnalysis(cluster);
         RoleAnalysisAttributeChartPanel roleAnalysisChartPanel = new RoleAnalysisAttributeChartPanel(
-                ID_CHART_PANEL, attributeAnalysisStructures, cluster);
+                ID_CHART_PANEL, attributeAnalysisStructures, cluster){
+            @Override
+            public boolean isExpanded() {
+                return false;
+            }
+        };
         roleAnalysisChartPanel.setOutputMarkupId(true);
         webMarkupContainer.add(roleAnalysisChartPanel);
 

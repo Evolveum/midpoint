@@ -7,16 +7,15 @@
 
 package com.evolveum.midpoint.schema.config;
 
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedAssociationClassParticipantType;
-
-import javax.xml.namespace.QName;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedAssociationClassParticipantType;
 
 public abstract class SimulatedAssociationClassParticipantConfigItem
         extends ConfigurationItem<SimulatedAssociationClassParticipantType> {
@@ -36,7 +35,7 @@ public abstract class SimulatedAssociationClassParticipantConfigItem
     }
 
     /** May be empty. */
-    @NotNull List<SimulatedAssociationClassParticipantDelineationConfigItem> getDelineations() {
+    public @NotNull List<SimulatedAssociationClassParticipantDelineationConfigItem> getDelineations() {
         return children(
                 value().getDelineation(),
                 SimulatedAssociationClassParticipantDelineationConfigItem.class,

@@ -2439,7 +2439,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = getTestOperationResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        DummyAccount dummyAccountBefore = dummyResourceEmerald.getAccountByUsername(ACCOUNT_STAN_USERNAME);
+        DummyAccount dummyAccountBefore = dummyResourceEmerald.getAccountByName(ACCOUNT_STAN_USERNAME);
         dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
                 "Booty Island");
 

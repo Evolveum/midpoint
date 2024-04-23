@@ -41,6 +41,16 @@ public enum EndPointsUrlMapping {
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")),
 
+
+    SCHEMA_DETAILS("/admin/schema/**",
+            new AuthorizationActionValue(AUTZ_UI_SCHEMA_DETAILS_URL,
+                    "PageAdminSchemas.authUri.schemaDetails.label", "PageAdminSchemas.authUri.schemaDetails.description"),
+            new AuthorizationActionValue(AUTZ_UI_SCHEMAS_ALL_URL,
+                    "PageAdminSchemas.authUri.schemasAll.label", "PageAdminSchemas.authUri.schemasAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminSchemas.authUri.guiAll.label", "PageAdminSchemas.authUri.guiAll.description")),
+
+
     //TODO authz
     ROLE_MINING_DETAILS("/admin/roleAnalysis/**",
             new AuthorizationActionValue(AUTZ_UI_ROLE_ANALYSIS_ALL_URL,
@@ -61,14 +71,6 @@ public enum EndPointsUrlMapping {
                     "PageAdminCluster.authUri.roleDetails.label", "PageAdminCluster.authUri.roleDetails.description"),
             new AuthorizationActionValue(AUTZ_UI_ROLE_ANALYSIS_CLUSTER_URL,
                     "PageAdminCluster.authUri.rolesAll.label", "PageAdminCluster.authUri.rolesAll.description"),
-            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
-                    "PageAdminCluster.authUri.rolesAll.label", "PageAdminCluster.authUri.guiAll.description")),
-
-    ROLE_ANALYSIS_OUTLIER_DETAILS("/admin/roleAnalysisOutlier/**",
-            new AuthorizationActionValue(AUTZ_UI_ROLE_ANALYSIS_ALL_URL,
-                    "PageAdminSession.authUri.roleDetails.label", "PageAdminSession.authUri.roleDetails.description"),
-            new AuthorizationActionValue(AUTZ_UI_ROLE_ANALYSIS_SESSION_URL,
-                    "PageAdminSession.authUri.rolesAll.label", "PageAdminSession.authUri.rolesAll.description"),
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageAdminCluster.authUri.rolesAll.label", "PageAdminCluster.authUri.guiAll.description")),
 

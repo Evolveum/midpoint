@@ -80,17 +80,17 @@ public class REmbeddedNamedReference extends REmbeddedReference {
         return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
-    public static void copyToJAXB(REmbeddedNamedReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
+    public static void copyToJAXB(REmbeddedNamedReference repo, ObjectReferenceType jaxb) {
         Objects.requireNonNull(repo, "Repo object must not be null.");
         Objects.requireNonNull(jaxb, "JAXB object must not be null.");
-        REmbeddedReference.copyToJAXB(repo, jaxb, prismContext);
+        REmbeddedReference.copyToJAXB(repo, jaxb);
 
-        jaxb.setTargetName(RPolyString.copyToJAXB(repo.getTargetName(), prismContext));
+        jaxb.setTargetName(RPolyString.copyToJAXB(repo.getTargetName()));
     }
 
-    public ObjectReferenceType toJAXB(PrismContext prismContext) {
+    public ObjectReferenceType toJAXB() {
         ObjectReferenceType ref = new ObjectReferenceType();
-        copyToJAXB(this, ref, prismContext);
+        copyToJAXB(this, ref);
         return ref;
     }
 }

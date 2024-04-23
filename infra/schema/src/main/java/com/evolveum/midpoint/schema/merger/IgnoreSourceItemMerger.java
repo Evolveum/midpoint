@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.schema.merger;
 
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -19,6 +22,11 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 public class IgnoreSourceItemMerger implements ItemMerger {
 
     public static final IgnoreSourceItemMerger INSTANCE = new IgnoreSourceItemMerger();
+
+    @Override
+    public NaturalKeyDefinition getNaturalKey() {
+        throw new UnsupportedOperationException("IgnoreSourceItemMerger does not support natural keys");
+    }
 
     @Override
     public void merge(@NotNull ItemName itemName, @NotNull PrismContainerValue<?> target, @NotNull PrismContainerValue<?> source)

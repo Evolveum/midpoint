@@ -28,25 +28,6 @@ public abstract class Clusterer<T extends Clusterable> {
         return this.measure.compute(p1.getPoint(), p2.getPoint());
     }
 
-    protected boolean outlierAccessDistance(
-            @NotNull Clusterable p1,
-            @NotNull Clusterable p2,
-            double minSimilarity,
-            double maxOffset) {
-        double compute = this.measure.compute(p1.getPoint(), p2.getPoint());
-
-        //TODO
-        if (compute < minSimilarity) {
-            return true;
-        } else if (compute < maxOffset) {
-            p1.addCloseNeighbor(p2.getPoint().toString());
-            p2.addCloseNeighbor(p1.getPoint().toString());
-            return false;
-        }
-
-        return false;
-    }
-
     protected double rulesDistance(
             @NotNull ExtensionProperties p1,
             @NotNull ExtensionProperties p2,

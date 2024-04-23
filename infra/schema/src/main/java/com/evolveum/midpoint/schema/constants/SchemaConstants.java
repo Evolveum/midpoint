@@ -79,8 +79,6 @@ public abstract class SchemaConstants {
     public static final ItemName C_ROLE_ANALYSIS_CLUSTER_TYPE = new ItemName(NS_C, "RoleAnalysisClusterType");
     public static final ItemName C_ROLE_ANALYSIS_CLUSTER = new ItemName(NS_C, "roleAnalysisCluster");
     public static final ItemName C_ROLE_ANALYSIS_SESSION_TYPE = new ItemName(NS_C, "RoleAnalysisSessionType");
-    public static final ItemName C_ROLE_ANALYSIS_OUTLIER = new ItemName(NS_C, "roleAnalysisOutlier");
-    public static final ItemName C_ROLE_ANALYSIS_OUTLIER_TYPE = new ItemName(NS_C, "RoleAnalysisOutlierType");
     public static final ItemName C_ROLE_ANALYSIS_SESSION = new ItemName(NS_C, "roleAnalysisSession");
     public static final ItemName C_CONNECTOR_FRAMEWORK = new ItemName(NS_C, "framework");
     public static final ItemName C_CONNECTOR_CONNECTOR_TYPE = new ItemName(NS_C, "connectorType");
@@ -481,30 +479,32 @@ public abstract class SchemaConstants {
     public static final String INTENT_DEFAULT = "default";
     public static final String INTENT_UNKNOWN = "unknown";
 
-    public static final String CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME = "ConfigurationType";
-
-    // This constant should not be here. It is used by schema processor to
-    // supply correct import. But the dependency should
+    // This constant should not be here. It is used by schema processor to supply correct import. But the dependency should
     // be inverted, eventually (MID-356)
     public static final String ICF_FRAMEWORK_URI = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1";
     public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-3";
+    public static final String ICF_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";
+    public static final String ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME = "configurationProperties";
+    public static final ItemName ICF_CONFIGURATION_PROPERTIES_NAME =
+            new ItemName(NS_ICF_CONFIGURATION, ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
+
+    /** The namespace for subtypes in ConnId schemas. For example, see "POLYSTRING_SUBTYPE" in the LDAP connector. */
     public static final String NS_ICF_SUBTYPES = ICF_FRAMEWORK_URI + "/subtypes";
     public static final QName ICF_SUBTYPES_POLYSTRING_QNAME = new QName(NS_ICF_SUBTYPES, "PolyString");
     public static final String ICF_SUBTYPES_POLYSTRING_URI = qNameToUri(ICF_SUBTYPES_POLYSTRING_QNAME);
-    public static final ItemName ICF_CONFIGURATION_PROPERTIES = new ItemName(NS_ICF_CONFIGURATION,
-            "configurationProperties");
 
-    // Note! This is also specified in SchemaConstants (MID-356)
+    // People could expect to find the constant here.
+    public static final String NS_RI = MidPointConstants.NS_RI;
+
     public static final String NS_ICF_SCHEMA = ICF_FRAMEWORK_URI + "/resource-schema-3";
+    public static final String NS_ICFS = NS_ICF_SCHEMA; // alternative name
     public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
     public static final ItemName ICFS_NAME = new ItemName(NS_ICF_SCHEMA, "name");
     public static final ItemPath ICFS_NAME_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, ICFS_NAME);
     public static final ItemName ICFS_UID = new ItemName(NS_ICF_SCHEMA, "uid");
     public static final ItemPath ICFS_UID_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, ICFS_UID);
     public static final ItemName ICFS_PASSWORD = new ItemName(NS_ICF_SCHEMA, "password");
-    public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME = "configurationProperties";
-    public static final ItemName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME = new ItemName(NS_ICF_CONFIGURATION,
-            CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME);
+
     public static final String ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
     public static final String GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
     public static final ItemName RI_ACCOUNT_OBJECT_CLASS = new ItemName(MidPointConstants.NS_RI, ACCOUNT_OBJECT_CLASS_LOCAL_NAME);

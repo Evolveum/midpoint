@@ -125,7 +125,7 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
         return all;
     }
 
-    public static @NotNull SynchronizationReactionDefinition of(
+    public static @NotNull SynchronizationReactionDefinition legacy(
             @NotNull LegacySynchronizationReactionType legacyBean,
             boolean addCreateCasesAction,
             @NotNull ClockworkSettings defaultSettings)
@@ -133,10 +133,27 @@ public class SynchronizationReactionDefinition implements Comparable<Synchroniza
         return new SynchronizationReactionDefinition(legacyBean, addCreateCasesAction, defaultSettings);
     }
 
-    public static @NotNull SynchronizationReactionDefinition of(
+    private static @NotNull SynchronizationReactionDefinition modern(
             @NotNull SynchronizationReactionType bean,
             @NotNull ClockworkSettings defaultSettings) {
         return new SynchronizationReactionDefinition(bean, defaultSettings);
+    }
+
+    private static @NotNull List<SynchronizationReactionDefinition> modern(
+            @NotNull SynchronizationReactionsType reactionsBean,
+            @NotNull ClockworkSettings reactionLevelSettings) {
+        return reactionsBean.getReaction().stream()
+                .map(bean -> modern(bean, reactionLevelSettings))
+                .collect(Collectors.toList());
+    }
+
+    public static @NotNull List<SynchronizationReactionDefinition> modern(SynchronizationReactionsType reactions) {
+        if (reactions == null) {
+            return List.of();
+        } else {
+            ClockworkSettings reactionLevelSettings = ClockworkSettings.of(reactions.getDefaultSettings());
+            return modern(reactions, reactionLevelSettings);
+        }
     }
 
     @Override

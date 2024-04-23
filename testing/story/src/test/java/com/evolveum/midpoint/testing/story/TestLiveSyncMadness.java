@@ -147,7 +147,7 @@ public class TestLiveSyncMadness extends AbstractStoryTest {
     public void test110RenameHrAccountHerman() throws Exception {
         dummyAuditService.clear();
 
-        DummyAccount account = dummyResourceHr.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
+        DummyAccount account = dummyResourceHr.getAccountByName(ACCOUNT_HERMAN_USERNAME);
         account.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_HT_FIST_NAME);
         account.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_HT_LAST_NAME);
 

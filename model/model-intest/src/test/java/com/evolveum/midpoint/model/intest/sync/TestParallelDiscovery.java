@@ -15,7 +15,6 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -35,7 +34,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -188,17 +186,13 @@ public class TestParallelDiscovery extends AbstractInitializedModelIntegrationTe
         return super.getNumberOfUsers() + NUMBER_OF_USERS;
     }
 
-    protected PrismObject<UserType> getDefaultActor() {
-        return userAdministrator;
-    }
-
     @Test
     public void test001Sanity() throws Exception {
         displayDumpable("Dummy resource azure", dummyResourceSteelBlue);
 
         // WHEN
-        ResourceSchema resourceSchemaSteelBlue = ResourceSchemaFactory.getRawSchema(resourceDummySteelBlueType);
-        ResourceSchema resourceSchemaSteelGrey = ResourceSchemaFactory.getRawSchema(resourceDummySteelGreyType);
+        var resourceSchemaSteelBlue = ResourceSchemaFactory.getBareSchema(resourceDummySteelBlueType);
+        var resourceSchemaSteelGrey = ResourceSchemaFactory.getBareSchema(resourceDummySteelGreyType);
 
         displayDumpable("Dummy steel blue resource schema", resourceSchemaSteelBlue);
         displayDumpable("Dummy steel grey resource schema", resourceSchemaSteelGrey);
@@ -211,15 +205,15 @@ public class TestParallelDiscovery extends AbstractInitializedModelIntegrationTe
     @Test
     public void test002SanityRefined() throws Exception {
         // WHEN
-        ResourceSchema refinedSchemaSteelBlue = ResourceSchemaFactory.getCompleteSchema(resourceDummySteelBlueType);
-        ResourceSchema refinedSchemaSteelGrey = ResourceSchemaFactory.getCompleteSchema(resourceDummySteelGreyType);
+        var refinedSchemaSteelBlue = ResourceSchemaFactory.getCompleteSchemaRequired(resourceDummySteelBlueType);
+        var refinedSchemaSteelGrey = ResourceSchemaFactory.getCompleteSchemaRequired(resourceDummySteelGreyType);
 
         displayDumpable("Dummy steel blue refined schema", refinedSchemaSteelBlue);
         displayDumpable("Dummy steel grey refined schema", refinedSchemaSteelGrey);
 
         // THEN
-        dummyResourceCtlSteelBlue.assertRefinedSchemaSanity(refinedSchemaSteelBlue);
-        dummyResourceCtlSteelGrey.assertRefinedSchemaSanity(refinedSchemaSteelGrey);
+        dummyResourceCtlSteelBlue.assertCompleteSchemaSanity(refinedSchemaSteelBlue);
+        dummyResourceCtlSteelGrey.assertCompleteSchemaSanity(refinedSchemaSteelGrey);
     }
 
     @Test
@@ -273,11 +267,11 @@ public class TestParallelDiscovery extends AbstractInitializedModelIntegrationTe
         SearchResultList<PrismObject<ShadowType>> shadowsGreyAfter = repositoryService.searchObjects(ShadowType.class, onSteelGreyQuery, null, result);
         display("Shadows on grey after", shadowsGreyAfter);
 
-        List<String> shadowNames = shadowsGreyAfter.stream().map(o -> o.getName().getOrig()).collect(Collectors.toList());
+        List<String> shadowNames = shadowsGreyAfter.stream().map(o -> o.getName().getOrig()).toList();
         Set<String> uniqueNames = new HashSet<>();
         List<String> duplicateNames = shadowNames.stream()
                 .filter(e -> !uniqueNames.add(e))
-                .collect(Collectors.toList());
+                .toList();
         System.out.println("Shadow (grey) names: " + shadowNames.size());
         System.out.println("Unique (grey) shadow names: " + uniqueNames.size());
         System.out.println("Duplicate (grey) names: " + duplicateNames);

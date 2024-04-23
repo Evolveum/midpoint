@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.schema.merger;
 
+import com.evolveum.midpoint.prism.OriginMarker;
+import com.evolveum.midpoint.prism.impl.BaseItemMerger;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

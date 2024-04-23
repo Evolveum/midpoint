@@ -61,10 +61,10 @@ public class ConstructionCollector<
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionCollector.class);
 
-    public ConstructionCollector(Function<EvaluatedAssignmentImpl<AH>, DeltaSetTriple<AC>> constructionTripleExtractor, FailableLensFunction<EC, K> keyGenerator, PrismContext prismContext) {
+    public ConstructionCollector(Function<EvaluatedAssignmentImpl<AH>, DeltaSetTriple<AC>> constructionTripleExtractor, FailableLensFunction<EC, K> keyGenerator) {
         this.constructionTripleExtractor = constructionTripleExtractor;
         this.keyGenerator = keyGenerator;
-        this.evaluatedConstructionMapTriple = prismContext.deltaFactory().createDeltaMapTriple();
+        this.evaluatedConstructionMapTriple = PrismContext.get().deltaFactory().createDeltaMapTriple();
     }
 
     public DeltaMapTriple<K, EvaluatedConstructionPack<EC>> getEvaluatedConstructionMapTriple() {

@@ -61,6 +61,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestTolerantAttributes"/>
             <class name="com.evolveum.midpoint.model.intest.TestScriptHooks"/>
             <class name="com.evolveum.midpoint.model.intest.TestEntitlements"/>
+            <class name="com.evolveum.midpoint.model.intest.associations.TestAssociations"/>
             <class name="com.evolveum.midpoint.model.intest.TestCaseIgnore"/>
             <class name="com.evolveum.midpoint.model.intest.TestIntent"/>
             <class name="com.evolveum.midpoint.model.intest.gensync.TestAssociationInbound"/>

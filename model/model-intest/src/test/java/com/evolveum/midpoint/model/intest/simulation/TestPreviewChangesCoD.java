@@ -21,8 +21,6 @@ import com.evolveum.midpoint.model.test.TestSimulationResult;
 
 import com.evolveum.midpoint.test.TestObject;
 
-import com.evolveum.midpoint.util.exception.CommonException;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -446,6 +444,10 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
             }
 
             if (Arrays.stream(COLLECT_COUNT_TYPES).noneMatch(c -> c.isAssignableFrom(clazz))) {
+                continue;
+            }
+
+            if (!repositoryService.supports(clazz)) {
                 continue;
             }
 

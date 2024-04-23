@@ -13,6 +13,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -101,8 +102,23 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     }
 
     @Override
-    public PrismContainerDefinition<C> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
-        return getItemDefinition().cloneWithReplacedDefinition(itemName, newDefinition);
+    public PrismContainerDefinition<C> cloneWithNewDefinition(QName newItemName, ItemDefinition newDefinition) {
+        return getItemDefinition().cloneWithNewDefinition(newItemName, newDefinition);
+    }
+
+    @Override
+    public @NotNull ItemDefinition<PrismContainer<C>> cloneWithNewName(@NotNull ItemName itemName) {
+        throw new UnsupportedOperationException("Implement if needed");
+    }
+
+    @Override
+    public @NotNull PrismContainerDefinition<?> cloneWithNewType(@NotNull QName newTypeName, @NotNull ComplexTypeDefinition newCtd) {
+        throw new UnsupportedOperationException("Implement if needed");
+    }
+
+    @Override
+    public Boolean isIndexed() {
+        return getItemDefinition().isIndexed();
     }
 
     @Override
@@ -121,8 +137,8 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     }
 
     @Override
-    public MutablePrismContainerDefinition<C> toMutable() {
-        return getItemDefinition().toMutable();
+    public PrismContainerDefinitionMutator<C> mutator() {
+        return getItemDefinition().mutator();
     }
 
     //TODO : unify with PrismContainerImpl findContainer();

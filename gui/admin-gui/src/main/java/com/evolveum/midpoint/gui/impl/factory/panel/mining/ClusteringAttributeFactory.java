@@ -1,26 +1,29 @@
 /*
- * Copyright (C) 2010-2023 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
+
 package com.evolveum.midpoint.gui.impl.factory.panel.mining;
 
-import com.evolveum.midpoint.gui.api.component.ClusteringAttributeSelectorPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.impl.factory.panel.AbstractInputGuiComponentFactory;
-import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.annotation.PostConstruct;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.impl.factory.panel.AbstractInputGuiComponentFactory;
+import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.ClusteringAttributeSelectorPanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 @Component
 public class ClusteringAttributeFactory extends AbstractInputGuiComponentFactory<ClusteringAttributeSettingType> {
@@ -37,8 +40,10 @@ public class ClusteringAttributeFactory extends AbstractInputGuiComponentFactory
 
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<ClusteringAttributeSettingType> panelCtx) {
-        ClusteringAttributeSelectorPanel clusteringAttributeSelectorPanel = new ClusteringAttributeSelectorPanel(panelCtx.getComponentId(),
-                new PropertyModel<>(panelCtx.getItemWrapperModel(), "value"), getProcessMode(panelCtx));
+        RoleAnalysisOptionType analysisOption = getAnalysisOption(panelCtx);
+        ClusteringAttributeSelectorPanel clusteringAttributeSelectorPanel = new ClusteringAttributeSelectorPanel(
+                panelCtx.getComponentId(),
+                new PropertyModel<>(panelCtx.getItemWrapperModel(), "value"), analysisOption.getProcessMode());
         clusteringAttributeSelectorPanel.setOutputMarkupId(true);
         return clusteringAttributeSelectorPanel;
     }
@@ -48,13 +53,8 @@ public class ClusteringAttributeFactory extends AbstractInputGuiComponentFactory
         return 100;
     }
 
-    @Override
-    public void configure(PrismPropertyPanelContext<ClusteringAttributeSettingType> panelCtx, org.apache.wicket.Component
-            component) {
-        component.setEnabled(panelCtx.getVisibleEnableBehavior().isEnabled());
-    }
 
-    public RoleAnalysisProcessModeType getProcessMode
+    public @Nullable RoleAnalysisOptionType getAnalysisOption
             (@NotNull PrismPropertyPanelContext<ClusteringAttributeSettingType> panelCtx) {
         IModel<PrismPropertyWrapper<ClusteringAttributeSettingType>> itemWrapperModel = panelCtx.getItemWrapperModel();
 
@@ -67,8 +67,7 @@ public class ClusteringAttributeFactory extends AbstractInputGuiComponentFactory
                         if (parent.getParent().getParent() != null) {
                             Object realValue = parent.getParent().getParent().getRealValue();
                             if (realValue instanceof RoleAnalysisSessionType session) {
-                                RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-                                return analysisOption.getProcessMode();
+                                return session.getAnalysisOption();
                             }
                         }
                     }
@@ -76,6 +75,6 @@ public class ClusteringAttributeFactory extends AbstractInputGuiComponentFactory
             }
         }
 
-        return RoleAnalysisProcessModeType.USER;
+        return null;
     }
 }

@@ -72,7 +72,7 @@ public class CacheInvalidationPerformanceTest extends AbstractSpringTest impleme
         OperationResult result = createOperationResult();
 
         // create the archetype - we should create reasonably sized object, as
-        ArchetypeType archetype = new ArchetypeType(getPrismContext())
+        ArchetypeType archetype = new ArchetypeType()
                 .name("name-initial")
                 .displayName("some display name")
                 .locality("some locality")

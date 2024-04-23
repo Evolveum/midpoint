@@ -102,7 +102,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 
         ResourceSchema resourceSchema = null;
         try {
-            resourceSchema = ResourceSchemaFactory.getRawSchema(resourceObject);
+            resourceSchema = ResourceSchemaFactory.getBareSchema(resourceObject);
         } catch (Throwable t) {
             vr.add(Issue.Severity.WARNING, CAT_SCHEMA, C_NO_SCHEMA,
                     getString(CLASS_DOT + C_NO_SCHEMA, t.getMessage()),

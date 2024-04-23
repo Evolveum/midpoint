@@ -9,10 +9,10 @@ package com.evolveum.midpoint.schema.merger.objdef;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
-import com.evolveum.midpoint.schema.merger.BaseItemMerger;
+import com.evolveum.midpoint.prism.impl.BaseItemMerger;
 import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
-import com.evolveum.midpoint.schema.merger.GenericItemMerger;
-import com.evolveum.midpoint.schema.merger.OriginMarker;
+import com.evolveum.midpoint.prism.impl.GenericItemMerger;
+import com.evolveum.midpoint.prism.OriginMarker;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 

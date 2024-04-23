@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
  * Fetches resource objects by their primary identifiers, handling the following methods:
  *
  * - {@link ResourceObjectConverter#fetchResourceObject(ProvisioningContext, ResourceObjectIdentification.WithPrimary,
- * AttributesToReturn, boolean, OperationResult)}
+ * ShadowItemsToReturn, boolean, OperationResult)}
  * - plus "fetch raw" called from various places, mainly related to entitlements
  */
 class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperation {
@@ -44,17 +44,17 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
             @NotNull ProvisioningContext ctx,
             @NotNull ResourceObjectIdentification.WithPrimary identification,
             boolean fetchAssociations,
-            @Nullable AttributesToReturn attributesToReturn,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         return new ResourceObjectFetchOperation(ctx, identification, fetchAssociations)
-                .execute(attributesToReturn, result);
+                .execute(shadowItemsToReturn, result);
     }
 
     /**
      * As {@link #execute(ProvisioningContext, ResourceObjectIdentification.WithPrimary, boolean,
-     * AttributesToReturn, OperationResult)} but without the "post-processing" contained in
+     * ShadowItemsToReturn, OperationResult)} but without the "post-processing" contained in
      * {@link ResourceObjectCompleter}.
      *
      * This means no simulated activation, associations, and so on.
@@ -70,10 +70,10 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
     }
 
     private @NotNull CompleteResourceObject execute(
-            AttributesToReturn attributesToReturn, OperationResult result)
+            ShadowItemsToReturn shadowItemsToReturn, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        var resourceObject = executeRaw(attributesToReturn, result);
+        var resourceObject = executeRaw(shadowItemsToReturn, result);
         return complete(resourceObject, result);
     }
 
@@ -82,7 +82,7 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
      * In the latter case, the repository is used to find the primary identifier.
      */
     private @NotNull ExistingResourceObject executeRaw(
-            @Nullable AttributesToReturn attributesToReturn,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
@@ -92,7 +92,7 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
         ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, result);
         try {
             UcfResourceObject object =
-                    connector.fetchObject(primaryIdentification, attributesToReturn, ctx.getUcfExecutionContext(), result);
+                    connector.fetchObject(primaryIdentification, shadowItemsToReturn, ctx.getUcfExecutionContext(), result);
             return ExistingResourceObject.fromUcf(object, ctx.getResourceRef());
         } catch (ObjectNotFoundException e) {
             // Not finishing the result because we did not create it! (The same for other catch clauses.)

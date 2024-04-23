@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.web.page.admin.objectCollection;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
@@ -22,7 +21,7 @@ import org.apache.wicket.model.IModel;
 public class ObjectCollectionSummaryPanel extends ObjectSummaryPanel<ObjectCollectionType> {
 
     public ObjectCollectionSummaryPanel(String id, IModel<ObjectCollectionType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
-        super(id, ObjectCollectionType.class, model, summaryPanelSpecificationType);
+        super(id, model, summaryPanelSpecificationType);
     }
 
     @Override

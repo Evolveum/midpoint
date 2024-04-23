@@ -10,19 +10,16 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.common.expression.evaluator.transformation.ValueTransformationContext;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -34,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Radovan Semancik
  */
-public class AssignmentTargetSearchExpressionEvaluator
+class AssignmentTargetSearchExpressionEvaluator
             extends AbstractSearchExpressionEvaluator<
                 PrismContainerValue<AssignmentType>,
                 AssignmentHolderType,
@@ -59,18 +56,14 @@ public class AssignmentTargetSearchExpressionEvaluator
 
     @Override
     Evaluation createEvaluation(
-            VariablesMap variables,
-            PlusMinusZero valueDestination,
-            boolean useNew,
-            ExpressionEvaluationContext context,
-            String contextDescription,
-            Task task,
-            OperationResult result) throws SchemaException {
+            @NotNull ValueTransformationContext vtCtx, @NotNull OperationResult result)
+            throws SchemaException {
 
-        return new Evaluation(variables, valueDestination, useNew, context, contextDescription, task, result) {
+        return new Evaluation(vtCtx, result) {
 
             protected @NotNull PrismContainerValue<AssignmentType> createResultValue(
                     String oid,
+                    @NotNull QName objectTypeName,
                     PrismObject<AssignmentHolderType> object,
                     List<ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>> newValueDeltas)
                     throws SchemaException {
@@ -81,7 +74,7 @@ public class AssignmentTargetSearchExpressionEvaluator
                 ObjectReferenceType ref =
                         new ObjectReferenceType()
                                 .oid(oid)
-                                .type(targetTypeQName)
+                                .type(objectTypeName)
                                 .relation(assignmentPropertiesSpec != null ? assignmentPropertiesSpec.getRelation() : null);
                 ref.asReferenceValue().setObject(object);
 
@@ -98,8 +91,7 @@ public class AssignmentTargetSearchExpressionEvaluator
                 }
                 prismContext.adopt(assignmentCVal, FocusType.COMPLEX_TYPE, FocusType.F_ASSIGNMENT);
                 if (InternalsConfig.consistencyChecks) {
-                    assignmentCVal.assertDefinitions(
-                            () -> "assignmentCVal in assignment expression in " + context.getContextDescription());
+                    assignmentCVal.assertDefinitions(() -> "assignmentCVal in assignment expression in " + vtCtx);
                 }
                 return assignmentCVal;
             }

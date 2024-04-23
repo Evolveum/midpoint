@@ -17,6 +17,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -440,11 +442,6 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
         return getItemDefinition().isValidFor(elementQName, clazz, caseInsensitive);
     }
 
-    @Override
-    public void adoptElementDefinitionFrom(ItemDefinition otherDef) {
-        getItemDefinition().adoptElementDefinitionFrom(otherDef);
-    }
-
     @NotNull
     @Override
     public I instantiate() throws SchemaException {
@@ -489,18 +486,8 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
     }
 
     @Override
-    public boolean canBeDefinitionOf(I item) {
-        return getItemDefinition().canBeDefinitionOf(item);
-    }
-
-    @Override
-    public boolean canBeDefinitionOf(@NotNull PrismValue pvalue) {
-        return getItemDefinition().canBeDefinitionOf(pvalue);
-    }
-
-    @Override
-    public MutableItemDefinition<I> toMutable() {
-        return getItemDefinition().toMutable();
+    public ItemDefinitionMutator mutator() {
+        return getItemDefinition().mutator();
     }
 
     @Override
@@ -545,6 +532,26 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
     }
 
     @Override
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return getItemDefinition().getNaturalKeyConstituents();
+    }
+
+    @Override
+    public @Nullable String getMergerIdentifier() {
+        return getItemDefinition().getMergerIdentifier();
+    }
+
+    @Override
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
+        return getItemDefinition().getNaturalKeyInstance();
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return getItemDefinition().getMergerInstance(strategy, originMarker);
+    }
+
+    @Override
     public boolean isAlwaysUseForEquals() {
         return getItemDefinition().isAlwaysUseForEquals();
     }
@@ -577,11 +584,6 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
     }
 
     @Override
-    public PrismContext getPrismContext() {
-        return getItemDefinition().getPrismContext();
-    }
-
-    @Override
     public Class<?> getTypeClass() {
         return getItemDefinition().getTypeClass();
     }
@@ -589,11 +591,6 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
     @Override
     public <A> A getAnnotation(QName qname) {
         return getItemDefinition().getAnnotation(qname);
-    }
-
-    @Override
-    public <A> void setAnnotation(QName qname, A value) {
-        getItemDefinition().setAnnotation(qname, value);
     }
 
     @Override

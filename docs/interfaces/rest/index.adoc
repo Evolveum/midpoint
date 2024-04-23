@@ -277,7 +277,7 @@ xref:/midpoint/reference/interfaces/midpoint-client-java/[MidPoint Client Librar
 3. xref:/midpoint/reference/interfaces/rest/operations/examples/create-user.adoc[Create User with the REST API]
 4. xref:/midpoint/reference/interfaces/rest/operations/examples/user-pwd-reset.adoc[Password reset by Administrator]
 5. xref:/midpoint/reference/interfaces/rest/operations/examples/access-request/[User access request]
-6. xref:/midpoint/reference/interfaces/rest/operations/examples/access-request-review/[Access request review]
+6. xref:/midpoint/reference/interfaces/rest/operations/examples/access-request-approval/[Access request review]
 
 
 == See Also

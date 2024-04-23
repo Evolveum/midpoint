@@ -118,7 +118,7 @@ public abstract class RContainerReference extends RReference implements EntitySt
         return Objects.hash(referenceType);
     }
 
-    public static void copyToJAXB(RContainerReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
+    public static void copyToJAXB(RContainerReference repo, ObjectReferenceType jaxb) {
         Objects.requireNonNull(repo, "Repo object must not be null.");
         Objects.requireNonNull(jaxb, "JAXB object must not be null.");
 
@@ -129,7 +129,7 @@ public abstract class RContainerReference extends RReference implements EntitySt
 
     public ObjectReferenceType toJAXB(PrismContext prismContext) {
         ObjectReferenceType ref = new ObjectReferenceType();
-        copyToJAXB(this, ref, prismContext);
+        copyToJAXB(this, ref);
 
         return ref;
     }

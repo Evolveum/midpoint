@@ -12,7 +12,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.prism.path.ItemName;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -80,8 +81,13 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     }
 
     @Override
-    public MutablePrismPropertyDefinition<T> toMutable() {
-        return getItemDefinition().toMutable();
+    public @NotNull ItemDefinition<PrismProperty<T>> cloneWithNewName(@NotNull ItemName itemName) {
+        throw new UnsupportedOperationException("Implement if needed");
+    }
+
+    @Override
+    public @NotNull PrismPropertyDefinitionMutator<T> mutator() {
+        return getItemDefinition().mutator();
     }
 
     @NotNull

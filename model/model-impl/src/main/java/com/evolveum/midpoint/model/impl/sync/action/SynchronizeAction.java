@@ -27,9 +27,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser",
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#synchronize" })
 @ActionDefinitionClass(SynchronizeSynchronizationActionType.class)
-public class SynchronizeAction<F extends FocusType> extends BaseClockworkAction<F> {
+class SynchronizeAction<F extends FocusType> extends BaseClockworkAction<F> {
 
-    public SynchronizeAction(@NotNull ActionInstantiationContext<F> ctx) {
+    SynchronizeAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);
     }
 

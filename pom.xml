@@ -242,7 +242,7 @@
         <groovy.version>4.0.11</groovy.version>
         <xmlsec.version>2.2.6</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
-        <connid.version>1.5.2.0</connid.version>
+        <connid.version>1.6.0.0-SNAPSHOT</connid.version>
         <derby.version>10.16.1.1</derby.version>
         <poi.version>5.2.3</poi.version>
         <!-- Version for classgraph must the one declared in Prism -->
@@ -390,11 +390,6 @@
                 <groupId>org.wicketstuff</groupId>
                 <artifactId>wicketstuff-select2</artifactId>
                 <version>${wicketstuff.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.wicket</groupId>
-                <artifactId>wicket-datetime</artifactId>
-                <version>8.0.0-M7</version>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.chartjs</groupId>
@@ -1133,7 +1128,12 @@
             <dependency>
                 <groupId>com.nimbusds</groupId>
                 <artifactId>nimbus-jose-jwt</artifactId>
-                <version>9.15.2</version>
+                <version>9.37.3</version>
+            </dependency>
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>2.5.1</version>
             </dependency>
 
             <dependency>

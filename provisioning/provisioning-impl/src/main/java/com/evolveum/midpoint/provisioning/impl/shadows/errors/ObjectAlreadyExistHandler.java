@@ -172,7 +172,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
             }
         }
         q = q.none().endBlock().and();
-        q = q.item(ShadowType.F_RESOURCE_REF).ref(shadow.getResourceOid()).and();
+        q = q.item(ShadowType.F_RESOURCE_REF).ref(shadow.getResourceOidRequired()).and();
         return q.item(ShadowType.F_OBJECT_CLASS).eq(shadow.getObjectClassName()).build();
     }
 

@@ -192,7 +192,7 @@ public class LoginAssignmentCollector {
         String lifecycleState = focusBean.getLifecycleState();
         try {
             return LensUtil.getForcedAssignments( // [EP:APSO] DONE
-                    lifecycleModel, lifecycleState, objectResolver, prismContext, task, result);
+                    lifecycleModel, lifecycleState, objectResolver, task, result);
         } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
                 | ExpressionEvaluationException | SchemaException e) {
             // We continue because of login mode.

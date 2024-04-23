@@ -48,7 +48,7 @@ public class AccCertExpressionHelper {
         QName xsdType = XsdTypeMapper.toXsdType(resultClass);
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<T> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, xsdType);
+        PrismPropertyDefinition<T> resultDef = prismContext.definitionFactory().newPropertyDefinition(resultName, xsdType);
 
         Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
                 expressionFactory.makeExpression(
@@ -83,7 +83,8 @@ public class AccCertExpressionHelper {
             ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismReferenceDefinition resultDef = prismContext.definitionFactory().createReferenceDefinition(resultName, ObjectReferenceType.COMPLEX_TYPE);
+        PrismReferenceDefinition resultDef =
+                prismContext.definitionFactory().newReferenceDefinition(resultName, ObjectReferenceType.COMPLEX_TYPE);
 
         Expression<PrismReferenceValue,PrismReferenceDefinition> expression =
                 expressionFactory.makeExpression(

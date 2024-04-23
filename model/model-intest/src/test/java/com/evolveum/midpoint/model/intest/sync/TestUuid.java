@@ -208,7 +208,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        DummyAccount oldAccount = dummyResourceUuid.getAccountByUsername(ACCOUNT_AUGUSTUS_NAME);
+        DummyAccount oldAccount = dummyResourceUuid.getAccountByName(ACCOUNT_AUGUSTUS_NAME);
         displayDumpable("Deleting account", oldAccount);
         dummyResourceUuid.deleteAccountByName(ACCOUNT_AUGUSTUS_NAME);
         assertNoDummyAccount(ACCOUNT_AUGUSTUS_NAME, ACCOUNT_AUGUSTUS_NAME);
@@ -218,7 +218,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_AUGUSTUS_FULLNAME);
         newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, USER_AUGUSTUS_NAME);
         dummyResourceUuid.addAccount(newAccount);
-        newAccount = dummyResourceUuid.getAccountByUsername(ACCOUNT_AUGUSTUS_NAME);
+        newAccount = dummyResourceUuid.getAccountByName(ACCOUNT_AUGUSTUS_NAME);
         displayDumpable("Created account", newAccount);
 
         assertThat(oldAccount.getId())
@@ -291,7 +291,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        DummyAccount oldAccount = dummyResourceUuid.getAccountByUsername(ACCOUNT_AUGUSTUS_NAME);
+        DummyAccount oldAccount = dummyResourceUuid.getAccountByName(ACCOUNT_AUGUSTUS_NAME);
         dummyResourceUuid.deleteAccountByName(ACCOUNT_AUGUSTUS_NAME);
         assertNoDummyAccount(ACCOUNT_AUGUSTUS_NAME, ACCOUNT_AUGUSTUS_NAME);
 
@@ -300,7 +300,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_AUGUSTINA_FULLNAME);
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, USER_AUGUSTUS_NAME);
         dummyResourceUuid.addAccount(account);
-        account = dummyResourceUuid.getAccountByUsername(ACCOUNT_AUGUSTINA_NAME);
+        account = dummyResourceUuid.getAccountByName(ACCOUNT_AUGUSTINA_NAME);
 
         assertThat(oldAccount.getId())
                 .as("oldAccount ID")

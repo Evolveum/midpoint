@@ -12,7 +12,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperat
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -29,7 +28,6 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
@@ -71,11 +69,9 @@ public class ProvisioningUtil {
             throws SchemaException {
         ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
 
-        MutablePrismPropertyDefinition<?> scriptArgumentDefinition =
-                PrismContext.get().definitionFactory().createPropertyDefinition(
-                        FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING);
-        scriptArgumentDefinition.setMinOccurs(0);
-        scriptArgumentDefinition.setMaxOccurs(-1);
+        PrismPropertyDefinition<?> scriptArgumentDefinition =
+                PrismContext.get().definitionFactory().newPropertyDefinition(
+                        FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, 0, -1);
 
         for (ProvisioningScriptArgumentType argument : scriptBean.getArgument()) {
             ExecuteScriptArgument arg = new ExecuteScriptArgument(

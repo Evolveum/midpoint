@@ -742,7 +742,7 @@ public class TestDelayedEnable extends AbstractStoryTest {
     @Test
     public void test230HrDisableGuybrush() throws Exception {
         getDummyResourceHr()
-                .getAccountByUsername(ACCOUNT_GUYBRUSH_USERNAME)
+                .getAccountByName(ACCOUNT_GUYBRUSH_USERNAME)
                 .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, EXT_HR_STATUS_DISABLED);
 
         hrModifyTsStart = clock.currentTimeXMLGregorianCalendar();

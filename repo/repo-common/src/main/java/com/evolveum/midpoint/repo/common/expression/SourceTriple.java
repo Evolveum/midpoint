@@ -26,8 +26,8 @@ public class SourceTriple<V extends PrismValue,D extends ItemDefinition<?>> exte
     @NotNull
     private final Source<V,D> source;
 
-    public SourceTriple(@NotNull Source<V, D> source, PrismContext prismContext) {
-        super(prismContext);
+    public SourceTriple(@NotNull Source<V, D> source) {
+        super();
         this.source = source;
     }
 

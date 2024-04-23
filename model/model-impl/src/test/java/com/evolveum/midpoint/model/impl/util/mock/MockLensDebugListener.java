@@ -56,7 +56,7 @@ public class MockLensDebugListener implements ClockworkInspector {
     }
 
     @Override
-    public <F extends ObjectType> void afterMappingEvaluation(ModelContext<F> context, Mapping<?,?> evaluatedMapping) {
+    public void afterMappingEvaluation(Mapping<?,?> evaluatedMapping) {
     }
 
     @Override

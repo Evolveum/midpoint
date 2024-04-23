@@ -236,7 +236,7 @@ class EntitlementConverter {
             var simulationDefinition = associationDef.getSimulationDefinitionRequired();
             var binding = simulationDefinition.getPrimaryAttributeBinding(); // e.g. account "ri:dn" <-> group "ri:member"
 
-            for (var objectDelineation : simulationDefinition.getObjectDelineations()) {
+            for (var objectDelineation : simulationDefinition.getObjects()) {
 
                 // TODO clear the relevant parts of the context
                 var entitlementCtx = subjectCtx.spawnForDefinition(objectDelineation.getObjectDefinition());
@@ -299,18 +299,15 @@ class EntitlementConverter {
     }
 
     private ResourceObjectDiscriminator getEntitlementDiscriminator(
-            IterableAssociationValue associationValue,
+            IterableAssociationValue iterableAssociationValue,
             ProvisioningContext entitlementCtx,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
         // this identification may be secondary-only
-        var rawEntitlementIdentification =
-                ResourceObjectIdentification.fromAssociationValue(
-                        entitlementCtx.getObjectDefinitionRequired(),
-                        associationValue.associationPcv());
-        var identification =
-                b.resourceObjectReferenceResolver.resolvePrimaryIdentifier(entitlementCtx, rawEntitlementIdentification, result);
-        return ResourceObjectDiscriminator.of(identification);
+        var providedEntitlementIdentification = iterableAssociationValue.associationValue().getIdentification();
+        var primaryIdentification =
+                b.resourceObjectReferenceResolver.resolvePrimaryIdentifier(entitlementCtx, providedEntitlementIdentification, result);
+        return ResourceObjectDiscriminator.of(primaryIdentification);
     }
 
     /**

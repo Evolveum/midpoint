@@ -210,18 +210,6 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
             return super.getPanelConfigurations();
         }
 
-        List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
-        for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
-            if (containerPanelConfigurationType.getIdentifier().equals("outlierPanel")) {
-                if (!analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                }
-            }else if(containerPanelConfigurationType.getIdentifier().equals("detectedPattern")){
-                if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                }
-            }
-        }
         return panelConfigurations;
     }
 

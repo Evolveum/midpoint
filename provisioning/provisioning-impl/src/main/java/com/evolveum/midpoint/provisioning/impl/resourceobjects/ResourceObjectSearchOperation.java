@@ -9,7 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
+import com.evolveum.midpoint.provisioning.ucf.api.ShadowItemsToReturn;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,22 +49,22 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
     /** Query with delineation applied. */
     @NotNull private final QueryWithConstraints queryWithConstraints;
 
-    @Nullable private final AttributesToReturn attributesToReturn;
+    @Nullable private final ShadowItemsToReturn shadowItemsToReturn;
 
     /** Just for numbering the objects for diagnostics purposes (for now). */
     private final AtomicInteger objectCounter = new AtomicInteger(0);
 
-    ResourceObjectSearchOperation(
+    private ResourceObjectSearchOperation(
             @NotNull ProvisioningContext ctx,
             @NotNull ResourceObjectHandler resultHandler,
             @NotNull QueryWithConstraints queryWithConstraints,
-            @Nullable AttributesToReturn attributesToReturn,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
             boolean fetchAssociations,
             @Nullable FetchErrorReportingMethodType errorReportingMethod) {
         super(ctx, fetchAssociations, errorReportingMethod);
         this.resultHandler = resultHandler;
         this.queryWithConstraints = queryWithConstraints;
-        this.attributesToReturn = attributesToReturn;
+        this.shadowItemsToReturn = shadowItemsToReturn;
     }
 
     /** The standard case: definition and limitations are taken from the context. */
@@ -100,7 +100,7 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
             @NotNull ResourceObjectDefinition definition,
             @NotNull ResourceObjectHandler resultHandler,
             @NotNull QueryWithConstraints queryWithConstraints,
-            @Nullable AttributesToReturn attributesToReturn,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @SuppressWarnings("SameParameterValue") boolean fetchAssociations,
             @NotNull OperationResult parentResult)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
@@ -110,7 +110,7 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
             wildcardCtx.assertWildcard();
             var ctx = wildcardCtx.spawnForDefinition(definition);
             var operation = new ResourceObjectSearchOperation(
-                    ctx, resultHandler, queryWithConstraints, attributesToReturn, fetchAssociations,
+                    ctx, resultHandler, queryWithConstraints, shadowItemsToReturn, fetchAssociations,
                     FetchErrorReportingMethodType.EXCEPTION);
             return operation.execute(result);
         } catch (Throwable t) {
@@ -147,7 +147,7 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
                     objectDefinition,
                     query,
                     this::handleObjectFound,
-                    attributesToReturn,
+                    shadowItemsToReturn,
                     ctx.getEnabledCapability(PagedSearchCapabilityType.class),
                     queryWithConstraints.constraints(),
                     getUcfErrorReportingMethod(),

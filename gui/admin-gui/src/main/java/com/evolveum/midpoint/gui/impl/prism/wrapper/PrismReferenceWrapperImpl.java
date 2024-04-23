@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 import org.apache.wicket.model.IModel;
@@ -52,11 +53,6 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     }
 
     @Override
-    public QName getCompositeObjectElementName() {
-        return getItemDefinition().getCompositeObjectElementName();
-    }
-
-    @Override
     public boolean isComposite() {
         return getItemDefinition().isComposite();
     }
@@ -64,6 +60,16 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     @Override
     public @NotNull PrismReferenceDefinition clone() {
         return getItemDefinition().clone();
+    }
+
+    @Override
+    public @NotNull ItemDefinition<PrismReference> cloneWithNewName(@NotNull ItemName itemName) {
+        throw new UnsupportedOperationException("Implement if needed");
+    }
+
+    @Override
+    public Boolean isIndexed() {
+        return getItemDefinition().isIndexed();
     }
 
     @NotNull
@@ -179,5 +185,10 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
 
     public boolean isOnlyForDeltaComputation() {
         return onlyForDeltaComputation;
+    }
+
+    @Override
+    public PrismReferenceDefinitionMutator mutator() {
+        return getItemDefinition().mutator();
     }
 }

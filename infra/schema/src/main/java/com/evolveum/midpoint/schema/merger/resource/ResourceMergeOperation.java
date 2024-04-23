@@ -13,6 +13,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.
 
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.OriginMarker;
+import com.evolveum.midpoint.prism.impl.GenericItemMerger;
+import com.evolveum.midpoint.schema.OriginMarkerMixin;
 import com.evolveum.midpoint.schema.merger.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +34,7 @@ public class ResourceMergeOperation extends BaseMergeOperation<ResourceType> {
         super(target,
                 source,
                 new GenericItemMerger(
-                        OriginMarker.forOid(source.getOid(), ResourceType.COMPLEX_TYPE),
+                        OriginMarkerMixin.forOid(source.getOid(), ResourceType.COMPLEX_TYPE),
                         createPathMap(Map.of(
                                 // Resource name: we don't want to copy super-resource (e.g. template) name to the specific
                                 // resource object. Originally here was "required" but we no longer require the name - e.g.

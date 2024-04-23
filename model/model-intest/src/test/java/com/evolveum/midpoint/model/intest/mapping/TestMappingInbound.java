@@ -16,7 +16,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
-import javax.xml.namespace.QName;
 
 import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
@@ -38,8 +37,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -153,7 +150,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         TestUtil.assertSuccess(testResult);
 
         ResourceType resourceType = getDummyResourceType(RESOURCE_DUMMY_TEA_GREEN.name);
-        ResourceSchema returnedSchema = ResourceSchemaFactory.getRawSchema(resourceType);
+        ResourceSchema returnedSchema = ResourceSchemaFactory.getBareSchema(resourceType);
         displayDumpable("Parsed resource schema (tea-green)", returnedSchema);
         ResourceObjectDefinition accountDef = getDummyResourceController(RESOURCE_DUMMY_TEA_GREEN.name)
                 .assertDummyResourceSchemaSanityExtended(returnedSchema, resourceType, false,
@@ -695,7 +692,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).getAccountByUsername(ACCOUNT_LEELOO_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).getAccountByName(ACCOUNT_LEELOO_USERNAME);
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI);
 
         dummyAuditService.clear();
@@ -801,7 +798,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).getAccountByUsername(ACCOUNT_LEELOO_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).getAccountByName(ACCOUNT_LEELOO_USERNAME);
         account.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, ACCOUNT_LEELOO_PROOF_STRANGE);
 
         dummyAuditService.clear();
@@ -1060,7 +1057,7 @@ public class TestMappingInbound extends AbstractMappingTest {
     private @NotNull DummyAccount getMancombAccount()
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name)
-                .getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+                .getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("No mancomb account", account);
         return account;
     }

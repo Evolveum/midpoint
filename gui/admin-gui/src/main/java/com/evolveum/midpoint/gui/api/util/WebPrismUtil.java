@@ -339,7 +339,7 @@ public class WebPrismUtil {
         if (principal != null) {
             FocusType focus = principal.getFocus();
             if (focus != null) {
-                acquisitionType.setActorRef(ObjectTypeUtil.createObjectRef(focus, app.getPrismContext()));
+                acquisitionType.setActorRef(ObjectTypeUtil.createObjectRef(focus));
             }
         }
         acquisitionType.setChannel(GuiChannel.USER.getUri());

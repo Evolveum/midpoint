@@ -154,7 +154,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                         LensUtil.getForcedAssignments(
                                 focusContext.getLifecycleModel(),
                                 getNewObjectLifecycleState(focusContext),
-                                beans.modelObjectResolver, beans.prismContext, task, result);
+                                beans.modelObjectResolver, task, result);
         LOGGER.trace("Forced assignments: {}", forcedAssignments);
 
         LOGGER.trace("Task for process (operation result is not updated): {}",
@@ -523,7 +523,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                     .findItemDefinition(AssignmentHolderType.F_ASSIGNMENT);
         }
         definition = definition.clone();
-        definition.toMutable().setMaxOccurs(1);
+        definition.mutator().setMaxOccurs(1);
         return beans.prismContext.deltaFor(AssignmentHolderType.class)
                 .item(AssignmentHolderType.F_ASSIGNMENT, definition);
     }

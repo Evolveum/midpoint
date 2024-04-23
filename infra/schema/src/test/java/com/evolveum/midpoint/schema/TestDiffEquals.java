@@ -20,6 +20,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.*;
 
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
@@ -220,7 +221,6 @@ public class TestDiffEquals extends AbstractSchemaTest {
         assertTrue(user.getAssignment().contains(a2identical));
 
         ObjectDelta<UserType> delta1 = user.asPrismObject().createDelta(ChangeType.DELETE);       // delta1 is without prismContext
-        assertNull(delta1.getPrismContext());
 
         // (2) user with prismContext
 
@@ -238,12 +238,9 @@ public class TestDiffEquals extends AbstractSchemaTest {
         assertTrue(user.getAssignment().contains(b2identical));
 
         // b1 and b2 obtain context when they are added to the container
-        assertNotNull(b1.asPrismContainerValue().getPrismContext());
-        assertNotNull(b2.asPrismContainerValue().getPrismContext());
         assertFalse(b1.equals(b2));
 
         ObjectDelta<UserType> delta2 = userWithContext.asPrismObject().createDelta(ChangeType.DELETE);
-        assertNotNull(delta2.getPrismContext());
     }
 
     @Test
@@ -368,14 +365,14 @@ public class TestDiffEquals extends AbstractSchemaTest {
         PrismContainer<Containerable> shadow2Attrs = shadow2.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
 
         PrismProperty<String> attrEntryUuid = prismContext.itemFactory().createProperty(new QName(NS_TEST_RI, "entryUuid"));
-        PrismPropertyDefinition<String> attrEntryUuidDef = prismContext.definitionFactory().createPropertyDefinition(new QName(NS_TEST_RI, "entryUuid"),
+        PrismPropertyDefinition<String> attrEntryUuidDef = prismContext.definitionFactory().newPropertyDefinition(new QName(NS_TEST_RI, "entryUuid"),
                 DOMUtil.XSD_STRING);
         attrEntryUuid.setDefinition(attrEntryUuidDef);
         shadow2Attrs.add(attrEntryUuid);
         attrEntryUuid.addRealValue("1234-5678-8765-4321");
 
         PrismProperty<String> attrDn = prismContext.itemFactory().createProperty(new QName(NS_TEST_RI, "dn"));
-        PrismPropertyDefinition<String> attrDnDef = prismContext.definitionFactory().createPropertyDefinition(new QName(NS_TEST_RI, "dn"),
+        PrismPropertyDefinition<String> attrDnDef = prismContext.definitionFactory().newPropertyDefinition(new QName(NS_TEST_RI, "dn"),
                 DOMUtil.XSD_STRING);
         attrDn.setDefinition(attrDnDef);
         shadow2Attrs.add(attrDn);
@@ -500,9 +497,9 @@ public class TestDiffEquals extends AbstractSchemaTest {
 
         QName extensionPropertyName = new QName(NS_TEST_RI, "extensionProperty");
 
-        MutablePrismPropertyDefinition<String> extensionPropertyDef = prismContext.definitionFactory()
-                .createPropertyDefinition(extensionPropertyName, DOMUtil.XSD_STRING);
-        extensionPropertyDef.setRuntimeSchema(true);
+        PrismPropertyDefinition<String> extensionPropertyDef = prismContext.definitionFactory()
+                .newPropertyDefinition(extensionPropertyName, DOMUtil.XSD_STRING);
+        extensionPropertyDef.mutator().setRuntimeSchema(true);
 
         PrismProperty<String> propertyParsed = extensionPropertyDef.instantiate();
         PrismProperty<String> propertyRaw = extensionPropertyDef.instantiate();
@@ -541,5 +538,40 @@ public class TestDiffEquals extends AbstractSchemaTest {
             hash2 = user2.hashCode(strategy);
         }
         assertEquals("Hash codes are not equal (strategy=" + strategy + ")", hash1, hash2);
+    }
+
+    @Test
+    public void testNaturalKeysDiff() {
+        GuiObjectDetailsPageType details1 = new GuiObjectDetailsPageType();
+        VirtualContainersSpecificationType c3 = createContainer(3L, "id1", "description1");
+        details1.getContainer().add(c3);
+        details1.getContainer().add(createContainer(4L, "id2", "description2"));
+
+        GuiObjectDetailsPageType details2 = new GuiObjectDetailsPageType();
+        details2.getContainer().add(createContainer(5L, "id1", "description11111111"));
+
+        PrismContainer item1 = details1.asPrismContainerValue().findContainer(GuiObjectDetailsPageType.F_CONTAINER);
+        PrismContainer item2 = details2.asPrismContainerValue().findContainer(GuiObjectDetailsPageType.F_CONTAINER);
+
+        ContainerDelta<?> delta = item1.diff(item2);
+        AssertJUnit.assertNotNull(delta);
+
+        // PCV ID and natural key exists
+        // delta will contain only two item deltas, replace description and delete one container value
+        List<ItemDelta> deltas = item1.diffModifications(item2, ParameterizedEquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS);
+        AssertJUnit.assertEquals(2, deltas.size());
+
+        // no PCV ID, natural key will not be used
+        // delta will contain only one container delta with add/delete of whole values
+        c3.setId(null);
+        deltas = item1.diffModifications(item2, ParameterizedEquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS);
+        AssertJUnit.assertEquals(1, deltas.size());
+    }
+
+    private VirtualContainersSpecificationType createContainer(Long id, String identifier, String description) {
+        return new VirtualContainersSpecificationType()
+                .id(id)
+                .identifier(identifier)
+                .description(description);
     }
 }

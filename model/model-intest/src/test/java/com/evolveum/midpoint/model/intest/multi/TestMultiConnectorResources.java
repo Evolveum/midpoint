@@ -149,7 +149,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
                         ResourceType.F_ADDITIONAL_CONNECTOR,
                         additionalConnectorsContainer.getValue().getId(),
                         ConnectorInstanceSpecificationType.F_CONNECTOR_CONFIGURATION,
-                        SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
+                        SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME,
                         SCRIPT_RUNNER_INSTANCE_ID),
                 null);
         propertyDelta.setValueToReplace(
@@ -203,7 +203,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
                         ResourceType.F_ADDITIONAL_CONNECTOR,
                         additionalConnectorsContainer.getValue().getId(),
                         ConnectorInstanceSpecificationType.F_CONNECTOR_CONFIGURATION,
-                        SchemaConstants.ICF_CONFIGURATION_PROPERTIES),
+                        SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME),
                 null);
         PrismContainerValue<Containerable> containerValue = prismContext.itemFactory().createContainerValue();
         PrismProperty<String> property = prismContext.itemFactory().createProperty(SCRIPT_RUNNER_INSTANCE_ID);
@@ -261,7 +261,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
 
         //noinspection unchecked
         PrismContainer<Containerable> configurationPropertiesContainer =
-                prismContext.itemFactory().createContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES);
+                prismContext.itemFactory().createContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
         configurationPropertiesContainer.add(configurationPropertiesContainerValue);
 
         PrismContainerValue<Containerable> connectorConfigurationContainerValue =
@@ -281,7 +281,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
                 (PrismContainerValue<?>) containerDeltaAfter.getValuesToReplace().iterator().next();
         PrismProperty<?> propertyAfter = connectorConfigurationPcv.findProperty(
                 ItemPath.create(
-                        SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
+                        SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME,
                         SCRIPT_RUNNER_INSTANCE_ID));
         assertThat(propertyAfter.getDefinition()).as("definition").isNotNull();
 
@@ -321,7 +321,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
 
         //noinspection unchecked
         PrismContainer<Containerable> configurationPropertiesContainer =
-                prismContext.itemFactory().createContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES);
+                prismContext.itemFactory().createContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
         configurationPropertiesContainer.add(configurationPropertiesContainerValue);
 
         //noinspection unchecked
@@ -350,7 +350,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
         PrismProperty<?> propertyAfter = additionalContainerPcv.findProperty(
                 ItemPath.create(
                         ConnectorInstanceSpecificationType.F_CONNECTOR_CONFIGURATION,
-                        SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
+                        SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME,
                         SCRIPT_RUNNER_INSTANCE_ID));
 
         assertThat(propertyAfter.getDefinition()).as("definition").isNotNull();
@@ -369,7 +369,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
         provisioningService.applyDefinition(resourceAfter, task, result);
         Object valueAfter = resourceAfter.asObjectable().getAdditionalConnector().get(0)
                 .getConnectorConfiguration().asPrismContainerValue()
-                .findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES).getValue()
+                .findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME).getValue()
                 .findProperty(SCRIPT_RUNNER_INSTANCE_ID).getRealValue();
         assertThat(valueAfter).as("property value after").isEqualTo(expected);
     }

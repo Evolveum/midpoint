@@ -104,7 +104,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         display("ITSM intetegration connector", repoConnector);
 
         // Check connector schema
-        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector, prismContext);
+        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector);
     }
 
     @Test

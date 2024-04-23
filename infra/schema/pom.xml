@@ -177,6 +177,14 @@
                         <schemaFile>src/main/resources/xml/ns/public/common/api-types-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-3.xsd</schemaFile>
+                        <!--
+                        The following ones were not originally here. After fixing the schema parser in 4.9, they need to
+                        be parsed as well, otherwise the parsing fails, as the references to them cannot be resolved.
+                        TODO we should mark them somehow so that the docs for them won't be generated
+                        -->
+                        <schemaFile>src/main/resources/xml/ns/public/common/audit-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/resource/capabilities-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/connector-schema-3.xsd</schemaFile>
                     </schemaFiles>
                     <catalogFiles>
                         <catalogFile>src/compile/resources/jax-ws-catalog.xml</catalogFile>

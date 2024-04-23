@@ -14,9 +14,10 @@ import java.util.Collection;
  */
 public class DummyDelta {
 
-    private int syncToken;
-    private Class<? extends DummyObject> objectClass;
-    private String objectId;
+    private final int syncToken;
+    private final Class<? extends DummyObject> objectJavaClass;
+    private final String objectClassName;
+    private final String objectId;
     private String objectName;
     private DummyDeltaType type;
     private String attributeName;
@@ -24,9 +25,16 @@ public class DummyDelta {
     private Collection<Object> valuesDeleted = null;
     private Collection<Object> valuesReplaced = null;
 
-    DummyDelta(int syncToken, Class<? extends DummyObject> objectClass, String objectId, String objectName, DummyDeltaType type) {
+    DummyDelta(
+            int syncToken,
+            Class<? extends DummyObject> objectJavaClass,
+            String objectClassName,
+            String objectId,
+            String objectName,
+            DummyDeltaType type) {
         this.syncToken = syncToken;
-        this.objectClass = objectClass;
+        this.objectJavaClass = objectJavaClass;
+        this.objectClassName = objectClassName;
         this.objectId = objectId;
         this.objectName = objectName;
         this.type = type;
@@ -36,24 +44,16 @@ public class DummyDelta {
         return syncToken;
     }
 
-    public void setSyncToken(int syncToken) {
-        this.syncToken = syncToken;
+    public Class<? extends DummyObject> getObjectJavaClass() {
+        return objectJavaClass;
     }
 
-    public Class<? extends DummyObject> getObjectClass() {
-        return objectClass;
-    }
-
-    public void setObjectClass(Class<? extends DummyObject> objectClass) {
-        this.objectClass = objectClass;
+    public String getObjectClassName() {
+        return objectClassName;
     }
 
     public String getObjectId() {
         return objectId;
-    }
-
-    public void setObjectId(String accountId) {
-        this.objectId = accountId;
     }
 
     public String getObjectName() {
@@ -128,7 +128,7 @@ public class DummyDelta {
 
     private void dumpToString(StringBuilder sb) {
         sb.append("T=").append(syncToken);
-        sb.append(", c=").append(objectClass.getSimpleName());
+        sb.append(", c=").append(objectJavaClass.getSimpleName());
         sb.append(", id=").append(objectId);
         sb.append(", name=").append(objectName);
         sb.append(", t=").append(type);

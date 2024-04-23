@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
+import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluation;
 import com.evolveum.midpoint.prism.path.ItemName;
 
 import com.evolveum.midpoint.util.QNameUtil;
@@ -534,10 +535,9 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         SynchronizationPolicy synchronizationPolicy = getSynchronizationPolicy();
 
         UserType preFocus =
-                correlationService.computePreFocus(
+                PreMappingsEvaluation.computePreFocus(
                         account.getShadow(),
-                        resource,
-                        synchronizationPolicy,
+                        synchronizationPolicy.getObjectTypeDefinition(), resource,
                         UserType.class,
                         task,
                         result);
@@ -547,6 +547,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 resource,
                 resourceObjectTypeDefinition,
                 preFocus,
+                null,
                 systemConfiguration,
                 task);
     }
@@ -565,7 +566,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         displayDumpable("Correlation result", correlationResult);
         assertCandidateOwnersMap(
                 account.getExpectedCandidateOwners(false),
-                correlationResult.getCandidateOwnersMap());
+                correlationResult.getCandidateOwners());
     }
 
     private void assertCompleteCorrelationResult(
@@ -590,20 +591,17 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     }
 
     private void assertCandidateOwnersMap(
-            Collection<TestCandidateOwner> expectedOwnerOptions, CandidateOwnersMap completeResult) {
+            Collection<TestCandidateOwner> expectedOwnerOptions, CandidateOwners completeResult) {
         Set<TestCandidateOwner> realOwnerOptions = getRealOwnerOptions(completeResult);
         assertThat(realOwnerOptions)
                 .as("owner options")
                 .containsExactlyInAnyOrderElementsOf(expectedOwnerOptions);
     }
 
-    private @NotNull Set<TestCandidateOwner> getRealOwnerOptions(@NotNull CandidateOwnersMap candidateOwnersMap) {
-        Set<TestCandidateOwner> candidateOwnerSet = new HashSet<>();
-        for (CandidateOwner candidateOwner : candidateOwnersMap.values()) {
-            candidateOwnerSet.add(
-                    TestCandidateOwner.of(candidateOwner));
-        }
-        return candidateOwnerSet;
+    private @NotNull Set<TestCandidateOwner> getRealOwnerOptions(@NotNull CandidateOwners candidateOwners) {
+        return candidateOwners.objectBasedValues().stream()
+                .map(TestCandidateOwner::of)
+                .collect(Collectors.toSet());
     }
 
     private CorrelationCaseDescription<?> describeCorrelationCase(

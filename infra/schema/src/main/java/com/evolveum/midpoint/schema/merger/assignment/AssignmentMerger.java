@@ -7,23 +7,24 @@
 
 package com.evolveum.midpoint.schema.merger.assignment;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.schema.merger.BaseItemMerger;
-import com.evolveum.midpoint.schema.merger.OriginMarker;
+import com.evolveum.midpoint.prism.impl.BaseItemMerger;
+import com.evolveum.midpoint.prism.OriginMarker;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.schema.util.ShadowUtil.resolveDefault;
 
 /**
  * A merger specific to assignment: creates inheritance relations between the same assignments
@@ -86,6 +87,31 @@ public class AssignmentMerger extends BaseItemMerger<PrismContainer<AssignmentTy
         return equalsAssignmentWithoutIdentifier(def, source);
     }
 
+    private <O> Boolean match(List<Boolean> matchResults, O o1, O o2, BiFunction<O, O, Boolean> equals) {
+        if (o1 == null && o2 == null) {
+            matchResults.add(null);
+            return null;
+        }
+
+        if (o1 == null || o2 == null) {
+            matchResults.add(false);
+            return false;
+        }
+
+        boolean result = equals.apply(o1, o2);
+        matchResults.add(result);
+
+        return result;
+    }
+
+    private boolean nonNullMatch(ObjectReferenceType o1, ObjectReferenceType o2) {
+        if (o1 == null || o2 == null) {
+            return false;
+        }
+
+        return o1.asReferenceValue().equals(o2.asReferenceValue(), BaseItemMerger.VALUE_COMPARISON_STRATEGY);
+    }
+
     private boolean matchByAssignmentType(AssignmentType def, AssignmentType source, AssignmentTypeType type) {
         AssignmentTypeType targetType = getAssignmentType(def);
         if (!type.equals(targetType)) {
@@ -93,42 +119,32 @@ public class AssignmentMerger extends BaseItemMerger<PrismContainer<AssignmentTy
         }
         switch (targetType) {
             case CONSTRUCTION -> {
-                boolean allIsNull = true;
-                if (def.getConstruction().getResourceRef() != null
-                        && source.getConstruction().getResourceRef() != null) {
-                    if (!(def.getConstruction().getResourceRef().asReferenceValue().equals(
-                            source.getConstruction().getResourceRef().asReferenceValue(),
-                            BaseItemMerger.VALUE_COMPARISON_STRATEGY))) {
-                        return false;
-                    }
-                    allIsNull = false;
-                } else if (!(def.getConstruction().getResourceRef() == null
-                        && source.getConstruction().getResourceRef() == null)) {
+                ConstructionType defConstr = def.getConstruction();
+                ConstructionType sourceConstr = source.getConstruction();
+
+                List<Boolean> results = new ArrayList<>();
+                Boolean match = match(
+                        results, defConstr.getResourceRef(), sourceConstr.getResourceRef(),
+                        (defRes, sourceRes) -> nonNullMatch(defRes, sourceRes));
+                if (BooleanUtils.isFalse(match)) {
                     return false;
                 }
 
-                if (def.getConstruction().getKind() != null
-                        && source.getConstruction().getKind() != null) {
-                    if (!(def.getConstruction().getKind().equals(source.getConstruction().getKind()))) {
-                        return false;
-                    }
-                    allIsNull = false;
-                } else if (!(def.getConstruction().getKind() == null
-                        && source.getConstruction().getKind() == null)) {
+                match = match(
+                        results, defConstr.getKind(), sourceConstr.getKind(),
+                        (defKind, sourceKind) -> defKind.equals(sourceKind));
+                if (BooleanUtils.isFalse(match)) {
                     return false;
                 }
 
-                if (def.getConstruction().getIntent() != null
-                        && source.getConstruction().getIntent() != null) {
-                    if (!(def.getConstruction().getIntent().equals(source.getConstruction().getIntent()))) {
-                        return false;
-                    }
-                    allIsNull = false;
-                } else if (!(def.getConstruction().getIntent() == null
-                        && source.getConstruction().getIntent() == null)) {
+                match = match(
+                        results, defConstr.getIntent(), sourceConstr.getIntent(),
+                        (defIntent, sourceIntent) -> defIntent.equals(sourceIntent));
+                if (BooleanUtils.isFalse(match)) {
                     return false;
                 }
-                return !allIsNull;
+
+                return results.stream().allMatch(b -> b != null);
             }
 //            case FOCUS_MAPPING -> {
 //                List<String> targetMappingsNames = getMappingsNames(def.getFocusMappings());
@@ -139,48 +155,34 @@ public class AssignmentMerger extends BaseItemMerger<PrismContainer<AssignmentTy
 //                return sourceMappingsNames.stream().anyMatch(sourceName -> targetMappingsNames.contains(sourceName));
 //            }
             case PERSONA_CONSTRUCTION -> {
-                if (def.getPersonaConstruction().getObjectMappingRef() != null
-                        && source.getPersonaConstruction().getObjectMappingRef() != null
-                        && def.getPersonaConstruction().getObjectMappingRef().asReferenceValue().equals(
-                        source.getPersonaConstruction().getObjectMappingRef().asReferenceValue(),
-                        BaseItemMerger.VALUE_COMPARISON_STRATEGY)) {
-                    return true;
-                }
-                return false;
+                PersonaConstructionType defPersona = def.getPersonaConstruction();
+                PersonaConstructionType sourcePersona = source.getPersonaConstruction();
+
+                return nonNullMatch(defPersona.getObjectMappingRef(), sourcePersona.getObjectMappingRef());
             }
             case POLICY_RULE -> {
-                boolean allIsNull = true;
-                if (def.getPolicyRule().getName() != null
-                        && source.getPolicyRule().getName() != null) {
-                    if (!(def.getPolicyRule().getName().equals(source.getPolicyRule().getName()))) {
-                        return false;
-                    }
-                    allIsNull = false;
-                } else if (!(def.getPolicyRule().getName() == null
-                        && source.getPolicyRule().getName() == null)) {
+                PolicyRuleType defRule = def.getPolicyRule();
+                PolicyRuleType sourceRule = source.getPolicyRule();
+
+                List<Boolean> results = new ArrayList<>();
+                Boolean match = match(
+                        results, defRule.getName(), sourceRule.getName(),
+                        (defName, sourceName) -> defName.equals(sourceName));
+                if (BooleanUtils.isFalse(match)) {
                     return false;
                 }
 
-                if (def.getPolicyRule().getPolicySituation() != null
-                        && source.getPolicyRule().getPolicySituation() != null) {
-                    if (!(def.getPolicyRule().getPolicySituation().equals(source.getPolicyRule().getPolicySituation()))) {
-                        return false;
-                    }
-                    allIsNull = false;
-                } else if (!(def.getPolicyRule().getPolicySituation() == null
-                        && source.getPolicyRule().getPolicySituation() == null)) {
+                match = match(
+                        results, defRule.getPolicySituation(), sourceRule.getPolicySituation(),
+                        (defSituation, sourceSituation) -> defSituation.equals(sourceSituation));
+                if (BooleanUtils.isFalse(match)) {
                     return false;
                 }
-                return !allIsNull;
+
+                return results.stream().allMatch(b -> b != null);
             }
             case ABSTRACT_ROLE -> {
-                if (def.getTargetRef() != null
-                        && source.getTargetRef() != null
-                        && def.getTargetRef().asReferenceValue().equals(
-                        source.getTargetRef().asReferenceValue(), BaseItemMerger.VALUE_COMPARISON_STRATEGY)) {
-                    return true;
-                }
-                return false;
+                return nonNullMatch(def.getTargetRef(), source.getTargetRef());
             }
         }
         return false;

@@ -870,7 +870,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         display("executeChanges result", result);
         assertPartialError(result);
 
-        DummyAccount jackDummyAccount = getDummyResource().getAccountByUsername(USER_JACK_USERNAME);
+        DummyAccount jackDummyAccount = getDummyResource().getAccountByName(USER_JACK_USERNAME);
         assertNotNull("No jack dummy account", jackDummyAccount);
     }
 
@@ -904,7 +904,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         display("executeChanges result", result);
         assertFailure(result);
 
-        DummyAccount jackDummyAccount = getDummyResource().getAccountByUsername(USER_JACK_USERNAME);
+        DummyAccount jackDummyAccount = getDummyResource().getAccountByName(USER_JACK_USERNAME);
         assertNotNull("No jack dummy account", jackDummyAccount);
     }
 

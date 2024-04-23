@@ -26,8 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public enum ObjectTypes {
 
-    ROLE_ANALYSIS_OUTLIER(SchemaConstants.C_ROLE_ANALYSIS_OUTLIER_TYPE, SchemaConstants.C_ROLE_ANALYSIS_OUTLIER,
-            RoleAnalysisOutlierType.class, ObjectManager.MODEL, "roleAnalysisOutlier"),
     ROLE_ANALYSIS_SESSION(SchemaConstants.C_ROLE_ANALYSIS_SESSION_TYPE, SchemaConstants.C_ROLE_ANALYSIS_SESSION,
             RoleAnalysisSessionType.class, ObjectManager.MODEL, "roleAnalysisSession"),
     ROLE_ANALYSIS_CLUSTER(SchemaConstants.C_ROLE_ANALYSIS_CLUSTER_TYPE, SchemaConstants.C_ROLE_ANALYSIS_CLUSTER,
@@ -127,6 +125,14 @@ public enum ObjectTypes {
     SIMULATION_RESULT(
             SimulationResultType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SIMULATION_RESULT, SimulationResultType.class,
             ObjectManager.MODEL, "simulationResults"),
+
+    POLICY(
+            PolicyType.COMPLEX_TYPE, SchemaConstantsGenerated.C_POLICY, PolicyType.class,
+            ObjectManager.MODEL, "policies"),
+
+    SCHEMA(
+            SchemaType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SCHEMA, SchemaType.class,
+            ObjectManager.MODEL, "schemas"),
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");

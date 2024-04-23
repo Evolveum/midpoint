@@ -11,11 +11,18 @@ import java.util.*;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+import com.evolveum.midpoint.prism.path.ItemName;
+
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -40,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
 public class CompositeObjectDefinitionImpl
         extends AbstractFreezable
         implements CompositeObjectDefinition {
+
     @Serial private static final long serialVersionUID = 1L;
 
     private static final LayerType DEFAULT_LAYER = LayerType.MODEL;
@@ -50,6 +58,9 @@ public class CompositeObjectDefinitionImpl
 
     /** Lazily computed, but only when this instance is immutable. */
     private volatile List<ResourceAttributeDefinition<?>> allAttributeDefinitions;
+
+    /** Same as {@link #allAttributeDefinitions} but also for associations. */
+    private volatile List<ShadowItemDefinition<?, ?>> allShadowItemDefinitions;
 
     private PrismObjectDefinition<ShadowType> prismObjectDefinition;
 
@@ -65,7 +76,7 @@ public class CompositeObjectDefinitionImpl
 
         if (!allowMutableDefinitions) {
             this.structuralDefinition.checkImmutable();
-            this.auxiliaryDefinitions.forEach(ComplexTypeDefinition::checkImmutable);
+            this.auxiliaryDefinitions.forEach(Freezable::checkImmutable);
         }
     }
 
@@ -79,7 +90,7 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public @Nullable BasicResourceInformation getBasicResourceInformation() {
+    public @NotNull BasicResourceInformation getBasicResourceInformation() {
         return structuralDefinition.getBasicResourceInformation();
     }
 
@@ -101,28 +112,8 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public Class<?> getCompileTimeClass() {
-        return structuralDefinition.getCompileTimeClass();
-    }
-
-    @Override
-    public boolean isContainerMarker() {
-        return structuralDefinition.isContainerMarker();
-    }
-
-    @Override
     public boolean isPrimaryIdentifier(QName attrName) {
         return structuralDefinition.isPrimaryIdentifier(attrName);
-    }
-
-    @Override
-    public boolean isObjectMarker() {
-        return structuralDefinition.isObjectMarker();
-    }
-
-    @Override
-    public ItemProcessing getProcessing() {
-        return structuralDefinition.getProcessing();
     }
 
     @Override
@@ -139,6 +130,16 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
+    public @Nullable String getMergerIdentifier() {
+        return structuralDefinition.getMergerIdentifier();
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return structuralDefinition.getNaturalKeyConstituents();
+    }
+
+    @Override
     public boolean isEmphasized() {
         return structuralDefinition.isEmphasized();
     }
@@ -146,11 +147,6 @@ public class CompositeObjectDefinitionImpl
     @Override
     public boolean isAbstract() {
         return structuralDefinition.isAbstract();
-    }
-
-    @Override
-    public QName getSuperType() {
-        return structuralDefinition.getSuperType();
     }
 
     @Override
@@ -254,14 +250,8 @@ public class CompositeObjectDefinitionImpl
     // TODO - ok???
     @NotNull
     @Override
-    public Collection<ShadowAssociationDefinition> getAssociationDefinitions() {
+    public List<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
         return structuralDefinition.getAssociationDefinitions();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return structuralDefinition.isEmpty()
-                && auxiliaryDefinitions.stream().noneMatch(ComplexTypeDefinition::isEmpty);
     }
 
     @Override
@@ -285,8 +275,8 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull ResourceObjectClassDefinition getRawObjectClassDefinition() {
-        return structuralDefinition.getRawObjectClassDefinition();
+    public @NotNull NativeObjectClassDefinition getNativeObjectClassDefinition() {
+        return structuralDefinition.getNativeObjectClassDefinition();
     }
 
     @Override
@@ -312,6 +302,21 @@ public class CompositeObjectDefinitionImpl
     @Override
     public @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases() {
         return structuralDefinition.getDefaultInboundMappingEvaluationPhases();
+    }
+
+    @Override
+    public @NotNull FocusSpecification getFocusSpecification() {
+        return structuralDefinition.getFocusSpecification();
+    }
+
+    @Override
+    public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+        return structuralDefinition.getSynchronizationReactions();
+    }
+
+    @Override
+    public CorrelationDefinitionType getCorrelation() {
+        return structuralDefinition.getCorrelation();
     }
 
     @Override
@@ -352,9 +357,8 @@ public class CompositeObjectDefinitionImpl
         }
     }
 
-    @NotNull
     @Override
-    public synchronized List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
+    public @NotNull synchronized List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
         if (auxiliaryDefinitions.isEmpty()) {
             return structuralDefinition.getAttributeDefinitions();
         }
@@ -363,7 +367,7 @@ public class CompositeObjectDefinitionImpl
             return allAttributeDefinitions;
         }
 
-        List<ResourceAttributeDefinition<?>> collectedDefinitions = collectDefinitions();
+        List<ResourceAttributeDefinition<?>> collectedDefinitions = collectAttributeDefinitions();
         if (isImmutable()) {
             allAttributeDefinitions = collectedDefinitions;
         } else {
@@ -373,7 +377,7 @@ public class CompositeObjectDefinitionImpl
         return collectedDefinitions;
     }
 
-    private @NotNull List<ResourceAttributeDefinition<?>> collectDefinitions() {
+    private @NotNull List<ResourceAttributeDefinition<?>> collectAttributeDefinitions() {
         // Adds all attribute definitions from aux OCs that are not already known.
         ArrayList<ResourceAttributeDefinition<?>> collectedDefinitions =
                 new ArrayList<>(structuralDefinition.getAttributeDefinitions());
@@ -381,7 +385,7 @@ public class CompositeObjectDefinitionImpl
             for (ResourceAttributeDefinition<?> auxRAttrDef : auxiliaryObjectClassDefinition.getAttributeDefinitions()) {
                 boolean shouldAdd = true;
                 for (ResourceAttributeDefinition<?> def : collectedDefinitions) {
-                    if (def.getItemName().equals(auxRAttrDef.getItemName())) { // FIXME what about case insensitiveness?
+                    if (def.getItemName().equals(auxRAttrDef.getItemName())) { // FIXME what about case in-sensitiveness?
                         shouldAdd = false;
                         break;
                     }
@@ -395,13 +399,49 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
-        return getAttributeDefinitions();
+    public @NotNull synchronized Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions() {
+        if (auxiliaryDefinitions.isEmpty()) {
+            return structuralDefinition.getShadowItemDefinitions();
+        }
+
+        if (allShadowItemDefinitions != null) {
+            return allShadowItemDefinitions;
+        }
+
+        List<ShadowItemDefinition<?, ?>> collectedDefinitions = collectShadowItemDefinitions();
+        if (isImmutable()) {
+            allShadowItemDefinitions = collectedDefinitions;
+        } else {
+            // it's not safe to cache the definitions if this instance is mutable
+        }
+
+        return collectedDefinitions;
+    }
+
+    private @NotNull List<ShadowItemDefinition<?, ?>> collectShadowItemDefinitions() {
+        // Adds all definitions from aux OCs that are not already known.
+        ArrayList<ShadowItemDefinition<?, ?>> collectedDefinitions =
+                new ArrayList<>(structuralDefinition.getShadowItemDefinitions());
+        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
+            for (ShadowItemDefinition<?, ?> auxDef : auxiliaryObjectClassDefinition.getShadowItemDefinitions()) {
+                boolean shouldAdd = true;
+                for (var def : collectedDefinitions) {
+                    if (def.getItemName().equals(auxDef.getItemName())) { // FIXME what about case in-sensitiveness?
+                        shouldAdd = false;
+                        break;
+                    }
+                }
+                if (shouldAdd) {
+                    collectedDefinitions.add(auxDef);
+                }
+            }
+        }
+        return collectedDefinitions;
     }
 
     @Override
-    public PrismContext getPrismContext() {
-        return structuralDefinition.getPrismContext();
+    public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
+        return getAttributeDefinitions();
     }
 
     @Override
@@ -410,27 +450,6 @@ public class CompositeObjectDefinitionImpl
         for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
             auxiliaryObjectClassDefinition.revive(prismContext);
         }
-    }
-
-    @Override
-    public QName getExtensionForType() {
-        return structuralDefinition.getExtensionForType();
-    }
-
-    @Override
-    public boolean isXsdAnyMarker() {
-        return structuralDefinition.isXsdAnyMarker();
-    }
-
-    @Override
-    public String getDefaultNamespace() {
-        return structuralDefinition.getDefaultNamespace();
-    }
-
-    @NotNull
-    @Override
-    public List<String> getIgnoredNamespaces() {
-        return structuralDefinition.getIgnoredNamespaces();
     }
 
     @Override
@@ -456,18 +475,13 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public void merge(ComplexTypeDefinition otherComplexTypeDef) {
-        throw new UnsupportedOperationException("TODO implement if needed");
-    }
-
-    @Override
     public Class<?> getTypeClass() {
         return ShadowAttributesType.class;
     }
 
     @Override
-    public PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag) {
-        return structuralDefinition.createBlankShadow(resourceOid, tag);
+    public AbstractShadow createBlankShadowWithTag(String tag) {
+        return structuralDefinition.createBlankShadowWithTag(tag);
     }
 
     @Override
@@ -689,35 +703,14 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public boolean isListMarker() {
-        return structuralDefinition.isListMarker();
-    }
-
-    @Override
-    public @Nullable QName getDefaultItemTypeName() {
-        return null;
-    }
-
-    @Override
     public void trimTo(@NotNull Collection<ItemPath> paths) {
         structuralDefinition.trimTo(paths);
         auxiliaryDefinitions.forEach(def -> def.trimTo(paths));
     }
 
     @Override
-    public MutableResourceObjectClassDefinition toMutable() {
+    public ResourceObjectClassDefinition.ResourceObjectClassDefinitionMutator mutator() {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isReferenceMarker() {
-        return structuralDefinition.isReferenceMarker();
-    }
-
-    @NotNull
-    @Override
-    public Collection<TypeDefinition> getStaticSubTypes() {
-        return Collections.emptySet();
     }
 
     @Override
@@ -726,47 +719,14 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public <A> void setAnnotation(QName qname, A value) {
-        structuralDefinition.setAnnotation(qname, value);
-    }
-
-    @Override
     public @Nullable Map<QName, Object> getAnnotations() {
         return structuralDefinition.getAnnotations();
-    }
-
-    @Override
-    public Integer getInstantiationOrder() {
-        return structuralDefinition.getInstantiationOrder();
-    }
-
-    @Override
-    public boolean canRepresent(QName typeName) {
-        if (structuralDefinition.canRepresent(typeName)) {
-            return true;
-        }
-        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
-            if (auxiliaryObjectClassDefinition.canRepresent(typeName)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
     public void performFreeze() {
         structuralDefinition.freeze();
         auxiliaryDefinitions.forEach(Freezable::freeze);
-    }
-
-    @Override
-    public boolean hasSubstitutions() {
-        return false;
-    }
-
-    @Override
-    public Optional<ItemDefinition<?>> substitution(QName name) {
-        return Optional.empty();
     }
 
     @Override
@@ -817,5 +777,35 @@ public class CompositeObjectDefinitionImpl
     @Override
     public @NotNull ShadowCachingPolicyType getEffectiveShadowCachingPolicy() {
         return structuralDefinition.getEffectiveShadowCachingPolicy();
+    }
+
+    @Override
+    public @Nullable ItemName resolveFrameworkName(@NotNull String frameworkName) {
+        return FrameworkNameResolver.findInObjectDefinition(this, frameworkName);
+    }
+
+    @Override
+    public ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+        return structuralDefinition.getAttributeInboundDefinition(itemName);
+    }
+
+    @Override
+    public ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) throws SchemaException {
+        return structuralDefinition.getAssociationInboundDefinition(itemName);
+    }
+
+    @Override
+    public boolean hasAnyInbounds() {
+        return structuralDefinition.hasAnyInbounds();
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return structuralDefinition.getMergerInstance(strategy, originMarker);
+    }
+
+    @Override
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
+        return structuralDefinition.getNaturalKeyInstance();
     }
 }

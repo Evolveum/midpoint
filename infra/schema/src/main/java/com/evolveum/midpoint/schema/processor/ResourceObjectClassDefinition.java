@@ -7,22 +7,20 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.prism.DeepCloneOperation;
-
-import com.evolveum.midpoint.prism.path.ItemName;
-
-import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.DeepCloneOperation;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * Describes a resource object class (e.g. ri:inetOrgPerson).
+ * Describes a resource object class (e.g. `ri:inetOrgPerson`).
  *
- * It is basically a collection of attribute definitions, with a couple of other properties.
+ * It is basically a collection of attribute/association definitions, with a couple of other properties.
  */
 public interface ResourceObjectClassDefinition
         extends ResourceObjectDefinition {
@@ -42,10 +40,11 @@ public interface ResourceObjectClassDefinition
      *
      * @return native object class
      */
-    String getNativeObjectClass();
+    String getNativeObjectClassName();
 
     /**
-     * TODO
+     * Is this an auxiliary object class, i.e., a class that can be attached to an object that already holds the structural
+     * object class? This is originally an LDAP concept, but it may be applicable to other systems as well.
      */
     boolean isAuxiliary();
 
@@ -86,18 +85,16 @@ public interface ResourceObjectClassDefinition
         return ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, getTypeName());
     }
 
-    ResourceAttributeContainer instantiate(ItemName elementName);
+    @NotNull ResourceObjectClassDefinition clone();
 
-    @NotNull
-    ResourceObjectClassDefinition clone();
-
-    @NotNull
     @Override
-    ResourceObjectClassDefinition deepClone(@NotNull DeepCloneOperation operation);
+    @NotNull ResourceObjectClassDefinition deepClone(@NotNull DeepCloneOperation operation);
 
-    MutableResourceObjectClassDefinition toMutable();
+    /**
+     * Interface allowing modifications of an object class definition. TODO remove?
+     */
+    interface ResourceObjectClassDefinitionMutator extends ComplexTypeDefinition.ComplexTypeDefinitionMutator {
 
-    /** Returns a definition with specified {@link BasicResourceInformation}; throws an exception in case of conflicts. */
-    @NotNull ResourceObjectClassDefinition attachTo(@NotNull BasicResourceInformation resourceInformation)
-            throws SchemaException, ConfigurationException;
+        void add(ItemDefinition<?> definition);
+    }
 }

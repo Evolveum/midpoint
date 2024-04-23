@@ -11,16 +11,18 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
@@ -56,45 +58,46 @@ public class TestResourceSchema extends AbstractSchemaTest {
 
         // WHEN
 
-        ResourceSchema schema = ResourceSchemaParser.parse(DOMUtil.getFirstChildElement(schemaDom), RESOURCE_SCHEMA_SIMPLE_FILENAME);
+        var schema = ResourceSchemaFactory.parseNativeSchemaAsBare(schemaDom);
 
         // THEN
         assertSimpleSchema(schema, RESOURCE_SCHEMA_SIMPLE_FILENAME);
     }
 
-    private void assertSimpleSchema(ResourceSchema schema, String filename) {
+    @SuppressWarnings("SameParameterValue")
+    private void assertSimpleSchema(ResourceSchema schema, String filename) throws SchemaException {
         assertNotNull(schema);
         System.out.println("Parsed schema from " + filename + ":");
         System.out.println(schema.debugDump());
 
-        ResourceObjectClassDefinition accDef = schema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
+        ResourceObjectClassDefinition accDef = schema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
         assertEquals("Wrong account objectclass", RI_ACCOUNT_OBJECT_CLASS, accDef.getTypeName());
         assertTrue("Not a default account", accDef.isDefaultAccountDefinition());
 
         PrismPropertyDefinition<String> loginAttrDef = accDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "login"));
         assertEquals(new ItemName(MidPointConstants.NS_RI, "login"), loginAttrDef.getItemName());
         assertEquals(DOMUtil.XSD_STRING, loginAttrDef.getTypeName());
-        assertFalse("Ignored while it should not be", loginAttrDef.isIgnored());
+        assertTrue("Unreadable while it should not be", loginAttrDef.canRead());
 
         PrismPropertyDefinition<Integer> groupAttrDef = accDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "group"));
         assertEquals(new ItemName(MidPointConstants.NS_RI, "group"), groupAttrDef.getItemName());
         assertEquals(DOMUtil.XSD_INT, groupAttrDef.getTypeName());
-        assertFalse("Ignored while it should not be", groupAttrDef.isIgnored());
+        assertTrue("Unreadable while it should not be", groupAttrDef.canRead());
 
         PrismPropertyDefinition<String> ufoAttrDef = accDef.findPropertyDefinition(new ItemName(MidPointConstants.NS_RI, "ufo"));
         assertEquals(new ItemName(MidPointConstants.NS_RI, "ufo"), ufoAttrDef.getItemName());
-        assertTrue("Not ignored as it should be", ufoAttrDef.isIgnored());
+        assertFalse("Not unreadable as it should be", ufoAttrDef.canRead());
 
-        ResourceObjectClassDefinition groupDef = schema.findObjectClassDefinition(new ItemName(MidPointConstants.NS_RI, "GroupObjectClass"));
+        ResourceObjectClassDefinition groupDef = schema.findObjectClassDefinitionRequired(RI_GROUP_OBJECT_CLASS);
         assertEquals("Wrong group objectclass", new ItemName(MidPointConstants.NS_RI, "GroupObjectClass"), groupDef.getTypeName());
         assertFalse("Default group but it should not be", groupDef.isDefaultAccountDefinition());
     }
 
     // The support for the xsd:any properties is missing in JAXB generator. Otherwise this test should work.
     @Test(enabled = false)
-    public void testResourceSchemaJaxbRoundTrip() throws SchemaException {
+    public void testResourceSchemaJaxbRoundTrip() throws SchemaException, ConfigurationException {
         // GIVEN
-        ResourceSchema schema = createResourceSchema();
+        NativeResourceSchema schema = createResourceSchema();
 
         System.out.println("Resource schema before serializing to XSD: ");
         System.out.println(schema.debugDump());
@@ -119,7 +122,7 @@ public class TestResourceSchema extends AbstractSchemaTest {
         System.out.println(ObjectTypeUtil.dump(unmarshalledResource));
         XmlSchemaType unXmlSchemaType = unmarshalledResource.getSchema();
         Element unXsd = unXmlSchemaType.getDefinition().getAny().get(0);
-        ResourceSchema unSchema = ResourceSchemaParser.parse(unXsd, "unmarshalled resource");
+        var unSchema = ResourceSchemaFactory.parseNativeSchemaAsBare(unXsd);
 
         System.out.println("unmarshalled schema");
         System.out.println(unSchema.debugDump());
@@ -129,9 +132,9 @@ public class TestResourceSchema extends AbstractSchemaTest {
     }
 
     @Test
-    public void testResourceSchemaPrismRoundTrip() throws SchemaException {
+    public void testResourceSchemaPrismRoundTrip() throws SchemaException, ConfigurationException {
         // GIVEN
-        ResourceSchema schema = createResourceSchema();
+        NativeResourceSchema schema = createResourceSchema();
 
         System.out.println("Resource schema before serializing to XSD: ");
         System.out.println(schema.debugDump());
@@ -159,12 +162,12 @@ public class TestResourceSchema extends AbstractSchemaTest {
         System.out.println("unmarshalled resource");
         System.out.println(unmarshalledResource.debugDump());
 
-        Element unXsd = ResourceTypeUtil.getResourceXsdSchema(unmarshalledResource);
+        Element unXsd = Objects.requireNonNull(ResourceTypeUtil.getResourceXsdSchemaElement(unmarshalledResource));
 
         System.out.println("unmarshalled resource schema");
         System.out.println(DOMUtil.serializeDOMToString(unXsd));
 
-        ResourceSchema unSchema = ResourceSchemaParser.parse(unXsd, "unmarshalled resource schema");
+        var unSchema = ResourceSchemaFactory.parseNativeSchemaAsBare(unXsd);
 
         System.out.println("unmarshalled parsed schema");
         System.out.println(unSchema.debugDump());
@@ -191,7 +194,7 @@ public class TestResourceSchema extends AbstractSchemaTest {
     @Test
     public void testResourceSchemaSerializationDom() throws SchemaException {
         // GIVEN
-        ResourceSchema schema = createResourceSchema();
+        NativeResourceSchema schema = createResourceSchema();
 
         // WHEN
         Document xsdDocument = schema.serializeToXsd();
@@ -206,7 +209,7 @@ public class TestResourceSchema extends AbstractSchemaTest {
     @Test
     public void testResourceSchemaSerializationInResource() throws SchemaException {
         // GIVEN
-        ResourceSchema schema = createResourceSchema();
+        NativeResourceSchema schema = createResourceSchema();
 
         // WHEN
         Document xsdDocument = schema.serializeToXsd();
@@ -242,13 +245,11 @@ public class TestResourceSchema extends AbstractSchemaTest {
 
     private void assertDomSchema(Element xsdElement) {
         assertPrefix("xsd", xsdElement);
-        Element displayNameAnnotationElement = DOMUtil.findElementRecursive(xsdElement, PrismConstants.A_DISPLAY_NAME);
-        assertPrefix(PrismConstants.PREFIX_NS_ANNOTATION, displayNameAnnotationElement);
         Element identifierAnnotationElement = DOMUtil.findElementRecursive(xsdElement, MidPointConstants.RA_IDENTIFIER);
         assertPrefix("ra", identifierAnnotationElement);
         QName identifier = DOMUtil.getQNameValue(identifierAnnotationElement);
         assertEquals("Wrong <a:identifier> value namespace", SchemaConstants.ICFS_UID.getNamespaceURI(), identifier.getNamespaceURI());
-        assertEquals("Wrong <a:identifier> value localname", SchemaConstants.ICFS_UID.getLocalPart(), identifier.getLocalPart());
+        assertEquals("Wrong <a:identifier> value local name", SchemaConstants.ICFS_UID.getLocalPart(), identifier.getLocalPart());
         assertEquals("Wrong <a:identifier> value prefix", "icfs", identifier.getPrefix());
         Element dnaAnnotationElement = DOMUtil.findElementRecursive(xsdElement, MidPointConstants.RA_DISPLAY_NAME_ATTRIBUTE);
         assertPrefix("ra", dnaAnnotationElement);
@@ -258,30 +259,32 @@ public class TestResourceSchema extends AbstractSchemaTest {
         assertEquals("Wrong 'tns' prefix declaration", MidPointConstants.NS_RI, xsdElement.lookupNamespaceURI("tns"));
     }
 
-    private ResourceSchema createResourceSchema() {
-        ResourceSchemaImpl schema = new ResourceSchemaImpl();
+    private NativeResourceSchema createResourceSchema() {
+        var schema = new NativeResourceSchemaImpl();
 
-        // Property container
-        ResourceObjectClassDefinitionImpl containerDefinition = (ResourceObjectClassDefinitionImpl)
-                schema.createObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
-        containerDefinition.setDefaultAccountDefinition(true);
-        //containerDefinition.setDisplayName("The Account"); // currently not supported
-        containerDefinition.setNativeObjectClass("ACCOUNT");
+        // Object class definition
+        var accountDef = schema.newComplexTypeDefinitionLikeBuilder(ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+        accountDef.setDefaultAccountDefinition(true);
+        accountDef.setNativeObjectClassName("ACCOUNT");
 
         // ... in it ordinary attribute - an identifier
-        ResourceAttributeDefinition<?> icfUidDef =
-                containerDefinition.createAttributeDefinition(
-                        SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING, def -> {});
-        containerDefinition.addPrimaryIdentifierName(icfUidDef.getItemName());
+        var uidAttrDef = accountDef.newPropertyLikeDefinition(SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING);
+        accountDef.add(uidAttrDef);
+        accountDef.setPrimaryIdentifierName(SchemaConstants.ICFS_UID);
 
-        ResourceAttributeDefinition<?> xLoginDef =
-                containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING,
-                        def -> def.setNativeAttributeName("LOGIN"));
-        containerDefinition.setDisplayNameAttributeName(xLoginDef.getItemName());
+        var loginAttrName = new QName(NS_RI, "login");
+        var loginAttrDef = accountDef.newPropertyLikeDefinition(loginAttrName, DOMUtil.XSD_STRING);
+        loginAttrDef.setNativeAttributeName("LOGIN");
+        accountDef.add(loginAttrDef);
+        accountDef.setDisplayNameAttributeName(loginAttrName);
 
         // ... and local property with a type from another schema
-        containerDefinition.createAttributeDefinition("password", ProtectedStringType.COMPLEX_TYPE,
-                def -> def.setNativeAttributeName("PASSWORD"));
+        var passwordAttrName = new QName(NS_RI, "password");
+        var passwordAttrDef = accountDef.newPropertyLikeDefinition(passwordAttrName, ProtectedStringType.COMPLEX_TYPE);
+        passwordAttrDef.setNativeAttributeName("PASSWORD");
+        accountDef.add(passwordAttrDef);
+
+        schema.add(accountDef);
 
         return schema;
     }

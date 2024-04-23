@@ -53,6 +53,7 @@ public class ExpressionConstants {
     public static final String VAR_LOCALIZATION_SERVICE = "localizationService";
     public static final String VAR_CONFIGURATION = "configuration";
     public static final String VAR_ENTITLEMENT = "entitlement";
+    public static final String VAR_ASSOCIATED_SHADOW = "associatedShadow"; // TODO decide on this
     public static final String VAR_FILE = "file";
     public static final String VAR_PARENT_OBJECT = "parent";
     public static final String VAR_CANDIDATE = "candidate";

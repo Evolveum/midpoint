@@ -168,20 +168,21 @@ public class ProvisioningContextFactory {
     /**
      * Spawns the context for an object class on the same resource.
      *
-     * @param useRawDefinition If true, we want to get "raw" object class definition, not a refined (object class or type) one.
+     * @param useClassDefinition If true, we want to get "raw" object class definition, not a refined (object class or type) one.
+     * TODO clarify
      */
     ProvisioningContext spawnForObjectClass(
             @NotNull ProvisioningContext originalCtx,
             @NotNull Task task,
             @NotNull QName objectClassName,
-            boolean useRawDefinition) throws SchemaException, ConfigurationException {
+            boolean useClassDefinition) throws SchemaException, ConfigurationException {
         ResourceSchema resourceSchema = originalCtx.getResourceSchema();
         ResourceObjectDefinition definition = resourceSchema.findDefinitionForObjectClassRequired(objectClassName);
         ResourceObjectDefinition augmented = ResourceSchemaUtil.addOwnAuxiliaryObjectClasses(definition, resourceSchema);
         return new ProvisioningContext(
                 originalCtx,
                 task,
-                useRawDefinition ? augmented.getRawObjectClassDefinition() : augmented,
+                useClassDefinition ? augmented.getObjectClassDefinition() : augmented,
                 true);
     }
 
@@ -325,14 +326,8 @@ public class ProvisioningContextFactory {
     }
 
     /** Object type/class definition with `wholeClass` option. */
-    private static class ScopedDefinition {
-        @Nullable private final ResourceObjectDefinition definition;
-        @Nullable private final Boolean wholeClass;
-
-        private ScopedDefinition(@Nullable ResourceObjectDefinition definition, @Nullable Boolean wholeClass) {
-            this.definition = definition;
-            this.wholeClass = wholeClass;
-        }
+    private record ScopedDefinition(
+            @Nullable ResourceObjectDefinition definition, @Nullable Boolean wholeClass) {
     }
 
     @NotNull CommonBeans getCommonBeans() {

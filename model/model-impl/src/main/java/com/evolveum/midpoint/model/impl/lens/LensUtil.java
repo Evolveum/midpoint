@@ -18,8 +18,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
 
-import com.evolveum.midpoint.util.LocalizableMessage;
-
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -149,7 +147,7 @@ public class LensUtil {
             return accCtx.getIteration();
         }
         PrismPropertyDefinition<Integer> propDef = PrismContext.get().definitionFactory()
-                .createPropertyDefinition(ExpressionConstants.VAR_ITERATION_QNAME, DOMUtil.XSD_INT);
+                .newPropertyDefinition(ExpressionConstants.VAR_ITERATION_QNAME, DOMUtil.XSD_INT);
         PrismProperty<Integer> propOld = propDef.instantiate();
         propOld.setRealValue(iterationOld);
         PropertyDelta<Integer> propDelta = propDef.createEmptyDelta(ExpressionConstants.VAR_ITERATION_QNAME);
@@ -169,7 +167,7 @@ public class LensUtil {
             return accCtx.getIterationToken();
         }
         PrismPropertyDefinition<String> propDef = PrismContext.get().definitionFactory()
-                .createPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME, DOMUtil.XSD_STRING);
+                .newPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME, DOMUtil.XSD_STRING);
         PrismProperty<String> propOld = propDef.instantiate();
         propOld.setRealValue(iterationTokenOld);
         PropertyDelta<String> propDelta = propDef.createEmptyDelta(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME);
@@ -251,7 +249,7 @@ public class LensUtil {
             return formatIterationTokenDefault(iteration);
         }
         PrismContext prismContext = PrismContext.get();
-        PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME,
+        PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().newPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME,
                 DOMUtil.XSD_STRING);
         Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression =
                 expressionFactory.makeExpression(
@@ -263,9 +261,9 @@ public class LensUtil {
                         result);
 
         Collection<Source<?,?>> sources = new ArrayList<>();
-        MutablePrismPropertyDefinition<Integer> inputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_QNAME,
-                DOMUtil.XSD_INT);
-        inputDefinition.setMaxOccurs(1);
+        PrismPropertyDefinition<Integer> inputDefinition =
+                prismContext.definitionFactory().newPropertyDefinition(
+                        ExpressionConstants.VAR_ITERATION_QNAME, DOMUtil.XSD_INT, 0, 1);
         PrismProperty<Integer> input = inputDefinition.instantiate();
         input.addRealValue(iteration);
         ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(input);
@@ -337,7 +335,7 @@ public class LensUtil {
 
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null , variables, desc, task);
         eeContext.setExpressionFactory(expressionFactory);
-        ModelExpressionEnvironment<?,?,?> env = new ModelExpressionEnvironment<>(context, null, task, result);
+        ModelExpressionEnvironment<?,?> env = new ModelExpressionEnvironment<>(context, null, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple =
                 ExpressionUtil.evaluateExpressionInContext(expression, eeContext, env, result);
         Collection<PrismPropertyValue<Boolean>> outputValues = outputTriple.getNonNegativeValues();
@@ -377,7 +375,7 @@ public class LensUtil {
     // [EP:APSO] DONE origins are correct here
     public static @NotNull <R extends AbstractRoleType> List<AssignmentConfigItem> getForcedAssignments(
             LifecycleStateModelType lifecycleModel, String stateName,
-            ObjectResolver objectResolver, PrismContext prismContext, Task task, OperationResult result)
+            ObjectResolver objectResolver, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
@@ -391,7 +389,7 @@ public class LensUtil {
         if (forcedAssignmentSpec != null) {
             objectResolver.searchIterative(
                     forcedAssignmentSpec.type(),
-                    prismContext.queryFactory().createQuery(forcedAssignmentSpec.filter()),
+                    PrismContext.get().queryFactory().createQuery(forcedAssignmentSpec.filter()),
                     createReadOnlyCollection(),
                     (object, result1) -> {
                         forcedAssignments.add( // [EP:APSO] this results in pure generated assignment, no expressions
@@ -824,7 +822,7 @@ public class LensUtil {
         context.getSequences().clear();
     }
 
-    public static <AH extends AssignmentHolderType> void applyObjectPolicyConstraints(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy, PrismContext prismContext) throws SchemaException, ConfigurationException {
+    public static <AH extends AssignmentHolderType> void applyObjectPolicyConstraints(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy) throws SchemaException, ConfigurationException {
         if (archetypePolicy == null) {
             return;
         }
@@ -836,11 +834,11 @@ public class LensUtil {
         }
 
         for (ItemConstraintType itemConstraintType : archetypePolicy.getItemConstraint()) {
-            applyObjectPolicyItemConstraint(focusContext, archetypePolicy, prismContext, focusNew, itemConstraintType);
+            applyObjectPolicyItemConstraint(focusContext, archetypePolicy, focusNew, itemConstraintType);
         }
     }
 
-    private static <AH extends AssignmentHolderType> void applyObjectPolicyItemConstraint(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy, PrismContext prismContext, PrismObject<AH> focusNew, ItemConstraintType itemConstraintType) throws SchemaException, ConfigurationException {
+    private static <AH extends AssignmentHolderType> void applyObjectPolicyItemConstraint(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy, PrismObject<AH> focusNew, ItemConstraintType itemConstraintType) throws SchemaException, ConfigurationException {
         if (itemConstraintType.getPath() == null) {
             LOGGER.error("Invalid configuration. Path is mandatory for property constraint definition in {} defined in system configuration", archetypePolicy);
             throw new SchemaException("Invalid configuration. Path is mandatory for property constraint definition in " + archetypePolicy + " defined in system configuration.");
@@ -861,9 +859,9 @@ public class LensUtil {
                 }
                 PropertyDelta<Object> propDelta = propDef.createEmptyDelta(itemPath);
                 if (String.class.isAssignableFrom(propDef.getTypeClass())) {
-                    propDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(newValue, OriginType.USER_POLICY, null));
+                    propDelta.setValueToReplace(PrismContext.get().itemFactory().createPropertyValue(newValue, OriginType.USER_POLICY, null));
                 } else if (PolyString.class.isAssignableFrom(propDef.getTypeClass())) {
-                    propDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(new PolyString(newValue), OriginType.USER_POLICY, null));
+                    propDelta.setValueToReplace(PrismContext.get().itemFactory().createPropertyValue(new PolyString(newValue), OriginType.USER_POLICY, null));
                 } else {
                     throw new SchemaException("Unsupported type "+propDef.getTypeName()+" for property "+itemPath+" in "+focusDefinition+" as specified in object policy, only string and polystring properties are supported for OID-bound mode");
                 }
@@ -918,9 +916,9 @@ public class LensUtil {
     }
 
     public static @NotNull PrismPropertyDefinition<Boolean> createConditionDefinition() {
-        MutablePrismPropertyDefinition<Boolean> booleanDefinition =
+        PrismPropertyDefinition<Boolean> booleanDefinition =
                 PrismContext.get().definitionFactory()
-                        .createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN);
+                        .newPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN);
         booleanDefinition.freeze();
         return booleanDefinition;
     }

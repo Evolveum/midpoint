@@ -12,8 +12,10 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -58,6 +60,8 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_EDIT = "edit";
 
+    Popupable parentPopupableDialog = null;
+
     public ValueChoosePanel(String id, IModel<R> value) {
         super(id, value);
     }
@@ -67,6 +71,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
         super.onInitialize();
         initLayout();
         setOutputMarkupId(true);
+        initParentPopupableDialog();
     }
 
     private void initLayout() {
@@ -105,6 +110,10 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
         initButtons();
     }
 
+    private void initParentPopupableDialog() {
+        parentPopupableDialog = findParent(Popupable.class);
+    }
+
     protected Component createTextPanel(String id) {
         IModel<String> textModel = createTextModel();
         TextField<String> text = new TextField<>(id, textModel);
@@ -126,7 +135,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
     }
 
     protected void replaceIfEmpty(ObjectType object) {
-        ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object, getPageBase().getPrismContext());
+        ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object);
         getModel().setObject((R) ort);
 
     }
@@ -148,8 +157,8 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 
         }
 
-        ObjectFilter oidFilter = getPrismContext().queryFactory().createInOid(oidList);
-        query.setFilter(getPrismContext().queryFactory().createNot(oidFilter));
+        ObjectFilter oidFilter = PrismContext.get().queryFactory().createInOid(oidList);
+        query.setFilter(PrismContext.get().queryFactory().createNot(oidFilter));
 
         ObjectFilter customFilter = createCustomFilter();
         if (customFilter != null) {
@@ -198,6 +207,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
     }
 
     protected <O extends ObjectType> void editValuePerformed(AjaxRequestTarget target) {
+        PageBase pageBase = getPageBase();
         List<QName> supportedTypes = getSupportedTypes();
         ObjectFilter filter = createChooseQuery() == null ? null
                 : createChooseQuery().getFilter();
@@ -206,19 +216,19 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
         }
         Class<O> defaultType = getDefaultType(supportedTypes);
         ObjectBrowserPanel<O> objectBrowserPanel = new ObjectBrowserPanel<O>(
-                getPageBase().getMainPopupBodyId(), defaultType, supportedTypes, false, getPageBase(),
+                pageBase.getMainPopupBodyId(), defaultType, supportedTypes, false, pageBase,
                 filter) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSelectPerformed(AjaxRequestTarget target, O object) {
-                getPageBase().hideMainPopup(target);
                 ValueChoosePanel.this.choosePerformed(target, object);
+                managePopupDialogContent(pageBase, target);
             }
 
         };
 
-        getPageBase().showMainPopup(objectBrowserPanel, target);
+        pageBase.showMainPopup(objectBrowserPanel, target);
 
     }
 
@@ -292,5 +302,20 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 
     public AjaxLink getEditButton() {
         return (AjaxLink)getTextWrapperComponent().get(ID_EDIT);
+    }
+
+    protected void reloadPageFeedbackPanel(AjaxRequestTarget target) {
+        target.add(getPageBase().getFeedbackPanel());
+    }
+
+    //fix for open project ticket 9588
+    //if ValueChoosePanel is used in popup, ObjectBrowserPanel is opened in the second popup
+    //after the object is selected in ObjectBrowserPanel, the second popup is closed and the first one is shown again
+    private void managePopupDialogContent(PageBase pageBase, AjaxRequestTarget target) {
+        if (parentPopupableDialog != null) {
+            pageBase.showMainPopup(parentPopupableDialog, target);
+        } else {
+            pageBase.hideMainPopup(target);
+        }
     }
 }

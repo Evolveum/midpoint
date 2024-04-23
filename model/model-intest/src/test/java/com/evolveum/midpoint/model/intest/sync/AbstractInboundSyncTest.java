@@ -141,7 +141,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // Preconditions
         assertUsers(7);
 
-        DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount account = dummyResourceEmerald.getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
         when();
@@ -191,7 +191,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // Preconditions
         assertUsers(7);
 
-        DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount account = dummyResourceEmerald.getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
         when();
@@ -241,7 +241,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // Preconditions
         assertUsers(7);
 
-        DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount account = dummyResourceEmerald.getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
         when();
@@ -291,7 +291,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // Preconditions
         assertUsers(7);
 
-        DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount account = dummyResourceEmerald.getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
         when();
@@ -342,7 +342,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // Preconditions
         assertUsers(7);
 
-        DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount account = dummyResourceEmerald.getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
         when();
@@ -393,7 +393,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // Preconditions
         assertUsers(7);
 
-        DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount account = dummyResourceEmerald.getAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
         when();
@@ -505,7 +505,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // Preconditions
         assertUsers(8);
 
-        DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
+        DummyAccount account = dummyResourceEmerald.getAccountByName(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
 
         /// WHEN
         when();

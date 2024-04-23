@@ -10,7 +10,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.*;
@@ -75,9 +74,11 @@ public interface ConnectorInstance {
      * The connector instance must be operational at all times, even during re-configuration.
      * Operations cannot be interrupted or refused due to missing configuration.
      *
+     * Returns the same instance (`this`) to allow changed calls.
+     *
      * @param configuration new connector configuration (prism container value)
      */
-    void configure(
+    ConnectorInstance configure(
             @NotNull PrismContainerValue<?> configuration,
             @NotNull ConnectorConfigurationOptions options,
             @NotNull OperationResult result)
@@ -96,6 +97,8 @@ public interface ConnectorInstance {
      * If resource schema and capabilities are already cached by midPoint they may be passed to the connector instance.
      * Otherwise the instance may need to fetch them from the resource which may be less efficient.
      *
+     * Returns `this`.
+     *
      * NOTE: the capabilities and schema that are used here are NOT necessarily those that are detected by the resource.
      *       The detected schema will come later. The schema here is the one that is stored in the resource
      *       definition (ResourceType). This may be schema that was detected previously. But it may also be a schema
@@ -104,7 +107,7 @@ public interface ConnectorInstance {
      *       Most connectors will just ignore the schema and capabilities that are provided here.
      *       But some connectors may need it (e.g. CSV connector working with CSV file without a header).
      */
-    void initialize(
+    @NotNull ConnectorInstance initialize(
             @Nullable CompleteResourceSchema lastKnownResourceSchema,
             @Nullable CapabilityCollectionType lastKnownCapabilities,
             OperationResult result)
@@ -142,13 +145,10 @@ public interface ConnectorInstance {
      * The method may return a schema that was fetched previously, e.g. if the fetch operation was executed
      * during connector initialization.
      *
-     * @see PrismSchema
-     *
      * @return Up-to-date resource schema. Only raw information should be there, no refinements. May be immutable.
-     * @throws CommunicationException error in communication to the resource
-     *                - nothing was fetched.
+     * @throws CommunicationException error in communication to the resource - nothing was fetched.
      */
-    ResourceSchema fetchResourceSchema(OperationResult result)
+    NativeResourceSchema fetchResourceSchema(OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
     /**
@@ -171,7 +171,7 @@ public interface ConnectorInstance {
      */
     UcfResourceObject fetchObject(
             ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
-            AttributesToReturn attributesToReturn,
+            ShadowItemsToReturn shadowItemsToReturn,
             UcfExecutionContext ctx,
             OperationResult result)
         throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
@@ -198,7 +198,7 @@ public interface ConnectorInstance {
      * @param objectDefinition Definition of the object class of the objects being searched for. May be class or type scoped.
      * @param query Object query to be used.
      * @param handler Handler that is called for each object found.
-     * @param attributesToReturn Attributes that are to be returned; TODO describe exact semantics
+     * @param shadowItemsToReturn Attributes that are to be returned; TODO describe exact semantics
      * @param pagedSearchConfiguration Configuration (capability) describing how paged searches are to be done.
      * @param searchHierarchyConstraints Specifies in what parts of hierarchy the search should be executed.
      * @param errorReportingMethod How should errors during processing individual objects be reported.
@@ -213,7 +213,7 @@ public interface ConnectorInstance {
             @NotNull ResourceObjectDefinition objectDefinition,
             @Nullable ObjectQuery query,
             @NotNull UcfObjectHandler handler,
-            @Nullable AttributesToReturn attributesToReturn,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @Nullable PagedSearchCapabilityType pagedSearchConfiguration,
             @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
             @Nullable UcfFetchErrorReportingMethod errorReportingMethod,
@@ -330,7 +330,7 @@ public interface ConnectorInstance {
      * Token may be null. That means "from the beginning of history".
      */
     UcfFetchChangesResult fetchChanges(ResourceObjectDefinition objectDefinition, UcfSyncToken lastToken,
-            AttributesToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
+            ShadowItemsToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
             @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult result)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
             ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException;

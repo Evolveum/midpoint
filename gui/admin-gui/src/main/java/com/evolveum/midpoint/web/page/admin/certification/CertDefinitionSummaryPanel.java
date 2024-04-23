@@ -8,8 +8,6 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 
@@ -22,7 +20,7 @@ public class CertDefinitionSummaryPanel extends ObjectSummaryPanel<AccessCertifi
 
     public CertDefinitionSummaryPanel(String id,
             IModel<AccessCertificationDefinitionType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
-        super(id, AccessCertificationDefinitionType.class, model, summaryPanelSpecificationType);
+        super(id, model, summaryPanelSpecificationType);
     }
 
     @Override

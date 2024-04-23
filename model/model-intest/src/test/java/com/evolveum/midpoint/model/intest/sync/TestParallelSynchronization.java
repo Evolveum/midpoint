@@ -166,7 +166,7 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
         displayDumpable("Dummy resource azure", dummyResourceSteelBlue);
 
         // WHEN
-        ResourceSchema resourceSchemaAzure = ResourceSchemaFactory.getRawSchema(resourceDummySteelBlueType);
+        var resourceSchemaAzure = ResourceSchemaFactory.getBareSchema(resourceDummySteelBlueType);
 
         displayDumpable("Dummy azure resource schema", resourceSchemaAzure);
 
@@ -177,12 +177,11 @@ public class TestParallelSynchronization extends AbstractInitializedModelIntegra
     @Test
     public void test002SanityAzureRefined() throws Exception {
         // WHEN
-        ResourceSchema refinedSchemaAzure = ResourceSchemaFactory.getCompleteSchema(resourceDummySteelBlueType);
-
-        displayDumpable("Dummy azure refined schema", refinedSchemaAzure);
+        var completeSchemaAzure = ResourceSchemaFactory.getCompleteSchemaRequired(resourceDummySteelBlueType);
+        displayDumpable("Dummy azure refined schema", completeSchemaAzure);
 
         // THEN
-        dummyResourceCtlSteelBlue.assertRefinedSchemaSanity(refinedSchemaAzure);
+        dummyResourceCtlSteelBlue.assertCompleteSchemaSanity(completeSchemaAzure);
     }
 
     @Test

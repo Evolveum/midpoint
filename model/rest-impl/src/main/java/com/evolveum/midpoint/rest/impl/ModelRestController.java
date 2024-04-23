@@ -541,7 +541,7 @@ public class ModelRestController extends AbstractRestController {
         } else {
             try {
                 ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
-                Collection<? extends ItemDelta<?, ?>> modifications = DeltaConvertor.toModifications(modificationType, clazz, prismContext);
+                Collection<? extends ItemDelta<?, ?>> modifications = DeltaConvertor.toModifications(modificationType, clazz);
                 model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, result);
                 response = createResponse(HttpStatus.NO_CONTENT, result);
             } catch (Exception ex) {

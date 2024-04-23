@@ -23,8 +23,9 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -40,13 +41,9 @@ import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTe
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -61,7 +58,6 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
     public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
     public static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
-    public static final String RESOURCE_DUMMY_NS = MidPointConstants.NS_RI;
     public static final String RESOURCE_DUMMY_INTENT_GROUP = "group";
 
     protected static final String RESOURCE_DUMMY_NONEXISTENT_OID = "ef2bc95b-000-000-000-009900dddddd";
@@ -132,13 +128,21 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     protected static final String OBJECTCLASS_GROUP_LOCAL_NAME = "GroupObjectClass";
     protected static final String OBJECTCLASS_PRIVILEGE_LOCAL_NAME = "CustomprivilegeObjectClass";
 
-    protected static final QName ASSOCIATION_GROUP_NAME = new QName(RESOURCE_DUMMY_NS, "group");
-    protected static final QName ASSOCIATION_PRIV_NAME = new QName(RESOURCE_DUMMY_NS, "priv");
+    protected static final QName ASSOCIATION_GROUP_NAME = new QName(MidPointConstants.NS_RI, "group");
+    protected static final QName ASSOCIATION_PRIV_NAME = new QName(MidPointConstants.NS_RI, "priv");
+
+    protected static final ObjectClassName AC_GROUP_MEMBERSHIP_NAME = ObjectClassName.custom("groupMembership");
+    protected static final ObjectClassName AC_ACCOUNT_PRIVILEGE_NAME = ObjectClassName.custom("accountPrivilege");
 
     protected PrismObject<ResourceType> resource;
     protected ResourceType resourceBean;
+    /** True if the resource was successfully tested and {@link #resource} and {@link #resourceBean} contain complete schema. */
+    protected boolean resourceInitialized;
+    protected static boolean resourceShutDown;
     protected static DummyResource dummyResource;
     protected static DummyResourceContoller dummyResourceCtl;
+
+    protected boolean nativeAssociations;
 
     protected String accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD;
 
@@ -181,7 +185,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
      * Not called during the initialization, because the resource is not yet configured.
      * We need the definition to create the repo shadow.
      */
-    protected void addAccountDaemon(OperationResult result) throws Exception {
+    void addAccountDaemon(OperationResult result) throws Exception {
         DummyAccount dummyAccountDaemon = new DummyAccount(ACCOUNT_DAEMON_USERNAME);
         dummyAccountDaemon.setEnabled(true);
         dummyAccountDaemon.addAttributeValues("fullname", "Evil Daemon");
@@ -284,7 +288,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         OperationResult result = createOperationResult("checkUniqueness");
         var nameAttr = object.getAttributeRequired(SchemaConstants.ICFS_NAME);
         var q = prismContext.queryFor(ShadowType.class)
-                .item(ShadowType.F_RESOURCE_REF).ref(object.getResourceOid())
+                .item(ShadowType.F_RESOURCE_REF).ref(object.getResourceOidRequired())
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(object.getObjectClass())
                 .and().filter(nameAttr.normalizationAwareEqFilter());
         if (liveOnly) {
@@ -312,13 +316,13 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         assertNoAttribute(resource, shadow.asObjectable(), attrName);
     }
 
-    protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
+    protected void assertBareSchemaSanity(BareResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
         dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, true);
     }
 
     protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         if (isIcfNameUidSame()) {
-            return dummyResource.getAccountByUsername(icfName);
+            return dummyResource.getAccountByName(icfName);
         } else {
             return dummyResource.getAccountById(icfUid);
         }
@@ -326,7 +330,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
     protected DummyAccount getDummyAccountAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         if (isIcfNameUidSame()) {
-            return dummyResource.getAccountByUsername(icfName);
+            return dummyResource.getAccountByName(icfName);
         } else {
             DummyAccount account = dummyResource.getAccountById(icfUid);
             assertNotNull("No dummy account with ICF UID " + icfUid + " (expected name " + icfName + ")", account);
@@ -348,7 +352,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     protected void assertNoDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         DummyAccount account;
         if (isIcfNameUidSame()) {
-            account = dummyResource.getAccountByUsername(icfName);
+            account = dummyResource.getAccountByName(icfName);
         } else {
             account = dummyResource.getAccountById(icfUid);
         }
@@ -356,7 +360,6 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     }
 
     protected DummyGroup getDummyGroup(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-//        if (isNameUnique()) {
         if (isIcfNameUidSame()) {
             return dummyResource.getGroupByName(icfName);
         } else {
@@ -365,7 +368,6 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     }
 
     protected DummyGroup getDummyGroupAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-//        if (isNameUnique()) {
         if (isIcfNameUidSame()) {
             return dummyResource.getGroupByName(icfName);
         } else {
@@ -377,7 +379,6 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     }
 
     protected DummyPrivilege getDummyPrivilege(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-//        if (isNameUnique()) {
         if (isIcfNameUidSame()) {
             return dummyResource.getPrivilegeByName(icfName);
         } else {
@@ -386,7 +387,6 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     }
 
     protected DummyPrivilege getDummyPrivilegeAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-//        if (isNameUnique()) {
         if (isIcfNameUidSame()) {
             return dummyResource.getPrivilegeByName(icfName);
         } else {
@@ -488,5 +488,17 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     @NotNull
     protected ObjectQuery getAllAccountsQuery(DummyTestResource resource) {
         return ObjectQueryUtil.createResourceAndObjectClassQuery(resource.oid, RI_ACCOUNT_OBJECT_CLASS);
+    }
+
+    /** Useful for standalone running of supported tests. */
+    void initializeResourceIfNeeded() throws CommonException {
+        if (!resourceInitialized) {
+            var task = getTestTask();
+            var result = task.getResult();
+            provisioningService.testResource(RESOURCE_DUMMY_OID, task, result);
+            resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+            resourceBean = resource.asObjectable();
+            resourceInitialized = true;
+        }
     }
 }

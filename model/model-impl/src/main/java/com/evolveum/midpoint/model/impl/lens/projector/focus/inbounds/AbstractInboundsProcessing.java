@@ -11,15 +11,12 @@ import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleMap;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.APrioriDeltaProvider;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.DeltaSetTripleUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -27,14 +24,14 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -42,58 +39,62 @@ import java.util.function.Function;
 /**
  * Evaluation of inbound mappings from all available projections.
  *
- * Executes either under the clockwork (as part of the projector), taking all projection contexts into account.
- * Or it executes during correlation - or, generally, before the clockwork - processing only the source shadow.
+ * Has two modes of operation:
+ *
+ * 1. *Full processing*: takes all the mappings, from all available projections, from all embedded shadows, evaluates them,
+ * and consolidates them. Always executed under the clockwork. Always targeted to the focus object (user, role, and so on).
+ *
+ * 2. *Limited processing*: converts just a single shadow into a (fragment of) the target value. This is used for correlation
+ * purposes. May execute within or outside the clockwork. May target any object: user, role, but also specific assignment
+ * or a custom structure.
  *
  * Responsibility of this class:
  *
  * 1. collects inbound mappings to be evaluated
  * 2. evaluates them
  * 3. consolidates the results into deltas
+ *
+ * @param <T> type of the target object ({@link UserType}, {@link AssignmentType}, etc)
  */
-abstract class AbstractInboundsProcessing<F extends FocusType> {
+abstract class AbstractInboundsProcessing<T extends Containerable> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractInboundsProcessing.class);
+    public static final String OP_EVALUATE_MAPPINGS = AbstractInboundsProcessing.class.getName() + ".evaluateMappings";
 
-    @NotNull final ModelBeans beans;
     @NotNull final MappingEvaluationEnvironment env;
-    @NotNull final OperationResult result;
 
-    /**
-     * Key: target item path, value: InboundMappingInContext(mapping, projectionCtx [nullable])
-     */
-    final PathKeyedMap<List<InboundMappingInContext<?, ?>>> mappingsMap = new PathKeyedMap<>();
+    /** All evaluation requests (i.e., mappings prepared for evaluation). */
+    final MappingEvaluationRequests evaluationRequests = new MappingEvaluationRequests();
 
-    /** Here we cache definitions for both regular and identity items. */
+    /** Here we cache definitions for both regular and identity target items. */
     final PathKeyedMap<ItemDefinition<?>> itemDefinitionMap = new PathKeyedMap<>();
 
     /**
-     * Output triples for individual target paths.
+     * Output triples for individual target paths. This is the actual result of mapping evaluation.
+     * They are converted into deltas by consolidation.
      */
-    private final PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> outputTripleMap = new PathKeyedMap<>();
+    private final DeltaSetTripleMap outputTripleMap = new DeltaSetTripleMap();
 
-    AbstractInboundsProcessing(
-            @NotNull ModelBeans beans,
-            @NotNull MappingEvaluationEnvironment env,
-            @NotNull OperationResult result) {
-        this.beans = beans;
+    @NotNull final ModelBeans beans = ModelBeans.get();
+
+    AbstractInboundsProcessing(@NotNull MappingEvaluationEnvironment env) {
         this.env = env;
-        this.result = result;
     }
 
-    public void collectAndEvaluateMappings() throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+    public void collectAndEvaluateMappings(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        collectMappings();
-        evaluateMappings();
-        consolidateTriples();
+        collectMappings(result);
+        evaluateMappings(result);
+        consolidateTriples(result);
     }
 
     /**
-     * Collects the mappings - either from all projections (for clockwork) or from the input shadow (for pre-mappings).
+     * Collects the mappings - either from all projections (for full processing) or from the input shadow (for pre-mappings).
      *
      * In the former case, special mappings are evaluated here (until fixed).
      */
-    abstract void collectMappings()
+    abstract void collectMappings(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException;
 
@@ -101,35 +102,45 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
      * Evaluate mappings collected from all the projections. There may be mappings from different projections to the same target.
      * We want to merge their values. Otherwise, those mappings will overwrite each other.
      */
-    private void evaluateMappings() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
+    private void evaluateMappings(OperationResult parentResult)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, CommunicationException {
-        for (Map.Entry<ItemPath, List<InboundMappingInContext<?, ?>>> entry : mappingsMap.entrySet()) {
-            evaluateMappingsForTargetItem(entry.getKey(), entry.getValue());
+        OperationResult result = parentResult.subresult(OP_EVALUATE_MAPPINGS)
+                .build();
+        try {
+            for (var entry : evaluationRequests.entrySet()) {
+                List<InboundMappingEvaluationRequest<?, ?>> mappings = entry.getValue();
+                assert !mappings.isEmpty();
+                for (InboundMappingEvaluationRequest<?, ?> mapping : mappings) {
+                    evaluateMapping(entry.getKey(), mapping, result);
+                }
+            }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 
-    private void evaluateMappingsForTargetItem(ItemPath targetPath, List<InboundMappingInContext<?, ?>> listOfMappingsInContext)
+    private <V extends PrismValue, D extends ItemDefinition<?>> void evaluateMapping(
+            ItemPath targetPath, InboundMappingEvaluationRequest<V, D> evaluationRequest, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, CommunicationException {
+        LOGGER.trace("Starting evaluation of {}", evaluationRequest);
 
-        assert !listOfMappingsInContext.isEmpty();
-        for (InboundMappingInContext<?, ?> mappingInCtx : listOfMappingsInContext) {
-            MappingImpl<?, ?> mapping = mappingInCtx.getMapping();
+        var mapping = evaluationRequest.getMapping();
+        beans.mappingEvaluator.evaluateMapping(
+                mapping,
+                evaluationRequest.getEvaluationContext(),
+                env.task,
+                result);
 
-            LOGGER.trace("Starting evaluation of {}", mappingInCtx);
-            beans.mappingEvaluator.evaluateMapping(
-                    mapping,
-                    mappingInCtx.getLensContext(), // nullable
-                    mappingInCtx.getProjectionContext(), // nullable
-                    env.task,
-                    result);
-
-            mergeMappingOutput(mapping, targetPath, mappingInCtx.isProjectionBeingDeleted());
-        }
+        mergeMappingOutput(mapping, targetPath, evaluationRequest.isSourceBeingDeleted());
     }
 
-    private <V extends PrismValue, D extends ItemDefinition<?>> void mergeMappingOutput(MappingImpl<V, D> mapping,
-            ItemPath targetPath, boolean allToDelete) {
+    private <V extends PrismValue, D extends ItemDefinition<?>> void mergeMappingOutput(
+            MappingImpl<V, D> mapping, ItemPath targetPath, boolean allToDelete) {
 
         DeltaSetTriple<ItemValueWithOrigin<V, D>> ivwoTriple = ItemValueWithOrigin.createOutputTriple(mapping);
         LOGGER.trace("Inbound mapping for {}\nreturned triple:\n{}",
@@ -142,38 +153,31 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
                 convertedTriple.addAllToMinusSet(ivwoTriple.getPlusSet());
                 convertedTriple.addAllToMinusSet(ivwoTriple.getZeroSet());
                 convertedTriple.addAllToMinusSet(ivwoTriple.getMinusSet());
-                //noinspection unchecked,rawtypes
-                DeltaSetTripleUtil.putIntoOutputTripleMap((PathKeyedMap) outputTripleMap, targetPath, convertedTriple);
+                outputTripleMap.putOrMerge(targetPath, convertedTriple);
             } else {
-                //noinspection unchecked,rawtypes
-                DeltaSetTripleUtil.putIntoOutputTripleMap((PathKeyedMap) outputTripleMap, targetPath, ivwoTriple);
+                outputTripleMap.putOrMerge(targetPath, ivwoTriple);
             }
         }
     }
 
-    private void consolidateTriples() throws CommunicationException, ObjectNotFoundException, ConfigurationException,
+    private void consolidateTriples(OperationResult result) throws CommunicationException, ObjectNotFoundException, ConfigurationException,
             SchemaException, SecurityViolationException, ExpressionEvaluationException {
 
-        PrismObject<F> focusNew = getFocusNew();
-        ObjectDelta<F> focusAPrioriDelta = getFocusAPrioriDelta();
-
-        //noinspection rawtypes
-        Consumer<IvwoConsolidatorBuilder> customizer = builder ->
+        Consumer<IvwoConsolidatorBuilder<?, ?, ?>> customizer = builder ->
                 builder
                         .deleteExistingValues(
                                 builder.getItemDefinition().isSingleValue() && !rangeIsCompletelyDefined(builder.getItemPath()))
                         .skipNormalMappingAPrioriDeltaCheck(true);
 
-        DeltaSetTripleMapConsolidation<F> consolidation = new DeltaSetTripleMapConsolidation<>(
+        DeltaSetTripleMapConsolidation<T> consolidation = new DeltaSetTripleMapConsolidation<>(
                 outputTripleMap,
-                focusNew,
-                focusAPrioriDelta,
+                getTarget(),
+                getFocusAPrioriDeltaProvider(),
                 getFocusPrimaryItemDeltaExistsProvider(),
                 true,
                 customizer,
                 this::getItemDefinition,
                 env,
-                beans,
                 getLensContextIfPresent(),
                 result);
         consolidation.computeItemDeltas();
@@ -188,15 +192,14 @@ abstract class AbstractInboundsProcessing<F extends FocusType> {
     }
 
     private boolean rangeIsCompletelyDefined(ItemPath itemPath) {
-        return mappingsMap.get(itemPath).stream()
+        return evaluationRequests.get(itemPath).stream()
                 .allMatch(m -> m.getMapping().hasTargetRange());
     }
 
-    abstract @NotNull PrismObjectDefinition<F> getFocusDefinition(@Nullable PrismObject<F> focus);
+    /** For full clockwork mode, this returns the "new" version of the focus. */
+    abstract @Nullable PrismContainerValue<T> getTarget() throws SchemaException;
 
-    abstract @Nullable PrismObject<F> getFocusNew() throws SchemaException;
-
-    protected abstract @Nullable ObjectDelta<F> getFocusAPrioriDelta();
+    protected abstract @NotNull APrioriDeltaProvider getFocusAPrioriDeltaProvider();
 
     abstract @NotNull Function<ItemPath, Boolean> getFocusPrimaryItemDeltaExistsProvider();
 

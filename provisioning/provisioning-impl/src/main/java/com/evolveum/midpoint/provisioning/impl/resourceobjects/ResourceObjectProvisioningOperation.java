@@ -221,8 +221,8 @@ abstract class ResourceObjectProvisioningOperation {
             }
         }
 
-        AttributesToReturn attributesToReturn = new AttributesToReturn();
-        attributesToReturn.setAttributesToReturn(neededExtraAttributes);
+        ShadowItemsToReturn shadowItemsToReturn = new ShadowItemsToReturn();
+        shadowItemsToReturn.setItemsToReturn(neededExtraAttributes);
         CompleteResourceObject resourceObject;
         try {
             if (ctx.isReadingCachingOnly() && repoShadow != null) {
@@ -230,7 +230,7 @@ abstract class ResourceObjectProvisioningOperation {
                         ctx, ExistingResourceObject.fromRepoShadow(repoShadow.clone()), fetchEntitlements, result);
             } else {
                 resourceObject = b.resourceObjectConverter.fetchResourceObject(
-                        ctx, identification, attributesToReturn, fetchEntitlements, result);
+                        ctx, identification, shadowItemsToReturn, fetchEntitlements, result);
             }
         } catch (ObjectNotFoundException e) {
             // This may happen for semi-manual connectors that are not yet up to date.

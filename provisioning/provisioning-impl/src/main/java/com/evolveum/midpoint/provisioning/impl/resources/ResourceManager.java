@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -39,8 +41,6 @@ import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -193,7 +193,7 @@ public class ResourceManager {
             return;
         }
         LOGGER.trace("Resource after completion, before (considering) putting into cache:\n{}", completedResource.debugDump());
-        Element xsdSchemaElement = ResourceTypeUtil.getResourceXsdSchema(completedResource);
+        Element xsdSchemaElement = ResourceTypeUtil.getResourceXsdSchemaElement(completedResource);
         if (xsdSchemaElement == null) {
             LOGGER.trace("Schema: null");
         } else {
@@ -269,11 +269,12 @@ public class ResourceManager {
         }
     }
 
-    public @Nullable ResourceSchema fetchSchema(@NotNull ResourceType resource, @NotNull OperationResult result)
+    public @Nullable BareResourceSchema fetchSchema(@NotNull ResourceType resource, @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
             SchemaException {
         LOGGER.trace("Fetching resource schema for {}", resource);
-        return schemaFetcher.fetchResourceSchema(resource, null, result);
+        var nativeSchema = schemaFetcher.fetchResourceSchema(resource, null, result);
+        return nativeSchema != null ? ResourceSchemaFactory.nativeToBare(nativeSchema) : null;
     }
 
     /**

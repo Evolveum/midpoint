@@ -19,17 +19,20 @@ public class CompleteResourceSchemaImpl extends ResourceSchemaImpl implements Co
     private final boolean caseIgnoreAttributeNames;
 
     CompleteResourceSchemaImpl(
+            @NotNull NativeResourceSchema nativeSchema,
             @NotNull BasicResourceInformation basicResourceInformation,
             boolean caseIgnoreAttributeNames) {
+        super(nativeSchema);
         this.basicResourceInformation = basicResourceInformation;
         this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
     }
 
     private CompleteResourceSchemaImpl(
+            @NotNull NativeResourceSchema nativeSchema,
             @NotNull LayerType layer,
             @NotNull BasicResourceInformation basicResourceInformation,
             boolean caseIgnoreAttributeNames) {
-        super(layer);
+        super(nativeSchema, layer);
         this.basicResourceInformation = basicResourceInformation;
         this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
     }
@@ -46,7 +49,12 @@ public class CompleteResourceSchemaImpl extends ResourceSchemaImpl implements Co
 
     @Override
     @NotNull CompleteResourceSchemaImpl createEmptyClone(@NotNull LayerType layer) {
-        return new CompleteResourceSchemaImpl(layer, basicResourceInformation, caseIgnoreAttributeNames);
+        return new CompleteResourceSchemaImpl(nativeSchema, layer, basicResourceInformation, caseIgnoreAttributeNames);
+    }
+
+    @Override
+    public CompleteResourceSchema forLayerImmutable(@NotNull LayerType layer) {
+        return (CompleteResourceSchema) super.forLayerImmutable(layer);
     }
 
     @Override

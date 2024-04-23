@@ -37,7 +37,7 @@ public interface CompositeObjectDefinition extends ResourceObjectDefinition, Lay
      * @see ResourceObjectDefinition#getConfiguredAuxiliaryObjectClassNames()
      */
     @Override
-    default Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
+    default @NotNull Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
         return getStructuralDefinition()
                 .getConfiguredAuxiliaryObjectClassNames();
     }

@@ -309,7 +309,7 @@ public class GuiProfiledPrincipalManagerImpl
             throws SchemaException, ObjectNotFoundException {
         return searchFocus(
                 clazz,
-                ObjectQueryUtil.createNormNameQuery(new PolyString(username), prismContext),
+                ObjectQueryUtil.createNormNameQuery(new PolyString(username)),
                 result);
     }
 

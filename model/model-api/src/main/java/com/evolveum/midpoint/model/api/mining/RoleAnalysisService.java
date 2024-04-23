@@ -6,30 +6,31 @@
  */
 package com.evolveum.midpoint.model.api.mining;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
-import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
-import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
-import com.evolveum.midpoint.common.mining.utils.values.ZScoreData;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -389,7 +390,7 @@ public interface RoleAnalysisService {
      * @param roleOid The OID of the RoleType PrismObject to retrieve.
      * @param task The task associated with the operation.
      * @param result The operation result.
-     * @param option
+     * @param option The cache option.
      * @return The RoleType PrismObject fetched from the cache or ModelService, or null if not found.
      */
     @Nullable
@@ -408,7 +409,7 @@ public interface RoleAnalysisService {
      * @param userOid The OID of the UserType PrismObject to retrieve.
      * @param task The task associated with the operation.
      * @param result The operation result.
-     * @param option
+     * @param option The cache option.
      * @return The UserType PrismObject fetched from the cache or ModelService, or null if not found.
      */
     @Nullable
@@ -627,79 +628,64 @@ public interface RoleAnalysisService {
             @NotNull OperationResult parentResult);
 
     /**
-     * Imports a RoleAnalysisOutlierType object into the system.
-     *
-     * @param outlier The outlier for importing.
-     * @param task The task associated with this operation.
-     * @param result The operation result.
-     */
-    void importOutlier(
-            @NotNull RoleAnalysisOutlierType outlier,
-            @NotNull Task task,
-            @NotNull OperationResult result);
-
-    /**
-     * Resolves outliers for a given role analysis outlier type.
-     * This method retrieves the target object reference from the provided outlier type and performs the following steps:
-     * 1. Searches for existing outliers with the same target object reference.
-     * 2. If no outliers are found, imports the provided outlier.
-     * 3. If outliers are found, updates the existing outlier with new outlier descriptions and removes outdated descriptions.
-     * <p>
-     * This method is responsible for handling exceptions that may occur during the process and logs errors accordingly.
-     *
-     * @param roleAnalysisOutlierType The role analysis outlier type containing the outlier information.
-     * @param task The task associated with the operation.
-     * @param result The operation result.
-     * @param sessionOid The OID of the session associated with the outlier.
-     */
-    void resolveOutliers(
-            @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
-            @NotNull Task task,
-            @NotNull OperationResult result,
-            @NotNull String sessionOid);
-
-
-    /**
      * Performs attribute analysis for user objects.
      *
      * @param prismUsers Set of PrismObject representing user objects to analyze.
      * @param membershipDensity The density of membership.
-     * @param task
-     * @param result
-     * @param attributesForUserAnalysis
+     * @param task Task used for processing the attribute analysis.
+     * @param result OperationResult containing the result of the operation.
+     * @param attributeDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for user analysis.
      * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
      */
     List<AttributeAnalysisStructure> userTypeAttributeAnalysis(
             @NotNull Set<PrismObject<UserType>> prismUsers,
-            Double membershipDensity, @NotNull Task task, @NotNull OperationResult result);
+            Double membershipDensity,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet);
 
     /**
      * Performs attribute analysis for role objects.
      *
      * @param prismRoles Set of PrismObject representing role objects to analyze.
      * @param membershipDensity The density of membership.
-     * @param task
-     * @param result
-     * @param attributesForRoleAnalysis
+     * @param task Task used for processing the attribute analysis.
+     * @param result OperationResult containing the result of the operation.
+     * @param attributeRoleDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for role analysis.
      * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
      */
     List<AttributeAnalysisStructure> roleTypeAttributeAnalysis(
             @NotNull Set<PrismObject<RoleType>> prismRoles,
-            Double membershipDensity, @NotNull Task task, @NotNull OperationResult result);
+            Double membershipDensity,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeDef> attributeRoleDefSet);
 
     /**
      * Performs attribute analysis for role members.
      *
+     * @param attributeDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for analysis.
      * @param objectOid The OID of the object to analyze.
      * @param task Task used for processing the attribute analysis.
      * @param result OperationResult containing the result of the operation.
      * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
      */
     List<AttributeAnalysisStructure> roleMembersAttributeAnalysis(
+            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet,
             @NotNull String objectOid,
             @NotNull Task task,
             @NotNull OperationResult result);
+
+    /**
+     * Performs attribute analysis for user roles.
+     * @param attributeRoleDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for role analysis.
+     * @param objectOid The OID of the object to analyze.
+     * @param task Task used for processing the attribute analysis.
+     * @param result OperationResult containing the result of the operation.
+     * @return List of AttributeAnalysisStructure containing the results of the attribute analysis.
+     */
     List<AttributeAnalysisStructure> userRolesAttributeAnalysis(
+            @NotNull List<RoleAnalysisAttributeDef> attributeRoleDefSet,
             @NotNull String objectOid,
             @NotNull Task task,
             @NotNull OperationResult result);
@@ -716,13 +702,17 @@ public interface RoleAnalysisService {
      * @param task Task used for processing the attribute analysis.
      * @param result OperationResult containing the result of the operation.
      * Any errors or status information will be recorded here.
+     * @param attributeRoleDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for role analysis.
+     * @param attributeUserDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for user analysis.
      */
-    void processAttributeAnalysis(
+    void resolveDetectedPatternsAttributes(
             @NotNull List<RoleAnalysisDetectionPatternType> detectedPatterns,
             @NotNull Map<String, PrismObject<UserType>> userExistCache,
             @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeDef> attributeRoleDefSet,
+            @NotNull List<RoleAnalysisAttributeDef> attributeUserDefSet);
 
     /**
      * Searches for clusters associated with a specific role analysis session.
@@ -748,30 +738,21 @@ public interface RoleAnalysisService {
      * Any errors or status information will be recorded here.
      * @return String representing the icon color of the focus object.
      */
-    String resolveFocusObjectIconColor(@NotNull FocusType focusObject, @NotNull Task task, @NotNull OperationResult result);
+    String resolveFocusObjectIconColor(
+            @NotNull FocusType focusObject,
+            @NotNull Task task,
+            @NotNull OperationResult result);
 
     /**
-     * Resolve object attribute value.
+     * Retrieves the attribute definition for a specific attribute path.
      *
-     * @param prismUser The user object.
-     * @param itemDef The attribute definition.
-     * @return Set of attribute values that user has.
+     * @param type The type of object for which the attribute definition is being retrieved.
+     * @param query The query specifying the conditions for searching the object.
+     * @param options Collection of SelectorOptions specifying additional options for the search operation.
+     * @param task Task used for executing the search operation.
+     * @param parentResult OperationResult containing the result of the search operation.
+     * @return RoleAnalysisAttributeDef containing the attribute definition for the specified attribute path.
      */
-    @Nullable Set<String> resolveUserValueToMark(
-            @NotNull PrismObject<UserType> prismUser,
-            @NotNull List<RoleAnalysisAttributeDef> itemDef);
-
-    /**
-     * Resolve object attribute value.
-     *
-     * @param prismRole The role object.
-     * @param itemDef The attribute definition.
-     * @return Set of attribute values that role has.
-     */
-    @Nullable Set<String> resolveRoleValueToMark(
-            @NotNull PrismObject<RoleType> prismRole,
-            @NotNull List<RoleAnalysisAttributeDef> itemDef);
-
     <T extends ObjectType> Integer countObjects(
             @NotNull Class<T> type,
             @Nullable ObjectQuery query,
@@ -779,29 +760,27 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult parentResult);
 
+    /**
+     * Calculates the confidence of an attribute based on the specified process mode and cluster statistics.
+     *
+     * @param processModeType The process mode type.
+     * @param clusterStatistics The cluster statistics.
+     * @return String representing the calculated attribute confidence.
+     */
     String calculateAttributeConfidence(
             @NotNull RoleAnalysisProcessModeType processModeType,
             @NotNull AnalysisClusterStatisticType clusterStatistics);
 
-    RoleAnalysisAttributeAnalysisResult resolveUserAttributes(@NotNull PrismObject<UserType> prismUser);
-
-    @Nullable RoleAnalysisAttributeAnalysisResult resolveSimilarAspect(
-            @NotNull RoleAnalysisAttributeAnalysisResult compared,
-            @NotNull RoleAnalysisAttributeAnalysisResult comparison);
-
-    RoleAnalysisAttributeAnalysisResult resolveRoleMembersAttribute(
-            @NotNull String objectOid,
-            @NotNull Task task,
-            @NotNull OperationResult result);
-
-    <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(@NotNull List<T> data, double negativeThreshold, double positiveThreshold);
-
-    <T extends MiningBaseTypeChunk> double calculateZScore(@NotNull T data, ZScoreData zScoreData);
-
-    <T extends MiningBaseTypeChunk> double calculateZScoreConfidence(@NotNull T item, ZScoreData zScoreData);
-
-    List<RoleAnalysisAttributeDef> resolveRoleAttributes(@NotNull RoleAnalysisSessionType session);
-
-    List<RoleAnalysisAttributeDef> resolveUserAttributes(@NotNull RoleAnalysisSessionType session);
+    /**
+     * Resolves the analysis attributes based on the provided session and complex type.
+     *
+     * @param session The RoleAnalysisSessionType object that contains the analysis options.
+     * @param complexType The QName object that represents the complex type of the attribute.
+     * @return A list of RoleAnalysisAttributeDef objects that match the provided complex type.
+     *         Returns null if no matching attributes are found or if the analysis option or process mode is not set in the session.
+     */
+    @Nullable List<RoleAnalysisAttributeDef> resolveAnalysisAttributes(
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull QName complexType);
 
 }

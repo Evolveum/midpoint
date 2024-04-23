@@ -36,7 +36,6 @@ public class RoleAnalysisAttributeDef implements Serializable {
     String displayValue;
     ObjectQuery query;
     Class<? extends ObjectType> targetClassType;
-    Class<? extends ObjectType> associatedClassType;
     IdentifierType identifierType;
 
     public RoleAnalysisAttributeDef(ItemPath path,
@@ -149,30 +148,8 @@ public class RoleAnalysisAttributeDef implements Serializable {
         FINAL
     }
 
-    public Class<? extends ObjectType> getAssociatedClassType() {
-        return associatedClassType;
-    }
-
-    public void setAssociatedClassType(Class<? extends ObjectType> associatedClassType) {
-        this.associatedClassType = associatedClassType;
-    }
-
-    public QName getComplexType() {
-        Class<? extends ObjectType> classType = getAssociatedClassType();
-        if(classType.equals(UserType.class)){
-            return UserType.COMPLEX_TYPE;
-        }else if (classType.equals(RoleType.class)){
-            return RoleType.COMPLEX_TYPE;
-        }
-        return null;
-    }
-
     public IdentifierType getIdentifierType() {
         return identifierType;
-    }
-
-    public void setTargetClassType(Class<? extends ObjectType> targetClassType) {
-        this.targetClassType = targetClassType;
     }
 
 }

@@ -10,7 +10,6 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid.query;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public abstract class Operation {
@@ -21,7 +20,7 @@ public abstract class Operation {
         this.interpreter = interpreter;
     }
 
-    public abstract <T> Filter interpret(ObjectFilter objectFilter, ConnIdNameMapper icfNameMapper) throws SchemaException;
+    public abstract <T> Filter interpret(ObjectFilter objectFilter) throws SchemaException;
 
     public FilterInterpreter getInterpreter() {
         return interpreter;

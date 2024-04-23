@@ -145,7 +145,7 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
-    public IvwoConsolidatorBuilder<V, D, I> customize(Consumer<IvwoConsolidatorBuilder> customizer) {
+    public IvwoConsolidatorBuilder<V, D, I> customize(Consumer<IvwoConsolidatorBuilder<?, ?, ?>> customizer) {
         if (customizer != null) {
             customizer.accept(this);
         }

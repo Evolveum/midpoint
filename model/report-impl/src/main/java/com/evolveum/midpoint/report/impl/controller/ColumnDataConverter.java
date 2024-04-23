@@ -333,15 +333,16 @@ class ColumnDataConverter<C> {
             if (StringUtils.isNotEmpty(name)) {
                 segments.add(name);
             }
-        }
-        if (segments.isEmpty()) {
-            ShadowIdentifiersType identifiers = associationValue.getIdentifiers();
-            if (identifiers != null) {
-                // Give all values. At this point we have no object definition, so we cannot distinguish between primary
-                // and secondary identifiers, anyway.
-                for (Item<?, ?> item : ((PrismContainerValue<?>) identifiers.asPrismContainerValue()).getItems()) {
-                    for (Object realValue : item.getRealValues()) {
-                        segments.add(String.valueOf(realValue));
+            var shadow = shadowRef.getObject();
+            if (segments.isEmpty() && shadow != null) {
+                var attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+                if (attributesContainer != null) {
+                    // HACK HACK HACK - what if there are all attributes, not only the identifiers?
+                    // At this point we have no object definition, so we cannot select the identifiers. But maybe we could try!
+                    for (Item<?, ?> item : attributesContainer.getValue().getItems()) {
+                        for (Object realValue : item.getRealValues()) {
+                            segments.add(String.valueOf(realValue));
+                        }
                     }
                 }
             }

@@ -135,7 +135,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         PrismContainerValue<ResourceAttributeDefinitionType> newAttrContainer = oldAttrContainer.clone();
         XNode daggerXNode = prismContext.xnodeFactory().primitive("dagger");
         daggerXNode.freeze();
-        RawType daggerValueEvaluator = new RawType(daggerXNode, prismContext);
+        RawType daggerValueEvaluator = new RawType(daggerXNode);
         JAXBElement<?> daggerExpressionEvalJaxbElement = new JAXBElement<>(SchemaConstants.C_VALUE, Object.class, daggerValueEvaluator);
         newAttrContainer.getValue().getOutbound().getExpression().getExpressionEvaluator().add(daggerExpressionEvalJaxbElement);
         newAttrContainer.getValue().getOutbound().setStrength(MappingStrengthType.STRONG);

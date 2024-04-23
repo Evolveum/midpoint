@@ -55,8 +55,7 @@ public class ROperationalState {
         return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
-    public static void copyToJAXB(ROperationalState repo, OperationalStateType jaxb, ObjectType parent, ItemPath path,
-            PrismContext prismContext) throws DtoTranslationException {
+    public static void copyToJAXB(ROperationalState repo, OperationalStateType jaxb, ObjectType parent, ItemPath path) throws DtoTranslationException {
         Objects.requireNonNull(repo, "Repo object must not be null.");
         Objects.requireNonNull(jaxb, "JAXB object must not be null.");
 
@@ -84,10 +83,9 @@ public class ROperationalState {
         }
     }
 
-    public OperationalStateType toJAXB(ObjectType parent, ItemPath path, PrismContext prismContext) throws
-            DtoTranslationException {
+    public OperationalStateType toJAXB(ObjectType parent, ItemPath path) throws DtoTranslationException {
         OperationalStateType operationalState = new OperationalStateType();
-        ROperationalState.copyToJAXB(this, operationalState, parent, path, prismContext);
+        ROperationalState.copyToJAXB(this, operationalState, parent, path);
         return operationalState;
     }
 }

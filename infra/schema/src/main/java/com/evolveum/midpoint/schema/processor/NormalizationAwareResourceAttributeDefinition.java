@@ -10,20 +10,19 @@ package com.evolveum.midpoint.schema.processor;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.impl.PrismPropertyImpl;
-import com.evolveum.midpoint.prism.impl.delta.PropertyDeltaImpl;
-
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.impl.PrismPropertyImpl;
+import com.evolveum.midpoint.prism.impl.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryImpl;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.normalization.Normalizer;
@@ -32,10 +31,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.processor.deleg.ResourceAttributeDefinitionDelegator;
 import com.evolveum.midpoint.util.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.VisibleForTesting;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * An alternative representation of a {@link ResourceAttributeDefinition} that describes a normalization-aware resource attribute:
@@ -47,13 +47,8 @@ import org.jetbrains.annotations.VisibleForTesting;
  *
  * [NOTE]
  * ====
- * This class intentionally does not implement {@link ResourceAttributeDefinition} interface. The reason is that the
- * required {@link ResourceAttributeDefinition#getRawAttributeDefinition()} method is parameterized with the native
- * attribute type (e.g. {@link String}), and that type would need to be the `T` type parameter value for this type as well.
- * However, that's not possible. This class converts normalized attributes to {@link PolyString}. Hence, here we must provide
- * a very custom implementation of a more abstract (property) definition.
- *
- * We cannot even use {@link ResourceAttributeDefinitionDelegator} because of the type conflict.
+ * This class intentionally does not implement {@link ResourceAttributeDefinition} interface. It should not be used
+ * in place of attribute definition.
  * ====
  */
 public class NormalizationAwareResourceAttributeDefinition<T>
@@ -229,11 +224,6 @@ public class NormalizationAwareResourceAttributeDefinition<T>
     }
 
     @Override
-    public <A> void setAnnotation(QName qname, A value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public @Nullable Map<QName, Object> getAnnotations() {
         return originalDefinition.getAnnotations();
     }
@@ -294,6 +284,26 @@ public class NormalizationAwareResourceAttributeDefinition<T>
     }
 
     @Override
+    public @Nullable String getMergerIdentifier() {
+        return originalDefinition.getMergerIdentifier();
+    }
+
+    @Override
+    public @Nullable List<QName> getNaturalKeyConstituents() {
+        return originalDefinition.getNaturalKeyConstituents();
+    }
+
+    @Override
+    public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
+        return originalDefinition.getMergerInstance(strategy, originMarker);
+    }
+
+    @Override
+    public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
+        return originalDefinition.getNaturalKeyInstance();
+    }
+
+    @Override
     public boolean isIndexOnly() {
         return originalDefinition.isIndexOnly();
     }
@@ -326,21 +336,8 @@ public class NormalizationAwareResourceAttributeDefinition<T>
 
     @Override
     public <T1 extends ItemDefinition<?>> T1 findItemDefinition(@NotNull ItemPath path, @NotNull Class<T1> clazz) {
-        if (path.isEmpty()) {
-            if (clazz.isAssignableFrom(this.getClass())) {
-                //noinspection unchecked
-                return (T1) this;
-            } else {
-                throw new IllegalArgumentException("Looking for definition of class " + clazz + " but found " + this);
-            }
-        } else {
-            return null; // There should be no sub-definitions
-        }
-    }
-
-    @Override
-    public void adoptElementDefinitionFrom(ItemDefinition<?> otherDef) {
-        throw new UnsupportedOperationException("Implement if needed");
+        //noinspection unchecked
+        return LivePrismItemDefinition.matchesThisDefinition(path, clazz, this) ? (T1) this : null;
     }
 
     @Override
@@ -361,23 +358,8 @@ public class NormalizationAwareResourceAttributeDefinition<T>
     }
 
     @Override
-    public boolean canBeDefinitionOf(PrismProperty<T> item) {
-        throw new UnsupportedOperationException("Implement if needed");
-    }
-
-    @Override
-    public boolean canBeDefinitionOf(@NotNull PrismValue pvalue) {
-        throw new UnsupportedOperationException("Implement if needed");
-    }
-
-    @Override
     public Optional<ComplexTypeDefinition> structuredType() {
         return Optional.empty();
-    }
-
-    @Override
-    public PrismContext getPrismContext() {
-        return PrismContext.get();
     }
 
     @Override
@@ -428,7 +410,7 @@ public class NormalizationAwareResourceAttributeDefinition<T>
 
     @Override
     public @NotNull PropertyDelta<T> createEmptyDelta(ItemPath path) {
-        return new PropertyDeltaImpl<>(path, this, PrismContext.get());
+        return new PropertyDeltaImpl<>(path, this);
     }
 
     public @NotNull PropertyDelta<T> createEmptyDelta() {
@@ -456,16 +438,16 @@ public class NormalizationAwareResourceAttributeDefinition<T>
 
     @Override
     public @NotNull PrismProperty<T> instantiate() {
-        return new PrismPropertyImpl<>(getItemName(), this, PrismContext.get());
+        return new PrismPropertyImpl<>(getItemName(), this);
     }
 
     @Override
     public @NotNull PrismProperty<T> instantiate(QName name) {
-        return new PrismPropertyImpl<>(name, this, PrismContext.get());
+        return new PrismPropertyImpl<>(name, this);
     }
 
     @Override
-    public MutablePrismPropertyDefinition<T> toMutable() {
+    public PrismPropertyDefinitionMutator<T> mutator() {
         throw new UnsupportedOperationException("Implement if needed");
     }
 
@@ -563,6 +545,11 @@ public class NormalizationAwareResourceAttributeDefinition<T>
     public @NotNull NormalizationAwareResourceAttributeDefinition<T> clone() {
         return new NormalizationAwareResourceAttributeDefinition<>(
                 originalDefinition.clone());
+    }
+
+    @Override
+    public @NotNull ItemDefinition<PrismProperty<T>> cloneWithNewName(@NotNull ItemName itemName) {
+        throw new UnsupportedOperationException("Implement if needed");
     }
 
     @Override

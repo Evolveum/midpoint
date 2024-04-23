@@ -101,7 +101,7 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
         });
 
-        steps.add(new RoleAnalysisSessionSimpleObjectsWizardPanel(getHelper().getDetailsModel()) {
+        steps.add(new FilteringRoleAnalysisSessionOptionWizardPanel(getHelper().getDetailsModel()) {
             @Override
             public VisibleEnableBehaviour getBackBehaviour() {
                 return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
@@ -118,11 +118,23 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
             }
         });
 
-        RoleAnalysisSessionType session = getAssignmentHolderModel().getObjectType();
-        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+        steps.add(new ClusteringRoleAnalysisSessionOptionWizardPanel(getHelper().getDetailsModel()) {
+            @Override
+            public VisibleEnableBehaviour getBackBehaviour() {
+                return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
+            }
 
-        boolean outlier = analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS);
+            @Override
+            public boolean onNextPerformed(AjaxRequestTarget target) {
+                return super.onNextPerformed(target);
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                RoleAnalysisSessionWizardPanel.this.onExitPerformed();
+            }
+        });
+
         steps.add(new RoleAnalysisSessionDetectionOptionsWizardPanel(getHelper().getDetailsModel()) {
             @Override
             public VisibleEnableBehaviour getBackBehaviour() {
@@ -136,30 +148,17 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected IModel<String> getTextModel() {
-                if (outlier) {
-                    return createStringResource("PageRoleAnalysisSession.wizard.step.work.filter.options.outlier.text");
-                }
                 return super.getTextModel();
             }
 
             @Override
             protected IModel<String> getSubTextModel() {
-                if (outlier) {
-                    return createStringResource("PageRoleAnalysisSession.wizard.step.work.filter.options.outlier.subText");
-                }
                 return super.getSubTextModel();
             }
 
             @Override
             protected ItemVisibilityHandler getVisibilityHandler() {
-                return wrapper -> {
-                    if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)
-                            && (wrapper.getItemName().equals(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
-                            || wrapper.getItemName().equals(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY))) {
-                        return ItemVisibility.HIDDEN;
-                    }
-                    return ItemVisibility.AUTO;
-                };
+                return wrapper -> ItemVisibility.AUTO;
             }
 
             @Override
