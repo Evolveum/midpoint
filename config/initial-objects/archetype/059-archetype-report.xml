@@ -59,6 +59,7 @@
                         </icon>
                     </display>
                     <container id="8">
+                        <identifier>fileFormat</identifier>
                         <path>fileFormat</path>
                     </container>
                     <panelType>formPanel</panelType>
