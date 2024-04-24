@@ -66,7 +66,7 @@ public class SchemaCache implements Cache {
 
     public void init() {
 
-        if (repositoryService.supports(SchemaType.class)) {
+        if (!repositoryService.supports(SchemaType.class)) {
             LOGGER.debug("Skip processing schema object from database, because SchemaType isn't supported.");
             return;
         }
