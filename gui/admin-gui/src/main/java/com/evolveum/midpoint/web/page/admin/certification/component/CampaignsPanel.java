@@ -8,8 +8,6 @@
 package com.evolveum.midpoint.web.page.admin.certification.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.Toggle;
-import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
@@ -18,36 +16,31 @@ import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaign;
-import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDto;
+import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.CertCampaignsStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,9 +52,9 @@ public class CampaignsPanel extends BasePanel {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final String ID_VIEW_TOGGLE = "viewToggle";
     private static final String ID_CAMPAIGNS_PANEL = "campaignsPanel";
     private LoadableDetachableModel<Search> searchModel;
+    private SelectableBeanObjectDataProvider<AccessCertificationCampaignType> provider;
 
     public CampaignsPanel(String id) {
         super(id);
@@ -92,7 +85,7 @@ public class CampaignsPanel extends BasePanel {
     private void initLayout() {
         setOutputMarkupId(true);
 
-        SelectableBeanObjectDataProvider<AccessCertificationCampaignType> provider = createProvider();
+        provider = createProvider();
         MultiSelectTileTablePanel<AccessCertificationCampaignType,
                 AccessCertificationCampaignType> tilesTable =
                 new MultiSelectTileTablePanel<>(ID_CAMPAIGNS_PANEL, createViewToggleModel(), UserProfileStorage.TableId.PAGE_CAMPAIGNS) {
@@ -167,30 +160,6 @@ public class CampaignsPanel extends BasePanel {
 
                 };
         add(tilesTable);
-
-        IModel<List<Toggle<ViewToggle>>> items = new LoadableModel<>(false) {
-
-            @Serial private static final long serialVersionUID = 1L;
-            @Override
-            protected List<Toggle<ViewToggle>> load() {
-
-                ViewToggle toggle = tilesTable.getViewToggleModel().getObject();
-                List<Toggle<ViewToggle>> list = new ArrayList<>();
-
-                Toggle<ViewToggle> asList = new Toggle<>("fa-solid fa-table-list", null);
-                asList.setActive(ViewToggle.TABLE == toggle);
-                asList.setValue(ViewToggle.TABLE);
-                list.add(asList);
-
-                Toggle<ViewToggle> asTile = new Toggle<>("fa-solid fa-table-cells", null);
-                asTile.setActive(ViewToggle.TILE == toggle);
-                asTile.setValue(ViewToggle.TILE);
-                list.add(asTile);
-
-                return list;
-            }
-        };
-
     }
 
     private SelectableBeanObjectDataProvider<AccessCertificationCampaignType> createProvider() {
@@ -244,24 +213,24 @@ public class CampaignsPanel extends BasePanel {
         columns.add(column);
 
         column = new AjaxLinkColumn<>(createStringResource("PageCertCampaigns.table.name"),
-                AccessCertificationCampaignType.F_NAME.getLocalPart(), CertCampaignListItemDto.F_NAME) {
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_NAME.getLocalPart()) {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
-                campaignDetailsPerformed(rowModel.getObject().getValue().getOid());
+                CampaignProcessingHelper.campaignDetailsPerformed(rowModel.getObject().getValue().getOid(), getPageBase());
             }
         };
         columns.add(column);
 
         column = new PropertyColumn<>(createStringResource("PageCertCampaigns.table.description"),
-                CertCampaignListItemDto.F_DESCRIPTION);
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_DESCRIPTION.getLocalPart());
         columns.add(column);
 
         column = new PropertyColumn<>(createStringResource("PageCertCampaigns.table.iteration"),
-                CertCampaignListItemDto.F_ITERATION);
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_ITERATION.getLocalPart());
         columns.add(column);
 
         column = new EnumPropertyColumn<>(createStringResource("PageCertCampaigns.table.state"),
-                CertCampaignListItemDto.F_STATE) {
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_STATE.getLocalPart()) {
             @Override
             protected String translate(Enum<?> en) {
                 return createStringResourceStatic(getPage(), en).getString();
@@ -270,28 +239,77 @@ public class CampaignsPanel extends BasePanel {
         columns.add(column);
 
         column = new PropertyColumn<>(createStringResource("PageCertCampaigns.table.stage"),
-                CertCampaignListItemDto.F_CURRENT_STAGE_NUMBER);
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_STAGE_NUMBER.getLocalPart()) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                super.populateItem(item, componentId, rowModel);
+                add(new VisibleBehaviour(() -> isStageVisible(rowModel.getObject())));
+            }
+
+            private boolean isStageVisible(SelectableBean<AccessCertificationCampaignType> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getValue();
+                return campaign.getState() == AccessCertificationCampaignStateType.IN_REVIEW_STAGE ||
+                        campaign.getState() == AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
+            }
+
+        };
         columns.add(column);
 
-        column = new PropertyColumn<>(createStringResource("PageCertCampaigns.table.escalationLevel"),
-                CertCampaignListItemDto.F_ESCALATION_LEVEL_NUMBER);
+        column = new AbstractColumn<>(createStringResource("PageCertCampaigns.table.escalationLevel")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+                int escalationLevelNumber = CertCampaignTypeUtil.getCurrentStageEscalationLevelNumberSafe(campaign);
+                item.add(new Label(componentId, escalationLevelNumber));
+
+                add(new VisibleBehaviour(() -> isEscalationLevelNumber(escalationLevelNumber)));
+            }
+
+            private boolean isEscalationLevelNumber(int escalationLevelNumber) {
+                return escalationLevelNumber != 0;
+            }
+        };
         columns.add(column);
 
-        column = new PropertyColumn<>(createStringResource("PageCertCampaigns.table.stages"),
-                CertCampaignListItemDto.F_NUMBER_OF_STAGES);
+        column = new AbstractColumn<>(createStringResource("PageCertCampaigns.table.stages")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+                item.add(new Label(componentId, CertCampaignTypeUtil.getNumberOfStages(campaign)));
+            }
+        };
         columns.add(column);
 
-        column = new PropertyColumn<>(createStringResource("PageCertCampaigns.table.deadline"),
-                CertCampaignListItemDto.F_DEADLINE_AS_STRING);
+        column = new AbstractColumn<>(createStringResource("PageCertCampaigns.table.deadline")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+                item.add(new Label(componentId, CampaignProcessingHelper.computeDeadlineAsString(campaign, getPageBase())));
+            }
+        };
         columns.add(column);
 
         column = new SingleButtonColumn<>(new Model<>(), null) {
 
             @Override
             public boolean isButtonEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> model) {
-                final AccessCertificationCampaignType campaign = model.getObject().getValue();
-                String button = determineAction(campaign);
-                return button != null;
+                //todo fix
+//                final AccessCertificationCampaignType campaign = model.getObject().getValue();
+//                String button = determineAction(campaign);
+//                return button != null;
+                return true;
             }
 
             @Override
@@ -304,13 +322,14 @@ public class CampaignsPanel extends BasePanel {
 
             @Override
             public String getCaption() {
-                AccessCertificationCampaignType campaign = getRowModel().getObject().getValue();
-                String button = determineAction(campaign);
-                if (button != null) {
-                    return CampaignsPanel.this.createStringResource(button).getString();
-                } else {
+                //todo fix
+//                AccessCertificationCampaignType campaign = getRowModel().getObject().getValue();
+//                String button = determineAction(campaign);
+//                if (button != null) {
+//                    return CampaignsPanel.this.createStringResource(button).getString();
+//                } else {
                     return "";
-                }
+//                }
             }
 
             @Override
@@ -326,22 +345,7 @@ public class CampaignsPanel extends BasePanel {
             @Override
             public void clickPerformed(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> model) {
                 AccessCertificationCampaignType campaign = model.getObject().getValue();
-                String action = determineAction(campaign);
-//                switch (action) {
-//                    case OP_START_CAMPAIGN:
-//                    case OP_OPEN_NEXT_STAGE:
-//                        openNextStagePerformed(target, campaign);
-//                        break;
-//                    case OP_CLOSE_STAGE:
-//                        closeStageConfirmation(target, model.getObject());
-//                        break;
-//                    case OP_START_REMEDIATION:
-//                        startRemediationPerformed(target, campaign);
-//                        break;
-//                    case OP_CLOSE_CAMPAIGN: // not used
-//                    default:
-//                        throw new IllegalStateException("Unknown action: " + action);
-//                }
+                CampaignProcessingHelper.campaignActionPerformed(campaign, getPageBase(), target);
             }
         };
         columns.add(column);
@@ -356,97 +360,68 @@ public class CampaignsPanel extends BasePanel {
         return columns;
     }
 
-    private void campaignDetailsPerformed(String oid) {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        getPageBase().navigateToNext(PageCertCampaign.class, parameters);
-    }
-
-    private String determineAction(AccessCertificationCampaignType campaign) {
-        int currentStage = campaign.getStageNumber();
-        int numOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
-        AccessCertificationCampaignStateType state = campaign.getState();
-        String button = null;
-        switch (state) {
-//            case CREATED:
-//                button = numOfStages > 0 ? OP_START_CAMPAIGN : null;
-//                break;
-//            case IN_REVIEW_STAGE:
-//                button = OP_CLOSE_STAGE;
-//                break;
-//            case REVIEW_STAGE_DONE:
-//                button = currentStage < numOfStages ? OP_OPEN_NEXT_STAGE : OP_START_REMEDIATION;
-//                break;
-//            case IN_REMEDIATION:
-//            case CLOSED:
-//            default:
-//                button = null;
-//                break;
-        }
-        return button;
-    }
-
     private List<InlineMenuItem> createInlineMenu() {
         List<InlineMenuItem> items = new ArrayList<>();
         items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.startSelected")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(CampaignsPanel.this) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-//                        startSelectedCampaignsPerformed(target);
+                        CampaignProcessingHelper.startSelectedCampaignsPerformed(target, getSelectedCampaigns(), getPageBase());
                     }
                 };
             }
 
         });
         items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.closeSelected")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(CampaignsPanel.this) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-//                        closeSelectedCampaignsConfirmation(target);
+                        CampaignProcessingHelper.closeSelectedCampaignsConfirmation(target, getSelectedCampaigns(), getPageBase());
                     }
                 };
             }
 
         });
         items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.reiterateSelected")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(CampaignsPanel.this) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-//                        reiterateSelectedCampaignsConfirmation(target);
+                        CampaignProcessingHelper.reiterateSelectedCampaignsConfirmation(target, getSelectedCampaigns(),
+                                getPageBase());
                     }
                 };
             }
 
         });
         items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.deleteSelected")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(CampaignsPanel.this) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-//                        deleteSelectedCampaignsConfirmation(target);
+                        CampaignProcessingHelper.deleteSelectedCampaignsConfirmation(target, getSelectedCampaigns(), getPageBase());
                     }
                 };
             }
@@ -459,16 +434,16 @@ public class CampaignsPanel extends BasePanel {
 
         List<InlineMenuItem> menuItems = new ArrayList<>();
         InlineMenuItem item = new InlineMenuItem(createStringResource("PageCertCampaigns.menu.close")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<CertCampaignListItemDto>() {
-                    private static final long serialVersionUID = 1L;
+                return new ColumnMenuAction<AccessCertificationCampaignType>() {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-//                        closeCampaignConfirmation(target, getRowModel().getObject());
+                        CampaignProcessingHelper.closeCampaignConfirmation(target, getRowModel().getObject(), getPageBase());
                     }
                 };
             }
@@ -483,16 +458,16 @@ public class CampaignsPanel extends BasePanel {
         menuItems.add(item);
 
         item = new InlineMenuItem(createStringResource("PageCertCampaigns.menu.reiterate")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<CertCampaignListItemDto>() {
-                    private static final long serialVersionUID = 1L;
+                return new ColumnMenuAction<AccessCertificationCampaignType>() {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-//                        reiterateCampaignConfirmation(target, getRowModel().getObject());
+                        CampaignProcessingHelper.reiterateCampaignConfirmation(target, getRowModel().getObject(), getPageBase());
                     }
                 };
             }
@@ -510,12 +485,12 @@ public class CampaignsPanel extends BasePanel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<CertCampaignListItemDto>() {
-                    private static final long serialVersionUID = 1L;
+                return new ColumnMenuAction<AccessCertificationCampaignType>() {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-//                        deleteCampaignConfirmation(target, getRowModel().getObject());
+                        CampaignProcessingHelper.deleteCampaignConfirmation(target, getRowModel().getObject(), getPageBase());
                     }
                 };
             }
@@ -534,5 +509,9 @@ public class CampaignsPanel extends BasePanel {
                 .modelServiceLocator(getPageBase());
 
         return searchBuilder.build();
+    }
+
+    private List<AccessCertificationCampaignType> getSelectedCampaigns() {
+        return new ArrayList<>(provider.getSelected());
     }
 }

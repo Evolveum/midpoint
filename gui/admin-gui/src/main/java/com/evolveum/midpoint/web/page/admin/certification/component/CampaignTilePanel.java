@@ -13,27 +13,19 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
-import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.model.api.AccessCertificationService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDto;
+import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignStateHelper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -134,7 +126,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                campaignActionPerformed(target);
+                CampaignProcessingHelper.campaignActionPerformed(getCampaign(), getPageBase(), target);
             }
         };
         actionButton.add(AttributeModifier.append("class", campaignStateHelper.getNextAction().getActionCssClass()));
@@ -150,8 +142,6 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         actionButtonIcon.add(AttributeModifier.append("class", campaignStateHelper.getNextAction().getActionIcon().getCssClass()));
         actionButtonIcon.setOutputMarkupId(true);
         actionButton.add(actionButtonIcon);
-
-
     }
 
     private IModel<Boolean> getSelectedModel() {
@@ -168,25 +158,45 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
             }
         };
     }
-    private IModel<Badge> getStatusModel() {
-        return Model.of(campaignStateHelper.createBadge());
+
+    private LoadableModel<Badge> getStatusModel() {
+        return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Badge load() {
+                return campaignStateHelper.createBadge();
+            }
+        };
     }
 
-    private IModel<String> getTitleModel() {
-        return Model.of(WebComponentUtil.getName(getCampaign()));
+    private LoadableModel<String> getTitleModel() {
+        return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
+                return WebComponentUtil.getName(getCampaign());
+            }
+        };
     }
 
     private AccessCertificationCampaignType getCampaign() {
         return getModelObject().getValue().getValue();
     }
 
-    protected @NotNull IModel<List<ProgressBar>> createProgressBarModel() {
-        return () -> {
-            AccessCertificationCampaignType campaign = getCampaign();
-            float completed = CertCampaignTypeUtil.getCasesCompletedPercentageAllStagesAllIterations(campaign);
+    protected @NotNull LoadableModel<List<ProgressBar>> createProgressBarModel() {
+        return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
 
-            ProgressBar progressBar = new ProgressBar(completed, ProgressBar.State.INFO);
-            return Collections.singletonList(progressBar);
+            @Override
+            protected List<ProgressBar> load() {
+                AccessCertificationCampaignType campaign = getCampaign();
+                float completed = CertCampaignTypeUtil.getCasesCompletedPercentageAllStagesAllIterations(campaign);
+
+                ProgressBar progressBar = new ProgressBar(completed, ProgressBar.State.INFO);
+                return Collections.singletonList(progressBar);
+            }
         };
     }
 
@@ -194,66 +204,30 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         return Model.of(WebComponentUtil.formatDate(getCampaign().getEndTimestamp()));
     }
 
-    private IModel<String> getStageModel() {
-        int stageNumber = getCampaign().getStageNumber();
-        int numberOfStages = CertCampaignTypeUtil.getNumberOfStages(getCampaign());
-        return Model.of(stageNumber + "/" + numberOfStages);
+    private LoadableModel<String> getStageModel() {
+        return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
+                int stageNumber = getCampaign().getStageNumber();
+                int numberOfStages = CertCampaignTypeUtil.getNumberOfStages(getCampaign());
+                return stageNumber + "/" + numberOfStages;
+            }
+        };
     }
 
-    private IModel<String> getIterationModel() {
-        return Model.of("" + CertCampaignTypeUtil.norm(getCampaign().getIteration()));
+    private LoadableModel<String> getIterationModel() {
+        return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
+                return "" + CertCampaignTypeUtil.norm(getCampaign().getIteration());
+            }
+        };
     }
 
     //todo unify with PageCertCampaigns menu actions
-    private void campaignActionPerformed(AjaxRequestTarget target) {
-        int processed = 0;
-        AccessCertificationService acs = getPageBase().getCertificationService();
-
-        CampaignStateHelper.CampaignAction action = campaignStateHelper.getNextAction();
-        String operationName = LocalizationUtil.translate(action.getActionLabelKey());
-
-        OperationResult result = new OperationResult(operationName);
-        try {
-            Task task = getPageBase().createSimpleTask(operationName);
-            if (CampaignStateHelper.CampaignAction.START_CAMPAIGN.equals(action)) {
-//                if (campaign.getState() == AccessCertificationCampaignStateType.CREATED) {
-                    acs.openNextStage(getCampaign().getOid(), task, result);
-                    processed++;
-//                }
-            } else if (CampaignStateHelper.CampaignAction.CLOSE_CAMPAIGN.equals(operationName)) {
-//                if (campaign.getState() != AccessCertificationCampaignStateType.CLOSED) {
-                    acs.closeCampaign(getCampaign().getOid(), task, result);
-                    processed++;
-//                }
-            } else if (CampaignStateHelper.CampaignAction.REITERATE_CAMPAIGN.equals(operationName)) {
-                //todo
-//                if (item.isReiterable()) {
-                    acs.reiterateCampaign(getCampaign().getOid(), task, result);
-                    processed++;
-//                }
-            } else {
-                throw new IllegalStateException("Unknown action: " + operationName);
-            }
-        } catch (Exception ex) {
-            result.recordPartialError(createStringResource(
-                    "PageCertCampaigns.message.actOnCampaignsPerformed.partialError").getString(), ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't process campaign", ex);
-        }
-
-        if (processed == 0) {
-            warn(getString("PageCertCampaigns.message.noCampaignsSelected"));
-            target.add(getFeedbackPanel());
-            return;
-        }
-
-        result.recomputeStatus();
-        if (result.isSuccess()) {
-            result.recordStatus(OperationResultStatus.SUCCESS, createStringResource(
-                    "PageCertCampaigns.message.actOnCampaignsPerformed.success", processed).getString());
-        }
-        WebComponentUtil.safeResultCleanup(result, LOGGER);
-        showResult(result);
-        target.add(this);
-    }
 
 }
