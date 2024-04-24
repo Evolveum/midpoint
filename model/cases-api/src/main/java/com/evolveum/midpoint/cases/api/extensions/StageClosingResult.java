@@ -19,6 +19,9 @@ public interface StageClosingResult extends DebugDumpable {
 
     boolean shouldCaseProcessingContinue();
 
+    /** URI to be used as the final case outcome (if this stage closing means closing the whole case). */
+    @Nullable String getCaseOutcomeUri();
+
     @NotNull String getStageOutcomeUri();
 
     @Nullable AutomatedCompletionReasonType getAutomatedStageCompletionReason();
