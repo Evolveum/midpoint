@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.RoleAnalysisChartOptions;
-
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,8 +48,8 @@ public class RoleAnalysisAttributeChartModel extends LoadableModel<ChartConfigur
         return chart;
     }
 
-    private @NotNull RoleAnalysisChartOptions createChartOptions() {
-        RoleAnalysisChartOptions options = new RoleAnalysisChartOptions();
+    private @NotNull ChartOptions createChartOptions() {
+        ChartOptions options = new ChartOptions();
         options.setLegend(createLegendOptions());
         options.setIndexAxis(IndexAxis.AXIS_X.getValue());
         ChartAnimationOption chartAnimationOption = new ChartAnimationOption();

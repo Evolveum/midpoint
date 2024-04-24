@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType.SCATTER;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType.getNextChartType;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
@@ -18,6 +20,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -82,7 +86,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
     private static final String OP_LOAD_STATISTICS = DOT_CLASS + "loadRoleAnalysisStatistics";
 
     private boolean isSortByGroup = false;
-    private boolean isLineChart = true;
+    ChartType chartType = ChartType.LINE;
     private boolean isScalable = false;
 
     public RoleAnalysisChartPanel(String id) {
@@ -211,12 +215,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
 
             @Override
             public CompositedIcon getIcon() {
-                String scaleIcon;
-                if (!isLineChart) {
-                    scaleIcon = GuiStyleConstants.CLASS_BAR_CHART_ICON;
-                } else {
-                    scaleIcon = GuiStyleConstants.CLASS_LINE_CHART_ICON;
-                }
+                String scaleIcon = chartType.getChartIcon();
                 return new CompositedIconBuilder().setBasicIcon(scaleIcon,
                         LayeredIconCssStyle.IN_ROW_STYLE).build();
             }
@@ -227,7 +226,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
                     target.appendJavaScript(applyChartScaleScript());
                 }
                 target.add(chartContainer);
-                isLineChart = !isLineChart;
+                chartType = getNextChartType(chartType);
                 target.add(roleAnalysisChart);
                 target.add(this);
             }
@@ -287,7 +286,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
         };
         scaleButton.titleAsLabel(true);
         scaleButton.setOutputMarkupId(true);
-        scaleButton.setVisible(false);
+        scaleButton.setVisible(true);
         scaleButton.add(AttributeAppender.append("class", "btn btn-tool"));
         toolForm.add(scaleButton);
     }
@@ -334,14 +333,20 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
             protected List<RoleAnalysisModel> load() {
                 return prepareRoleAnalysisData();
             }
-        }, isLineChart){
+        }, chartType) {
             @Override
             public String getXAxisTitle() {
+                if(chartType.equals(SCATTER)){
+                    return getPageBase().createStringResource("PageRoleAnalysis.chart.yAxis.title").getString();
+                }
                 return getPageBase().createStringResource("PageRoleAnalysis.chart.xAxis.title").getString();
             }
 
             @Override
             public String getYAxisTitle() {
+                if(chartType.equals(SCATTER)){
+                    return getPageBase().createStringResource("PageRoleAnalysis.chart.xAxis.title").getString();
+                }
                 return getPageBase().createStringResource("PageRoleAnalysis.chart.yAxis.title").getString();
             }
 

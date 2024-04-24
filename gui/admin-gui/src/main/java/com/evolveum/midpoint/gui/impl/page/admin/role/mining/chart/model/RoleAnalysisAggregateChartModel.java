@@ -9,9 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.*;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.ChartTitleOption;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisModel;
 
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -28,11 +25,13 @@ import org.jetbrains.annotations.NotNull;
 public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfiguration> {
 
     LoadableDetachableModel<List<RoleAnalysisModel>> roleAnalysisModels;
-    boolean isLineChart = true;
+    ChartType chartType;
 
-    public RoleAnalysisAggregateChartModel(LoadableDetachableModel<List<RoleAnalysisModel>> roleAnalysisModel, boolean isLineChart) {
+    public RoleAnalysisAggregateChartModel(
+            @NotNull LoadableDetachableModel<List<RoleAnalysisModel>> roleAnalysisModel,
+            @NotNull ChartType chartType) {
         this.roleAnalysisModels = roleAnalysisModel;
-        this.isLineChart = isLineChart;
+        this.chartType = chartType;
     }
 
     @Override
@@ -42,20 +41,49 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
 
     private @NotNull ChartConfiguration createChartConfiguration() {
 
-        if (isLineChart) {
+        if (chartType.equals(ChartType.LINE)) {
             LineChartConfiguration chart = new LineChartConfiguration();
             ChartData chartData = createDataset();
             chart.setData(chartData);
             chart.setOptions(createChartOptions());
             return chart;
-        } else {
+        } else if(chartType.equals(ChartType.BAR)){
             BarChartConfiguration chart = new BarChartConfiguration();
             ChartData chartData = createDataset();
             chart.setData(chartData);
             chart.setOptions(createChartOptions());
             return chart;
+        }else{
+            ScatterChartConfiguration chart = new ScatterChartConfiguration();
+            ChartData chartData = createScatterDataset();
+            chart.setData(chartData);
+            chart.setOptions(createChartOptions());
+            return chart;
         }
 
+    }
+
+    private @NotNull ChartData createScatterDataset() {
+        ChartData chartData = new ChartData();
+
+        ChartDataset datasetUsers = new ChartDataset();
+        datasetUsers.setLabel("Users / Roles occupation");
+        datasetUsers.addBackgroudColor("Red");
+        datasetUsers.setBorderWidth(1);
+
+        List<RoleAnalysisModel> object = roleAnalysisModels.getObject();
+        for (RoleAnalysisModel roleAnalysisModel : object) {
+            int rolesCount = roleAnalysisModel.getRolesCount();
+            int usersCount = roleAnalysisModel.getUsersCount();
+            ScatterDataPoint scatterDataPoint = new ScatterDataPoint(usersCount, rolesCount);
+            datasetUsers.addData(scatterDataPoint);
+            datasetUsers.addData(roleAnalysisModel.getUsersCount());
+
+        }
+
+        chartData.addDataset(datasetUsers);
+
+        return chartData;
     }
 
     private @NotNull ChartData createDataset() {
@@ -69,7 +97,7 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
         datasetRoles.setLabel(getDatasetRoleLabel());
         datasetRoles.addBackgroudColor("Green");
 
-        if (isLineChart) {
+        if (chartType.equals(ChartType.LINE)) {
             datasetUsers.addBorderColor("Red");
             datasetUsers.setBorderWidth(1);
             datasetRoles.addBorderColor("Green");
@@ -90,8 +118,8 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
         return chartData;
     }
 
-    private @NotNull RoleAnalysisChartOptions createChartOptions() {
-        RoleAnalysisChartOptions options = new RoleAnalysisChartOptions();
+    private @NotNull ChartOptions createChartOptions() {
+        ChartOptions options = new ChartOptions();
         options.setLegend(createLegendOptions());
         options.setIndexAxis(IndexAxis.AXIS_X.getValue());
 
@@ -106,6 +134,7 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
                 new ChartTitleOption();
         chartTitleXOption.setDisplay(true);
         chartTitleXOption.setText(getXAxisTitle());
+
         chartScaleXAxisOption.setTitle(chartTitleXOption);
 
         ChartScaleAxisOption chartScaleYAxisOption = new ChartScaleAxisOption();
