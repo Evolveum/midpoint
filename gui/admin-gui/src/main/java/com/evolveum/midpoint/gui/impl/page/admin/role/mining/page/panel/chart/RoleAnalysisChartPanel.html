@@ -6,7 +6,7 @@
   -->
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <div class="card card-light">
+    <div class="card card-light"  id="chartScaleContainer" style="overflow: scroll;">
         <div class="card-header">
             <h3 class="card-title" wicket:id="cardTitle"></h3>
             <div class="card-tools">
@@ -27,8 +27,8 @@
 
             </div>
         </div>
-        <div class="card-body" style="overflow: scroll;">
-            <div wicket:id="container" id="chartScaleContainer">
+        <div class="card-body" >
+            <div wicket:id="container">
                 <canvas  wicket:id="chart" style="max-height: 450px"></canvas>
             </div>
 
