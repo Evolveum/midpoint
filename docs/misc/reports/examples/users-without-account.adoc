@@ -19,9 +19,12 @@ We need a report of users which have assignments of a construction role, but don
 
 We need only report configuration with condition.
 
+//TODO check after sampleRef is fully in prod
 .*Example Report configuration*
 [%collapsible]
 ====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/users-without-account.xml[Git]
+
 sampleRef::samples/reports/users-without-account.xml[]
 ====
 

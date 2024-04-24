@@ -18,9 +18,12 @@ We need to create a report for audit events of modifications with a column for c
 
 Configuration for this use case consists only from the report itself, because we use an object collection from the initial objects.
 
+//TODO check after sampleRef is fully in prod
 .*Example Report Configuration*
 [%collapsible]
 ====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/audit-report-changed-attrs.xml[Git]
+
 sampleRef::samples/reports/audit-report-changed-attrs.xml[]
 ====
 

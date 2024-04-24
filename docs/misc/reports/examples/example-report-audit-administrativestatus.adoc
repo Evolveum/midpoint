@@ -27,48 +27,66 @@ CREATE INDEX iAuditEventCustSituation
     ON ma_audit_event (custSituation);
 ----
 
+//TODO check after sampleRef is fully in prod
 .*Example Resource Configuration*
 [%collapsible]
 ====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/resource-csv-username.xml[Git]
+
 sampleRef::samples/resources/csv/resource-csv-username.xml[]
 ====
 
+//TODO check after sampleRef is fully in prod
 .*Example CSV Source File*
 [%collapsible]
 ====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/midpoint-username.csv[Git]
+
 sampleRef::samples/resources/csv/midpoint-username.csv[]
 ====
 
 As next adding we're adding next snippet of configuration to config.xml file in Midpoint home directory.
 
+//TODO check after sampleRef is fully in prod
 .*config.xml configuration snippet*
 [%collapsible]
 ====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/misc/config-custom-column.xml[Git]
+
 sampleRef::samples/misc/config-custom-column.xml[]
 ====
 
 After modifying config.xml we have to restart Midpoint. As last part of adding custom column adding next configuration to system configuration.
 
+//TODO check after sampleRef is fully in prod
 .*Snippet of system configuration*
 [%collapsible]
 ====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/misc/system-config-event-rec.xml[Git]
+
 sampleRef::samples/misc/system-config-event-rec.xml[]
 ====
 
  I chose situations are split by '|', but you can use more columns. Now, we need configure object collection for audit records.
 In object collection for audit events we use sql select command.
 
+//TODO check after sampleRef is fully in prod
 .*Object collection*
 [%collapsible]
 ====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/admin-status-midification.xml[Git]
+
 sampleRef::samples/objectCollection/admin-status-midification.xml[]
 ====
 
 When we have object collection, then import Dashboard object with widget for our object collection.
 
+//TODO check after sampleRef is fully in prod
 .*Dashboard*
 [%collapsible]
 ====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/change-of-admin-status-custom-column.xml[Git]
+
 sampleRef::samples/dashboard/change-of-admin-status-custom-column.xml[]
 ====
 
@@ -76,9 +94,12 @@ After successful import of dashboard object and reload of page you can see dashb
 
 We want report with table of audit events, so we import dashboard report.
 
+//TODO check after sampleRef is fully in prod
 .*Report*
 [%collapsible]
 ====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/dashboard-report-custom-column.xml[Git]
+
 sampleRef::samples/reports/dashboard-report-custom-column.xml[]
 ====
 
