@@ -15,11 +15,11 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.visit.ClassVisitFilter;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.wizard.EnumWizardChoicePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategory;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRoleAnalysisSession.wizard.step.choice", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<AnalysisCategoryChoiceStepPanel.AnalysisCategory, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
+public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<AnalysisCategory, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
     public static final String PANEL_TYPE = "rm-category";
 
@@ -72,23 +72,6 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
                 .setRealValue(mode);
 
         onSubmitPerformed(target);
-    }
-
-    public enum AnalysisCategory implements TileEnum {
-        STANDARD("fa fa-cogs"),
-        ADVANCED("fa fa-sliders-h"),
-        OUTLIER("fa fa-wrench");
-
-        private final String icon;
-
-        AnalysisCategory(String icon) {
-            this.icon = icon;
-        }
-
-        @Override
-        public String getIcon() {
-            return icon;
-        }
     }
 
     @Override
