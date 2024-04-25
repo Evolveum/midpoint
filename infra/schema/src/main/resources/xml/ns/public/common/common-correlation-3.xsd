@@ -1976,6 +1976,9 @@
                         Outputs of such expressions are multiplied together, yielding the final confidence
                         value for the whole match.
                     </xsd:documentation> <!-- TODO other inputs? -->
+                    <xsd:appinfo>
+                        <a:displayName>ItemSearchConfidenceDefinitionType.expression</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:choice>
