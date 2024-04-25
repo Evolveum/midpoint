@@ -288,6 +288,11 @@ public class CampaignProcessingHelper implements Serializable {
         campaignActionPerformed(Collections.singletonList(campaign), action, pageBase, target);
     }
 
+    public static void campaignActionPerformed(@NotNull AccessCertificationCampaignType campaign,
+            CampaignStateHelper.CampaignAction action, PageBase pageBase, AjaxRequestTarget target) {
+        campaignActionPerformed(Collections.singletonList(campaign), action, pageBase, target);
+    }
+
     public static void campaignActionPerformed(@NotNull List<AccessCertificationCampaignType> campaigns,
             CampaignStateHelper.CampaignAction action, PageBase pageBase, AjaxRequestTarget target) {
         int processed = 0;

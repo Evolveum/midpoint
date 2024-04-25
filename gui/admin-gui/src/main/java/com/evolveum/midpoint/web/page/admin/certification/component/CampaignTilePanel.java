@@ -10,20 +10,29 @@ package com.evolveum.midpoint.web.page.admin.certification.component;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignStateHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -35,8 +44,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serial;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> {
@@ -56,6 +67,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     private static final String ID_ACTION_BUTTON = "actionButton";
     private static final String ID_ACTION_BUTTON_LABEL = "actionButtonLabel";
     private static final String ID_ACTION_BUTTON_ICON = "actionButtonIcon";
+    private static final String ID_DETAILS = "details";
 
     CampaignStateHelper campaignStateHelper;
 
@@ -78,7 +90,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
         setOutputMarkupId(true);
 
-        CheckBoxPanel selectTileCheckbox = new CheckBoxPanel(ID_SELECT_TILE_CHECKBOX, getSelectedModel());
+        IsolatedCheckBoxPanel selectTileCheckbox = new IsolatedCheckBoxPanel(ID_SELECT_TILE_CHECKBOX, getSelectedModel());
         selectTileCheckbox.setOutputMarkupId(true);
         add(selectTileCheckbox);
 
@@ -86,13 +98,19 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         status.setOutputMarkupId(true);
         add(status);
 
-        AjaxButton menu = new AjaxButton(ID_MENU) {
+        DropdownButtonPanel menu = new DropdownButtonPanel(ID_MENU, createMenuDropDownButtonModel().getObject()) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                // TODO implement
+            protected String getSpecialButtonClass() {
+                return "";
             }
+
+            @Override
+            protected boolean hasToggleIcon() {
+                return false;
+            }
+
         };
         menu.setOutputMarkupId(true);
         add(menu);
@@ -109,7 +127,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         progressBar.setOutputMarkupId(true);
         add(progressBar);
 
-        Label deadline = new Label(ID_DEADLINE, getDeadlineModel());
+        DateLabelComponent deadline = new DateLabelComponent(ID_DEADLINE, getDeadlineModel(), DateLabelComponent.SHORT_SHORT_STYLE);
         deadline.setOutputMarkupId(true);
         add(deadline);
 
@@ -142,6 +160,17 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         actionButtonIcon.add(AttributeModifier.append("class", campaignStateHelper.getNextAction().getActionIcon().getCssClass()));
         actionButtonIcon.setOutputMarkupId(true);
         actionButton.add(actionButtonIcon);
+
+        AjaxLink<Void> details = new AjaxLink<>(ID_DETAILS) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                CampaignProcessingHelper.campaignDetailsPerformed(getCampaign().getOid(), getPageBase());
+            }
+        };
+        details.setOutputMarkupId(true);
+        add(details);
     }
 
     private IModel<Boolean> getSelectedModel() {
@@ -166,6 +195,52 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
             @Override
             protected Badge load() {
                 return campaignStateHelper.createBadge();
+            }
+        };
+    }
+
+    private LoadableModel<DropdownButtonDto> createMenuDropDownButtonModel() {
+        return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected DropdownButtonDto load() {
+                DropdownButtonDto button = new DropdownButtonDto(null, "fa fa-ellipsis-v", null,
+                        createMenuItemsModel().getObject());
+                return button;
+            }
+        };
+    }
+
+    private LoadableModel<List<InlineMenuItem>> createMenuItemsModel() {
+        return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<InlineMenuItem> load() {
+                List<CampaignStateHelper.CampaignAction> actionsList = campaignStateHelper.getAvailableActions();
+                return actionsList
+                        .stream()
+                        .map(this::createMenuItem)
+                        .toList();
+            }
+
+            private InlineMenuItem createMenuItem(CampaignStateHelper.CampaignAction action) {
+                return new InlineMenuItem(createStringResource(action.getActionLabelKey())) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public InlineMenuItemAction initAction() {
+                        return new InlineMenuItemAction() {
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                CampaignProcessingHelper.campaignActionPerformed(getCampaign(), action, getPageBase(), target);
+                            }
+                        };
+                    }
+                };
             }
         };
     }
@@ -200,8 +275,16 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         };
     }
 
-    private IModel<String> getDeadlineModel() {
-        return Model.of(WebComponentUtil.formatDate(getCampaign().getEndTimestamp()));
+    private LoadableModel<Date> getDeadlineModel() {
+        return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Date load() {
+                AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(getCampaign());
+                return currentStage != null ? XmlTypeConverter.toDate(currentStage.getDeadline()) : null;
+            }
+        };
     }
 
     private LoadableModel<String> getStageModel() {
@@ -228,6 +311,5 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         };
     }
 
-    //todo unify with PageCertCampaigns menu actions
 
 }

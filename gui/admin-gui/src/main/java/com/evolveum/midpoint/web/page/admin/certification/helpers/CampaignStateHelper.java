@@ -8,31 +8,14 @@
 package com.evolveum.midpoint.web.page.admin.certification.helpers;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
-import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.AccessCertificationService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
-import org.apache.wicket.Component;
-
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CampaignStateHelper implements Serializable {
 
@@ -42,11 +25,11 @@ public class CampaignStateHelper implements Serializable {
 
     static {
         Map<AccessCertificationCampaignStateType, String> map = new HashMap<>();
-        map.put(AccessCertificationCampaignStateType.CREATED, Badge.State.PRIMARY.getCss());
-        map.put(AccessCertificationCampaignStateType.IN_REVIEW_STAGE, Badge.State.INFO.getCss());
-        map.put(AccessCertificationCampaignStateType.IN_REMEDIATION, Badge.State.WARNING.getCss());
-        map.put(AccessCertificationCampaignStateType.REVIEW_STAGE_DONE, Badge.State.SUCCESS.getCss());
-        map.put(AccessCertificationCampaignStateType.CLOSED, Badge.State.SECONDARY.getCss());
+        map.put(AccessCertificationCampaignStateType.CREATED, "colored-form-primary");
+        map.put(AccessCertificationCampaignStateType.IN_REVIEW_STAGE, "colored-form-info");
+        map.put(AccessCertificationCampaignStateType.IN_REMEDIATION, "colored-form-warning");
+        map.put(AccessCertificationCampaignStateType.REVIEW_STAGE_DONE, "colored-form-success");
+        map.put(AccessCertificationCampaignStateType.CLOSED, "colored-form-secondary");
 
         campaignStateClassMap = Collections.unmodifiableMap(map);
     }
@@ -75,7 +58,11 @@ public class CampaignStateHelper implements Serializable {
         CLOSE_CAMPAIGN(new DisplayType()
                 .label("CampaignAction.closeCampaign")
                 .cssClass("btn-secondary")
-                .icon(new IconType().cssClass("fa fa-solid fa-circle-xmark")));
+                .icon(new IconType().cssClass("fa fa-solid fa-circle-xmark"))),
+        REMOVE_CAMPAIGN(new DisplayType()
+                .label("CampaignAction.removeCampaign")
+                .cssClass("btn-danger")
+                .icon(new IconType().cssClass("fa fa-minus-circle")));
 
         private DisplayType displayType;
 
@@ -109,6 +96,24 @@ public class CampaignStateHelper implements Serializable {
         campaignStateNextActionMap = Collections.unmodifiableMap(map);
     }
 
+    private static Map<AccessCertificationCampaignStateType, List<CampaignAction>> campaignStateAvailableActionsMap;
+
+    static {
+        Map<AccessCertificationCampaignStateType, List<CampaignAction>> map = new HashMap<>();
+        map.put(AccessCertificationCampaignStateType.CREATED,
+                Arrays.asList(CampaignAction.START_CAMPAIGN, CampaignAction.REMOVE_CAMPAIGN));
+        map.put(AccessCertificationCampaignStateType.IN_REVIEW_STAGE,
+                Arrays.asList(CampaignAction.CLOSE_STAGE, CampaignAction.REMOVE_CAMPAIGN));
+        map.put(AccessCertificationCampaignStateType.IN_REMEDIATION,
+                Arrays.asList(CampaignAction.CLOSE_STAGE, CampaignAction.REMOVE_CAMPAIGN));
+        map.put(AccessCertificationCampaignStateType.REVIEW_STAGE_DONE,
+                Arrays.asList(CampaignAction.OPEN_NEXT_STAGE, CampaignAction.REMOVE_CAMPAIGN));
+        map.put(AccessCertificationCampaignStateType.CLOSED,
+                Arrays.asList(CampaignAction.REITERATE_CAMPAIGN, CampaignAction.REMOVE_CAMPAIGN));
+
+        campaignStateAvailableActionsMap = Collections.unmodifiableMap(map);
+    }
+
     private final AccessCertificationCampaignStateType campaignState;
 
     public CampaignStateHelper(AccessCertificationCampaignStateType campaignState) {
@@ -125,6 +130,10 @@ public class CampaignStateHelper implements Serializable {
 
     public String getNextActionKey() {
         return getNextAction().getActionLabelKey();
+    }
+
+    public List<CampaignAction> getAvailableActions() {
+        return campaignStateAvailableActionsMap.get(campaignState);
     }
 
 }
