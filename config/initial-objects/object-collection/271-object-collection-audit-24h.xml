@@ -12,23 +12,9 @@
     <name>Audit records in 24h</name>
     <type>AuditEventRecordType</type>
     <filter>
-        <!--  TODO: Convert to Axiom Query -->
-        <q:and>
-            <q:equal>
-                <q:path>eventStage</q:path>
-                <q:value>execution</q:value>
-            </q:equal>
-            <q:greater>
-                <q:path>timestamp</q:path>
-                <expression>
-                    <script>
-                        <code>
-                            calendar = basic.addDuration(basic.currentDateTime(), "-P1D");
-                            return calendar;
-                        </code>
-                    </script>
-                </expression>
-            </q:greater>
-        </q:and>
+        <q:text>
+            eventStage = 'execution'
+            and timestamp > `basic.addDuration(basic.currentDateTime(), "-P1D")`
+        </q:text>
     </filter>
 </objectCollection>

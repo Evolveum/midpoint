@@ -8084,6 +8084,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:merger>ObjectSelectorType</a:merger>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -9245,7 +9246,7 @@
                             <xsd:appinfo>
                                 <a:since>4.6</a:since>
                                 <a:experimental>true</a:experimental>
-                                <a:displayName>ItemRefinedDefinitionType.indexing</a:displayName>
+                                <a:displayName>ObjectTemplateItemDefinitionType.indexing</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -9261,7 +9262,7 @@
                             <xsd:appinfo>
                                 <a:since>4.6</a:since>
                                 <a:experimental>true</a:experimental>
-                                <a:displayName>ItemRefinedDefinitionType.identity</a:displayName>
+                                <a:displayName>ObjectTemplateItemDefinitionType.multiSource</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -9274,7 +9275,7 @@
                             <xsd:appinfo>
                                 <a:since>4.6</a:since>
                                 <a:experimental>true</a:experimental>
-                                <a:displayName>ItemRefinedDefinitionType.correlation</a:displayName>
+                                <a:displayName>ObjectTemplateItemDefinitionType.correlation</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

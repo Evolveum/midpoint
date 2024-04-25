@@ -142,7 +142,7 @@ The exact syntax of queries for values of different types is described in the fo
 
 | dateTime
 | `metadata/createTimestamp >= "2024-03-01"`
-| DateTime values are enclosed in quotes (') or double quotes ("). It can be compared as dates or date and time - written in format of xref:https://en.wikipedia.org/wiki/ISO_8601[ISO-8601].
+| DateTime values are enclosed in quotes (') or double quotes ("). It can be compared as dates or date and time - written in format of https://en.wikipedia.org/wiki/ISO_8601[ISO-8601].
 
 |
 | `metadata/createTimestamp >= "2024-03-01T15:30:00"`
@@ -403,7 +403,7 @@ All roles and organization units which are organization tree roots.
 
 This chapter provides information and examples of queries in midPoint Query Language, mainly used in objects while configuration of midPoint itself.
 
-Additional examples can be found in xref:/midpoint/guides/gui-midpoint-query-examples[Advanced search - EXAMPLES].
+Additional examples can be found in xref:/midpoint/reference/concepts/query/midpoint-query-language/query-examples[Advanced search - EXAMPLES].
 
 === Searching by Archetype Name
 

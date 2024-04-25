@@ -10,6 +10,9 @@ package com.evolveum.midpoint.init;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInfo
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 public class SchemaCache implements Cache {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SchemaCache.class);
 
     private PrismContext prismContext;
     private RepositoryService repositoryService;
@@ -59,6 +64,11 @@ public class SchemaCache implements Cache {
 
 
     public void init() {
+
+        if (!repositoryService.supports(SchemaType.class)) {
+            LOGGER.debug("Skip processing schema object from database, because SchemaType isn't supported.");
+            return;
+        }
 
         Map<String, Element> dbSchemaExtensions = new HashMap<>();
 

@@ -41,6 +41,7 @@ CREATE TYPE ContainerType AS ENUM (
     'ACCESS_CERTIFICATION_WORK_ITEM',
     'AFFECTED_OBJECTS',
     'ASSIGNMENT',
+    'ASSIGNMENT_METADATA',
     'CASE_WORK_ITEM',
     'FOCUS_IDENTITY',
     'INDUCEMENT',
@@ -1951,6 +1952,34 @@ CREATE TABLE m_assignment (
     PRIMARY KEY (ownerOid, cid)
 );
 
+-- Assignment metadata
+
+CREATE TABLE m_assignment_metadata (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    ownerType ObjectType,
+    assignmentCid INTEGER NOT NULL,
+    containerType ContainerType GENERATED ALWAYS AS ('ASSIGNMENT_METADATA') STORED
+        CHECK (containerType = 'ASSIGNMENT_METADATA'),
+
+    -- Storage metadata
+    creatorRefTargetOid UUID,
+    creatorRefTargetType ObjectType,
+    creatorRefRelationId INTEGER REFERENCES m_uri(id),
+    createChannelId INTEGER REFERENCES m_uri(id),
+    createTimestamp TIMESTAMPTZ,
+    modifierRefTargetOid UUID,
+    modifierRefTargetType ObjectType,
+    modifierRefRelationId INTEGER REFERENCES m_uri(id),
+    modifyChannelId INTEGER REFERENCES m_uri(id),
+    modifyTimestamp TIMESTAMPTZ,
+
+    PRIMARY KEY (ownerOid, cid)
+) INHERITS(m_container);
+
+CREATE INDEX m_assignment_metadata_createTimestamp_idx ON m_assignment (createTimestamp);
+CREATE INDEX m_assignment_metadata_modifyTimestamp_idx ON m_assignment (modifyTimestamp);
+
+
 CREATE INDEX m_assignment_policySituation_idx
     ON m_assignment USING gin(policysituations gin__int_ops);
 CREATE INDEX m_assignment_subtypes_idx ON m_assignment USING gin(subtypes);
@@ -1972,10 +2001,9 @@ CREATE INDEX m_assignment_modifyTimestamp_idx ON m_assignment (modifyTimestamp);
 CREATE TABLE m_assignment_ref_create_approver (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     assignmentCid INTEGER NOT NULL,
+    metadataCid INTEGER,
     referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_CREATE_APPROVER') STORED
-        CHECK (referenceType = 'ASSIGNMENT_CREATE_APPROVER'),
-
-    PRIMARY KEY (ownerOid, assignmentCid, referenceType, relationId, targetOid)
+        CHECK (referenceType = 'ASSIGNMENT_CREATE_APPROVER')
 )
     INHERITS (m_reference);
 
@@ -1983,6 +2011,10 @@ CREATE TABLE m_assignment_ref_create_approver (
 ALTER TABLE m_assignment_ref_create_approver ADD CONSTRAINT m_assignment_ref_create_approver_id_fk
     FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid)
         ON DELETE CASCADE;
+-- table does not have primary key since metadataCid == null are original values in metadata containar
+-- and metadataCid != null are value metadata references
+ALTER TABLE "m_assignment_ref_create_approver" ADD CONSTRAINT "m_assignment_ref_create_approver_pkey"
+  UNIQUE ("owneroid", "assignmentcid", "metadatacid", "referencetype", "relationid", "targetoid");
 
 CREATE INDEX m_assignment_ref_create_approver_targetOidRelationId_idx
     ON m_assignment_ref_create_approver (targetOid, relationId);
@@ -1991,10 +2023,9 @@ CREATE INDEX m_assignment_ref_create_approver_targetOidRelationId_idx
 CREATE TABLE m_assignment_ref_modify_approver (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     assignmentCid INTEGER NOT NULL,
+    metadataCid INTEGER,
     referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_MODIFY_APPROVER') STORED
-        CHECK (referenceType = 'ASSIGNMENT_MODIFY_APPROVER'),
-
-    PRIMARY KEY (ownerOid, assignmentCid, referenceType, relationId, targetOid)
+        CHECK (referenceType = 'ASSIGNMENT_MODIFY_APPROVER')
 )
     INHERITS (m_reference);
 
@@ -2002,6 +2033,9 @@ CREATE TABLE m_assignment_ref_modify_approver (
 ALTER TABLE m_assignment_ref_modify_approver ADD CONSTRAINT m_assignment_ref_modify_approver_id_fk
     FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid)
         ON DELETE CASCADE;
+
+ALTER TABLE "m_assignment_ref_modify_approver" ADD CONSTRAINT "m_assignment_ref_modify_approver_pkey"
+  UNIQUE ("owneroid", "assignmentcid", "metadatacid", "referencetype", "relationid", "targetoid");
 
 CREATE INDEX m_assignment_ref_modify_approver_targetOidRelationId_idx
     ON m_assignment_ref_modify_approver (targetOid, relationId);
@@ -2271,4 +2305,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(31, $$ SELECT 1 $$, true);
+call apply_change(33, $$ SELECT 1 $$, true);

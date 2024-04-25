@@ -53,7 +53,7 @@ project, workgroup, team, ad-hoc group, task force, job responsibility group +
 Tenant (in multi-tenant configurations) +
 Location (office, campus, city, country) +
 xref:/midpoint/reference/roles-policies/applicable-policies/[Policy category] +
-xref:/midpoint/reference/admin-gui/role-catalog/[Role catalog category]
+xref:/midpoint/reference/admin-gui/request-access#role-catalog
 
 
 | Service

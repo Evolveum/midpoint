@@ -1,6 +1,6 @@
 = Report from Collections
 :page-nav-title: Report from Collections
-:page-display-order: 300
+:page-display-order: 100
 :page-toc: top
 :page-keywords: [ 'report', 'collection' ,'collections' ]
 :page-upkeep-status: green
@@ -133,7 +133,7 @@ If sub-reports are used to multiply rows (see below), this object contains the s
 If no `path` was specified for the column, it has the same value as `object` variable.
 
 | `report`
-| xref:/midpoint/reference/misc/reports/configuration/report-functions.adoc/[Report Script Library]
+| xref:/midpoint/reference/misc/reports/configuration/report-functions/[Report Script Library]
 provides functions supporting report processing.
 
 | `basic`
@@ -184,58 +184,18 @@ If the _Report configuration before run_ attribute in an expression is set to "f
 image::collection-parameters.png[]
 
 .*Object Collection Report with Parameter*
-[source,xml]
-----
-<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<name>Collection report 2</name>
-    <objectCollection>
-        <collection>
-            <filter>
-                <q:ref>
-                    <q:path>assignment/construction/resourceRef</q:path>
-                    <expression>
-                        <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                        <script>
-                            <objectVariableMode>prismReference</objectVariableMode>
-                            <code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+[%collapsible]
+====
+sampleRef::samples/reports/report-user-list-advanced.xml[]
+====
 
-                                if (!resource) {
-                                   return null;
-                                }
+When you click on the "Run original report" button, a report preview will be generated in a modal window.
+In this window you can click the "Run report" button.
+This will create a task which will generate the actual report output.
+Bear in mind that even the report preview can take some time to generate based on the complexity and size of data.
+We have a work package tracking this bug:MID-9648[]
 
-                                ObjectReferenceType ort = new ObjectReferenceType();
-                                ort.setOid(resource.getOid());
-                                ort.setRelation(resource.getRelation());
-                                ort.setType(resource.getTargetType());
-                                return ort;
-                            </code>
-                        </script>
-                    </expression>
-                </q:ref>
-            </filter>
-        </collection>
-        <view>
-            <type>UserType</type>
-        </view>
-        <parameter>
-            <name>resource</name>
-            <type>c:ObjectReferenceType</type>
-            <targetType>c:ResourceType</targetType>
-            <display>
-                <label>
-                    <orig>resource</orig>
-                    <translation>
-                        <key>ObjectTypeGuiDescriptor.resource</key>
-                    </translation>
-                </label>
-            </display>
-        </parameter>
-    </objectCollection>
-</report>
-----
+image::collection-parameter-example.png[75%]
 
 We can use following attributes for parameter:
 
@@ -328,7 +288,7 @@ This is a single object from the collection, e.g. one result from a query.
 If sub-reports are used to multiply rows (see below), this object contains the same object for all such rows.
 
 | `report`
-| xref:/midpoint/reference/misc/reports/report-functions/[Report Script Library]
+| xref:/midpoint/reference/misc/reports/configuration/report-functions/[Report Script Library]
 provides functions supporting report processing.
 
 | `basic`
@@ -563,7 +523,7 @@ In any case, with great power comes great responsibility - and both `splitParent
 In the picture below we can see an example of generated HTML report of all users in midPoint.
 Report contains columns for Name, Full Name, Administrative status, Roles, Organizations and Accounts of every user.
 
-image::collection-example.png[]
+image::collection-example.png[75%]
 
 
 == See Also

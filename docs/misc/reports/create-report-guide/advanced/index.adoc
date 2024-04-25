@@ -36,7 +36,7 @@ image::report-collection.png[75%]
 
 image::coll-shadow.png[75%]
 
-In our example we are going to use a custom xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc/#_collection_parameter[parameter] in our filter.
+In our example we are going to use a custom xref:/midpoint/reference/misc/reports/configuration/collection-report/#_collection_parameter[parameter] in our filter.
 
 * find the *"Collection"* container
 * edit the *"Filter"* attribute (See Warning below) and add the following xml :
@@ -142,7 +142,7 @@ image::report-param.png[75%]
 We need to define a view:
 * click on the panel *View* and select type 'Shadow'.
 
-As the next step we add a few new xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc/#_collection_columns[columns] for shadow attributes: name, kind, intent and also one column to demonstrate a custom column.
+As the next step we add a few new xref:/midpoint/reference/misc/reports/configuration/collection-report/#_collection_columns[columns] for shadow attributes: name, kind, intent and also one column to demonstrate a custom column.
 
 * add three new columns and fill out the fields, name and path.
 * add the first column
@@ -195,7 +195,7 @@ On the report preview we can see the table with columns and content, which will 
 
 image::preview.png[75%]
 
-Next we can add a xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc/#_sub_reports[subreport] field to our report.
+Next we can add a xref:/midpoint/reference/misc/reports/configuration/collection-report/#_sub_reports[subreport] field to our report.
 
 * click on the *"Subreport"* panel
 

@@ -6,7 +6,7 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2020-11-25T11:58:59.795+01:00
 :page-upkeep-status: yellow
-:page-moved-from:midpoint/guides/approvals-via-rest-howto/index.adoc
+:page-moved-from: midpoint/guides/approvals-via-rest-howto/index.adoc
 
 The following approval-related operations are currently available via REST service:
 
@@ -168,8 +168,7 @@ You can use a filter on `archetypeRef` to differentiate between these two kinds;
 [WARNING]
 ====
 It is currently *not possible* to approve or reject a work item via REST directly.
-And it never was.
-As described xref:/midpoint/guides/approvals-via-rest-howto/3-9/[here] there was always an *unsupported "hack"* that allowed it.
+And it never was.In the version 3.9 there was a *unsupported "hack"* that allowed it.
 The following is an attempt to port that hack to 4.x. *DO NOT USE THIS in production.*
 
 ====

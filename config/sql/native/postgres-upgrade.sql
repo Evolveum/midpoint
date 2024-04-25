@@ -528,6 +528,56 @@ call apply_change(31, $aa$
 ALTER TYPE ShadowKindType ADD VALUE IF NOT EXISTS 'ASSOCIATED' AFTER 'GENERIC';
 $aa$);
 
+
+-- value metatada for assignments and inducements
+call apply_change(32, $aa$
+ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'ASSIGNMENT_METADATA' AFTER 'ASSIGNMENT';
+$aa$);
+
+call apply_change(33, $aa$
+CREATE TABLE m_assignment_metadata (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    ownerType ObjectType,
+    assignmentCid INTEGER NOT NULL,
+    containerType ContainerType GENERATED ALWAYS AS ('ASSIGNMENT_METADATA') STORED
+        CHECK (containerType = 'ASSIGNMENT_METADATA'),
+
+    -- Storage metadata
+    creatorRefTargetOid UUID,
+    creatorRefTargetType ObjectType,
+    creatorRefRelationId INTEGER REFERENCES m_uri(id),
+    createChannelId INTEGER REFERENCES m_uri(id),
+    createTimestamp TIMESTAMPTZ,
+    modifierRefTargetOid UUID,
+    modifierRefTargetType ObjectType,
+    modifierRefRelationId INTEGER REFERENCES m_uri(id),
+    modifyChannelId INTEGER REFERENCES m_uri(id),
+    modifyTimestamp TIMESTAMPTZ,
+
+    PRIMARY KEY (ownerOid, cid)
+) INHERITS(m_container);
+
+CREATE INDEX m_assignment_metadata_createTimestamp_idx ON m_assignment (createTimestamp);
+CREATE INDEX m_assignment_metadata_modifyTimestamp_idx ON m_assignment (modifyTimestamp);
+
+ALTER TABLE m_assignment_ref_create_approver ADD COLUMN metadataCid INTEGER;
+
+-- Primary key should also consider metadata
+
+ALTER TABLE "m_assignment_ref_create_approver" DROP CONSTRAINT "m_assignment_ref_create_approver_pkey";
+
+ALTER TABLE "m_assignment_ref_create_approver" ADD CONSTRAINT "m_assignment_ref_create_approver_pkey"
+  UNIQUE ("owneroid", "assignmentcid", "metadatacid", "referencetype", "relationid", "targetoid");
+
+
+ALTER TABLE m_assignment_ref_modify_approver ADD COLUMN metadataCid INTEGER;
+
+ALTER TABLE "m_assignment_ref_modify_approver" DROP CONSTRAINT "m_assignment_ref_modify_approver_pkey";
+
+ALTER TABLE "m_assignment_ref_modify_approver" ADD CONSTRAINT "m_assignment_ref_modify_approver_pkey"
+  UNIQUE ("owneroid", "assignmentcid", "metadatacid", "referencetype", "relationid", "targetoid");
+
+$aa$);
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

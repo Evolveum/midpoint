@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainerDefinition.PrismContainerDefinitionMutator;
+import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AssociationsCapabilityType;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +52,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public class ShadowAssociationDefinitionImpl
         extends ShadowItemDefinitionImpl<ShadowAssociation, ShadowAssociationValueType, NativeShadowAssociationDefinition, ResourceObjectAssociationType>
-        implements ShadowAssociationDefinition {
+        implements ShadowAssociationDefinition,
+        PrismContainerDefinitionMutator<ShadowAssociationValueType> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -89,7 +92,7 @@ public class ShadowAssociationDefinitionImpl
         super(layer, nativeDefinition, customizationBean, limitationsMap, accessOverride);
         this.associationClassDefinition = associationClassDefinition;
         this.associationTypeDefinition = associationTypeDefinition;
-        this.complexTypeDefinition = getComplexTypeDefinition();
+        this.complexTypeDefinition = createComplexTypeDefinition();
         this.maxOccurs = maxOccurs;
     }
 
@@ -155,6 +158,7 @@ public class ShadowAssociationDefinitionImpl
         return associationTypeDefinition;
     }
 
+    /** TODO inspect calls to this method; take specific embedded shadow into account (if possible)! */
     public @NotNull ResourceObjectDefinition getTargetObjectDefinition() {
         return getAssociationClassDefinition().getRepresentativeObjectDefinition();
     }
@@ -188,6 +192,11 @@ public class ShadowAssociationDefinitionImpl
         return SystemException.unexpected(e, "(object was already checked)");
     }
 
+    @Override
+    public @NotNull QName getTypeName() {
+        return ShadowAssociationValueType.COMPLEX_TYPE;
+    }
+
     private @NotNull ComplexTypeDefinition createComplexTypeDefinition() {
         var genericDefinition = stateNonNull(
                 PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByType(ShadowAssociationValueType.COMPLEX_TYPE),
@@ -210,21 +219,10 @@ public class ShadowAssociationDefinitionImpl
                 if (value instanceof ShadowAssociationValue) {
                     return value;
                 } else {
-                    ShadowAssociationValueType bean = (ShadowAssociationValueType) value.asContainerable();
-                    var shadowRef = bean.getShadowRef();
-                    if (shadowRef != null) {
-                        var shadow = (ShadowType) shadowRef.getObjectable();
-                        if (shadow != null) {
-                            try {
-                                new ShadowDefinitionApplicator(getTargetObjectDefinition())
-                                        .applyTo(shadow);
-                            } catch (SchemaException e) {
-                                throw SystemException.unexpected(e); // FIXME
-                            }
-                        }
-                    }
                     //noinspection unchecked
-                    return (PrismContainerValue<C>) ShadowAssociationValue.of(bean);
+                    return (PrismContainerValue<C>) ShadowAssociationValue.of(
+                            (ShadowAssociationValueType) value.asContainerable(),
+                            ShadowAssociationDefinitionImpl.this);
                 }
             }
         });
@@ -247,6 +245,10 @@ public class ShadowAssociationDefinitionImpl
         } else {
             return nativeDefinition.getMaxOccurs();
         }
+    }
+
+    @Override
+    public void setMinOccurs(int value) {
     }
 
     public void setMaxOccurs(int value) {
@@ -353,10 +355,9 @@ public class ShadowAssociationDefinitionImpl
     }
 
     @Override
-    public @NotNull PrismContainerDefinition.PrismContainerDefinitionMutator<ShadowAssociationValueType> mutator() {
-        throw new UnsupportedOperationException(); // FIXME ... what about GUI?
-//        checkMutableOnExposing();
-//        return this;
+    public @NotNull PrismContainerDefinitionMutator<ShadowAssociationValueType> mutator() {
+        checkMutableOnExposing();
+        return this;
     }
 
     @Override
@@ -508,5 +509,180 @@ public class ShadowAssociationDefinitionImpl
     @Override
     public ItemCorrelatorDefinitionType getCorrelatorDefinition() {
         return null; // Association cannot be used as a correlator - for now
+    }
+
+    // FIXME remove this eventually (after GUI stops setting maxOccurs on this definition)
+
+    @Override
+    public void setCompileTimeClass(Class<ShadowAssociationValueType> compileTimeClass) {
+    }
+
+    @Override
+    public PrismPropertyDefinition<?> createPropertyDefinition(QName name, QName propType, int minOccurs, int maxOccurs) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PrismPropertyDefinition<?> createPropertyDefinition(QName name, QName propType) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PrismPropertyDefinition<?> createPropertyDefinition(String localName, QName propType) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PrismContainerDefinition<?> createContainerDefinition(QName name, QName typeName, int minOccurs, int maxOccurs) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PrismContainerDefinition<?> createContainerDefinition(@NotNull QName name, @NotNull ComplexTypeDefinition ctd, int minOccurs, int maxOccurs) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setComplexTypeDefinition(ComplexTypeDefinition complexTypeDefinition) {
+    }
+
+    @Override
+    public void setProcessing(ItemProcessing processing) {
+    }
+
+    @Override
+    public void setValueEnumerationRef(PrismReferenceValue valueEnumerationRef) {
+    }
+
+    @Override
+    public void setOperational(boolean operational) {
+    }
+
+    @Override
+    public void setAlwaysUseForEquals(boolean alwaysUseForEquals) {
+    }
+
+    @Override
+    public void setDynamic(boolean value) {
+    }
+
+    @Override
+    public void setReadOnly() {
+    }
+
+    @Override
+    public void setDeprecatedSince(String value) {
+    }
+
+    @Override
+    public void addSchemaMigration(SchemaMigration value) {
+    }
+
+    @Override
+    public void setSchemaMigrations(List<SchemaMigration> value) {
+    }
+
+    @Override
+    public void setDeprecated(boolean deprecated) {
+    }
+
+    @Override
+    public void setRemoved(boolean removed) {
+    }
+
+    @Override
+    public void setRemovedSince(String removedSince) {
+    }
+
+    @Override
+    public void setExperimental(boolean experimental) {
+    }
+
+    @Override
+    public void setPlannedRemoval(String value) {
+    }
+
+    @Override
+    public void setElaborate(boolean value) {
+    }
+
+    @Override
+    public void setHeterogeneousListItem(boolean value) {
+    }
+
+    @Override
+    public void setSubstitutionHead(QName value) {
+    }
+
+    @Override
+    public void setIndexed(Boolean indexed) {
+    }
+
+    @Override
+    public void setIndexOnly(boolean value) {
+    }
+
+    @Override
+    public void setInherited(boolean value) {
+    }
+
+    @Override
+    public void setSearchable(boolean value) {
+    }
+
+    @Override
+    public void setOptionalCleanup(boolean optionalCleanup) {
+    }
+
+    @Override
+    public void setRuntimeSchema(boolean value) {
+    }
+
+    @Override
+    public void setMergerIdentifier(String value) {
+    }
+
+    @Override
+    public void setNaturalKeyConstituents(List<QName> naturalKeyConstituents) {
+    }
+
+    @Override
+    public void setCanRead(boolean val) {
+    }
+
+    @Override
+    public void setCanModify(boolean val) {
+    }
+
+    @Override
+    public void setCanAdd(boolean val) {
+    }
+
+    @Override
+    public void setDisplayHint(DisplayHint displayHint) {
+    }
+
+    @Override
+    public void setEmphasized(boolean emphasized) {
+    }
+
+    @Override
+    public void setDisplayName(String displayName) {
+    }
+
+    @Override
+    public void setDisplayOrder(Integer displayOrder) {
+    }
+
+    @Override
+    public void setHelp(String help) {
+    }
+
+    @Override
+    public void setDocumentation(String documentation) {
+    }
+
+    @Override
+    public void setDiagrams(List<ItemDiagramSpecification> value) {
     }
 }

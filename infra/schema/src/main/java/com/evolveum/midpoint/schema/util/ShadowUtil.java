@@ -198,9 +198,10 @@ public class ShadowUtil {
     /** Assuming the shadow has the correct definition. */
     public static @NotNull ResourceAttributeContainer getOrCreateAttributesContainer(ShadowType shadow) {
         try {
-            return (ResourceAttributeContainer) shadow
-                    .asPrismObject()
-                    .<ShadowAttributesType>findOrCreateContainer(ShadowType.F_ATTRIBUTES);
+            return MiscUtil.castSafely(
+                    shadow.asPrismObject()
+                            .<ShadowAttributesType>findOrCreateContainer(ShadowType.F_ATTRIBUTES),
+                    ResourceAttributeContainer.class);
         } catch (SchemaException e) {
             throw SystemException.unexpected(e);
         }
@@ -1166,5 +1167,15 @@ public class ShadowUtil {
 
     public static @NotNull ShadowAssociationsCollection getAssociationsCollection(@NotNull ShadowType shadowBean) {
         return ShadowAssociationsCollection.ofShadow(shadowBean);
+    }
+
+    public static boolean isRaw(@NotNull ShadowType shadowBean) {
+        var shadow = shadowBean.asPrismObject();
+        PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+        if (attributesContainer != null && !(attributesContainer instanceof ResourceAttributeContainer)) {
+            return true;
+        }
+        PrismContainer<?> associationsContainer = shadow.findContainer(ShadowType.F_ASSOCIATIONS);
+        return associationsContainer != null && !(associationsContainer instanceof ShadowAssociationsContainer);
     }
 }

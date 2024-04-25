@@ -521,10 +521,13 @@ And next we create dashboard with one widget for enabled users.
 ----
 ====
 
-Don't forget to add the new dashboard to admin gui in system configuration. After accessing the new dashboard in GUI you can see our new widget.
+Don't forget to add the new dashboard to admin gui in system configuration.
+
+After accessing the new dashboard in GUI you can see our new widget.
 
 image::enabled-users.png[]
 
+[#_asynchronous_widget]
 == Asynchronous widget
 
 To configure an asynchronous widget we have to use the `displaySourceType` attribute in the widget configuration and set it as `widgetData`.
@@ -536,95 +539,42 @@ For this we use a dashboard report with the element `storeExportedWidgetData`.
 For example, we will use the same case as in the previous example for enabled users.
 We create the same object collection.
 
-[%collapsible]
+//TODO check after sampleRef is fully in prod
 .*Example Object Collection*
+[%collapsible]
 ====
-[source,xml]
-----
-<objectCollection oid="00000000-0000-0000-0001-000000147896">
-   <name>All enabled users</name>
-    <type>UserType</type>
-    <filter>
-        <equal>
-            <path>activation/effectiveStatus</path>
-            <value>enabled</value>
-        </equal>
-    </filter>
-</objectCollection>
-----
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/howto/collection-enabled-users.xml[Git]
+
+sampleRef::samples/dashboard/howto/collection-enabled-users.xml[]
 ====
 
 Next, we have to create a dashboard. We also need to add the attribute `displaySourceType` with value `widgetData`.
 
+//TODO check after sampleRef is fully in prod
 [%collapsible]
 .*Example Dashboard Configuration*
 ====
-[source,xml]
-----
-<dashboard oid="f89709f9-7313-494f-a600-69ea75d95106">
-    <name>Example one widget for enabled users</name>
-    <display>
-        <label>Enabled users</label>
-    </display>
-    <widget>
-        <identifier>enabled-users</identifier>
-        <display>
-            <label>Enabled users</label>
-            <color>#00a65a</color>
-            <icon>
-                <cssClass>fa fa-user</cssClass>
-            </icon>
-        </display>
-        <data>
-            <sourceType>objectCollection</sourceType>
-            <displaySourceType>widgetData</displaySourceType>
-            <collection>
-                <collectionRef oid="00000000-0000-0000-0001-000000147896" type="ObjectCollectionType"/>
-            </collection>
-        </data>
-        <presentation>
-            <dataField>
-                <fieldType>value</fieldType>
-                <expression>
-                    <proportional>
-                        <style>value-only</style>
-                    </proportional>
-                </expression>
-            </dataField>
-            <dataField>
-                <fieldType>unit</fieldType>
-                <expression>
-                    <value>enabled</value>
-                </expression>
-            </dataField>
-        </presentation>
-    </widget>
-</dashboard>
-----
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/dashboard-asynchronous-widget.xml[Git]
+
+sampleRef::samples/dashboard/dashboard-asynchronous-widget.xml[]
 ====
 
 Finally, we create a report for dashboard.
 
+//TODO check after sampleRef is fully in prod
 [%collapsible]
 .*Example Report Configuration*
 ====
-[source,xml]
-----
-<report>
-    <name>Enabled users report</name>
-    <assignment>
-        <targetRef oid="00000000-0000-0000-0000-000000000170" type="ArchetypeType"/>
-    </assignment>
-    <dashboard>
-        <dashboardRef oid="f89709f9-7313-494f-a600-69ea75d95106" type="DashboardType"/>
-        <showOnlyWidgetsTable>true</showOnlyWidgetsTable>
-        <storeExportedWidgetData>onlyWidget</storeExportedWidgetData>
-    </dashboard>
-</report>
-----
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/report-asynchronous-widget.xml[Git]
+
+sampleRef::samples/dashboard/report-asynchronous-widget.xml[]
 ====
 
-Now we can run the report and midPoint processes the source data for the dashboard. The resulting data is written to the widget in the dashboard.
+Now we can run the report and midPoint processes the source data for the dashboard.
+The resulting data is written to the widget in the dashboard.
+
+include::../raw/file-format.adoc[]
+
 Next time you open the widget in the GUI, midPoint doesn't need to process the source data, it shows the saved data present in the object xml.
 
 image::enabled-users.png[]
@@ -637,6 +587,6 @@ Next screenshot is from the example dashboard link:https://github.com/Evolveum/m
 
 image::dashboard-screenshot.png[]
 
-* xref:/midpoint/referece/admin-gui/dashboards/index.adoc[Dashboards]
+* xref:/midpoint/reference/admin-gui/dashboards/[Dashboards]
 * xref:/midpoint/guides/dashboards-howto/[Dashboards How To]
 * xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Report]

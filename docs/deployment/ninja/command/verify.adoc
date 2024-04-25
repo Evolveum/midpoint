@@ -3,7 +3,8 @@
 Verification is a process that reads objects from midPoint repository and checks whether they are compatible with new version of midPoint.
 Verification checks for deprecated, removed elements or other issues that can cause problems during or after upgrade.
 
-Different categories for verification can be set turned on via switch `--verification-category [DEPRECATED|REMOVED|PLANNED_REMOVAL|INCORRECT_OIDS]`.
+Different categories for verification can be set turned on via switch `--verification-category`.
+Allowed values are  `DEPRECATED`, `REMOVED`, `PLANNED_REMOVAL`, `INCORRECT_OIDS`, `MULTI_VALUE_REF_WITHOUT_OID`, `MISSING_NATURAL_KEY`, `MULTIVALUE_BYTE_ARRAY`, `PROTECTED_DATA_NOT_EXTERNAL`.
 By default, all categories are checked.
 
 By default, ninja displays warnings about objects to `SYSOUT`.

@@ -301,8 +301,10 @@ class MappedItems<T extends Containerable> {
         MappedItem.ItemProvider<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>
                 associationProvider = () -> {
             var association = associationDefinition.instantiate();
-            association.add(ShadowAssociationValue.of(
-                    AbstractShadow.of(source.currentShadow), false));
+            association.add(
+                    ShadowAssociationValue.of(
+                            AbstractShadow.of(source.currentShadow),
+                            false));
             return (Item) association;
         };
         MappedItem.PostProcessor<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition> associationPostProcessor =

@@ -12,12 +12,14 @@ import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
+import com.evolveum.axiom.api.AxiomPath;
+import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.prism.path.InfraItemName;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -556,5 +558,36 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         ObjectDelta<UserType> diff = userWithSeparateDeltas.diff(userWithUnion, EquivalenceStrategy.LITERAL);
         displayValue("diff", diff.debugDump());
         assertTrue("Deltas have different effects:\n" + diff.debugDump(), diff.isEmpty());
+    }
+
+    @Test
+    public void testObjectDeltaMetadataPaths() throws Exception {
+
+        var metadataItem = PrismContext.get().getValueMetadataFactory().createEmpty();
+        ValueMetadataType meta1 = new ValueMetadataType()
+                .storage(new StorageMetadataType()
+                        .createChannel("test")
+                );
+        var base = new UserType();
+        var delta = PrismContext.get().deltaFor(UserType.class)
+                .item(InfraItemName.METADATA)
+                .add(new ValueMetadataType()
+                        .storage(new StorageMetadataType()
+                                .createChannel("test")
+                        )
+                ).asObjectDelta(SystemObjectsType.USER_ADMINISTRATOR.value());
+
+        delta.applyTo(base.asPrismContainer());
+        var viaGetterPcv = base.asPrismContainerValue().getValueMetadataAsContainer().getValue();
+        assertNotNull("Metadata via getValueMetadata should exists", viaGetterPcv);
+        var viaGetter = (ValueMetadataType) viaGetterPcv.asContainerable();
+        assertEquals("getStorage.getCreateChannel should have value seet", viaGetter.getStorage().getCreateChannel(), "test");
+        assertTrue("Object does not contain normal items", base.asPrismContainerValue().getItems().isEmpty());
+
+        var viaPath = base.asPrismContainerValue().findItem(InfraItemName.METADATA).getValue();
+        assertNotNull(viaPath);
+        var delta2 = PrismContext.get().deltaFor(UserType.class)
+                .item(InfraItemName.METADATA, ValueMetadataType.F_STORAGE, StorageMetadataType.F_CREATE_CHANNEL).add("test")
+                .asObjectDelta("oid");
     }
 }
