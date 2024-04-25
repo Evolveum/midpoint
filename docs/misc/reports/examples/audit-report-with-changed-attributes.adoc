@@ -6,7 +6,8 @@
 :page-wiki-metadata-create-date: 2020-08-18T15:06:52.473+02:00
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2020-09-07T09:26:13.342+02:00
-:page-upkeep-status: green
+:page-upkeep-status: yellow
+:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
 
 Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Report configuration] for basic information about configuration variables.
 
@@ -22,7 +23,7 @@ Configuration for this use case consists only from the report itself, because we
 .*Example Report Configuration*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/audit-report-changed-attrs.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/audit-report-changed-attrs.xml[Git]
 
 sampleRef::samples/reports/audit-report-changed-attrs.xml[]
 ====

@@ -6,7 +6,8 @@
 :page-wiki-metadata-create-date: 2020-08-18T14:15:45.548+02:00
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2020-08-18T15:03:38.032+02:00
-:page-upkeep-status: green
+:page-upkeep-status: yellow
+:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
 
 Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Report configuration] for basic information about configuration variables.
 
@@ -23,7 +24,7 @@ We need import object collection and report.
 .*Example Resource Configuration*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/resource-csv-username.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/resource-csv-username.xml[Git]
 
 sampleRef::samples/resources/csv/resource-csv-username.xml[]
 ====
@@ -32,7 +33,7 @@ sampleRef::samples/resources/csv/resource-csv-username.xml[]
 .*Example CSV Source File*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/midpoint-username.csv[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/midpoint-username.csv[Git]
 
 sampleRef::samples/resources/csv/midpoint-username.csv[]
 ====
@@ -41,7 +42,7 @@ sampleRef::samples/resources/csv/midpoint-username.csv[]
 .*Example Object Collection*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/resource-account-shadows.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/resource-account-shadows.xml[Git]
 
 sampleRef::samples/objectCollection/resource-account-shadows.xml[]
 ====
@@ -50,7 +51,7 @@ sampleRef::samples/objectCollection/resource-account-shadows.xml[]
 .*Example Report Configuration*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/comparing-attributes.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/comparing-attributes.xml[Git]
 
 sampleRef::samples/reports/comparing-attributes.xml[]
 ====
