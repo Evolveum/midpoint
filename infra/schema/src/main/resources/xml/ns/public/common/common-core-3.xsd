@@ -21296,7 +21296,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="type" type="xsd:QName" minOccurs="0">
                         <xsd:annotation>
