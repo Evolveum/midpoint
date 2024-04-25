@@ -7,9 +7,7 @@
 
 package com.evolveum.midpoint.schema.config;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -30,28 +28,17 @@ public abstract class SimulatedAssociationClassParticipantConfigItem
         return nonNull(value().getPrimaryBindingAttributeRef(), "primary binding attribute name");
     }
 
-    QName getSecondaryBindingAttributeName() throws ConfigurationException {
+    QName getSecondaryBindingAttributeName() {
         return value().getSecondaryBindingAttributeRef();
     }
 
     /** May be empty. */
-    public @NotNull List<SimulatedAssociationClassParticipantDelineationConfigItem> getDelineations() {
+    public @NotNull List<SimulatedAssociationClassParticipantDelineationConfigItem> getDelineations()
+            throws ConfigurationException {
         return children(
-                value().getDelineation(),
+                nonEmpty(value().getDelineation(), "delineations"),
                 SimulatedAssociationClassParticipantDelineationConfigItem.class,
                 SimulatedAssociationClassParticipantType.F_DELINEATION);
-    }
-
-    /**
-     * Set of object classes relevant for this participant. It may be empty. It may contain qualified/unqualified
-     * duplicate pairs, like `ri:group` and `group`. The client must cater for this.
-     */
-    public @NotNull Set<QName> getObjectClassNames() throws ConfigurationException {
-        Set<QName> objectClassNames = new HashSet<>();
-        for (SimulatedAssociationClassParticipantDelineationConfigItem delineation : getDelineations()) {
-            objectClassNames.add(delineation.getObjectClassName());
-        }
-        return objectClassNames;
     }
 
     public static class Object extends SimulatedAssociationClassParticipantConfigItem {
@@ -79,7 +66,7 @@ public abstract class SimulatedAssociationClassParticipantConfigItem
             return "subject specification";
         }
 
-        public @NotNull QName getLocalItemName() throws ConfigurationException {
+        @NotNull QName getLocalItemName() throws ConfigurationException {
             return nonNull(value().getLocalItemName(), "local item name");
         }
     }

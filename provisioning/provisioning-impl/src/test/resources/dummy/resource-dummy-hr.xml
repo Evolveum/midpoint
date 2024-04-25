@@ -30,13 +30,21 @@
                 <objectClass>ri:person</objectClass>
             </delineation>
         </objectType>
-        <associatedObjectType>
-            <kind>associated</kind>
-            <intent>contract</intent>
-            <associationClass>ri:personContract</associationClass>
-            <delineation>
-                <objectClass>ri:contract</objectClass>
-            </delineation>
-        </associatedObjectType>
+        <associationType>
+            <name>ri:contract</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>person</intent>
+                </objectType>
+            </subject>
+            <associatedObjectType>
+                <kind>associated</kind>
+                <intent>contract</intent>
+                <delineation>
+                    <objectClass>ri:contract</objectClass>
+                </delineation>
+            </associatedObjectType>
+        </associationType>
     </schemaHandling>
 </resource>

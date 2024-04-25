@@ -577,10 +577,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         and("complete schema is OK");
         var contractClassDefCS = completeSchema.findDefinitionForObjectClassRequired(Contract.OBJECT_CLASS_NAME.xsd());
-        var orgDefCS = contractClassDefCS.findAssociationDefinitionRequired(Contract.LinkNames.ORG.q());
-        var assocTypeDef = orgDefCS.getAssociationClassDefinition();
-        assertThat(assocTypeDef).as("association type definition").isNotNull();
-        assertThat(assocTypeDef.getClassName()).as("association type name").isEqualTo(ContractOrgUnit.NAME.xsd());
+        contractClassDefCS.findAssociationDefinitionRequired(Contract.LinkNames.ORG.q());
     }
 
     /** Creates some associations manually, and then queries them via UCF. */

@@ -35,6 +35,12 @@ public class SimulatedAssociationClassConfigItem
                 MidPointConstants.NS_RI);
     }
 
+    public @NotNull String getNameLocalPart() throws ConfigurationException {
+        return QNameUtil.getLocalPartCheckingNamespace(
+                nonNull(value().getName(), "association class name"),
+                MidPointConstants.NS_RI);
+    }
+
     public @NotNull SimulatedAssociationClassParticipantConfigItem.Subject getSubject()
             throws ConfigurationException {
         return child(

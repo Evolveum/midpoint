@@ -7,10 +7,12 @@
 
 package com.evolveum.midpoint.schema.processor.deleg;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ValueProcessingDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -147,6 +149,11 @@ public interface ResourceAttributeDefinitionDelegator<T>
     @Override
     default @NotNull List<InboundMappingType> getInboundMappingBeans() {
         return delegate().getInboundMappingBeans();
+    }
+
+    @Override
+    default @NotNull Collection<ValueProcessingDefinition> getValueProcessingDefinition() {
+        return delegate().getValueProcessingDefinition();
     }
 
     @Override

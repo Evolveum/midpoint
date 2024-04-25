@@ -715,7 +715,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     @NotNull
     private MatchingRule<Object> getMatchingRuleForTargetNamingIdentifier(ShadowAssociationDefinition associationDefinition) throws SchemaException {
-        var targetObjectDefinition = associationDefinition.getTargetObjectDefinition();
+        var targetObjectDefinition = associationDefinition.getRepresentativeTargetObjectDefinition();
         // TODO why naming attribute? Why not valueAttribute from the association definition?
         ResourceAttributeDefinition<?> targetNamingAttributeDef = targetObjectDefinition.getNamingAttribute();
         if (targetNamingAttributeDef != null) {

@@ -132,7 +132,7 @@ public class ShadowAssociation
 
     public @NotNull ShadowAssociationValue createNewValueWithIdentifier(@NotNull ResourceAttribute<?> identifier) throws SchemaException {
         var blankShadow = getDefinitionRequired()
-                .getTargetObjectDefinition()
+                .getRepresentativeTargetObjectDefinition()
                 .createBlankShadow();
         blankShadow.getAttributesContainer().add(identifier);
         return createNewValueWithIdentifiers(blankShadow);

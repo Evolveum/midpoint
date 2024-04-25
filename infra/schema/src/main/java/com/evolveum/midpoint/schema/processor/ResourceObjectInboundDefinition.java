@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -22,19 +23,28 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
-public interface ResourceObjectInboundDefinition extends Serializable {
+/**
+ * Defines "complex inbound processing": correlation, synchronization reactions, inbounds for attributes, associations and "self".
+ *
+ * There are two main flavors:
+ *
+ * . standard {@link ResourceObjectDefinition}
+ * . "embedded", defined by a {@link ValueProcessingType}
+ *
+ * Currently, the processing assumes that we have a shadow as an input. It is either the regular shadow coming from
+ * a resource, or an embedded shadow in the case of associations.
+ *
+ * TEMPORARY
+ */
+public interface ResourceObjectInboundDefinition extends Serializable, DebugDumpable {
 
     static ResourceObjectInboundDefinition empty() {
         return new EmptyImplementation();
     }
 
-    static ResourceObjectInboundDefinition forAssociation(
-            @Nullable ShadowAssociationTypeNewDefinitionType bean) {
-        return new AssociationBasedImplementation(
-                Objects.requireNonNullElseGet(bean, () -> new ShadowAssociationTypeNewDefinitionType())
-        );
+    static ResourceObjectInboundDefinition forEmbedded(@Nullable ValueProcessingType bean) {
+        return bean != null ? new EmbeddedImplementation(bean) : empty();
     }
 
     ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException;
@@ -120,11 +130,16 @@ public interface ResourceObjectInboundDefinition extends Serializable {
         public boolean hasAnyInbounds() {
             return false;
         }
+
+        @Override
+        public String debugDump(int indent) {
+            return "EMPTY"; // FIXME
+        }
     }
 
-    class AssociationBasedImplementation implements ResourceObjectInboundDefinition {
+    class EmbeddedImplementation implements ResourceObjectInboundDefinition {
 
-        @NotNull private final ShadowAssociationTypeNewDefinitionType definitionBean;
+        @NotNull private final ValueProcessingType definitionBean;
 
         @NotNull private final PathKeyedMap<ItemInboundDefinition> itemDefinitionsMap = new PathKeyedMap<>();
 
@@ -133,7 +148,7 @@ public interface ResourceObjectInboundDefinition extends Serializable {
         /** This is the inbound provided by "ref = '.'", i.e., related to the association value itself. */
         @Nullable private final ItemInboundDefinition associationValueInboundDefinition;
 
-        AssociationBasedImplementation(@NotNull ShadowAssociationTypeNewDefinitionType definitionBean) {
+        EmbeddedImplementation(@NotNull ValueProcessingType definitionBean) {
             this.definitionBean = definitionBean;
             for (var itemDefBean : definitionBean.getAttribute()) {
                 var itemName = ItemPathTypeUtil.asSingleNameOrFail(itemDefBean.getRef()); // TODO error handling
@@ -235,6 +250,11 @@ public interface ResourceObjectInboundDefinition extends Serializable {
         @Override
         public @Nullable ItemInboundDefinition getAssociationValueInboundDefinition() {
             return associationValueInboundDefinition;
+        }
+
+        @Override
+        public String debugDump(int indent) {
+            return definitionBean.debugDump(indent);
         }
     }
 

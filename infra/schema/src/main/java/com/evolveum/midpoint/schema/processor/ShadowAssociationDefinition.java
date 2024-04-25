@@ -14,11 +14,16 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 
 /**
  * Definition of an association item, e.g., `ri:group`.
+ *
+ * The association can be native or simulated; it can point right to the target object (like `group` object class),
+ * or to an intermediate - a.k.a. "associated" - one (like `groupMembership` object class).
  *
  * @see ShadowItemDefinition
  */
@@ -27,24 +32,28 @@ public interface ShadowAssociationDefinition
         PrismContainerDefinition<ShadowAssociationValueType>,
         ShadowItemDefinition<ShadowAssociation, ShadowAssociationValueType> {
 
-    /** Creates a filter that provides all shadows eligible as the target value for this association. */
+    /** Returns "immediate neighbors". TODO */
+    @NotNull Collection<AssociationParticipantType> getTargetParticipantTypes();
+
+    /**
+     * Creates a filter that provides all shadows eligible as the target value for this association.
+     *
+     * TODO are these immediate targets (associated objects, if present), or the "final" targets?
+     */
     ObjectFilter createTargetObjectsFilter();
 
-    ResourceObjectDefinition getTargetObjectDefinition();
+    /** TODO reconsider this: which definition should we provide as the representative one? There can be many. */
+    ResourceObjectDefinition getRepresentativeTargetObjectDefinition();
 
+    @TestOnly
     ShadowAssociationValue instantiateFromIdentifierRealValue(@NotNull QName identifierName, @NotNull Object realValue)
             throws SchemaException;
 
     ContainerDelta<ShadowAssociationValueType> createEmptyDelta();
 
-    ShadowAssociationClassSimulationDefinition getSimulationDefinition();
+    SimulatedShadowAssociationClassDefinition getSimulationDefinition();
 
-    ShadowAssociationClassSimulationDefinition getSimulationDefinitionRequired();
-
-    @NotNull ShadowAssociationClassDefinition getAssociationClassDefinition();
-
-    @NotNull
-    ShadowAssociationTypeDefinitionNew getAssociationTypeDefinition();
+    SimulatedShadowAssociationClassDefinition getSimulationDefinitionRequired();
 
     boolean isEntitlement();
 }

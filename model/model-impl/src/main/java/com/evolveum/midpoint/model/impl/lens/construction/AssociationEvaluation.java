@@ -52,6 +52,6 @@ class AssociationEvaluation<AH extends AssignmentHolderType>
 
     @Override
     ResourceObjectDefinition getAssociationTargetObjectDefinition() {
-        return itemDefinition.getTargetObjectDefinition();
+        return itemDefinition.getRepresentativeTargetObjectDefinition();
     }
 }

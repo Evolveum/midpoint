@@ -110,102 +110,106 @@
                 </reaction>
             </synchronization>
         </objectType>
-        <associationTypeNew>
+        <associationType>
             <name>userDocumentAccess</name>
             <subject>
                 <objectType>
                     <kind>account</kind>
                     <intent>default</intent>
                 </objectType>
-                <item>ri:access</item>
+                <item>
+                    <ref>ri:access</ref>
+                    <valueProcessing>
+                        <focus>
+                            <subtype>documentAccess</subtype>
+                        </focus>
+                        <attribute>
+                            <ref>ri:level</ref>
+                            <outbound>
+                                <source>
+                                    <path>targetRef</path>
+                                </source>
+                                <expression>
+                                    <script>
+                                        <code>targetRef?.relation?.localPart</code>
+                                    </script>
+                                </expression>
+                            </outbound>
+                        </attribute>
+                        <association>
+                            <ref>ri:document</ref>
+                            <outbound>
+                                <expression>
+                                    <associationFromLink/>
+                                </expression>
+                            </outbound>
+                            <inbound> <!-- not strictly necessary, just for illustration -->
+                                <name>documentName-and-level-into-assignment-identifier</name>
+                                <source>
+                                    <path>$shadow/attributes/ri:level</path>
+                                </source>
+                                <source>
+                                    <name>documentName</name>
+                                    <path>$associatedShadow/attributes/icfs:name</path>
+                                </source>
+                                <expression>
+                                    <script>
+                                        <code>"$documentName:$level"</code>
+                                    </script>
+                                </expression>
+                                <target>
+                                    <path>identifier</path>
+                                </target>
+                            </inbound>
+                            <inbound>
+                                <name>document-and-level-to-assignment-targetRef</name>
+                                <source>
+                                    <path>$shadow/attributes/ri:level</path>
+                                </source>
+                                <expression>
+                                    <shadowOwnerReferenceSearch>
+                                        <relationExpression>
+                                            <path>$level</path>
+                                        </relationExpression>
+                                    </shadowOwnerReferenceSearch>
+                                </expression>
+                                <target>
+                                    <path>targetRef</path>
+                                </target>
+                            </inbound>
+                        </association>
+                        <correlation>
+                            <correlators>
+                                <items>
+                                    <item>
+                                        <ref>targetRef</ref>
+                                    </item>
+                                </items>
+                            </correlators>
+                        </correlation>
+                        <synchronization>
+                            <reaction>
+                                <situation>disputed</situation> <!-- TODO "noTarget" or something like that -->
+                                <actions>
+                                    <!-- none at this moment -->
+                                </actions>
+                            </reaction>
+                            <reaction>
+                                <situation>unmatched</situation>
+                                <actions>
+                                    <addFocus/>
+                                </actions>
+                            </reaction>
+                            <reaction>
+                                <situation>linked</situation>
+                                <actions>
+                                    <synchronize/>
+                                </actions>
+                            </reaction>
+                        </synchronization>
+                    </valueProcessing>
+                </item>
             </subject>
-            <focus>
-                <subtype>documentAccess</subtype>
-            </focus>
-            <attribute>
-                <ref>ri:level</ref>
-                <outbound>
-                    <source>
-                        <path>targetRef</path>
-                    </source>
-                    <expression>
-                        <script>
-                            <code>targetRef?.relation?.localPart</code>
-                        </script>
-                    </expression>
-                </outbound>
-            </attribute>
-            <association>
-                <ref>ri:document</ref>
-                <outbound>
-                    <expression>
-                        <associationFromLink/>
-                    </expression>
-                </outbound>
-                <inbound> <!-- not strictly necessary, just for illustration -->
-                    <name>documentName-and-level-into-assignment-identifier</name>
-                    <source>
-                        <path>$shadow/attributes/ri:level</path>
-                    </source>
-                    <source>
-                        <name>documentName</name>
-                        <path>$associatedShadow/attributes/icfs:name</path>
-                    </source>
-                    <expression>
-                        <script>
-                            <code>"$documentName:$level"</code>
-                        </script>
-                    </expression>
-                    <target>
-                        <path>identifier</path>
-                    </target>
-                </inbound>
-                <inbound>
-                    <name>document-and-level-to-assignment-targetRef</name>
-                    <source>
-                        <path>$shadow/attributes/ri:level</path>
-                    </source>
-                    <expression>
-                        <shadowOwnerReferenceSearch>
-                            <relationExpression>
-                                <path>$level</path>
-                            </relationExpression>
-                        </shadowOwnerReferenceSearch>
-                    </expression>
-                    <target>
-                        <path>targetRef</path>
-                    </target>
-                </inbound>
-            </association>
-            <correlation>
-                <correlators>
-                    <items>
-                        <item>
-                            <ref>targetRef</ref>
-                        </item>
-                    </items>
-                </correlators>
-            </correlation>
-            <synchronization>
-                <reaction>
-                    <situation>disputed</situation> <!-- TODO "noTarget" or something like that -->
-                    <actions>
-                        <!-- none at this moment -->
-                    </actions>
-                </reaction>
-                <reaction>
-                    <situation>unmatched</situation>
-                    <actions>
-                        <addFocus/>
-                    </actions>
-                </reaction>
-                <reaction>
-                    <situation>linked</situation>
-                    <actions>
-                        <synchronize/>
-                    </actions>
-                </reaction>
-            </synchronization>
-        </associationTypeNew>
+        </associationType>
     </schemaHandling>
 </resource>

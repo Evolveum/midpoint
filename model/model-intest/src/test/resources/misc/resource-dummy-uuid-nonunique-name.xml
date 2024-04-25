@@ -108,18 +108,6 @@
             <objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
 
-        <associationType>
-            <name>ri:groupMembership</name>
-            <associationClass>ri:groupMembership</associationClass>
-            <!-- Will apply to all relevant object types -->
-        </associationType>
-
-        <associationType>
-            <name>ri:privilegePossession</name>
-            <associationClass>ri:privilegePossession</associationClass>
-            <!-- Will apply to all relevant object types -->
-        </associationType>
-
     </schemaHandling>
 
     <capabilities>

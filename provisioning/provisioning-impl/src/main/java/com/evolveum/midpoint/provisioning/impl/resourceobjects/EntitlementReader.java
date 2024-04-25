@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.config.AssociationConfigItem.AttributeBinding;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationClassSimulationDefinition;
+import com.evolveum.midpoint.schema.processor.SimulatedShadowAssociationClassDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
@@ -105,7 +105,7 @@ class EntitlementReader {
      */
     private <T> void convertSubjectAttributeToAssociation(
             @NotNull AttributeBinding bindingToUse,
-            @NotNull ShadowAssociationClassSimulationDefinition simulationDefinition) throws SchemaException {
+            @NotNull SimulatedShadowAssociationClassDefinition simulationDefinition) throws SchemaException {
 
         // The "referencing" attribute, present on subject, e.g. isMemberOf.
         var subjectAttrValues = subject.<T>getAttributeValues(bindingToUse.subjectSide());
@@ -136,12 +136,12 @@ class EntitlementReader {
      *
      * Iterates through all the delineations specified in the simulation.
      *
-     * NOTE: Just as {@link #convertSubjectAttributeToAssociation(AttributeBinding, ShadowAssociationClassSimulationDefinition)},
+     * NOTE: Just as {@link #convertSubjectAttributeToAssociation(AttributeBinding, SimulatedShadowAssociationClassDefinition)},
      * this method does not filter the results according object types specified in the association type definition.
      */
     private void searchForAssociationTargetObjects(
             @NotNull AttributeBinding primaryBinding,
-            @NotNull ShadowAssociationClassSimulationDefinition simulationDefinition,
+            @NotNull SimulatedShadowAssociationClassDefinition simulationDefinition,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
@@ -190,7 +190,7 @@ class EntitlementReader {
      *       PCV: shadowRef: object: attributes: { dn: "cn=wheel,ou=Groups,dc=example,dc=com" }
      */
     private void addAssociationValueFromEntitlementObject(
-            @NotNull ShadowAssociationClassSimulationDefinition simulationDefinition,
+            @NotNull SimulatedShadowAssociationClassDefinition simulationDefinition,
             @NotNull ExistingResourceObject entitlementObject) throws SchemaException {
         subject.getOrCreateAssociationsContainer()
                 .findOrCreateAssociation(simulationDefinition.getLocalSubjectItemName())

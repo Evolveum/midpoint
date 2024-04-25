@@ -56,7 +56,6 @@ import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -335,7 +334,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
     }
 
     @Override
-    void processAssociatedObjects(OperationResult result)
+    void executeValueProcessing(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, StopProcessingProjectionException {
         var shadow = source.getResourceObjectNew();
@@ -343,46 +342,51 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
             return;
         }
 
+        // TODO implement also for attributes
+
         for (var association : ShadowUtil.getAssociations(shadow)) {
             var associationDefinition = association.getDefinition();
-            LOGGER.trace("Processing values of association {}", associationDefinition);
+            var relevantValueProcessingDefinitions = associationDefinition.getValueProcessingDefinition().stream()
+                    .filter(ValueProcessingDefinition::needsInboundProcessing)
+                    .toList();
+            if (relevantValueProcessingDefinitions.isEmpty()) {
+                continue;
+            }
             for (var associationValue : association.getAssociationValues()) {
-                var associationTypeDefinition = associationDefinition.getAssociationTypeDefinition();
-                LOGGER.trace("Processing association value: {} ({})", associationValue, associationTypeDefinition);
-                if (associationTypeDefinition.needsInboundProcessing()) {
-                    new AssociationValueProcessing(associationValue, associationDefinition)
+                for (var valueProcessingDefinition : relevantValueProcessingDefinitions) {
+                    LOGGER.trace("Processing association value: {} ({})", associationValue, relevantValueProcessingDefinitions);
+                    new ValueProcessing(associationValue, associationDefinition, valueProcessingDefinition)
                             .process(result);
-                } else {
-                    LOGGER.trace(" -> not an associated object with inbound mappings, skipping the value");
                 }
             }
         }
     }
 
     /**
-     * Complex processing of an associated object:
+     * Complex processing of a embedded object (later: any embedded value):
      *
      * 1. transforming to object for correlation ("pre-focus")
      * 2. determining the target PCV + action (synchronizing or not)
      * 3. collecting the mappings
      */
-    private class AssociationValueProcessing {
+    private class ValueProcessing {
 
         @NotNull private final ShadowAssociationValue associationValue;
         @NotNull private final ShadowAssociationDefinition associationDefinition;
         @NotNull private final ResourceObjectInboundDefinition inboundDefinition;
+        @Deprecated // provide more abstract characterization (~ "assigned")
         @NotNull private final ItemPath focusItemPath;
 
-        AssociationValueProcessing(
+        ValueProcessing(
                 @NotNull ShadowAssociationValue associationValue,
-                @NotNull ShadowAssociationDefinition associationDefinition) throws ConfigurationException {
+                @NotNull ShadowAssociationDefinition associationDefinition,
+                @NotNull ValueProcessingDefinition valueProcessingDefinition) throws ConfigurationException {
             this.associationValue = associationValue;
             this.associationDefinition = associationDefinition;
-            var associationTypeDefinition = associationDefinition.getAssociationTypeDefinition();
-            this.inboundDefinition = associationTypeDefinition.getInboundDefinition();
+            this.inboundDefinition = valueProcessingDefinition.getInboundDefinition();
             this.focusItemPath = configNonNull(
                     inboundDefinition.getFocusSpecification().getFocusItemPath(),
-                    "No focus item path in %s", associationTypeDefinition);
+                    "No focus item path in %s", inboundDefinition);
         }
 
         void process(OperationResult parentResult)

@@ -117,7 +117,7 @@ abstract class InboundsPreparation<T extends Containerable> {
                 LOGGER.trace("Skipping evaluation of special inbounds because of projection DELETE delta");
             }
 
-            processAssociatedObjects(result);
+            executeValueProcessing(result);
 
         } catch (Throwable t) {
             result.recordException(t);
@@ -133,6 +133,8 @@ abstract class InboundsPreparation<T extends Containerable> {
     abstract void evaluateSpecialInbounds(OperationResult result) throws SchemaException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 
-    /** Collect or evaluate mappings for associated objects (only for the full processing case). */
-    abstract void processAssociatedObjects(OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException, StopProcessingProjectionException;
+    /** Complex processing for shadow item values. Only for the full processing case. Currently limited to associations. */
+    abstract void executeValueProcessing(OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException, StopProcessingProjectionException;
 }

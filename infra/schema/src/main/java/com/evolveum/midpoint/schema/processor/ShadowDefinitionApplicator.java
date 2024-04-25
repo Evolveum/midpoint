@@ -215,7 +215,7 @@ public class ShadowDefinitionApplicator {
                 }
                 var embeddedShadowDef = definition
                         .findAssociationDefinitionRequired(association.getElementName())
-                        .getTargetObjectDefinition();
+                        .getRepresentativeTargetObjectDefinition();
                 // TODO what if we don't have the correct object definition here?!
                 new ShadowDefinitionApplicator(embeddedShadowDef)
                         .applyTo(embeddedShadow);

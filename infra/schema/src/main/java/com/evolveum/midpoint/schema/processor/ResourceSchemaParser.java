@@ -96,7 +96,8 @@ class ResourceSchemaParser {
      * As {@link #classDefinitionConfigItemMap} but for object types (regular and associated).
      * Indexed by type identification, e.g., `account/default`.
      */
-    @NotNull private final Map<ResourceObjectTypeIdentification, AbstractResourceObjectTypeDefinitionConfigItem<?>> typeDefinitionConfigItemMap = new HashMap<>();
+    @NotNull private final Map<ResourceObjectTypeIdentification, AbstractResourceObjectTypeDefinitionConfigItem<?>>
+            typeDefinitionConfigItemMap = new HashMap<>();
 
     private ResourceSchemaParser(
             @NotNull ResourceType resource,
@@ -115,6 +116,7 @@ class ResourceSchemaParser {
         this.resourceSchema = resourceSchema;
     }
 
+    /** Creates {@link CompleteResourceSchema} for the given resource. This is the main functionality of this parser. */
     static CompleteResourceSchema parseComplete(@NotNull ResourceType resource, @NotNull NativeResourceSchema nativeSchema)
             throws SchemaException, ConfigurationException {
         var schemaHandlingBean = resource.getSchemaHandling();
@@ -147,13 +149,7 @@ class ResourceSchemaParser {
         return completeResourceSchema;
     }
 
-    private static @NotNull SchemaHandlingConfigItem emptySchemaHandlingConfigItem() {
-        return configItem(
-                new SchemaHandlingType(),
-                ConfigurationItemOrigin.generated(), // hopefully no errors will be reported here
-                SchemaHandlingConfigItem.class);
-    }
-
+    /** Creates a resource schema based solely on the native one. For tests and some very special occasions. */
     static BareResourceSchema parseBare(@NotNull NativeResourceSchema nativeSchema) throws SchemaException {
         var bareSchema = new BareResourceSchemaImpl(nativeSchema);
         var parser = new ResourceSchemaParser(
@@ -171,6 +167,13 @@ class ResourceSchemaParser {
         return bareSchema;
     }
 
+    private static @NotNull SchemaHandlingConfigItem emptySchemaHandlingConfigItem() {
+        return configItem(
+                new SchemaHandlingType(),
+                ConfigurationItemOrigin.generated(), // hopefully no errors will be reported against this config item
+                SchemaHandlingConfigItem.class);
+    }
+
     /** Creates the parsed resource schema. */
     private void parse() throws SchemaException, ConfigurationException {
 
@@ -179,7 +182,6 @@ class ResourceSchemaParser {
         createEmptyObjectClassDefinitions();
         createEmptyObjectTypeDefinitions();
 
-        // In theory, this could be done alongside creation of empty object type definitions.
         resolveAuxiliaryObjectClassNames();
 
         // We can parse attributes only after we have all the object class info parsed (including auxiliary object classes)
@@ -189,8 +191,7 @@ class ResourceSchemaParser {
         parseOtherFeatures();
 
         // Associations refer to object types, attributes, and delineation, so they must come after them.
-        parseAssociationClassesImplementations();
-        parseAssociationTypesDefinitions();
+        parseAssociationClasses();
         parseAssociationItems();
 
         resourceSchema.freeze();
@@ -198,23 +199,23 @@ class ResourceSchemaParser {
 
     private void createEmptyObjectClassDefinitions() throws ConfigurationException, SchemaException {
 
-        LOGGER.trace("Creating refined object class definitions");
+        LOGGER.trace("Creating object class definitions, part one: refined ones");
 
         var classDefinitionCIs = schemaHandling.getObjectClasses();
         for (var classDefinitionCI : classDefinitionCIs) {
             var objectClassName = classDefinitionCI.getObjectClassName();
-            var rawObjectClassDefinition =
+            var nativeObjectClassDefinition =
                     classDefinitionCI.configNonNull(
                             nativeSchema.findObjectClassDefinition(objectClassName),
                             "Object class %s referenced in %s does not exist on the resource".formatted(objectClassName, DESC));
             assertClassNotDefinedYet(objectClassName);
             resourceSchema.add(
                     ResourceObjectClassDefinitionImpl.create(
-                            basicResourceInformation, rawObjectClassDefinition, classDefinitionCI.value()));
-            classDefinitionConfigItemMap.put(classDefinitionCI.getObjectClassName().getLocalPart(), classDefinitionCI);
+                            basicResourceInformation, nativeObjectClassDefinition, classDefinitionCI.value()));
+            classDefinitionConfigItemMap.put(objectClassName.getLocalPart(), classDefinitionCI);
         }
 
-        LOGGER.trace("Created {} refined object class definitions from beans; creating remaining ones", classDefinitionCIs.size());
+        LOGGER.trace("Created {} refined object class definitions from beans; now remaining ones", classDefinitionCIs.size());
 
         for (var nativeObjectClassDefinition : nativeSchema.getObjectClassDefinitions()) {
             if (resourceSchema.findObjectClassDefinition(nativeObjectClassDefinition.getQName()) == null) {
@@ -225,7 +226,7 @@ class ResourceSchemaParser {
             }
         }
 
-        LOGGER.trace("Successfully created {} refined object type definitions (in total)",
+        LOGGER.trace("Successfully created {} object class definitions (in total)",
                 resourceSchema.getObjectClassDefinitions().size());
     }
 
@@ -252,7 +253,6 @@ class ResourceSchemaParser {
         checkForMultipleDefaults();
         LOGGER.trace("Successfully created {} empty object type definitions", created);
     }
-
 
     private void assertTypeNotDefinedYet(ResourceObjectTypeDefinition definition) throws ConfigurationException {
         ResourceObjectTypeIdentification identification = definition.getTypeIdentification();
@@ -331,25 +331,27 @@ class ResourceSchemaParser {
         for (ShadowKindType kind : ShadowKindType.values()) {
             var defaults = resourceSchema.getObjectTypeDefinitions().stream()
                     .filter(def -> def.matchesKind(kind) && def.isDefaultForKind())
-                    .collect(Collectors.toList());
+                    .toList();
             configCheck(defaults.size() <= 1, "More than one default %s definition in %s: %s",
                     kind, contextDescription, defaults);
         }
     }
 
     /**
-     * Fills in list of auxiliary object class definitions (in object type definitions)
+     * Fills in list of auxiliary object class definitions (in object class/type definitions)
      * with definitions resolved from their qualified names.
      */
     private void resolveAuxiliaryObjectClassNames() throws ConfigurationException {
-        for (ResourceObjectDefinition objectDef: resourceSchema.getResourceObjectDefinitions()) {
+        for (ResourceObjectDefinition objectDef : resourceSchema.getResourceObjectDefinitions()) {
             new ResourceObjectDefinitionParser(objectDef)
                     .resolveAuxiliaryObjectClassNames();
         }
     }
 
     /**
-     * Creates definitions for associations; includes resolving their targets (given by kind + intent(s)).
+     * Creates {@link ShadowAssociationDefinition} objects in individual resource object types and classes.
+     * Native and modern simulated ones are connected to their definitions parsed in {@link #parseAssociationClasses()};
+     * whereas legacy simulated ones are processed here exclusively.
      */
     private void parseAssociationItems() throws ConfigurationException {
         for (var objectDefinition : resourceSchema.getResourceObjectDefinitions()) {
@@ -359,58 +361,57 @@ class ResourceSchemaParser {
     }
 
     /**
-     * Creates {@link ShadowAssociationClassImplementation} objects
-     * in {@link ResourceSchemaImpl#associationClassImplementationsMap}.
+     * Creates {@link AbstractShadowAssociationClassDefinition} objects
+     * in {@link ResourceSchemaImpl#associationClassDefinitionsMap}.
      *
      * Does *not* include legacy simulated associations! They are "anonymous" as they do not have a type name.
      */
-    private void parseAssociationClassesImplementations() throws ConfigurationException {
+    private void parseAssociationClasses() throws ConfigurationException {
 
         // Simulated associations (from capabilities)
         if (associationsCapabilityCI != null) {
-            for (SimulatedAssociationClassConfigItem simulatedAssociationClassDefinitionCI : associationsCapabilityCI.getAssociationClasses()) {
-                resourceSchema.addAssociationClassImplementation(
-                        ShadowAssociationClassSimulationDefinition.Modern.parse(
+            for (var simulatedAssociationClassDefinitionCI : associationsCapabilityCI.getAssociationClasses()) {
+                resourceSchema.addAssociationClassDefinition(
+                        SimulatedShadowAssociationClassDefinition.Modern.parse(
                                 simulatedAssociationClassDefinitionCI,
-                                schemaHandling.findAssociationTypeCI(simulatedAssociationClassDefinitionCI.getName()),
                                 resourceSchema));
             }
         }
 
-        // Native associations
-        for (NativeAssociationClassDefinition associationClassDefinition : nativeSchema.getAssociationClassDefinitions()) {
-            resourceSchema.addAssociationClassImplementation(
-                    ShadowAssociationClassImplementation.Native.of(
-                            associationClassDefinition,
+        // Natively provided associations
+        for (var nativeAssociationClassDefinition : nativeSchema.getAssociationClassDefinitions()) {
+            resourceSchema.addAssociationClassDefinition(
+                    NativelyProvidedShadowAssociationClassDefinition.create(
+                            nativeAssociationClassDefinition,
                             resourceSchema));
         }
     }
 
-    /**
-     * Creates {@link ShadowAssociationClassDefinition} objects in {@link ResourceSchemaImpl#associationTypeDefinitionsMap}.
-     * These are based on native or simulated association classes.
-     *
-     * Legacy simulated associations are not dealt with here.
-     */
-    private void parseAssociationTypesDefinitions() throws ConfigurationException {
-        // Explicitly defined types
-        for (var assocTypeDefCI : schemaHandling.getAssociationTypes()) {
-            String className = assocTypeDefCI.getAssociationClassLocalName();
-            var implementation = assocTypeDefCI.configNonNull(
-                    resourceSchema.getAssociationClassImplementation(className),
-                    "No association class '%s' in %s", className, DESC);
-            resourceSchema.addAssociationTypeDefinition(
-                    ShadowAssociationClassDefinition.fromAssociationType(assocTypeDefCI, implementation, resourceSchema));
-        }
-
-        // Types from association classes
-        for (var associationClassImplementation : resourceSchema.getAssociationClassImplementations()) {
-            if (resourceSchema.getAssociationTypeDefinitionOld(associationClassImplementation.getName()) == null) {
-                resourceSchema.addAssociationTypeDefinition(
-                        ShadowAssociationClassDefinition.fromImplementation(associationClassImplementation));
-            }
-        }
-    }
+//    /**
+//     * Creates {@link AbstractShadowAssociationClassDefinition} objects in {@link ResourceSchemaImpl#associationTypeDefinitionsMap}.
+//     * These are based on native or simulated association classes.
+//     *
+//     * Legacy simulated associations are not dealt with here.
+//     */
+//    private void parseAssociationTypesDefinitions() throws ConfigurationException {
+//        // Explicitly defined types
+//        for (var assocTypeDefCI : schemaHandling.getAssociationTypes()) {
+//            String className = assocTypeDefCI.getAssociationClassLocalName();
+//            var implementation = assocTypeDefCI.configNonNull(
+//                    resourceSchema.getAssociationClassImplementation(className),
+//                    "No association class '%s' in %s", className, DESC);
+//            resourceSchema.addAssociationTypeDefinition(
+//                    ShadowAssociationClassDefinition.fromAssociationType(assocTypeDefCI, implementation, resourceSchema));
+//        }
+//
+//        // Types from association classes
+//        for (var associationClassImplementation : resourceSchema.getAssociationClassImplementations()) {
+//            if (resourceSchema.getAssociationClassDefinition(associationClassImplementation.getName()) == null) {
+//                resourceSchema.addAssociationTypeDefinition(
+//                        ShadowAssociationClassDefinition.fromImplementation(associationClassImplementation));
+//            }
+//        }
+//    }
 
     private void parseAttributes() throws ConfigurationException {
         for (ResourceObjectDefinition objectDef : resourceSchema.getResourceObjectDefinitions()) {
@@ -477,95 +478,112 @@ class ResourceSchemaParser {
         }
 
         /**
-         * Here we
+         * Creates {@link ShadowAssociationDefinition} for both real and virtual association items in the object definition.
          */
         void parseAssociationItems() throws ConfigurationException {
 
-            LOGGER.trace("Parsing associations of {}", definition);
-
-            // First, we process native associations
+            LOGGER.trace("Parsing native associations of {}", definition);
             for (var nativeAssocDef : definition.getNativeObjectClassDefinition().getAssociationDefinitions()) {
                 parseNativeAssociation(nativeAssocDef);
             }
 
-            // Then, let's process "modern" simulated associations
-            for (var assocTypeDef : resourceSchema.getAssociationTypes()) {
-                var simulationDefinition = assocTypeDef.getSimulationDefinition();
-                if (simulationDefinition != null) {
-                    parseModernSimulatedAssociation(simulationDefinition);
+            LOGGER.trace("Parsing 'modern' simulated associations of {}", definition);
+            for (var associationClassDef : resourceSchema.getAssociationClasses()) {
+                if (associationClassDef instanceof SimulatedShadowAssociationClassDefinition simulatedAssocClassDef
+                        && simulatedAssocClassDef.isRelevantForSubject(definition)) {
+                    parseModernSimulatedAssociation(simulatedAssocClassDef);
                 }
             }
 
-            // Finally, let's take legacy simulated associations
+            LOGGER.trace("Parsing legacy simulated associations of {}", definition);
             for (var assocDefCI : definitionCI.getAssociations()) {
-                QName assocName = assocDefCI.getAssociationName();
-                if (!definition.containsAssociationDefinition(assocName)) {
+                if (!definition.containsAssociationDefinition(assocDefCI.getItemName())) {
                     // Not present -> it must be legacy one
-                    definition.addAssociationDefinition(
-                            new LegacyAssociationParser(assocDefCI.asLegacy(), definition)
-                                    .parse());
+                    parseLegacySimulatedAssociation(assocDefCI);
                 }
             }
         }
 
         private void parseNativeAssociation(@NotNull NativeShadowAssociationDefinition nativeAssocDef)
                 throws ConfigurationException {
-            ItemName assocName = nativeAssocDef.getItemName();
-            LOGGER.trace("Parsing association {}", assocName);
+            var assocName = nativeAssocDef.getItemName();
+            var assocClassName = nativeAssocDef.getAssociationClassName();
+            LOGGER.trace("Parsing association (native) {} of {}", assocName, assocClassName);
 
-            var assocTypeDefOld = stateNonNull(
-                    resourceSchema.getAssociationTypeDefinitionOld(nativeAssocDef.getTypeName()),
-                    "Unknown association type '%s' (for '%s' in %s) in %s",
-                    nativeAssocDef.getTypeName(), assocName, definition, resourceSchema);
-            var assocTypeDefNew =
-                    createTypeDefNew(assocTypeDefOld.getRepresentativeObjectDefinition(), assocName);
-            var assocDefBean = value(definitionCI.getAssociationDefinitionIfPresent(assocName));
-            definition.add(
-                    ShadowAssociationDefinitionImpl.fromNative(nativeAssocDef, assocTypeDefOld, assocTypeDefNew, assocDefBean));
+            var assocClassDef = stateNonNull(
+                    resourceSchema.getAssociationClassDefinition(assocClassName),
+                    "Unknown association class '%s' (for '%s' in %s) in %s",
+                    assocClassName, assocName, definition, resourceSchema);
+
+            parseNativeOrSimulatedAssociation(assocName, nativeAssocDef, assocClassDef);
         }
 
-        private void parseModernSimulatedAssociation(@NotNull ShadowAssociationClassSimulationDefinition simulationDefinition)
+        private void parseModernSimulatedAssociation(@NotNull SimulatedShadowAssociationClassDefinition assocClassDef)
                 throws ConfigurationException {
-            ItemName assocName = simulationDefinition.getLocalSubjectItemName();
-            LOGGER.trace("Parsing association {}", assocName);
+            var assocName = assocClassDef.getLocalSubjectItemName();
+            var assocClassName = assocClassDef.getAssociationClassName();
+            LOGGER.trace("Parsing simulated association class {}, visible as {}", assocClassName, assocName);
 
-            var assocTypeDefOld = stateNonNull(
-                    resourceSchema.getAssociationTypeDefinitionOld(simulationDefinition.getQName()),
-                    "Unknown association type '%s' (for '%s' in %s) in %s",
-                    simulationDefinition.getQName(), assocName, definition, resourceSchema);
-            var assocTypeDefNew =
-                    createTypeDefNew(assocTypeDefOld.getRepresentativeObjectDefinition(), assocName);
-            var assocDefBean = value(definitionCI.getAssociationDefinitionIfPresent(assocName));
-            definition.add(
-                    ShadowAssociationDefinitionImpl.fromSimulated(simulationDefinition, assocTypeDefOld, assocTypeDefNew, assocDefBean));
+            parseNativeOrSimulatedAssociation(assocName, null, assocClassDef);
         }
 
-        private @NotNull ShadowAssociationTypeDefinitionNew createTypeDefNew(
-                ResourceObjectDefinition representativeObjectDefinition, ItemName assocName) {
-            var defConfigItem = findAssociationTypeDefinitionConfigItem(assocName);
-            return ShadowAssociationTypeDefinitionNew.create(
-                    defConfigItem,
-                    ResourceObjectInboundDefinition.forAssociation(
-                            ConfigurationItem.value(defConfigItem)
-                    ));
-        }
-
-        private @Nullable ShadowAssociationTypeNewDefinitionConfigItem findAssociationTypeDefinitionConfigItem(@NotNull ItemName assocName) {
-            ResourceObjectTypeIdentification typeIdentification = definition.getTypeIdentification();
-            if (typeIdentification != null) {
-                return schemaHandling.getAssociationTypesNew().stream()
-                        .filter(def -> def.matches(typeIdentification, assocName))
-                        .findFirst().orElse(null);
+        private void parseNativeOrSimulatedAssociation(
+                @NotNull ItemName assocName,
+                @Nullable NativeShadowAssociationDefinition nativeAssocDef,
+                @NotNull AbstractShadowAssociationClassDefinition assocClassDef) throws ConfigurationException {
+            var assocTypeCIs = getRelevantAssociationTypes(assocName);
+            if (assocTypeCIs.isEmpty()) {
+                parseNativeOrSimulatedAssociation(assocName, nativeAssocDef, assocClassDef, null);
             } else {
-                return null; // We are probably called during object class parsing - there will be no bean
+                for (var assocTypeCI : assocTypeCIs) {
+                    parseNativeOrSimulatedAssociation(assocName, nativeAssocDef, assocClassDef, assocTypeCI);
+                }
             }
         }
 
-        private ResourceObjectDefinition createMergedDefinition(
-                @NotNull ResourceObjectDefinition representativeObjectDefinition,
-                @Nullable ShadowAssociationTypeNewDefinitionConfigItem definitionConfigItem,
-                @NotNull ItemName assocName) {
-            return null;
+        /**
+         * Combines native association information with the association type definition (if present).
+         * May create a virtual association item, if requested so.
+         */
+        private void parseNativeOrSimulatedAssociation(
+                @NotNull ItemName assocName,
+                @Nullable NativeShadowAssociationDefinition nativeAssocDef,
+                @NotNull AbstractShadowAssociationClassDefinition assocClassDef,
+                @Nullable ShadowAssociationTypeDefinitionConfigItem assocTypeCI)
+                throws ConfigurationException {
+
+            var declaringAssocName = assocTypeCI != null ? assocTypeCI.getSubject().getDeclaringItemName() : null;
+            var assocDefBeanFromAssociationType = assocTypeCI != null ? value(assocTypeCI.getSubject().getItem()) : null;
+            var assocDefBeanFromObjectType = value(definitionCI.getAssociationDefinitionIfPresent(declaringAssocName));
+            configCheck(assocDefBeanFromAssociationType == null || assocDefBeanFromObjectType == null,
+                    "Association item cannot be defined both in association type and object type: "
+                            + "declaring: %s, referencing: %s", declaringAssocName, assocName);
+            var assocDefBean = MiscUtil.getFirstNonNull(assocDefBeanFromAssociationType, assocDefBeanFromObjectType);
+            if (declaringAssocName != null && !declaringAssocName.equals(assocName)) {
+                // We need to adapt ShadowItemDefinitionImpl to allow itemName different from the native definition item name
+                throw new UnsupportedOperationException("Currently we don't support declaration of virtual associations");
+            }
+            var assocTypeDef = ShadowAssociationTypeDefinition.create(); // Just a placeholder for now
+            definition.add(
+                    nativeAssocDef != null ?
+                            ShadowAssociationDefinitionImpl.fromNative(
+                                    nativeAssocDef, assocClassDef, assocTypeDef, assocDefBean) :
+                            ShadowAssociationDefinitionImpl.fromSimulated(
+                                    ((SimulatedShadowAssociationClassDefinition) assocClassDef),
+                                    assocClassDef, assocTypeDef, assocDefBean));
+        }
+
+        /** Association type definition beans that refine the specific (existing) association item. */
+        private @NotNull Collection<ShadowAssociationTypeDefinitionConfigItem> getRelevantAssociationTypes(ItemName itemName)
+                throws ConfigurationException {
+            return definition.getTypeIdentification() != null ?
+                    schemaHandling.getAssociationTypesFor(definition.getTypeIdentification(), itemName) : List.of();
+        }
+
+        private void parseLegacySimulatedAssociation(ResourceObjectAssociationConfigItem assocDefCI) throws ConfigurationException {
+            definition.addAssociationDefinition(
+                    new LegacyAssociationParser(assocDefCI.asLegacy(), definition)
+                            .parse());
         }
 
         /**
@@ -810,22 +828,15 @@ class ResourceSchemaParser {
 
         @NotNull ShadowAssociationDefinitionImpl parse() throws ConfigurationException {
 
-            var objectTypeDefinitions = getObjectTypeDefinitions();
-
-            var simulationDefinition = ShadowAssociationClassSimulationDefinition.Legacy.parse(
-                    associationDefCI, resourceSchema, subjectTypeDefinition, objectTypeDefinitions);
-
-            var associationClassDefinition = ShadowAssociationClassDefinition.parseLegacy(
-                    associationDefCI, simulationDefinition, subjectTypeDefinition, objectTypeDefinitions);
-
             checkNotPresentAsNative();
 
-            return ShadowAssociationDefinitionImpl.parseLegacy(associationClassDefinition, associationDefCI);
+            return ShadowAssociationDefinitionImpl.parseLegacy(
+                    associationDefCI, resourceSchema, subjectTypeDefinition, getObjectTypeDefinitions());
         }
 
         private void checkNotPresentAsNative() throws ConfigurationException {
             var nativeClassDef = subjectTypeDefinition.getNativeObjectClassDefinition();
-            ItemName associationName = associationDefCI.getAssociationName();
+            ItemName associationName = associationDefCI.getItemName();
             associationDefCI.configCheck(
                     nativeClassDef.findAssociationDefinition(associationName) == null,
                     "Native association '%s' already exists in %s; referenced by %s",

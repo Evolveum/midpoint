@@ -12,6 +12,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
@@ -74,9 +75,13 @@ public interface ResourceObjectDefinition
     @NotNull NativeObjectClassDefinition getNativeObjectClassDefinition();
 
     /**
-     * Returns the name of the object class.
+     * Returns the name of the object class. Always fully qualified; currently with the {@link SchemaConstants#NS_RI} namespace.
      */
     @NotNull QName getObjectClassName();
+
+    @NotNull default String getObjectClassLocalName() {
+        return QNameUtil.getLocalPartCheckingNamespace(getObjectClassName(), SchemaConstants.NS_RI);
+    }
 
     /**
      * Returns the names of auxiliary object classes that are "statically" defined for this object type
@@ -461,6 +466,11 @@ public interface ResourceObjectDefinition
 
     /** Is this definition bound to a specific resource type? If yes, this method returns its identification. */
     @Nullable ResourceObjectTypeIdentification getTypeIdentification();
+
+    default @NotNull ResourceObjectDefinitionIdentification getIdentification() {
+        return ResourceObjectDefinitionIdentification.create(
+                getObjectClassLocalName(), getTypeIdentification());
+    }
 
     /** Is this definition bound to a specific resource type? If yes, this method returns its definition. */
     @Nullable ResourceObjectTypeDefinition getTypeDefinition();

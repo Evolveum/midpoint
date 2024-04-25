@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import java.io.Serial;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -109,6 +110,11 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     @Override
     public @NotNull List<InboundMappingType> getInboundMappingBeans() {
         return getRefinedAttributeDefinition().getInboundMappingBeans();
+    }
+
+    @Override
+    public @NotNull Collection<ValueProcessingDefinition> getValueProcessingDefinition() {
+        return getRefinedAttributeDefinition().getValueProcessingDefinition();
     }
 
     @Override

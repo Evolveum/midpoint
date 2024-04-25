@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
@@ -182,6 +183,8 @@ public interface ShadowItemDefinition<I extends ShadowItem<?, ?>, R>
     default boolean hasInboundMapping() {
         return !getInboundMappingBeans().isEmpty();
     }
+
+    @NotNull Collection<ValueProcessingDefinition> getValueProcessingDefinition();
 
     /**
      * Drives behavior of strong and normal mappings for this attribute.

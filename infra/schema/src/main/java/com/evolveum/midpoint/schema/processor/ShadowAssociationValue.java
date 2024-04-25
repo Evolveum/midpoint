@@ -18,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -92,7 +91,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
                     var shadowRef = sourceItemClone.getRealValue(ObjectReferenceType.class);
                     var shadow = (ShadowType) shadowRef.getObjectable();
                     if (shadow != null && ShadowUtil.isRaw(shadow)) {
-                        new ShadowDefinitionApplicator(definition.getTargetObjectDefinition())
+                        new ShadowDefinitionApplicator(definition.getRepresentativeTargetObjectDefinition())
                                 .applyTo(shadow);
                     }
                 }
@@ -180,9 +179,8 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         return getAttributesContainerRequired().getDefinitionRequired().getTypeName();
     }
 
-    public @NotNull ShadowAssociationClassDefinition getAssociationClassDefinition() {
-        return stateNonNull((ShadowAssociationDefinition) getDefinition(), "No definition in %s", this)
-                .getAssociationClassDefinition();
+    public @NotNull ShadowAssociationDefinition getDefinitionRequired() {
+        return stateNonNull((ShadowAssociationDefinition) getDefinition(), "No definition in %s", this);
     }
 
     public @NotNull ResourceObjectIdentification<?> getIdentification() {

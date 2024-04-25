@@ -595,6 +595,14 @@ public abstract class ShadowItemDefinitionImpl<
 //    }
 
     @Override
+    public @NotNull Collection<ValueProcessingDefinition> getValueProcessingDefinition() {
+        return customizationBean.getValueProcessing().stream()
+                .map(bean -> new ValueProcessingDefinition(
+                        ResourceObjectInboundDefinition.forEmbedded(bean)))
+                .toList();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

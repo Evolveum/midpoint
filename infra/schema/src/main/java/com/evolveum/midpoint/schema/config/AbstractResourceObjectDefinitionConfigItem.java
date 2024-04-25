@@ -86,9 +86,9 @@ public class AbstractResourceObjectDefinitionConfigItem<B extends ResourceObject
     public @Nullable ResourceObjectAssociationConfigItem getAssociationDefinitionIfPresent(ItemName assocName)
             throws ConfigurationException {
         List<ResourceObjectAssociationConfigItem> matching = new ArrayList<>();
-        for (var attrDef : getAssociations()) {
-            if (QNameUtil.match(attrDef.getAssociationName(), assocName)) {
-                matching.add(attrDef);
+        for (var assocDef : getAssociations()) {
+            if (QNameUtil.match(assocDef.getItemName(), assocName)) {
+                matching.add(assocDef);
             }
         }
         return single(matching, "Duplicate definition of association '%s' in %s", assocName, DESC);

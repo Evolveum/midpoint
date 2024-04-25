@@ -44,7 +44,7 @@ public class LimitedInboundsPreparation<T extends Containerable> extends Inbound
     }
 
     @Override
-    void processAssociatedObjects(OperationResult result) {
-        LOGGER.trace("Associated objects are currently ignored during limited processing");
+    void executeValueProcessing(OperationResult result) {
+        LOGGER.trace("Complex value processing is currently ignored during limited processing");
     }
 }

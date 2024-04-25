@@ -7,7 +7,19 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
+
 public interface NativeShadowAssociationDefinition
         extends NativeShadowItemDefinition {
 
+    /** This is the association class name. */
+    @Override
+    @NotNull QName getTypeName();
+
+    /** This is more understandable for clients. */
+    @NotNull default QName getAssociationClassName() {
+        return getTypeName();
+    }
 }

@@ -7,40 +7,38 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.schema.config.ConfigurationItem.DESC;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonEmpty;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.config.AssociationConfigItem.AttributeBinding;
 import com.evolveum.midpoint.schema.config.ResourceObjectAssociationConfigItem;
-import com.evolveum.midpoint.schema.config.ShadowAssociationTypeDefinitionConfigItem;
 import com.evolveum.midpoint.schema.config.SimulatedAssociationClassConfigItem;
 import com.evolveum.midpoint.schema.config.SimulatedAssociationClassParticipantDelineationConfigItem;
 import com.evolveum.midpoint.util.DebugDumpable;
-
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static com.evolveum.midpoint.schema.config.ConfigurationItem.DESC;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
-import static com.evolveum.midpoint.util.MiscUtil.*;
-
 /**
  * Specifies how to simulate the association class: what are the participants, what attributes to use for the association, etc.
  */
-public abstract class ShadowAssociationClassSimulationDefinition
-        implements ShadowAssociationClassImplementation, Serializable, DebugDumpable {
+public abstract class SimulatedShadowAssociationClassDefinition
+        extends AbstractShadowAssociationClassDefinition
+        implements Serializable, DebugDumpable {
 
     @NotNull private final ItemName localSubjectItemName;
 
@@ -68,7 +66,8 @@ public abstract class ShadowAssociationClassSimulationDefinition
     /** Never empty. */
     @NotNull private final Collection<SimulatedAssociationClassParticipantDefinition> objects;
 
-    private ShadowAssociationClassSimulationDefinition(
+    private SimulatedShadowAssociationClassDefinition(
+            @NotNull String associationClassName,
             @NotNull ItemName localSubjectItemName,
             @NotNull AttributeBinding primaryAttributeBinding,
             @Nullable AttributeBinding secondaryAttributeBinding,
@@ -79,6 +78,7 @@ public abstract class ShadowAssociationClassSimulationDefinition
             @NotNull ResourceAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition,
             @NotNull Collection<SimulatedAssociationClassParticipantDefinition> subjects,
             @NotNull Collection<SimulatedAssociationClassParticipantDefinition> objects) {
+        super(associationClassName, referentialObjectDefinition);
         this.localSubjectItemName = localSubjectItemName;
         this.primaryAttributeBinding = primaryAttributeBinding;
         this.secondaryAttributeBinding = secondaryAttributeBinding;
@@ -167,21 +167,25 @@ public abstract class ShadowAssociationClassSimulationDefinition
     }
 
     @Override
-    public @NotNull Collection<ShadowAssociationClassDefinition.Participant> getParticipatingSubjects() {
+    public @NotNull Collection<AssociationParticipantType> getSubjectTypes() {
         return toParticipants(subjects);
     }
 
     @Override
-    public @NotNull Collection<ShadowAssociationClassDefinition.Participant> getParticipatingObjects() {
+    public @NotNull Collection<AssociationParticipantType> getObjectTypes() {
         return toParticipants(objects);
     }
 
-    private @NotNull Collection<ShadowAssociationClassDefinition.Participant> toParticipants(
+    private @NotNull Collection<AssociationParticipantType> toParticipants(
             Collection<SimulatedAssociationClassParticipantDefinition> definitions) {
         return definitions.stream()
-                .map(def -> new ShadowAssociationClassDefinition.Participant(
-                        def.getTypeIdentification(), def.getObjectDefinition(), def.getAssociationItemName()))
+                .map(def -> def.getParticipantType())
                 .toList();
+    }
+
+    boolean isRelevantForSubject(@NotNull ResourceObjectDefinition definition) {
+        return getSubjects().stream().anyMatch(
+                subject -> subject.matches(definition));
     }
 
     @Override
@@ -200,9 +204,10 @@ public abstract class ShadowAssociationClassSimulationDefinition
     }
 
     /** Simulation as defined in pre-4.9 way (in "association" item in resource object type definition). */
-    static class Legacy extends ShadowAssociationClassSimulationDefinition {
+    static class Legacy extends SimulatedShadowAssociationClassDefinition {
 
         private Legacy(
+                @NotNull String associationClassName,
                 @NotNull ItemName localSubjectItemName,
                 @NotNull AttributeBinding primaryAttributeBinding,
                 @Nullable AttributeBinding secondaryAttributeBinding,
@@ -213,7 +218,8 @@ public abstract class ShadowAssociationClassSimulationDefinition
                 @NotNull ResourceAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition,
                 @NotNull Collection<SimulatedAssociationClassParticipantDefinition> subjects,
                 @NotNull Collection<SimulatedAssociationClassParticipantDefinition> objects) {
-            super(localSubjectItemName, primaryAttributeBinding, secondaryAttributeBinding, primaryBindingMatchingRuleLegacy,
+            super(associationClassName, localSubjectItemName,
+                    primaryAttributeBinding, secondaryAttributeBinding, primaryBindingMatchingRuleLegacy,
                     direction, requiresExplicitReferentialIntegrity, referentialObjectDefinition,
                     subjectSidePrimaryBindingAttributeDefinition, subjects, objects);
         }
@@ -221,7 +227,7 @@ public abstract class ShadowAssociationClassSimulationDefinition
         /**
          * Note that the subject definition is currently being built. However, it should have all the attributes in place.
          */
-        static @NotNull ShadowAssociationClassSimulationDefinition parse(
+        static @NotNull SimulatedShadowAssociationClassDefinition parse(
                 @NotNull ResourceObjectAssociationConfigItem.Legacy definitionCI,
                 @NotNull ResourceSchemaImpl schemaBeingParsed,
                 @NotNull ResourceObjectTypeDefinition referentialSubjectDefinition,
@@ -232,7 +238,11 @@ public abstract class ShadowAssociationClassSimulationDefinition
 
             var referentialObjectDefinition = objectTypeDefinitions.iterator().next();
 
+            // This name is actually not important. It is not registered anywhere.
+            String associationClassName = definitionCI.getItemName().getLocalPart();
+
             return new Legacy(
+                    associationClassName,
                     definitionCI.getItemName(),
                     primaryBinding,
                     definitionCI.getSecondaryAttributeBinding(),
@@ -250,12 +260,11 @@ public abstract class ShadowAssociationClassSimulationDefinition
 
         private static @NotNull Collection<SimulatedAssociationClassParticipantDefinition> getLegacySubjectDefinitions(
                 @NotNull ResourceObjectAssociationConfigItem definitionCI,
-                @NotNull ResourceObjectTypeDefinition referentialSubjectDefinition) throws ConfigurationException {
+                @NotNull ResourceObjectTypeDefinition referentialSubjectDefinition) {
             return List.of(
                     SimulatedAssociationClassParticipantDefinition.fromObjectTypeDefinition(
                             referentialSubjectDefinition,
-                            definitionCI.value().getAuxiliaryObjectClass(),
-                            definitionCI.getItemName()));
+                            definitionCI.value().getAuxiliaryObjectClass()));
         }
 
         /** Always non-empty. */
@@ -280,28 +289,18 @@ public abstract class ShadowAssociationClassSimulationDefinition
                                 typeDef.getTypeName(),
                                 typeDef.getDelineation().getBaseContext(),
                                 typeDef.getDelineation().getSearchHierarchyScope(),
-                                typeDef,
-                                null,
-                                null,
-                                typeIdentification));
+                                AssociationParticipantType.forObjectType(typeDef),
+                                null));
             }
             return definitions;
-        }
-
-        @Override
-        public @NotNull String getName() {
-            // Ugly, but harmless. This name will not be used in any schema-level context.
-            return getLocalSubjectItemName().getLocalPart();
         }
     }
 
     static class Modern
-            extends ShadowAssociationClassSimulationDefinition {
-
-        @NotNull private final QName associationClassName;
+            extends SimulatedShadowAssociationClassDefinition {
 
         private Modern(
-                @NotNull QName associationClassName,
+                @NotNull String associationClassLocalName,
                 @NotNull ItemName localSubjectItemName,
                 @NotNull AttributeBinding primaryAttributeBinding,
                 @Nullable AttributeBinding secondaryAttributeBinding,
@@ -312,15 +311,14 @@ public abstract class ShadowAssociationClassSimulationDefinition
                 @NotNull ResourceAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition,
                 @NotNull Collection<SimulatedAssociationClassParticipantDefinition> subjects,
                 @NotNull Collection<SimulatedAssociationClassParticipantDefinition> objects) {
-            super(localSubjectItemName, primaryAttributeBinding, secondaryAttributeBinding, primaryBindingMatchingRuleLegacy,
+            super(associationClassLocalName, localSubjectItemName,
+                    primaryAttributeBinding, secondaryAttributeBinding, primaryBindingMatchingRuleLegacy,
                     direction, requiresExplicitReferentialIntegrity, referentialObjectDefinition,
                     subjectSidePrimaryBindingAttributeDefinition, subjects, objects);
-            this.associationClassName = QNameUtil.enforceNamespace(associationClassName, NS_RI);
         }
 
         static Modern parse(
                 @NotNull SimulatedAssociationClassConfigItem simulationCI,
-                @Nullable ShadowAssociationTypeDefinitionConfigItem definitionCI,
                 @NotNull ResourceSchemaImpl schemaBeingParsed) throws ConfigurationException {
 
             var primaryBinding = simulationCI.getPrimaryAttributeBinding();
@@ -328,8 +326,8 @@ public abstract class ShadowAssociationClassSimulationDefinition
 
             // TODO check the compatibility of subject/object definitions!
 
-            var subjects = getSubjectDefinitions(simulationCI, schemaBeingParsed, definitionCI);
-            var objects = getObjectDefinitions(simulationCI, schemaBeingParsed, definitionCI);
+            var subjects = getSubjectDefinitions(simulationCI, schemaBeingParsed);
+            var objects = getObjectDefinitions(simulationCI, schemaBeingParsed);
 
             // The "referential" association subject-side definition. It must contain the definitions of all relevant
             // subject-side binding attributes (primary/secondary). Hence, it should contain the subject's auxiliary object class
@@ -338,7 +336,7 @@ public abstract class ShadowAssociationClassSimulationDefinition
             var referentialObjectDefinition = objects.iterator().next().getObjectDefinition();
 
             return new Modern(
-                    simulationCI.getName(),
+                    simulationCI.getNameLocalPart(),
                     simulationCI.getItemName(),
                     primaryBinding,
                     simulationCI.getSecondaryAttributeBinding(),
@@ -356,53 +354,22 @@ public abstract class ShadowAssociationClassSimulationDefinition
 
         private static Collection<SimulatedAssociationClassParticipantDefinition> getSubjectDefinitions(
                 @NotNull SimulatedAssociationClassConfigItem simulationCI,
-                @NotNull ResourceSchemaImpl resourceSchema,
-                @Nullable ShadowAssociationTypeDefinitionConfigItem definitionCI) throws ConfigurationException {
+                @NotNull ResourceSchemaImpl resourceSchema) throws ConfigurationException {
             var delineationCIs = simulationCI.getSubject().getDelineations();
-            if (delineationCIs.isEmpty()) {
-                // This means we must use the information from association type.
-                return definitionsFromAssociationType(
-                        simulationCI, definitionCI, resourceSchema, true, simulationCI.getItemName());
-            } else {
-                return definitionsFromSimulationConfiguration(delineationCIs, resourceSchema, simulationCI.getItemName());
-            }
+            return definitionsFromSimulationConfiguration(delineationCIs, resourceSchema);
         }
 
         private static Collection<SimulatedAssociationClassParticipantDefinition> getObjectDefinitions(
                 @NotNull SimulatedAssociationClassConfigItem simulationCI,
-                @NotNull ResourceSchemaImpl resourceSchema,
-                @Nullable ShadowAssociationTypeDefinitionConfigItem definitionCI) throws ConfigurationException {
+                @NotNull ResourceSchemaImpl resourceSchema) throws ConfigurationException {
             var delineationCIs = simulationCI.getObject().getDelineations();
-            if (delineationCIs.isEmpty()) {
-                // This means we must use the information from association type.
-                return definitionsFromAssociationType(simulationCI, definitionCI, resourceSchema, false, null);
-            } else {
-                return definitionsFromSimulationConfiguration(delineationCIs, resourceSchema, null);
-            }
-        }
-
-        private static @NotNull List<SimulatedAssociationClassParticipantDefinition> definitionsFromAssociationType(
-                @NotNull SimulatedAssociationClassConfigItem simulationCI,
-                @Nullable ShadowAssociationTypeDefinitionConfigItem definitionCI,
-                @NotNull ResourceSchemaImpl resourceSchema,
-                boolean subject,
-                @Nullable ItemName associationItemName) throws ConfigurationException {
-            var what = subject ? "subject" : "object";
-            simulationCI.configCheck(definitionCI != null,
-                    "No %s delineations and no association type definition; in %s", what, DESC);
-            var typeIdentifiers = subject ? definitionCI.getSubjectTypeIdentifiers() : definitionCI.getObjectTypeIdentifiers();
-            simulationCI.configCheck(!typeIdentifiers.isEmpty(),
-                    "No %s delineations and none provided by the association type definition; in %s", what, DESC);
-            return resolveTypeDefinitions(resourceSchema, typeIdentifiers, definitionCI).stream()
-                    .map(def ->
-                            SimulatedAssociationClassParticipantDefinition.fromObjectTypeDefinition(def, null, associationItemName))
-                    .toList();
+            return definitionsFromSimulationConfiguration(delineationCIs, resourceSchema);
         }
 
         private @NotNull static List<SimulatedAssociationClassParticipantDefinition> definitionsFromSimulationConfiguration(
                 List<SimulatedAssociationClassParticipantDelineationConfigItem> delineationCIs,
-                @NotNull ResourceSchemaImpl resourceSchema,
-                @Nullable ItemName associationItemName) throws ConfigurationException {
+                @NotNull ResourceSchemaImpl resourceSchema) throws ConfigurationException {
+            argCheck(!delineationCIs.isEmpty(), "No delineations (already checked)");
             List<SimulatedAssociationClassParticipantDefinition> definitions = new ArrayList<>();
             for (var delineationCI : delineationCIs) {
                 QName objectClassName = delineationCI.getObjectClassName();
@@ -411,33 +378,13 @@ public abstract class ShadowAssociationClassSimulationDefinition
                                 objectClassName,
                                 delineationCI.getBaseContext(),
                                 delineationCI.getSearchHierarchyScope(),
-                                delineationCI.configNonNull(
-                                        resourceSchema.findDefinitionForObjectClass(objectClassName),
-                                        "No definition for object class %s found in %s", objectClassName, DESC),
-                                delineationCI.getAuxiliaryObjectClassName(),
-                                associationItemName,
-                                null));
+                                AssociationParticipantType.forObjectClass(
+                                        delineationCI.configNonNull(
+                                                resourceSchema.findDefinitionForObjectClass(objectClassName),
+                                                "No definition for object class %s found in %s", objectClassName, DESC)),
+                                delineationCI.getAuxiliaryObjectClassName()));
             }
             return definitions;
-        }
-
-        private static Collection<ResourceObjectTypeDefinition> resolveTypeDefinitions(
-                ResourceSchemaImpl resourceSchema,
-                Collection<? extends ResourceObjectTypeIdentification> typeIdentifiers,
-                ShadowAssociationTypeDefinitionConfigItem origin) throws ConfigurationException {
-            Collection<ResourceObjectTypeDefinition> definitions = new ArrayList<>();
-            for (var typeIdentifier : typeIdentifiers) {
-                definitions.add(
-                        origin.configNonNull(
-                                resourceSchema.getObjectTypeDefinition(typeIdentifier),
-                                "No object type definition found for %s used in %s", typeIdentifier, DESC));
-            }
-            return definitions;
-        }
-
-        @Override
-        public @NotNull String getName() {
-            return associationClassName.getLocalPart();
         }
     }
 }
