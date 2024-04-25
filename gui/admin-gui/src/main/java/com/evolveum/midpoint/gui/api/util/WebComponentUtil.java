@@ -2106,9 +2106,16 @@ public final class WebComponentUtil {
             if (StringUtils.isEmpty(templateOid)) {
                 return;
             }
-            String label = action.getDisplay() != null && PolyStringUtils.isNotEmpty(action.getDisplay().getLabel()) ?
-                    action.getDisplay().getLabel().getOrig() : action.getIdentifier();
-            menuItems.add(new InlineMenuItem(Model.of(label)) {
+
+            IModel<String> label = () -> {
+                DisplayType display = action.getDisplay();
+                if (display == null || display.getLabel() == null) {
+                    return action.getIdentifier();
+                }
+
+                return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(display.getLabel());
+            };
+            menuItems.add(new InlineMenuItem(label) {
                 @Serial private static final long serialVersionUID = 1L;
 
                 @Override
