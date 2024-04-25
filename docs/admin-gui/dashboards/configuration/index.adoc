@@ -543,7 +543,7 @@ We create the same object collection.
 .*Example Object Collection*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/howto/collection-enabled-users.xml [Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/howto/collection-enabled-users.xml[Git]
 
 sampleRef::samples/dashboard/howto/collection-enabled-users.xml[]
 ====
@@ -554,7 +554,7 @@ Next, we have to create a dashboard. We also need to add the attribute `displayS
 [%collapsible]
 .*Example Dashboard Configuration*
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/dashboard-asynchronous-widget.xml [Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/dashboard-asynchronous-widget.xml[Git]
 
 sampleRef::samples/dashboard/dashboard-asynchronous-widget.xml[]
 ====
@@ -565,7 +565,7 @@ Finally, we create a report for dashboard.
 [%collapsible]
 .*Example Report Configuration*
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/report-asynchronous-widget.xml [Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/report-asynchronous-widget.xml[Git]
 
 sampleRef::samples/dashboard/report-asynchronous-widget.xml[]
 ====

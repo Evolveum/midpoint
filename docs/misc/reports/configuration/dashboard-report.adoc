@@ -149,7 +149,8 @@ Configuration of Dashboard report contains attribute _storeExportedWidgetData_, 
 [%collapsible]
 .*Example Report Configuration*
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/report-asynchronous-widget.xml [Git]
+
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/report-asynchronous-widget.xml[Git]
 
 sampleRef::samples/dashboard/report-asynchronous-widget.xml[]
 ====

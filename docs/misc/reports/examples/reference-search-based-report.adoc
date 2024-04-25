@@ -1,6 +1,7 @@
 = Collection report: Reference Search Based Report
 :page-nav-title: Reference Search Based Report
-:page-upkeep-status: green
+:page-upkeep-status: yellow
+:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
 
 ++++
 {% include since.html since="4.7" %}

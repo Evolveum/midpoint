@@ -6,7 +6,8 @@
 :page-wiki-metadata-create-date: 2020-05-04T13:35:21.566+02:00
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2020-09-04T08:41:08.212+02:00
-:page-upkeep-status: green
+:page-upkeep-status: yellow
+:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
 
 Please see xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration] for basic information about configuration variables and Auditing-Custom column for steps how to add custom column.
 
@@ -31,7 +32,7 @@ CREATE INDEX iAuditEventCustSituation
 .*Example Resource Configuration*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/resource-csv-username.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/resource-csv-username.xml[Git]
 
 sampleRef::samples/resources/csv/resource-csv-username.xml[]
 ====
@@ -40,7 +41,7 @@ sampleRef::samples/resources/csv/resource-csv-username.xml[]
 .*Example CSV Source File*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/midpoint-username.csv[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/midpoint-username.csv[Git]
 
 sampleRef::samples/resources/csv/midpoint-username.csv[]
 ====
@@ -51,7 +52,7 @@ As next adding we're adding next snippet of configuration to config.xml file in 
 .*config.xml configuration snippet*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/misc/config-custom-column.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/misc/config-custom-column.xml[Git]
 
 sampleRef::samples/misc/config-custom-column.xml[]
 ====
@@ -62,7 +63,7 @@ After modifying config.xml we have to restart Midpoint. As last part of adding c
 .*Snippet of system configuration*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/misc/system-config-event-rec.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/misc/system-config-event-rec.xml[Git]
 
 sampleRef::samples/misc/system-config-event-rec.xml[]
 ====
@@ -74,7 +75,7 @@ In object collection for audit events we use sql select command.
 .*Object collection*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/admin-status-midification.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/admin-status-midification.xml[Git]
 
 sampleRef::samples/objectCollection/admin-status-midification.xml[]
 ====
@@ -85,7 +86,7 @@ When we have object collection, then import Dashboard object with widget for our
 .*Dashboard*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/change-of-admin-status-custom-column.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/change-of-admin-status-custom-column.xml[Git]
 
 sampleRef::samples/dashboard/change-of-admin-status-custom-column.xml[]
 ====
@@ -98,7 +99,7 @@ We want report with table of audit events, so we import dashboard report.
 .*Report*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/dashboard-report-custom-column.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/dashboard-report-custom-column.xml[Git]
 
 sampleRef::samples/reports/dashboard-report-custom-column.xml[]
 ====
