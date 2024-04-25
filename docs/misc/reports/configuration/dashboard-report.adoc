@@ -145,6 +145,19 @@ Configuration of Dashboard report contains attribute _storeExportedWidgetData_, 
 
 |===
 
+//TODO check after sampleRef is fully in prod
+[%collapsible]
+.*Example Report Configuration*
+====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/report-asynchronous-widget.xml [Git]
+
+sampleRef::samples/dashboard/report-asynchronous-widget.xml[]
+====
+
+include::../../../admin-gui/dashboards/raw/file-format.adoc[]
+
+Please also have a look at the full configuration documentation of asynchronous xref:/midpoint/reference/admin-gui/dashboards/configuration/#_asynchronous_widget[dashboards].
+
 === Example of Generated Report
 
 On the screenshot, we can see an example of a generated report of a Dashboard report in the HTML format.
