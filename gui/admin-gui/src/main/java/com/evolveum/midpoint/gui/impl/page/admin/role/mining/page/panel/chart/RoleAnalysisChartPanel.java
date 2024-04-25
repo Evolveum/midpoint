@@ -405,17 +405,23 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
 
             @Override
             public String getDatasetUserLabel() {
-                return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.user.label").getString();
+                if (isUserMode) {
+                    return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.user.userMode.label").getString();
+                }
+                return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.user.roleMode.label").getString();
             }
 
             @Override
             public String getDatasetRoleLabel() {
-                return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.role.label").getString();
+                if (isUserMode) {
+                    return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.role.userMode.label").getString();
+                }
+                return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.role.roleMode.label").getString();
             }
         };
     }
 
-    private List<RoleAnalysisModel> prepareRoleAnalysisData() {
+    private @NotNull List<RoleAnalysisModel> prepareRoleAnalysisData() {
         List<RoleAnalysisModel> roleAnalysisModels = new ArrayList<>();
 
         if (isUserMode) {

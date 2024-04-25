@@ -47,13 +47,13 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
             chart.setData(chartData);
             chart.setOptions(createChartOptions());
             return chart;
-        } else if(chartType.equals(ChartType.BAR)){
+        } else if (chartType.equals(ChartType.BAR)) {
             BarChartConfiguration chart = new BarChartConfiguration();
             ChartData chartData = createDataset();
             chart.setData(chartData);
             chart.setOptions(createChartOptions());
             return chart;
-        }else{
+        } else {
             ScatterChartConfiguration chart = new ScatterChartConfiguration();
             ChartData chartData = createScatterDataset();
             chart.setData(chartData);
