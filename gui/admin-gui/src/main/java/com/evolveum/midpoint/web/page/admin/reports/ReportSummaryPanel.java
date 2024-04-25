@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
@@ -23,7 +22,7 @@ import org.apache.wicket.model.IModel;
 public class ReportSummaryPanel extends ObjectSummaryPanel<ReportType> {
 
     public ReportSummaryPanel(String id, IModel<ReportType> model, SummaryPanelSpecificationType summaryPanelSpecificationType) {
-        super(id, ReportType.class, model, summaryPanelSpecificationType);
+        super(id, model, summaryPanelSpecificationType);
     }
 
     @Override

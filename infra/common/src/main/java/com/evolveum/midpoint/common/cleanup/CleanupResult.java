@@ -7,40 +7,21 @@
 
 package com.evolveum.midpoint.common.cleanup;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class CleanupResult {
 
-    private List<CleanupMessage> messages;
+    private List<CleanupItem<?>> messages;
 
-    private List<ObjectReferenceType> missingReferences;
-
-    public List<CleanupMessage> getMessages() {
+    public List<CleanupItem<?>> getMessages() {
         if (messages == null) {
             messages = new ArrayList<>();
         }
         return messages;
     }
 
-    public void setMessages(List<CleanupMessage> messages) {
+    public void setMessages(List<CleanupItem<?>> messages) {
         this.messages = messages;
-    }
-
-    public List<CleanupMessage> getMessages(CleanupMessage.Status status) {
-        return getMessages().stream().filter(m -> m.status() == status).toList();
-    }
-
-    public List<ObjectReferenceType> getMissingReferences() {
-        if (missingReferences == null) {
-            missingReferences = new ArrayList<>();
-        }
-        return missingReferences;
-    }
-
-    public void setMissingReferences(List<ObjectReferenceType> missingReferences) {
-        this.missingReferences = missingReferences;
     }
 }

@@ -15,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 public enum InternalCounters {
 
-    /** This denotes parsing from XML in {@link ResourceSchemaFactory#getRawSchema(ResourceType)}. */
+    /** This denotes parsing from XML in {@link ResourceSchemaFactory#getNativeSchema(ResourceType)}. */
     RESOURCE_SCHEMA_PARSE_COUNT("resourceSchemaParseCount", "resource schema parse count", InternalOperationClasses.RESOURCE_SCHEMA_OPERATIONS),
 
     RESOURCE_SCHEMA_FETCH_COUNT("resourceSchemaFetchCount", "resource schema fetch count", InternalOperationClasses.REPOSITORY_OPERATIONS),

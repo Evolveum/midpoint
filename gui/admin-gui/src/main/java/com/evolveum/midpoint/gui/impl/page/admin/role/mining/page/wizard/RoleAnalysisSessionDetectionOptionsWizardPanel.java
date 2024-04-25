@@ -46,7 +46,8 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
             PrismContainerValueWrapper<RoleAnalysisDetectionOptionType> sessionType = getContainerFormModel().getObject()
                     .getValue();
 
-            if (realValue.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
+            RoleAnalysisOptionType analysisOption = realValue.getAnalysisOption();
+            if (analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
                 setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY, realValue.getRoleModeOptions().getMinPropertiesOverlap());
                 setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY, realValue.getRoleModeOptions().getMinMembersCount());
             } else {

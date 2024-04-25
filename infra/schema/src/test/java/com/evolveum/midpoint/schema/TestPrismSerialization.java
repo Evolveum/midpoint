@@ -44,7 +44,7 @@ public class TestPrismSerialization extends AbstractSchemaTest {
     @Test
     public void testSerializeTrace() throws Exception {
         PrismContext prismContext = getPrismContext();
-        ValueTransformationTraceType trace = new ValueTransformationTraceType(prismContext);
+        ValueTransformationTraceType trace = new ValueTransformationTraceType();
         NamedValueType input1 = new NamedValueType();
         input1.setName(new QName("myRef"));
         input1.setValue(new ObjectReferenceType().oid("123").type(UserType.COMPLEX_TYPE));
@@ -85,11 +85,11 @@ public class TestPrismSerialization extends AbstractSchemaTest {
         PrismContext prismContext = getPrismContext();
 
         QName fakeQName = new QName(PrismConstants.NS_TYPES, "ref");
-        MutablePrismReferenceDefinition definition = prismContext.definitionFactory().createReferenceDefinition(fakeQName, ObjectReferenceType.COMPLEX_TYPE);
-        definition.setComposite(true);
+        PrismReferenceDefinition definition = prismContext.definitionFactory().newReferenceDefinition(fakeQName, ObjectReferenceType.COMPLEX_TYPE);
+        definition.mutator().setComposite(true);
         PrismReference reference = definition.instantiate();
 
-        UserType joe = new UserType(prismContext)
+        UserType joe = new UserType()
                 .name("joe")
                 .oid("66662a3b-76eb-4465-8374-742f6e2f54b4")
                 .description("description");
@@ -132,7 +132,7 @@ public class TestPrismSerialization extends AbstractSchemaTest {
     @Test
     public void testSerializeObjectCollectionWithFilter() throws Exception {
         PrismContext prismContext = getPrismContext();
-        ObjectCollectionType collection = new ObjectCollectionType(prismContext)
+        ObjectCollectionType collection = new ObjectCollectionType()
                 .name("collection")
                 .type(UserType.COMPLEX_TYPE);
 

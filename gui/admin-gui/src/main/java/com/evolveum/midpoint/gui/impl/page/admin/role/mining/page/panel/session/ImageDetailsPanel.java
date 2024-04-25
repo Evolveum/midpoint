@@ -6,15 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyImageScaleScript;
-
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -23,11 +16,13 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.image.CustomImageResource;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
@@ -75,31 +70,18 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
             return;
         }
 
-        RoleAnalysisProcessModeType processMode = parentClusterByOid.asObjectable().getProcessMode();
+        RoleAnalysisSessionType session = parentClusterByOid.asObjectable();
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
 
         MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareExpandedMiningStructure(cluster,
-                true, processMode, result, task);
+                true, processMode, result, task, null);
 
         CustomImageResource imageResource;
 
         imageResource = new CustomImageResource(miningOperationChunk, processMode);
 
         Image image = new Image(ID_IMAGE, imageResource);
-
-        image.add(new AbstractDefaultAjaxBehavior() {
-            @Override
-            protected void respond(AjaxRequestTarget target) {
-                target.appendJavaScript(applyImageScaleScript());
-
-            }
-
-            @Override
-            public void renderHead(Component component, IHeaderResponse response) {
-                super.renderHead(component, response);
-                response.render(OnDomReadyHeaderItem.forScript(applyImageScaleScript()));
-
-            }
-        });
 
         add(image);
 
@@ -111,7 +93,7 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
     @Override
     public int getWidth() {
-        return 1000;
+        return 800;
     }
 
     @Override

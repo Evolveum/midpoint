@@ -156,12 +156,12 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
 
     </xsd:complexType>
-
     <xsd:element name="roleAnalysisCluster" type="tns:RoleAnalysisClusterType" substitutionGroup="tns:object"/>
 
     <xsd:complexType name="RoleAnalysisSessionType">
@@ -182,7 +182,7 @@
             <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
 
-                    <xsd:element name="processMode" type="tns:RoleAnalysisProcessModeType" minOccurs="0">
+                    <xsd:element name="analysisOption" type="c:RoleAnalysisOptionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
@@ -206,7 +206,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>RoleAnalysisProcessModeType.processMode</a:displayName>
+                                <a:displayName>RoleAnalysisOptionType.analysisOption</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -215,7 +215,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Object clustering options.
+                                    Session process options.
 
                                     Specification of parameters utilized for establishing cluster
                                     generation conditions, specifically pertaining to the role analysis clusters.
@@ -239,7 +239,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Object clustering options.
+                                    Session process options.
 
                                     Specification of parameters utilized for establishing cluster
                                     generation conditions, specifically pertaining to the role analysis clusters.
@@ -403,6 +403,31 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+
+            <xsd:element name="roleAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Contains information about the attribute analysis result.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeAnalysisResult.roleAttributeAnalysisResult</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="userAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Contains information about the attribute analysis result.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeAnalysisResult.userAttributeAnalysisResult</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -412,7 +437,7 @@
     <xsd:complexType name="AbstractAnalysisSessionOptionType">
         <xsd:annotation>
             <xsd:documentation>
-                Object clustering options.
+                Session process options.
 
                 Specification of parameters utilized for establishing cluster
                 generation conditions, specifically pertaining to the RoleAnalysisClusterType.
@@ -485,6 +510,41 @@
                             at least "minOverlapCondition" equal users.
                         </p>
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="clusteringAttributeSetting" type="tns:ClusteringAttributeSettingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Contains information about the clustering attribute analysis settings.
+                            It allows for configuration of settings related to attribute analysis within clustering process.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="analysisAttributeSetting" type="tns:AnalysisAttributeSettingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Contains information about attribute analysis settings.
+                            It allows for configuration of settings related to attribute analysis within the analysis process.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="isIndirect" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies whether the clustering runs in indirect mode.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractAnalysisSessionOptionType.isIndirect</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -655,6 +715,30 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="itemConfidence" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Confidence level of the detected pattern.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisDetectionPatternType.itemConfidence</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reductionConfidence" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Confidence level of the detected pattern.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisDetectionPatternType.reductionConfidence</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="candidateRole" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -664,10 +748,199 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="roleAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Contains information about the attribute analysis result.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeAnalysisResult.roleAttributeAnalysisResult</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="userAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Contains information about the attribute analysis result.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeAnalysisResult.userAttributeAnalysisResult</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="roleAnalysisDetectionPattern" type="tns:RoleAnalysisDetectionPatternType"/>
+
+    <xsd:complexType name="RoleAnalysisAttributeAnalysisResult">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains information about...
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="attributeAnalysis" type="c:RoleAnalysisAttributeAnalysis" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Contains information about the attribute analysis.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeAnalysisResult.attributeAnalysis</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisAttributeAnalysisResult" type="tns:RoleAnalysisAttributeAnalysisResult"/>
+
+
+    <xsd:complexType name="RoleAnalysisAttributeAnalysis">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains information about...
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:description" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Free-form textual description of the object. This is meant to
+                            be displayed in the user interface.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectType.description</a:displayName>
+                        <a:displayOrder>10</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="attributeStatistics" type="c:RoleAnalysisAttributeStatistics" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Attribute statistics analysis information.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeAnalysis.attributeStatistics</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="isMultiValue" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>If true, the matching rule is applied to each value of the property.</p>
+                        <p>Also, there must be specified a matchSimilarity value. If not default 100% is used.</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeAnalysis.isMultiValue</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="itemPath" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Item path to the object that is the target of the outlier analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeAnalysis.itemPath</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="density" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Expresses density of the object.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeAnalysis.density</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisAttributeAnalysis" type="tns:RoleAnalysisAttributeAnalysis"/>
+
+
+    <xsd:complexType name="RoleAnalysisAttributeStatistics">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains information about...
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="attributeValue" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Attribute value.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeStatistics.attributeValue</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="frequency" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Frequency of the attribute value.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeStatistics.frequency</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inRepo" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Count of the attribute value in the repository.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeStatistics.inRepo</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inGroup" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Count of the attribute value in the group.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeStatistics.inGroup</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisAttributeStatistics" type="tns:RoleAnalysisAttributeStatistics"/>
 
     <xsd:complexType name="RoleAnalysisDetectionOptionType">
         <xsd:annotation>
@@ -828,7 +1101,6 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-
     <xsd:complexType name="RangeType">
         <xsd:annotation>
             <xsd:documentation>
@@ -862,6 +1134,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
     <xsd:element name="range" type="tns:RangeType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1061,5 +1334,347 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:complexType name="AnalysisAttributeRuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>Contains information about matching rules for attribute analysis.</p>
+                <p>Matching rule presupposes the business logic for the comparison of objects.</p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
 
+            <xsd:element name="attributeIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>Path to the property used for comparison.</p>
+                        <p>It is necessary that the output be a simple object convertible to a String type</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AnalysisAttributeRuleType.attributeIdentifier</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="propertyType" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the property used for comparison.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="analysisAttributeRuleType" type="tns:AnalysisAttributeRuleType"/>
+
+    <xsd:complexType name="ClusteringAttributeSettingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>Contains information about matching rules for clustering process.</p>
+                <p>Matching rule presupposes the business logic for the comparison of objects.</p>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+
+            <xsd:element name="clusteringAttributeRule" type="tns:ClusteringAttributeRuleType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Matching rule for attribute clustering.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ClusteringAttributeSettingType.clusteringAttributeRule</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:element name="clusteringAttributeSettingType" type="tns:ClusteringAttributeSettingType"/>
+
+
+    <xsd:complexType name="AnalysisAttributeSettingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>Contains information about matching rules for object analysis process.</p>
+                <p>Matching rule presupposes the business logic for the comparison of objects.</p>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+
+            <xsd:element name="analysisAttributeRule" type="tns:AnalysisAttributeRuleType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Matching rule for attribute clustering.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AnalysisAttributeSettingType.analysisAttributeRule</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="analysisAttributeSettingType" type="tns:AnalysisAttributeSettingType"/>
+
+    <xsd:complexType name="ClusteringAttributeRuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>Contains information about matching rules for clustering process.</p>
+                <p>Matching rule presupposes the business logic for the comparison of objects.</p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+
+            <xsd:element name="attributeIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>Path to the property used for comparison.</p>
+                        <p>It is necessary that the output be a simple object convertible to a String type</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ClusteringAttributeRuleType.attributeIdentifier</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="isMultiValue" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>If true, the matching rule is applied to each value of the property.</p>
+                        <p>Also, there must be specified a matchSimilarity value. If not default 100% is used.</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ClusteringAttributeRuleType.isMultiValue</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="similarity" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>Similarity threshold used for comparison (Jaccard metric).</p>
+                        <p>If the condition is not met, then the objects are excluded.</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ClusteringAttributeRuleType.similarity</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="weight" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>Weight of the matching rule.</p>
+                        <p>For inclusion object in the cluster, the sum of the weights of the matching
+                            rules must be greater than or equal to 1.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ClusteringAttributeRuleType.weight</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="clusteringAttributeRuleType" type="tns:ClusteringAttributeRuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Setting for attribute clustering.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+
+    <!--Currently not used (reserved for future use).-->
+    <xsd:complexType name="RoleAnalysisSimilarityMetricType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains information about the similarity metric for role analysis.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="itemPath" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path to the property used for similarity metric.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mode" type="tns:MetricMode" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Mode of the similarity metric.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="similarity" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Similarity threshold used for similarity metric (Jaccard).
+                        If the condition is not met, then the objects are not grouped.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisSimilarityMetricType" type="tns:RoleAnalysisSimilarityMetricType"/>
+    <!--Currently not used (reserved for future use).-->
+    <xsd:simpleType name="MetricMode">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role analysis metric mode.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="exact">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Check for exact match.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXACT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="partial">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Check for partial match. Required for similarity metric.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PARTIAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="RoleAnalysisOptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                This complex type defines options for role analysis.
+                It encapsulates elements related to the process mode and analysis category,
+                providing flexibility in configuring the specific approach for analysis.
+
+                The "processMode" element determines the methodology used during the analysis,
+                considering either a role perspective or a user perspective.
+
+                The "analysisCategory" element specifies the mode for categorizing the analysis,
+                allowing for differentiation between standard and advanced approaches.
+
+                The "id" attribute uniquely identifies each role analysis option.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="processMode" type="tns:RoleAnalysisProcessModeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Process mode for role analysis. It determines the specific approach
+                            or methodology used during the analysis.
+
+                            We currently use an enum type to identify the mode (ROLE MODE, USER MODE)
+                            For Role Analysis (ROLE):
+                            Role perspective is taken into account. The role mining process focuses on identifying
+                            and analyzing roles based on their similarity and considering the perspective of roles
+                            (vectors of users who have this role are compared). Objects
+                            that meet the specified conditions, determined by the input parameters, are added to the data set
+                            to facilitate role mining
+
+                            For User Analysis (USER):
+                            User perspective is taken into account. The user mining process focuses on identifying and
+                            analyzing users based on their similarity and considering the perspective of users
+                            (the role vectors assigned to the given users are compared). Objects that
+                            meet the specified conditions, determined by the input parameters, are added to the data set to
+                            facilitate role mining.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisProcessModeType.processMode</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="analysisCategory" type="tns:RoleAnalysisCategoryType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Analysis category mode for role analysis. It determines the specific approach
+                            or methodology used during the analysis.
+
+                            We currently use an enum type to identify the mode (STANDARD MODE, ADVANCED MODE)
+                            For Standard Mode (STANDARD):
+                            This mode represents a basic approach to role analysis, focusing on fundamental criteria
+                            and techniques for identifying and analyzing roles within the system.
+
+                            For Advanced Mode (ADVANCED):
+                            This mode represents a more sophisticated approach, often involving complex matching rules
+                            and additional criteria for role identification and analysis.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisOptionType" type="tns:RoleAnalysisOptionType"/>
+
+    <xsd:simpleType name="RoleAnalysisCategoryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Category classification.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="standard">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during basic analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STANDARD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="advanced">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during advanced analysis (matching rules).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ADVANCED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

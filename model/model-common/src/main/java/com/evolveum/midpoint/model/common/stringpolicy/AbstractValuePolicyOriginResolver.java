@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.common.stringpolicy;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -126,7 +127,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
                 return;
             }
 
-            ObjectQuery query = object.getPrismContext()
+            ObjectQuery query = PrismContext.get()
                     .queryFor(FocusType.class)
                     .item(FocusType.F_LINK_REF).ref(object.getOid())
                     .maxSize(1)

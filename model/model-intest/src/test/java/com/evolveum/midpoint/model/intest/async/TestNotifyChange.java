@@ -283,7 +283,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
 
         // GIVEN
 
-        ResourceSchema schema = ResourceSchemaFactory.getRawSchema(resourceDummyGrouper);
+        ResourceSchema schema = ResourceSchemaFactory.getBareSchema(resourceDummyGrouper);
         assert schema != null;
         ResourceAttributeDefinition<?> privilegeDefinition =
                 schema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS)

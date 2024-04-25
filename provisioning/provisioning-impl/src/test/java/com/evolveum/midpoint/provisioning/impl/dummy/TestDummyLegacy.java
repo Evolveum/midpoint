@@ -126,7 +126,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
                 resourceBefore.getConnectorRef().getOid(), null, result).asObjectable();
         assertNotNull(connector);
         XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
-        Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
+        Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchemaElement(resourceBefore);
         AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
         // WHEN
@@ -163,9 +163,8 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
         assertSuccess(result);
         resourceTypeNative = resourceNative.asObjectable();
 
-        ResourceSchema returnedSchema = ResourceSchemaFactory.getRawSchema(resourceTypeNative);
+        ResourceSchema returnedSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resourceTypeNative);
         displayDumpable("Parsed resource schema", returnedSchema);
-        assertNotNull("No parsed schema", returnedSchema);
 
         assertObjectClass(returnedSchema, OBJECTCLASS_NATIVE_ACCOUNT);
         assertObjectClass(returnedSchema, OBJECTCLASS_NATIVE_GROUP);
@@ -203,7 +202,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
                 resourceBefore.getConnectorRef().getOid(), null, result).asObjectable();
         assertNotNull(connector);
         XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
-        Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
+        Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchemaElement(resourceBefore);
         AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
         // WHEN
@@ -240,9 +239,8 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
         assertSuccess(result);
         resourceTypeLegacy = resourceLegacy.asObjectable();
 
-        ResourceSchema returnedSchema = ResourceSchemaFactory.getRawSchema(resourceTypeLegacy);
+        ResourceSchema returnedSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resourceTypeLegacy);
         displayDumpable("Parsed resource schema", returnedSchema);
-        assertNotNull("No parsed schema", returnedSchema);
 
         assertObjectClass(returnedSchema, OBJECTCLASS_LEGACY_ACCOUNT);
         assertObjectClass(returnedSchema, OBJECTCLASS_LEGACY_GROUP);

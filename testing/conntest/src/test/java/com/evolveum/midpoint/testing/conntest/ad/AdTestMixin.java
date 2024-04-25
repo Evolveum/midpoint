@@ -75,7 +75,7 @@ public interface AdTestMixin extends InfraTestMixin {
     default ResourceObjectDefinition assertAdResourceSchema(
             PrismObject<ResourceType> resource, QName accountObjectClass)
             throws SchemaException, ConfigurationException {
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
         displayDumpable("Resource schema", resourceSchema);
         resourceSchema.validate();
         return assertAdSchema(resource, accountObjectClass);
@@ -183,7 +183,7 @@ public interface AdTestMixin extends InfraTestMixin {
     default void assertExchangeSchema(PrismObject<ResourceType> resource, QName accountObjectClassQName)
             throws SchemaException, ConfigurationException {
 
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resource.asObjectable());
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getBareSchema(resource.asObjectable());
         assertExchangeSchema(resourceSchema, accountObjectClassQName);
 
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);

@@ -263,7 +263,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         display("Manual Connector", repoConnector);
 
         // Check connector schema
-        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector, prismContext);
+        IntegrationTestTools.assertConnectorSchemaSanity(repoConnector);
 
         PrismObject<UserType> userWill = getUser(userWillOid);
         assertUser(userWill, userWillOid, USER_WILL_NAME, USER_WILL_FULL_NAME, USER_WILL_GIVEN_NAME, USER_WILL_FAMILY_NAME);
@@ -285,7 +285,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, getResourceOid(),
                 null, result).asObjectable();
 
-        Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
+        Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchemaElement(resourceBefore);
         if (!initialized) {
             assertResourceSchemaBeforeTest(resourceXsdSchemaElementBefore);
         }
@@ -315,7 +315,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
         assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
-        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
+        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchemaElement(resourceTypeRepoAfter);
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
         String resourceXml = prismContext.xmlSerializer().serialize(resourceRepoAfter);
@@ -327,7 +327,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertNotNull("No serialNumber", schemaCachingMetadata.getSerialNumber());
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-        ResourceSchema parsedSchema = ResourceSchemaParser.parse(xsdElement, resourceBefore.toString());
+        ResourceSchema parsedSchema = ResourceSchemaFactory.parseNativeSchemaAsBare(xsdElement);
         assertNotNull("No schema after parsing", parsedSchema);
 
         CapabilitiesType capabilitiesRepoAfter = resourceTypeRepoAfter.getCapabilities();
@@ -382,14 +382,16 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertTrue(ResourceSchemaFactory.hasParsedSchema(resourceType));
 
         // Also test if the utility method returns the same thing
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(resourceType);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getBareSchema(resourceType);
 
         displayDumpable("Parsed resource schema", resourceSchema);
 
         // Check whether it is reusing the existing schema and not parsing it all over again
         // Not equals() but == ... we want to really know if exactly the same
         // object instance is returned
-        assertSame("Broken caching", resourceSchema, ResourceSchemaFactory.getRawSchema(resourceType));
+        assertSame("Broken caching",
+                resourceSchema.getNativeSchema(),
+                ResourceSchemaFactory.getBareSchema(resourceType).getNativeSchema());
 
         ResourceObjectClassDefinition accountDef =
                 resourceSchema.findObjectClassDefinition(RESOURCE_ACCOUNT_OBJECTCLASS);
@@ -580,7 +582,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
         assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
-        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
+        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchemaElement(resourceTypeRepoAfter);
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
         String resourceXml = prismContext.xmlSerializer().serialize(resourceRepoAfter);
@@ -595,7 +597,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                 modelService.getObject(ResourceType.class, getResourceOid(), null, task, result).asObjectable();
 
         Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-        ResourceSchema parsedSchema = ResourceSchemaParser.parse(xsdElement, resourceModelAfter.toString());
+        ResourceSchema parsedSchema = ResourceSchemaFactory.parseNativeSchemaAsBare(xsdElement);
         assertNotNull("No schema after parsing", parsedSchema);
         CapabilitiesType capabilitiesRepoAfter = resourceTypeRepoAfter.getCapabilities();
         AssertJUnit.assertNotNull("Capabilities missing after test connection.", capabilitiesRepoAfter);
@@ -1830,6 +1832,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         display("user before", userBefore);
         assertLiveLinks(userBefore, 0);
 
+        //noinspection CheckStyle
         final long TIMEOUT = 60000L;
 
         // WHEN
@@ -1907,6 +1910,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         display("user before", userBefore);
         assertAssignments(userBefore, getConcurrentTestNumberOfThreads());
 
+        //noinspection CheckStyle
         final long TIMEOUT = 60_000L;
 
         // WHEN

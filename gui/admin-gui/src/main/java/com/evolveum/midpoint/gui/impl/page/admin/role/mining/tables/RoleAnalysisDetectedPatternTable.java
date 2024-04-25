@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
+import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
+import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
 
 import java.io.Serial;
 import java.util.ArrayList;
@@ -17,6 +19,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.web.component.data.mining.CollapsableContainerPanel;
+
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -41,32 +46,26 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.RepeatingAttributeForm;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisAttributeChartPopupPanel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
-import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -74,13 +73,16 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
     private static final String ID_DATATABLE = "datatable";
-    boolean isOperationEnable;
+    boolean isPopup;
     private static final String DOT_CLASS = RoleAnalysisDetectedPatternTable.class.getName() + ".";
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
-    OperationResult result = new OperationResult(OP_PREPARE_OBJECTS);
 
-    public RoleAnalysisDetectedPatternTable(String id, LoadableDetachableModel<List<DetectedPattern>> detectedPatternList, RoleAnalysisClusterType cluster) {
+    public RoleAnalysisDetectedPatternTable(
+            @NotNull String id,
+            @NotNull LoadableDetachableModel<List<DetectedPattern>> detectedPatternList,
+            boolean isPopup) {
         super(id);
+        this.isPopup = isPopup;
 
         RoleMiningProvider<DetectedPattern> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(detectedPatternList.getObject()) {
@@ -96,8 +98,9 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
         provider.setSort(DetectedPattern.F_METRIC, SortOrder.DESCENDING);
 
-        BoxedTablePanel<DetectedPattern> table = new BoxedTablePanel<>(
-                ID_DATATABLE, provider, initColumns(cluster)) {
+        RoleAnalysisCollapsableTablePanel<DetectedPattern> table = new RoleAnalysisCollapsableTablePanel<>(
+                ID_DATATABLE, provider, initColumns(false)) {
+
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 AjaxIconButton refreshIcon = new AjaxIconButton(id, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
@@ -121,10 +124,79 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
         add(table);
     }
 
-    public List<IColumn<DetectedPattern, String>> initColumns(RoleAnalysisClusterType cluster) {
+    public RoleAnalysisDetectedPatternTable(
+            String id, RoleAnalysisSessionType session, boolean isTopPatterns) {
+        super(id);
+        this.isPopup = false;
 
-        LoadableModel<PrismContainerDefinition<RoleAnalysisDetectionPatternType>> containerDefinitionModel
-                = WebComponentUtil.getContainerDefinitionModel(RoleAnalysisDetectionPatternType.class);
+        LoadableDetachableModel<List<DetectedPattern>> loadableDetachableModel = new LoadableDetachableModel<>() {
+            @Override
+            protected List<DetectedPattern> load() {
+                return getTopPatterns(session);
+            }
+        };
+
+        RoleMiningProvider<DetectedPattern> provider = new RoleMiningProvider<>(
+                this, loadableDetachableModel, true);
+
+        provider.setSort(DetectedPattern.F_METRIC, SortOrder.DESCENDING);
+
+        RoleAnalysisCollapsableTablePanel<DetectedPattern> table = new RoleAnalysisCollapsableTablePanel<>(
+                ID_DATATABLE, provider, initColumns(isTopPatterns)) {
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                AjaxIconButton refreshIcon = new AjaxIconButton(id, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
+                        createStringResource("MainObjectListPanel.refresh")) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        onRefresh(target);
+                    }
+                };
+                refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                return refreshIcon;
+            }
+        };
+        table.setOutputMarkupId(true);
+        table.getDataTable().setItemsPerPage(10);
+        table.enableSavePageSize();
+
+        add(table);
+    }
+
+    private @NotNull List<DetectedPattern> getTopPatterns(RoleAnalysisSessionType session) {
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+
+        Task task = getPageBase().createSimpleTask("getTopPatterns");
+        OperationResult result = task.getResult();
+        List<PrismObject<RoleAnalysisClusterType>> prismObjects = roleAnalysisService.searchSessionClusters(session, task, result);
+
+        List<DetectedPattern> topDetectedPatterns = new ArrayList<>();
+        for (PrismObject<RoleAnalysisClusterType> prismObject : prismObjects) {
+            List<DetectedPattern> detectedPatterns = transformDefaultPattern(prismObject.asObjectable());
+
+            double maxOverallConfidence = 0;
+            DetectedPattern topDetectedPattern = null;
+            for (DetectedPattern detectedPattern : detectedPatterns) {
+                double itemsConfidence = detectedPattern.getItemsConfidence();
+                double reductionFactorConfidence = detectedPattern.getReductionFactorConfidence();
+                double overallConfidence = itemsConfidence + reductionFactorConfidence;
+                if (overallConfidence > maxOverallConfidence) {
+                    maxOverallConfidence = overallConfidence;
+                    topDetectedPattern = detectedPattern;
+                }
+            }
+            if (topDetectedPattern != null) {
+                topDetectedPatterns.add(topDetectedPattern);
+            }
+
+        }
+        return topDetectedPatterns;
+    }
+
+    public List<IColumn<DetectedPattern, String>> initColumns(boolean isTopPatterns) {
 
         List<IColumn<DetectedPattern, String>> columns = new ArrayList<>();
 
@@ -154,14 +226,52 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
             public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
                     IModel<DetectedPattern> rowModel) {
                 if (rowModel.getObject() != null) {
-                    item.add(new Label(componentId, rowModel.getObject().getMetric()));
+                    double reductionFactorConfidence = rowModel.getObject().getReductionFactorConfidence();
+                    String formattedReductionFactorConfidence = String.format("%.2f", reductionFactorConfidence);
+                    double metric = rowModel.getObject().getMetric();
+                    String formattedMetric = String.format("%.2f", metric);
+                    item.add(new Label(componentId, formattedReductionFactorConfidence + "% (" + formattedMetric + ")"));
                 }
             }
 
             @Override
             public Component getHeader(String componentId) {
-                return createColumnHeader(componentId, containerDefinitionModel
-                );
+                return new Label(
+                        componentId,
+                        createStringResource("RoleMining.cluster.table.column.header.reduction.factor.confidence"));
+
+            }
+
+        });
+
+        columns.add(new AbstractColumn<>(getHeaderTitle("")) {
+
+            @Override
+            public String getSortProperty() {
+                return DetectedPattern.F_METRIC;
+            }
+
+            @Override
+            public boolean isSortable() {
+                return true;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
+                    IModel<DetectedPattern> rowModel) {
+                if (rowModel.getObject() != null) {
+
+                    double itemsConfidence = rowModel.getObject().getItemsConfidence();
+                    String formattedItemsConfidence = String.format("%.2f", itemsConfidence);
+                    item.add(new Label(componentId, formattedItemsConfidence + "%"));
+                }
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new Label(
+                        componentId,
+                        createStringResource("RoleMining.cluster.table.column.header.items.confidence"));
 
             }
 
@@ -191,31 +301,53 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
+                            CollapsableContainerPanel collapseContainerUser = (CollapsableContainerPanel) item
+                                    .findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
+                            CollapsableContainerPanel collapseContainerRole = (CollapsableContainerPanel) item
+                                    .findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
 
-                            List<PrismObject<FocusType>> objects = new ArrayList<>();
-                            Set<String> roles = rowModel.getObject().getRoles();
-
-                            for (String roleOid : roles) {
-                                objects.add(getPageBase().getRoleAnalysisService()
-                                        .getFocusTypeObject(roleOid, task, result));
-                            }
-                            MembersDetailsPanel detailsPanel = new MembersDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                    Model.of("Analyzed members details panel"), objects, RoleAnalysisProcessModeType.ROLE) {
-                                @Override
-                                public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                                    super.onClose(ajaxRequestTarget);
+                            if (!collapseContainerRole.isExpanded()) {
+                                DetectedPattern detectedPattern = null;
+                                RoleAnalysisAttributeAnalysisResult roleAnalysisResult = null;
+                                if (rowModel.getObject() != null) {
+                                    detectedPattern = rowModel.getObject();
+                                    roleAnalysisResult = detectedPattern.getRoleAttributeAnalysisResult();
                                 }
-                            };
-                            ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+
+                                CollapsableContainerPanel webMarkupContainerRole = new CollapsableContainerPanel(
+                                        ID_SECOND_COLLAPSABLE_CONTAINER);
+                                webMarkupContainerRole.setOutputMarkupId(true);
+                                webMarkupContainerRole.add(AttributeModifier.replace("class", "collapse"));
+                                webMarkupContainerRole.add(AttributeModifier.replace("style", "display: none;"));
+                                webMarkupContainerRole.setExpanded(true);
+                                item.add(webMarkupContainerRole);
+
+                                if (roleAnalysisResult != null) {
+                                    RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
+                                            ID_COLLAPSABLE_CONTENT, roleAnalysisResult,
+                                            detectedPattern.getRoles(), RoleAnalysisProcessModeType.ROLE);
+                                    repeatingAttributeForm.setOutputMarkupId(true);
+                                    webMarkupContainerRole.add(repeatingAttributeForm);
+                                } else {
+                                    Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
+                                    label.setOutputMarkupId(true);
+                                    webMarkupContainerRole.add(label);
+                                }
+
+                                collapseContainerRole.replaceWith(webMarkupContainerRole);
+                                target.add(webMarkupContainerRole);
+                            }
+
+                            target.appendJavaScript(getCollapseScript(collapseContainerRole, collapseContainerUser));
+
                         }
 
                     };
                     objectButton.titleAsLabel(true);
-                    objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                    objectButton.add(AttributeAppender.append("class", "btn btn-outline-success btn-sm"));
                     objectButton.add(AttributeAppender.append("style", "width:150px"));
 
-                    if (isOperationEnable) {
+                    if (isPopup) {
                         objectButton.setEnabled(false);
                     }
 
@@ -228,7 +360,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
             @Override
             public Component getHeader(String componentId) {
                 return new Label(
-                        componentId, createStringResource("RoleMining.cluster.table.column.header.role.occupation"));
+                        componentId, createStringResource("RoleMining.cluster.table.column.header.role.analysis"));
             }
 
         });
@@ -248,7 +380,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                     int usersCount = rowModel.getObject().getUsers().size();
 
                     CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
-                            .setBasicIcon(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, LayeredIconCssStyle.IN_ROW_STYLE);
+                            .setBasicIcon(GuiStyleConstants.CLASS_OBJECT_USER_ICON, LayeredIconCssStyle.IN_ROW_STYLE);
 
                     AjaxCompositedIconButton objectButton = new AjaxCompositedIconButton(componentId, iconBuilder.build(),
                             Model.of(String.valueOf(usersCount))) {
@@ -257,31 +389,52 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
+                            CollapsableContainerPanel collapseContainerUser = (CollapsableContainerPanel) item
+                                    .findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
+                            CollapsableContainerPanel collapseContainerRole = (CollapsableContainerPanel) item
+                                    .findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
 
-                            List<PrismObject<FocusType>> objects = new ArrayList<>();
-                            Set<String> users = rowModel.getObject().getUsers();
-
-                            for (String userOid : users) {
-                                objects.add(getPageBase().getRoleAnalysisService()
-                                        .getFocusTypeObject(userOid, task, result));
-                            }
-                            MembersDetailsPanel detailsPanel = new MembersDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                    Model.of("Analyzed members details panel"), objects, RoleAnalysisProcessModeType.USER) {
-                                @Override
-                                public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                                    super.onClose(ajaxRequestTarget);
+                            if (!collapseContainerUser.isExpanded()) {
+                                DetectedPattern detectedPattern = null;
+                                RoleAnalysisAttributeAnalysisResult userAnalysisResult = null;
+                                if (rowModel.getObject() != null) {
+                                    detectedPattern = rowModel.getObject();
+                                    userAnalysisResult = detectedPattern.getUserAttributeAnalysisResult();
                                 }
-                            };
-                            ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+
+                                CollapsableContainerPanel webMarkupContainerUser = new CollapsableContainerPanel(
+                                        ID_FIRST_COLLAPSABLE_CONTAINER);
+                                webMarkupContainerUser.setOutputMarkupId(true);
+                                webMarkupContainerUser.add(AttributeModifier.replace("class", "collapse"));
+                                webMarkupContainerUser.add(AttributeModifier.replace("style", "display: none;"));
+                                webMarkupContainerUser.setExpanded(true);
+                                item.add(webMarkupContainerUser);
+
+                                if (userAnalysisResult != null) {
+                                    RepeatingAttributeForm repeatingAttributeForm = new RepeatingAttributeForm(
+                                            ID_COLLAPSABLE_CONTENT, userAnalysisResult,
+                                            detectedPattern.getUsers(), RoleAnalysisProcessModeType.USER);
+                                    repeatingAttributeForm.setOutputMarkupId(true);
+                                    webMarkupContainerUser.add(repeatingAttributeForm);
+                                } else {
+                                    Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
+                                    label.setOutputMarkupId(true);
+                                    webMarkupContainerUser.add(label);
+                                }
+
+                                collapseContainerUser.replaceWith(webMarkupContainerUser);
+                                target.add(webMarkupContainerUser);
+                            }
+
+                            target.appendJavaScript(getCollapseScript(collapseContainerUser, collapseContainerRole));
                         }
 
                     };
                     objectButton.titleAsLabel(true);
-                    objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                    objectButton.add(AttributeAppender.append("class", "btn btn-outline-danger btn-sm"));
                     objectButton.add(AttributeAppender.append("style", "width:150px"));
 
-                    if (isOperationEnable) {
+                    if (isPopup) {
                         objectButton.setEnabled(false);
                     }
 
@@ -295,7 +448,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
             @Override
             public Component getHeader(String componentId) {
                 return new Label(
-                        componentId, createStringResource("RoleMining.cluster.table.column.header.user.occupation"));
+                        componentId, createStringResource("RoleMining.cluster.table.column.header.user.analysis"));
             }
 
         });
@@ -331,8 +484,10 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                             OperationResult result = task.getResult();
                             RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
+                            DetectedPattern object = rowModel.getObject();
+                            ObjectReferenceType clusterRef = object.getClusterRef();
                             @NotNull String status = roleAnalysisService
-                                    .recomputeAndResolveClusterOpStatus(cluster.asPrismObject(), result, task);
+                                    .recomputeAndResolveClusterOpStatus(clusterRef.getOid(), result, task);
 
                             if (status.equals("processing")) {
                                 warn("Couldn't start detection. Some process is already in progress.");
@@ -373,7 +528,12 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                                 }
                             }
 
-                            PrismObject<RoleAnalysisClusterType> prismObjectCluster = cluster.asPrismObject();
+                            PrismObject<RoleAnalysisClusterType> prismObjectCluster = roleAnalysisService
+                                    .getClusterTypeObject(clusterRef.getOid(), task, result);
+
+                            if (prismObjectCluster == null) {
+                                return;
+                            }
 
                             BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
                                     prismObjectCluster, businessRole, roleApplicationDtos, candidateInducements);
@@ -404,6 +564,78 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
         });
 
+        if (!isTopPatterns) {
+            columns.add(new AbstractColumn<>(createStringResource("chart")) {
+
+                @Override
+                public boolean isSortable() {
+                    return false;
+                }
+
+                @Override
+                public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
+                        IModel<DetectedPattern> rowModel) {
+
+                    if (rowModel.getObject() != null && rowModel.getObject().getRoleAttributeAnalysisResult() != null
+                            && rowModel.getObject().getUserAttributeAnalysisResult() != null) {
+
+                        CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
+                                .setBasicIcon(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, LayeredIconCssStyle.IN_ROW_STYLE);
+
+                        AjaxCompositedIconButton objectButton = new AjaxCompositedIconButton(componentId, iconBuilder.build(),
+                                Model.of(createStringResource("RoleMining.button.title.chart").getString())) {
+
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+
+                                Task task = getPageBase().createSimpleTask("getCluster");
+                                OperationResult result = task.getResult();
+                                DetectedPattern detectedPattern = rowModel.getObject();
+                                ObjectReferenceType clusterRef = detectedPattern.getClusterRef();
+                                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+
+                                PrismObject<RoleAnalysisClusterType> prismCluster = roleAnalysisService
+                                        .getClusterTypeObject(clusterRef.getOid(), task, result);
+
+                                if (prismCluster == null) {
+                                    return;
+                                }
+
+                                RoleAnalysisAttributeChartPopupPanel detailsPanel = new RoleAnalysisAttributeChartPopupPanel(
+                                        ((PageBase) getPage()).getMainPopupBodyId(),
+                                        Model.of("Analyzed members details panel"), prismCluster.asObjectable()) {
+                                    @Override
+                                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                                        super.onClose(ajaxRequestTarget);
+                                    }
+                                };
+                                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+                            }
+
+                        };
+                        objectButton.titleAsLabel(true);
+                        objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                        objectButton.add(AttributeAppender.append("style", "width:150px"));
+                        item.add(objectButton);
+                        if (isPopup) {
+                            objectButton.setEnabled(false);
+                        }
+                    } else {
+                        item.add(new EmptyPanel(componentId));
+                    }
+
+                }
+
+                @Override
+                public Component getHeader(String componentId) {
+                    return new Label(
+                            componentId, createStringResource("RoleMining.cluster.table.column.header.attribute.statistics"));
+                }
+
+            });
+        }
         columns.add(new AbstractExportableColumn<>(createStringResource("RoleMining.button.title.load")) {
 
             @Override
@@ -434,7 +666,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                     @Override
                     protected void onSubmit(AjaxRequestTarget target) {
                         PageParameters parameters = new PageParameters();
-                        String clusterOid = cluster.getOid();
+                        String clusterOid = rowModel.getObject().getClusterRef().getOid();
                         parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
                         parameters.add("panelId", "clusterDetails");
                         parameters.add(PARAM_DETECTED_PATER_ID, rowModel.getObject().getId());
@@ -474,26 +706,6 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
     protected StringResourceModel getHeaderTitle(String identifier) {
         return createStringResource("RoleMining.cluster.table.column.header." + identifier);
-    }
-
-    private <C extends Containerable> PrismPropertyHeaderPanel<?> createColumnHeader(String componentId,
-            LoadableModel<PrismContainerDefinition<C>> containerDefinitionModel) {
-
-        return new PrismPropertyHeaderPanel<>(componentId, new PrismPropertyWrapperHeaderModel<>(
-                containerDefinitionModel,
-                RoleAnalysisDetectionPatternType.F_CLUSTER_METRIC,
-                (PageBase) getPage())) {
-
-            @Override
-            protected boolean isAddButtonVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isButtonEnabled() {
-                return false;
-            }
-        };
     }
 
     protected void onRefresh(AjaxRequestTarget target) {

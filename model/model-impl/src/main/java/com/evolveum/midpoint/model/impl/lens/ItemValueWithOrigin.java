@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  * @author semancik
  *
  */
-public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition> implements DebugDumpable {
+public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition<?>> implements DebugDumpable {
 
     private V itemValue;
     private PrismValueDeltaSetTripleProducer<V, D> mapping;
@@ -111,12 +111,12 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
     }
 
     @NotNull
-    private static <V extends PrismValue, D extends ItemDefinition> Collection<ItemValueWithOrigin<V,D>> convertSet(
+    private static <V extends PrismValue, D extends ItemDefinition<?>> Collection<ItemValueWithOrigin<V,D>> convertSet(
             @NotNull Collection<V> valueSet, PrismValueDeltaSetTripleProducer<V, D> mapping) {
         Collection<ItemValueWithOrigin<V,D>> ivwoSet = new ArrayList<>(valueSet.size());
         for (V value: valueSet) {
-            ItemValueWithOrigin<V,D> ivwo = new ItemValueWithOrigin<>(value, mapping, null);
-            ivwoSet.add(ivwo);
+            ivwoSet.add(
+                    new ItemValueWithOrigin<>(value, mapping, null));
         }
         return ivwoSet;
     }

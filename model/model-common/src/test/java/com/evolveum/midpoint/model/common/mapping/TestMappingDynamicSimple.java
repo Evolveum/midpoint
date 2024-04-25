@@ -539,7 +539,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
                 "c0c010c0-d34d-b33f-f00d-111111111112",
                 UserType.COMPLEX_TYPE);
         vars.put("sailor", ref,
-                PrismTestUtil.getPrismContext().definitionFactory().createReferenceDefinition(
+                PrismTestUtil.getPrismContext().definitionFactory().newReferenceDefinition(
                         new QName(SchemaConstants.NS_C, "sailor"), UserType.COMPLEX_TYPE));
         builder.addVariableDefinitions(vars);
 
@@ -984,8 +984,8 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         // otherwise the tests will fail on unknown data types
         PrismObjectDefinition<ShadowType> shadowDef = account.getDefinition().deepClone(DeepCloneOperation.ultraDeep());
         PrismContainerDefinition<Containerable> attrsDef = shadowDef.findContainerDefinition(ShadowType.F_ATTRIBUTES);
-        attrsDef.toMutable().createPropertyDefinition(QNAME_UID, PrimitiveType.STRING.getQname());
-        attrsDef.toMutable().createPropertyDefinition(SchemaConstants.ICFS_NAME, PrimitiveType.STRING.getQname());
+        attrsDef.mutator().createPropertyDefinition(QNAME_UID, PrimitiveType.STRING.getQname());
+        attrsDef.mutator().createPropertyDefinition(SchemaConstants.ICFS_NAME, PrimitiveType.STRING.getQname());
         account.setDefinition(shadowDef);
         IntegrationTestTools.display("Account", account);
 

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -15,10 +17,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createTolerateRaw
 import java.io.File;
 import java.io.FileInputStream;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -1325,22 +1324,21 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     /**
      * Guybrush has stored mark "bravery". Change schema so this value becomes illegal.
      * They try to read it.
+     *
+     * MID-2260
      */
-    @Test // MID-2260
+    @Test
     public void test510EnumerationGetBad() throws Exception {
+
+        given("Removed 'bravery' from allowed values for 'mark'");
+        // FIXME how's that possible that we can modify the shared prism schema?! We should fix that.
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(ItemPath.create(UserType.F_EXTENSION, PIRACY_MARK));
-        Iterator<? extends DisplayableValue<String>> iterator = markDef.getAllowedValues().iterator();
-        DisplayableValue<String> braveryValue = null;
-        while (iterator.hasNext()) {
-            DisplayableValue<String> disp = iterator.next();
-            if (disp.getValue().equals("bravery")) {
-                braveryValue = disp;
-                iterator.remove();
-            }
-        }
+        var originalAllowedValues = Objects.requireNonNull(markDef.getAllowedValues());
+        var reducedAllowedValues = new ArrayList<>(originalAllowedValues);
+        reducedAllowedValues.removeIf(val -> "bravery".equals(val.getValue()));
+        markDef.mutator().setAllowedValues(reducedAllowedValues);
 
-        given();
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
@@ -1355,8 +1353,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         PrismProperty<String> markProp = user.findProperty(ItemPath.create(UserType.F_EXTENSION, PIRACY_MARK));
         assertEquals("Bad mark", null, markProp.getRealValue());
 
-        //noinspection unchecked
-        ((Collection<DisplayableValue<String>>) markDef.getAllowedValues()).add(braveryValue);        // because of the following test
+        markDef.mutator().setAllowedValues(originalAllowedValues);
     }
 
     /**
@@ -1385,15 +1382,15 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     }
 
     private void changeDefinition(QName piracyShip, ItemName piracyShipBroken) {
-        PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry()
-                .findObjectDefinitionByCompileTimeClass(UserType.class);
+        // FIXME again, we shouldn't be able to modify the shared schema!
+        PrismObjectDefinition<UserType> userDef =
+                prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismContainerDefinition<?> extensionDefinition = userDef.getExtensionDefinition();
-        List<? extends ItemDefinition> extensionDefs = extensionDefinition.getComplexTypeDefinition().getDefinitions();
-        for (ItemDefinition<?> itemDefinition : extensionDefs) {
-            if (itemDefinition.getItemName().equals(piracyShip)) {
-                ((ItemDefinitionTestAccess) itemDefinition).replaceName(piracyShipBroken);
-            }
-        }
+        ComplexTypeDefinition extensionCtd = extensionDefinition.getComplexTypeDefinition();
+        ItemDefinition<?> piracyShipDef = stateNonNull(
+                extensionCtd.findLocalItemDefinition(piracyShip), "No %s def in %s", piracyShip, extensionCtd);
+        extensionCtd.mutator().delete(piracyShip);
+        extensionCtd.mutator().add(piracyShipDef.cloneWithNewName(piracyShipBroken));
     }
 
     /**

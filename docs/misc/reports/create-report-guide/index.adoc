@@ -1,137 +1,98 @@
-= Create Report Guide
-:page-since: "4.4"
+= How To Create A Report
 
-This guide describe how to create report in GUI. We chose the example report of accounts with resource as parameter and with columns which shows some attributes from owner, to demonstrate all the functionality.
+:page-upkeep-status: green
+:page-keywords: [ 'report', 'create', 'reporting' ]
+:search-alias: "create report"
 
-In first step we click on 'Reports' in left menu and next click on 'All Reports' in submenu. In footer of showed report table we click on new report button.
+== Description
 
-image::create-report-0.png[]
+This Guide contains a list of possibilities how you are capable to create a Report in midPoint.
 
-We want to create Collection report, so we select 'Collection report' in showed popup.
+In case you are interested in some more advanced configuration topics regarding reports please have a look at the following pages.
 
-image::create-report-1.png[]
+- xref:/midpoint/reference/misc/reports/configuration/[General Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports Configuration]
 
-Now we see page for editing/creating report. We can fill basic properties, we need fill only name.
+If you are interested in some *more advanced examples* please have a look at the following set of articles:
 
-image::create-report-2.png[]
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
 
-Next we can define type of exported file on tab 'Export'. Collection report have default CSV format, so we don't need fill it.
+[#_create_basic_report]
+== Create A Basic Report
 
-Basic configuration of report define engine, so we open 'Engine' tab. We can see Basic Tab for report engine. We don't need fill basic properties of collection report engine.
+There is a quick and easy way how to generate a report form an object list.
+This is an example how you can do it.
 
-image::create-report-3.png[]
+Let's visit a list of users:
 
-As first we open 'Collection' tab, where we define base collection and filter for shadows. At first we select object collection 'All shadows' as base collection. We want to use resource as parameter, so we have to use it in filter.
+* go to *"Users >All Users"*
+* scroll to the *bottom of the screen*
+* click *"Create report"* (‘pie chart’ button)
 
-.Filter
-[source,xml]
-----
-<filter xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-    <q:ref>
-        <q:path>resourceRef</q:path>
-        <expression>
-            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-            <script>
-                <objectVariableMode>prismReference</objectVariableMode>
-                <code>
-                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+image::users-all.png[75%]
 
-                    if (!resource) {
-                        return null;
-                    }
+The screen represents a *“new” Collection report*. There are a couple of parameters we have to *input*
+here
 
-                    ObjectReferenceType ort = new ObjectReferenceType();
-                    ort.setOid(resource.getOid());
-                    ort.setRelation(resource.getRelation());
-                    ort.setType(resource.getTargetType());
-                    return ort;
-                </code>
-            </script>
-        </expression>
-    </q:ref>
-</filter>
-----
+* type in the Name: *"All users report"*
+* click *"Save and run"*
 
-image::create-report-4.png[]
+image::new-collection-report.png[75%]
 
-As next, we define parameter, so we open tab 'Parameter' and add new value to table.
+After success the top screen should have a “blue” banner stating that there is a task on the
+background.
 
-image::create-report-5.png[]
+* click *show task* on it
 
-We fill fileds for name with "resource", for type with "ObjectReferenceType" and for label with "Resource". Now we can edit row by edit button in last row. In panel with details of parameter select "Resource" in dropdown of field for 'Target type'.
+image::show-tasks.png[75%]
 
-image::create-report-6.png[]
+* in the action button container on the top of the page click on the button *"Download report"*
+* you should have a csv with *all the users in midPoint.*
 
-As next we need define view, so we click on tab 'View' and select type 'Shadow'.
+image::export-report.png[75%]
 
-image::create-report-7.png[]
+[#_create_o_o_t_b]
+== Execute an Already Existing Report
 
-In next step we add new columns for shadow attributes name, kind, intent and one column for demonstration of custom column.
-Creation of columns for shadows attributes is easy. We add three new column and fill fields name, path. When we want some specific label, we can fill it.
+If we already have a *Report Definition present*, either one which was created by us or one pre-configure out of the box, we just need to find it among the *list of reports*.
 
-image::create-report-8.png[]
+* in *"Reports >All reports"* (or choose one of the report types)
 
-We add one more new column and fill fields for name with "customColumn" and label with "Intent and Kind". Now we click on edit button in last column of row. We scroll down to 'Export' container and fill attribute expression with next code:
+image::reports-all.png[75%]
 
-.Expression of custom column
-[source,xml]
-----
-<script>
-    <code>
-      "Intent: " + object.getIntent() + ", Kind: " + object.getKind()
-   </code>
-</script>
-----
+* Click on *"Users in MidPoint"*
+* In the reports page Click *"Run original report"*
 
-image::create-report-9.png[]
+image::users-in-mp.png[75%]
 
-Now we can show preview of actual report. We can show preview in bottom of the screen or in popup, we chose popup. For showing table in bottom of screen click on 'Show report preview' or showing in popup click on 'Show report preview in popup'.
+* Because the report has configurable *parameters* a window called "Report configuration before run" will pop up, click on *"Run Report"*
 
-image::create-report-10.png[]
+image::conf-b-run.png[75%]
 
-On report preview we can see table with columns and content, which will be shown in exported file.
+* A blue banner will show up, click the *"show task"* string which is on it
 
-image::create-report-11.png[]
+image::run-usrs-in-mp.png[75%]
 
-Now we can add subreport to our report. We close popup and open 'Subreport' tab. We add new column and fill name field with "owner" and field type with "FocusType".
+* in the action button container on the top of the page click on the button *"Download report"*
 
-image::create-report-12.png[]
+image::download-usrs-in-mp.png[75%]
 
-In next step we edit new subreport find field expression and set next snippet of code:
+== Intermediate Report Customization
 
-.Expression of subreport
-[source,xml]
-----
-<script>
-    <code>
-      midpoint.searchShadowOwner(object.getOid());
-   </code>
-</script>
-----
+If you want an *example with more customization* regarding the report columns and the output format, please see the xref:/midpoint/reference/misc/reports/create-report-guide/intermediate[intermediate use-case]
 
-image::create-report-13.png[]
+== Advanced Reporting Use-Case
 
-Now we can add new column for email of owner. We add new column similar as for custom column and we set next snippet to export expression of column. Also we can fix of order of columns, so we edit every column and fill field for 'Previous column' by name of column which we want see before it.
+In this next topic we look at an advanced reporting set-up.
+In the following article we have described a *custom report* created via the GUI where we fine tune the reported collection and use some *advanced configuration parameters*:
+Some customization via scripting is involved as well.
 
-.Expression of owner email column
-[source,xml]
-----
-<script>
-    <code>
-      if (!owner) {
-        return null;
-      }
-      return owner.getEmailAddress();
-   </code>
-</script>
-----
+xref:/midpoint/reference/misc/reports/create-report-guide/advanced[advanced use-case]
 
-image::create-report-14.png[]
+== See Also
 
-After we added new column, we can show again report preview in popup. We can see new column with email address from owner, which we got from subreports.
-
-image::create-report-15.png[]
-
-To end we can save and run report and open task. When task will finish, we can download exported file.
-
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]

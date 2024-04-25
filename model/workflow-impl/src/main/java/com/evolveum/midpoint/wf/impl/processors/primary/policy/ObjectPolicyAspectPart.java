@@ -92,8 +92,7 @@ public class ObjectPolicyAspectPart {
             List<PcpStartInstruction> newInstructions = new ArrayList<>();
             if (!triggeredApprovalActionRules.isEmpty()) {
                 generateObjectOidIfNeeded(focusDelta, ctx.modelContext);
-                ProcessSpecifications processSpecifications = ProcessSpecifications
-                        .createFromRules(triggeredApprovalActionRules, prismContext);
+                ProcessSpecifications processSpecifications = ProcessSpecifications.createFromRules(triggeredApprovalActionRules);
                 LOGGER.trace("Process specifications:\n{}", debugDumpLazily(processSpecifications));
                 for (ProcessSpecification processSpecificationEntry : processSpecifications.getSpecifications()) {
                     if (focusDelta.isEmpty()) {

@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Referencable;
 
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +26,9 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
+ * The shadow is not necessarily non-raw here, although {@link #association(QName)} and {@link #association(String)}
+ * methods require that.
+ *
  * @author semancik
  */
 public class ShadowAssociationsAsserter<R> extends AbstractAsserter<ShadowAsserter<R>> {
@@ -59,18 +63,26 @@ public class ShadowAssociationsAsserter<R> extends AbstractAsserter<ShadowAssert
         return this;
     }
 
+    /** The shadow must not be raw. */
     public ShadowAssociationAsserter<ShadowAssociationsAsserter<R>> association(String associationName) {
         ShadowAssociationAsserter<ShadowAssociationsAsserter<R>> asserter = new ShadowAssociationAsserter<>(
-                getValues(associationName), this, "association " + associationName + " in " + desc());
+                toNonRaw(getValues(associationName)), this, "association " + associationName + " in " + desc());
         copySetupTo(asserter);
         return asserter;
     }
 
+    /** The shadow must not be raw. */
     public ShadowAssociationAsserter<ShadowAssociationsAsserter<R>> association(QName associationName) {
         ShadowAssociationAsserter<ShadowAssociationsAsserter<R>> asserter = new ShadowAssociationAsserter<>(
-                getValues(associationName), this, "association " + associationName + " in " + desc());
+                toNonRaw(getValues(associationName)), this, "association " + associationName + " in " + desc());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    private Collection<ShadowAssociationValue> toNonRaw(Collection<ShadowAssociationValueType> values) {
+        return values.stream()
+                .map(v -> (ShadowAssociationValue) v.asPrismContainerValue())
+                .toList();
     }
 
     private @NotNull Collection<ShadowAssociationValueType> getValues(QName assocName) {

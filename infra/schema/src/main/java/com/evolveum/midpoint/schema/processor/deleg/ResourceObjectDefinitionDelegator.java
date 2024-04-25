@@ -4,28 +4,26 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.processor.*;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.deleg.ComplexTypeDefinitionDelegator;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
-public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinitionDelegator, ResourceObjectDefinition {
+public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinition {
 
-    @Override
     ResourceObjectDefinition delegate();
 
     @Override
-    @Nullable
+    @NotNull
     default BasicResourceInformation getBasicResourceInformation() {
         return delegate().getBasicResourceInformation();
     }
@@ -33,6 +31,11 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     @Override
     default @NotNull List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
         return delegate().getAttributeDefinitions();
+    }
+
+    @Override
+    default @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions() {
+        return delegate().getShadowItemDefinitions();
     }
 
     @Override
@@ -71,23 +74,8 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
-    default ResourceAttributeDefinition<?> getNamingAttribute() {
-        return delegate().getNamingAttribute();
-    }
-
-    @Override
     default ResourceAttributeDefinition<?> getDisplayNameAttribute() {
         return delegate().getDisplayNameAttribute();
-    }
-
-    @Override
-    default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
-        return delegate().toResourceAttributeContainerDefinition();
-    }
-
-    @Override
-    default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
-        return delegate().toResourceAttributeContainerDefinition(elementName);
     }
 
     @Override
@@ -130,8 +118,8 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
-    default PrismObject<ShadowType> createBlankShadow(String resourceOid, String tag) {
-        return delegate().createBlankShadow(resourceOid, tag);
+    default AbstractShadow createBlankShadowWithTag(String tag) {
+        return delegate().createBlankShadowWithTag(tag);
     }
 
     @Override
@@ -146,9 +134,10 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
 
     @Override
     @NotNull
-    default Collection<ShadowAssociationDefinition> getAssociationDefinitions() {
+    default List<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
         return delegate().getAssociationDefinitions();
     }
+
     @Override
     @NotNull
     default Collection<QName> getPrimaryIdentifiersNames() {
@@ -262,7 +251,7 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     };
 
     @Override
-    default Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
+    default @NotNull Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
         return delegate().getConfiguredAuxiliaryObjectClassNames();
     }
 
@@ -277,8 +266,8 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
-    default @NotNull ResourceObjectClassDefinition getRawObjectClassDefinition() {
-        return delegate().getRawObjectClassDefinition();
+    default @NotNull NativeObjectClassDefinition getNativeObjectClassDefinition() {
+        return delegate().getNativeObjectClassDefinition();
     }
 
     @Override
@@ -311,5 +300,43 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     @Override
     default @NotNull String getShortIdentification() {
         return delegate().getShortIdentification();
+    }
+
+    @Override
+    @Nullable
+    default ItemName resolveFrameworkName(@NotNull String frameworkName) {
+        return delegate().resolveFrameworkName(frameworkName);
+    }
+
+    @Override
+    default ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+        return delegate().getAttributeInboundDefinition(itemName);
+    }
+
+    @Override
+    default ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) throws SchemaException {
+        return delegate().getAssociationInboundDefinition(itemName);
+    }
+
+    @Override
+    @NotNull
+    default FocusSpecification getFocusSpecification() {
+        return delegate().getFocusSpecification();
+    }
+
+    @Override
+    @NotNull
+    default Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+        return delegate().getSynchronizationReactions();
+    }
+
+    @Override
+    default CorrelationDefinitionType getCorrelation() {
+        return delegate().getCorrelation();
+    }
+
+    @Override
+    default boolean hasAnyInbounds() {
+        return delegate().hasAnyInbounds();
     }
 }

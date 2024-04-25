@@ -50,15 +50,17 @@ public class UpgradeProcessor {
     }
 
     private <T extends ObjectType> UpgradeValidationItem process(PrismObject<T> object, ValidationItem item) throws Exception {
-        ItemPath path = item.getItemPath();
+        ItemPath path = item.path();
 
         PrismObject<T> cloned = object.clone();
 
         UpgradeObjectProcessor<?> processor = null;
-        for (UpgradeObjectProcessor<?> p : PROCESSORS) {
-            if (p.isApplicable(cloned, path)) {
-                processor = p;
-                break;
+        if (path != null && !path.isEmpty()) {
+            for (UpgradeObjectProcessor<?> p : PROCESSORS) {
+                if (p.isApplicable(cloned, path)) {
+                    processor = p;
+                    break;
+                }
             }
         }
 
@@ -69,7 +71,7 @@ public class UpgradeProcessor {
 
         String description = processor.upgradeDescription((PrismObject) cloned, path);
 
-        boolean changed = processor.process((PrismObject) cloned, item.getItemPath());
+        boolean changed = processor.process((PrismObject) cloned, item.path());
         result.setChanged(changed);
         result.setIdentifier(processor.getIdentifier());
         result.setPhase(processor.getPhase());

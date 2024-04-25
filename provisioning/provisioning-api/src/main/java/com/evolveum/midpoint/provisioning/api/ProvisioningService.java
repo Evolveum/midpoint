@@ -13,7 +13,7 @@ import java.util.Set;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 
-import com.evolveum.midpoint.schema.merger.OriginMarker;
+import com.evolveum.midpoint.prism.OriginMarker;
 import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.util.AbstractShadow;

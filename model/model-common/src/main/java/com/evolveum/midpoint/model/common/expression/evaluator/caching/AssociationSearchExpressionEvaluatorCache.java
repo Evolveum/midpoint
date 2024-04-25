@@ -54,8 +54,8 @@ public class AssociationSearchExpressionEvaluatorCache
             Class<ShadowType> type,
             Collection<ObjectQuery> queries,
             ObjectSearchStrategyType searchStrategy,
-            ExpressionEvaluationContext params) {
-        return new AssociationSearchQueryKey(type, queries, searchStrategy, params);
+            ExpressionEvaluationContext eeCtx) {
+        return new AssociationSearchQueryKey(type, queries, searchStrategy, eeCtx);
     }
 
     @Override

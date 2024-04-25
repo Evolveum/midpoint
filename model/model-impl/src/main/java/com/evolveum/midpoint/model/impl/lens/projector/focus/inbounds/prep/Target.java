@@ -7,43 +7,52 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-
 /**
- * The target i.e. the focus into which the output of mappings will be put.
+ * The target i.e. the object (focus, assignment, ...) into which the output of mappings will be put.
  *
- * @param <F> type of the object
+ * @param <T> type of the object
  */
-abstract class Target<F extends FocusType> {
+abstract class Target<T extends Containerable> {
 
     /**
-     * Current focus.
+     * Current target object.
      *
      * - For pre-mappings this will be the empty object.
-     * - TODO for clockwork: should we use current or new?
+     * - For full processing, this will always be the target focus object (the "new" version).
      */
-    final PrismObject<F> focus;
+    @NotNull final PrismContainerValue<T> targetPcv;
 
-    /** Focus definition. */
-    @NotNull final PrismObjectDefinition<F> focusDefinition;
+    /** Focus definition. It should be a CTD instead, but the mapping evaluation expects PCD for now. */
+    @NotNull final PrismContainerDefinition<T> targetDefinition;
 
-    @NotNull private final PathKeyedMap<ItemDefinition<?>> itemDefinitionMap;
+    @NotNull final PathKeyedMap<ItemDefinition<?>> itemDefinitionMap;
+
+    /** Relative path of the default `$target` variable. TODO */
+    @NotNull private final ItemPath targetPathPrefix;
 
     Target(
-            PrismObject<F> focus,
-            @NotNull PrismObjectDefinition<F> focusDefinition,
-            @NotNull PathKeyedMap<ItemDefinition<?>> itemDefinitionMap) {
-        this.focus = focus;
-        this.focusDefinition = focusDefinition;
+            @NotNull PrismContainerValue<T> targetPcv,
+            @NotNull PrismContainerDefinition<T> targetDefinition,
+            @NotNull PathKeyedMap<ItemDefinition<?>> itemDefinitionMap,
+            @NotNull ItemPath targetPathPrefix) {
+        this.targetPcv = targetPcv;
+        this.targetDefinition = targetDefinition;
         this.itemDefinitionMap = itemDefinitionMap;
+        this.targetPathPrefix = targetPathPrefix;
+    }
+
+    @NotNull T getTargetRealValue() {
+        return targetPcv.asContainerable();
+    }
+
+    @NotNull ItemPath getTargetPathPrefix() {
+        return targetPathPrefix;
     }
 
     /**

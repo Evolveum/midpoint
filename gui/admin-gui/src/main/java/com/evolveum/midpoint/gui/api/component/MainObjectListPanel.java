@@ -12,9 +12,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -40,6 +37,9 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -134,7 +134,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         }
     }
 
-        @Override
+    @Override
     protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
         return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
                 customColumn, expression, getPageBase()) {
@@ -350,6 +350,17 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return false;
     }
 
+    protected boolean isReportObjectButtonVisible() {
+
+        try {
+            return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_URI);
+        } catch (Exception ex) {
+            LOGGER.error("Failed to check authorization for REPORT action for " + getType().getSimpleName()
+                    + " object, ", ex);
+        }
+        return false;
+    }
+
     private AjaxCompositedIconButton createCreateReportButton(String buttonId) {
         final CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(IconAndStylesUtil.createReportIcon(), IconCssStyle.IN_ROW_STYLE);
@@ -368,7 +379,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
         };
         createReport.add(AttributeAppender.append("class", "mr-2 btn btn-default btn-sm"));
-        createReport.add(new VisibleBehaviour(() -> WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_URI)));
+        createReport.add(new VisibleBehaviour(this::isReportObjectButtonVisible));
         return createReport;
     }
 
@@ -383,7 +394,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 clearCache();
                 refreshTable(target);
 
-                target.add(getTable());
+                target.add(getTableComponent());
             }
         };
         refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
@@ -408,7 +419,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     private void onClickPlayPauseButton(AjaxRequestTarget target, boolean refreshEnabled) {
         clearCache();
         setManualRefreshEnabled(refreshEnabled);
-        target.add(getTable());
+        target.add(getTableComponent());
     }
 
     public void startRefreshing(AjaxRequestTarget target) {
@@ -433,12 +444,14 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             return createStringResource("MainObjectListPanel.refresh.start").getString();
         };
     }
+
     protected boolean isCreateNewObjectVisible() {
         return !isCollectionViewPanel() || getObjectCollectionView().isApplicableForOperation(OperationTypeType.ADD) ||
                 CollectionUtils.isNotEmpty(getNewObjectInfluencesList());
     }
 
-    @NotNull protected List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
+    @NotNull
+    protected List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
         if (isCollectionViewPanelForCompiledView()) {
             return new ArrayList<>();
         }

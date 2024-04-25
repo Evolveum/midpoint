@@ -26,7 +26,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -55,9 +54,7 @@ public class PopulatorUtil {
             PopulateType fromPopulate,
             PrismContainerDefinition<C> targetContainerDefinition,
             VariablesMap variables,
-            ExpressionEvaluationContext params,
-            String contextDescription,
-            Task task,
+            ExpressionEvaluationContext context,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
@@ -69,51 +66,53 @@ public class PopulatorUtil {
         List<ItemDelta<V,D>> deltas = new ArrayList<>();
 
         for (PopulateItemType populateItem: fromPopulate.getPopulateItem()) {
-
-            ItemDelta<V,D> itemDelta = evaluatePopulateExpression(populateItem, variables, params,
-                    targetContainerDefinition, contextDescription, task, result);
+            ItemDelta<V,D> itemDelta =
+                    evaluatePopulateExpression(populateItem, variables, context, targetContainerDefinition, result);
             if (itemDelta != null) {
                 deltas.add(itemDelta);
             }
-
         }
 
         return deltas;
     }
 
-    public static <IV extends PrismValue, ID extends ItemDefinition<?>, C extends Containerable> ItemDelta<IV,ID> evaluatePopulateExpression(PopulateItemType populateItem,
-            VariablesMap variables, ExpressionEvaluationContext context, PrismContainerDefinition<C> targetContainerDefinition,
-            String contextDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public static <IV extends PrismValue, ID extends ItemDefinition<?>, C extends Containerable> ItemDelta<IV,ID> evaluatePopulateExpression(
+            PopulateItemType populateItem,
+            VariablesMap variables,
+            ExpressionEvaluationContext context,
+            PrismContainerDefinition<C> targetContainerDefinition,
+            OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         ExpressionType expressionType = populateItem.getExpression();
         if (expressionType == null) {
             LOGGER.warn("No expression in populateObject in assignment expression in {}, "
-                    + "skipping. Subsequent operations will most likely fail", contextDescription);
+                    + "skipping. Subsequent operations will most likely fail", context);
             return null;
         }
 
         VariableBindingDefinitionType targetType = populateItem.getTarget();
         if (targetType == null) {
             LOGGER.warn("No target in populateObject in assignment expression in {}, "
-                    + "skipping. Subsequent operations will most likely fail", contextDescription);
+                    + "skipping. Subsequent operations will most likely fail", context);
             return null;
         }
         ItemPathType itemPathType = targetType.getPath();
         if (itemPathType == null) {
-            throw new SchemaException("No path in target definition in "+contextDescription);
+            throw new SchemaException("No path in target definition in " + context);
         }
         ItemPath targetPath = itemPathType.getItemPath();
         ID propOutputDefinition = ExpressionUtil.resolveDefinitionPath(targetPath, variables,
-                targetContainerDefinition, "target definition in "+contextDescription);
+                targetContainerDefinition, "target definition in " + context);
         if (propOutputDefinition == null) {
-            throw new SchemaException("No target item that would conform to the path "+targetPath+" in "+contextDescription);
+            throw new SchemaException("No target item that would conform to the path " + targetPath + " in " + context);
         }
 
-        String expressionDesc = "expression in populate expression in " + contextDescription;
+        String expressionDesc = "expression in populate expression in " + context;
         ExpressionFactory expressionFactory = context.getExpressionFactory();
         Expression<IV,ID> expression = expressionFactory.makeExpression(
                 expressionType, propOutputDefinition, context.getExpressionProfile(),
-                expressionDesc, task, result);
-        ExpressionEvaluationContext localContext = new ExpressionEvaluationContext(null, variables, expressionDesc, task);
+                expressionDesc, context.getTask(), result);
+        var localContext = new ExpressionEvaluationContext(null, variables, expressionDesc, context.getTask());
         localContext.setExpressionFactory(expressionFactory);
         localContext.setValuePolicySupplier(context.getValuePolicySupplier());
         localContext.setSkipEvaluationMinus(true);

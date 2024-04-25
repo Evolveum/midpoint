@@ -18,7 +18,6 @@ import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -32,16 +31,15 @@ public class LogicalOperation extends Operation {
     }
 
     @Override
-    public <T> Filter interpret(ObjectFilter objectFilter, ConnIdNameMapper icfNameMapper) throws SchemaException {
+    public <T> Filter interpret(ObjectFilter objectFilter) throws SchemaException {
 
-        if (objectFilter instanceof NotFilter) {
-            NotFilter not = (NotFilter) objectFilter;
+        if (objectFilter instanceof NotFilter not) {
             if (not.getFilter() == null) {
                 LOGGER.debug("Not filter does not contain any condition. Skipping processing not filter.");
                 return null;
             }
 
-            Filter f = getInterpreter().interpret(not.getFilter(), icfNameMapper);
+            Filter f = getInterpreter().interpret(not.getFilter());
             return FilterBuilder.not(f);
         } else {
 
@@ -53,12 +51,12 @@ public class LogicalOperation extends Operation {
             }
             if (conditions.size() < 2) {
                 LOGGER.debug("Logical filter contains only one condition. Skipping processing logical filter and process simple operation of type {}.", conditions.get(0).getClass().getSimpleName());
-                return getInterpreter().interpret(conditions.get(0), icfNameMapper);
+                return getInterpreter().interpret(conditions.get(0));
             }
 
             List<Filter> filters = new ArrayList<>();
             for (ObjectFilter objFilter : nAry.getConditions()){
-                Filter f = getInterpreter().interpret(objFilter, icfNameMapper);
+                Filter f = getInterpreter().interpret(objFilter);
                 filters.add(f);
             }
 
@@ -77,7 +75,7 @@ public class LogicalOperation extends Operation {
 
     private Filter interpretAnd(Filter andF, List<Filter> filters) {
 
-        if (filters.size() == 0) {
+        if (filters.isEmpty()) {
             return andF;
         }
 
@@ -88,7 +86,7 @@ public class LogicalOperation extends Operation {
 
     private Filter interpretOr(Filter orF, List<Filter> filters) {
 
-        if (filters.size() == 0) {
+        if (filters.isEmpty()) {
             return orF;
         }
 

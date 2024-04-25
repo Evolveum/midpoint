@@ -410,6 +410,7 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -723,6 +724,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.5</a:since>
+                <a:merger>ModificationPolicyConstraintType</a:merger>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>

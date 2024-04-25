@@ -27,6 +27,7 @@ import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 
@@ -387,7 +388,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         addExtensionValue(user3Extension, "dateTime", // 2021-10-02 ~19PM
                 asXMLGregorianCalendar(1633_200_000_000L));
         ExtensionType user3AssignmentExtension = new ExtensionType();
-        user3.assignment(new AssignmentType()
+
+        var user3assignment = new AssignmentType()
                 .lifecycleState("ls-user3-ass1")
                 .metadata(new MetadataType()
                         .creatorRef(user2Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
@@ -396,7 +398,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .validFrom("2021-01-01T00:00:00Z"))
                 .subtype("ass-subtype-1")
                 .subtype("ass-subtype-2")
-                .extension(user3AssignmentExtension));
+                .extension(user3AssignmentExtension);
+        user3assignment.asPrismContainerValue().setValueMetadata(new ValueMetadataType()
+                .storage(new StorageMetadataType().creatorRef(user2Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
+                .process(new ProcessMetadataType().createApproverRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
+        );
+
+        user3.assignment(user3assignment);
         addExtensionValue(user3AssignmentExtension, "integer", BigInteger.valueOf(48));
         user3Oid = repositoryService.addObject(user3.asPrismObject(), null, result);
 
@@ -1282,6 +1290,13 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .item(ItemPath.create(MetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, F_NAME))
                         .eqPoly("creator"),
                 user1Oid);
+
+        searchUsersTest("matching the exists filter for metadata (embedded mapping)",
+                f -> f.exists(InfraItemName.METADATA, ValueMetadataType.F_STORAGE)
+                        .item(ItemPath.create(StorageMetadataType.F_CREATOR_REF, T_OBJECT_REFERENCE, F_NAME))
+                        .eqPoly("creator"),
+                user1Oid);
+
     }
 
     @Test
@@ -1439,6 +1454,12 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 MetadataType.F_CREATE_APPROVER_REF, T_OBJECT_REFERENCE, F_NAME)
                         .eq(new PolyString("user-1")),
                 user3Oid);
+
+        searchUsersTest("having assignment approved by user with specified name",
+                f -> f.item(UserType.F_ASSIGNMENT, InfraItemName.METADATA, ValueMetadataType.F_PROCESS,
+                                MetadataType.F_CREATE_APPROVER_REF, T_OBJECT_REFERENCE, F_NAME)
+                        .eq(new PolyString("user-1")),
+                user3Oid);
     }
 
     @Test
@@ -1448,6 +1469,16 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                                 T_OBJECT_REFERENCE, F_NAME)
                         .eq(new PolyString("creator")),
                 user1Oid);
+    }
+    @Test
+    public void test420ValueMetadataSearchObjectBySingleValueRefTargetItem() throws SchemaException {
+        searchUsersTest("via valueMetadata with object creator name",
+                f -> f.item(InfraItemName.METADATA, ValueMetadataType.F_STORAGE, MetadataType.F_CREATOR_REF,
+                                T_OBJECT_REFERENCE, F_NAME)
+                        .eq(new PolyString("creator")),
+                user1Oid);
+        assertThat(searchObjects(UserType.class, "@metadata/storage/creatorRef/@/name = 'creator'", createOperationResult())
+                .map(UserType::getOid)).contains(user1Oid);
     }
 
     @Test

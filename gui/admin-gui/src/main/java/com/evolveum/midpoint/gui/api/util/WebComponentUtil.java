@@ -22,6 +22,7 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -40,7 +41,6 @@ import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
-import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
@@ -1530,7 +1530,7 @@ public final class WebComponentUtil {
         if (date == null) {
             return null;
         }
-        PatternDateConverter converter = new PatternDateConverter(getLocalizedDatePattern(style), true);
+        DateConverter converter = new DateConverter(getLocalizedDatePattern(style), true);
         return converter.convertToString(date, getCurrentLocale());
     }
 
@@ -1932,7 +1932,7 @@ public final class WebComponentUtil {
         for (AR selectedRole : selectedRoles) {
             ObjectQuery query = pageBase.getPrismContext().queryFor(FocusType.class)
                     .item(FocusType.F_ROLE_MEMBERSHIP_REF)// TODO MID-3581
-                    .ref(ObjectTypeUtil.createObjectRef(selectedRole, pageBase.getPrismContext()).asReferenceValue())
+                    .ref(ObjectTypeUtil.createObjectRef(selectedRole).asReferenceValue())
                     .maxSize(1)
                     .build();
             List<PrismObject<FocusType>> members = WebModelServiceUtils.searchObjects(FocusType.class, query, result, pageBase);
@@ -2110,9 +2110,16 @@ public final class WebComponentUtil {
             if (StringUtils.isEmpty(templateOid)) {
                 return;
             }
-            String label = action.getDisplay() != null && PolyStringUtils.isNotEmpty(action.getDisplay().getLabel()) ?
-                    action.getDisplay().getLabel().getOrig() : action.getIdentifier();
-            menuItems.add(new InlineMenuItem(Model.of(label)) {
+
+            IModel<String> label = () -> {
+                DisplayType display = action.getDisplay();
+                if (display == null || display.getLabel() == null) {
+                    return action.getIdentifier();
+                }
+
+                return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(display.getLabel());
+            };
+            menuItems.add(new InlineMenuItem(label) {
                 @Serial private static final long serialVersionUID = 1L;
 
                 @Override
@@ -2846,6 +2853,11 @@ public final class WebComponentUtil {
         return combinedRelationList;
     }
 
+    public static List<AssignmentObjectRelation> divideAssignmentRelationsByAllValues(
+            List<AssignmentObjectRelation> initialAssignmentRelationsList) {
+        return divideAssignmentRelationsByAllValues(initialAssignmentRelationsList, false);
+    }
+
     /**
      * The idea is to divide the list of AssignmentObjectRelation objects in such way that each AssignmentObjectRelation
      * in the list will contain not more than 1 relation, not more than 1 object type and not more than one archetype reference.
@@ -3309,7 +3321,8 @@ public final class WebComponentUtil {
     public static boolean isResourceRelatedTask(TaskType task) {
         return WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value())
                 || WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value())
-                || WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
+                || WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_IMPORT_TASK.value())
+                || WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_SHADOW_RECLASSIFICATION_TASK.value());
     }
 
     public static boolean isRefreshEnabled(PageBase pageBase, QName type) {

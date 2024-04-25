@@ -29,11 +29,12 @@ import java.util.List;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /** Type or class definition in schema handling. */
-public class AbstractResourceObjectDefinitionConfigItem
-        extends ConfigurationItem<ResourceObjectTypeDefinitionType> {
+public class AbstractResourceObjectDefinitionConfigItem<B extends ResourceObjectTypeDefinitionType>
+        extends ConfigurationItem<B> {
 
     @SuppressWarnings({ "unused", "WeakerAccess" }) // called dynamically
-    public AbstractResourceObjectDefinitionConfigItem(@NotNull ConfigurationItem<ResourceObjectTypeDefinitionType> original) {
+    public AbstractResourceObjectDefinitionConfigItem(
+            @NotNull ConfigurationItem<B> original) {
         super(original);
     }
 
@@ -80,5 +81,16 @@ public class AbstractResourceObjectDefinitionConfigItem
             }
         }
         return single(matching, "Duplicate definition of attribute '%s' in %s", attrName, DESC);
+    }
+
+    public @Nullable ResourceObjectAssociationConfigItem getAssociationDefinitionIfPresent(ItemName assocName)
+            throws ConfigurationException {
+        List<ResourceObjectAssociationConfigItem> matching = new ArrayList<>();
+        for (var attrDef : getAssociations()) {
+            if (QNameUtil.match(attrDef.getAssociationName(), assocName)) {
+                matching.add(attrDef);
+            }
+        }
+        return single(matching, "Duplicate definition of association '%s' in %s", assocName, DESC);
     }
 }

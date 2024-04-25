@@ -96,6 +96,7 @@ class ShadowPostProcessor {
                     ctx.computeCompositeObjectDefinition(newTypeDefinition, resourceObject.getBean().getAuxiliaryObjectClass());
             ctx = ctx.spawnForDefinition(compositeDefinition);
             resourceObject.applyDefinition(compositeDefinition);
+            repoShadow.applyDefinition(compositeDefinition);
         }
     }
 

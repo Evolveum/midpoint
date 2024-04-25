@@ -31,11 +31,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus",
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteUser" })
 @ActionDefinitionClass(DeleteFocusSynchronizationActionType.class)
-public class DeleteFocusAction<F extends FocusType> extends BaseClockworkAction<F> {
+class DeleteFocusAction<F extends FocusType> extends BaseClockworkAction<F> {
 
     private static final Trace LOGGER = TraceManager.getTrace(DeleteFocusAction.class);
 
-    public DeleteFocusAction(@NotNull ActionInstantiationContext<F> ctx) {
+    DeleteFocusAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);
     }
 

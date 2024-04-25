@@ -18,7 +18,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
 import java.util.List;
 
 /**
@@ -45,7 +44,7 @@ public class ResourceWrapperFactoryImpl extends PrismObjectWrapperFactoryImpl<Re
     @Override
     protected void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper, WrapperContext context, List<ItemWrapper<?, ?>> wrappers) throws SchemaException {
         if (ResourceType.F_DESCRIPTION.equivalent(def.getItemName())) {
-            def.toMutable().setEmphasized(true);
+            def.mutator().setEmphasized(true);
         }
         super.addItemWrapper(def, containerValueWrapper, context, wrappers);
     }

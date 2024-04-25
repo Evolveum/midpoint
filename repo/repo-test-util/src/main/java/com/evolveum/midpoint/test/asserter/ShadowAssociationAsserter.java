@@ -10,28 +10,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.util.Collection;
-import java.util.Iterator;
-
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
+ * Asserts about (non-raw) association values.
+ *
  * @author semancik
  */
 public class ShadowAssociationAsserter<R> extends AbstractAsserter<R> {
 
-    private final Collection<ShadowAssociationValueType> values;
+    private final Collection<ShadowAssociationValue> values;
 
-    public ShadowAssociationAsserter(Collection<ShadowAssociationValueType> values, R returnAsserter, String details) {
+    ShadowAssociationAsserter(Collection<ShadowAssociationValue> values, R returnAsserter, String details) {
         super(returnAsserter, details);
         this.values = values;
     }
@@ -78,7 +76,7 @@ public class ShadowAssociationAsserter<R> extends AbstractAsserter<R> {
         return asserter;
     }
 
-    private @Nullable ShadowAssociationValueType findByShadowOid(String shadowOid) {
+    private @Nullable ShadowAssociationValue findByShadowOid(String shadowOid) {
         for (var value : values) {
             if (shadowOid.equals(value.getShadowRef().getOid())) {
                 return value;

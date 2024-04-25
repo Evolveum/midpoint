@@ -129,7 +129,7 @@ class EntitlementUtils {
             ShadowAssociationClassSimulationDefinition simulationDef, ProvisioningContext subjectCtx) {
         // We assume the subjectDef reflects the actual aux classes possessed by the subject shadow.
         ResourceObjectDefinition subjectDef = subjectCtx.getObjectDefinitionRequired();
-        for (SimulatedAssociationClassParticipantDelineation subjectDelineation : simulationDef.getSubjectDelineations()) {
+        for (SimulatedAssociationClassParticipantDefinition subjectDelineation : simulationDef.getSubjects()) {
             QName requiredAuxiliaryObjectClass = subjectDelineation.getAuxiliaryObjectClassName();
             if (requiredAuxiliaryObjectClass != null && !subjectDef.hasAuxiliaryObjectClass(requiredAuxiliaryObjectClass)) {
                 LOGGER.trace("Ignoring association {} because subject does not have auxiliary object class {}, it has {}",

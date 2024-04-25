@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
-public class ResourceObjectClassDefinitionConfigItem extends AbstractResourceObjectDefinitionConfigItem {
+public class ResourceObjectClassDefinitionConfigItem extends AbstractResourceObjectDefinitionConfigItem<ResourceObjectTypeDefinitionType> {
 
     @SuppressWarnings("unused") // called dynamically
     public ResourceObjectClassDefinitionConfigItem(@NotNull ConfigurationItem<ResourceObjectTypeDefinitionType> original) {

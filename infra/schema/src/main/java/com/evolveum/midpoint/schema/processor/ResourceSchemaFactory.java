@@ -7,7 +7,17 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import com.evolveum.midpoint.util.DOMUtil;
+
+import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.impl.schema.SchemaParsingUtil;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -17,17 +27,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-import com.google.common.base.Preconditions;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.VisibleForTesting;
-import org.w3c.dom.Element;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-
+/** The official place where resource schemas are created. */
 public class ResourceSchemaFactory {
 
-    private static final String USER_DATA_KEY_RAW_SCHEMA = ResourceSchema.class.getName() + ".rawSchema";
+    private static final String USER_DATA_KEY_NATIVE_SCHEMA = ResourceSchema.class.getName() + ".nativeSchema";
     private static final String USER_DATA_KEY_COMPLETE_SCHEMA = ResourceSchema.class.getName() + ".completeSchema";
 
     public static @Nullable CompleteResourceSchema getCompleteSchema(@NotNull ResourceType resource)
@@ -45,14 +48,19 @@ public class ResourceSchemaFactory {
                 resource);
     }
 
-    private static <S extends ResourceSchema> @NotNull S requireSchemaPresent(S schema, @NotNull ResourceType resource)
+    public static @NotNull CompleteResourceSchema getCompleteSchemaRequired(@NotNull PrismObject<ResourceType> resource)
+            throws ConfigurationException, SchemaException {
+        return getCompleteSchemaRequired(resource.asObjectable());
+    }
+
+    private static <S> @NotNull S requireSchemaPresent(S schema, @NotNull ResourceType resource)
             throws ConfigurationException {
         return MiscUtil.requireNonNull(
                 schema,
                 () -> new ConfigurationException("No schema in " + resource + ". A configuration problem?"));
     }
 
-    public static ResourceSchema getCompleteSchema(ResourceType resourceType, LayerType layer)
+    public static CompleteResourceSchema getCompleteSchema(ResourceType resourceType, LayerType layer)
             throws SchemaException, ConfigurationException {
         return getCompleteSchema(resourceType.asPrismObject(), layer);
     }
@@ -72,7 +80,7 @@ public class ResourceSchemaFactory {
     /**
      * Obtains refined schema for the resource.
      *
-     * Returns null if the resource does not contain any (raw) schema.
+     * Returns null if the resource does not contain any (native) schema.
      *
      * If the resource does NOT contain the schema, it must be mutable.
      *
@@ -112,9 +120,9 @@ public class ResourceSchemaFactory {
     }
 
     /** Returned schema is immutable. FIXME there is a lot of cloning if layer != MODEL! */
-    public static ResourceSchema getCompleteSchema(PrismObject<ResourceType> resource, LayerType layer)
+    public static CompleteResourceSchema getCompleteSchema(PrismObject<ResourceType> resource, LayerType layer)
             throws SchemaException, ConfigurationException {
-        ResourceSchema schema = getCompleteSchema(resource);
+        CompleteResourceSchema schema = getCompleteSchema(resource);
         if (schema != null) {
             return schema.forLayerImmutable(layer);
         } else {
@@ -122,15 +130,29 @@ public class ResourceSchemaFactory {
         }
     }
 
-    public static ResourceSchema getRawSchema(@NotNull ResourceType resource) throws SchemaException {
-        return getRawSchema(
+    public static NativeResourceSchema getNativeSchema(@NotNull ResourceType resource) throws SchemaException {
+        return getNativeSchema(
                 resource.asPrismObject());
     }
 
-    public static ResourceSchema getRawSchemaRequired(ResourceType resource) throws SchemaException, ConfigurationException {
+    public static NativeResourceSchema getNativeSchemaRequired(ResourceType resource) throws SchemaException, ConfigurationException {
         return requireSchemaPresent(
-                getRawSchema(resource),
+                getNativeSchema(resource),
                 resource);
+    }
+
+    public static NativeResourceSchema getNativeSchemaRequired(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
+        return getNativeSchemaRequired(resource.asObjectable());
+    }
+
+    public static BareResourceSchema getBareSchema(@NotNull PrismObject<ResourceType> resource) throws SchemaException {
+        return nativeToBare(
+                getNativeSchema(resource));
+    }
+
+    public static BareResourceSchema getBareSchema(@NotNull ResourceType resource) throws SchemaException {
+        return nativeToBare(
+                getNativeSchema(resource));
     }
 
     /**
@@ -140,39 +162,41 @@ public class ResourceSchemaFactory {
      *
      * The returned schema is immutable.
      */
-    public static ResourceSchema getRawSchema(@NotNull PrismObject<ResourceType> resource) throws SchemaException {
-        Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
-        if (resourceXsdSchema == null) {
+    public static NativeResourceSchema getNativeSchema(@NotNull PrismObject<ResourceType> resource) throws SchemaException {
+        Element resourceXsdSchemaElement = ResourceTypeUtil.getResourceXsdSchemaElement(resource);
+        if (resourceXsdSchemaElement == null) {
             return null;
         }
 
         // Synchronization here is a workaround for MID-5648. We need to synchronize parsing here because of DOM access even
         // before DomToSchemaProcessor (where global synchronization is done) comes into play.
-        synchronized (resourceXsdSchema) {
-            Object cachedRawSchema = resource.getUserData(USER_DATA_KEY_RAW_SCHEMA);
-            if (cachedRawSchema != null) {
-                if (cachedRawSchema instanceof ResourceSchema schema) {
+        synchronized (resourceXsdSchemaElement) {
+            Object cachedNativeSchema = resource.getUserData(USER_DATA_KEY_NATIVE_SCHEMA);
+            if (cachedNativeSchema != null) {
+                if (cachedNativeSchema instanceof NativeResourceSchema schema) {
                     schema.checkImmutable();
                     return schema;
                 } else {
-                    throw new IllegalStateException("Expected ResourceSchema under user data key " +
-                            USER_DATA_KEY_RAW_SCHEMA + "in " + resource + ", but got " + cachedRawSchema.getClass());
+                    throw new IllegalStateException(
+                            "Expected %s under user data key %s in %s, but got %s".formatted(
+                                    NativeResourceSchema.class, USER_DATA_KEY_NATIVE_SCHEMA,
+                                    resource, cachedNativeSchema.getClass()));
                 }
             } else {
                 stateCheck(!resource.isImmutable(), "Trying to set parsed schema on immutable resource: %s", resource);
                 InternalMonitor.recordCount(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
-                ResourceSchema parsedRawSchema =
-                        ResourceSchemaParser.parse(resourceXsdSchema, "resource schema of " + resource);
-                parsedRawSchema.freeze();
-                resource.setUserData(USER_DATA_KEY_RAW_SCHEMA, parsedRawSchema);
-                return parsedRawSchema;
+                NativeResourceSchema parsedSchema =
+                        parseNativeSchema(resourceXsdSchemaElement, "resource schema of " + resource);
+                parsedSchema.freeze();
+                resource.setUserData(USER_DATA_KEY_NATIVE_SCHEMA, parsedSchema);
+                return parsedSchema;
             }
         }
     }
 
     @VisibleForTesting
     public static boolean hasParsedSchema(ResourceType resource) {
-        return resource.asPrismObject().getUserData(USER_DATA_KEY_RAW_SCHEMA) != null;
+        return resource.asPrismObject().getUserData(USER_DATA_KEY_NATIVE_SCHEMA) != null;
     }
 
     /**
@@ -180,21 +204,48 @@ public class ResourceSchemaFactory {
      *
      * Normally internal to this class, but may be called externally from the test code.
      *
-     * DO NOT call it directly from the production code. The schema is NOT immutable here, but we want to ensure immutability
-     * throughout the running system. Use {@link #getCompleteSchema(PrismObject)} instead.
+     * DO NOT call it directly from the production code. The returned schema is NOT immutable here, but we want to ensure
+     * immutability throughout the running system. Use {@link #getCompleteSchema(PrismObject)} instead.
      */
     @VisibleForTesting
     public static CompleteResourceSchema parseCompleteSchema(ResourceType resource) throws SchemaException, ConfigurationException {
-        return parseCompleteSchema(resource, ResourceSchemaFactory.getRawSchema(resource));
+        return parseCompleteSchema(resource, ResourceSchemaFactory.getNativeSchema(resource));
     }
 
-    public static CompleteResourceSchema parseCompleteSchema(ResourceType resource, ResourceSchema rawResourceSchema)
+    /** Parses the complete schema from the provided raw schema plus definitions in the resource. */
+    public static CompleteResourceSchema parseCompleteSchema(ResourceType resource, NativeResourceSchema nativeSchema)
             throws SchemaException, ConfigurationException {
-        if (rawResourceSchema != null) {
-            return new RefinedResourceSchemaParser(resource, rawResourceSchema)
-                    .parse();
+        if (nativeSchema != null) {
+            return ResourceSchemaParser.parseComplete(resource, nativeSchema);
         } else {
             return null;
         }
+    }
+
+    public static @NotNull NativeResourceSchema parseNativeSchema(@NotNull Element sourceXsdElement, String description)
+            throws SchemaException {
+        var schema = new NativeResourceSchemaImpl();
+        SchemaParsingUtil.parse(schema, sourceXsdElement, true, description, false);
+        schema.computeAssociationClasses();
+        schema.freeze();
+        return schema;
+    }
+
+    @TestOnly
+    public static @NotNull BareResourceSchema parseNativeSchemaAsBare(@NotNull Document sourceXsdDocument) throws SchemaException {
+        return parseNativeSchemaAsBare(DOMUtil.getFirstChildElement(sourceXsdDocument));
+    }
+
+    @TestOnly
+    public static @NotNull BareResourceSchema parseNativeSchemaAsBare(@NotNull Element sourceXsdElement) throws SchemaException {
+        return nativeToBare(
+                parseNativeSchema(sourceXsdElement, "test"));
+    }
+
+    @Contract("null -> null; !null -> !null")
+    public static BareResourceSchema nativeToBare(@Nullable NativeResourceSchema nativeResourceSchema) throws SchemaException {
+        return nativeResourceSchema != null ?
+                ResourceSchemaParser.parseBare(nativeResourceSchema) :
+                null;
     }
 }

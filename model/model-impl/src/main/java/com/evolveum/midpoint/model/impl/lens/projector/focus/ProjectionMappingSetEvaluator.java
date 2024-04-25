@@ -14,7 +14,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.ClockworkInboundsProcessing;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.FullInboundsProcessing;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -36,6 +36,8 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
+import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forModelContext;
+
 /**
  * Evaluates a set of mappings related to a projection.
  *
@@ -43,7 +45,7 @@ import java.util.*;
  *
  * - outbound password mappings ({@link ProjectionCredentialsProcessor}),
  * - outbound existence and activation mappings ({@link ActivationProcessor}),
- * - inbound password and activation mappings ({@link ClockworkInboundsProcessing}).
+ * - inbound password and activation mappings ({@link FullInboundsProcessing}).
  *
  * TODO Consider merging evaluation of these special mappings with the evaluation of standard attribute/association mappings.
  *
@@ -168,18 +170,15 @@ public class ProjectionMappingSetEvaluator {
                 }
             }
 
-            mappingEvaluator.evaluateMapping(mapping, params.getContext(), task, result);
+            mappingEvaluator.evaluateMapping(mapping, forModelContext(params.getContext()), task, result);
 
             PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
             LOGGER.trace("Output triple:\n{}", mappingOutputTriple == null ? null : mappingOutputTriple.debugDumpLazily(1));
 
             if (isMeaningful(mappingOutputTriple)) {
 
-                MappingOutputStruct<V> mappingOutputStruct = outputTripleMap.get(mappingOutputPathUniform);
-                if (mappingOutputStruct == null) {
-                    mappingOutputStruct = new MappingOutputStruct<>();
-                    outputTripleMap.put(mappingOutputPathUniform, mappingOutputStruct);
-                }
+                MappingOutputStruct<V> mappingOutputStruct =
+                        outputTripleMap.computeIfAbsent(mappingOutputPathUniform, k -> new MappingOutputStruct<>());
 
                 if (mapping.getStrength() == MappingStrengthType.STRONG) {
                     mappingOutputStruct.setStrongMappingWasUsed(true);
@@ -240,11 +239,8 @@ public class ProjectionMappingSetEvaluator {
                     throw new ExpressionEvaluationException("Target cannot be overridden in " + mappingDesc);
                 }
 
-                MappingOutputStruct<V> mappingOutputStruct = outputTripleMap.get(mappingOutputPath);
-                if (mappingOutputStruct == null) {
-                    mappingOutputStruct = new MappingOutputStruct<>();
-                    outputTripleMap.put(mappingOutputPath, mappingOutputStruct);
-                }
+                MappingOutputStruct<V> mappingOutputStruct =
+                        outputTripleMap.computeIfAbsent(mappingOutputPath, k -> new MappingOutputStruct<>());
 
                 PrismValueDeltaSetTriple<V> outputTriple = mappingOutputStruct.getOutputTriple();
                 if (outputTriple != null && !outputTriple.getNonNegativeValues().isEmpty()) {
@@ -269,7 +265,7 @@ public class ProjectionMappingSetEvaluator {
 
                     mappingOutputStruct.setWeakMappingWasUsed(true);
 
-                    mappingEvaluator.evaluateMapping(mapping, params.getContext(), task, result);
+                    mappingEvaluator.evaluateMapping(mapping, forModelContext(params.getContext()), task, result);
 
                     PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
                     if (mappingOutputTriple != null) {

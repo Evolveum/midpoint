@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author Radovan Semancik
  *
  */
-public interface ClockworkInspector extends DiagnosticContext {
+public interface ClockworkInspector extends DiagnosticContext, MappingInspector {
 
     <F extends ObjectType> void clockworkStart(ModelContext<F> context);
 
@@ -39,15 +39,4 @@ public interface ClockworkInspector extends DiagnosticContext {
     void projectorComponentFinish(String componentName);
 
     <F extends ObjectType> void projectorFinish(ModelContext<F> context);
-
-    /**
-     * May be used to gather profiling data, etc.
-     */
-    <F extends ObjectType> void afterMappingEvaluation(ModelContext<F> context, Mapping<?, ?> evaluatedMapping);
-
-//    /**
-//     * For all scripts expect for mappings.
-//     * May be used to gather profiling data, etc.
-//     */
-//    public <F extends ObjectType, P extends ObjectType> void afterScriptEvaluation(LensContext<F,P> context, ScriptExpression scriptExpression);
 }

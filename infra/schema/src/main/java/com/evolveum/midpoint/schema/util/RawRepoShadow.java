@@ -17,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -78,10 +77,6 @@ public class RawRepoShadow implements DebugDumpable, ShortDumpable {
         } else {
             return of(liveShadows.get(0));
         }
-    }
-
-    private @NotNull ResourceObjectDefinition determineObjectDefinition(ShadowType bean) {
-        return ShadowUtil.getAttributesContainer(bean).getDefinition().getComplexTypeDefinition();
     }
 
     public static @NotNull RawRepoShadow of(@NotNull ShadowType bean) {

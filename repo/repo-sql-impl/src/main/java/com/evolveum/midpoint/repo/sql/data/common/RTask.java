@@ -323,6 +323,6 @@ public class RTask extends RObject implements ROperationResultFull {
             repo.setAutoScaling(rAutoScaling);
         }
 
-        RUtil.copyResultFromJAXB(TaskType.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
+        RUtil.copyResultFromJAXB(TaskType.F_RESULT, jaxb.getResult(), repo);
     }
 }

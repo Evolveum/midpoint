@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.schema.merger.assignment;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.F_ABSTRACT;
-
 import java.util.Map;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -17,10 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
-import com.evolveum.midpoint.schema.merger.GenericItemMerger;
-import com.evolveum.midpoint.schema.merger.IgnoreSourceItemMerger;
-import com.evolveum.midpoint.schema.merger.OriginMarker;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.prism.impl.GenericItemMerger;
+import com.evolveum.midpoint.prism.OriginMarker;
 
 /**
  * Merges {@link AssignmentType} objects.

@@ -509,8 +509,8 @@ public class TestDummyNegative extends AbstractDummyTest {
         String unstorableOid = selectAccountByName(accounts, UNSTORABLE_ACCOUNT).getOid();
 
         // break the accounts
-        resource.getAccountByUsername(INCONVERTIBLE_ACCOUNT).replaceAttributeValue(ENABLE_DATE_NAME, "WRONG");
-        resource.getAccountByUsername(UNSTORABLE_ACCOUNT).replaceAttributeValue(ATTR_NUMBER, "WRONG");
+        resource.getAccountByName(INCONVERTIBLE_ACCOUNT).replaceAttributeValue(ENABLE_DATE_NAME, "WRONG");
+        resource.getAccountByName(UNSTORABLE_ACCOUNT).replaceAttributeValue(ATTR_NUMBER, "WRONG");
 
         when(GOOD_ACCOUNT);
         PrismObject<ShadowType> goodReloaded =
@@ -617,7 +617,7 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .assertOid()
                 .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT)
                 .attributes()
-                    .assertSize(3) // uid=unstorable, name=unstorable, number=WRONG (why it's there?)
+                    .assertSize(2) // uid=unstorable, name=unstorable
                     .end()
                 .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "WRONG");
                 // (maybe it's not necessary to provide the unconvertible value in the message - reconsider)
@@ -629,7 +629,7 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .assertOid()
                 .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT)
                 .attributes()
-                    .assertSize(1) // this is the result of the emergency shadow acquisition
+                    .assertSize(2) // this is the result of the emergency shadow acquisition
                     .end();
 
         var asserter = assertSelectedAccountByName(objects, TOTALLY_UNSTORABLE_ACCOUNT);
@@ -728,20 +728,20 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
                 .assertName(UNSTORABLE_ACCOUNT)
                 .attributes()
-                    .assertSize(3) // uid=unstorable, name=unstorable, number=WRONG (why it's there?)
+                    .assertSize(2) // uid=unstorable, name=unstorable
                     .end()
                 .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "WRONG");
                 // (maybe it's not necessary to provide the unconvertible value in the message - reconsider)
 
         // Unstorable account is stored without name: the emergency mode of shadowization uses primary ID-only shadows.
         PrismObject<ShadowType> unstorableAfter =
-                findShadowByPrismName(UNSTORABLE_ACCOUNT_UID, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
+                findShadowByPrismName(UNSTORABLE_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
         assertShadow(unstorableAfter, UNSTORABLE_ACCOUNT)
                 .display()
                 .assertOid()
                 .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
                 .attributes()
-                    .assertSize(1)
+                    .assertSize(2)
                     .end();
         if (isSqaleRepository()) {
             // Totally unstorable account is storable
@@ -846,23 +846,23 @@ public class TestDummyNegative extends AbstractDummyTest {
                     .end();
 
         // However, here the problem is while acquiring the shadow; so, the repo will contain only the UID.
-        assertSelectedAccountByName(objects, UNSTORABLE_ACCOUNT_UID)
+        assertSelectedAccountByName(objects, UNSTORABLE_ACCOUNT)
                 .assertOid()
                 .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
-                .assertName(UNSTORABLE_ACCOUNT_UID)
+                .assertName(UNSTORABLE_ACCOUNT)
                 .attributes()
-                    .assertSize(1) // uid=uid:unstorable
+                    .assertSize(2) // uid=uid:unstorable, name=unstorable
                     .end();
 
         PrismObject<ShadowType> unstorableAfter =
-                findShadowByPrismName(UNSTORABLE_ACCOUNT_UID, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
+                findShadowByPrismName(UNSTORABLE_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
         assertShadow(unstorableAfter, UNSTORABLE_ACCOUNT)
                 .display()
                 .assertOid()
                 .assertIndexedPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
-                .assertName(UNSTORABLE_ACCOUNT_UID)
+                .assertName(UNSTORABLE_ACCOUNT)
                 .attributes()
-                    .assertSize(1)
+                    .assertSize(2)
                     .end();
 
         // The fetch result is not in the shadows. The exception is recorded in events.

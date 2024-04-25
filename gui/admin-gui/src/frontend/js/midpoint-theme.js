@@ -6,6 +6,8 @@
  */
 
 import Sparkline from "sparklines";
+import { TempusDominus } from '@eonasdan/tempus-dominus';
+import { DateTime } from '@eonasdan/tempus-dominus/dist/js/tempus-dominus.js';
 
 export default class MidPointTheme {
 
@@ -217,6 +219,15 @@ export default class MidPointTheme {
                     });
                 });
     }
+
+initDateTimePicker(containerId, configuration) {
+    new TempusDominus(containerId, configuration);
+}
+
+createCurrentDateForDatePicker(containerId, configuration) {
+    const date = new Date();
+    return new DateTime(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+}
 
 breakLongerTextInTableCell(cellId) {
     $("#" + cellId).css("word-break", function (index, origValue) {
@@ -625,38 +636,58 @@ breakLongerTextInTableCell(cellId) {
             component = div.querySelector('img');
         } else if (containerId === '#chartScaleContainer') {
             component = div.querySelector('canvas');
-                     }
+        }
 
         if (component) {
             div.addEventListener('wheel', handleZoom);
+            div.addEventListener('mousedown', startDrag);
+            div.addEventListener('mouseup', stopDrag);
         } else {
             console.error('Component not found');
         }
 
+        let startX, startY, startScrollLeft, startScrollTop;
+
+        function startDrag(e) {
+                e.preventDefault();
+                startX = e.clientX;
+                startY = e.clientY;
+                startScrollLeft = div.scrollLeft;
+                startScrollTop = div.scrollTop;
+                div.addEventListener('mousemove', drag);
+            }
+
+            function drag(e) {
+                e.preventDefault();
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                div.scrollLeft = startScrollLeft - dx;
+                div.scrollTop = startScrollTop - dy;
+            }
+
+            function stopDrag() {
+                div.removeEventListener('mousemove', drag);
+            }
+
         function handleZoom(e) {
             e.preventDefault();
             let rectBefore = component.getBoundingClientRect();
-            let x = (e.clientX - rectBefore.left) / rectBefore.width * 100;
-            let y = (e.clientY - rectBefore.top) / rectBefore.height * 100;
 
             if (e.deltaY < 0) {
-                zoomIn(rectBefore, x, y);
+                zoomIn(rectBefore);
             } else if (e.deltaY > 0) {
                 zoomOut(rectBefore);
             }
         }
 
-        function zoomIn(rectBefore, x, y) {
+        function zoomIn(rectBefore) {
             console.log('Zooming in');
             scale += 0.01;
 
             let prevScale = scale - 0.01;
             let scaleFactor = scale / prevScale;
-
-            let deltaX = (x / 100) * rectBefore.width * (scaleFactor - 1);
-            let deltaY = (y / 100) * rectBefore.height * (scaleFactor - 1);
-
-            setTransform(x, y, scale, rectBefore, deltaX, deltaY, scaleFactor);
+            //TODO target to cursor (temporarily disabled because of display rendering issues)
+            setTransform(0, 0, scale, rectBefore, scaleFactor);
         }
 
         function zoomOut(rectBefore) {
@@ -664,17 +695,15 @@ breakLongerTextInTableCell(cellId) {
             scale -= 0.01;
             scale = Math.max(0.1, scale);
 
-            setTransform(0, 0, scale, rectBefore, 0, 0, 1);
+            setTransform(0, 0, scale, rectBefore, 1);
         }
 
-        function setTransform(x, y, scale, rectBefore, deltaX, deltaY, scaleFactor) {
-            component.style.transformOrigin = `${x}% ${y}%`;
+        function setTransform(x, y, scale, rectBefore, scaleFactor) {
+            component.style.transformOrigin = '0% 0%';
             component.style.transition = 'transform 0.3s';
             component.style.transform = `scale(${scale})`;
-
-            let rectAfter = component.getBoundingClientRect();
-            div.scrollLeft += (rectAfter.left - rectBefore.left) + deltaX - (e.clientX - rectBefore.left) * (scaleFactor - 1);
-            div.scrollTop += (rectAfter.top - rectBefore.top) + deltaY - (e.clientY - rectBefore.top) * (scaleFactor - 1);
+            div.scrollLeft = 0;
+            div.scrollTop = 0;
         }
     }
 

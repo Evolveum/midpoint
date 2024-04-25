@@ -434,7 +434,6 @@ call apply_change(24, $aa$
     ALTER TABLE m_connector ADD displayNameNorm TEXT;
 $aa$);
 
-
 call apply_change(25, $aa$
 CREATE OR REPLACE PROCEDURE m_refresh_org_closure(force boolean = false)
     LANGUAGE plpgsql
@@ -470,6 +469,115 @@ call apply_change(26, $aa$
     ALTER TABLE m_ref_role_membership ADD COLUMN fullObject BYTEA;
 $aa$);
 
+--- Policy Type
+
+call apply_change(27, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'POLICY' AFTER 'ORG';
+$aa$);
+call apply_change(28, $aa$
+    CREATE TABLE m_policy (
+        oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+        objectType ObjectType GENERATED ALWAYS AS ('POLICY') STORED
+            CHECK (objectType = 'POLICY')
+    )
+        INHERITS (m_abstract_role);
+
+    CREATE TRIGGER m_policy_oid_insert_tr BEFORE INSERT ON m_policy
+        FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+    CREATE TRIGGER m_policy_update_tr BEFORE UPDATE ON m_policy
+        FOR EACH ROW EXECUTE FUNCTION before_update_object();
+    CREATE TRIGGER m_policy_oid_delete_tr AFTER DELETE ON m_policy
+        FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+    CREATE INDEX m_policy_nameOrig_idx ON m_policy (nameOrig);
+    CREATE UNIQUE INDEX m_policy_nameNorm_key ON m_policy (nameNorm);
+    CREATE INDEX m_policy_subtypes_idx ON m_policy USING gin(subtypes);
+    CREATE INDEX m_policy_identifier_idx ON m_policy (identifier);
+    CREATE INDEX m_policy_validFrom_idx ON m_policy (validFrom);
+    CREATE INDEX m_policy_validTo_idx ON m_policy (validTo);
+    CREATE INDEX m_policy_fullTextInfo_idx ON m_policy USING gin(fullTextInfo gin_trgm_ops);
+    CREATE INDEX m_policy_createTimestamp_idx ON m_policy (createTimestamp);
+    CREATE INDEX m_policy_modifyTimestamp_idx ON m_policy (modifyTimestamp);
+$aa$);
+
+--- Schema Type
+
+call apply_change(29, $aa$
+   ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SCHEMA' AFTER 'ROLE_ANALYSIS_SESSION';
+$aa$);
+
+call apply_change(30, $aa$
+CREATE TABLE m_schema (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('SCHEMA') STORED
+       CHECK (objectType = 'SCHEMA')
+)
+    INHERITS (m_assignment_holder);
+
+CREATE TRIGGER m_schema_oid_insert_tr BEFORE INSERT ON m_schema
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_schema_update_tr BEFORE UPDATE ON m_schema
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_schema_oid_delete_tr AFTER DELETE ON m_schema
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+$aa$);
+
+-- associations (maybe temporary)
+call apply_change(31, $aa$
+ALTER TYPE ShadowKindType ADD VALUE IF NOT EXISTS 'ASSOCIATED' AFTER 'GENERIC';
+$aa$);
+
+
+-- value metatada for assignments and inducements
+call apply_change(32, $aa$
+ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'ASSIGNMENT_METADATA' AFTER 'ASSIGNMENT';
+$aa$);
+
+call apply_change(33, $aa$
+CREATE TABLE m_assignment_metadata (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    ownerType ObjectType,
+    assignmentCid INTEGER NOT NULL,
+    containerType ContainerType GENERATED ALWAYS AS ('ASSIGNMENT_METADATA') STORED
+        CHECK (containerType = 'ASSIGNMENT_METADATA'),
+
+    -- Storage metadata
+    creatorRefTargetOid UUID,
+    creatorRefTargetType ObjectType,
+    creatorRefRelationId INTEGER REFERENCES m_uri(id),
+    createChannelId INTEGER REFERENCES m_uri(id),
+    createTimestamp TIMESTAMPTZ,
+    modifierRefTargetOid UUID,
+    modifierRefTargetType ObjectType,
+    modifierRefRelationId INTEGER REFERENCES m_uri(id),
+    modifyChannelId INTEGER REFERENCES m_uri(id),
+    modifyTimestamp TIMESTAMPTZ,
+
+    PRIMARY KEY (ownerOid, cid)
+) INHERITS(m_container);
+
+CREATE INDEX m_assignment_metadata_createTimestamp_idx ON m_assignment (createTimestamp);
+CREATE INDEX m_assignment_metadata_modifyTimestamp_idx ON m_assignment (modifyTimestamp);
+
+ALTER TABLE m_assignment_ref_create_approver ADD COLUMN metadataCid INTEGER;
+
+-- Primary key should also consider metadata
+
+ALTER TABLE "m_assignment_ref_create_approver" DROP CONSTRAINT "m_assignment_ref_create_approver_pkey";
+
+ALTER TABLE "m_assignment_ref_create_approver" ADD CONSTRAINT "m_assignment_ref_create_approver_pkey"
+  UNIQUE ("owneroid", "assignmentcid", "metadatacid", "referencetype", "relationid", "targetoid");
+
+
+ALTER TABLE m_assignment_ref_modify_approver ADD COLUMN metadataCid INTEGER;
+
+ALTER TABLE "m_assignment_ref_modify_approver" DROP CONSTRAINT "m_assignment_ref_modify_approver_pkey";
+
+ALTER TABLE "m_assignment_ref_modify_approver" ADD CONSTRAINT "m_assignment_ref_modify_approver_pkey"
+  UNIQUE ("owneroid", "assignmentcid", "metadatacid", "referencetype", "relationid", "targetoid");
+
+$aa$);
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

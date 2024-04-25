@@ -61,8 +61,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, "user-modify-add-account.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
 
-        ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
-                getPrismContext());
+        ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class);
 
         System.out.println("delta: " + objectDelta.debugDump());
 
@@ -87,8 +86,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
                 ObjectModificationType.COMPLEX_TYPE);
 
         // WHEN
-        ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
-                getPrismContext());
+        ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class);
 
         // THEN
         assertNotNull("No object delta", objectDelta);
@@ -120,8 +118,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
                 ObjectModificationType.COMPLEX_TYPE);
 
         // WHEN
-        ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
-                getPrismContext());
+        ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class);
 
         // THEN
         assertNotNull("No object delta", objectDelta);
@@ -150,7 +147,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
                 ObjectModificationType.COMPLEX_TYPE);
 
         // WHEN
-        ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, getPrismContext());
+        ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class);
 
         // THEN
         assertNotNull("No object delta", objectDelta);
@@ -181,7 +178,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         String xml = getPrismContext().xmlSerializer().serializeRealValue(objectDeltaBean, new QName("delta"));
         displayValue("Serialized", xml);
 
-        LensElementContextType ctx = new LensElementContextType(getPrismContext());
+        LensElementContextType ctx = new LensElementContextType();
         ctx.setPrimaryDelta(objectDeltaBean);
         String xml2 = getPrismContext().xmlSerializer().serializeRealValue(ctx, new QName("ctx"));
         displayValue("Serialized context", xml2);
@@ -203,8 +200,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
                 ObjectModificationType.COMPLEX_TYPE);
 
         // WHEN
-        ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
-                getPrismContext());
+        ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class);
 
         System.out.println("Delta:");
         System.out.println(objectDelta.debugDump());
@@ -253,7 +249,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
         accountRefToDelete.setOid("54321");
         PrismContext prismContext = getPrismContext();
-        RawType modificationValue = new RawType(prismContext.xnodeSerializer().root(new QName("dummy")).serializeRealValue(accountRefToDelete).getSubnode().frozen(), prismContext);
+        RawType modificationValue = new RawType(prismContext.xnodeSerializer().root(new QName("dummy")).serializeRealValue(accountRefToDelete).getSubnode().frozen());
         modificationDeleteAccountRef.getValue().add(modificationValue);
         objectChange.getItemDelta().add(modificationDeleteAccountRef);
         ItemPathType itemPathType = new ItemPathType(UserType.F_LINK_REF);
@@ -323,11 +319,11 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         System.out.println("===[ testObjectDeltaRoundtrip ]====");
 
         // GIVEN
-        final String OID = "13235545";
-        final String VALUE = "Very Costly Center";
+        final String oid = "13235545";
+        final String value = "Very Costly Center";
         ObjectDelta<UserType> objectDelta = getPrismContext().deltaFactory().object()
-                .createModificationReplaceProperty(UserType.class, OID,
-                UserType.F_COST_CENTER, VALUE);
+                .createModificationReplaceProperty(UserType.class, oid,
+                UserType.F_COST_CENTER, value);
 
         System.out.println("ObjectDelta");
         System.out.println(objectDelta.debugDump());
@@ -340,7 +336,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 //        System.out.println(PrismTestUtil.marshalWrap(objectDeltaType));
 
         assertEquals("Wrong changetype", ChangeTypeType.MODIFY, objectDeltaType.getChangeType());
-        assertEquals("Wrong OID", OID, objectDeltaType.getOid());
+        assertEquals("Wrong OID", oid, objectDeltaType.getOid());
         List<ItemDeltaType> modifications = objectDeltaType.getItemDelta();
         assertNotNull("null modifications", modifications);
         assertEquals("Wrong number of modifications", 1, modifications.size());
@@ -388,13 +384,13 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         System.out.println("Delta:");
         System.out.println(delta.debugDump());
 
-        final QName CUSTOM_OBJECT = new QName("http://delta.example.com", "object");
+        final QName customObject = new QName("http://delta.example.com", "object");
 
         // WHEN
         ObjectDeltaType xmlDelta = toObjectDeltaType(delta);
 
         // THEN
-        String result = PrismTestUtil.serializeJaxbElementToString(new JAXBElement<>(CUSTOM_OBJECT,
+        String result = PrismTestUtil.serializeJaxbElementToString(new JAXBElement<>(customObject,
             Object.class, xmlDelta));
         assertNotNull(result);
     }
@@ -560,8 +556,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
                 ObjectModificationType.COMPLEX_TYPE);
 
         // WHEN
-        ObjectDelta<RoleType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, RoleType.class,
-                getPrismContext());
+        ObjectDelta<RoleType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, RoleType.class);
 
         System.out.println("Delta:");
         System.out.println(objectDelta.debugDump());
@@ -589,8 +584,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
                 ObjectModificationType.COMPLEX_TYPE);
 
         // WHEN
-        ObjectDelta<ResourceType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, ResourceType.class,
-                getPrismContext());
+        ObjectDelta<ResourceType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, ResourceType.class);
 
         System.out.println("Delta:");
         System.out.println(objectDelta.debugDump());
@@ -610,7 +604,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     public void test100ObjectAdd() throws Exception {
         System.out.println("===[ test100ObjectAdd ]====");
 
-        UserType user = new UserType(getPrismContext());
+        UserType user = new UserType();
         user.setName(PolyStringType.fromOrig("john"));
         user.setOid("1234567890");
 

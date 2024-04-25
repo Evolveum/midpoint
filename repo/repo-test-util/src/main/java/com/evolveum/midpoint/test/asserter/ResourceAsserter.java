@@ -106,13 +106,13 @@ public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType, RA> 
     }
 
     public ResourceAsserter<RA> assertHasSchema() {
-        Element schemaElement = ResourceTypeUtil.getResourceXsdSchema(getObject());
+        Element schemaElement = ResourceTypeUtil.getResourceXsdSchemaElement(getObject());
         assertNotNull("No schema in " + desc(), schemaElement);
         return this;
     }
 
     public ResourceAsserter<RA> assertHasNoSchema() {
-        Element schemaElement = ResourceTypeUtil.getResourceXsdSchema(getObject());
+        Element schemaElement = ResourceTypeUtil.getResourceXsdSchemaElement(getObject());
         assertNull("Schema present in " + desc(), schemaElement);
         return this;
     }

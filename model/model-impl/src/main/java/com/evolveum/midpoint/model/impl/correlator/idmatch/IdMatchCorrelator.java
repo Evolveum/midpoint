@@ -196,8 +196,8 @@ public class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                 // Note that ID Match does not provide confidence values for certain matches
                 // And we don't support custom confidence values here. Hence always 1.0.
                 return CorrelationResult.of(
-                        CandidateOwnersMap.from(
-                                List.of(new CandidateOwner(focus, referenceId, 1.0))));
+                        CandidateOwners.from(
+                                List.of(new CandidateOwner.ObjectBased(focus, referenceId, 1.0))));
             } else {
                 return CorrelationResult.empty();
             }
@@ -248,13 +248,13 @@ public class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                 @NotNull MatchingResult mResult,
                 @NotNull OperationResult result)
                 throws SchemaException, ConfigurationException {
-            CandidateOwnersMap candidateOwnersMap = new CandidateOwnersMap();
+            CandidateOwners candidateOwners = new CandidateOwners();
             for (PotentialMatch potentialMatch : mResult.getPotentialMatches()) {
                 String referenceId = potentialMatch.getReferenceId();
                 if (referenceId != null) {
                     var candidate = findFocusWithGivenReferenceId(referenceId, result);
                     if (candidate != null) {
-                        candidateOwnersMap.put(
+                        candidateOwners.putObject(
                                 candidate,
                                 referenceId,
                                 getConfidenceValue(potentialMatch));
@@ -263,7 +263,7 @@ public class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                     }
                 }
             }
-            return CorrelationResult.of(candidateOwnersMap);
+            return CorrelationResult.of(candidateOwners);
         }
 
         private double getConfidenceValue(PotentialMatch potentialMatch) {

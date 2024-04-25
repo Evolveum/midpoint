@@ -7,6 +7,29 @@
 
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+
+import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.*;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.Query;
+import javax.management.QueryExp;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -44,28 +67,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.stereotype.Component;
-
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-import javax.management.Query;
-import javax.management.QueryExp;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.lang.management.ManagementFactory;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.*;
-
-import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 
 /**
  * Takes care about registration of the local node in repository.
@@ -552,7 +553,7 @@ public class NodeRegistrar implements Cache {
     private List<PrismObject<NodeType>> findNodesWithGivenName(String name, OperationResult result) throws SchemaException {
         return repositoryService.searchObjects(
                 NodeType.class,
-                ObjectQueryUtil.createOrigNameQuery(name, prismContext),
+                ObjectQueryUtil.createOrigNameQuery(name),
                 null,
                 result);
     }

@@ -38,7 +38,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisAggregateChartModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.RoleAnalysisAggregateChartModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisModel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -74,6 +74,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
     private static final String ID_SCALE_BUTTON = "scaleButton";
     private static final String ID_EXPORT_BUTTON = "exportButton";
     private static final String ID_SORT_BUTTON = "sortButton";
+    private static final String ID_CHART_TYPE_BUTTON = "chartTypeButton";
     private static final String ID_CONTAINER_CHART = "container";
     private static final String ID_CHART = "chart";
     private static final String ID_CARD_TITLE = "cardTitle";
@@ -81,6 +82,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
     private static final String OP_LOAD_STATISTICS = DOT_CLASS + "loadRoleAnalysisStatistics";
 
     private boolean isSortByGroup = false;
+    private boolean isLineChart = true;
     private boolean isScalable = false;
 
     public RoleAnalysisChartPanel(String id) {
@@ -99,7 +101,8 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
         chartContainer.setOutputMarkupId(true);
         add(chartContainer);
 
-        Label cardTitle = new Label(ID_CARD_TITLE, createStringResource("PageRoleAnalysis.chart.title"));
+        Label cardTitle = new Label(ID_CARD_TITLE,
+                createStringResource("PageRoleAnalysis.chart.access.distribution.title"));
         cardTitle.setOutputMarkupId(true);
         add(cardTitle);
 
@@ -122,6 +125,8 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
         initScaleButton(chartContainer, roleAnalysisChart, toolForm);
 
         initSortButton(chartContainer, roleAnalysisChart, toolForm);
+
+        initChartTypeButton(chartContainer, roleAnalysisChart, toolForm);
 
         initExportButton(toolForm);
     }
@@ -157,12 +162,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC,
                 LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton sortMode = new AjaxCompositedIconSubmitButton(ID_SORT_BUTTON, iconBuilder.build(),
-                new LoadableModel<>() {
-                    @Override
-                    protected String load() {
-                        return getSortButtonTitle().getString();
-                    }
-                }) {
+                getSortButtonTitle()) {
             @Serial
             private static final long serialVersionUID = 1L;
 
@@ -200,11 +200,54 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
         toolForm.add(sortMode);
     }
 
+    private void initChartTypeButton(WebMarkupContainer chartContainer, ChartJsPanel<ChartConfiguration> roleAnalysisChart, Form<?> toolForm) {
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_LINE_CHART_ICON,
+                LayeredIconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton chartTypeButton = new AjaxCompositedIconSubmitButton(ID_CHART_TYPE_BUTTON,
+                iconBuilder.build(),
+                getChartTypeButtonTitle()) {
+            @Serial
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIcon getIcon() {
+                String scaleIcon;
+                if (!isLineChart) {
+                    scaleIcon = GuiStyleConstants.CLASS_BAR_CHART_ICON;
+                } else {
+                    scaleIcon = GuiStyleConstants.CLASS_LINE_CHART_ICON;
+                }
+                return new CompositedIconBuilder().setBasicIcon(scaleIcon,
+                        LayeredIconCssStyle.IN_ROW_STYLE).build();
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                if (isScalable) {
+                    target.appendJavaScript(applyChartScaleScript());
+                }
+                target.add(chartContainer);
+                isLineChart = !isLineChart;
+                target.add(roleAnalysisChart);
+                target.add(this);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+        chartTypeButton.titleAsLabel(true);
+        chartTypeButton.setOutputMarkupId(true);
+        chartTypeButton.add(AttributeAppender.append("class", "btn btn-tool"));
+        toolForm.add(chartTypeButton);
+    }
+
     private void initScaleButton(WebMarkupContainer chartContainer, ChartJsPanel<ChartConfiguration> roleAnalysisChart,
             Form<?> toolForm) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon("fa fa-refresh",
                 LayeredIconCssStyle.IN_ROW_STYLE);
-        AjaxCompositedIconSubmitButton reset = new AjaxCompositedIconSubmitButton(ID_SCALE_BUTTON, iconBuilder.build(),
+        AjaxCompositedIconSubmitButton scaleButton = new AjaxCompositedIconSubmitButton(ID_SCALE_BUTTON, iconBuilder.build(),
                 new LoadableModel<>() {
                     @Override
                     protected String load() {
@@ -242,10 +285,11 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
                 target.add(((PageBase) getPage()).getFeedbackPanel());
             }
         };
-        reset.titleAsLabel(true);
-        reset.setOutputMarkupId(true);
-        reset.add(AttributeAppender.append("class", "btn btn-tool"));
-        toolForm.add(reset);
+        scaleButton.titleAsLabel(true);
+        scaleButton.setOutputMarkupId(true);
+        scaleButton.setVisible(false);
+        scaleButton.add(AttributeAppender.append("class", "btn btn-tool"));
+        toolForm.add(scaleButton);
     }
 
     @NotNull
@@ -290,7 +334,27 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
             protected List<RoleAnalysisModel> load() {
                 return prepareRoleAnalysisData();
             }
-        });
+        }, isLineChart){
+            @Override
+            public String getXAxisTitle() {
+                return getPageBase().createStringResource("PageRoleAnalysis.chart.xAxis.title").getString();
+            }
+
+            @Override
+            public String getYAxisTitle() {
+                return getPageBase().createStringResource("PageRoleAnalysis.chart.yAxis.title").getString();
+            }
+
+            @Override
+            public String getDatasetUserLabel() {
+                return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.user.label").getString();
+            }
+
+            @Override
+            public String getDatasetRoleLabel() {
+                return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.role.label").getString();
+            }
+        };
     }
 
     private List<RoleAnalysisModel> prepareRoleAnalysisData() {
@@ -370,6 +434,10 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
 
     private StringResourceModel getSortButtonTitle() {
         return createStringResource("PageRoleAnalysis.chart.sort.button.title");
+    }
+
+    private StringResourceModel getChartTypeButtonTitle() {
+        return createStringResource("PageRoleAnalysis.chart.type.button.title");
     }
 
     public static String applyChartScaleScript() {

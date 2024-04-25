@@ -312,7 +312,8 @@ class ShadowRefreshOperation {
                     ResourceAttributeContainerDefinition resourceAttrDefinition = shadow.getAttributesContainerDefinition();
 
                     // If naming attribute is present in delta...
-                    ResourceAttributeDefinition<?> namingAttribute = resourceAttrDefinition.getNamingAttribute();
+                    ResourceAttributeDefinition<?> namingAttribute =
+                            resourceAttrDefinition.getResourceObjectDefinition().getNamingAttribute();
                     if (namingAttribute != null) {
                         ItemPath namingAttributePath =
                                 ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttribute.getItemName());

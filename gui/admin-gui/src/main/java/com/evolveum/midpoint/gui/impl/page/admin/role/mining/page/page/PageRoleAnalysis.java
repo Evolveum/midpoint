@@ -65,6 +65,8 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/roleAnalysis", matchUrlForSecurity = "/admin/roleAnalysis")
@@ -185,6 +187,11 @@ public class PageRoleAnalysis extends PageAdmin {
             }
 
             @Override
+            protected boolean isReportObjectButtonVisible() {
+                return false;
+            }
+
+            @Override
             protected IColumn<SelectableBean<RoleAnalysisSessionType>, String> createIconColumn() {
                 return super.createIconColumn();
             }
@@ -197,6 +204,9 @@ public class PageRoleAnalysis extends PageAdmin {
                 LoadableModel<PrismContainerDefinition<RoleAnalysisSessionType>> containerDefinitionModel
                         = WebComponentUtil.getContainerDefinitionModel(RoleAnalysisSessionType.class);
 
+                LoadableModel<PrismContainerDefinition<RoleAnalysisOptionType>> processModeDefinitionModel
+                        = WebComponentUtil.getContainerDefinitionModel(RoleAnalysisOptionType.class);
+
                 LoadableModel<PrismContainerDefinition<AbstractAnalysisSessionOptionType>> abstractContainerDefinitionModel
                         = WebComponentUtil.getContainerDefinitionModel(AbstractAnalysisSessionOptionType.class);
 
@@ -204,7 +214,7 @@ public class PageRoleAnalysis extends PageAdmin {
 
                     @Override
                     public Component getHeader(String componentId) {
-                        return createColumnHeader(componentId, containerDefinitionModel, RoleAnalysisSessionType.F_PROCESS_MODE);
+                        return createColumnHeader(componentId, processModeDefinitionModel, RoleAnalysisOptionType.F_PROCESS_MODE);
                     }
 
                     @Override
@@ -491,19 +501,20 @@ public class PageRoleAnalysis extends PageAdmin {
         };
     }
 
-    private static IModel<String> extractProcessMode(IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+    private static @NotNull IModel<String> extractProcessMode(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
         if (model.getObject() != null) {
             RoleAnalysisSessionType value = model.getObject().getValue();
             if (value != null
-                    && value.getProcessMode() != null) {
-                return Model.of(value.getProcessMode().value());
+                    && value.getAnalysisOption() != null && value.getAnalysisOption().getProcessMode() != null) {
+                return Model.of(value.getAnalysisOption().getProcessMode().value()
+                        + "/" + value.getAnalysisOption().getAnalysisCategory().value());
             }
 
         }
         return Model.of("");
     }
 
-    private static IModel<String> extractSimilarity(IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+    private static @NotNull IModel<String> extractSimilarity(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
         AbstractAnalysisSessionOptionType sessionOptionType = null;
         if (model.getObject().getValue() != null) {
             sessionOptionType = getSessionOptionType(model.getObject().getValue());
@@ -516,7 +527,7 @@ public class PageRoleAnalysis extends PageAdmin {
         }
     }
 
-    private static IModel<String> extractMinPropertiesOverlap(IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+    private static @NotNull IModel<String> extractMinPropertiesOverlap(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
         AbstractAnalysisSessionOptionType sessionOptionType = null;
         if (model.getObject().getValue() != null) {
             sessionOptionType = getSessionOptionType(model.getObject().getValue());
@@ -529,7 +540,7 @@ public class PageRoleAnalysis extends PageAdmin {
         }
     }
 
-    private static IModel<String> extractPropertiesRange(IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+    private static @NotNull IModel<String> extractPropertiesRange(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
         AbstractAnalysisSessionOptionType sessionOptionType = null;
         if (model.getObject().getValue() != null) {
             sessionOptionType = getSessionOptionType(model.getObject().getValue());
@@ -545,7 +556,7 @@ public class PageRoleAnalysis extends PageAdmin {
         }
     }
 
-    private static IModel<String> extractMinGroupOption(IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+    private static @NotNull IModel<String> extractMinGroupOption(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
         AbstractAnalysisSessionOptionType sessionOptionType = null;
         if (model.getObject().getValue() != null) {
             sessionOptionType = getSessionOptionType(model.getObject().getValue());
@@ -558,7 +569,7 @@ public class PageRoleAnalysis extends PageAdmin {
         }
     }
 
-    private static IModel<String> extractProcessedObjectCount(IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+    private static @NotNull IModel<String> extractProcessedObjectCount(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
         RoleAnalysisSessionType value = model.getObject().getValue();
         if (value != null
                 && value.getSessionStatistic() != null
@@ -569,7 +580,7 @@ public class PageRoleAnalysis extends PageAdmin {
         }
     }
 
-    private static IModel<String> extractMeanDensity(IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+    private static @NotNull IModel<String> extractMeanDensity(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
         RoleAnalysisSessionType value = model.getObject().getValue();
         if (value != null
                 && value.getSessionStatistic() != null

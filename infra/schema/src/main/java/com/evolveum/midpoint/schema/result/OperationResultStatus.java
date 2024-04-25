@@ -143,20 +143,14 @@ public enum OperationResultStatus {
     }
 
     private static OperationResultStatus forCommonExceptionStatus(@NotNull CommonException.Severity severity) {
-        switch (severity) {
-            case FATAL_ERROR:
-                return FATAL_ERROR;
-            case PARTIAL_ERROR:
-                return PARTIAL_ERROR;
-            case WARNING:
-                return WARNING;
-            case HANDLED_ERROR:
-                return HANDLED_ERROR;
-            case SUCCESS:
-                return SUCCESS;
-            default:
-                throw new AssertionError(severity);
-        }
+        return switch (severity) {
+            case FATAL_ERROR -> FATAL_ERROR;
+            case PARTIAL_ERROR -> PARTIAL_ERROR;
+            case WARNING -> WARNING;
+            case HANDLED_ERROR -> HANDLED_ERROR;
+            case SUCCESS -> SUCCESS;
+            case NOT_APPLICABLE -> NOT_APPLICABLE;
+        };
     }
 
     public static OperationResultStatus forViolationSeverity(@NotNull OperationPolicyViolationSeverityType severity) {

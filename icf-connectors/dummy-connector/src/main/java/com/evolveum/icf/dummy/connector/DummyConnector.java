@@ -28,18 +28,15 @@ import com.evolveum.icf.dummy.resource.DummyResource;
  *
  */
 @ConnectorClass(displayNameKey = "UI_CONNECTOR_NAME", configurationClass = DummyConfiguration.class)
-public class DummyConnector extends AbstractModernObjectDummyConnector implements PoolableConnector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
-        ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp, UpdateDeltaOp, InstanceNameAware {
+public class DummyConnector extends AbstractModernObjectDummyConnector implements PoolableConnector, AuthenticateOp,
+        ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp, ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp,
+        TestOp, UpdateDeltaOp, InstanceNameAware {
 
     // We want to see if the ICF framework logging works properly
     private static final Log LOG = Log.getLog(DummyConnector.class);
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Object runScriptOnConnector(ScriptContext request, OperationOptions options) {
-
         throw new UnsupportedOperationException();
     }
 
@@ -57,5 +54,4 @@ public class DummyConnector extends AbstractModernObjectDummyConnector implement
             throw new ConnectorIOException(e.getMessage(), e);
         }
     }
-
 }

@@ -350,16 +350,15 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         rCase.setFullObject(fullObject);
     }
 
-    public AccessCertificationCaseType toJAXB(PrismContext prismContext) throws SchemaException {
-        return createJaxb(fullObject, prismContext);
+    public AccessCertificationCaseType toJAXB() throws SchemaException {
+        return createJaxb(fullObject);
     }
 
-    public static AccessCertificationCaseType createJaxb(
-            byte[] fullObject, PrismContext prismContext) throws SchemaException {
+    public static AccessCertificationCaseType createJaxb(byte[] fullObject) throws SchemaException {
         String serializedFrom = RUtil.getSerializedFormFromBytes(fullObject);
         LOGGER.trace("RAccessCertificationCase full object to be parsed\n{}", serializedFrom);
         try {
-            return prismContext.parserFor(serializedFrom)
+            return PrismContext.get().parserFor(serializedFrom)
                     .compat()
                     .fastAddOperations()
                     .parseRealValue(AccessCertificationCaseType.class);

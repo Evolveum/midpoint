@@ -1,6 +1,7 @@
 ---
 layout: release
 release-version: '4.9'
+visibility: hidden
 ---
 = MidPoint 4.9 "TODO"
 :release-version: 4.9
@@ -31,10 +32,39 @@ TODO
 === New Features and Major Improvements
 
 * Shadow caching
-* Native Repository Support for searchContainersIteratively for all container types
+* Native Repository Support for `searchContainersIteratively` for all container types
 ** Removed upper record limit for  reports for Assignments, Certfication Cases, Certification Work items and others.
 ** Changed transaction isolation from READ_COMMITED to REPEATABLE_READ.
 ** Changed storage strategy for complex container types - actual data stored inside their own table istead of parent object JSON.
+* Added support for external data in protected strings, that can be resolved via secrets providers.
+This allows to store secrets in external systems, such as HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, etc.
+For more information see xref:/midpoint/reference//security/credentials/secrets-provider-configuration.adoc[].
+** Adding support for GUI of passwords in connector configuration and password of focus (visible only when it is configured in xml)
+* Improvements regard shadow associations (work in progress)
+** Draft of the native associations support in ConnId (1.5.3.0-M1).
+** Draft of the new style of configuring simulated associations (via capabilities).
+** Draft of the new style of configuring associations handling: mapping from associations to assignments using specific correlation and synchronization rules.
+
+* Query Support for searching in value metadata of objects
+** Native Repository: Object metadata stored in `metadata` property of `MetadataType` are also indexed and searchable as value metadata. Eg. original `metadata/creatorRef` is `@metadata/storage/creatorRef` as value metadata path.
+** Value metadata `storage` and `process` are indexed for assignments and available for search using `assignment/@metadata/storage`.
+* Ninja
+** Added support for new verification categories: `MULTI_VALUE_REF_WITHOUT_OID`, `MISSING_NATURAL_KEY`, `MULTIVALUE_BYTE_ARRAY`, `PROTECTED_DATA_NOT_EXTERNAL`.
+For more information see xref:/midpoint/reference/deployment/ninja/command/verify.adoc[].
+
+* Role mining
+** Attribute Clustering Support:
+*** Enabled attribute clustering with customizable conditions, providing flexibility in defining attribute rules for clustering procedures. Available in advanced mode.
+** Attribute Analysis Functionality:
+*** Attribute analysis capabilities allowing the definition of attributes used for cluster and detected pattern analysis. Available in advanced mode.
+** Indirect Access Right Clustering:
+*** Added support for clustering over indirect access rights.
+** Detected Pattern Migration Improvements:
+*** Streamlined detected pattern migration process, enabling the creation of candidates from detected patterns. This allows the role definition to be refined.
+** User Permission Table Enhancements:
+*** Expanded user permission table settings, providing administrators with additional control and customization options.
+** Performance and GUI Enhancements:
+*** Performance optimizations and user interface enhancements to improve overall user experience and efficiency.
 
 === Other Improvements
 
@@ -42,7 +72,11 @@ TODO
 
 * The indication of official vs. unofficial build was added to the About page.
 See xref:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-status/[MidPoint JAR Signature Status] for details.
-* #TODO some restrictions regarding running midPoint without subscription were added#
+* We have added a new algorithm to detect which users are in the production-like environment. It would have the following impact, depending on your subscription status.
+- *active subscribers*: none
+- *subscribers who are in the renewal period*: none during the grace period of 90 days
+- *non-subscribers*: disabled cluster communication; if a non-H2 generic repository is used, the GUI would be disabled and the only option would be to set a subscription ID
+- For more information, feel free to read link:https://evolveum.com/statement-midpoint-release-changes/[this blog post].
 
 * Duplication function of object or container showed in table.
 * Adding panel in gui, that support of creating new archetype for reference in resource object type.
@@ -50,6 +84,10 @@ See xref:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-status
 * Adding possibility for use 'Preview' button with development configuration on page details.
 * Adding 'Shadow reclassification' task as a new separate activity of the task type.
 ** Adding button for creating simulated/production 'Reclassification' task on unrecognized resource objects panel.
+* New implementation and look of date time picker.
+* Support for item deltas targeting value metadata only (without need to replace whole container value)
+* Resolving the issue for creating a new member object with predefined by archetype options on members panel.
+* Resolving several issues for Self Service -> Credentials page.
 
 === Releases Of Other Components
 
@@ -528,6 +566,19 @@ In particular, even if the required auxiliary object class is not present for th
 (They were hidden before.)
 #TODO reconsider this#
 
+* "<a:indexed/>" and "<a:indexOnly/>" annotations - when present but without any value - was interpreted as "false".
+This was now changed to a more intuitive interpretation (similar to a:object, a:container, etc), where annotation present but without value means "true".
+Also, "a:container" and other markers were interpreted as "true", even if the value was actually "false".
+This is now fixed as well.
+
+* Years-old ref-style schema annotations like <r:identifier ref="icfs:uid"/> are no longer supported.
+They are not used since midPoint 2.0.
+If you happen to use them in your manually configured resource XSD schemas, please replace them with the supported <r:identifier>icfs:uid</r:identifier> style.
+
+* Support for getting/setting objects embedded in references marked as `a:objectReference` directly, like `LensElementContext.getObjectOld()`.
+This feature was used only internally by midPoint.
+
+* #TODO# Either bring back the support of <xsd:documentation> in resource schemas (not used by ConnId, but may be used for manually entered schemas), or document the feature drop here.
 === Java and REST API Changes Since 4.8
 
 NOTE: As for the Java API, this section describes changes in `midpoint` and `basic` function libraries.
@@ -548,6 +599,18 @@ But these two objects are something that can be unofficially considered to be th
 NOTE: These changes should not influence people that use midPoint "as is".
 They should also not influence the XML/JSON/YAML-based customizations or scripting expressions that rely just on the provided library classes.
 These changes will influence midPoint forks and deployments that are heavily customized using the Java components.
+
+* Internal APIs were massively changed with regard to passing `prismContext` object between methods.
+This object has been statically available for quite a long time.
+Now it was definitely removed from methods' signatures.
++
+*The official APIs (like `midpoint` and `basic` objects) were not touched by this change.
+However, if you use some of the unofficial or undocumented APIs, please make sure you migrate your code appropriately.*
++
+The change itself is very simple: basically, the `PrismContext` parameter was removed from methods' signatures.
+
+* Likewise, the internals of prism definitions were changed in https://github.com/Evolveum/prism/commit/12808dc91f4ea358dda3666cd0b01eba7d08300c[12808d].
+You should not be affected by this; however, if you use some of the unofficial/undocumented APIs, please check your code.
 
 // * The post-processing of retrieved objects in the IDM Model subsystem (sometimes called "apply schemas and security") was xref:/midpoint/devel/design/apply-schemas-and-security-4.8/summary.adoc[simplified].
 //

@@ -1,9 +1,6 @@
 package com.evolveum.midpoint.model.api.correlation;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.ResolvedItemPath;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -45,12 +42,12 @@ public class CorrelationPropertyDefinition implements Serializable, DebugDumpabl
     }
 
     public static @NotNull CorrelationPropertyDefinition fromConfiguration(
-            @NotNull CorrelationItemType itemBean, @Nullable PrismObjectDefinition<?> focusDefinition)
+            @NotNull CorrelationItemType itemBean, @Nullable ComplexTypeDefinition complexTypeDefinition)
             throws ConfigurationException {
         String name = getName(itemBean);
         ItemPath rawPath = getPath(itemBean);
-        if (focusDefinition != null) {
-            ResolvedItemPath<?> resolvedPath = ResolvedItemPath.create(focusDefinition, rawPath);
+        if (complexTypeDefinition != null) {
+            var resolvedPath = ResolvedItemPath.create(complexTypeDefinition, rawPath);
             if (resolvedPath.isComplete()) {
                 return new CorrelationPropertyDefinition(name, resolvedPath.getResolvedPath(), resolvedPath.getLastDefinition());
             }

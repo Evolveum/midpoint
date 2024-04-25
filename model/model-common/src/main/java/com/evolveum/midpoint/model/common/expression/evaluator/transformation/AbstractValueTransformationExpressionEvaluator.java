@@ -23,14 +23,11 @@ import org.apache.commons.lang3.BooleanUtils;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -131,19 +128,11 @@ public abstract class AbstractValueTransformationExpressionEvaluator
         return expressionEvaluatorBean;
     }
 
-    /**
-     * Transforms single value tuple.
-     *
-     * @param variables Variables to be applied. Must not be relativistic! All deltas must be sorted out by now.
-     * @param valueDestination Where we are going to put output value(s). Actually it's only supplementary information for
-     *                         the transformer as the actual placement of output values is done in the caller.
-     * @param useNew Are we using "new" state of sources/input variables? Again, this is only supplementary information,
-     *               because the variables should be already non-relativistic. Some scripts need to know the value of "useNew".
-     * @param context Caller-specified context of the whole expression evaluation.
-     */
+    /** Transforms single value or single values tuple. */
     @NotNull
-    protected abstract List<V> transformSingleValue(VariablesMap variables, PlusMinusZero valueDestination,
-            boolean useNew, ExpressionEvaluationContext context, String contextDescription, Task task, OperationResult result)
+    protected abstract List<V> transformSingleValue(
+            @NotNull ValueTransformationContext valueTransformationContext,
+            @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException;
 }

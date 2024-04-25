@@ -160,7 +160,7 @@ public class StartInstruction implements DebugDumpable {
     }
 
     public void setParent(CaseType parent) {
-        aCase.setParentRef(ObjectTypeUtil.createObjectRef(parent, PrismContext.get()));
+        aCase.setParentRef(ObjectTypeUtil.createObjectRef(parent));
     }
     //endregion
 

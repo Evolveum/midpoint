@@ -45,12 +45,12 @@ class QueryBasedObjectSet extends PartlyReferenceBasedObjectSet {
             if (linkedSourcesQuery != null) {
                 return linkedSourcesQuery;
             } else {
-                return CompleteQuery.none(AssignmentHolderType.class, beans.prismContext);
+                return CompleteQuery.none(AssignmentHolderType.class);
             }
         } else {
-            CompleteQuery<?> explicitObjectsQuery = CompleteQuery.inOid(individualObjects.values(), beans.prismContext);
+            CompleteQuery<?> explicitObjectsQuery = CompleteQuery.inOid(individualObjects.values());
             if (linkedSourcesQuery != null) {
-                return CompleteQuery.or(Arrays.asList(linkedSourcesQuery, explicitObjectsQuery), beans.prismContext);
+                return CompleteQuery.or(Arrays.asList(linkedSourcesQuery, explicitObjectsQuery));
             } else {
                 return explicitObjectsQuery;
             }

@@ -7,21 +7,19 @@
 
 package com.evolveum.midpoint.model.impl;
 
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
 
 /**
  * The default implementation of {@link ResourceObjectProcessingContext}.
@@ -40,7 +38,6 @@ public class ResourceObjectProcessingContextImpl implements ResourceObjectProces
     @Nullable private final SystemConfigurationType systemConfiguration;
     @Nullable private final String explicitChannel;
     @NotNull private final Task task;
-    @NotNull private final ModelBeans beans;
 
     private ResourceObjectProcessingContextImpl(ResourceObjectProcessingContextBuilder builder) {
         shadowedResourceObject = Objects.requireNonNull(builder.shadowedResourceObject, "shadowedResourceObject is null");
@@ -49,7 +46,6 @@ public class ResourceObjectProcessingContextImpl implements ResourceObjectProces
         systemConfiguration = builder.systemConfiguration;
         explicitChannel = builder.explicitChannel;
         task = Objects.requireNonNull(builder.task, "task is null");
-        beans = Objects.requireNonNull(builder.beans, "beans object is null");
     }
 
     @Override
@@ -80,11 +76,6 @@ public class ResourceObjectProcessingContextImpl implements ResourceObjectProces
     @Override
     public @NotNull Task getTask() {
         return task;
-    }
-
-    @Override
-    public @NotNull ModelBeans getBeans() {
-        return beans;
     }
 
     @Override

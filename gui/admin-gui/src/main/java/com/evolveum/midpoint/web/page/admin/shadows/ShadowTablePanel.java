@@ -848,14 +848,14 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
         ReferenceDelta delta = getPageBase().getPrismContext().deltaFactory().reference().createModificationDelete(FocusType.F_LINK_REF,
                 getFocusDefinition(),
-                ObjectTypeUtil.createObjectRef(shadow, PrismContext.get()).asReferenceValue());
+                ObjectTypeUtil.createObjectRef(shadow).asReferenceValue());
         changeOwnerInternal(owner.getOid(), owner.getClass(), Collections.singletonList(delta), target);
     }
 
     private <F extends FocusType> void setNewShadowOwner(F ownerToChange, SelectableBean<ShadowType> selectableShadow, AjaxRequestTarget target) {
         ShadowType shadow = selectableShadow.getValue();
         ReferenceDelta delta = getPageBase().getPrismContext().deltaFactory().reference().createModificationAdd(FocusType.F_LINK_REF, getFocusDefinition(),
-                ObjectTypeUtil.createObjectRef(shadow, PrismContext.get()).asReferenceValue());
+                ObjectTypeUtil.createObjectRef(shadow).asReferenceValue());
         changeOwnerInternal(ownerToChange.getOid(), ownerToChange.getClass(), Collections.singletonList(delta), target);
     }
 

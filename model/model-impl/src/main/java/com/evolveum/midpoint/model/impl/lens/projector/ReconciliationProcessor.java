@@ -566,7 +566,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 //                }
 //            }
 
-            Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>,ShadowAssociationDefinition>> shouldBeCValues;
+            Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>> shouldBeCValues;
             if (cvwoTriple == null) {
                 shouldBeCValues = new HashSet<>();
             } else {
@@ -598,9 +598,9 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                 }
             }
 
-            PrismObject<ShadowType> shadowNew = projCtx.getObjectNewRequired();
-            Collection<PrismContainerValue<ShadowAssociationValueType>> areCValues =
-                    new HashSet<>(ShadowUtil.getAssociationPrismValues(shadowNew, assocName));
+            var shadowNew = projCtx.getObjectNewRequired();
+            Collection<ShadowAssociationValue> areCValues =
+                    new HashSet<>(ShadowUtil.getAdoptedAssociationValues(shadowNew, assocName));
 
             for (var shouldBeCvwo : shouldBeCValues) {
                 PrismValueDeltaSetTripleProducer<?, ?> shouldBeMapping = shouldBeCvwo.getMapping();
@@ -665,17 +665,17 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     private void decideIfTolerateAssociation(
             LensProjectionContext accCtx,
             ShadowAssociationDefinition assocDef,
-            Collection<PrismContainerValue<ShadowAssociationValueType>> areCValues,
+            Collection<ShadowAssociationValue> areCValues,
             Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>> shouldBeCValues,
             Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException, ExpressionEvaluationException {
 
-        boolean evaluatePatterns = !assocDef.getTolerantValuePattern().isEmpty() || !assocDef.getIntolerantValuePattern().isEmpty();
+        boolean evaluatePatterns = !assocDef.getTolerantValuePatterns().isEmpty() || !assocDef.getIntolerantValuePatterns().isEmpty();
         MatchingRule<Object> matchingRule = evaluatePatterns ? getMatchingRuleForTargetNamingIdentifier(assocDef) : null;
 
         // for each existing value we decide whether to keep it or delete it
-        for (PrismContainerValue<ShadowAssociationValueType> isCValue : areCValues) {
+        for (var isCValue : areCValues) {
             ResourceAttribute<String> targetNamingIdentifier = null;
             if (evaluatePatterns) {
                 targetNamingIdentifier = getTargetNamingIdentifier(isCValue, task, result);
@@ -686,7 +686,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             }
 
             String assocNameLocal = assocDef.getItemName().getLocalPart();
-            if (evaluatePatterns && matchesAssociationPattern(assocDef.getTolerantValuePattern(), targetNamingIdentifier, matchingRule)) {
+            if (evaluatePatterns && matchesAssociationPattern(assocDef.getTolerantValuePatterns(), targetNamingIdentifier, matchingRule)) {
                 LOGGER.trace("Reconciliation: KEEPING value {} of association {}: identifier {} matches with tolerant value pattern.",
                         isCValue, assocNameLocal, targetNamingIdentifier);
                 continue;
@@ -697,7 +697,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                 continue;
             }
 
-            if (evaluatePatterns && matchesAssociationPattern(assocDef.getIntolerantValuePattern(), targetNamingIdentifier, matchingRule)) {
+            if (evaluatePatterns && matchesAssociationPattern(assocDef.getIntolerantValuePatterns(), targetNamingIdentifier, matchingRule)) {
                 swallowAssociationDelta(accCtx, assocDef, ModificationType.DELETE,
                         isCValue, null, "identifier " + targetNamingIdentifier + " matches with intolerant pattern");
                 continue;
@@ -715,7 +715,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     @NotNull
     private MatchingRule<Object> getMatchingRuleForTargetNamingIdentifier(ShadowAssociationDefinition associationDefinition) throws SchemaException {
-        ResourceObjectTypeDefinition targetObjectDefinition = associationDefinition.getTargetObjectDefinition();
+        var targetObjectDefinition = associationDefinition.getTargetObjectDefinition();
         // TODO why naming attribute? Why not valueAttribute from the association definition?
         ResourceAttributeDefinition<?> targetNamingAttributeDef = targetObjectDefinition.getNamingAttribute();
         if (targetNamingAttributeDef != null) {
@@ -729,7 +729,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     }
 
     private ResourceAttribute<String> getTargetNamingIdentifier(
-            PrismContainerValue<ShadowAssociationValueType> associationValue, Task task, OperationResult result)
+            ShadowAssociationValue associationValue, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
         return getIdentifiersForAssociationTarget(associationValue, task, result).getNamingAttribute();
@@ -737,13 +737,13 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     @NotNull
     private ResourceAttributeContainer getIdentifiersForAssociationTarget(
-            PrismContainerValue<ShadowAssociationValueType> isCValue,
+            ShadowAssociationValue isCValue,
             Task task, OperationResult result) throws CommunicationException,
             SchemaException, ConfigurationException,
             SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
-        var identifiersInAssociation = ShadowUtil.getIdentifiersContainer(isCValue);
-        if (identifiersInAssociation != null) {
-            return identifiersInAssociation;
+        var attributesContainer = isCValue.getAttributesContainerIfPresent();
+        if (attributesContainer != null) {
+            return attributesContainer;
         }
         String oid = isCValue.asContainerable().getShadowRef() != null ? isCValue.asContainerable().getShadowRef().getOid() : null;
         if (oid == null) {
@@ -890,7 +890,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     // todo deduplicate; this was copied not to broke what works now [mederly]
     private boolean isNotInAssociationsValue(
             PrismContainerValue<ShadowAssociationValueType> shouldBeCValue,
-            Collection<PrismContainerValue<ShadowAssociationValueType>> areCValues) {
+            Collection<ShadowAssociationValue> areCValues) {
         for (PrismContainerValue<ShadowAssociationValueType> isCValue : emptyIfNull(areCValues)) {
             if (matchPrismValue(isCValue, shouldBeCValue, shadowRefBasedPcvEqualsChecker())) {
                 return false;
@@ -920,9 +920,9 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     private boolean isInCvwoAssociationValues(
             PrismContainerValue<ShadowAssociationValueType> value,
-            Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>,ShadowAssociationDefinition>> shouldBeCvwos) {
+            Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>> shouldBeCvwos) {
 
-        for (ItemValueWithOrigin<? extends PrismContainerValue<ShadowAssociationValueType>,ShadowAssociationDefinition> shouldBeCvwo : emptyIfNull(shouldBeCvwos)) {
+        for (ItemValueWithOrigin<? extends PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition> shouldBeCvwo : emptyIfNull(shouldBeCvwos)) {
             if (!shouldBeCvwo.isValid()) {
                 continue;
             }

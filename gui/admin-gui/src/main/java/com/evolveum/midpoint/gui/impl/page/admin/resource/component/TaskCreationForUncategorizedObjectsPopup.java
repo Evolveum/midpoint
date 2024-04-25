@@ -82,4 +82,8 @@ public class TaskCreationForUncategorizedObjectsPopup extends TaskCreationPopup<
             }
         };
     }
+
+    protected boolean getDefaultSimulationTag() {
+        return true;
+    }
 }

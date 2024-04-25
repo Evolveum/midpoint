@@ -125,7 +125,7 @@ public class AccCertCloserHelper {
 
     private void createWorkItemsCloseDeltas(AccessCertificationCampaignType campaign, ModificationsToExecute modifications,
             XMLGregorianCalendar now, OperationResult result) throws SchemaException {
-        ObjectQuery query = CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid(), prismContext);
+        ObjectQuery query = CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid());
         List<AccessCertificationWorkItemType> openWorkItems = queryHelper.searchOpenWorkItems(query, false, result);
         LOGGER.debug("There are {} open work items for {}", openWorkItems.size(), ObjectTypeUtil.toShortString(campaign));
         for (AccessCertificationWorkItemType workItem : openWorkItems) {

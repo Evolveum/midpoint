@@ -75,7 +75,7 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<?>
         String variableName = ItemPath.toVariableName(pathToResolve.first()).getLocalPart();
         pathToResolve = pathToResolve.rest();
 
-        TypedValue variableValueAndDefinition = evaluator.findInSourcesAndVariables(context, variableName);
+        TypedValue<?> variableValueAndDefinition = evaluator.findInSourcesAndVariables(context, variableName);
         if (variableValueAndDefinition == null) {
             throw new ExpressionEvaluationException("No variable with name "+variableName+" in "+ context.getContextDescription());
         }
@@ -89,7 +89,7 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<?>
             return new ValueResolutionContext((PrismValue) variableValue, context.getContextDescription());
         } else if (variableValueAndDefinition.getTypeClass().isAssignableFrom(variableValue.getClass())) {
             // FIXME this fails for ObjectType variable values, as getTypeClass() is null for them
-            return ValueResolutionContext.fromRealValue(variableValue, context.getContextDescription(), evaluator.getPrismContext());
+            return ValueResolutionContext.fromRealValue(variableValue, context.getContextDescription());
         } else {
             throw new ExpressionEvaluationException("Unexpected variable value "+variableValue+" ("+variableValue.getClass()+")");
         }
@@ -108,13 +108,14 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<?>
 
         while (!pathToResolve.isEmpty()) {
             if (resolutionContext.isContainer()) {
-                DefinitionResolver defResolver = (parentDef, path) -> {
+                DefinitionResolver<?, ?> defResolver = (parentDef, path) -> {
                     if (parentDef != null && parentDef.isDynamic()) {
                         // This is the case of dynamic schema extensions, such as assignment extension.
                         // Those may not have a definition. In that case just assume strings.
                         // In fact, this is a HACK. All such schemas should have a definition.
                         // Otherwise there may be problems with parameter types for caching compiles scripts and so on.
-                        return evaluator.getPrismContext().definitionFactory().createPropertyDefinition(path.firstName(), PrimitiveType.STRING.getQname());
+                        return evaluator.getPrismContext().definitionFactory()
+                                .newPropertyDefinition(path.firstName(), PrimitiveType.STRING.getQname());
                     } else {
                         return null;
                     }
@@ -135,7 +136,7 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<?>
 
             } else if (resolutionContext.isStructuredProperty()) {
                 resolutionContext = resolutionContext.resolveStructuredProperty(
-                        pathToResolve, (PrismPropertyDefinition<?>) evaluator.getOutputDefinition(), evaluator.getPrismContext());
+                        pathToResolve, (PrismPropertyDefinition<?>) evaluator.getOutputDefinition());
                 pathToResolve = ItemPath.EMPTY_PATH;
 
             } else if (resolutionContext.isNull()) {

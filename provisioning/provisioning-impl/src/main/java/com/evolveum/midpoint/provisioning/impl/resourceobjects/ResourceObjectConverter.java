@@ -49,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabi
  *
  * . protected objects
  * . simulated activation (delegated to {@link ActivationConverter})
- * . entitlements (delegated to {@link EntitlementReader} and {@link EntitlementConverter})
+ * . simulated entitlements (delegated to {@link EntitlementReader} and {@link EntitlementConverter})
  * . script execution
  * . avoid duplicate values
  * . attributes returned by default/not returned by default
@@ -78,26 +78,19 @@ public class ResourceObjectConverter {
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
     /**
-     * For object-to-subject entitlements, the {@link ShadowAssociationValueType#F_IDENTIFIERS} containers can contain
-     * the full object ({@link ExistingResourceObject}) of the relevant entitlement, to avoid is repeated fetching
-     * for the sake of the shadowization.
-     */
-    public static final String ENTITLEMENT_OBJECT_KEY = ResourceObjectConverter.class.getName() + ".entitlementObject";
-
-    /**
      * Fetches the resource object by its primary identifier(s).
      * The resource must have "full" reading capability (i.e., no caching-only).
      */
     public @NotNull CompleteResourceObject fetchResourceObject(
             @NotNull ProvisioningContext ctx,
             @NotNull ResourceObjectIdentification.WithPrimary primaryIdentification,
-            @Nullable AttributesToReturn attributesToReturn,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
             boolean fetchAssociations,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         return ResourceObjectFetchOperation.execute(
-                ctx, primaryIdentification, fetchAssociations, attributesToReturn, result);
+                ctx, primaryIdentification, fetchAssociations, shadowItemsToReturn, result);
     }
 
     /**
@@ -300,7 +293,7 @@ public class ResourceObjectConverter {
             SecurityViolationException, GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
 
         LOGGER.trace("START fetch changes from {}, objectClass: {}", initialToken, ctx.getObjectClassDefinition());
-        AttributesToReturn attrsToReturn;
+        ShadowItemsToReturn attrsToReturn;
         if (ctx.isWildcard()) {
             attrsToReturn = null;
         } else {

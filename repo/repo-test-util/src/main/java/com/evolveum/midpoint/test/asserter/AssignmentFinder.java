@@ -6,23 +6,23 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentRelationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * @author semancik
- *
  */
 public class AssignmentFinder<AH extends AssignmentHolderType, AHA extends AssignmentHolderAsserter<AH, RA>,RA> {
 
@@ -32,8 +32,9 @@ public class AssignmentFinder<AH extends AssignmentHolderType, AHA extends Assig
     private QName targetRelation;
     private String resourceOid;
     private QName holderType;
+    private String identifier;
 
-    public AssignmentFinder(AssignmentsAsserter<AH, AHA,RA> assignmentsAsserter) {
+    AssignmentFinder(AssignmentsAsserter<AH, AHA, RA> assignmentsAsserter) {
         this.assignmentsAsserter = assignmentsAsserter;
     }
 
@@ -62,15 +63,17 @@ public class AssignmentFinder<AH extends AssignmentHolderType, AHA extends Assig
         return this;
     }
 
+    public AssignmentFinder<AH, AHA, RA> identifier(@NotNull String identifier) {
+        this.identifier = identifier;
+        return this;
+    }
+
     public AssignmentAsserter<AssignmentsAsserter<AH, AHA, RA>> find() throws ObjectNotFoundException, SchemaException {
         AssignmentType found = null;
-        PrismObject<?> foundTarget = null;
         for (AssignmentType assignment: assignmentsAsserter.getAssignments()) {
-            PrismObject<ShadowType> assignmentTarget = null;
-            if (matches(assignment, assignmentTarget)) {
+            if (matches(assignment)) {
                 if (found == null) {
                     found = assignment;
-                    foundTarget = assignmentTarget;
                 } else {
                     fail("Found more than one assignment that matches search criteria");
                 }
@@ -83,41 +86,29 @@ public class AssignmentFinder<AH extends AssignmentHolderType, AHA extends Assig
     }
 
     public AssignmentsAsserter<AH, AHA,RA> assertNone() throws ObjectNotFoundException, SchemaException {
-        for (AssignmentType assignment: assignmentsAsserter.getAssignments()) {
-            PrismObject<ShadowType> assignmentTarget = null;
-//            PrismObject<ShadowType> assignmentTarget = assignmentsAsserter.getTarget(assignment.getOid());
-            if (matches(assignment, assignmentTarget)) {
-                fail("Found assignment target while not expecting it: "+formatTarget(assignment, assignmentTarget));
+        for (AssignmentType assignment : assignmentsAsserter.getAssignments()) {
+            if (matches(assignment)) {
+                fail("Found assignment target while not expecting it: " + formatTarget(assignment));
             }
         }
         return assignmentsAsserter;
     }
 
     public AssignmentsAsserter<AH, AHA,RA> assertAll() throws ObjectNotFoundException, SchemaException {
-        for (AssignmentType assignment: assignmentsAsserter.getAssignments()) {
-            PrismObject<ShadowType> assignmentTarget = null;
-//            PrismObject<ShadowType> assignmentTarget = assignmentsAsserter.getTarget(assignment.getOid());
-            if (!matches(assignment, assignmentTarget)) {
-                fail("Found assignment that does not match search criteria: "+formatTarget(assignment, assignmentTarget));
+        for (AssignmentType assignment : assignmentsAsserter.getAssignments()) {
+            if (!matches(assignment)) {
+                fail("Found assignment that does not match search criteria: " + formatTarget(assignment));
             }
         }
         return assignmentsAsserter;
     }
 
-    private String formatTarget(AssignmentType assignment, PrismObject<ShadowType> assignmentTarget) {
-        if (assignmentTarget != null) {
-            return assignmentTarget.toString();
-        }
+    private String formatTarget(AssignmentType assignment) {
         return assignment.getTargetRef().toString();
     }
 
-    private boolean matches(AssignmentType assignment, PrismObject<?> targetObject) throws ObjectNotFoundException, SchemaException {
+    private boolean matches(AssignmentType assignment) {
         ObjectReferenceType targetRef = assignment.getTargetRef();
-        ObjectType targetObjectType = null;
-        if (targetObject != null) {
-            targetObjectType = (ObjectType) targetObject.asObjectable();
-        }
-
         if (targetOid != null) {
             if (targetRef == null || !targetOid.equals(targetRef.getOid())) {
                 return false;
@@ -158,6 +149,12 @@ public class AssignmentFinder<AH extends AssignmentHolderType, AHA extends Assig
 
             }
         }
+
+        //noinspection RedundantIfStatement
+        if (identifier != null && !identifier.equals(assignment.getIdentifier())) {
+            return false;
+        }
+
         // TODO: more criteria
         return true;
     }

@@ -170,7 +170,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.getDummyResource().getAccountByUsername(MALFORMED_SHADOW_NAME);
+        DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.getDummyResource().getAccountByName(MALFORMED_SHADOW_NAME);
         account.setName(null); // This causes a failure during query execution (not even in the results handler).
         try {
 
@@ -229,7 +229,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // This will cause problem when updating shadow
-        DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.getDummyResource().getAccountByUsername(MALFORMED_SHADOW_NAME);
+        DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.getDummyResource().getAccountByName(MALFORMED_SHADOW_NAME);
         account.replaceAttributeValue(ATTR_NUMBER, "WRONG");
 
         // Other kinds of failures are still disabled, to check last failed object name in case of malformed accounts

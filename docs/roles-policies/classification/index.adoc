@@ -15,8 +15,12 @@ compliance:
 = Information Classification and Clearances
 :page-toc: top
 :page-nav-title: Classification
-:page-since: "4.8.3"
+:page-since: "4.9"
 :page-upkeep-status: yellow
+
+.Work in progress
+NOTE: This is still work in progress.
+The mechanisms that underlay the classifications are being updated to a more modern approach, planned for midPoint 4.9.
 
 Information classification is a process in which organisations assess their data and systems, with regard to the necessary level of protection.
 The information is classified by assigning information _labels_ or _classifications_ to individual assets, such as databases, filesystems, applications or even individual files.
@@ -189,6 +193,11 @@ We will use xref:../policy-rules/[policy rule] for this purpose:
             <name>required-cybersecurity-training</name>
             <policyConstraints>
                 <hasNoAssignment>
+                    <presentation>
+                        <message>
+                            <fallbackMessage>Cybersecurity training required</fallbackMessage>
+                        </message>
+                    </presentation>
                     <!-- Basic cybersecurity training clearance -->
                     <targetRef oid="5bb5c5b5-eca2-4129-b73f-34c0b0bd2736" type="RoleType" />
                 </hasNoAssignment>
@@ -245,6 +254,11 @@ We can use the approach described above the place requirement for the special cl
             <name>required-special-clearance</name>
             <policyConstraints>
                 <hasNoAssignment>
+                    <presentation>
+                        <message>
+                            <fallbackMessage>Special security clearance required</fallbackMessage>
+                        </message>
+                    </presentation>
                     <!-- Special security clearance -->
                     <targetRef oid="147a93c6-c8c3-4430-9603-659ffeb5e544" type="RoleType" />
                 </hasNoAssignment>

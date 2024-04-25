@@ -87,7 +87,11 @@ public enum ObjectTypeGuiDescriptor {
 
     ASSIGNMENT_HOLDER_TYPE(ObjectTypes.ASSIGNMENT_HOLDER_TYPE, "ObjectTypeGuiDescriptor.assignmentHolderType", "", ""), //TODO icons
 
-    SIMULATION_RESULT(ObjectTypes.SIMULATION_RESULT, "ObjectType.SimulationResultType", "", "");
+    SIMULATION_RESULT(ObjectTypes.SIMULATION_RESULT, "ObjectType.SimulationResultType", "", ""),
+
+    POLICY(ObjectTypes.POLICY, "ObjectType.PolicyType", "", ""),
+
+    SCHEMA(ObjectTypes.SCHEMA, "ObjectType.SchemaType", "", "");
 
     public static final String ERROR_ICON = "fa-solid fa-triangle-exclamation text-warning";
 

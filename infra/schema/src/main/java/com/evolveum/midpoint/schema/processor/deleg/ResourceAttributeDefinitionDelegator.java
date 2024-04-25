@@ -10,7 +10,6 @@ package com.evolveum.midpoint.schema.processor.deleg;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
-import com.evolveum.midpoint.schema.processor.RawResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -66,7 +65,7 @@ public interface ResourceAttributeDefinitionDelegator<T>
     }
 
     @Override
-    default AttributeFetchStrategyType getFetchStrategy() {
+    default @NotNull AttributeFetchStrategyType getFetchStrategy() {
         return delegate().getFetchStrategy();
     }
 
@@ -136,18 +135,13 @@ public interface ResourceAttributeDefinitionDelegator<T>
     }
 
     @Override
-    default RawResourceAttributeDefinition<T> getRawAttributeDefinition() {
-        return delegate().getRawAttributeDefinition();
-    }
-
-    @Override
     default @Nullable MappingType getOutboundMappingBean() {
         return delegate().getOutboundMappingBean();
     }
 
     @Override
     default boolean hasOutboundMapping() {
-        return ResourceAttributeDefinition.super.hasOutboundMapping();
+        return delegate().hasOutboundMapping();
     }
 
     @Override
@@ -206,7 +200,7 @@ public interface ResourceAttributeDefinitionDelegator<T>
     }
 
     @Override
-    default @Nullable ItemCorrelatorDefinitionType getCorrelatorDefinition() {
+    default ItemCorrelatorDefinitionType getCorrelatorDefinition() {
         return delegate().getCorrelatorDefinition();
     }
 
@@ -261,5 +255,19 @@ public interface ResourceAttributeDefinitionDelegator<T>
     @Override
     default boolean hasRefinements() {
         return delegate().hasRefinements();
+    }
+
+    default boolean isIndexOnly() {
+        return delegate().isIndexOnly();
+    }
+
+    @Override
+    default String getHumanReadableDescription() {
+        return delegate().getHumanReadableDescription();
+    }
+
+    @Override
+    default boolean isSimulated() {
+        return delegate().isSimulated();
     }
 }

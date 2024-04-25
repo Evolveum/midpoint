@@ -96,7 +96,7 @@ public class TestEscalation extends AbstractCertificationTest {
         // WHEN
         when();
         List<AccessCertificationCaseType> caseList = modelService.searchContainers(
-                AccessCertificationCaseType.class, CertCampaignTypeUtil.createCasesForCampaignQuery(campaignOid, prismContext),
+                AccessCertificationCaseType.class, CertCampaignTypeUtil.createCasesForCampaignQuery(campaignOid),
                 null, task, result);
 
         // THEN
@@ -174,7 +174,7 @@ public class TestEscalation extends AbstractCertificationTest {
         when();
         List<AccessCertificationWorkItemType> workItems =
                 certificationService.searchOpenWorkItems(
-                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
+                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid),
                         false, null, task, result);
 
         // THEN
@@ -255,8 +255,8 @@ public class TestEscalation extends AbstractCertificationTest {
         AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
         assertObjectRefs("assignees", false, workItem.getAssigneeRef(), USER_JACK_OID, USER_ADMINISTRATOR_OID);
         assertEquals("Wrong originalAssignee OID", USER_ADMINISTRATOR_OID, workItem.getOriginalAssigneeRef().getOid());
-        final WorkItemEscalationLevelType NEW_ESCALATION_LEVEL = new WorkItemEscalationLevelType().number(1).name("jack-level");
-        assertEquals("Wrong escalation info", NEW_ESCALATION_LEVEL, workItem.getEscalationLevel());
+        final WorkItemEscalationLevelType newEscalationLevel = new WorkItemEscalationLevelType().number(1).name("jack-level");
+        assertEquals("Wrong escalation info", newEscalationLevel, workItem.getEscalationLevel());
         assertEquals("Wrong # of events", 1, ceoCase.getEvent().size());
         WorkItemEscalationEventType event = (WorkItemEscalationEventType) ceoCase.getEvent().get(0);
         assertNotNull("No timestamp in event", event.getTimestamp());
@@ -265,7 +265,7 @@ public class TestEscalation extends AbstractCertificationTest {
         assertObjectRefs("assigneeBefore", false, event.getAssigneeBefore(), USER_ADMINISTRATOR_OID);
         assertObjectRefs("delegatedTo", false, event.getDelegatedTo(), USER_JACK_OID);
         assertEquals("Wrong delegationMethod", WorkItemDelegationMethodType.ADD_ASSIGNEES, event.getDelegationMethod());
-        assertEquals("Wrong new escalation level", NEW_ESCALATION_LEVEL, event.getNewEscalationLevel());
+        assertEquals("Wrong new escalation level", newEscalationLevel, event.getNewEscalationLevel());
 
         AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
         AccessCertificationWorkItemType superuserWorkItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1,
@@ -279,7 +279,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
         AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
         assertNotNull(currentStage);
-        assertEquals("Wrong new stage escalation level", NEW_ESCALATION_LEVEL, currentStage.getEscalationLevel());
+        assertEquals("Wrong new stage escalation level", newEscalationLevel, currentStage.getEscalationLevel());
 
         display("campaign after escalation", campaign);
         assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size()); // completion + timed-action (P3D)
@@ -321,9 +321,9 @@ public class TestEscalation extends AbstractCertificationTest {
         assertNotNull("No work item found", workItem);
         assertObjectRefs("assignees", false, workItem.getAssigneeRef(), USER_ELAINE_OID);
         assertEquals("Wrong originalAssignee OID", USER_ADMINISTRATOR_OID, workItem.getOriginalAssigneeRef().getOid());
-        final WorkItemEscalationLevelType OLD_ESCALATION_LEVEL = new WorkItemEscalationLevelType().number(1).name("jack-level");
-        final WorkItemEscalationLevelType NEW_ESCALATION_LEVEL = new WorkItemEscalationLevelType().number(2).name("elaine-level");
-        assertEquals("Wrong escalation info", NEW_ESCALATION_LEVEL, workItem.getEscalationLevel());
+        final WorkItemEscalationLevelType oldEscalationLevel = new WorkItemEscalationLevelType().number(1).name("jack-level");
+        final WorkItemEscalationLevelType newEscalationLevel = new WorkItemEscalationLevelType().number(2).name("elaine-level");
+        assertEquals("Wrong escalation info", newEscalationLevel, workItem.getEscalationLevel());
         assertEquals("Wrong # of events", 2, ceoCase.getEvent().size());
         WorkItemEscalationEventType event = (WorkItemEscalationEventType) ceoCase.getEvent().get(1);
         assertNotNull("No timestamp in event", event.getTimestamp());
@@ -332,8 +332,8 @@ public class TestEscalation extends AbstractCertificationTest {
         assertObjectRefs("assigneeBefore", false, event.getAssigneeBefore(), USER_ADMINISTRATOR_OID, USER_JACK_OID);
         assertObjectRefs("delegatedTo", false, event.getDelegatedTo(), USER_ELAINE_OID);
         assertEquals("Wrong delegationMethod", WorkItemDelegationMethodType.REPLACE_ASSIGNEES, event.getDelegationMethod());
-        assertEquals("Wrong old escalation level", OLD_ESCALATION_LEVEL, event.getEscalationLevel());
-        assertEquals("Wrong new escalation level", NEW_ESCALATION_LEVEL, event.getNewEscalationLevel());
+        assertEquals("Wrong old escalation level", oldEscalationLevel, event.getEscalationLevel());
+        assertEquals("Wrong new escalation level", newEscalationLevel, event.getNewEscalationLevel());
 
         AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
         AccessCertificationWorkItemType superuserWorkItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1,
@@ -346,7 +346,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
         AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
         assertNotNull(currentStage);
-        assertEquals("Wrong new stage escalation level", NEW_ESCALATION_LEVEL, currentStage.getEscalationLevel());
+        assertEquals("Wrong new stage escalation level", newEscalationLevel, currentStage.getEscalationLevel());
 
         display("campaign after escalation", campaign);
         assertEquals("Wrong # of triggers", 1, campaign.getTrigger().size()); // completion

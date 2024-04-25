@@ -151,7 +151,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
                     variables,
                     condition,
                     syncCtx.getExpressionProfile(),
-                    syncCtx.getBeans().expressionFactory,
+                    ModelBeans.get().expressionFactory,
                     desc,
                     task,
                     result);
@@ -175,7 +175,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
 
         try {
             for (SynchronizationActionDefinition actionDefinition : reactionDefinition.getActions()) {
-                syncCtx.getBeans().synchronizationActionFactory
+                ModelBeans.get().synchronizationActionFactory
                         .getActionInstance(
                                 new ActionInstantiationContext<>(
                                         syncCtx,

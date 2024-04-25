@@ -133,7 +133,7 @@ public class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorTyp
                 }
                 expressionBean = configurationBean.getOwnerRef();
                 outputDefinition =
-                        PrismContext.get().definitionFactory().createReferenceDefinition(
+                        PrismContext.get().definitionFactory().newReferenceDefinition(
                                 ExpressionConstants.OUTPUT_ELEMENT_NAME, ObjectReferenceType.COMPLEX_TYPE);
             }
 

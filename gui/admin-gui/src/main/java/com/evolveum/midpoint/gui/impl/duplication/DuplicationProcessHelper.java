@@ -1,7 +1,19 @@
 package com.evolveum.midpoint.gui.impl.duplication;
 
-import com.evolveum.midpoint.common.cleanup.CleanupActionProcessor;
-import com.evolveum.midpoint.common.cleanup.Source;
+import java.io.Serial;
+import java.util.Collections;
+import java.util.List;
+
+import com.evolveum.midpoint.common.cleanup.CleanupPath;
+import com.evolveum.midpoint.common.cleanup.CleanupPathAction;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.common.cleanup.ObjectCleaner;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -10,19 +22,10 @@ import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-
-import java.io.Serial;
-import java.util.Collections;
-import java.util.List;
 
 /***
  * Contains method for creating and modifying new duplicated object.
@@ -32,7 +35,7 @@ public class DuplicationProcessHelper {
     /**
      * Adding new action for duplication of object to items menu.
      */
-    public static <O extends ObjectType> void addDuplicationActionForObject(List<InlineMenuItem> menuItems, PageBase pageBase){
+    public static <O extends ObjectType> void addDuplicationActionForObject(List<InlineMenuItem> menuItems, PageBase pageBase) {
         menuItems.add(new InlineMenuItem(pageBase.createStringResource("DuplicationProcessHelper.menu.duplicate")) {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -80,7 +83,7 @@ public class DuplicationProcessHelper {
     public static <C extends Containerable> void addDuplicationActionForContainer(
             List<InlineMenuItem> menuItems,
             SerializableBiConsumer<PrismContainerValue<C>, AjaxRequestTarget> createDuplicatedItem,
-            PageBase pageBase){
+            PageBase pageBase) {
         menuItems.add(new InlineMenuItem(pageBase.createStringResource("DuplicationProcessHelper.menu.duplicate")) {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -128,8 +131,10 @@ public class DuplicationProcessHelper {
      */
     public static <O extends ObjectType> PrismObject<O> duplicateObjectDefault(PrismObject<O> object) {
         PrismObject<O> duplicate = object.cloneComplex(CloneStrategy.REUSE);
-        CleanupActionProcessor cleanupProcessor = new CleanupActionProcessor();
-        cleanupProcessor.process(duplicate, Source.EMPTY);
+        ObjectCleaner cleanupProcessor = new ObjectCleaner();
+        cleanupProcessor.setRemoveContainerIds(true);
+        cleanupProcessor.setPaths(List.of(new CleanupPath(CredentialsType.COMPLEX_TYPE, ItemPath.EMPTY_PATH, CleanupPathAction.REMOVE)));
+        cleanupProcessor.process(duplicate);
         duplicate.setOid(null);
         return duplicate;
     }
@@ -143,8 +148,9 @@ public class DuplicationProcessHelper {
                         Collections.singletonList(container))
                 .iterator().next();
         duplicate.setParent(container.getParent());
-        CleanupActionProcessor cleanupProcessor = new CleanupActionProcessor();
-        cleanupProcessor.process(duplicate, Source.EMPTY);
+        ObjectCleaner cleanupProcessor = new ObjectCleaner();
+        cleanupProcessor.setRemoveContainerIds(true);
+        cleanupProcessor.process(duplicate);
         return duplicate;
     }
 

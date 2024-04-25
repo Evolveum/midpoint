@@ -8,6 +8,8 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
+
 import java.util.Set;
 
 /**
@@ -15,5 +17,8 @@ import java.util.Set;
  */
 public interface Clusterable {
     Set<String> getPoint();
+    Set<String> getCloseNeighbors();
+    void addCloseNeighbor(String neighbor);
+    ExtensionProperties getExtensionProperties();
     int getMembersCount();
 }

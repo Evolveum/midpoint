@@ -20,13 +20,13 @@ public class AssociationSearchQueryKey extends QueryKey {
 
     private final QName mappingName;
 
-    public AssociationSearchQueryKey(
+    AssociationSearchQueryKey(
             Class<? extends ObjectType> type,
             Collection<ObjectQuery> queries,
             ObjectSearchStrategyType searchStrategy,
-            ExpressionEvaluationContext params) {
+            ExpressionEvaluationContext eeCtx) {
         super(type, queries, searchStrategy);
-        mappingName = params != null ? params.getMappingQName() : null;
+        mappingName = eeCtx != null ? eeCtx.getMappingQName() : null;
     }
 
     @Override

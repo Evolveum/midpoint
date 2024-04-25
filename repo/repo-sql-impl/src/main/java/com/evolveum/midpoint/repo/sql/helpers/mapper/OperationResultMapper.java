@@ -27,7 +27,7 @@ public class OperationResultMapper implements Mapper<OperationResultType, ROpera
         ROperationResult repo = (ROperationResult) context.getOwner();
 
         try {
-            RUtil.copyResultFromJAXB(new QName(SchemaConstantsGenerated.NS_COMMON, "result"), input, repo, context.getPrismContext());
+            RUtil.copyResultFromJAXB(new QName(SchemaConstantsGenerated.NS_COMMON, "result"), input, repo);
         } catch (DtoTranslationException ex) {
             throw new SystemException("Couldn't translate operation result to entity", ex);
         }

@@ -182,7 +182,7 @@ public class AccCertReviewersHelper {
             }
             List<ObjectReferenceType> retval = new ArrayList<>(managers.size());
             for (UserType manager : managers) {
-                retval.add(ObjectTypeUtil.createObjectRef(manager, prismContext));
+                retval.add(ObjectTypeUtil.createObjectRef(manager));
             }
             return retval;
         } catch (SecurityViolationException e) {

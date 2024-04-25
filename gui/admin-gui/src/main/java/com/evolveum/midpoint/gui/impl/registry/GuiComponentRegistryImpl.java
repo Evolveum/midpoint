@@ -39,7 +39,7 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
 
     List<ItemWrapperFactory<?, ?, ?>> wrapperFactories = new ArrayList<>();
 
-    List<ContainerableDuplicateResolver> duplicateResolves = new ArrayList<>();
+    List<ContainerableDuplicateResolver<?>> duplicateResolves = new ArrayList<>();
 
     @Override
     public void addToRegistry(GuiComponentFactory<?> factory) {

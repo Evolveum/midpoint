@@ -7,32 +7,31 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forModelContext;
+import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forProjectionContext;
+
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.config.MappingConfigItem;
-
 import jakarta.xml.bind.JAXBElement;
-
-import com.evolveum.midpoint.schema.util.SimulationUtil;
-import com.evolveum.midpoint.task.api.Task;
-
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SimulationUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -149,10 +148,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         MappingBuilder<V, D> mappingBuilder = // [EP:M:OM] DONE
                 construction.getMappingFactory().createMappingBuilder(mappingConfigItem, getShortDesc());
 
-        LensProjectionContext projCtx = constructionEvaluation.projectionContext;
         ObjectDeltaObject<ShadowType> projectionOdo = constructionEvaluation.getProjectionOdo();
-
-        LensContext<AH> context = construction.lensContext;
 
         mappingBuilder = construction.initializeMappingBuilder(
                 mappingBuilder, itemPath, itemName, itemDefinition,
@@ -185,13 +181,18 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         // TODO: other variables?
 
         MappingImpl<V, D> mapping = mappingBuilder.build();
-        construction.getMappingEvaluator().evaluateMapping(mapping, context, projCtx,
-                constructionEvaluation.task, constructionEvaluation.result);
+
+        LensProjectionContext projCtx = constructionEvaluation.projectionContext;
+        construction.getMappingEvaluator().evaluateMapping(
+                mapping,
+                projCtx != null ? forProjectionContext(projCtx) : forModelContext(construction.lensContext),
+                constructionEvaluation.task,
+                constructionEvaluation.result);
 
         return mapping;
     }
 
-    abstract ResourceObjectTypeDefinition getAssociationTargetObjectDefinition();
+    abstract ResourceObjectDefinition getAssociationTargetObjectDefinition();
 
     private ConfigurableValuePolicySupplier createValuePolicySupplier() {
         return new ConfigurableValuePolicySupplier() {

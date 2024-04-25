@@ -2021,10 +2021,10 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         PrismObjectDefinition<ShadowType> rOcDef = modelInteractionService.getEditObjectDefinition(shadow, null, task, result);
         shadow.applyDefinition(rOcDef);
 
-        ResourceAttributeContainer resourceAttributeCOntainer = ShadowUtil.getAttributesContainer(shadow);
-        ResourceObjectDefinition containerDef = resourceAttributeCOntainer.getDefinition().getComplexTypeDefinition();
+        ResourceAttributeContainer resourceAttributeContainer = ShadowUtil.getAttributesContainer(shadow);
+        ResourceObjectDefinition containerDef = resourceAttributeContainer.getDefinition().getResourceObjectDefinition();
 
-        Item<?, ?> attr = resourceAttributeCOntainer.findItem(new ItemName("weapon"));
+        Item<?, ?> attr = resourceAttributeContainer.findItem(new ItemName("weapon"));
         ItemDefinition<?> attrDf = attr.getDefinition();
         assertTrue("Expected that attribute can be read", attrDf.canRead());
         assertFalse("Expected that attribute cannot be added", attrDf.canAdd());

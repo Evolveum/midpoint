@@ -14,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.upgrade.action.UpgradeObjectsOptions;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.validator.*;
@@ -51,9 +50,7 @@ public class UpgradeObjectHandler {
      * @return UpgradeObjectResult value
      */
     public <O extends ObjectType> @NotNull UpgradeObjectResult execute(PrismObject<O> object) throws Exception {
-        final PrismContext prismContext = context.getPrismContext();
-
-        ObjectUpgradeValidator validator = new ObjectUpgradeValidator(prismContext);
+        ObjectUpgradeValidator validator = new ObjectUpgradeValidator();
         validator.showAllWarnings();
         UpgradeValidationResult result = validator.validate(object);
         if (!result.hasChanges()) {
@@ -76,7 +73,7 @@ public class UpgradeObjectHandler {
                 continue;
             }
 
-            ItemPath path = item.getItem().getItemPath();
+            ItemPath path = item.getItem().path();
 
             UpgradeObjectProcessor<O> processor = UpgradeProcessor.getProcessor(identifier);
             if (processor == null) {
@@ -112,7 +109,7 @@ public class UpgradeObjectHandler {
                         return false;
                     }
 
-                    ItemPath path = item.getItem().getItemPath();
+                    ItemPath path = item.getItem().path();
                     if (path == null) {
                         return true;
                     }

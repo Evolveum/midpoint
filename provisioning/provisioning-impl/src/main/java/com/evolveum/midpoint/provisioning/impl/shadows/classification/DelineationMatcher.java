@@ -87,6 +87,7 @@ class DelineationMatcher {
     public boolean matches(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
+        LOGGER.trace("Matching {}", delineation);
         if (!objectClassMatches()) {
             LOGGER.trace("Object class does not match");
             return false;
@@ -185,7 +186,7 @@ class DelineationMatcher {
             return null;
         }
         ResourceObjectDefinition scopeObjectClassDefinition = Resource.of(context.getResource())
-                .getRawSchemaRequired()
+                .getCompleteSchemaRequired()
                 .findObjectClassDefinitionRequired(rootObjectClassName);
         ObjectFilter filter = ShadowQueryConversionUtil.parseFilter(filterBean, scopeObjectClassDefinition);
         if (!(filter instanceof EqualFilter<?> equalFilter)) {

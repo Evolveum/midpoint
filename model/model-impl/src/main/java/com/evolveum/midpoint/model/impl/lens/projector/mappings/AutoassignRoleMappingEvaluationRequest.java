@@ -76,8 +76,7 @@ public class AutoassignRoleMappingEvaluationRequest
             }
             List<ItemDelta<PrismValue, ItemDefinition<?>>> populateItemDeltas =
                     PopulatorUtil.computePopulateItemDeltas(
-                            populate, assignmentDef, context.getVariables(), context,
-                            context.getContextDescription(), context.getTask(), result);
+                            populate, assignmentDef, context.getVariables(), context, result);
             if (populateItemDeltas != null) {
                 ItemDeltaCollectionsUtil.applyTo(populateItemDeltas, assignment.asPrismContainerValue());
             }

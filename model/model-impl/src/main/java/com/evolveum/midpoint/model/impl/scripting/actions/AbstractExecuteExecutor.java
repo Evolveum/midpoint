@@ -108,17 +108,17 @@ abstract class AbstractExecuteExecutor<P extends AbstractExecuteExecutor.Paramet
         }
 
         if (XmlTypeConverter.canConvert(typeName)) {
-            return prismContext.definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, typeName);
+            return prismContext.definitionFactory().newPropertyDefinition(SchemaConstantsGenerated.C_VALUE, typeName);
         }
 
         TypeDefinition typeDef = prismContext.getSchemaRegistry().findTypeDefinitionByType(typeName);
         if (typeDef instanceof SimpleTypeDefinition) {
-            return prismContext.definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, typeName);
+            return prismContext.definitionFactory().newPropertyDefinition(SchemaConstantsGenerated.C_VALUE, typeName);
         } else if (typeDef instanceof ComplexTypeDefinition ctd) {
             if (ctd.isContainerMarker() || ctd.isObjectMarker()) {
-                return prismContext.definitionFactory().createContainerDefinition(SchemaConstantsGenerated.C_VALUE, ctd);
+                return prismContext.definitionFactory().newContainerDefinition(SchemaConstantsGenerated.C_VALUE, ctd);
             } else {
-                return prismContext.definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, typeName);
+                return prismContext.definitionFactory().newPropertyDefinition(SchemaConstantsGenerated.C_VALUE, typeName);
             }
         } else if (typeDef != null) {
             throw new ConfigurationException("Type with name '" + typeName + "' couldn't be used as output type: " + typeDef);

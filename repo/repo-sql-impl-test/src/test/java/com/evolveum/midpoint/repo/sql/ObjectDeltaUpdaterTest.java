@@ -223,7 +223,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
             RAssignment a = assignments.iterator().next();
             AssertJUnit.assertEquals("zzz", a.getCreateChannel());
 
-            ObjectReferenceType targetRef = a.getTargetRef().toJAXB(prismContext);
+            ObjectReferenceType targetRef = a.getTargetRef().toJAXB();
             AssertJUnit.assertEquals(createRef(OrgType.COMPLEX_TYPE, "444", SchemaConstants.ORG_DEFAULT), targetRef);
 
             //noinspection unchecked

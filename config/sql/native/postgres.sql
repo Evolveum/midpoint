@@ -41,6 +41,7 @@ CREATE TYPE ContainerType AS ENUM (
     'ACCESS_CERTIFICATION_WORK_ITEM',
     'AFFECTED_OBJECTS',
     'ASSIGNMENT',
+    'ASSIGNMENT_METADATA',
     'CASE_WORK_ITEM',
     'FOCUS_IDENTITY',
     'INDUCEMENT',
@@ -72,12 +73,14 @@ CREATE TYPE ObjectType AS ENUM (
     'OBJECT_COLLECTION',
     'OBJECT_TEMPLATE',
     'ORG',
+    'POLICY',
     'REPORT',
     'REPORT_DATA',
     'RESOURCE',
     'ROLE',
     'ROLE_ANALYSIS_CLUSTER',
     'ROLE_ANALYSIS_SESSION',
+    'SCHEMA',
     'SECURITY_POLICY',
     'SEQUENCE',
     'SERVICE',
@@ -146,7 +149,8 @@ CREATE TYPE PredefinedConfigurationType AS ENUM ( 'PRODUCTION', 'DEVELOPMENT' );
 
 CREATE TYPE ResourceAdministrativeStateType AS ENUM ('ENABLED', 'DISABLED');
 
-CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'UNKNOWN');
+-- ASSOCIATED is maybe temporary
+CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'ASSOCIATED', 'UNKNOWN');
 
 CREATE TYPE SynchronizationSituationType AS ENUM (
     'DELETED', 'DISPUTED', 'LINKED', 'UNLINKED', 'UNMATCHED');
@@ -712,6 +716,34 @@ CREATE INDEX m_role_validTo_idx ON m_role (validTo);
 CREATE INDEX m_role_fullTextInfo_idx ON m_role USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_role_createTimestamp_idx ON m_role (createTimestamp);
 CREATE INDEX m_role_modifyTimestamp_idx ON m_role (modifyTimestamp);
+
+
+-- Represents PolicyType, see https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/policytype/
+CREATE TABLE m_policy (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('POLICY') STORED
+        CHECK (objectType = 'POLICY')
+)
+    INHERITS (m_abstract_role);
+
+CREATE TRIGGER m_policy_oid_insert_tr BEFORE INSERT ON m_policy
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_policy_update_tr BEFORE UPDATE ON m_policy
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_policy_oid_delete_tr AFTER DELETE ON m_policy
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+CREATE INDEX m_policy_nameOrig_idx ON m_policy (nameOrig);
+CREATE UNIQUE INDEX m_policy_nameNorm_key ON m_policy (nameNorm);
+CREATE INDEX m_policy_subtypes_idx ON m_policy USING gin(subtypes);
+CREATE INDEX m_policy_identifier_idx ON m_policy (identifier);
+CREATE INDEX m_policy_validFrom_idx ON m_policy (validFrom);
+CREATE INDEX m_policy_validTo_idx ON m_policy (validTo);
+CREATE INDEX m_policy_fullTextInfo_idx ON m_policy USING gin(fullTextInfo gin_trgm_ops);
+CREATE INDEX m_policy_createTimestamp_idx ON m_policy (createTimestamp);
+CREATE INDEX m_policy_modifyTimestamp_idx ON m_policy (modifyTimestamp);
+
+
 
 -- Represents ServiceType, see https://docs.evolveum.com/midpoint/reference/deployment/service-account-management/
 CREATE TABLE m_service (
@@ -1920,6 +1952,34 @@ CREATE TABLE m_assignment (
     PRIMARY KEY (ownerOid, cid)
 );
 
+-- Assignment metadata
+
+CREATE TABLE m_assignment_metadata (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    ownerType ObjectType,
+    assignmentCid INTEGER NOT NULL,
+    containerType ContainerType GENERATED ALWAYS AS ('ASSIGNMENT_METADATA') STORED
+        CHECK (containerType = 'ASSIGNMENT_METADATA'),
+
+    -- Storage metadata
+    creatorRefTargetOid UUID,
+    creatorRefTargetType ObjectType,
+    creatorRefRelationId INTEGER REFERENCES m_uri(id),
+    createChannelId INTEGER REFERENCES m_uri(id),
+    createTimestamp TIMESTAMPTZ,
+    modifierRefTargetOid UUID,
+    modifierRefTargetType ObjectType,
+    modifierRefRelationId INTEGER REFERENCES m_uri(id),
+    modifyChannelId INTEGER REFERENCES m_uri(id),
+    modifyTimestamp TIMESTAMPTZ,
+
+    PRIMARY KEY (ownerOid, cid)
+) INHERITS(m_container);
+
+CREATE INDEX m_assignment_metadata_createTimestamp_idx ON m_assignment (createTimestamp);
+CREATE INDEX m_assignment_metadata_modifyTimestamp_idx ON m_assignment (modifyTimestamp);
+
+
 CREATE INDEX m_assignment_policySituation_idx
     ON m_assignment USING gin(policysituations gin__int_ops);
 CREATE INDEX m_assignment_subtypes_idx ON m_assignment USING gin(subtypes);
@@ -1941,10 +2001,9 @@ CREATE INDEX m_assignment_modifyTimestamp_idx ON m_assignment (modifyTimestamp);
 CREATE TABLE m_assignment_ref_create_approver (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     assignmentCid INTEGER NOT NULL,
+    metadataCid INTEGER,
     referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_CREATE_APPROVER') STORED
-        CHECK (referenceType = 'ASSIGNMENT_CREATE_APPROVER'),
-
-    PRIMARY KEY (ownerOid, assignmentCid, referenceType, relationId, targetOid)
+        CHECK (referenceType = 'ASSIGNMENT_CREATE_APPROVER')
 )
     INHERITS (m_reference);
 
@@ -1952,6 +2011,10 @@ CREATE TABLE m_assignment_ref_create_approver (
 ALTER TABLE m_assignment_ref_create_approver ADD CONSTRAINT m_assignment_ref_create_approver_id_fk
     FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid)
         ON DELETE CASCADE;
+-- table does not have primary key since metadataCid == null are original values in metadata containar
+-- and metadataCid != null are value metadata references
+ALTER TABLE "m_assignment_ref_create_approver" ADD CONSTRAINT "m_assignment_ref_create_approver_pkey"
+  UNIQUE ("owneroid", "assignmentcid", "metadatacid", "referencetype", "relationid", "targetoid");
 
 CREATE INDEX m_assignment_ref_create_approver_targetOidRelationId_idx
     ON m_assignment_ref_create_approver (targetOid, relationId);
@@ -1960,10 +2023,9 @@ CREATE INDEX m_assignment_ref_create_approver_targetOidRelationId_idx
 CREATE TABLE m_assignment_ref_modify_approver (
     ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
     assignmentCid INTEGER NOT NULL,
+    metadataCid INTEGER,
     referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_MODIFY_APPROVER') STORED
-        CHECK (referenceType = 'ASSIGNMENT_MODIFY_APPROVER'),
-
-    PRIMARY KEY (ownerOid, assignmentCid, referenceType, relationId, targetOid)
+        CHECK (referenceType = 'ASSIGNMENT_MODIFY_APPROVER')
 )
     INHERITS (m_reference);
 
@@ -1971,6 +2033,9 @@ CREATE TABLE m_assignment_ref_modify_approver (
 ALTER TABLE m_assignment_ref_modify_approver ADD CONSTRAINT m_assignment_ref_modify_approver_id_fk
     FOREIGN KEY (ownerOid, assignmentCid) REFERENCES m_assignment (ownerOid, cid)
         ON DELETE CASCADE;
+
+ALTER TABLE "m_assignment_ref_modify_approver" ADD CONSTRAINT "m_assignment_ref_modify_approver_pkey"
+  UNIQUE ("owneroid", "assignmentcid", "metadatacid", "referencetype", "relationid", "targetoid");
 
 CREATE INDEX m_assignment_ref_modify_approver_targetOidRelationId_idx
     ON m_assignment_ref_modify_approver (targetOid, relationId);
@@ -2148,6 +2213,23 @@ CREATE TRIGGER m_mark_oid_delete_tr AFTER DELETE ON m_mark
 
 -- endregion
 
+-- region schema
+CREATE TABLE m_schema (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('SCHEMA') STORED
+       CHECK (objectType = 'SCHEMA')
+)
+    INHERITS (m_assignment_holder);
+
+CREATE TRIGGER m_schema_oid_insert_tr BEFORE INSERT ON m_schema
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_schema_update_tr BEFORE UPDATE ON m_schema
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_schema_oid_delete_tr AFTER DELETE ON m_schema
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+-- endregion
+
 -- region Extension support
 -- Catalog table of known indexed extension items.
 -- While itemName and valueType are both Q-names they are not cached via m_uri because this
@@ -2223,4 +2305,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(26, $$ SELECT 1 $$, true);
+call apply_change(33, $$ SELECT 1 $$, true);

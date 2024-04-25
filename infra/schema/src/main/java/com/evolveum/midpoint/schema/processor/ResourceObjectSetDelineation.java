@@ -26,7 +26,7 @@ import java.util.Collection;
  *
  * TODO later, we may move filter(s) here as well
  */
-public abstract class ResourceObjectSetDelineation implements DebugDumpable, Serializable {
+public class ResourceObjectSetDelineation implements DebugDumpable, Serializable {
 
     /**
      * There is intentionally only a single class name here. The reason is that we cannot execute resource searches
@@ -76,5 +76,16 @@ public abstract class ResourceObjectSetDelineation implements DebugDumpable, Ser
         return sb.toString();
     }
 
-    abstract void extendDebugDump(StringBuilder sb, int indent);
+    void extendDebugDump(StringBuilder sb, int indent) {
+    }
+
+    @Override
+    public String toString() {
+        return "ResourceObjectSetDelineation{" +
+                "objectClassName=" + objectClassName +
+                ", baseContext=" + baseContext +
+                ", searchHierarchyScope=" + searchHierarchyScope +
+                ", filterClauses=" + filterClauses +
+                '}';
+    }
 }

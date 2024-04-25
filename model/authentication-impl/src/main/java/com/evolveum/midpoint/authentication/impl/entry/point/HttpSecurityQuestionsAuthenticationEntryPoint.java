@@ -159,8 +159,8 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
 
             SearchResultList<PrismObject<UserType>> users;
             try {
-                users = model.searchObjects(UserType.class, ObjectQueryUtil.createNameQuery(
-                        userName, PrismContext.get()), null, task, result);
+                users = model.searchObjects(
+                        UserType.class, ObjectQueryUtil.createNameQuery(userName), null, task, result);
             } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
                     | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 return null;

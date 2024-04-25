@@ -68,15 +68,14 @@ public class FilterClause extends SelectorClause {
             return itemDef;
         }
         if (QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, typeName)) {
-            return PrismContext.get().definitionFactory().createReferenceDefinition(SchemaConstants.C_VALUE, typeName);
+            return PrismContext.get().definitionFactory().newReferenceDefinition(SchemaConstants.C_VALUE, typeName);
         }
         var typeDef = PrismContext.get().getSchemaRegistry().findTypeDefinitionByType(typeName);
         if (typeDef != null) {
-            if (typeDef instanceof ComplexTypeDefinition) {
-                return PrismContext.get().definitionFactory().createContainerDefinition(
-                        SchemaConstants.C_VALUE, (ComplexTypeDefinition) typeDef);
+            if (typeDef instanceof ComplexTypeDefinition ctd) {
+                return PrismContext.get().definitionFactory().newContainerDefinition(SchemaConstants.C_VALUE, ctd);
             } else {
-                return PrismContext.get().definitionFactory().createPropertyDefinition(SchemaConstants.C_VALUE, typeName);
+                return PrismContext.get().definitionFactory().newPropertyDefinition(SchemaConstants.C_VALUE, typeName);
             }
         } else {
             throw new ConfigurationException("No definition for type name '" + typeName + "'");

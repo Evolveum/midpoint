@@ -16,10 +16,12 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
+
 /**
  * Querydsl "row bean" type related to {@link QAssignment}.
  */
-public class MAssignment extends MContainerWithFullObject {
+public class MAssignment extends MContainerWithFullObject implements MAssignmentReference.Owner {
 
     public MObjectType ownerType;
     public String lifecycleState;
@@ -63,4 +65,10 @@ public class MAssignment extends MContainerWithFullObject {
     public Integer modifyChannelId;
     public Instant modifyTimestamp;
 
+    @Override
+    public BooleanExpression owns(QAssignmentReference ref) {
+        return ref.ownerOid.eq(ownerOid)
+                .and(ref.assignmentCid.eq(cid))
+                .and(ref.metadataCid.isNull());
+    }
 }

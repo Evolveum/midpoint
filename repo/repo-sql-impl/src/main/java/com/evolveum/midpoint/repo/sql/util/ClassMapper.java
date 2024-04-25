@@ -73,7 +73,9 @@ public final class ClassMapper {
             if (type == ObjectTypes.SIMULATION_RESULT
                     || type == ObjectTypes.MARK
                     || type == ObjectTypes.ROLE_ANALYSIS_CLUSTER
-                    || type == ObjectTypes.ROLE_ANALYSIS_SESSION) {
+                    || type == ObjectTypes.ROLE_ANALYSIS_SESSION
+                    || type == ObjectTypes.POLICY
+                    || type == ObjectTypes.SCHEMA) {
                 continue; // FIXME ugly hack
             }
             if (!TYPES.containsKey(type)) {

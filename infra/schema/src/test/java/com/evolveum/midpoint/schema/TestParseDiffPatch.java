@@ -309,7 +309,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
 
         // WHEN
 
-        ObjectDelta<UserType> userDelta = DiffUtil.diff(userBeforeXml, userAfterXml, UserType.class, getPrismContext());
+        ObjectDelta<UserType> userDelta = DiffUtil.diff(userBeforeXml, userAfterXml, UserType.class);
 
         // THEN
 
@@ -332,7 +332,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
     @Test
     public void testAddDelta() throws SchemaException, IOException {
         // WHEN
-        ObjectDelta<UserType> userDelta = DiffUtil.diff(null, new File(TEST_DIR, "user-jack-after.xml"), UserType.class, getPrismContext());
+        ObjectDelta<UserType> userDelta = DiffUtil.diff(null, new File(TEST_DIR, "user-jack-after.xml"), UserType.class);
 
         //THEN
         System.out.println("DELTA:");
@@ -349,8 +349,8 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
     public void testTask() throws SchemaException, IOException {
         // WHEN
 
-        ObjectDelta<TaskType> diffDelta = DiffUtil.diff(TASK_BEFORE_FILE,
-                new File(TEST_DIR, "task-after.xml"), TaskType.class, getPrismContext());
+        ObjectDelta<TaskType> diffDelta =
+                DiffUtil.diff(TASK_BEFORE_FILE, new File(TEST_DIR, "task-after.xml"), TaskType.class);
 
         // THEN
 
@@ -690,7 +690,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
     private void assertModificationPolyStringValue(RawType value, PolyStringType... expectedValues) throws SchemaException {
         XNode xnode = value.serializeToXNode();
         assertFalse(xnode.isEmpty());
-        PrismContext pc = value.getPrismContext();
+        PrismContext pc = PrismContext.get();
         RootXNode rootNode = pc.xnodeFactory().root(new ItemName("dummy"), xnode);
         PolyStringType valueAsPoly = pc.parserFor(rootNode).parseRealValue(PolyStringType.class);
         boolean found = false;
@@ -712,7 +712,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         assertEquals("Wrong # of triggers", 2, campaign.asObjectable().getTrigger().size());
 
         // WHEN
-        TriggerType triggerToDelete = new TriggerType(getPrismContext());
+        TriggerType triggerToDelete = new TriggerType();
         triggerToDelete.setId(3L); // non-existing ID
         triggerToDelete.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar("2017-03-17T23:43:49.705+01:00"));
         triggerToDelete.setHandlerUri("http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-3");
@@ -800,7 +800,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
     }
     @Test
     public void testDiffContainerValues() {
-        UserType user1 = new UserType(getPrismContext())
+        UserType user1 = new UserType()
                 .beginAssignment()
                     .id(1L)
                     .targetRef("oid-a", RoleType.COMPLEX_TYPE)
@@ -809,7 +809,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
                     .id(2L)
                     .targetRef("oid-b", RoleType.COMPLEX_TYPE)
                 .end();
-        UserType user2 = new UserType(getPrismContext())
+        UserType user2 = new UserType()
                 .beginAssignment()
                     .id(3L)
                     .targetRef("oid-a", RoleType.COMPLEX_TYPE)
@@ -833,12 +833,12 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
 
     @Test
     public void testDiffSingleContainerValues() {
-        UserType user1 = new UserType(getPrismContext())
+        UserType user1 = new UserType()
                 .beginActivation()
                     .validFrom("2020-03-20T15:11:40.936+01:00")
                     .validTo("2020-03-21T15:11:40.936+01:00")
                 .end();
-        UserType user2 = new UserType(getPrismContext())
+        UserType user2 = new UserType()
                 .beginActivation()
                     .validFrom("2020-02-20T15:11:40.936+01:00")
                     .validTo("2020-02-21T15:11:40.936+01:00")

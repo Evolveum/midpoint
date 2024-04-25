@@ -116,7 +116,7 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
         return toSelect;
     }
 
-    private void collectItems(Collection<? extends ItemDefinition> definitions, String input, Map<String, ItemDefinition<?>> toSelect) {
+    protected void collectItems(Collection<? extends ItemDefinition> definitions, String input, Map<String, ItemDefinition<?>> toSelect) {
         if (definitions == null) {
             return;
         }

@@ -7,9 +7,7 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -38,23 +36,14 @@ public class IterationItemInformation {
     }
 
     public IterationItemInformation(PrismObject<? extends ObjectType> object) {
-        this(object, object.getPrismContext());
-    }
-
-    public IterationItemInformation(PrismObject<? extends ObjectType> object, PrismContext prismContext) {
         this.objectName = PolyString.getOrig(object.getName());
         this.objectDisplayName = ObjectTypeUtil.getDetailedDisplayName(object);
-        this.objectType = determineTypeName(object, prismContext);
+        this.objectType = determineTypeName(object);
         this.objectOid = object.getOid();
     }
 
-    private QName determineTypeName(PrismObject<? extends ObjectType> object, PrismContext prismContext) {
-        if (prismContext != null) {
-            return ObjectTypeUtil.getObjectType(object.asObjectable(), prismContext);
-        } else {
-            PrismObjectDefinition<? extends ObjectType> definition = object.getDefinition();
-            return definition != null ? definition.getTypeName() : null;
-        }
+    private QName determineTypeName(PrismObject<? extends ObjectType> object) {
+        return ObjectTypeUtil.getObjectTypeName(object.asObjectable());
     }
 
     public IterationItemInformation(ShadowType shadow) {

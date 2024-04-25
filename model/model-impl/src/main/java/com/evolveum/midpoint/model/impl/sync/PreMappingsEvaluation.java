@@ -7,18 +7,29 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsProcessing;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.LimitedInboundsProcessing;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SimplePreInboundsContextImpl;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Evaluates "pre-mappings" i.e. inbound mappings that are evaluated before the actual clockwork is run.
@@ -26,20 +37,66 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  *
  * This tiny class serves as a bridge between the world of correlation and the world of mappings.
  */
-public class PreMappingsEvaluation<F extends FocusType> {
+public class PreMappingsEvaluation<T extends Containerable> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PreMappingsEvaluation.class);
 
     private static final String OP_EVALUATE = PreMappingsEvaluation.class.getName() + ".evaluate";
 
-    @NotNull private final PreInboundsContext<F> ctx;
-    @NotNull private final F preFocus;
-    @NotNull private final ModelBeans beans;
+    @NotNull private final PreInboundsContext<T> ctx;
+    @NotNull private final T preFocus;
+    @NotNull private final ModelBeans beans = ModelBeans.get();
 
-    public PreMappingsEvaluation(@NotNull PreInboundsContext<F> ctx, @NotNull ModelBeans beans) {
+    PreMappingsEvaluation(@NotNull PreInboundsContext<T> ctx) {
         this.ctx = ctx;
         this.preFocus = ctx.getPreFocus();
-        this.beans = beans;
+    }
+
+    @VisibleForTesting
+    public static <F extends FocusType> @NotNull F computePreFocus(
+            @NotNull ShadowType shadowedResourceObject,
+            @NotNull ResourceObjectTypeDefinition objectTypeDefinition,
+            @NotNull ResourceType resource,
+            @NotNull Class<F> focusClass,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        SimplePreInboundsContextImpl<F> preInboundsContext = new SimplePreInboundsContextImpl<>(
+                shadowedResourceObject,
+                resource,
+                PrismContext.get().createObjectable(focusClass),
+                ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
+                task,
+                objectTypeDefinition,
+                objectTypeDefinition,
+                null);
+        new PreMappingsEvaluation<>(preInboundsContext)
+                .evaluate(result);
+        return preInboundsContext.getPreFocus();
+    }
+
+    // FIXME TEMPORARY
+    public static <C extends Containerable> void computePreFocusForAssociationValue(
+            @NotNull ShadowAssociationValue associationValue,
+            @NotNull ResourceObjectInboundDefinition inboundDefinition,
+            @NotNull ResourceType resource,
+            @NotNull C targetObject,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        SimplePreInboundsContextImpl<C> preInboundsContext = new SimplePreInboundsContextImpl<>(
+                associationValue.getShadowBean(),
+                resource,
+                targetObject,
+                ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
+                task,
+                associationValue.getAssociatedObjectDefinition(),
+                inboundDefinition,
+                (ShadowAssociationDefinition) associationValue.getDefinition());
+        new PreMappingsEvaluation<>(preInboundsContext)
+                .evaluate(result);
     }
 
     /**
@@ -56,8 +113,8 @@ public class PreMappingsEvaluation<F extends FocusType> {
             MappingEvaluationEnvironment env =
                     new MappingEvaluationEnvironment(
                             "pre-inbounds", beans.clock.currentTimeXMLGregorianCalendar(), ctx.getTask());
-            new PreInboundsProcessing<>(ctx, beans, env, result)
-                    .collectAndEvaluateMappings();
+            new LimitedInboundsProcessing<>(ctx, env)
+                    .collectAndEvaluateMappings(result);
 
             LOGGER.debug("Pre-focus:\n{}", preFocus.debugDumpLazily(1));
         } catch (Throwable t) {

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.component.form;
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -112,6 +114,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
         add(propertyLabel);
 
         DropDownChoice<T> select = createDropDown(ID_SELECT, choices, renderer, required);
+        select.add(getDropDownVisibleEnableBehavior());
         select.setLabel(label);
         selectWrapper.add(select);
 
@@ -171,5 +174,9 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 
     protected String getPropertyContainerCssClass() {
         return "";
+    }
+
+    protected VisibleEnableBehaviour getDropDownVisibleEnableBehavior() {
+        return new VisibleEnableBehaviour();
     }
 }

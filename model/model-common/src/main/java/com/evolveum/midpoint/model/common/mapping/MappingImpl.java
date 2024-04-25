@@ -101,7 +101,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition<?>> exte
 
     @Override
     protected boolean determinePushChangesRequested() {
-        ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+        var lensContext = ModelExpressionThreadLocalHolder.getLensContext();
         ModelExecuteOptions options = lensContext != null ? lensContext.getOptions() : null;
         return ModelExecuteOptions.isPushChanges(options);
     }

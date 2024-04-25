@@ -283,7 +283,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             instruction.setDeltasToApprove(objectTreeDeltas);
 
             instruction.setObjectRef(ctx);     // TODO - or should we take shadow as an object?
-            instruction.setTargetRef(ObjectTypeUtil.createObjectRef(target, prismContext), result);
+            instruction.setTargetRef(ObjectTypeUtil.createObjectRef(target), result);
 
             // set the names of midPoint task and process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.util.MappingInspector;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.*;
@@ -111,7 +113,6 @@ public class ClockworkMedic {
         return DiagnosticContextHolder.get(ClockworkInspector.class);
     }
 
-
     <F extends ObjectType> void clockworkStart(LensContext<F> context) {
         ClockworkInspector clockworkInspector = getClockworkInspector();
         if (clockworkInspector != null) {
@@ -144,14 +145,6 @@ public class ClockworkMedic {
         ClockworkInspector clockworkInspector = getClockworkInspector();
         if (clockworkInspector != null) {
             clockworkInspector.projectorFinish(context);
-        }
-    }
-
-    public <F extends ObjectType> void afterMappingEvaluation(LensContext<F> context,
-            MappingImpl<?, ?> evaluatedMapping) {
-        ClockworkInspector clockworkInspector = getClockworkInspector();
-        if (clockworkInspector != null) {
-            clockworkInspector.afterMappingEvaluation(context, evaluatedMapping);
         }
     }
 
@@ -386,5 +379,4 @@ public class ClockworkMedic {
                     activity, phase, context.dump(showTriples));
         }
     }
-
 }

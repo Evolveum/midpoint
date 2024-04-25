@@ -13,6 +13,8 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -145,7 +147,9 @@ public class PasswordPanel extends InputPanel {
             @Override
             protected void onComponentTag(ComponentTag tag) {
                 super.onComponentTag(tag);
-                tag.remove("value");
+                if (removePasswordValueAttribute()) {
+                    tag.remove("value");
+                }
             }
 
             @Override
@@ -180,8 +184,7 @@ public class PasswordPanel extends InputPanel {
         };
         password2.setRequired(false);
         password2.setOutputMarkupId(true);
-        password2.add(new EnableBehaviour(this::canEditPassword));
-        password2.add(new VisibleBehaviour(() -> !showOneLinePasswordPanel));
+        password2.add(new VisibleEnableBehaviour(() -> !showOneLinePasswordPanel, this::canEditPassword));
         password2.add(AttributeAppender.append(
                 "aria-label",
                 LocalizationUtil.translate(
@@ -397,5 +400,9 @@ public class PasswordPanel extends InputPanel {
 
     private PageAdminLTE getParentPage() {
         return WebComponentUtil.getPage(PasswordPanel.this, PageAdminLTE.class);
+    }
+
+    protected boolean removePasswordValueAttribute() {
+        return true;
     }
 }

@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecific
 public class MarkSummaryPanel extends ObjectSummaryPanel<MarkType> {
 
     public MarkSummaryPanel(String id, IModel<MarkType> model, SummaryPanelSpecificationType summaryPanelSpecification) {
-        super(id, MarkType.class, model, summaryPanelSpecification);
+        super(id, model, summaryPanelSpecification);
     }
 
     @Override

@@ -78,7 +78,7 @@ public class ConstructionProcessor {
         // We will be collecting the evaluated account constructions into these three maps.
         // It forms a kind of delta set triple for the account/persona constructions.
         ConstructionCollector<AH, K, ACT, AC, EC> constructionCollector =
-                new ConstructionCollector<>(constructionTripleExtractor, keyGenerator, prismContext);
+                new ConstructionCollector<>(constructionTripleExtractor, keyGenerator);
         constructionCollector.collect(evaluatedAssignmentTriple);
         DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple =
                 constructionCollector.getEvaluatedConstructionMapTriple();

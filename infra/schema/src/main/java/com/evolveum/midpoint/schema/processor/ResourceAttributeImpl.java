@@ -26,12 +26,16 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+import static org.apache.commons.lang3.ClassUtils.primitiveToWrapper;
+
 public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements ResourceAttribute<T> {
 
     @Serial private static final long serialVersionUID = -6149194956029296486L;
 
     ResourceAttributeImpl(QName name, ResourceAttributeDefinition<T> definition) {
-        super(name, definition, PrismContext.get());
+        super(name, definition);
     }
 
     @Override
@@ -214,10 +218,19 @@ public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements Re
 
         // Resource attribute values have no special type, otherwise we would just extend their "checkConsistenceInternal"
         for (PrismPropertyValue<T> value : values) {
-            if (!definition.canBeDefinitionOf(value)) {
-                throw new IllegalStateException(
-                        "The value %s does not conform to the definition %s in %s".formatted(value, definition, this));
-            }
+            T realValue = stateNonNull(value.getRealValue(), "Null real value in %s", this);
+            Class<?> expectedType = primitiveToWrapper(definition.getTypeClass());
+            Class<?> actualType = primitiveToWrapper(realValue.getClass());
+            stateCheck(expectedType.isAssignableFrom(actualType),
+                    "The value '%s' does not conform to the definition %s in %s: expected type: %s, actual type: %s",
+                    value, definition, this, expectedType, actualType);
         }
+    }
+
+    @Override
+    public void addValueSkipUniquenessCheck(PrismPropertyValue<T> value) throws SchemaException {
+        // This also recomputes the value, so e.g. computes the "norm" for polystrings.
+        // It may be good or not; nevertheless, it makes TestOpenDjDumber.test478b to pass.
+        addValue(value, false);
     }
 }

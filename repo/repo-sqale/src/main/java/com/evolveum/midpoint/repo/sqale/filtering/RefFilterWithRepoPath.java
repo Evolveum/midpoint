@@ -186,11 +186,6 @@ class RefFilterWithRepoPath implements RefFilter {
     }
 
     @Override
-    public PrismContext getPrismContext() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public RefFilter clone() {
         throw new UnsupportedOperationException();
     }

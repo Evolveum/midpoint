@@ -8,10 +8,8 @@ package com.evolveum.midpoint.model.intest.multi;
 
 import java.io.File;
 import java.util.Collections;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -21,7 +19,6 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -790,7 +787,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         getDummyResource(RESOURCE_DUMMY_CLEVER_HR_NAME)
-                .getAccountByUsername(ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE)
+                .getAccountByName(ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE)
                     .replaceAttributeValue(CLEVER_HR_ATTRIBUTE_PRIMARY, Boolean.FALSE);
 
         DummyAccount account = new DummyAccount(ACCOUNT_ODRADE_CONTRACT_NUMBER_MOTHER_SUPERIOR);
