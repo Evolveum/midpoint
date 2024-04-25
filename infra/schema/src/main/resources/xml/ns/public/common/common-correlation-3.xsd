@@ -1227,6 +1227,9 @@
                         How to search for the item values? May be overridden in specific correlator
                         where this item is referenced.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemCorrelationDefinitionType.search</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
