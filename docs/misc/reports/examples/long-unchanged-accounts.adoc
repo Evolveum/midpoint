@@ -20,15 +20,21 @@ We need to create a report of users which account attributes have not changed fo
 
 The configuration consists of an object collection and report definition.
 
+//TODO check after sampleRef is fully in prod
 .*Object collection XML*
 [%collapsible]
 ====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/last-sync-resource-accounts.xml[Git]
+
 sampleRef::samples/objectCollection/last-sync-resource-accounts.xml[]
 ====
 
+//TODO check after sampleRef is fully in prod
 .*Report XML*
 [%collapsible]
 ====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/unchanged-accounts.xml[Git]
+
 sampleRef::samples/reports/unchanged-accounts.xml[]
 ====
 

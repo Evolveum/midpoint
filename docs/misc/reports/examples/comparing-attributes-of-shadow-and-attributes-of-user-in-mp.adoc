@@ -19,27 +19,39 @@ We need report users with mismatched attributes, so we have to compare attribute
 
 We need import object collection and report.
 
+//TODO check after sampleRef is fully in prod
 .*Example Resource Configuration*
 [%collapsible]
 ====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/resource-csv-username.xml[Git]
+
 sampleRef::samples/resources/csv/resource-csv-username.xml[]
 ====
 
+//TODO check after sampleRef is fully in prod
 .*Example CSV Source File*
 [%collapsible]
 ====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/midpoint-username.csv[Git]
+
 sampleRef::samples/resources/csv/midpoint-username.csv[]
 ====
 
+//TODO check after sampleRef is fully in prod
 .*Example Object Collection*
 [%collapsible]
 ====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/resource-account-shadows.xml[Git]
+
 sampleRef::samples/objectCollection/resource-account-shadows.xml[]
 ====
 
+//TODO check after sampleRef is fully in prod
 .*Example Report Configuration*
 [%collapsible]
 ====
+link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/comparing-attributes.xml[Git]
+
 sampleRef::samples/reports/comparing-attributes.xml[]
 ====
 
