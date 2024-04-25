@@ -6,7 +6,8 @@
 :page-wiki-metadata-create-date: 2020-05-04T13:35:21.566+02:00
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2020-09-04T08:41:08.212+02:00
-:page-upkeep-status: green
+:page-upkeep-status: yellow
+:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
 
 Please see xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration] for basic information about configuration variables and Auditing-Custom column for steps how to add custom column.
 
