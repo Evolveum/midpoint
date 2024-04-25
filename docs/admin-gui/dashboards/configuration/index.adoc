@@ -587,6 +587,6 @@ Next screenshot is from the example dashboard link:https://github.com/Evolveum/m
 
 image::dashboard-screenshot.png[]
 
-* xref:/midpoint/referece/admin-gui/dashboards/index.adoc[Dashboards]
+* xref:/midpoint/reference/admin-gui/dashboards/[Dashboards]
 * xref:/midpoint/guides/dashboards-howto/[Dashboards How To]
 * xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Report]
