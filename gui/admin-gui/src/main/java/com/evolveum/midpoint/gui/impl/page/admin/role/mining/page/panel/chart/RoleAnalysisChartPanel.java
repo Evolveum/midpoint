@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart;
 
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType.SCATTER;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType.getNextChartType;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
@@ -19,9 +20,9 @@ import java.io.Serial;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType;
+import java.util.Map;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.RoleAnalysisAggregateChartModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisModel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -52,6 +54,7 @@ import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.api.AggregateQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -75,6 +78,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
     private static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisChartPanel.class);
 
     private static final String ID_TOOL_FORM = "toolForm";
+    private static final String ID_MODE_BUTTON = "modeButton";
     private static final String ID_SCALE_BUTTON = "scaleButton";
     private static final String ID_EXPORT_BUTTON = "exportButton";
     private static final String ID_SORT_BUTTON = "sortButton";
@@ -88,6 +92,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
     private boolean isSortByGroup = false;
     ChartType chartType = ChartType.LINE;
     private boolean isScalable = false;
+    private boolean isUserMode = false;
 
     public RoleAnalysisChartPanel(String id) {
         super(id);
@@ -125,6 +130,8 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
         Form<?> toolForm = new MidpointForm<>(ID_TOOL_FORM);
         toolForm.setOutputMarkupId(true);
         add(toolForm);
+
+        initModeButton(chartContainer, roleAnalysisChart, toolForm);
 
         initScaleButton(chartContainer, roleAnalysisChart, toolForm);
 
@@ -242,6 +249,52 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
         toolForm.add(chartTypeButton);
     }
 
+    private void initModeButton(WebMarkupContainer chartContainer, ChartJsPanel<ChartConfiguration> roleAnalysisChart,
+            @NotNull Form<?> toolForm) {
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon("fe fe-role object-role-color",
+                LayeredIconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton modeButton = new AjaxCompositedIconSubmitButton(ID_MODE_BUTTON, iconBuilder.build(),
+                new LoadableModel<>() {
+                    @Override
+                    protected String load() {
+                        return getModeButtonTitle().getString();
+                    }
+                }) {
+            @Override
+            public CompositedIcon getIcon() {
+                String scaleIcon;
+                if (isUserMode) {
+                    scaleIcon = "fa fa-user object-user-color";
+                } else {
+                    scaleIcon = "fe fe-role object-role-color";
+                }
+                return new CompositedIconBuilder().setBasicIcon(scaleIcon,
+                        LayeredIconCssStyle.IN_ROW_STYLE).build();
+            }
+
+            @Serial
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                isUserMode = !isUserMode;
+                target.add(chartContainer);
+                target.add(roleAnalysisChart);
+                target.add(this);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+        modeButton.titleAsLabel(true);
+        modeButton.setOutputMarkupId(true);
+        modeButton.setVisible(true);
+        modeButton.add(AttributeAppender.append("class", "btn btn-tool"));
+        toolForm.add(modeButton);
+    }
+
     private void initScaleButton(WebMarkupContainer chartContainer, ChartJsPanel<ChartConfiguration> roleAnalysisChart,
             Form<?> toolForm) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon("fa fa-refresh",
@@ -336,7 +389,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
         }, chartType) {
             @Override
             public String getXAxisTitle() {
-                if(chartType.equals(SCATTER)){
+                if (chartType.equals(SCATTER)) {
                     return getPageBase().createStringResource("PageRoleAnalysis.chart.yAxis.title").getString();
                 }
                 return getPageBase().createStringResource("PageRoleAnalysis.chart.xAxis.title").getString();
@@ -344,7 +397,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
 
             @Override
             public String getYAxisTitle() {
-                if(chartType.equals(SCATTER)){
+                if (chartType.equals(SCATTER)) {
                     return getPageBase().createStringResource("PageRoleAnalysis.chart.xAxis.title").getString();
                 }
                 return getPageBase().createStringResource("PageRoleAnalysis.chart.yAxis.title").getString();
@@ -364,11 +417,16 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
 
     private List<RoleAnalysisModel> prepareRoleAnalysisData() {
         List<RoleAnalysisModel> roleAnalysisModels = new ArrayList<>();
-        ListMultimap<Integer, ObjectReferenceType> mapView = getIntegerCollectionMap();
 
-        for (Integer key : mapView.keySet()) {
-            List<ObjectReferenceType> objectReferenceTypes = mapView.get(key);
-            roleAnalysisModels.add(new RoleAnalysisModel(objectReferenceTypes.size(), key));
+        if (isUserMode) {
+            loadUserModeMapStatistics().forEach((key, value) -> roleAnalysisModels.add(new RoleAnalysisModel(key, value)));
+        } else {
+            ListMultimap<Integer, ObjectReferenceType> mapView = getIntegerCollectionMap();
+
+            for (Integer key : mapView.keySet()) {
+                List<ObjectReferenceType> objectReferenceTypes = mapView.get(key);
+                roleAnalysisModels.add(new RoleAnalysisModel(objectReferenceTypes.size(), key));
+            }
         }
 
         if (isSortByGroup) {
@@ -430,11 +488,50 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
         return aggregateResult;
     }
 
+    @NotNull
+    private Map<Integer, Integer> loadUserModeMapStatistics() {
+        RepositoryService repositoryService = getPageBase().getRepositoryService();
+        OperationResult result = new OperationResult(OP_LOAD_STATISTICS);
+
+        Map<Integer, Integer> aggregateResult = new HashMap<>();
+
+        ResultHandler<UserType> resultHandler = (object, parentResult) -> {
+            try {
+                List<String> properties = getRolesOidAssignment(object.asObjectable());
+                int propertiesCount = properties.size();
+                if (aggregateResult.containsKey(propertiesCount)) {
+                    aggregateResult.put(propertiesCount, aggregateResult.get(propertiesCount) + 1);
+                } else {
+                    aggregateResult.put(propertiesCount, 1);
+                }
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            return true;
+        };
+
+        try {
+            repositoryService.searchObjectsIterative(UserType.class, null, resultHandler,
+                    null, false, result);
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't count user mode statistics ", e);
+        }
+        return aggregateResult;
+    }
+
     private StringResourceModel getScaleButtonTitle() {
         if (isScalable) {
             return createStringResource("PageRoleAnalysis.chart.scale.on.button.title");
         }
         return createStringResource("PageRoleAnalysis.chart.scale.off.button.title");
+    }
+
+    private StringResourceModel getModeButtonTitle() {
+        if (isUserMode) {
+            return createStringResource("PageRoleAnalysis.chart.mode.user.button.title");
+        }
+        return createStringResource("PageRoleAnalysis.chart.mode.role.button.title");
     }
 
     private StringResourceModel getSortButtonTitle() {
