@@ -24,7 +24,7 @@ The configuration consists of an object collection and report definition.
 .*Object collection XML*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/last-sync-resource-accounts.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/last-sync-resource-accounts.xml[Git]
 
 sampleRef::samples/objectCollection/last-sync-resource-accounts.xml[]
 ====
@@ -33,7 +33,7 @@ sampleRef::samples/objectCollection/last-sync-resource-accounts.xml[]
 .*Report XML*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/unchanged-accounts.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/unchanged-accounts.xml[Git]
 
 sampleRef::samples/reports/unchanged-accounts.xml[]
 ====

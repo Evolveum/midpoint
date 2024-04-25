@@ -23,7 +23,7 @@ We need only report configuration with condition.
 .*Example Report configuration*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/users-without-account.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/users-without-account.xml[Git]
 
 sampleRef::samples/reports/users-without-account.xml[]
 ====

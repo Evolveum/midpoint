@@ -23,7 +23,7 @@ At first, we need to configure a policy rule. In this Example we add the followi
 .*Example System Config configuration*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/misc/system-policy-rec.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/misc/system-policy-rec.xml[Git]
 
 sampleRef::samples/misc/system-policy-rec.xml[]
 ====
@@ -36,7 +36,7 @@ Afterwards We need to configure object collection for users with policySituation
 .*Example ObjectCollection configuration*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/users-with-policySituation.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/users-with-policySituation.xml[Git]
 
 sampleRef::samples/objectCollection/users-with-policySituation.xml[]
 ====
@@ -47,7 +47,7 @@ When we have the object collection in place, we want to set up an import Dashboa
 .*Example Dashboard configuration*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/users-policy-situation.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/users-policy-situation.xml[Git]
 
 sampleRef::samples/dashboard/users-policy-situation.xml[]
 ====
@@ -60,7 +60,7 @@ We want to report it out as a table of users created by Midpoint, for this we ca
 .*Example Dashboard Report Configuration*
 [%collapsible]
 ====
-link::https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/users-created-policy-dashboard-report.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/users-created-policy-dashboard-report.xml[Git]
 
 sampleRef::samples/reports/users-created-policy-dashboard-report.xml[]
 ====
