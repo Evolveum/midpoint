@@ -9,10 +9,10 @@ package com.evolveum.midpoint.repo.sql.query;
 import java.util.List;
 import java.util.Objects;
 
+import jakarta.persistence.Query;
 import org.hibernate.HibernateException;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
-import org.hibernate.query.Query;
 
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 
@@ -22,9 +22,9 @@ import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 public class RQueryImpl implements RQuery {
 
     private final HibernateQuery querySource; // only for diagnostic purposes
-    private final Query<?> query;
+    private final Query query;
 
-    public RQueryImpl(Query<?> query, HibernateQuery querySource) {
+    public RQueryImpl(Query query, HibernateQuery querySource) {
         Objects.requireNonNull(query, "Query must not be null.");
         this.query = query;
         this.querySource = querySource;

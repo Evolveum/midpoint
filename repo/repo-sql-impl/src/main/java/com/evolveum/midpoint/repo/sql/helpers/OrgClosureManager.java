@@ -9,12 +9,13 @@ package com.evolveum.midpoint.repo.sql.helpers;
 import static java.util.Collections.singletonList;
 
 import java.util.*;
-import jakarta.annotation.PostConstruct;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
-import org.hibernate.query.Query;
 import org.hibernate.type.StandardBasicTypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -95,7 +96,7 @@ public class OrgClosureManager {
      * @param operation Operation that is carried out.
      */
     public <T extends ObjectType> void updateOrgClosure(PrismObject<? extends ObjectType> originalObject,
-            Collection<? extends ItemDelta> modifications, Session session, String oid, Class<T> type, Operation operation,
+            Collection<? extends ItemDelta> modifications, EntityManager session, String oid, Class<T> type, Operation operation,
             Context closureContext) {
         if (!isEnabled() || !OrgType.class.isAssignableFrom(type)) {
             return;
@@ -134,15 +135,15 @@ public class OrgClosureManager {
      *
      *  This will be perhaps unified in the future.
      */
-    public <T extends ObjectType> Context onBeginTransactionAdd(Session session, PrismObject<T> object, boolean overwrite) {
+    public <T extends ObjectType> Context onBeginTransactionAdd(EntityManager em, PrismObject<T> object, boolean overwrite) {
         if (!isEnabled() || !(OrgType.class.isAssignableFrom(object.getCompileTimeClass()))) {
             return null;
         }
         // we have to be ready for closure-related operation even if there are no known parents (because there may be orphans pointing to this org!)
-        return onBeginTransaction(session);
+        return onBeginTransaction(em);
     }
 
-    public <T extends ObjectType> Context onBeginTransactionModify(Session session, Class<T> type, String oid, Collection<? extends ItemDelta> modifications) {
+    public <T extends ObjectType> Context onBeginTransactionModify(EntityManager session, Class<T> type, String oid, Collection<? extends ItemDelta> modifications) {
         if (!isEnabled()) {
             return null;
         }
@@ -155,17 +156,17 @@ public class OrgClosureManager {
         return onBeginTransaction(session);
     }
 
-    public <T extends ObjectType> Context onBeginTransactionDelete(Session session, Class<T> type, String oid) {
+    public <T extends ObjectType> Context onBeginTransactionDelete(EntityManager session, Class<T> type, String oid) {
         if (!isEnabled() || !(OrgType.class.isAssignableFrom(type))) {
             return null;
         }
         return onBeginTransaction(session);
     }
 
-    private Context onBeginTransaction(Session session) {
+    private Context onBeginTransaction(EntityManager em) {
         // table locking
         if (isH2() || isOracle() || isSQLServer()) {
-            lockClosureTable(session);
+            lockClosureTable(em);
         }
         // other
         Context ctx = new Context();
@@ -178,7 +179,7 @@ public class OrgClosureManager {
                     "  PRIMARY KEY (descendant_oid, ancestor_oid)\n" +
                     ")";
             long start = System.currentTimeMillis();
-            NativeQuery q = session.createNativeQuery(createTableQueryText);
+            Query q = em.createNativeQuery(createTableQueryText);
             q.executeUpdate();
             LOGGER.trace("Temporary table {} created in {} ms", ctx.temporaryTableName, System.currentTimeMillis() - start);
         }
@@ -186,7 +187,7 @@ public class OrgClosureManager {
     }
 
     // may cause implicit commit!!! (in H2)
-    public void cleanUpAfterOperation(Context closureContext, Session session) {
+    public void cleanUpAfterOperation(Context closureContext, EntityManager session) {
         if (closureContext == null) {
             return;
         }
@@ -264,20 +265,20 @@ public class OrgClosureManager {
             result.recordWarning("Neither 'check' nor 'rebuild' option was requested.");
             return;         // nothing to do here
         }
-        Session session = baseHelper.getSessionFactory().openSession();
+        EntityManager em = baseHelper.getEntityManagerFactory().createEntityManager();
         Context context = null;
         boolean rebuilt = false;
         try {
-            session.getTransaction().begin();
+            em.getTransaction().begin();
             if (rebuild || (check && !quickCheckOnly)) {
                 // thorough check requires the temporary table as well
-                context = onBeginTransaction(session);
+                context = onBeginTransaction(em);
             }
 
             if (quickCheckOnly) {
                 boolean ok = false;
                 if (check) {
-                    int problems = quickCheck(session);
+                    int problems = quickCheck(em);
                     if (problems != 0) {
                         LOGGER.warn("Content of M_ORG_CLOSURE table is not consistent with the content of M_ORG one. Missing OIDs: {}", problems);
                         if (!rebuild && stopOnFailure) {
@@ -289,12 +290,12 @@ public class OrgClosureManager {
                     }
                 }
                 if (!ok && rebuild) {
-                    rebuild(false, true, stopOnFailure, context, session, result);
+                    rebuild(false, true, stopOnFailure, context, em, result);
                     rebuilt = true;
                 }
             } else {
                 // if the check has to be thorough
-                rebuild(check, rebuild, stopOnFailure, context, session, result);
+                rebuild(check, rebuild, stopOnFailure, context, em, result);
                 rebuilt = rebuild;          // if we are here this means the CL was rebuilt if it was to be rebuilt
                 if (stopOnFailure && result.isError()) {
                     throw new IllegalStateException(result.getMessage());
@@ -302,16 +303,16 @@ public class OrgClosureManager {
             }
 
             if (rebuilt) {
-                session.getTransaction().commit();
+                em.getTransaction().commit();
                 LOGGER.info("Recomputed org closure table was successfully committed into database.");
             } else {
                 // if !rebuilt, we either didn't do any modifications (in quick check mode)
                 // or we did, but we want them to disappear (although this wish is a bit strange...)
-                session.getTransaction().rollback();
+                em.getTransaction().rollback();
             }
         } catch (SchemaException | RuntimeException e) {
             LoggingUtils.logException(LOGGER, "Exception during check and/or recomputation of closure table", e);
-            session.getTransaction().rollback();
+            em.getTransaction().rollback();
             if (stopOnFailure) {
                 if (e instanceof RuntimeException) {
                     throw (RuntimeException) e;
@@ -320,8 +321,8 @@ public class OrgClosureManager {
                 }
             }
         } finally {
-            cleanUpAfterOperation(context, session);     // commits in case of H2!
-            session.close();
+            cleanUpAfterOperation(context, em);     // commits in case of H2!
+            em.close();
         }
     }
 
@@ -331,7 +332,7 @@ public class OrgClosureManager {
 
     // we are already in the context of a transaction (and the org struct table is locked if possible)
     // "check" here means "thorough check" (i.e. comparing with recomputed closure)
-    private void rebuild(boolean check, boolean rebuild, boolean stopOnFailure, final Context context, final Session session, OperationResult result) throws SchemaException {
+    private void rebuild(boolean check, boolean rebuild, boolean stopOnFailure, final Context context, final EntityManager session, OperationResult result) throws SchemaException {
 
         List existingEntries = null;
         if (check) {
@@ -415,12 +416,12 @@ public class OrgClosureManager {
         return rv;
     }
 
-    private int quickCheck(Session session) {
-        NativeQuery q = session.createNativeQuery(
+    private int quickCheck(EntityManager em) {
+        Query q = em.createNativeQuery(
                 "select count(m_org.oid) as problems from m_org left join m_org_closure cl " +
                         "on cl.descendant_oid = m_org.oid and cl.ancestor_oid = m_org.oid " +
                         "where cl.descendant_oid is null").addScalar("problems", StandardBasicTypes.INTEGER);
-        List problemsList = q.list();
+        List problemsList = q.getResultList();
         if (problemsList == null || problemsList.size() != 1) {
             throw new IllegalStateException("Unexpected return value from the closure check query: " + problemsList + " (a 1-item list of Integer expected)");
         }
@@ -431,12 +432,12 @@ public class OrgClosureManager {
     //region Handling ADD operation
 
     // we can safely expect that the object didn't exist before (because the "overwriting add" is sent to us as MODIFY operation)
-    private void handleAdd(String oid, List<ReferenceDelta> deltas, Context context, Session session) {
+    private void handleAdd(String oid, List<ReferenceDelta> deltas, Context context, EntityManager session) {
         handleAdd(oid, getParentOidsToAdd(deltas, null), context, session);
     }
 
     // parents may be non-existent at this point
-    private void handleAdd(String oid, Set<String> parents, Context context, Session session) {
+    private void handleAdd(String oid, Set<String> parents, Context context, EntityManager session) {
         // adding self-record
         session.save(new ROrgClosure(oid, oid, 1));
         session.flush();
@@ -465,7 +466,7 @@ public class OrgClosureManager {
 
     // we expect that all livingChildren do exist and
     // that none of the links child->oid does exist yet
-    private void addChildrenEdges(String oid, List<String> livingChildren, Context context, Session session) {
+    private void addChildrenEdges(String oid, List<String> livingChildren, Context context, EntityManager session) {
         List<Edge> edges = childrenToEdges(oid, livingChildren);
         addIndependentEdges(edges, context, session);
     }
@@ -480,7 +481,7 @@ public class OrgClosureManager {
 
     // we expect that all livingParents do exist and
     // that none of the links oid->parent does exist yet
-    private void addParentEdges(String oid, Collection<String> livingParents, Context context, Session session) {
+    private void addParentEdges(String oid, Collection<String> livingParents, Context context, EntityManager session) {
         List<Edge> edges = parentsToEdges(oid, livingParents);
         addIndependentEdges(edges, context, session);
     }
@@ -494,7 +495,7 @@ public class OrgClosureManager {
     }
 
     // we expect that the link oid->parent does not exist yet and the parent exists
-    private void addEdgeSimple(String oid, String parent, Session session) {
+    private void addEdgeSimple(String oid, String parent, EntityManager session) {
         if (parent != null) {
             long start = System.currentTimeMillis();
             NativeQuery addToClosureQuery = session.createNativeQuery(
@@ -517,7 +518,7 @@ public class OrgClosureManager {
     // IMPORTANT PRECONDITIONS:
     //  - all edges are "real", i.e. their tails and heads (as objects) do exist in repository
     //  - none of the edges does exist yet
-    private void addIndependentEdges(List<Edge> edges, Context context, Session session) {
+    private void addIndependentEdges(List<Edge> edges, Context context, EntityManager session) {
         long start = System.currentTimeMillis();
         LOGGER.trace("===================== ADD INDEPENDENT EDGES: {} ================", edges);
 
@@ -546,7 +547,7 @@ public class OrgClosureManager {
         LOGGER.trace("--------------------- DONE ADD EDGES: {} ({} ms) ----------------", edges, System.currentTimeMillis() - start);
     }
 
-    private void addIndependentEdgesInternal(List<Edge> edges, Context context, Session session) {
+    private void addIndependentEdgesInternal(List<Edge> edges, Context context, EntityManager session) {
 
         checkForCycles(edges, session);
         String deltaTempTableName = computeDeltaTable(edges, context, session);
@@ -643,7 +644,7 @@ public class OrgClosureManager {
 
     // Checks that there is no edge=(D,A) such that A->D exists in the transitive closure
     // (this would yield a cycle D->A->D in the graph)
-    private void checkForCycles(List<Edge> edges, Session session) {
+    private void checkForCycles(List<Edge> edges, EntityManager session) {
         String queryText = "select descendant_oid, ancestor_oid from " + CLOSURE_TABLE_NAME + " where " + getWhereClauseForCycleCheck(edges);
         NativeQuery query = session.createNativeQuery(queryText)
                 .addScalar("descendant_oid", StandardBasicTypes.STRING)
@@ -702,12 +703,12 @@ public class OrgClosureManager {
         }
     }
 
-    private void dropDeltaTableIfNecessary(Session session, String deltaTempTableName) {
+    private void dropDeltaTableIfNecessary(EntityManager em, String deltaTempTableName) {
         // postgresql deletes the table automatically on commit
         // in H2 we delete the table after whole closure operation (after commit)
         if (isSQLServer()) {
             // TODO drop temporary if using SQL Server
-            NativeQuery<?> dropQuery = session.createNativeQuery(
+            Query dropQuery = em.createNativeQuery(
                     "if (exists (" +
                             "select * " +
                             "from sys.tables " +
@@ -720,29 +721,29 @@ public class OrgClosureManager {
     //endregion
 
     //region Handling DELETE operation
-    private void handleDelete(String oid, Context context, Session session) {
+    private void handleDelete(String oid, Context context, EntityManager em) {
 
-        List<String> livingChildren = getChildren(oid, session);
+        List<String> livingChildren = getChildren(oid, em);
         if (livingChildren.isEmpty()) {
-            handleDeleteLeaf(oid, session);
+            handleDeleteLeaf(oid, em);
             return;
         }
 
         // delete all edges "<child> -> OID" from the closure
-        removeChildrenEdges(oid, livingChildren, context, session);
+        removeChildrenEdges(oid, livingChildren, context, em);
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Deleted {} 'child' links.", livingChildren.size());
         }
 
         // delete all edges "OID -> <parent>" from the closure
-        List<String> livingParents = retainExistingOids(getParents(oid, session), session);
-        removeParentEdges(oid, livingParents, context, session);
+        List<String> livingParents = retainExistingOids(getParents(oid, em), em);
+        removeParentEdges(oid, livingParents, context, em);
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Deleted {} 'parent' links.", livingParents.size());
         }
 
         // delete (OID, OID) record
-        NativeQuery deleteSelfQuery = session.createNativeQuery("delete from " + CLOSURE_TABLE_NAME + " " +
+        Query deleteSelfQuery = em.createNativeQuery("delete from " + CLOSURE_TABLE_NAME + " " +
                 "where descendant_oid=:oid and ancestor_oid=:oid");
         deleteSelfQuery.setParameter("oid", oid);
         int count = deleteSelfQuery.executeUpdate();
@@ -751,8 +752,8 @@ public class OrgClosureManager {
         }
     }
 
-    private void handleDeleteLeaf(String oid, Session session) {
-        NativeQuery removeFromClosureQuery = session.createNativeQuery(
+    private void handleDeleteLeaf(String oid, EntityManager em) {
+        Query removeFromClosureQuery = em.createNativeQuery(
                 "delete from " + CLOSURE_TABLE_NAME + " " +
                         "where descendant_oid = :oid");
         removeFromClosureQuery.setParameter("oid", oid);
@@ -762,17 +763,17 @@ public class OrgClosureManager {
         }
     }
 
-    private void removeChildrenEdges(String oid, List<String> livingChildren, Context context, Session session) {
+    private void removeChildrenEdges(String oid, List<String> livingChildren, Context context, EntityManager em) {
         List<Edge> edges = childrenToEdges(oid, livingChildren);
-        removeIndependentEdges(edges, context, session);
+        removeIndependentEdges(edges, context, em);
     }
 
-    private void removeParentEdges(String oid, Collection<String> parents, Context context, Session session) {
+    private void removeParentEdges(String oid, Collection<String> parents, Context context, EntityManager em) {
         List<Edge> edges = parentsToEdges(oid, parents);
-        removeIndependentEdges(edges, context, session);
+        removeIndependentEdges(edges, context, em);
     }
 
-    private void removeIndependentEdges(List<Edge> edges, Context context, Session session) {
+    private void removeIndependentEdges(List<Edge> edges, Context context, EntityManager em) {
         long start = System.currentTimeMillis();
         LOGGER.trace("===================== REMOVE INDEPENDENT EDGES: {} ================", edges);
 
@@ -780,21 +781,21 @@ public class OrgClosureManager {
             // for the reason for this decomposition, see addIndependentEdges
             if (isH2()) {
                 for (Edge edge : edges) {
-                    removeIndependentEdgesInternal(singletonList(edge), context, session);
+                    removeIndependentEdgesInternal(singletonList(edge), context, em);
                 }
             } else {
-                removeIndependentEdgesInternal(edges, context, session);
+                removeIndependentEdgesInternal(edges, context, em);
             }
         }
-        session.flush();
-        session.clear();
+        em.flush();
+        em.clear();
 
         LOGGER.trace("--------------------- DONE REMOVE EDGES: {} ({} ms) ----------------", edges, System.currentTimeMillis() - start);
     }
 
-    private void removeIndependentEdgesInternal(List<Edge> edges, Context context, Session session) {
+    private void removeIndependentEdgesInternal(List<Edge> edges, Context context, EntityManager em) {
 
-        String deltaTempTableName = computeDeltaTable(edges, context, session);
+        String deltaTempTableName = computeDeltaTable(edges, context, em);
         try {
             int count;
 
@@ -834,26 +835,26 @@ public class OrgClosureManager {
                 throw new UnsupportedOperationException("Org. closure manager - unsupported database operation");
             }
             long startDelete = System.currentTimeMillis();
-            NativeQuery deleteFromClosureQuery = session.createNativeQuery(deleteFromClosureQueryText);
+            Query deleteFromClosureQuery = em.createNativeQuery(deleteFromClosureQueryText);
             count = deleteFromClosureQuery.executeUpdate();
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Deleted {} records from closure table in {} ms", count, System.currentTimeMillis() - startDelete);
             }
             if (DUMP_TABLES) {
-                dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+                dumpOrgClosureTypeTable(em, CLOSURE_TABLE_NAME);
             }
 
             long startUpdate = System.currentTimeMillis();
-            NativeQuery updateInClosureQuery = session.createNativeQuery(updateInClosureQueryText);
+            Query updateInClosureQuery = em.createNativeQuery(updateInClosureQueryText);
             count = updateInClosureQuery.executeUpdate();
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Updated {} records in closure table in {} ms", count, System.currentTimeMillis() - startUpdate);
             }
             if (DUMP_TABLES) {
-                dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+                dumpOrgClosureTypeTable(em, CLOSURE_TABLE_NAME);
             }
         } finally {
-            dropDeltaTableIfNecessary(session, deltaTempTableName);
+            dropDeltaTableIfNecessary(em, deltaTempTableName);
         }
     }
     //endregion
@@ -861,7 +862,7 @@ public class OrgClosureManager {
     //region Handling MODIFY
 
     private void handleModify(String oid, Collection<? extends ItemDelta> modifications,
-            PrismObject<? extends ObjectType> originalObject, Context context, Session session) {
+            PrismObject<? extends ObjectType> originalObject, Context context, EntityManager em) {
         if (modifications.isEmpty()) {
             return;
         }
@@ -869,34 +870,34 @@ public class OrgClosureManager {
         Set<String> parentsToDelete = getParentOidsToDelete(modifications, originalObject);
         Set<String> parentsToAdd = getParentOidsToAdd(modifications, originalObject);
 
-        Collection<String> livingParentsToDelete = retainExistingOids(parentsToDelete, session);
-        Collection<String> livingParentsToAdd = retainExistingOids(parentsToAdd, session);
+        Collection<String> livingParentsToDelete = retainExistingOids(parentsToDelete, em);
+        Collection<String> livingParentsToAdd = retainExistingOids(parentsToAdd, em);
 
         parentsToDelete.removeAll(parentsToAdd);            // if something is deleted and the re-added we can skip this operation
 
-        removeParentEdges(oid, livingParentsToDelete, context, session);
-        addParentEdges(oid, livingParentsToAdd, context, session);
+        removeParentEdges(oid, livingParentsToDelete, context, em);
+        addParentEdges(oid, livingParentsToAdd, context, em);
     }
 
     //endregion
 
     //region Misc
 
-    private void lockClosureTable(Session session) {
+    private void lockClosureTable(EntityManager em) {
         long start = System.currentTimeMillis();
         LOGGER.trace("Locking closure table");
         if (isH2()) {
-            NativeQuery<?> q = session.createNativeQuery(
+            Query q = em.createNativeQuery(
                     "SELECT * FROM " + CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
-            q.list();
+            q.getResultList();
         } else if (isOracle()) {
-            NativeQuery<?> q = session.createNativeQuery(
+            Query q = em.createNativeQuery(
                     "LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
             q.executeUpdate();
         } else if (isSQLServer()) {
-            NativeQuery<?> q = session.createNativeQuery(
+            Query q = em.createNativeQuery(
                     "SELECT count(*) FROM " + CLOSURE_TABLE_NAME + " WITH (TABLOCK, XLOCK)");
-            q.list();
+            q.getResultList();
         } else {
             throw new AssertionError("Neither H2 nor Oracle nor SQL Server");
         }
@@ -905,7 +906,7 @@ public class OrgClosureManager {
     }
 
     // returns table name
-    private String computeDeltaTable(List<Edge> edges, Context context, Session session) {
+    private String computeDeltaTable(List<Edge> edges, Context context, EntityManager em) {
 
         if (edges.isEmpty()) {
             throw new IllegalArgumentException("No edges to add/remove");
@@ -922,8 +923,8 @@ public class OrgClosureManager {
         }
 
         if (COUNT_CLOSURE_RECORDS && LOGGER.isTraceEnabled()) {
-            NativeQuery q = session.createNativeQuery("select count(*) from " + CLOSURE_TABLE_NAME);
-            List list = q.list();
+            Query q = em.createNativeQuery("select count(*) from " + CLOSURE_TABLE_NAME);
+            List list = q.getResultList();
             LOGGER.trace("OrgClosure has {} rows", list.toString());
         }
 
@@ -945,12 +946,13 @@ public class OrgClosureManager {
                     "ancestor_oid NVARCHAR(36) COLLATE database_default, " +
                     "val INT, " +
                     "PRIMARY KEY (descendant_oid, ancestor_oid))";
-//            NativeQuery createTableQuery = session.createNativeQuery(createTableSql);
+//            NativeQuery createTableQuery = em.createNativeQuery(createTableSql);
 //            createTableQuery.executeUpdate();  <--- this does not work because the temporary table gets deleted when the command terminates (preparedStatement issue - maybe something like this: https://support.microsoft.com/en-us/kb/280134 ?)
+            Session session = em.unwrap(Session.class);
             session.doWork(connection -> RUtil.executeStatement(connection, createTableSql));
             LOGGER.trace("Empty delta table created in {} ms", System.currentTimeMillis() - start);
 
-            NativeQuery insertQuery = session.createNativeQuery("insert into " + deltaTempTableName + " " + selectClause);
+            Query insertQuery = em.createNativeQuery("insert into " + deltaTempTableName + " " + selectClause);
             start = System.currentTimeMillis();
             count = insertQuery.executeUpdate();
         } else {
@@ -959,20 +961,20 @@ public class OrgClosureManager {
                 createTablePrefix = "create local temporary table " + deltaTempTableName + " on commit drop as ";
             } else if (isH2()) {
                 // todo skip if this is first in this transaction
-                NativeQuery q = session.createNativeQuery("delete from " + deltaTempTableName);
+                Query q = em.createNativeQuery("delete from " + deltaTempTableName);
                 int c = q.executeUpdate();
                 LOGGER.trace("Deleted {} rows from temporary table {}", c, deltaTempTableName);
                 createTablePrefix = "insert into " + deltaTempTableName + " ";
             } else if (isOracle()) {
                 // todo skip if this is first in this transaction
-                NativeQuery q = session.createNativeQuery("delete from " + deltaTempTableName);
+                Query q = em.createNativeQuery("delete from " + deltaTempTableName);
                 int c = q.executeUpdate();
                 LOGGER.trace("Deleted {} rows from temporary table {}", c, deltaTempTableName);
                 createTablePrefix = "insert into " + deltaTempTableName + " ";
             } else {
                 throw new UnsupportedOperationException("Org. closure manager - unsupported database operation");
             }
-            NativeQuery query1 = session.createNativeQuery(createTablePrefix + selectClause);
+            Query query1 = em.createNativeQuery(createTablePrefix + selectClause);
             start = System.currentTimeMillis();
             count = query1.executeUpdate();
         }
@@ -981,7 +983,7 @@ public class OrgClosureManager {
 
         if (isPostgreSQL()) {
             start = System.currentTimeMillis();
-            NativeQuery qIndex = session.createNativeQuery("CREATE INDEX " + deltaTempTableName + "_idx " +
+            Query qIndex = em.createNativeQuery("CREATE INDEX " + deltaTempTableName + "_idx " +
                     "  ON " + deltaTempTableName +
                     "  USING btree " +
                     "  (descendant_oid, ancestor_oid)");
@@ -992,10 +994,10 @@ public class OrgClosureManager {
         }
 
         if (DUMP_TABLES) {
-            dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+            dumpOrgClosureTypeTable(em, CLOSURE_TABLE_NAME);
         }
         if (DUMP_TABLES) {
-            dumpOrgClosureTypeTable(session, deltaTempTableName);
+            dumpOrgClosureTypeTable(em, deltaTempTableName);
         }
 
         // TODO drop delta table in case of exception
@@ -1028,8 +1030,8 @@ public class OrgClosureManager {
         return whereClause.toString();
     }
 
-    private void dumpOrgClosureTypeTable(Session session, String tableName) {
-        NativeQuery<Object[]> q = session.createNativeQuery(
+    private void dumpOrgClosureTypeTable(EntityManager em, String tableName) {
+        NativeQuery<Object[]> q = em.createNativeQuery(
                         "select descendant_oid, ancestor_oid, val from " + tableName, Object[].class)
                 .addScalar("descendant_oid", StandardBasicTypes.STRING)
                 .addScalar("ancestor_oid", StandardBasicTypes.STRING)
@@ -1042,14 +1044,14 @@ public class OrgClosureManager {
     }
 
     private void initializeOracleTemporaryTable() {
-        try (Session session = baseHelper.getSessionFactory().openSession()) {
-            NativeQuery<?> qCheck = session.createNativeQuery(
+        try (EntityManager em = baseHelper.getEntityManagerFactory().createEntityManager()) {
+            Query qCheck = em.createNativeQuery(
                     "select table_name from user_tables"
                             + " where table_name = upper('" + TEMP_DELTA_TABLE_NAME_FOR_ORACLE + "')");
-            if (qCheck.list().isEmpty()) {
+            if (qCheck.getResultList().isEmpty()) {
                 LOGGER.info("Creating temporary table {}", TEMP_DELTA_TABLE_NAME_FOR_ORACLE);
-                session.beginTransaction();
-                NativeQuery<?> qCreate = session.createNativeQuery(
+                em.getTransaction().begin();
+                Query qCreate = em.createNativeQuery(
                         "CREATE GLOBAL TEMPORARY TABLE " + TEMP_DELTA_TABLE_NAME_FOR_ORACLE
                                 + "    (descendant_oid VARCHAR2(36 CHAR), "
                                 + "     ancestor_oid VARCHAR2(36 CHAR), "
@@ -1057,7 +1059,7 @@ public class OrgClosureManager {
                                 + "     PRIMARY KEY (descendant_oid, ancestor_oid)) "
                                 + "  ON COMMIT DELETE ROWS");
                 qCreate.executeUpdate();
-                session.getTransaction().commit();
+                em.getTransaction().commit();
             }
         } catch (RuntimeException e) {
             String m = "Couldn't create temporary table " + TEMP_DELTA_TABLE_NAME_FOR_ORACLE + ". Please create the table manually.";
@@ -1187,26 +1189,26 @@ public class OrgClosureManager {
         return OrgType.class.equals(type);
     }
 
-    private List<String> getParents(String oid, Session session) {
+    private List<String> getParents(String oid, EntityManager session) {
         Query parentsQuery = session.createQuery("select distinct targetOid from RObjectReference where ownerOid=:oid  and referenceType=0");
         parentsQuery.setParameter("oid", oid);
-        return parentsQuery.list();
+        return parentsQuery.getResultList();
     }
 
-    private List<String> getChildren(String oid, Session session) {
+    private List<String> getChildren(String oid, EntityManager session) {
         Query childrenQuery = session.createQuery("select distinct parentRef.ownerOid from RObjectReference as parentRef" +
                 " join parentRef.owner as owner where parentRef.targetOid=:oid and parentRef.referenceType=0" +
                 " and owner.objectTypeClass = :orgType");
         childrenQuery.setParameter("orgType", RObjectType.ORG);         // TODO eliminate use of parameter here
         childrenQuery.setParameter("oid", oid);
-        return childrenQuery.list();
+        return childrenQuery.getResultList();
     }
 
-    private List<String> retainExistingOids(Collection<String> oids, Session session) {
+    private List<String> retainExistingOids(Collection<String> oids, EntityManager session) {
         if (!oids.isEmpty()) {
             Query query = session.createQuery("select o.oid from RObject o where o.oid in (:oids)");
             query.setParameterList("oids", oids);
-            return query.list();
+            return query.getResultList();
         } else {
             return new ArrayList<>();
         }

@@ -8,8 +8,7 @@ package com.evolveum.midpoint.repo.sql.query;
 
 import java.util.Collection;
 
-import org.hibernate.Session;
-import org.hibernate.query.Query;
+import jakarta.persistence.EntityManager;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -25,6 +24,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+
+import jakarta.persistence.Query;
 
 /**
  * @author lazyman
@@ -48,13 +49,13 @@ public class QueryEngine {
 
     public RQuery interpret(ObjectQuery query, Class<? extends Containerable> type,
             Collection<SelectorOptions<GetOperationOptions>> options,
-            boolean countingObjects, Session session) throws QueryException {
+            boolean countingObjects, EntityManager em) throws QueryException {
 
         query = refineAssignmentHolderQuery(type, query);
 
         QueryInterpreter interpreter = new QueryInterpreter(repoConfiguration, extItemDictionary);
-        HibernateQuery hibernateQuery = interpreter.interpret(query, type, options, prismContext, relationRegistry, countingObjects, session);
-        Query<?> hqlQuery = hibernateQuery.getAsHqlQuery(session);
+        HibernateQuery hibernateQuery = interpreter.interpret(query, type, options, prismContext, relationRegistry, countingObjects, em);
+        Query hqlQuery = hibernateQuery.getAsHqlQuery(em);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Query interpretation result:\n--- Query:\n{}\n--- with options: {}\n--- resulted in HQL:\n{}",

@@ -7,6 +7,21 @@
 
 package com.evolveum.midpoint.repo.sql.schemacheck;
 
+import java.io.*;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
+import org.hibernate.Session;
+import org.hibernate.boot.Metadata;
+import org.hibernate.mapping.Table;
+import org.hibernate.tool.hbm2ddl.SchemaValidator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.repo.sql.MetadataExtractorIntegrator;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.data.common.RGlobalMetadata;
@@ -15,19 +30,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.sql.ScriptRunner;
-import org.hibernate.Session;
-import org.hibernate.boot.Metadata;
-import org.hibernate.mapping.Table;
-import org.hibernate.tool.hbm2ddl.SchemaValidator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import jakarta.annotation.PostConstruct;
-import java.io.*;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 @Component
 public class SchemaChecker {
@@ -61,8 +63,7 @@ public class SchemaChecker {
             // nothing to do
         } else if (action instanceof SchemaAction.Warn) {
             LOGGER.warn(((SchemaAction.Warn) action).message);
-        } else if (action instanceof SchemaAction.Stop) {
-            SchemaAction.Stop stop = (SchemaAction.Stop) action;
+        } else if (action instanceof SchemaAction.Stop stop) {
             logAndShowStopBanner(stop.message);
             throw new SystemException("Database schema problem: " + stop.message.replace('\n', ';'), stop.cause);
         } else if (action instanceof SchemaAction.CreateSchema) {
@@ -94,8 +95,8 @@ public class SchemaChecker {
         Collection<String> missingTables = new ArrayList<>();
         for (Table table : metadata.collectTableMappings()) {
             String tableName = table.getName();
-            try (Session session = baseHelper.beginReadOnlyTransaction()) {
-                List<?> result = session.createNativeQuery("select count(*) from " + tableName).list();
+            try (EntityManager em = baseHelper.beginReadOnlyTransaction()) {
+                List<?> result = em.createNativeQuery("select count(*) from " + tableName).getResultList();
                 LOGGER.debug("Table {} seems to be present; number of records is {}", tableName, result);
                 presentTables.add(tableName);
             } catch (Throwable t) {
@@ -115,10 +116,10 @@ public class SchemaChecker {
         }
 
         String entityName = RGlobalMetadata.class.getSimpleName();
-        try (Session session = baseHelper.beginReadOnlyTransaction()) {
+        try (EntityManager em = baseHelper.beginReadOnlyTransaction()) {
             //noinspection JpaQlInspection
-            List<?> result = session.createQuery("select value from " + entityName + " where name = '" +
-                    RGlobalMetadata.DATABASE_SCHEMA_VERSION + "'").list();
+            List<?> result = em.createQuery("select value from " + entityName + " where name = '" +
+                    RGlobalMetadata.DATABASE_SCHEMA_VERSION + "'").getResultList();
             if (result.isEmpty()) {
                 if (cfg.getSchemaVersionIfMissing() != null) {
                     return new DeclaredVersion(DeclaredVersion.State.VERSION_VALUE_EXTERNALLY_SUPPLIED, cfg.getSchemaVersionIfMissing());
@@ -182,7 +183,8 @@ public class SchemaChecker {
         }
         Reader reader = new BufferedReader(new InputStreamReader(stream));
 
-        try (Session session = baseHelper.getSessionFactory().openSession()) {
+        try (EntityManager em = baseHelper.getEntityManagerFactory().createEntityManager()) {
+            Session session = em.unwrap(Session.class);
             session.doWork(connection -> {
                 int transactionIsolation = connection.getTransactionIsolation();
                 if (baseHelper.getConfiguration().isUsingSQLServer()) {

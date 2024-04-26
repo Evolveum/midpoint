@@ -12,8 +12,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import java.util.List;
 
-import org.hibernate.Session;
-import org.hibernate.query.Query;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -243,16 +243,16 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         assertNotNull(assignment.getValue(1L));
 
-        Session session = open();
+        EntityManager em = open();
         try {
-            Query<?> query = session.createNativeQuery(
-                    "select count(*) from m_assignment where owner_oid=:oid and id=:id");
+            Query query = em.createNativeQuery(
+                    "select count(*) from m_assignment where owner_oid=:oid and id=:id", Number.class);
             query.setParameter("oid", delta.getOid());
             query.setParameter("id", 4);
-            Number number = (Number) query.uniqueResult();
+            Number number = (Number) query.getSingleResult();
             assertEquals(0, number.intValue());
         } finally {
-            close(session);
+            close(em);
         }
     }
 

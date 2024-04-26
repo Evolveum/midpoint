@@ -97,7 +97,7 @@ class ObjectExtensionUpdate extends ExtensionUpdate<RObject, RObjectExtensionTyp
         RObjectExtensionType extensionType = computeExtensionType(delta);
 
         // Because ADD for single-valued container is the same as REPLACE (really?) we treat ADD as a REPLACE here.
-        clearExtension(object, extensionType, ctx.session);
+        clearExtension(object, extensionType, ctx.entityManager);
 
         if (delta.isAdd() || delta.isReplace()) {
             PrismContainerValue<?> extension = (PrismContainerValue<?>) delta.getAnyValue();

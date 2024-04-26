@@ -21,13 +21,13 @@ import java.util.zip.GZIPOutputStream;
 import javax.xml.namespace.QName;
 
 import com.google.common.base.Strings;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.metamodel.MappingMetamodel;
 import org.hibernate.persister.entity.AbstractEntityPersister;
@@ -174,37 +174,36 @@ public final class RUtil {
      * workaround for bug as found in forum
      * https://forum.hibernate.org/viewtopic.php?t=978915&highlight=
      */
-    public static void fixCompositeIDHandling(SessionFactory sessionFactory) {
-        fixCompositeIdentifierInMetaModel(sessionFactory, RObjectDeltaOperation.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, ROrgClosure.class);
+    public static void fixCompositeIDHandling(EntityManagerFactory factory) {
+        fixCompositeIdentifierInMetaModel(factory, RObjectDeltaOperation.class);
+        fixCompositeIdentifierInMetaModel(factory, ROrgClosure.class);
 
-        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtDate.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtString.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtPolyString.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtReference.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtLong.class);
+        fixCompositeIdentifierInMetaModel(factory, ROExtDate.class);
+        fixCompositeIdentifierInMetaModel(factory, ROExtString.class);
+        fixCompositeIdentifierInMetaModel(factory, ROExtPolyString.class);
+        fixCompositeIdentifierInMetaModel(factory, ROExtReference.class);
+        fixCompositeIdentifierInMetaModel(factory, ROExtLong.class);
 
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentExtension.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtDate.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtString.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtPolyString.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtReference.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtLong.class);
+        fixCompositeIdentifierInMetaModel(factory, RAssignmentExtension.class);
+        fixCompositeIdentifierInMetaModel(factory, RAExtDate.class);
+        fixCompositeIdentifierInMetaModel(factory, RAExtString.class);
+        fixCompositeIdentifierInMetaModel(factory, RAExtPolyString.class);
+        fixCompositeIdentifierInMetaModel(factory, RAExtReference.class);
+        fixCompositeIdentifierInMetaModel(factory, RAExtLong.class);
 
-        fixCompositeIdentifierInMetaModel(sessionFactory, RObjectReference.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentReference.class);
+        fixCompositeIdentifierInMetaModel(factory, RObjectReference.class);
+        fixCompositeIdentifierInMetaModel(factory, RAssignmentReference.class);
 
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAssignment.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RTrigger.class);
+        fixCompositeIdentifierInMetaModel(factory, RAssignment.class);
+        fixCompositeIdentifierInMetaModel(factory, RTrigger.class);
         for (RObjectType type : ClassMapper.getKnownTypes()) {
-            fixCompositeIdentifierInMetaModel(sessionFactory, type.getClazz());
+            fixCompositeIdentifierInMetaModel(factory, type.getClazz());
         }
     }
 
-    private static void fixCompositeIdentifierInMetaModel(
-            SessionFactory sessionFactory, Class<?> clazz) {
-        //sessionFactory.getMetamodel().entity(clazz);
-        ClassMetadata classMetadata = null; //sessionFactory.getClassMetadata(clazz);
+    private static void fixCompositeIdentifierInMetaModel(EntityManagerFactory factory, Class<?> clazz) {
+        //factory.getMetamodel().entity(clazz);
+        ClassMetadata classMetadata = null; //factory.getClassMetadata(clazz);
         if (classMetadata instanceof AbstractEntityPersister) {
             AbstractEntityPersister persister = (AbstractEntityPersister) classMetadata;
             EntityMetamodel model = persister.getEntityMetamodel();
@@ -356,8 +355,8 @@ public final class RUtil {
         return sb.toString();
     }
 
-    public static String getTableName(Class<?> hqlType, Session session) {
-        SessionFactory factory = session.getSessionFactory();
+    public static String getTableName(Class<?> hqlType, EntityManager entityManager) {
+        EntityManagerFactory factory = entityManager.getEntityManagerFactory();
         MappingMetamodel model = (MappingMetamodel) factory.getMetamodel();
         EntityPersister ep = model.getEntityDescriptor(hqlType); // model.entityPersister(hqlType);
         if (ep instanceof Joinable joinable) {
@@ -473,8 +472,8 @@ public final class RUtil {
     }
 
     public static Object getRepoEnumValue(Object key) {
-         var mapped = ENUM_MAPPINGS.get(key);
-         return mapped != null ? mapped : key;
+        var mapped = ENUM_MAPPINGS.get(key);
+        return mapped != null ? mapped : key;
     }
 
     public static <C extends Enum<C>> void register(SchemaEnum<C> value) {

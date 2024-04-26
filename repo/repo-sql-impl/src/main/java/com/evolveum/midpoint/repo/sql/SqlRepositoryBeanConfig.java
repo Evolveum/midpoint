@@ -9,14 +9,15 @@ package com.evolveum.midpoint.repo.sql;
 import java.util.Properties;
 import javax.sql.DataSource;
 
-import org.hibernate.SessionFactory;
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.TransactionManager;
 
 import com.evolveum.midpoint.audit.api.AuditServiceFactory;
@@ -114,13 +115,17 @@ public class SqlRepositoryBeanConfig {
 
     @Bean
     @ConditionalOnMissingBean
-    public LocalSessionFactoryBean sessionFactory(
+    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(
             DataSource dataSource,
             SqlRepositoryConfiguration configuration,
             MidPointImplicitNamingStrategy midPointImplicitNamingStrategy,
             MidPointPhysicalNamingStrategy midPointPhysicalNamingStrategy,
             EntityStateInterceptor entityStateInterceptor) {
-        LocalSessionFactoryBean bean = new LocalSessionFactoryBean();
+
+        LocalContainerEntityManagerFactoryBean bean = new LocalContainerEntityManagerFactoryBean();
+
+        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        bean.setJpaVendorAdapter(vendorAdapter);
 
         // While dataSource == dataSourceFactory.getDataSource(), we're using dataSource as
         // parameter to assure, that Spring already called the factory method. Explicit is good.
@@ -135,6 +140,9 @@ public class SqlRepositoryBeanConfig {
         hibernateProperties.setProperty("hibernate.transaction.coordinator_class", "jdbc");
         hibernateProperties.setProperty("hibernate.hql.bulk_id_strategy",
                 "org.hibernate.hql.spi.id.inline.InlineIdsOrClauseBulkIdStrategy");
+
+//        hibernateProperties.setProperty("hibernate.implicit_naming_strategy ", MidPointImplicitNamingStrategy.class.getName());
+//        hibernateProperties.setProperty("hibernate.physical_naming_strategy", MidPointPhysicalNamingStrategy.class.getName());
 
         bean.setHibernateProperties(hibernateProperties);
         bean.setImplicitNamingStrategy(midPointImplicitNamingStrategy);
@@ -156,9 +164,9 @@ public class SqlRepositoryBeanConfig {
     }
 
     @Bean
-    public TransactionManager transactionManager(SessionFactory sessionFactory) {
-        HibernateTransactionManager htm = new HibernateTransactionManager();
-        htm.setSessionFactory(sessionFactory);
+    public TransactionManager transactionManager(EntityManagerFactory emf) {
+        JpaTransactionManager htm = new JpaTransactionManager();
+        htm.setEntityManagerFactory(emf);
 
         return htm;
     }

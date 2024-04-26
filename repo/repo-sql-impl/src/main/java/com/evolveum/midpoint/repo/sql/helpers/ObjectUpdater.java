@@ -11,12 +11,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
 
 import com.evolveum.midpoint.prism.path.PathSet;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
+import org.hibernate.EntityManager;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
@@ -93,7 +95,7 @@ public class ObjectUpdater {
                 classSimpleName, object.getOid(), options.isOverwrite());
 
         String oid = null;
-        Session session = null;
+        EntityManager em = null;
         OrgClosureManager.Context closureContext = null;
         // it is needed to keep the original oid for example for import options. if we do not keep it
         // and it was null it can bring some error because the oid is set when the object contains orgRef
@@ -109,19 +111,19 @@ public class ObjectUpdater {
                     PrismIdentifierGenerator.Operation.ADD;
             PrismIdentifierGenerator idGenerator = new PrismIdentifierGenerator(operation);
 
-            session = baseHelper.beginTransaction();
+            em = baseHelper.beginTransaction();
 
             RObject rObject = createDataObjectFromJAXB(object, idGenerator);
 
             // ignore options.isOverwrite() here, it's not used
-            closureContext = closureManager.onBeginTransactionAdd(session, object, options.isOverwrite());
+            closureContext = closureManager.onBeginTransactionAdd(em, object, options.isOverwrite());
 
             if (options.isOverwrite()) {
-                oid = overwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
+                oid = overwriteAddObjectAttempt(object, rObject, originalOid, em, closureContext);
             } else {
-                oid = nonOverwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
+                oid = nonOverwriteAddObjectAttempt(object, rObject, originalOid, em, closureContext);
             }
-            session.getTransaction().commit();
+            em.getTransaction().commit();
 
             LOGGER.trace("Saved object '{}' with oid '{}'", classSimpleName, oid);
 
@@ -129,13 +131,13 @@ public class ObjectUpdater {
         } catch (PersistenceException ex) {
             ConstraintViolationException constEx = ExceptionUtil.findCause(ex, ConstraintViolationException.class);
             if (constEx == null) {
-                baseHelper.handleGeneralException(ex, session, result);
+                baseHelper.handleGeneralException(ex, em, result);
                 throw new AssertionError("shouldn't be here");
             }
             // TODO use this throughout overwriteAddObjectAttempt to collect information about no-fetch insertion attempts
             AttemptContext attemptContext = new AttemptContext();
-            handleConstraintViolationExceptionSpecialCases(constEx, session, attemptContext, result);
-            baseHelper.rollbackTransaction(session, constEx, result, FATAL_ERROR);
+            handleConstraintViolationExceptionSpecialCases(constEx, em, attemptContext, result);
+            baseHelper.rollbackTransaction(em, constEx, result, FATAL_ERROR);
 
             LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", constEx);
             // we don't know if it's only name uniqueness violation, or something else,
@@ -152,19 +154,19 @@ public class ObjectUpdater {
             throw new ObjectAlreadyExistsException("Conflicting object already exists"
                     + (constraintName == null ? "" : " (violated constraint '" + constraintName + "')"), constEx);
         } catch (ObjectAlreadyExistsException | SchemaException ex) {
-            baseHelper.rollbackTransaction(session, ex, result, FATAL_ERROR);
+            baseHelper.rollbackTransaction(em, ex, result, FATAL_ERROR);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {
-            baseHelper.handleGeneralException(ex, session, result);
+            baseHelper.handleGeneralException(ex, em, result);
         } finally {
-            cleanupClosureAndSessionAndResult(closureContext, session, result);
+            cleanupClosureAndSessionAndResult(closureContext, em, result);
         }
 
         return oid;
     }
 
     private <T extends ObjectType> String overwriteAddObjectAttempt(
-            PrismObject<T> object, RObject rObject, String originalOid, Session session,
+            PrismObject<T> object, RObject rObject, String originalOid, EntityManager session,
             OrgClosureManager.Context closureContext)
             throws SchemaException, DtoTranslationException {
 
@@ -260,7 +262,7 @@ public class ObjectUpdater {
     }
 
     private <T extends ObjectType> String nonOverwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
-            String originalOid, Session session, OrgClosureManager.Context closureContext)
+            String originalOid, EntityManager session, OrgClosureManager.Context closureContext)
             throws ObjectAlreadyExistsException, SchemaException {
 
         // check name uniqueness (by type)
@@ -304,7 +306,7 @@ public class ObjectUpdater {
     public <T extends ObjectType> DeleteObjectResult deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException {
         LOGGER_PERFORMANCE.debug("> delete object {}, oid={}", type.getSimpleName(), oid);
-        Session session = null;
+        EntityManager session = null;
         OrgClosureManager.Context closureContext = null;
         try {
             session = baseHelper.beginTransaction();
@@ -349,7 +351,7 @@ public class ObjectUpdater {
             Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> originalModifications,
             ModificationPrecondition<T> precondition, RepoModifyOptions originalModifyOptions,
             int attempt, OperationResult result, SqlRepositoryServiceImpl sqlRepositoryService,
-            boolean noFetchExtensionValueInsertionForbidden, Session externalSession)
+            boolean noFetchExtensionValueInsertionForbidden, EntityManager externalSession)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
             SerializationRelatedException, PreconditionViolationException {
 
@@ -367,7 +369,7 @@ public class ObjectUpdater {
         LOGGER.trace("Modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
         LOGGER.trace("noFetchExtensionValueInsertionForbidden: {}", noFetchExtensionValueInsertionForbidden);
 
-        Session session = externalSession;
+        EntityManager session = externalSession;
         OrgClosureManager.Context closureContext = null;
         try {
             if (session == null) {
@@ -519,7 +521,7 @@ public class ObjectUpdater {
             throw new AssertionError("Shouldn't get here");
         } finally {
             cleanupClosureAndSessionAndResult(closureContext, session, result);
-            LOGGER.trace("Session cleaned up.");
+            LOGGER.trace("EntityManager cleaned up.");
         }
     }
 
@@ -551,7 +553,7 @@ public class ObjectUpdater {
         return false;
     }
 
-    private void cleanupClosureAndSessionAndResult(final OrgClosureManager.Context closureContext, final Session session, final OperationResult result) {
+    private void cleanupClosureAndSessionAndResult(final OrgClosureManager.Context closureContext, final EntityManager session, final OperationResult result) {
         if (closureContext != null) {
             closureManager.cleanUpAfterOperation(closureContext, session);
         }
@@ -567,7 +569,7 @@ public class ObjectUpdater {
 
         LOGGER_PERFORMANCE.debug("> modify object dynamically {}, oid={}", type.getSimpleName(), oid);
 
-        try (Session session = baseHelper.beginTransaction()) {
+        try (EntityManager session = baseHelper.beginTransaction()) {
 
             PrismObject<T> objectBefore;
             Collection<? extends ItemDelta<?, ?>> modifications;
@@ -612,7 +614,7 @@ public class ObjectUpdater {
     /**
      * Handles serialization-related cases and no-fetch extension value insertion collisions.
      */
-    private void handleConstraintViolationExceptionSpecialCases(ConstraintViolationException ex, Session session,
+    private void handleConstraintViolationExceptionSpecialCases(ConstraintViolationException ex, EntityManager session,
             AttemptContext attemptContext, OperationResult result) {
         if (attemptContext.noFetchExtensionValueInsertionAttempted && isNoFetchExtensionValueInsertionException(ex)) {
             throw new RestartOperationRequestedException("Suspecting no-fetch extension value insertion attempt causing "

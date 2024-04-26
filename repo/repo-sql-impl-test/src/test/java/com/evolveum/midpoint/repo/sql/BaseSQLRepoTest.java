@@ -16,11 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-
-import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.Path;
@@ -28,8 +23,9 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparablePath;
 import com.querydsl.sql.PrimaryKey;
 import com.querydsl.sql.SQLQuery;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,6 +40,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -64,16 +61,18 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.test.util.TestReportUtil;
 import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
@@ -119,7 +118,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     @Autowired protected PrismContext prismContext;
     @Autowired protected SchemaService schemaService;
     @Autowired protected RelationRegistry relationRegistry;
-    @Autowired protected SessionFactory factory;
+    @Autowired protected EntityManagerFactory factory;
     @Autowired protected ExtItemDictionary extItemDictionary;
     @Autowired protected Protector protector;
     @Autowired protected TestQueryListener queryListener;
@@ -132,11 +131,11 @@ public class BaseSQLRepoTest extends AbstractSpringTest
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 
-    public SessionFactory getFactory() {
+    public EntityManagerFactory getFactory() {
         return factory;
     }
 
-    public void setFactory(SessionFactory factory) {
+    public void setFactory(EntityManagerFactory factory) {
         RUtil.fixCompositeIDHandling(factory);
 
         this.factory = factory;
@@ -159,9 +158,10 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     @AfterMethod
     public void afterMethod() {
         try {
-            Session session = factory.getCurrentSession();
-            if (session != null) {
-                session.close();
+
+            EntityManager em = factory.getCurrentSession();
+            if (em != null) {
+                em.close();
                 AssertJUnit.fail("Session is still open, check test code or bug in sql service.");
             }
         } catch (Exception ex) {
@@ -188,17 +188,17 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     public void initSystem() throws Exception {
     }
 
-    protected Session open() {
-        Session session = getFactory().openSession();
-        session.beginTransaction();
-        return session;
+    protected EntityManager open() {
+        EntityManager em = getFactory().createEntityManager();
+        em.getTransaction().begin();
+        return em;
     }
 
-    protected void close(Session session) {
-        if (!session.getTransaction().getRollbackOnly()) {
-            session.getTransaction().commit();
+    protected void close(EntityManager em) {
+        if (!em.getTransaction().getRollbackOnly()) {
+            em.getTransaction().commit();
         }
-        session.close();
+        em.close();
     }
 
     protected <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
