@@ -111,7 +111,7 @@ public class ObjectDeltaUpdater {
         // different operational data or value metadata.
 
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
-        RObject object = em.byId(objectClass).getReference(oid);
+        RObject object = em.getReference(objectClass, oid);
 
         // Is this correct? should we get type from rObject?
         //ManagedType<T> mainEntityType = entityRegistry.getJaxbMapping(type);

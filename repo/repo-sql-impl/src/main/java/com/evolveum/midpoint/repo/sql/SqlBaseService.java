@@ -147,7 +147,7 @@ public abstract class SqlBaseService {
 
             EntityManagerFactory entityManagerFactory = baseHelper.getEntityManagerFactory();
             // TODO THIS WILL NOT NOT WORK
-            xxx
+            //xxx
             if (!(entityManagerFactory instanceof SessionFactoryImpl sessionFactoryImpl)) {
                 return;
             }
@@ -168,7 +168,7 @@ public abstract class SqlBaseService {
             //nowhere to report error (no operation result available)
             em.getTransaction().rollback();
         } finally {
-            baseHelper.cleanupSessionAndResult(em, null);
+            baseHelper.cleanupManagerAndResult(em, null);
         }
     }
 

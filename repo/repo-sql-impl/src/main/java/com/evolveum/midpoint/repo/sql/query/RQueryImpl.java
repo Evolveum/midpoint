@@ -33,13 +33,13 @@ public class RQueryImpl implements RQuery {
     @Override
     public <T> List<T> list() throws HibernateException {
         //noinspection unchecked
-        return (List<T>) query.list();
+        return (List<T>) query.getResultList();
     }
 
     @Override
     public <T> T uniqueResult() throws HibernateException {
         //noinspection unchecked
-        return (T) query.uniqueResult();
+        return (T) query.getSingleResult();
     }
 
     @Override
@@ -47,7 +47,7 @@ public class RQueryImpl implements RQuery {
         return query.scroll(mode);
     }
 
-    public Query<?> getQuery() {
+    public Query getQuery() {
         return query;
     }
 

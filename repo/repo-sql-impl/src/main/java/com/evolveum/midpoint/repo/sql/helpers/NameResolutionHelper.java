@@ -80,7 +80,7 @@ public class NameResolutionHelper {
             batch.add(iterator.next());
             if (batch.size() >= MAX_OIDS_TO_RESOLVE_AT_ONCE || !iterator.hasNext()) {
                 Query query = em.createNamedQuery("resolveReferences");
-                query.setParameterList("oid", batch);
+                query.setParameter("oid", batch);
 
                 @SuppressWarnings({ "unchecked", "raw" })
                 List<Object[]> results = query.getResultList();            // returns oid + name

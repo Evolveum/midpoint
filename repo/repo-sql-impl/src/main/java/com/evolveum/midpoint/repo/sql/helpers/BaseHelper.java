@@ -137,7 +137,7 @@ public class BaseHelper {
         em.getTransaction().rollback();
     }
 
-    public void cleanupSessionAndResult(EntityManager em, OperationResult result) {
+    public void cleanupManagerAndResult(EntityManager em, OperationResult result) {
         if (em != null && em.getTransaction().isActive()) {
             em.getTransaction().commit();
         }

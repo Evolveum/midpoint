@@ -127,7 +127,7 @@ abstract class ExtensionUpdate<E, ET> extends BaseUpdate {
                 ctx.attemptContext.noFetchExtensionValueInsertionAttempted = true; // to know that CVE can be caused because of this
             } else {
                 Serializable id = rValue.createId();
-                exists = ctx.entityManager.get(rValue.getClass(), id) != null;
+                exists = ctx.entityManager.find(rValue.getClass(), id) != null;
             }
             if (!exists) {
                 //noinspection unchecked
@@ -196,7 +196,7 @@ abstract class ExtensionUpdate<E, ET> extends BaseUpdate {
                 // We could try batching but I don't know how to do this in Hibernate. Using native queries is currently
                 // too complicated.
                 ctx.entityManager.createQuery("delete from ROExtString where id in (:id)")
-                        .setParameterList("id", rValueIdList)
+                        .setParameter("id", rValueIdList)
                         .executeUpdate();
             } else {
                 for (RAnyValue<?> value : rValuesToDelete) {

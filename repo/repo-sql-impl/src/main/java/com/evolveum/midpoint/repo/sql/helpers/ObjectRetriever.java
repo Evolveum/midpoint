@@ -6,25 +6,24 @@
  */
 package com.evolveum.midpoint.repo.sql.helpers;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.isAllowNotFound;
-
 import static org.apache.commons.lang3.ArrayUtils.getLength;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.isAllowNotFound;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.HANDLED_ERROR;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
 import javax.xml.namespace.QName;
 
-import org.hibernate.*;
-import org.hibernate.query.NativeQuery;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.Query;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import org.hibernate.ScrollMode;
+import org.hibernate.ScrollableResults;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -114,7 +113,7 @@ public class ObjectRetriever {
         } catch (DtoTranslationException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, em, result);
         } finally {
-            baseHelper.cleanupSessionAndResult(em, result);
+            baseHelper.cleanupManagerAndResult(em, result);
         }
 
         if (LOGGER.isTraceEnabled()) {
@@ -131,11 +130,11 @@ public class ObjectRetriever {
         boolean lockedForUpdateViaHibernate = false;
         boolean lockedForUpdateViaSql = false;
 
-        LockOptions lockOptions = new LockOptions();
+        LockModeType lockMode = LockModeType.NONE;
         //todo fix lock for update!!!!!
         if (lockForUpdate) {
             if (getConfiguration().isLockForUpdateViaHibernate()) {
-                lockOptions.setLockMode(LockMode.PESSIMISTIC_WRITE);
+                lockMode = LockModeType.PESSIMISTIC_WRITE;
                 lockedForUpdateViaHibernate = true;
             } else if (getConfiguration().isLockForUpdateViaSql()) {
                 LOGGER.trace("Trying to lock object {} for update (via SQL)", oid);
@@ -168,7 +167,7 @@ public class ObjectRetriever {
             Query query = em.createNamedQuery("get.object");
             query.setParameter("oid", oid);
             query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
-            query.setLockOptions(lockOptions);
+            query.setLockMode(lockMode);
 
             fullObject = (GetObjectResult) query.getSingleResult();
         } else {
@@ -184,7 +183,7 @@ public class ObjectRetriever {
             cq.where(cb.equal(cq.from(clazz).get("oid"), oid));
 
             Query query = em.createQuery(cq);
-            query.setLockOptions(lockOptions);
+            query.setLockMode(lockMode);
 
             RObject obj = (RObject) query.getSingleResult();
 
@@ -256,7 +255,7 @@ public class ObjectRetriever {
         } catch (QueryException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, em, result);
         } finally {
-            baseHelper.cleanupSessionAndResult(em, result);
+            baseHelper.cleanupManagerAndResult(em, result);
         }
 
         return count;
@@ -305,7 +304,7 @@ public class ObjectRetriever {
             baseHelper.handleGeneralException(ex, em, result);
             throw new AssertionError("Shouldn't get here; previous method call should throw an exception.");
         } finally {
-            baseHelper.cleanupSessionAndResult(em, result);
+            baseHelper.cleanupManagerAndResult(em, result);
         }
     }
 
@@ -333,7 +332,7 @@ public class ObjectRetriever {
             baseHelper.handleGeneralException(ex, em, result);
             throw new IllegalStateException("shouldn't get here");
         } finally {
-            baseHelper.cleanupSessionAndResult(em, result);
+            baseHelper.cleanupManagerAndResult(em, result);
         }
     }
 
@@ -436,7 +435,7 @@ public class ObjectRetriever {
         } catch (QueryException | DtoTranslationException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, em, result);
         } finally {
-            baseHelper.cleanupSessionAndResult(em, result);
+            baseHelper.cleanupManagerAndResult(em, result);
         }
 
         list.forEach(c -> ObjectTypeUtil.normalizeAllRelations(c.asPrismContainerValue(), relationRegistry));
@@ -779,7 +778,7 @@ public class ObjectRetriever {
         } catch (RuntimeException ex) {
             baseHelper.handleGeneralRuntimeException(ex, em, result);
         } finally {
-            baseHelper.cleanupSessionAndResult(em, result);
+            baseHelper.cleanupManagerAndResult(em, result);
         }
 
         return version;
@@ -828,7 +827,7 @@ public class ObjectRetriever {
         } catch (SchemaException | QueryException | RuntimeException | ObjectNotFoundException ex) {
             baseHelper.handleGeneralException(ex, em, result);
         } finally {
-            baseHelper.cleanupSessionAndResult(em, result);
+            baseHelper.cleanupManagerAndResult(em, result);
             retrievedOids.addAll(newlyRetrievedOids);
         }
     }
@@ -983,7 +982,7 @@ public class ObjectRetriever {
                 query.setParameter("dOid", lowerObjectOids.iterator().next());
             } else {
                 query = session.createNamedQuery("isAnySubordinateAttempt.moreLowerOids");
-                query.setParameterList("dOids", lowerObjectOids);
+                query.setParameter("dOids", lowerObjectOids);
             }
             query.setParameter("aOid", upperOrgOid);
 
@@ -994,7 +993,7 @@ public class ObjectRetriever {
         } catch (RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, null);
         } finally {
-            baseHelper.cleanupSessionAndResult(session, null);
+            baseHelper.cleanupManagerAndResult(session, null);
         }
 
         throw new SystemException("isAnySubordinateAttempt failed somehow, this really should not happen.");
@@ -1038,7 +1037,7 @@ public class ObjectRetriever {
             baseHelper.handleGeneralException(ex, em, result);
             throw new IllegalStateException("shouldn't get here");
         } finally {
-            baseHelper.cleanupSessionAndResult(em, result);
+            baseHelper.cleanupManagerAndResult(em, result);
         }
     }
 

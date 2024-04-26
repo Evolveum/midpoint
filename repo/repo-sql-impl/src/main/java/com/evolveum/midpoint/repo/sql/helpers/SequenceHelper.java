@@ -88,7 +88,7 @@ public class SequenceHelper {
             baseHelper.handleGeneralException(ex, em, result);                                            // should always throw an exception
             throw new SystemException("Exception " + ex + " was not handled correctly", ex);        // ...so this shouldn't occur at all
         } finally {
-            baseHelper.cleanupSessionAndResult(em, result);
+            baseHelper.cleanupManagerAndResult(em, result);
             LOGGER.trace("EntityManager cleaned up.");
         }
     }
@@ -143,7 +143,7 @@ public class SequenceHelper {
             baseHelper.handleGeneralException(ex, em, result);                                            // should always throw an exception
             throw new SystemException("Exception " + ex + " was not handled correctly", ex);        // ...so this shouldn't occur at all
         } finally {
-            baseHelper.cleanupSessionAndResult(em, result);
+            baseHelper.cleanupManagerAndResult(em, result);
             LOGGER.trace("EntityManager cleaned up.");
         }
     }

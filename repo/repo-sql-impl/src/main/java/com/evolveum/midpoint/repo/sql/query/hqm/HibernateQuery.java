@@ -143,9 +143,9 @@ public class HibernateQuery {
 
             if (parameterValue.getValue() instanceof Collection) {
                 if (parameterValue.getType() instanceof BindableType) {
-                    query.setParameterList(name, (Collection) parameterValue.getValue(), (BindableType) parameterValue.getType());
+                    query.setParameter(name, (Collection) parameterValue.getValue(), (BindableType) parameterValue.getType());
                 } else {
-                    query.setParameterList(name, (Collection) parameterValue.getValue());
+                    query.setParameter(name, parameterValue.getValue());
                 }
             } else {
                 if (parameterValue.getType() instanceof BindableType) {

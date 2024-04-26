@@ -12,8 +12,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hibernate.query.criteria.HibernateCriteriaBuilder;
-import org.hibernate.query.criteria.JpaCriteriaQuery;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -399,11 +397,9 @@ public class CertificationCaseHelper {
 
         LOGGER.debug("Loading certification campaign cases.");
 
-        HibernateCriteriaBuilder cb = em.getCriteriaBuilder();
-        JpaCriteriaQuery<RAccessCertificationCase> cq = cb.createQuery(RAccessCertificationCase.class);
-        cq.where(cb.equal(cq.from(RAccessCertificationCase.class).get("ownerOid"), object.getOid()));
-
-        TypedQuery<RAccessCertificationCase> query = em.createQuery(cq);
+        TypedQuery<RAccessCertificationCase> query = em.createQuery(
+                        "from RAccessCertificationCase c where c.ownerOid = :oid", RAccessCertificationCase.class)
+                .setParameter("oid", object.getOid());
 
         // TODO fetch only XML representation
         List<RAccessCertificationCase> cases = query.getResultList();

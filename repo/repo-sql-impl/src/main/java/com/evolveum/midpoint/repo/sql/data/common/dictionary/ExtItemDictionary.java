@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
-import org.hibernate.query.criteria.JpaCriteriaQuery;
+import jakarta.persistence.TypedQuery;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,9 +62,8 @@ public class ExtItemDictionary {
         try {
             em = baseHelper.beginReadOnlyTransaction();
 
-            JpaCriteriaQuery<RExtItem> query = em.getCriteriaBuilder().createQuery(RExtItem.class);
-            query.select(query.from(RExtItem.class));
-            List<RExtItem> items = em.createQuery(query).getResultList();
+            TypedQuery<RExtItem> query = em.createQuery("from RExtItem", RExtItem.class);
+            List<RExtItem> items = query.getResultList();
             LOGGER.debug("Fetched {} item definitions", items.size());
 
             itemsById = new ConcurrentHashMap<>(items.size());
@@ -80,7 +79,7 @@ public class ExtItemDictionary {
             LOGGER.debug("Exception fetch: {}", ex.getMessage());
             baseHelper.handleGeneralException(ex, em, null);
         } finally {
-            baseHelper.cleanupSessionAndResult(em, null);
+            baseHelper.cleanupManagerAndResult(em, null);
         }
     }
 
@@ -137,7 +136,7 @@ public class ExtItemDictionary {
         } catch (RuntimeException ex) {
             baseHelper.handleGeneralException(ex, em, null);
         } finally {
-            baseHelper.cleanupSessionAndResult(em, null);
+            baseHelper.cleanupManagerAndResult(em, null);
         }
     }
 
