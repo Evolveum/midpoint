@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<shadow xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="43bf9f91-5487-487b-aa3c-0eda2ba66f79">
+    <name>chess</name>
+    <resourceRef oid="9437c94e-af47-4976-bbfc-cc7a59538ddf"/>
+    <dead>true</dead>
+    <objectClass>ri:GroupObjectClass</objectClass>
+    <kind>entitlement</kind>
+    <intent>sport</intent>
+    <exists>false</exists>
+    <attributes>
+        <icfs:name>WRONG NAME</icfs:name>
+        <icfs:uid>WRONG UID</icfs:uid>
+    </attributes>
+</shadow>
