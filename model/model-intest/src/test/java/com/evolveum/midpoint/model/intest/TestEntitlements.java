@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_RELATED;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
 
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_QNAME;
@@ -128,6 +129,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     private static final TestObject<ShadowType> SHADOW_MAPMAKERS_DEAD = TestObject.file(
             TEST_DIR, "group-mapmakers-dead.xml", "1ff68c92-d526-4cfb-8df5-539bc5fdd097");
 
+    private static final TestObject<ShadowType> SHADOW_CHESS_DEAD = TestObject.file(
+            TEST_DIR, "group-chess-dead.xml", "43bf9f91-5487-487b-aa3c-0eda2ba66f79");
+
     private static final TestObject<ShadowType> SHADOW_GUYBRUSH_DEAD = TestObject.file(
             TEST_DIR, "account-guybrush-dead.xml", "2947d268-1d43-4114-bd4c-f4aa723d884a");
 
@@ -148,6 +152,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
             TEST_DIR, "metarole-art.xml", "bf1178f4-d59a-47d1-b00b-f696b7bf6565");
     private static final TestObject<RoleType> ROLE_BASKETBALL = TestObject.file(
             TEST_DIR, "role-basketball.xml", "d2aa8c0f-7883-4c36-8446-7b4ddbf8b0a3");
+    private static final TestObject<RoleType> ROLE_CHESS = TestObject.file(
+            TEST_DIR, "role-chess.xml", "8d5c099c-bbdc-4584-a5eb-4931319d09b6");
     private static final TestObject<RoleType> ROLE_MUSIC = TestObject.file(
             TEST_DIR, "role-music.xml", "1095efcd-6677-4adc-b1d7-984014b2b87b");
 
@@ -174,6 +180,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
                 METAROLE_SPORT,
                 METAROLE_ART,
                 ROLE_BASKETBALL,
+                ROLE_CHESS,
                 ROLE_MUSIC,
                 ROLE_MAPMAKER,
                 ROLE_MAPMAKER_LANDLUBER,
@@ -2465,6 +2472,45 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_WILD_ASSOCIATIONS.name, userName);
         assertGroupMember(ROLE_BASKETBALL.getNameOrig(), userName, RESOURCE_DUMMY_WILD_ASSOCIATIONS.getDummyResource());
         assertGroupMember(ROLE_MUSIC.getNameOrig(), userName, RESOURCE_DUMMY_WILD_ASSOCIATIONS.getDummyResource());
+    }
+
+    /**
+     * Using `associationFromLink` with a dead shadow.
+     *
+     * MID-9468, MID-9487.
+     */
+    @Test
+    public void test930AssociationFromLinkWithDeadShadow() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String userName = "test930";
+
+        given("a dead shadow for 'chess' role");
+        repoAdd(SHADOW_CHESS_DEAD, result);
+        repositoryService.modifyObject(
+                RoleType.class,
+                ROLE_CHESS.oid,
+                deltaFor(RoleType.class)
+                        .item(RoleType.F_LINK_REF)
+                        .add(new ObjectReferenceType()
+                                .oid(SHADOW_CHESS_DEAD.oid)
+                                .type(ShadowType.COMPLEX_TYPE)
+                                .relation(ORG_RELATED))
+                        .asItemDeltas(),
+                result);
+
+        when("user with role 'chess' is created");
+        UserType user = new UserType()
+                .name(userName)
+                .assignment(ROLE_CHESS.assignmentTo());
+
+        addObject(user, task, result);
+
+        then("operation is OK and account with appropriate group memberships exists");
+        assertSuccess(result);
+
+        assertDummyAccount(RESOURCE_DUMMY_WILD_ASSOCIATIONS.name, userName);
+        assertGroupMember(ROLE_CHESS.getNameOrig(), userName, RESOURCE_DUMMY_WILD_ASSOCIATIONS.getDummyResource());
     }
 
     private void assertJackClean() throws SchemaViolationException, ConflictException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, InterruptedException {

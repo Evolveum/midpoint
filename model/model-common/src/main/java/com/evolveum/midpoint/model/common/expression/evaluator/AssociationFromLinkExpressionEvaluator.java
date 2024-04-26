@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -188,9 +190,10 @@ public class AssociationFromLinkExpressionEvaluator
 
             ShadowAssociation outputAssociation = outputDefinition.instantiate();
             for (PrismObject<ShadowType> targetObject : targetObjects) {
-                // We also need to add identifiers here. Otherwise the delta won't match the shadow association.
-                // And therefore new values won't be computed correctly (MID-4948). This is not a clean systemic solution.
-                outputAssociation.createNewValueWithFullObject(AbstractShadow.of(targetObject));
+                if (ShadowUtil.isNotDead(targetObject)) {
+                    outputAssociation.createNewValueWithFullObject(
+                            AbstractShadow.of(targetObject));
+                }
             }
 
             return outputAssociation;
