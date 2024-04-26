@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.component.DelegationTargetLimitationDialog;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemSelectorType;
@@ -65,7 +66,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     private static final String ID_TYPE_IMAGE = "typeImage";
     private static final String ID_NAME_LABEL = "nameLabel";
     private static final String ID_NAME = "name";
-    private static final String ID_HEADER_ROW = "headerRow";
+    private static final String ID_ACTIVATION = "activation";
     private static final String ID_PRIVILEGES_LIST = "privilegesList";
     private static final String ID_PRIVILEGE = "privilege";
     private static final String ID_LIMIT_PRIVILEGES_BUTTON = "limitPrivilegesButton";
@@ -218,6 +219,26 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         }
         delegatedToNameLabel.setOutputMarkupId(true);
         delegatedToName.add(delegatedToNameLabel);
+
+        IModel<String> activationModel = () -> {
+            AssignmentEditorDto assignmentDto = getModelObject();
+            if (assignmentDto == null) {
+                return "";
+            }
+
+            ActivationType activation = assignmentDto.getActivation();
+            if (activation == null) {
+                return "";
+            }
+
+            if (activation.getAdministrativeStatus() != null) {
+                return activation.getAdministrativeStatus().value();
+            }
+
+            return AssignmentsUtil.createActivationTitleModel(activation, getPageBase()).getObject();
+        };
+        Label activation = new Label(ID_ACTIVATION, activationModel);
+        headerRow.add(activation);
 
         ToggleIconButton<Void> expandButton = new ToggleIconButton<Void>(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
                 GuiStyleConstants.CLASS_ICON_COLLAPSE) {
