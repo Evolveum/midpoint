@@ -1,168 +1,64 @@
-= Example of Collection report: Comparing attributes of shadow and attributes of user in midPoint
-:page-nav-title: Comparing attributes of shadow and attributes of user in midPoint
-:page-wiki-name: Example of new report: Comparing attributes of shadow and attributes of user in mP
+= Collection report: Comparing Attributes of Shadow and Attributes of User in MidPoint
+:page-nav-title: Comparing Attributes of Shadow and Attributes of User in MidPoint
+:page-wiki-name: Collection report: Comparing Attributes of Shadow and Attributes of User in MidPoint
 :page-wiki-id: 52003075
 :page-wiki-metadata-create-user: lskublik
 :page-wiki-metadata-create-date: 2020-08-18T14:15:45.548+02:00
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2020-08-18T15:03:38.032+02:00
 :page-upkeep-status: yellow
+:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
 
 Please see xref:/midpoint/reference/misc/reports/configuration/#new-report[Report configuration] for basic information about configuration variables.
 
 
-== Usecase
+== Example Use-case
 
 We need report users with mismatched attributes, so we have to compare attributes of account of user and attributes of user in Midpoint. We create example which compare email prefix of user in Midpoint with firstname and lastname attributes of account chained by '.'.
-
 
 == Configuration
 
 We need import object collection and report.
 
+//TODO check after sampleRef is fully in prod
+.*Example Resource Configuration*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/resource-csv-username.xml[Git]
 
-.Object collection XML
-[source,xml]
-----
-<objectCollection oid="72b1f98e-f587-4b9f-b92b-72e251dbb244">
-    <name>Account shadow R1</name>
-    <type>ShadowType</type>
-    <filter>
-        <and>
-            <ref>
-                <path>resourceRef</path>
-                <value oid="----OID_OF_YOUR_RESOURCE----"/>
-            </ref>
-            <equal>
-                <path>kind</path>
-                <value>account</value>
-            </equal>
-        </and>
-    </filter>
-</objectCollection>
-----
+sampleRef::samples/resources/csv/resource-csv-username.xml[]
+====
 
-Please replace '----OID_OF_YOUR_RESOURCE----' with oid of your resource.
+//TODO check after sampleRef is fully in prod
+.*Example CSV Source File*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/resources/csv/midpoint-username.csv[Git]
 
-.Report XML
-[source,xml]
-----
-<report>
-    <name>Comparing attributes</name>
-    <assignment>
-        <targetRef oid="00000000-0000-0000-0000-000000000171" relation="default" type="ArchetypeType">
-            <!-- Collection report -->
-        </targetRef>
-    </assignment>
-    <archetypeRef oid="00000000-0000-0000-0000-000000000171" relation="default" type="ArchetypeType">
-        <!-- Collection report -->
-    </archetypeRef>
-    <roleMembershipRef oid="00000000-0000-0000-0000-000000000171" relation="default" type="ArchetypeType">
-        <!-- Collection report -->
-    </roleMembershipRef>
-    <objectCollection>
-        <collection>
-            <collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb244" relation="default" type="ObjectCollectionType">
-                <!-- Account shadow R1 -->
-            </collectionRef>
-        </collection>
-        <view>
-            <identifier>default-shadow</identifier>
-            <column>
-                <name>nameColumn</name>
-                <path>attributes/login</path>
-                <display>
-                    <label>Login</label>
-                </display>
-            </column>
-            <column>
-                <name>firstNameColumn</name>
-                <path>attributes/firstname</path>
-                <display>
-                    <label>First name</label>
-                </display>
-                <previousColumn>nameColumn</previousColumn>
-            </column>
-            <column>
-                <name>lastNameColumn</name>
-                <path>attributes/lastname</path>
-                <display>
-                    <label>Last name</label>
-                </display>
-                <previousColumn>firstNameColumn</previousColumn>
-            </column>
-            <column>
-                <name>emailInMpColumn</name>
-                <display>
-                    <label>Email in mP</label>
-                </display>
-                <previousColumn>lastNameColumn</previousColumn>
-                <export>
-                    <expression>
-                        <script>
-                            <code>
-                           import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-                           import com.evolveum.midpoint.prism.path.ItemPath;
-                           import org.apache.commons.lang3.StringUtils;
+sampleRef::samples/resources/csv/midpoint-username.csv[]
+====
 
-                           user = midpoint.searchShadowOwner(object.getOid());
-                           return user.asObjectable().getEmailAddress();
-                        </code>
-                        </script>
-                    </expression>
-                </export>
-            </column>
-            <type>ShadowType</type>
-        </view>
-        <condition>
-            <script>
-                <code>
-                   import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-                   import com.evolveum.midpoint.prism.path.ItemPath;
-                   import org.apache.commons.lang3.StringUtils;
+//TODO check after sampleRef is fully in prod
+.*Example Object Collection*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/resource-account-shadows.xml[Git]
 
-                  shadowAttributes = object.getAttributes().asPrismContainerValue()
-                  login = shadowAttributes.findProperty(ItemPath.create("login")).getRealValue();
-                  user = midpoint.searchShadowOwner(object.getOid());
-                  System.out.println("LOGIN: " + login)
-                  System.out.println("USER: " + user)
-                  if (user != null && user.asObjectable() != null) {
-                     email = user.asObjectable().getEmailAddress();
-                     if (StringUtils.isEmpty(email)) {
-                        return true;
-                     }
-                     firstName = shadowAttributes.findProperty(ItemPath.create("firstname"));
-                     lastName = shadowAttributes.findProperty(ItemPath.create("lastname"));
-                     if (firstName == null && lastName == null) {
-                        return false;
-                     }
+sampleRef::samples/objectCollection/resource-account-shadows.xml[]
+====
 
-                     prefix = "";
-                     if (firstName != null && firstName.getRealValue() != null) {
-                        prefix = firstName.getRealValue().toLowerCase().replace(" ", ".");
-                     }
+//TODO check after sampleRef is fully in prod
+.*Example Report Configuration*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/comparing-attributes.xml[Git]
 
-                     if (lastName != null && lastName.getRealValue() != null) {
-                        if (StringUtils.isNotEmpty(prefix)) {
-                           prefix = prefix + "."
-                        }
-                        prefix = prefix + lastName.getRealValue().toLowerCase().replace(" ", ".");
-                     }
+sampleRef::samples/reports/comparing-attributes.xml[]
+====
 
-                     if (StringUtils.isEmpty(prefix)) {
-                        return true;
-                     }
+== See Also
 
-                     if (!prefix.equals(email.substring(0,email.indexOf("@")))) {
-                        return true;
-                     }
-
-                  }
-                  return false;
-              </code>
-            </script>
-        </condition>
-        <useOnlyReportView>true</useOnlyReportView>
-    </objectCollection>
-</report>
-----
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]

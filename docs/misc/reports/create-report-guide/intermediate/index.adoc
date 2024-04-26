@@ -1,0 +1,52 @@
+= Report With Basic Parameter Customization
+
+:page-upkeep-status: green
+:page-keywords: [ 'report', 'create', 'reporting' ]
+
+== Report With Basic Parameter Customization
+
+* go to *"Users >All Users"*
+* in the filter section pick the parameter *"Email"*
+* set it to *your custom value*
+* click search
+
+image::all-users-tester.png[75%]
+
+* scroll to the *bottom* of the screen
+* click *"Create report"* (‘pie chart’ button)
+* type in the *"Name"*: "All with 'mptesters' Mail Domain"
+
+image::report-mptesters.png[75%]]
+
+* click the *"File Format"* panel
+* in the *"Export"* container set the value to *"HTML"*
+
+image::report-mptesters-ff.png[75%]
+
+* click the *"View"* panel
+* click + to *add a new column*
+* in *"Name"* type *"name"*
+* in *"Path"* click the bottom drop-down and type *"name"*
+* click + to *add a new column*
+* in *"Name"* type *"mail"*
+* in *"Path"* click the top drop-down and select *"User"*
+* in *"Path"* click the bottom drop-down and type *"emailAddress"*
+
+image::report-mptesters-view.png[75%]
+
+* after success the top screen should have a “blue” banner stating that there is a task on the
+background, click *show task* on it
+
+image::users-all-report-exec.png[75%]
+
+* in the action button container on the top of the page click on the button *"Download report"*
+* you should have a *html* with your specific demands
+
+image::mptesters-download-report.png[75%]
+
+== See Also
+
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]

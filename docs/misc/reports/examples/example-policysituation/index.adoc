@@ -6,138 +6,73 @@
 :page-wiki-metadata-create-date: 2020-05-04T13:00:25.101+02:00
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2020-05-04T14:37:22.496+02:00
+:page-upkeep-status: yellow
+:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
 
 Please see xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration] for basic information about configuration variables.
 
 
-== Usecase
+== Example Use-case
 
-Administrator needs display all users which have value of description is 'Created by mP'
-
+The Administrator needs to display all users which have value of description set as 'Created by mP'
 
 == Configuration
 
-As first we need configure policy rule. In this Example we add next snippet of configuration to our system configuration in Midpoint.
+At first, we need to configure a policy rule. In this Example we add the following snippet of configuration to our system configuration in Midpoint.
 
-.Snippet of system configuration
-[source,xml]
-----
-<systemConfiguration>
-    ...
-    <globalPolicyRule>
-        <name>test</name>
-        <policyConstraints>
-            <objectState>
-                <filter>
-                    <q:equal>
-                        <q:path>description</q:path>
-                        <q:value>Created by midPoint</q:value>
-                    </q:equal>
-                </filter>
-            </objectState>
-        </policyConstraints>
-        <policySituation>#userCreatedByMidpoint</policySituation>
-        <policyActions>
-            <record/>
-        </policyActions>
-        <focusSelector>
-            <type>UserType</type>
-            <filter>
-                <q:all/>
-            </filter>
-        </focusSelector>
-    </globalPolicyRule>
-    ...
-</systemConfiguration>
-----
+//TODO check after sampleRef is fully in prod
+.*Example System Config configuration*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/misc/system-policy-rec.xml[Git]
+
+sampleRef::samples/misc/system-policy-rec.xml[]
+====
 
 Now, we have to recompute all users in order to set our policySituation for them, when they meet the criteria of our filter.
-In this situation we can use jasper report in Midpoint and modify search query base-on our policySituation or use dashboard reports with object collection, in this example we use dashboard report.
-We need configure object collection for users with policySituation.
 
-.Object collection
-[source,xml]
-----
-<objectCollection oid="72b1f98e-f587-4b9f-b92b-72e251dbb266">
-    <name>Users with policySituation</name>
-    <type>UserType</type>
-    <filter>
-        <equal>
-            <path>policySituation</path>
-            <value>#userCreatedByMidpoint</value>
-        </equal>
-    </filter>
-</objectCollection>
+Afterwards We need to configure object collection for users with policySituation.
 
+//TODO check after sampleRef is fully in prod
+.*Example ObjectCollection configuration*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/users-with-policySituation.xml[Git]
 
-----
+sampleRef::samples/objectCollection/users-with-policySituation.xml[]
+====
 
-When we have object collection, then import Dashboard object with widget for our object collection.
+When we have the object collection in place, we want to set up an import Dashboard object with a widget for our object collection.
 
-.Dashboard
-[source,xml]
-----
-<dashboard oid="72b1f98e-f587-4b9f-b92b-72e251da3456">
-    <name>users-created-by-mp-dashboard</name>
-    <display>
-        <label>Users created by mP dashboard</label>
-    </display>
-    <widget>
-        <identifier>users</identifier>
-        <display>
-            <label>Users created by mP</label>
-            <color>#00a65a</color>
-            <icon>
-                <cssClass>fa fa-user</cssClass>
-            </icon>
-        </display>
-        <data>
-            <sourceType>objectCollection</sourceType>
-            <collection>
-                <collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb266" type="ObjectCollectionType"/>
-            </collection>
-        </data>
-        <presentation>
-            <dataField>
-                <fieldType>value</fieldType>
-                <expression>
-                    <proportional>
-                        <style>value-only</style>
-                    </proportional>
-                </expression>
-            </dataField>
-            <dataField>
-                <fieldType>unit</fieldType>
-                <expression>
-                    <value>users</value>
-                </expression>
-            </dataField>
-        </presentation>
-    </widget>
-</dashboard>
-----
+//TODO check after sampleRef is fully in prod
+.*Example Dashboard configuration*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/users-policy-situation.xml[Git]
 
-After successful import of dashboard object and reload of page you can see dashboard in menu *Dashboards* > *Users created by mP dashboard*.
+sampleRef::samples/dashboard/users-policy-situation.xml[]
+====
 
-We want report with table of users created by Midpoint, so we import dashboard report.
+After the successful import of the dashboard object you can see the dashboard in the menu *Dashboards* > *Users created by mP dashboard*.
+
+We want to report it out as a table of users created by Midpoint, for this we can use a dashboard report.
+
+//TODO check after sampleRef is fully in prod
+.*Example Dashboard Report Configuration*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/users-created-policy-dashboard-report.xml[Git]
+
+sampleRef::samples/reports/users-created-policy-dashboard-report.xml[]
+====
+
+Now we can run the report in the report menu, open the task which generated the report and download the report.
 
 
-.Report
-[source,xml]
-----
-<report>
-    <name>Users created by mP dashboard report</name>
-    <reportEngine>dashboard</reportEngine>
-    <dashboard>
-        <dashboardRef oid="72b1f98e-f587-4b9f-b92b-72e251da3456" type="DashboardType"/>
-    </dashboard>
-</report>
-----
+== See Also
 
-Now we can run report in report menu, show task, and download report.
-Every report from dashboard is in HTML format.
-
-
-Report:
-
-image::image2020-5-4_13-34-2.png[]
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/concepts/query/#reference-query[Reference Query]

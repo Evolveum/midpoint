@@ -1226,6 +1226,9 @@
                         How to search for the item values? May be overridden in specific correlator
                         where this item is referenced.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemCorrelationDefinitionType.search</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -1250,6 +1253,9 @@
                     <xsd:documentation>
                         How to search for the item values?
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemCorrelatorDefinitionType.search</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="focusItem" type="t:ItemPathType" minOccurs="0">
@@ -1282,6 +1288,9 @@
                         Name of this identity item. By default, the last segment of the item path is considered
                         to be the item name.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MultiSourceItemDefinitionType.name</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="selection" type="tns:ObjectTemplateMappingType" minOccurs="0">
@@ -1292,6 +1301,9 @@
                         It has a default strength of `strong`, and a default sources of `identities/identity`
                         and `identities/defaultAuthoritativeSource`.
                     </xsd:documentation> <!--  (TODO: ok?) -->
+                    <xsd:appinfo>
+                        <a:displayName>MultiSourceItemDefinitionType.selection</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -1924,6 +1936,9 @@
                     <xsd:documentation>
                         Lower limit on the similarity to be matched.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>TrigramSimilaritySearchDefinitionType.threshold</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="inclusive" type="xsd:boolean" minOccurs="0" default="true">
@@ -1931,6 +1946,9 @@
                     <xsd:documentation>
                         Is the value of "threshold" meant to be inclusive?
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>TrigramSimilaritySearchDefinitionType.inclusive</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -1961,6 +1979,9 @@
                         Outputs of such expressions are multiplied together, yielding the final confidence
                         value for the whole match.
                     </xsd:documentation> <!-- TODO other inputs? -->
+                    <xsd:appinfo>
+                        <a:displayName>ItemSearchConfidenceDefinitionType.expression</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:choice>

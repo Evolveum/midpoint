@@ -491,6 +491,8 @@ public abstract class PageBase extends PageAdminLTE {
 
     public void hideMainPopup(AjaxRequestTarget target) {
         getMainPopup().close(target);
+        target.appendJavaScript("$('body').removeClass('modal-open');\n"
+                + "$('.modal-backdrop').remove();");
     }
 
     private VisibleBehaviour createUserStatusBehaviour() {

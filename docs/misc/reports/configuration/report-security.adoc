@@ -1,0 +1,42 @@
+= Report Security
+:page-nav-title: Report Security
+:page-display-order: 800
+:page-toc: top
+:page-keywords: [ 'report', 'expression' ,'security' ]
+:page-upkeep-status: green
+
+== Description
+Reports often use xref:/midpoint/reference/expressions/[expressions].
+Expressions allow to customize midPoint behavior, and they are essential for the success of midPoint deployments.
+However, the expressions are very powerful, and they may even be too powerful for some use cases.
+
+The expressions can use general-purpose scripting languages such as Groovy or JavaScript.
+Therefore, such expressions have almost unlimited capabilities.
+Which means that the expressions can damage the system or compromise security of the system.
+
+[WARNING]
+====
+*Use expressions with utmost care.*
+====
+
+== Report Expression Security
+
+Currently, there are very little restraints for expression execution.
+The xref:/midpoint/reference/expressions/expressions/script/functions/[expression functions] provided by midPoint usually check for proper authorizations.
+But as the expressions can use general-purpose languages, there is no obligation for the expressions to use those libraries.
+The expression can easily circumvent those weak protections.
+Therefore, do not let any unauthorized user to set up any kind of expression in midPoint.
+*Allowing the right to edit any expression may lead to compromise of system security.*
+
+Some expression security can be achieved by using xref:/midpoint/reference/expressions/expressions/profiles/[expression profiles].
+Expression profiles can be used to limit the capabilities of report expressions, e.g. to limit them to safe operations that just manipulate strings and basic data structures.
+
+See xref:/midpoint/security/security-guide/[Security Guide] for more detail regarding security-related functionality of midPoint.
+
+== See Also
+
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/report-task-definition.adoc[Report Task Definition]

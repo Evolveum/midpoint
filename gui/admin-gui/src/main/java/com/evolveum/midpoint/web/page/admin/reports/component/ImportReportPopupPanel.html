@@ -10,60 +10,48 @@
 <wicket:panel>
     <form wicket:id="mainForm">
 
-    <div class="feedbackContainer">
-        <div wicket:id="popupFeedback" class="messagePanel"/>
-    </div>
+        <div class="feedbackContainer">
+            <div wicket:id="popupFeedback" class="messagePanel"/>
+        </div>
         <h3 style="margin-left: 20px;">
             <wicket:message key="ImportReportPopupPanel.title"/>
         </h3>
-        <div class="prims-properties">
-            <div style="background-color: #f9f9f9;">
-                <div style="margin-left: 0px; margin-right: 0px;" class="row prism-property">
-                    <div class="col-xs-4 prism-property-label">
-                        <span style="text-decoration: none;">
-                            <wicket:message key="ImportReportPopupPanel.reportDataName"/>
-                        </span>
-                    </div>
-                    <div class="col-xs-8 prism-property-value">
-                        <div class="row">
-                            <div wicket:id="reportDataName"/>
-                        </div>
-                    </div>
+        <div class="prism-properties">
+            <div class="prism-property mb-3">
+                <div class="w-100 mb-2">
+                    <span>
+                        <wicket:message key="ImportReportPopupPanel.reportDataName"/>
+                    </span>
+                </div>
+                <div class="w-100 prism-property-value">
+                    <div wicket:id="reportDataName"/>
                 </div>
             </div>
-            <div>
-                <div style="margin-left: 0px; margin-right: 0px;" class="row prism-property">
-                    <div class="col-xs-4 prism-property-label">
-                        <span style="text-decoration: none;">
-                            <wicket:message key="ImportReportPopupPanel.importFile"/>
-                        </span>
-                    </div>
-                    <div class="col-xs-8 prism-property-value">
-                        <div class="row">
-                            <input wicket:id="choseFile" type="file"/>
-                        </div>
-                    </div>
+            <div class="prism-property mb-3">
+                <div class="w-100 mb-2">
+                    <span style="text-decoration: none;">
+                        <wicket:message key="ImportReportPopupPanel.importFile"/>
+                    </span>
+                </div>
+                <div class="w-100 prism-property-value">
+                    <input wicket:id="choseFile" type="file"/>
                 </div>
             </div>
-            <div style="background-color: #f9f9f9;">
-                <div style="margin-left: 0px; margin-right: 0px;" class="row prism-property">
-                    <div class="col-xs-4 prism-property-label">
-                        <span style="text-decoration: none;">
-                            <wicket:message key="ImportReportPopupPanel.fileAsString"/>
-                        </span>
-                    </div>
-                    <div class="col-xs-8 prism-property-value">
-                        <div class="row">
-                            <div wicket:id="fileAsString"/>
-                        </div>
-                    </div>
+            <div class="prism-property mb-3">
+                <div class="w-100 mb-2">
+                    <span style="text-decoration: none;">
+                        <wicket:message key="ImportReportPopupPanel.fileAsString"/>
+                    </span>
+                </div>
+                <div class="w-100 prism-property-value">
+                    <div wicket:id="fileAsString"/>
                 </div>
             </div>
         </div>
-        <p align="right">
-            <a class="btn btn-default btn-sm" wicket:id="cancel"/>
+        <div class="row justify-content-end mr-2">
+            <a class="btn btn-default btn-sm mr-3" wicket:id="cancel"/>
             <a class="btn btn-primary btn-sm" wicket:id="import"/>
-        </p>
+        </div>
     </form>
 
 </wicket:panel>

@@ -1,0 +1,24 @@
+= Report Examples
+:page-nav-title: Report Examples
+:page-display-order: 100
+:page-toc: top
+:search-alias: "report examples"
+:page-keywords: [ 'report', 'examples', 'reports', 'samples' ]
+
+== Description
+Common use-cases and user story examples for the midPoint Reporting feature.
+
+Please have a look on the child pages of this document.
+This branch of the documentation contains mainly user story and other, more complex examples.
+
+++++
+{% children %}
+++++
+
+== See Also
+
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/report-security.adoc[Report Security]
+- xref:/midpoint/reference/misc/reports/configuration/report-task-definition.adoc[Report Task Definition]

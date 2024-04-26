@@ -11,9 +11,6 @@
                   oid="00000000-0000-0000-0001-000000000280">
     <name>All certification campaigns</name>
     <type>AccessCertificationCampaignType</type>
-    <filter>
-        <q:all/>
-    </filter>
     <getOptions>
         <option id="1">
             <selector>

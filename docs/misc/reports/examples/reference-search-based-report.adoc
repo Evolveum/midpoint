@@ -1,5 +1,7 @@
-= Example of Collection report: Reference search based report
-:page-nav-title: Reference search based report
+= Collection report: Reference Search Based Report
+:page-nav-title: Reference Search Based Report
+:page-upkeep-status: yellow
+:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
 
 ++++
 {% include since.html since="4.7" %}
@@ -19,8 +21,27 @@ with the xref:/midpoint/reference/expressions/expressions/script/groovy/[Groovy 
 
 The key points are marked with numbers and explained below the example.
 
+.*Reference Based Report XML*
+[%collapsible]
+====
 [source,xml]
 ----
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2024 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -176,14 +197,14 @@ The key points are marked with numbers and explained below the example.
                             <objectVariableMode>prismReference</objectVariableMode> <!--5-->
                             <code> <!--8-->
                                 if (!data?.segmentTargets) {
-                                    return "?"
+                                return "?"
                                 }
 
                                 def segLen = data.segmentTargets.size()
                                 if (segLen == 1) {
-                                    return 'Direct'
+                                return 'Direct'
                                 } else {
-                                    return data.segmentTargets[segLen - 2]?.name?.orig
+                                return data.segmentTargets[segLen - 2]?.name?.orig
                                 }
                             </code>
                         </script>
@@ -259,6 +280,11 @@ The key points are marked with numbers and explained below the example.
     </objectCollection>
 </report>
 ----
+====
+// TODO replace with the following after sampleRef prod version
+// ====
+// sampleRef::samples/reports/reference-based-report.xml[]
+// ====
 
 <1> The report is based on a xref:/midpoint/reference/concepts/query/#reference-query[Reference query]
 with the mandatory owned-by filter inside the `collection` element pointing to the `roleMembershipRef`.
@@ -266,11 +292,11 @@ There are some parameter values used inside the filter.
 <2> The result type of the search is specified with `type` inside the `view` element.
 (The `view` element is a bit lower under the parameters and subreport.)
 <3> The paramaters are specified after the `collection` as in any other report.
-Polystring name is represented by the `string` type.
+Poly-string name is represented by the `string` type.
 // TODO PolyStringType doesn't work properly in the preview/run report dialog.
 <4> Subreport `data` with `splitParentRow` behavior to ensure that each value metadata value
 has xref:/midpoint/reference/misc/reports/configuration/#subreports-generating-rows[its own row].
-xref:/midpoint/reference/misc/reports/report-functions/[Report function] `generateAssignmentPathRows`
+xref:/midpoint/reference/misc/reports/configuration/report-functions/[Report function] `generateAssignmentPathRows`
 returns collection of plain objects with various fields extracted from the value metadata
 which will be used in the column expressions.
 The object is named `data` and can be null if no value metadata are found on the reference.
@@ -284,7 +310,7 @@ There is no way to get to the reference from the target object as the object has
 where it is pointed to by a reference - or possibly many references.
 We need the actual reference value here.
 * If the target of the reference is missing (e.g. it was deleted, or does not exist yet),
-the resolution of the reference fails and we end up with partial error and an error in the log.
+the resolution of the reference fails, and we end up with partial error and an error in the log.
 Even worse, the variable value of the to-be-resolved reference will be null.
 That is useless for our use case, we know nothing, not even the OID of the target.
 <6> Now some Groovy expressions examples.
@@ -296,15 +322,15 @@ If it is not available, we use `?:` operator which you can read "and if null the
 <7> Another expression, this time with return (can be omitted) if you prefer it.
 There is an assignment path leading to each effective assignment.
 This is the chain of assignments and inducements leading to the effective assignment.
-The lenght of the path is one for direct assignments, and more than one for indirect ones.
-Field `segmentTargets` contains list of the objects from each assignment/inducement's `targetRef` - alrady dereferenced.
+The length of the path is one for direct assignments, and more than one for indirect ones.
+Field `segmentTargets` contains list of the objects from each assignment/inducement's `targetRef` - already dereferenced.
 The `collect` method will turn these into the names of these objects and, finally, they are joined into a single string, separated by `->`.
 <8> This is an example of an expression that didn't fit into a one line, because sometimes it is better
 to be explicit about various cases - and there are three cases here.
 The segments may not be available (although unlikely), there can be one segment, or more of them.
 Each of these cases provide different output into the report.
 <9> Finally, the `createChannel` column could be an ugly one-liner, but here we have to help Groovy
-to undestand that intermediate `channel` variable is a String - so it's nicer to split it into two lines.
+to understand that intermediate `channel` variable is a String - so it's nicer to split it into two lines.
 Without this help, it would call a wrong version of the `split` method - not the one on the Java `String` class.
 It also shows `with` construct which is here used to use the result of the `last()` method call
 as an argument to the `midpoint.translate()`.
@@ -312,10 +338,10 @@ If you feel uneasy about it, you can split it into more line as well.
 Just don't forget that the result of the `last()` call may be `null` and stick with the `?.` operator.
 
 Again, keep in mind that we're working with reference values on the input - which is the `object`
-variable for subreport and column expressions.
+variable for sub-report and column expressions.
 Even if you don't use this variable, it would be resolved if the `objectVariableMode` is not set
 to `prismReference` (the default value is `object` and forces the resolution).
-If this is forgotten you will end up with an error in the log similar to this (this is an example
+If this is forgotten you will end up with an error in the log similar to this( is an example
 for a subreport, but the wording for column is similar):
 
 ----
@@ -327,6 +353,8 @@ com.evolveum.midpoint.util.exception.ObjectNotFoundException: ...
 
 == See Also
 
-* xref:/midpoint/reference/misc/reports/configuration/[Report configuration]
-
-* xref:/midpoint/reference/concepts/query/#reference-query[Reference Query]
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/concepts/query/#reference-query[Reference Query]
