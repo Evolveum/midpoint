@@ -117,7 +117,7 @@ abstract class InboundsPreparation<T extends Containerable> {
                 LOGGER.trace("Skipping evaluation of special inbounds because of projection DELETE delta");
             }
 
-            executeValueProcessing(result);
+            executeComplexProcessing(result);
 
         } catch (Throwable t) {
             result.recordException(t);
@@ -134,7 +134,7 @@ abstract class InboundsPreparation<T extends Containerable> {
             CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 
     /** Complex processing for shadow item values. Only for the full processing case. Currently limited to associations. */
-    abstract void executeValueProcessing(OperationResult result)
+    abstract void executeComplexProcessing(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, StopProcessingProjectionException;
 }

@@ -121,9 +121,9 @@
                     <kind>account</kind>
                     <intent>person</intent>
                 </objectType>
-                <item>
+                <association>
                     <ref>ri:contract</ref>
-                    <valueProcessing>
+                    <complexProcessing>
                         <focus>
                             <subtype>contract</subtype>
                         </focus>
@@ -268,8 +268,8 @@
                                 </actions>
                             </reaction>
                         </synchronization>
-                    </valueProcessing>
-                </item>
+                    </complexProcessing>
+                </association>
             </subject>
         </associationType>
     </schemaHandling>

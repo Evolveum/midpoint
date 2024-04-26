@@ -30,7 +30,7 @@ import java.util.List;
  * There are two main flavors:
  *
  * . standard {@link ResourceObjectDefinition}
- * . "embedded", defined by a {@link ValueProcessingType}
+ * . "embedded", defined by a {@link ComplexProcessingType}
  *
  * Currently, the processing assumes that we have a shadow as an input. It is either the regular shadow coming from
  * a resource, or an embedded shadow in the case of associations.
@@ -43,8 +43,8 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         return new EmptyImplementation();
     }
 
-    static ResourceObjectInboundDefinition forEmbedded(@Nullable ValueProcessingType bean) {
-        return bean != null ? new EmbeddedImplementation(bean) : empty();
+    static ResourceObjectInboundDefinition forComplexProcessing(@Nullable ComplexProcessingType bean) {
+        return bean != null ? new ComplexProcessingImplementation(bean) : empty();
     }
 
     ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException;
@@ -137,9 +137,9 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         }
     }
 
-    class EmbeddedImplementation implements ResourceObjectInboundDefinition {
+    class ComplexProcessingImplementation implements ResourceObjectInboundDefinition {
 
-        @NotNull private final ValueProcessingType definitionBean;
+        @NotNull private final ComplexProcessingType definitionBean;
 
         @NotNull private final PathKeyedMap<ItemInboundDefinition> itemDefinitionsMap = new PathKeyedMap<>();
 
@@ -148,7 +148,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         /** This is the inbound provided by "ref = '.'", i.e., related to the association value itself. */
         @Nullable private final ItemInboundDefinition associationValueInboundDefinition;
 
-        EmbeddedImplementation(@NotNull ValueProcessingType definitionBean) {
+        ComplexProcessingImplementation(@NotNull ComplexProcessingType definitionBean) {
             this.definitionBean = definitionBean;
             for (var itemDefBean : definitionBean.getAttribute()) {
                 var itemName = ItemPathTypeUtil.asSingleNameOrFail(itemDefBean.getRef()); // TODO error handling
@@ -260,9 +260,9 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
 
     class BeanBasedItemImplementation implements ItemInboundDefinition {
 
-        private final ResourceItemDefinitionType definitionBean;
+        private final ComplexProcessingResourceItemDefinitionType definitionBean;
 
-        BeanBasedItemImplementation(ResourceItemDefinitionType definitionBean) {
+        BeanBasedItemImplementation(ComplexProcessingResourceItemDefinitionType definitionBean) {
             this.definitionBean = definitionBean;
         }
 

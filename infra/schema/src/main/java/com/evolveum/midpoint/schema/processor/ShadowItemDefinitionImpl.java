@@ -595,10 +595,10 @@ public abstract class ShadowItemDefinitionImpl<
 //    }
 
     @Override
-    public @NotNull Collection<ValueProcessingDefinition> getValueProcessingDefinition() {
-        return customizationBean.getValueProcessing().stream()
-                .map(bean -> new ValueProcessingDefinition(
-                        ResourceObjectInboundDefinition.forEmbedded(bean)))
+    public @NotNull Collection<ComplexProcessingDefinition> getComplexProcessingDefinition() {
+        return customizationBean.getComplexProcessing().stream()
+                .map(bean -> new ComplexProcessingDefinition(
+                        ResourceObjectInboundDefinition.forComplexProcessing(bean)))
                 .toList();
     }
 

@@ -553,7 +553,7 @@ class ResourceSchemaParser {
                 throws ConfigurationException {
 
             var declaringAssocName = assocTypeCI != null ? assocTypeCI.getSubject().getDeclaringItemName() : null;
-            var assocDefBeanFromAssociationType = assocTypeCI != null ? value(assocTypeCI.getSubject().getItem()) : null;
+            var assocDefBeanFromAssociationType = assocTypeCI != null ? value(assocTypeCI.getSubject().getAssociation()) : null;
             var assocDefBeanFromObjectType = value(definitionCI.getAssociationDefinitionIfPresent(declaringAssocName));
             configCheck(assocDefBeanFromAssociationType == null || assocDefBeanFromObjectType == null,
                     "Association item cannot be defined both in association type and object type: "

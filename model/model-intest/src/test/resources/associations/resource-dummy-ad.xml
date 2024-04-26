@@ -116,15 +116,14 @@
         </objectType>
         <associationType>
             <name>userGroupMembership</name>
-            <!-- Where the processing starts -->
             <subject>
                 <objectType>
                     <kind>account</kind>
                     <intent>default</intent>
                 </objectType>
-                <item>
+                <association>
                     <ref>ri:group</ref>
-                    <valueProcessing>
+                    <complexProcessing>
                         <focus>
                             <item>assignment</item>
                             <subtype>groupMembership</subtype>
@@ -168,8 +167,8 @@
                                 </actions>
                             </reaction>
                         </synchronization>
-                    </valueProcessing>
-                </item>
+                    </complexProcessing>
+                </association>
             </subject>
         </associationType>
     </schemaHandling>

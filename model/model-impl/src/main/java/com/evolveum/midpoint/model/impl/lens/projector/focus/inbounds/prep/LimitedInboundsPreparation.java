@@ -44,7 +44,7 @@ public class LimitedInboundsPreparation<T extends Containerable> extends Inbound
     }
 
     @Override
-    void executeValueProcessing(OperationResult result) {
+    void executeComplexProcessing(OperationResult result) {
         LOGGER.trace("Complex value processing is currently ignored during limited processing");
     }
 }

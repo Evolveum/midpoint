@@ -334,7 +334,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
     }
 
     @Override
-    void executeValueProcessing(OperationResult result)
+    void executeComplexProcessing(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, StopProcessingProjectionException {
         var shadow = source.getResourceObjectNew();
@@ -346,16 +346,16 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
 
         for (var association : ShadowUtil.getAssociations(shadow)) {
             var associationDefinition = association.getDefinition();
-            var relevantValueProcessingDefinitions = associationDefinition.getValueProcessingDefinition().stream()
-                    .filter(ValueProcessingDefinition::needsInboundProcessing)
+            var relevantProcessingDefinitions = associationDefinition.getComplexProcessingDefinition().stream()
+                    .filter(ComplexProcessingDefinition::needsInboundProcessing)
                     .toList();
-            if (relevantValueProcessingDefinitions.isEmpty()) {
+            if (relevantProcessingDefinitions.isEmpty()) {
                 continue;
             }
             for (var associationValue : association.getAssociationValues()) {
-                for (var valueProcessingDefinition : relevantValueProcessingDefinitions) {
-                    LOGGER.trace("Processing association value: {} ({})", associationValue, relevantValueProcessingDefinitions);
-                    new ValueProcessing(associationValue, associationDefinition, valueProcessingDefinition)
+                for (var complexProcessingDefinition : relevantProcessingDefinitions) {
+                    LOGGER.trace("Processing association value: {} ({})", associationValue, relevantProcessingDefinitions);
+                    new ValueProcessing(associationValue, associationDefinition, complexProcessingDefinition)
                             .process(result);
                 }
             }
@@ -380,10 +380,10 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
         ValueProcessing(
                 @NotNull ShadowAssociationValue associationValue,
                 @NotNull ShadowAssociationDefinition associationDefinition,
-                @NotNull ValueProcessingDefinition valueProcessingDefinition) throws ConfigurationException {
+                @NotNull ComplexProcessingDefinition complexProcessingDefinition) throws ConfigurationException {
             this.associationValue = associationValue;
             this.associationDefinition = associationDefinition;
-            this.inboundDefinition = valueProcessingDefinition.getInboundDefinition();
+            this.inboundDefinition = complexProcessingDefinition.getInboundDefinition();
             this.focusItemPath = configNonNull(
                     inboundDefinition.getFocusSpecification().getFocusItemPath(),
                     "No focus item path in %s", inboundDefinition);

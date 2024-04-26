@@ -113,8 +113,8 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public @NotNull Collection<ValueProcessingDefinition> getValueProcessingDefinition() {
-        return getRefinedAttributeDefinition().getValueProcessingDefinition();
+    public @NotNull Collection<ComplexProcessingDefinition> getComplexProcessingDefinition() {
+        return getRefinedAttributeDefinition().getComplexProcessingDefinition();
     }
 
     @Override

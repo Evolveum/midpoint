@@ -12,7 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ValueProcessingDefinition;
+import com.evolveum.midpoint.schema.processor.ComplexProcessingDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -152,8 +152,8 @@ public interface ResourceAttributeDefinitionDelegator<T>
     }
 
     @Override
-    default @NotNull Collection<ValueProcessingDefinition> getValueProcessingDefinition() {
-        return delegate().getValueProcessingDefinition();
+    default @NotNull Collection<ComplexProcessingDefinition> getComplexProcessingDefinition() {
+        return delegate().getComplexProcessingDefinition();
     }
 
     @Override

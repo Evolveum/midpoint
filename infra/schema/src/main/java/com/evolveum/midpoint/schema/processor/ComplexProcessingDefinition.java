@@ -19,12 +19,12 @@ import com.evolveum.midpoint.util.DebugDumpable;
  * On inbound side it involves the _correlation_ to a corresponding focus item value followed by
  * invoking the _synchronization reaction_ related to the correlation result.
  */
-public class ValueProcessingDefinition
+public class ComplexProcessingDefinition
         implements DebugDumpable, Serializable {
 
     @NotNull private final ResourceObjectInboundDefinition inboundDefinition;
 
-    public ValueProcessingDefinition(@NotNull ResourceObjectInboundDefinition inboundDefinition) {
+    public ComplexProcessingDefinition(@NotNull ResourceObjectInboundDefinition inboundDefinition) {
         this.inboundDefinition = inboundDefinition;
     }
 

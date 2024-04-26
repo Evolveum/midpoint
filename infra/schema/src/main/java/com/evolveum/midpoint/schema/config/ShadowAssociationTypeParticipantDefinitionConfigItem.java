@@ -8,18 +8,15 @@
 package com.evolveum.midpoint.schema.config;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinitionIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeIdentificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeParticipantDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -47,7 +44,7 @@ public interface ShadowAssociationTypeParticipantDefinitionConfigItem<PT extends
      * or it can be a virtual one.
      */
     default @Nullable ItemName getDeclaringItemName() throws ConfigurationException {
-        var item = value().getItem();
+        var item = value().getAssociation();
         if (item != null) {
             return singleNameRequired(item.getRef(), "item/ref");
         }
@@ -56,7 +53,7 @@ public interface ShadowAssociationTypeParticipantDefinitionConfigItem<PT extends
 
     /** This is the existing (native/simulated) association name we are referring to. */
     default @Nullable ItemName getReferencedItemName() throws ConfigurationException {
-        var sourceItemRef = value().getSourceItemRef();
+        var sourceItemRef = value().getSource();
         if (sourceItemRef != null) {
             return singleNameRequired(sourceItemRef, "sourceItemRef");
         }
@@ -67,10 +64,10 @@ public interface ShadowAssociationTypeParticipantDefinitionConfigItem<PT extends
         return itemName.matches(getReferencedItemName());
     }
 
-    default @Nullable ResourceObjectAssociationConfigItem getItem() {
+    default @Nullable ResourceObjectAssociationConfigItem getAssociation() {
         return child(
-                value().getItem(),
+                value().getAssociation(),
                 ResourceObjectAssociationConfigItem.class,
-                ShadowAssociationTypeParticipantDefinitionType.F_ITEM);
+                ShadowAssociationTypeParticipantDefinitionType.F_ASSOCIATION);
     }
 }

@@ -180,9 +180,9 @@
                     <kind>account</kind>
                     <intent>default</intent>
                 </objectType>
-                <item>
+                <association>
                     <ref>ri:group</ref>
-                </item>
+                </association>
             </subject>
             <object>
                 <objectType>
@@ -198,9 +198,9 @@
                     <kind>account</kind>
                     <intent>default</intent>
                 </objectType>
-                <item>
+                <association>
                     <ref>ri:priv</ref>
-                </item>
+                </association>
             </subject>
             <object>
                 <objectType>

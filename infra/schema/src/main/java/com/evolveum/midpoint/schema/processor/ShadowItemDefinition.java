@@ -184,7 +184,7 @@ public interface ShadowItemDefinition<I extends ShadowItem<?, ?>, R>
         return !getInboundMappingBeans().isEmpty();
     }
 
-    @NotNull Collection<ValueProcessingDefinition> getValueProcessingDefinition();
+    @NotNull Collection<ComplexProcessingDefinition> getComplexProcessingDefinition();
 
     /**
      * Drives behavior of strong and normal mappings for this attribute.

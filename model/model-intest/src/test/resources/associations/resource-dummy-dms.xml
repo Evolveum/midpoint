@@ -117,15 +117,17 @@
                     <kind>account</kind>
                     <intent>default</intent>
                 </objectType>
-                <item>
+                <association>
                     <ref>ri:access</ref>
-                    <valueProcessing>
+                    <complexProcessing>
                         <focus>
+                            <item>assignment</item>
                             <subtype>documentAccess</subtype>
                         </focus>
                         <attribute>
                             <ref>ri:level</ref>
                             <outbound>
+                                <name>level</name>
                                 <source>
                                     <path>targetRef</path>
                                 </source>
@@ -139,6 +141,7 @@
                         <association>
                             <ref>ri:document</ref>
                             <outbound>
+                                <name>document</name>
                                 <expression>
                                     <associationFromLink/>
                                 </expression>
@@ -189,12 +192,6 @@
                         </correlation>
                         <synchronization>
                             <reaction>
-                                <situation>disputed</situation> <!-- TODO "noTarget" or something like that -->
-                                <actions>
-                                    <!-- none at this moment -->
-                                </actions>
-                            </reaction>
-                            <reaction>
                                 <situation>unmatched</situation>
                                 <actions>
                                     <addFocus/>
@@ -207,8 +204,8 @@
                                 </actions>
                             </reaction>
                         </synchronization>
-                    </valueProcessing>
-                </item>
+                    </complexProcessing>
+                </association>
             </subject>
         </associationType>
     </schemaHandling>
