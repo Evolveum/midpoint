@@ -13,7 +13,7 @@ doc-type: intro
 :page-keywords: [ 'dashboards', 'dashboard' ]
 :search-alias: "dashboards"
 :page-since: "4.0"
-:page-upkeep-status: orange
+:page-upkeep-status: green
 :page-upkeep-note: This was a "planned feature" test. I have quickly edited it to be a in present tense. But perhaps more edits are needed.
 
 

@@ -6,31 +6,27 @@
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
+import static com.evolveum.midpoint.model.common.expression.evaluator.AssociationRelatedEvaluatorUtil.getAssociationDefinition;
+
 import java.util.List;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.common.expression.evaluator.transformation.ValueTransformationContext;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
+import com.evolveum.midpoint.model.common.expression.evaluator.transformation.ValueTransformationContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.cache.CacheType;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -40,6 +36,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Creates an association (or associations) based on specified condition for the associated object.
@@ -104,37 +101,25 @@ class AssociationTargetSearchExpressionEvaluator
                 return newAssociationValue.clone(); // It needs to be parent-less when included in the output triple
             }
 
-            private ResourceObjectTypeDefinition associationTargetDef()
-                    throws ExpressionEvaluationException {
-                @SuppressWarnings("unchecked")
-                var rAssocTargetDefTypedValue = (TypedValue<ResourceObjectTypeDefinition>)
-                        this.vtCtx.getVariablesMap().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
-                if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
-                    throw new ExpressionEvaluationException(
-                            String.format("No association target object definition variable in %s; the expression may be used in"
-                                            + " a wrong place. It is only supposed to create an association.",
-                                    vtCtx));
-                }
-                return (ResourceObjectTypeDefinition) rAssocTargetDefTypedValue.getValue();
-            }
-
             @Override
-            protected ObjectQuery extendQuery(ObjectQuery query) throws ExpressionEvaluationException {
-                var rAssocTargetDef = associationTargetDef();
-                ObjectFilter coordinatesFilter = prismContext.queryFor(ShadowType.class)
-                        .item(ShadowType.F_RESOURCE_REF).ref(rAssocTargetDef.getResourceOid())
-                        .and().item(ShadowType.F_KIND).eq(rAssocTargetDef.getKind())
-                        .and().item(ShadowType.F_INTENT).eq(rAssocTargetDef.getIntent())
-                        .buildFilter();
+            protected ObjectQuery extendQuery(ObjectQuery query)
+                    throws ExpressionEvaluationException {
+
+                var associationDefinition = getAssociationDefinition(vtCtx.getExpressionEvaluationContext());
                 query.setFilter(
                         prismContext.queryFactory()
-                                .createAnd(coordinatesFilter, query.getFilter()));
+                                .createAnd(
+                                        associationDefinition.createTargetObjectsFilter(),
+                                        query.getFilter()));
                 return query;
             }
 
             @Override
             protected ObjectQuery createRawQuery(SearchFilterType filter) throws SchemaException, ExpressionEvaluationException {
-                var concreteShadowDef = associationTargetDef().getPrismObjectDefinition();
+                var concreteShadowDef =
+                        getAssociationDefinition(vtCtx.getExpressionEvaluationContext())
+                                .getTargetObjectDefinition()
+                                .getPrismObjectDefinition();
                 var objFilter = prismContext.getQueryConverter().createObjectFilter(concreteShadowDef, filter);
                 return prismContext.queryFactory().createQuery(objFilter);
             }
@@ -149,6 +134,7 @@ class AssociationTargetSearchExpressionEvaluator
 
             @Override
             protected boolean isAcceptable(@NotNull PrismObject<ShadowType> object) {
+                // FIXME do additional filtering for the targets (if there are multiple types for them)
                 return ShadowUtil.isNotDead(object.asObjectable());
             }
 
