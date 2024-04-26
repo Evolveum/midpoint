@@ -3,7 +3,7 @@
 :page-display-order: 100
 :page-toc: top
 :search-alias: "report examples"
-:page-upkeep-status: green
+:page-keywords: [ 'report', 'examples', 'reports', 'samples' ]
 
 == Description
 Common use-cases and user story examples for the midPoint Reporting feature.

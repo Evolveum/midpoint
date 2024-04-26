@@ -139,6 +139,11 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
+    public @NotNull QName getTypeName() {
+        return nativeDefinition.getTypeName();
+    }
+
+    @Override
     public @NotNull Class<T> getTypeClass() {
         // TODO cache this somehow
         return PrismContext.get().getSchemaRegistry().determineClassForType(getTypeName());

@@ -9246,7 +9246,7 @@
                             <xsd:appinfo>
                                 <a:since>4.6</a:since>
                                 <a:experimental>true</a:experimental>
-                                <a:displayName>ItemRefinedDefinitionType.indexing</a:displayName>
+                                <a:displayName>ObjectTemplateItemDefinitionType.indexing</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -9262,7 +9262,7 @@
                             <xsd:appinfo>
                                 <a:since>4.6</a:since>
                                 <a:experimental>true</a:experimental>
-                                <a:displayName>ItemRefinedDefinitionType.identity</a:displayName>
+                                <a:displayName>ObjectTemplateItemDefinitionType.multiSource</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -9275,7 +9275,7 @@
                             <xsd:appinfo>
                                 <a:since>4.6</a:since>
                                 <a:experimental>true</a:experimental>
-                                <a:displayName>ItemRefinedDefinitionType.correlation</a:displayName>
+                                <a:displayName>ObjectTemplateItemDefinitionType.correlation</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -21297,7 +21297,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="type" type="xsd:QName" minOccurs="0">
                         <xsd:annotation>

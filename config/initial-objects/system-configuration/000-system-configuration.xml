@@ -934,6 +934,14 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView id="254">
+                <identifier>shadow-reclassification-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000523" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
         </objectCollectionViews>
         <objectDetails>
             <objectDetailsPage id="83">
@@ -1128,6 +1136,7 @@
                         </item>
                     </container>
                     <container id="131">
+                        <identifier>objectType</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType</path>
                     </container>
@@ -1162,6 +1171,7 @@
                         </item>
                     </container>
                     <container id="139">
+                        <identifier>delineation-hidden</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/delineation</path>
                     </container>
@@ -1200,6 +1210,7 @@
                         </item>
                     </container>
                     <container id="146">
+                        <identifier>limitations</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/attribute/limitations</path>
                     </container>
@@ -1226,6 +1237,7 @@
                         </item>
                     </container>
                     <container id="154">
+                        <identifier>reaction</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/synchronization/reaction</path>
                     </container>
@@ -1252,6 +1264,7 @@
                         </item>
                     </container>
                     <container id="159">
+                        <identifier>reaction</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/synchronization/reaction</path>
                     </container>
@@ -1302,6 +1315,7 @@
                         </item>
                     </container>
                     <container id="164">
+                        <identifier>attribute</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/attribute</path>
                     </container>
@@ -1362,8 +1376,13 @@
                             <path>schemaHandling/objectType/association/explicitReferentialIntegrity</path>
                             <visibility>visible</visibility>
                         </item>
+                        <item id="253">
+                            <path>schemaHandling/objectType/association/tolerant</path>
+                            <visibility>visible</visibility>
+                        </item>
                     </container>
                     <container id="175">
+                        <identifier>association-hidden</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/association</path>
                     </container>
@@ -1401,6 +1420,7 @@
                         </item>
                     </container>
                     <container id="190">
+                        <identifier>configurationProperties</identifier>
                         <visibility>hidden</visibility>
                         <path>connectorConfiguration/configurationProperties</path>
                     </container>
@@ -1409,16 +1429,7 @@
                 <connectorRef type="ConnectorType">
                     <resolutionTime>run</resolutionTime>
                     <filter>
-                        <q:and>
-                            <q:equal>
-                                <q:path>connectorType</q:path>
-                                <q:value>org.identityconnectors.databasetable.DatabaseTableConnector</q:value>
-                            </q:equal>
-                            <q:equal>
-                                <q:path>available</q:path>
-                                <q:value>true</q:value>
-                            </q:equal>
-                        </q:and>
+                        <q:text>connectorType = 'org.identityconnectors.databasetable.DatabaseTableConnector' and available = true</q:text>
                     </filter>
                 </connectorRef>
             </resourceDetailsPage>
@@ -1449,6 +1460,7 @@
                         </item>
                     </container>
                     <container id="200">
+                        <identifier>configurationProperties</identifier>
                         <visibility>hidden</visibility>
                         <path>connectorConfiguration/configurationProperties</path>
                     </container>
@@ -1457,16 +1469,7 @@
                 <connectorRef type="ConnectorType">
                     <resolutionTime>run</resolutionTime>
                     <filter>
-                        <q:and>
-                            <q:equal>
-                                <q:path>connectorType</q:path>
-                                <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
-                            </q:equal>
-                            <q:equal>
-                                <q:path>available</q:path>
-                                <q:value>true</q:value>
-                            </q:equal>
-                        </q:and>
+                        <q:text>connectorType = 'com.evolveum.polygon.connector.ldap.LdapConnector' and available = true</q:text>
                     </filter>
                 </connectorRef>
             </resourceDetailsPage>
@@ -1497,6 +1500,7 @@
                         </item>
                     </container>
                     <container id="208">
+                        <identifier>configurationProperties</identifier>
                         <visibility>hidden</visibility>
                         <path>connectorConfiguration/configurationProperties</path>
                     </container>
@@ -1505,16 +1509,7 @@
                 <connectorRef type="ConnectorType">
                     <resolutionTime>run</resolutionTime>
                     <filter>
-                        <q:and>
-                            <q:equal>
-                                <q:path>connectorType</q:path>
-                                <q:value>com.evolveum.polygon.connector.ldap.ad.AdLdapConnector</q:value>
-                            </q:equal>
-                            <q:equal>
-                                <q:path>available</q:path>
-                                <q:value>true</q:value>
-                            </q:equal>
-                        </q:and>
+                        <q:text>connectorType = 'com.evolveum.polygon.connector.ldap.ad.AdLdapConnector' and available = true</q:text>
                     </filter>
                 </connectorRef>
             </resourceDetailsPage>

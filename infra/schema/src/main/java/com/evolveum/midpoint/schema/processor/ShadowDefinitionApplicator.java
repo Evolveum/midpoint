@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -137,12 +138,26 @@ public class ShadowDefinitionApplicator {
             // just to be sure
             return;
         }
-        if (!(itemDelta.getDefinition() instanceof ShadowAssociationDefinition)) {
+        if (requiresDefinitionApplication(itemDelta)) {
             //noinspection unchecked,rawtypes
             ((ItemDelta) itemDelta).applyDefinition(
                     definition.findAssociationDefinitionRequired(
                             itemDelta.getElementName()));
         }
+    }
+
+    private static boolean requiresDefinitionApplication(ItemDelta<?, ?> itemDelta) {
+        if (!(itemDelta.getDefinition() instanceof ShadowAssociationDefinition)) {
+            return true;
+        }
+        // TODO implement in a nicer way
+        AtomicBoolean containsRaw = new AtomicBoolean(false);
+        itemDelta.foreach(val -> {
+            if (!(val instanceof ShadowAssociationValue)) {
+                containsRaw.set(true);
+            }
+        });
+        return containsRaw.get();
     }
 
     /**

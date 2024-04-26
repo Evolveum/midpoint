@@ -14,6 +14,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcome
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -48,8 +50,14 @@ public class ComputationResult {
 
     public StageClosingResult createStageClosingInformation() {
         if (predeterminedOutcome != null) {
+            WorkItemOutcomeType caseOutcome =
+                    switch (predeterminedOutcome) {
+                        case APPROVE, SKIP -> WorkItemOutcomeType.APPROVE;
+                        case REJECT -> WorkItemOutcomeType.REJECT;
+                    };
             return new StageClosingResultImpl(
                     shouldProcessingContinue(predeterminedOutcome),
+                    ApprovalUtils.toUri(caseOutcome),
                     ApprovalUtils.toUri(predeterminedOutcome),
                     automatedCompletionReason);
         } else {

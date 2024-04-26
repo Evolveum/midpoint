@@ -115,7 +115,7 @@ public interface NativeObjectClassDefinition extends NativeObjectClassUcfDefinit
 
         @Override
         default void setXsdAnyMarker(boolean value) {
-            unsupported("xsdAnyMarker", value);
+            // ignoring; it is "true" for legacy schemas
         }
 
         @Override

@@ -30,9 +30,11 @@
                     <panel id="2">
                         <identifier>work</identifier>
                         <container id="3">
+                            <identifier>distributedReportExport</identifier>
                             <path>activity/work/distributedReportExport</path>
                         </container>
                         <container id="4">
+                            <identifier>reportParam</identifier>
                             <display>
                                 <label>Parameters</label>
                             </display>

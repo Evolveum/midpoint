@@ -638,9 +638,14 @@ public class ColumnUtils {
 
                 Component c = cellItem.get(componentId);
 
-                PrismReferenceValue refVal = caseType.getObjectRef().asReferenceValue();
-                String descriptionValue = refVal.getObject() != null ?
-                        refVal.getObject().asObjectable().getDescription() : "";
+                String descriptionValue = "";
+                ObjectReferenceType objectRef = caseType.getObjectRef();
+                if (objectRef != null) {
+                    PrismReferenceValue refVal = objectRef.asReferenceValue();
+                    if (refVal.getObject() != null) {
+                        descriptionValue = refVal.getObject().asObjectable().getDescription();
+                    }
+                }
 
                 c.add(new AttributeAppender("title", descriptionValue));
             }
@@ -823,6 +828,10 @@ public class ColumnUtils {
             @Override
             public boolean isEnabled(IModel<SelectableBean<CaseType>> rowModel) {
                 CaseType caseType = rowModel.getObject().getValue();
+                if (caseType.getObjectRef() == null) {
+                    return false;
+                }
+
                 PrismObject object = caseType.getObjectRef().getObject();
                 // Do not generate link if the object has not been created yet.
                 // Check the version to see if it has not been created.

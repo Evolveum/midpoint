@@ -139,6 +139,7 @@ abstract class AbstractShadowItemsContainerTypeDefinitionImpl implements ShadowI
         return QNameUtil.match(typeName, getTypeName());
     }
 
+    // TODO do we really want to return e.g. inetOrgPerson as the type name for `attributes` and `associations` container?!
     @Override
     public @NotNull QName getTypeName() {
         return objectDefinition.getTypeName();

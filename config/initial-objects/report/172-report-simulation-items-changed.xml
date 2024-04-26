@@ -21,14 +21,7 @@
         <collection>
             <!-- Type is declared in the view element. -->
             <filter>
-                <q:inOid>
-                    <c:expression>
-                        <c:script>
-                            <c:code>simulationResultRef?.oid</c:code>
-                        </c:script>
-                    </c:expression>
-                    <q:considerOwner>true</q:considerOwner>
-                </q:inOid>
+                <q:text>. ownedByOid `simulationResultRef?.oid`</q:text>
             </filter>
         </collection>
         <view>

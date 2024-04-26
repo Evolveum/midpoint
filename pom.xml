@@ -242,7 +242,7 @@
         <groovy.version>4.0.11</groovy.version>
         <xmlsec.version>2.2.6</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
-        <connid.version>1.6.0.0-SNAPSHOT</connid.version>
+        <connid.version>1.5.3.0-M1</connid.version>
         <derby.version>10.16.1.1</derby.version>
         <poi.version>5.2.3</poi.version>
         <!-- Version for classgraph must the one declared in Prism -->
