@@ -7,15 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import java.util.Collection;
-import java.util.Collections;
-
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -54,7 +50,7 @@ class AttributeEvaluation<AH extends AssignmentHolderType, T>
     }
 
     @Override
-    ResourceObjectTypeDefinition getAssociationTargetObjectDefinition() {
+    ShadowAssociationDefinition getAssociationDefinition() {
         return null;
     }
 }
