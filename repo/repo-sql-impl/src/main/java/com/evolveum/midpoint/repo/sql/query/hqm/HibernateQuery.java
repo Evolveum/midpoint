@@ -13,7 +13,6 @@ import java.util.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.query.BindableType;
 import org.hibernate.transform.ResultTransformer;
 import org.hibernate.type.Type;
 import org.jetbrains.annotations.NotNull;
@@ -141,19 +140,7 @@ public class HibernateQuery {
             QueryParameterValue parameterValue = parameter.getValue();
             LOGGER.trace("Parameter {} = {}", name, parameterValue.debugDump());
 
-            if (parameterValue.getValue() instanceof Collection) {
-                if (parameterValue.getType() instanceof BindableType) {
-                    query.setParameter(name, (Collection) parameterValue.getValue(), (BindableType) parameterValue.getType());
-                } else {
-                    query.setParameter(name, parameterValue.getValue());
-                }
-            } else {
-                if (parameterValue.getType() instanceof BindableType) {
-                    query.setParameter(name, parameterValue.getValue(), (BindableType) parameterValue.getType());
-                } else {
-                    query.setParameter(name, parameterValue.getValue());
-                }
-            }
+            query.setParameter(name, parameterValue.getValue());
         }
         if (maxResults != null) {
             query.setMaxResults(maxResults);
@@ -163,7 +150,8 @@ public class HibernateQuery {
         }
         if (resultTransformer != null) {
             //noinspection deprecation
-            query.setResultTransformer(resultTransformer);
+            query.unwrap(org.hibernate.query.Query.class)
+                    .setResultTransformer(resultTransformer);
         }
         return query;
     }

@@ -144,7 +144,7 @@ public class SqlRepositoryBeanConfig {
 //        hibernateProperties.setProperty("hibernate.implicit_naming_strategy ", MidPointImplicitNamingStrategy.class.getName());
 //        hibernateProperties.setProperty("hibernate.physical_naming_strategy", MidPointPhysicalNamingStrategy.class.getName());
 
-        bean.setHibernateProperties(hibernateProperties);
+        bean.setJpaProperties(hibernateProperties);
         bean.setImplicitNamingStrategy(midPointImplicitNamingStrategy);
         bean.setPhysicalNamingStrategy(midPointPhysicalNamingStrategy);
         bean.setAnnotatedPackages("com.evolveum.midpoint.repo.sql.type");

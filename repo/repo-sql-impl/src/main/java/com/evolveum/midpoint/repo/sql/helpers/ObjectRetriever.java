@@ -166,8 +166,10 @@ public class ObjectRetriever {
         if (!lockForUpdate) {
             Query query = em.createNamedQuery("get.object");
             query.setParameter("oid", oid);
-            query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
             query.setLockMode(lockMode);
+
+            query.unwrap(org.hibernate.query.Query.class)
+                    .setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
             fullObject = (GetObjectResult) query.getSingleResult();
         } else {
@@ -1017,7 +1019,8 @@ public class ObjectRetriever {
             QueryEngine engine = new QueryEngine(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
             RQueryImpl rQuery = (RQueryImpl) engine.interpret(request.getQuery(), type, request.getOptions(), false, em);
             query = rQuery.getQuery();
-            implementationLevelQuery = query.getQueryString();
+
+            implementationLevelQuery = query.unwrap(org.hibernate.query.Query.class).getQueryString();
             implementationLevelQueryParameters = new HashMap<>();
             for (Map.Entry<String, QueryParameterValue> entry : rQuery.getQuerySource().getParameters().entrySet()) {
                 implementationLevelQueryParameters.put(entry.getKey(),

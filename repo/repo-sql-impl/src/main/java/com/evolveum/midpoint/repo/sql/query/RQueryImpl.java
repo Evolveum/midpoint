@@ -43,8 +43,8 @@ public class RQueryImpl implements RQuery {
     }
 
     @Override
-    public ScrollableResults scroll(ScrollMode mode) throws HibernateException {
-        return query.scroll(mode);
+    public ScrollableResults<?> scroll(ScrollMode mode) throws HibernateException {
+        return query.unwrap(org.hibernate.query.Query.class).scroll(mode);
     }
 
     public Query getQuery() {

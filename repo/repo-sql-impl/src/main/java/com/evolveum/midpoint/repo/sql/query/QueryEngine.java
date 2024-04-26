@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sql.query;
 import java.util.Collection;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -24,8 +25,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-
-import jakarta.persistence.Query;
 
 /**
  * @author lazyman
@@ -58,10 +57,11 @@ public class QueryEngine {
         Query hqlQuery = hibernateQuery.getAsHqlQuery(em);
 
         if (LOGGER.isTraceEnabled()) {
+            String str = hqlQuery.unwrap(org.hibernate.query.Query.class).getQueryString();
             LOGGER.trace("Query interpretation result:\n--- Query:\n{}\n--- with options: {}\n--- resulted in HQL:\n{}",
-                    DebugUtil.debugDump(query), options, hqlQuery.getQueryString());
-
+                    DebugUtil.debugDump(query), options, str);
         }
+
         return new RQueryImpl(hqlQuery, hibernateQuery);
     }
 
