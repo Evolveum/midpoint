@@ -64,8 +64,17 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
-                super.onSubmitPerformed(target);
+                RoleAnalysisSessionType session = getHelper().getDetailsModel().getObjectType();
+
+                RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
+                if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)
+                        || analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)
+                        || analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)) {
+                    showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
+                    super.onSubmitPerformed(target);
+                }
+                finalSubmitPerform(target);
+
             }
         };
 
@@ -173,42 +182,46 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                Task task = getPageBase().createSimpleTask(OP_PROCESS_CLUSTERING);
-                OperationResult result = task.getResult();
-
-                Collection<ObjectDelta<? extends ObjectType>> deltas;
-                try {
-                    deltas = getHelper().getDetailsModel().collectDeltas(result);
-
-                    Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperations = new ObjectChangesExecutorImpl()
-                            .executeChanges(deltas, false, task, result, target);
-
-                    String sessionOid = ObjectDeltaOperation.findAddDeltaOidRequired(objectDeltaOperations,
-                            RoleAnalysisSessionType.class);
-
-                    RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-
-                    PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(sessionOid, task, result);
-
-                    if (sessionTypeObject != null) {
-                        roleAnalysisService.executeClusteringTask(getPageBase().getModelInteractionService(), sessionTypeObject, null, null, task, result
-                        );
-                    }
-                } catch (Throwable e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't process clustering", e);
-                    result.recordFatalError(
-                            createStringResource("RoleAnalysisSessionWizardPanel.message.clustering.error").getString()
-                            , e);
-                }
-
-                setResponsePage(PageRoleAnalysis.class);
-                ((PageBase) getPage()).showResult(result);
-                target.add(getFeedbackPanel());
+                finalSubmitPerform(target);
             }
 
         });
 
         return steps;
+    }
+
+    private void finalSubmitPerform(AjaxRequestTarget target) {
+        Task task = getPageBase().createSimpleTask(OP_PROCESS_CLUSTERING);
+        OperationResult result = task.getResult();
+
+        Collection<ObjectDelta<? extends ObjectType>> deltas;
+        try {
+            deltas = getHelper().getDetailsModel().collectDeltas(result);
+
+            Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperations = new ObjectChangesExecutorImpl()
+                    .executeChanges(deltas, false, task, result, target);
+
+            String sessionOid = ObjectDeltaOperation.findAddDeltaOidRequired(objectDeltaOperations,
+                    RoleAnalysisSessionType.class);
+
+            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+
+            PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(sessionOid, task, result);
+
+            if (sessionTypeObject != null) {
+                roleAnalysisService.executeClusteringTask(getPageBase().getModelInteractionService(), sessionTypeObject, null, null, task, result
+                );
+            }
+        } catch (Throwable e) {
+            LoggingUtils.logException(LOGGER, "Couldn't process clustering", e);
+            result.recordFatalError(
+                    createStringResource("RoleAnalysisSessionWizardPanel.message.clustering.error").getString()
+                    , e);
+        }
+
+        setResponsePage(PageRoleAnalysis.class);
+        ((PageBase) getPage()).showResult(result);
+        target.add(getFeedbackPanel());
     }
 
     private void onExitPerformed() {

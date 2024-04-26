@@ -42,7 +42,7 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
             RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
             RoleAnalysisCategoryType analysisCategory = processModeObject.getAnalysisCategory();
 
-            PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType = getContainerFormModel().getObject()
+            PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> primaryOptions = getContainerFormModel().getObject()
                     .getValue();
 
             Class<? extends ObjectType> propertiesClass = UserType.class;
@@ -63,14 +63,14 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
             double minObject = maxPropertiesObjects < 10 ? 1.0 : 10;
             boolean isIndirect = analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS);
 
-            if (sessionType.getNewValue().getValue().isIsIndirect() == null) {
-                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_IS_INDIRECT, isIndirect);
+            if (primaryOptions.getNewValue().getValue().isIsIndirect() == null) {
+                setNewValue(primaryOptions, AbstractAnalysisSessionOptionType.F_IS_INDIRECT, isIndirect);
             }
 
-            if (sessionType.getNewValue().getValue().getPropertiesRange() == null
-                    || sessionType.getNewValue().getValue().getPropertiesRange().getMin() == null
-                    || sessionType.getNewValue().getValue().getPropertiesRange().getMax() == null) {
-                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE, new RangeType()
+            if (primaryOptions.getNewValue().getValue().getPropertiesRange() == null
+                    || primaryOptions.getNewValue().getValue().getPropertiesRange().getMin() == null
+                    || primaryOptions.getNewValue().getValue().getPropertiesRange().getMax() == null) {
+                setNewValue(primaryOptions, AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE, new RangeType()
                         .min(minObject)
                         .max(maxPropertiesObjects.doubleValue()));
             }

@@ -1882,6 +1882,36 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="balanced">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during basic analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="BALANCED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="exact">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during basic analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXACT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="exploration">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during basic analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXPLORATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="advanced">
                 <xsd:annotation>
                     <xsd:documentation>
