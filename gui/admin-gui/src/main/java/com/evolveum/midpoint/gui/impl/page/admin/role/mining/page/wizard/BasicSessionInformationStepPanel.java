@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.visit.ClassVisitFilter;
@@ -106,5 +107,10 @@ public class BasicSessionInformationStepPanel extends AbstractFormWizardStepPane
     @Override
     protected boolean isExitButtonVisible() {
         return true;
+    }
+
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        super.onSubmitPerformed(target);
     }
 }

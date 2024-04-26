@@ -64,17 +64,8 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                RoleAnalysisSessionType session = getHelper().getDetailsModel().getObjectType();
-
-                RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
-                if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)
-                        || analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)
-                        || analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)) {
-                    showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
-                    super.onSubmitPerformed(target);
-                }
-                finalSubmitPerform(target);
-
+                showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
+                super.onSubmitPerformed(target);
             }
         };
 
@@ -108,7 +99,30 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
                 RoleAnalysisSessionWizardPanel.this.onExitPerformed();
             }
 
+            @Override
+            protected void onSubmitPerformed(AjaxRequestTarget target) {
+                RoleAnalysisSessionType session = getHelper().getDetailsModel().getObjectType();
+
+                RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
+                if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)
+                        || analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)
+                        || analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)) {
+                    showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
+                    super.onSubmitPerformed(target);
+                }
+                finalSubmitPerform(target);
+            }
         });
+
+        RoleAnalysisSessionType session = getHelper().getDetailsModel().getObjectType();
+
+        RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
+        if (!analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)
+                && !analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)
+                && !analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)) {
+
+            return steps;
+        }
 
         steps.add(new FilteringRoleAnalysisSessionOptionWizardPanel(getHelper().getDetailsModel()) {
             @Override

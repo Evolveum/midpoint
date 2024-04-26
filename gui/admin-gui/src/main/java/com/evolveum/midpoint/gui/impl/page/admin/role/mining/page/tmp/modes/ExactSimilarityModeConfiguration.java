@@ -7,9 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractAnalysisOption;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractRoleAnalysisConfiguration;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -17,16 +18,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-public class ExactSimilarityModeConfiguration extends AbstractAnalysisOption {
+public class ExactSimilarityModeConfiguration extends AbstractRoleAnalysisConfiguration {
 
     RoleAnalysisService service;
     Task task;
     OperationResult result;
-    PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper;
+    LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper;
 
     public ExactSimilarityModeConfiguration(
             RoleAnalysisService service,
-            PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper,
+            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
             Task task,
             OperationResult result) {
         super(objectWrapper);
@@ -37,28 +38,36 @@ public class ExactSimilarityModeConfiguration extends AbstractAnalysisOption {
     }
 
     @Override
-    public AbstractAnalysisSessionOptionType getAnalysisSessionOption() {
-        AbstractAnalysisSessionOptionType analysisSessionOption = super.getAnalysisSessionOption();
-        analysisSessionOption.setSimilarityThreshold(100.0);
-        analysisSessionOption.setIsIndirect(false);
-        analysisSessionOption.setMinMembersCount(2);
-        analysisSessionOption.setMinPropertiesOverlap(1);
-        analysisSessionOption.setPropertiesRange(new RangeType()
+    public void updateConfiguration() {
+        RangeType propertyRange = new RangeType()
                 .min(1.0)
-                .max(Double.valueOf(getMaxPropertyCount())));
-        return analysisSessionOption;
+                .max(Double.valueOf(getMaxPropertyCount()));
+
+        updatePrimaryOptions(null,
+                false,
+                propertyRange,
+                getDefaultAnalysisAttributes(),
+                null,
+                100.0,
+                2,
+                1);
+
+        updateDetectionOptions(2,
+                2,
+                new RangeType()
+                        .min(10.0)
+                        .max(100.0),
+                RoleAnalysisDetectionProcessType.FULL);
+    }
+
+    @Override
+    public AbstractAnalysisSessionOptionType getAnalysisSessionOption() {
+        return super.getAnalysisSessionOption();
     }
 
     @Override
     public RoleAnalysisDetectionOptionType getDetectionOption() {
-        RoleAnalysisDetectionOptionType detectionOption = super.getDetectionOption();
-        detectionOption.setDetectionProcessMode(RoleAnalysisDetectionProcessType.FULL);
-        detectionOption.setFrequencyRange(new RangeType()
-                .min(10.0)
-                .max(100.0));
-        detectionOption.setMinRolesOccupancy(2);
-        detectionOption.setMinUserOccupancy(2);
-        return detectionOption;
+        return super.getDetectionOption();
     }
 
     @Override

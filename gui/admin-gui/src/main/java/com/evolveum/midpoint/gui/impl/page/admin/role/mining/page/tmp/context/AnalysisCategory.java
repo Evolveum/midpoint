@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context;
 
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes.*;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -39,19 +40,26 @@ public enum AnalysisCategory implements TileEnum {
         return iconClass;
     }
 
-    public AbstractAnalysisOption generateConfiguration(
+    public void generateConfiguration(
             @NotNull RoleAnalysisService service,
-            @NotNull PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper,
+            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        return switch (this) {
-            case STANDARD -> new StandardModeConfiguration(service, objectWrapper, task, result);
-            case BALANCED_COVERAGE -> new BalancedCoverageModeConfiguration(service, objectWrapper, task, result);
-            case EXACT_ACCESS_SIMILARITY -> new ExactSimilarityModeConfiguration(service, objectWrapper, task, result);
-            case EXPLORATORY -> new ExploratoryModeConfiguration(service, objectWrapper, task, result);
-            case MINIMAL -> new MinimalConditionModeConfiguration(service, objectWrapper, task, result);
-            case ADVANCED -> new AdvancedModeConfiguration(service, objectWrapper, task, result);
-            case OUTLIER -> new OutlierModeConfiguration(service, objectWrapper, task, result);
+         switch (this) {
+            case STANDARD
+                    -> new StandardModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+            case BALANCED_COVERAGE
+                    -> new BalancedCoverageModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+            case EXACT_ACCESS_SIMILARITY
+                    -> new ExactSimilarityModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+            case EXPLORATORY
+                    -> new ExploratoryModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+            case MINIMAL
+                    -> new MinimalConditionModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+            case ADVANCED
+                    -> new AdvancedModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+            case OUTLIER
+                    -> new OutlierModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
         };
     }
 

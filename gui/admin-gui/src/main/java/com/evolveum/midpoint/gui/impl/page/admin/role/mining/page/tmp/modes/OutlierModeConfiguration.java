@@ -7,9 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractAnalysisOption;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractRoleAnalysisConfiguration;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -17,16 +18,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-public class OutlierModeConfiguration extends AbstractAnalysisOption {
+public class OutlierModeConfiguration extends AbstractRoleAnalysisConfiguration {
 
     RoleAnalysisService service;
     Task task;
     OperationResult result;
-    PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper;
+    LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper;
 
     public OutlierModeConfiguration(
             RoleAnalysisService service,
-            PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper,
+            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
             Task task,
             OperationResult result) {
         super(objectWrapper);
@@ -36,19 +37,32 @@ public class OutlierModeConfiguration extends AbstractAnalysisOption {
         this.objectWrapper = objectWrapper;
     }
 
+    @Override
+    public void updateConfiguration() {
+        RangeType propertyRange = new RangeType()
+                .min(5.0)
+                .max(Double.valueOf(getMaxPropertyCount()));
 
+        updatePrimaryOptions(null,
+                true,
+                propertyRange,
+                getDefaultAnalysisAttributes(),
+                null,
+                70.,
+                2,
+                5);
+
+        updateDetectionOptions(2,
+                2,
+                new RangeType()
+                        .min(10.0)
+                        .max(100.0),
+                RoleAnalysisDetectionProcessType.SKIP);
+    }
 
     @Override
     public AbstractAnalysisSessionOptionType getAnalysisSessionOption() {
-        AbstractAnalysisSessionOptionType analysisSessionOption = new AbstractAnalysisSessionOptionType();
-        analysisSessionOption.setSimilarityThreshold(100.0);
-        analysisSessionOption.setIsIndirect(false);
-        analysisSessionOption.setMinMembersCount(2);
-        analysisSessionOption.setMinPropertiesOverlap(1);
-        analysisSessionOption.setPropertiesRange(new RangeType()
-                .min(1.0)
-                .max(Double.valueOf(getMaxPropertyCount())));
-        return analysisSessionOption;
+        return super.getAnalysisSessionOption();
     }
 
     @Override

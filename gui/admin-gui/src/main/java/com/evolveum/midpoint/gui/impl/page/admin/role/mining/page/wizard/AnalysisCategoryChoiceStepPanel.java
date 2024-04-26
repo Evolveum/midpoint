@@ -15,15 +15,13 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.visit.ClassVisitFilter;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.wizard.EnumWizardChoicePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractAnalysisOption;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategory;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -60,22 +58,17 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
 
     @Override
     protected void onTileClickPerformed(AnalysisCategory value, AjaxRequestTarget target) {
-        PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper = getAssignmentHolderDetailsModel().getObjectWrapper();
+        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper = getAssignmentHolderDetailsModel().getObjectWrapperModel();
         RoleAnalysisCategoryType roleAnalysisCategoryType = value.resolveCategoryMode();
-        RoleAnalysisSessionType realValue = objectWrapper.getObject().getRealValue();
+        RoleAnalysisSessionType realValue = objectWrapper.getObject().getValue().getRealValue();
         RoleAnalysisOptionType analysisOption = realValue.getAnalysisOption();
         analysisOption.setAnalysisCategory(roleAnalysisCategoryType);
-        PrismContainer<Containerable> property = objectWrapper.getObject()
-                .findContainer(RoleAnalysisSessionType.F_ANALYSIS_OPTION);
-        property.findProperty(RoleAnalysisOptionType.F_ANALYSIS_CATEGORY)
-                .setRealValue(analysisOption);
 
         Task task = getPageBase().createSimpleTask("prepare options");
         OperationResult result = task.getResult();
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        AbstractAnalysisOption analysisConfiguration = value.generateConfiguration(
+        value.generateConfiguration(
                 roleAnalysisService, objectWrapper, task, result);
-        analysisConfiguration.applySettings();
 
         onSubmitPerformed(target);
     }
