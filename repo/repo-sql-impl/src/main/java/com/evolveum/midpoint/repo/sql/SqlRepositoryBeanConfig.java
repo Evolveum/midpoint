@@ -10,6 +10,7 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 import jakarta.persistence.EntityManagerFactory;
+import org.hibernate.cfg.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -132,22 +133,21 @@ public class SqlRepositoryBeanConfig {
         bean.setDataSource(dataSource);
 
         Properties hibernateProperties = new Properties();
-        hibernateProperties.setProperty("hibernate.dialect", configuration.getHibernateDialect());
-        hibernateProperties.setProperty("hibernate.hbm2ddl.auto", configuration.getHibernateHbm2ddl());
+        hibernateProperties.setProperty(JdbcSettings.DIALECT, configuration.getHibernateDialect());
+        hibernateProperties.setProperty(SchemaToolingSettings.HBM2DDL_AUTO, configuration.getHibernateHbm2ddl());
         hibernateProperties.setProperty("hibernate.id.new_generator_mappings", "true");
-        hibernateProperties.setProperty("hibernate.jdbc.batch_size", "20");
-        hibernateProperties.setProperty("jakarta.persistence.validation.mode", "none");
-        hibernateProperties.setProperty("hibernate.transaction.coordinator_class", "jdbc");
+        hibernateProperties.setProperty(BatchSettings.STATEMENT_BATCH_SIZE, "20");
+        hibernateProperties.setProperty(ValidationSettings.JAKARTA_VALIDATION_MODE, "none");
+        hibernateProperties.setProperty(TransactionSettings.TRANSACTION_COORDINATOR_STRATEGY, "jdbc");
         hibernateProperties.setProperty("hibernate.hql.bulk_id_strategy",
                 "org.hibernate.hql.spi.id.inline.InlineIdsOrClauseBulkIdStrategy");
 
-        hibernateProperties.setProperty("hibernate.implicit_naming_strategy ", MidPointImplicitNamingStrategy.class.getName());
-        hibernateProperties.setProperty("hibernate.physical_naming_strategy", MidPointPhysicalNamingStrategy.class.getName());
+        hibernateProperties.setProperty(MappingSettings.IMPLICIT_NAMING_STRATEGY, MidPointImplicitNamingStrategy.class.getName());
+        hibernateProperties.setProperty(MappingSettings.PHYSICAL_NAMING_STRATEGY, MidPointPhysicalNamingStrategy.class.getName());
 
         bean.setJpaProperties(hibernateProperties);
 //        bean.setImplicitNamingStrategy(midPointImplicitNamingStrategy);   // todo fix [viliam]
 //        bean.setPhysicalNamingStrategy(midPointPhysicalNamingStrategy);
-//        bean.setAnnotatedPackages("com.evolveum.midpoint.repo.sql.type");
         bean.setPackagesToScan(
                 "com.evolveum.midpoint.repo.sql.type",
                 "com.evolveum.midpoint.repo.sql.data.common",
