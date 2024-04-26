@@ -383,6 +383,8 @@ The complete new set of initial objects is in the `config/initial-objects` direc
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
 For more information see xref:/midpoint/reference/deployment/ninja/upgrade-with-ninja/#initial-objects[here].
 
+* 250-object-collection-resource.xml: The `All resources` object collection was updated with a filter to exclude resource templates.
+* 251-object-collection-resource-up.xml: The `Resources up` object collection was updated with a filter to exclude resource templates.
 // * References to removed `category`, `handlerUri`, and `reportOutputOid` properties of tasks were deleted: from task archetypes and from GUI configurations.
 // See https://github.com/Evolveum/midpoint/commit/1fe4b60057d040f7424523cf24194bfcb7920f90[1fe4b6], https://github.com/Evolveum/midpoint/commit/b5a331b377a4fff0dbabd82e64da60f0b8c96c2b[b5a331], and https://github.com/Evolveum/midpoint/commit/6887e980c48e45a5ae22642932ed22e0c8b5f665[6887e9].
 //

@@ -7,7 +7,13 @@
   -->
 
 <objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                  oid="00000000-0000-0000-0001-000000000006">
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="00000000-0000-0000-0001-000000000006">
     <name>All resources</name>
     <type>ResourceType</type>
+    <filter>
+        <q:text>archetypeRef not matches (oid = "00000000-0000-0000-0000-000000000703")
+            and template != true and abstract != true
+        </q:text>
+    </filter>
 </objectCollection>
