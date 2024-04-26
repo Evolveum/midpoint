@@ -21,7 +21,6 @@ import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
-import org.hibernate.type.StandardBasicTypes;
 import org.jgrapht.alg.TransitiveClosure;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -174,10 +173,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
             if (DUMP_TC_MATRIX_DETAILS) {logger.info("TC matrix expected = {}", result);}
 
-            Query q = em.createNativeQuery("select descendant_oid, ancestor_oid, val from m_org_closure")
-                    .addScalar("descendant_oid", StandardBasicTypes.STRING)
-                    .addScalar("ancestor_oid", StandardBasicTypes.STRING)
-                    .addScalar("val", StandardBasicTypes.LONG);
+            Query q = em.createNativeQuery("select descendant_oid, ancestor_oid, val from m_org_closure", "OrgClosureBasic");
             List<Object[]> list = q.getResultList();
             logger.info("OrgClosure has {} rows", list.size());
 

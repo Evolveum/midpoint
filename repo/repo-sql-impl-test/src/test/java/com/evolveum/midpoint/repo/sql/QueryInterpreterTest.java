@@ -38,10 +38,8 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.polystring.PolyString;
-
 import jakarta.persistence.EntityManager;
-import org.hibernate.EntityManager;
+import org.hibernate.query.Query;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.test.annotation.DirtiesContext;
@@ -51,6 +49,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -212,7 +211,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_ORGANIZATION).eqPoly("guľôčka v jamôčke").matchingNorm().build();
 
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(em, UserType.class, query, false, null);
-            String real = rQuery.getQuery().getQueryString();
+            String real = getQueryString(rQuery);
             assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  _u.oid, _u.fullObject\n"
                     + "from\n"
@@ -458,7 +457,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             RQueryImpl realQuery = (RQueryImpl) getInterpretedQueryWhole(em, GenericObjectType.class,
                     getQuery(new File(TEST_DIR, "query-and-generic.xml"), GenericObjectType.class), false, null);
-            String real = realQuery.getQuery().getQueryString();
+            String real = getQueryString(realQuery);
 
             assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  _g.oid, _g.fullObject\n"
@@ -489,7 +488,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             RQuery realQuery = getInterpretedQueryWhole(em, GenericObjectType.class, query, false, null);
             HibernateQuery source = ((RQueryImpl) realQuery).getQuerySource();
-            String real = ((RQueryImpl) realQuery).getQuery().getQueryString();
+            String real = getQueryString((RQueryImpl) realQuery);
 
             // note l and l2 cannot be merged as they point to different extension properties (intType, longType)
             assertThat(real).isEqualToIgnoringWhitespace("select\n"
@@ -558,7 +557,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     getQuery(new File(TEST_DIR, "query-account-by-attribute-and-extension-value.xml"), ShadowType.class), false,
                     null);
 
-            assertThat(realQuery.getQuery().getQueryString())
+            assertThat(getQueryString(realQuery))
                     .isEqualToIgnoringWhitespace("select\n"
                             + "  _s.oid, _s.fullObject\n"
                             + "from\n"
@@ -613,7 +612,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                 relation = ...
                 type = com.evolveum.midpoint.repo.sql.data.common.other.RObjectType.RESOURCE
              */
-            assertThat(realQuery.getQuery().getQueryString())
+            assertThat(getQueryString(realQuery))
                     .isEqualToIgnoringWhitespace("select\n" +
                             "  _s.oid, _s.fullObject\n" +
                             "from\n" +
@@ -1165,7 +1164,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(ort.asReferenceValue())
                     .build();
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(em, UserType.class, query, false, null);
-            String real = rQuery.getQuery().getQueryString();
+            String real = getQueryString(rQuery);
 
             assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  _u.oid, _u.fullObject\n" +
@@ -1206,7 +1205,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(ort.asReferenceValue())
                     .build();
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(em, UserType.class, query, false, null);
-            String real = rQuery.getQuery().getQueryString();
+            String real = getQueryString(rQuery);
 
             assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  _u.oid, _u.fullObject\n" +
@@ -1246,7 +1245,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(ort.asReferenceValue())
                     .build();
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(em, UserType.class, query, false, null);
-            String real = rQuery.getQuery().getQueryString();
+            String real = getQueryString(rQuery);
 
             assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  _u.oid, _u.fullObject\n" +
@@ -1279,7 +1278,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(ort.asReferenceValue())
                     .build();
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(em, UserType.class, query, false, null);
-            String real = rQuery.getQuery().getQueryString();
+            String real = getQueryString(rQuery);
 
             assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  _u.oid, _u.fullObject\n" +
@@ -1682,7 +1681,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(em, UserType.class, query, false, null);
-            String real = rQuery.getQuery().getQueryString();
+            String real = getQueryString(rQuery);
 
             assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  _u.oid, _u.fullObject\n"
@@ -1712,7 +1711,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(em, UserType.class, query, false, null);
-            String real = rQuery.getQuery().getQueryString();
+            String real = getQueryString(rQuery);
 
             assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  _u.oid, _u.fullObject\n"
@@ -1771,7 +1770,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(em, UserType.class, query, false, null);
-            String real = rQuery.getQuery().getQueryString();
+            String real = getQueryString(rQuery);
             assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  _u.oid, _u.fullObject\n"
                     + "from\n"
@@ -1790,6 +1789,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
+    private String getQueryString(RQueryImpl rQuery) {
+        return rQuery.getQuery().unwrap(Query.class).getQueryString();
+    }
+
     @Test
     public void test128QueryOrgTreeFindUsersRelationManager() throws Exception {
         EntityManager em = open();
@@ -1800,7 +1803,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(em, UserType.class, query, false, null);
-            String real = rQuery.getQuery().getQueryString();
+            String real = getQueryString(rQuery);
 
             assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  _u.oid, _u.fullObject\n"
@@ -2361,7 +2364,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             RQueryImpl realQuery = (RQueryImpl) getInterpretedQueryWhole(em, ObjectType.class, query, false, null);
-            assertThat(realQuery.getQuery().getQueryString())
+            assertThat(getQueryString(realQuery))
                     .isEqualToIgnoringWhitespace("select\n"
                             + "  _o.oid, _o.fullObject\n"
                             + "from\n"
@@ -2397,7 +2400,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             RQueryImpl realQuery = (RQueryImpl) getInterpretedQueryWhole(em, UserType.class, query, false, null);
-            assertThat(realQuery.getQuery().getQueryString())
+            assertThat(getQueryString(realQuery))
                     .isEqualToIgnoringWhitespace("select\n"
                             + "  _u.oid,\n"
                             + "  _u.fullObject\n"
@@ -2684,7 +2687,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             RQueryImpl realQuery = (RQueryImpl) getInterpretedQueryWhole(em, GenericObjectType.class, objectQuery, false,
                     null);
 
-            assertThat(realQuery.getQuery().getQueryString())
+            assertThat(getQueryString(realQuery))
                     .isEqualToIgnoringWhitespace("select\n"
                             + "  _g.oid, _g.fullObject\n"
                             + "from\n"
@@ -2769,7 +2772,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_EXTENSION, new QName("overrideActivation")).eq(ActivationStatusType.ENABLED)
                     .build();
             RQueryImpl realQuery = (RQueryImpl) getInterpretedQueryWhole(em, UserType.class, query, false, null);
-            String real = realQuery.getQuery().getQueryString();
+            String real = getQueryString(realQuery);
 
             assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  _u.oid, _u.fullObject\n"
@@ -3400,9 +3403,9 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     /**
      * Disabled because of the exception:
      *
-     *     Could not resolve attribute 'nameCopy' of 'com.evolveum.midpoint.repo.sql.data.common.RObject'
-     *     due to the attribute being declared in multiple sub types: ['com.evolveum.midpoint.repo.sql.data.common.RForm',
-     *     'com.evolveum.midpoint.repo.sql.data.common.RUser']
+     * Could not resolve attribute 'nameCopy' of 'com.evolveum.midpoint.repo.sql.data.common.RObject'
+     * due to the attribute being declared in multiple sub types: ['com.evolveum.midpoint.repo.sql.data.common.RForm',
+     * 'com.evolveum.midpoint.repo.sql.data.common.RUser']
      *
      * (Hibernate 6?)
      */
@@ -4732,7 +4735,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         try {
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(em, AssignmentHolderType.class, null, false, null);
-            String real = rQuery.getQuery().getQueryString();
+            String real = getQueryString(rQuery);
             System.out.println("Query parameters:\n" + rQuery.getQuerySource().getParameters());
 
             assertThat(real).isEqualToIgnoringWhitespace("select\n"
@@ -5088,18 +5091,18 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             then("expected HQL is generated");
             assertThat(real).isEqualToIgnoringWhitespace("""
-                  select
-                      _u.oid,
-                      _u.fullObject
-                  from
-                      RUser _u
-                        left join _u.linkRef _l
-                        left join RShadow _t on _l.target = _t
-                  where
-                      (
-                        _t.resourceRef.targetOid = :targetOid and
-                        _t.resourceRef.relation in (:relation)
-                      )""");
+                    select
+                        _u.oid,
+                        _u.fullObject
+                    from
+                        RUser _u
+                          left join _u.linkRef _l
+                          left join RShadow _t on _l.target = _t
+                    where
+                        (
+                          _t.resourceRef.targetOid = :targetOid and
+                          _t.resourceRef.relation in (:relation)
+                        )""");
         } finally {
             close(em);
         }
@@ -5159,7 +5162,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     private <T extends Containerable> String getInterpretedQuery(EntityManager em, Class<T> type, ObjectQuery query,
             boolean interpretCount, Collection<SelectorOptions<GetOperationOptions>> options) throws Exception {
         RQuery rQuery = getInterpretedQueryWhole(em, type, query, interpretCount, options);
-        return ((RQueryImpl) rQuery).getQuery().getQueryString();
+        return getQueryString((RQueryImpl) rQuery);
     }
 
     @NotNull

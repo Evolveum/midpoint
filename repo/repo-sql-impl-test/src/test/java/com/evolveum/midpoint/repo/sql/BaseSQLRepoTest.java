@@ -158,8 +158,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     @AfterMethod
     public void afterMethod() {
         try {
-
-            EntityManager em = factory.getCurrentSession();
+            EntityManager em = factory.createEntityManager();
             if (em != null) {
                 em.close();
                 AssertJUnit.fail("Session is still open, check test code or bug in sql service.");

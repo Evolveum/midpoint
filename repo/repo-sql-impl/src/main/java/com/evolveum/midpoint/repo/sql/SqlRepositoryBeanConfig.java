@@ -141,14 +141,15 @@ public class SqlRepositoryBeanConfig {
         hibernateProperties.setProperty("hibernate.hql.bulk_id_strategy",
                 "org.hibernate.hql.spi.id.inline.InlineIdsOrClauseBulkIdStrategy");
 
-//        hibernateProperties.setProperty("hibernate.implicit_naming_strategy ", MidPointImplicitNamingStrategy.class.getName());
-//        hibernateProperties.setProperty("hibernate.physical_naming_strategy", MidPointPhysicalNamingStrategy.class.getName());
+        hibernateProperties.setProperty("hibernate.implicit_naming_strategy ", MidPointImplicitNamingStrategy.class.getName());
+        hibernateProperties.setProperty("hibernate.physical_naming_strategy", MidPointPhysicalNamingStrategy.class.getName());
 
         bean.setJpaProperties(hibernateProperties);
-        bean.setImplicitNamingStrategy(midPointImplicitNamingStrategy);
-        bean.setPhysicalNamingStrategy(midPointPhysicalNamingStrategy);
-        bean.setAnnotatedPackages("com.evolveum.midpoint.repo.sql.type");
+//        bean.setImplicitNamingStrategy(midPointImplicitNamingStrategy);   // todo fix [viliam]
+//        bean.setPhysicalNamingStrategy(midPointPhysicalNamingStrategy);
+//        bean.setAnnotatedPackages("com.evolveum.midpoint.repo.sql.type");
         bean.setPackagesToScan(
+                "com.evolveum.midpoint.repo.sql.type",
                 "com.evolveum.midpoint.repo.sql.data.common",
                 "com.evolveum.midpoint.repo.sql.data.common.any",
                 "com.evolveum.midpoint.repo.sql.data.common.container",
@@ -158,7 +159,7 @@ public class SqlRepositoryBeanConfig {
                 "com.evolveum.midpoint.repo.sql.data.common.other",
                 "com.evolveum.midpoint.repo.sql.data.common.type",
                 "com.evolveum.midpoint.repo.sql.data.audit");
-        bean.setEntityInterceptor(entityStateInterceptor);
+//        bean.setEntityInterceptor(entityStateInterceptor);    // todo fix [viliam]
 
         return bean;
     }

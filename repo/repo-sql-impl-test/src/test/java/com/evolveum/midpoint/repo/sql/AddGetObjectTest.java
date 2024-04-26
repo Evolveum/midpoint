@@ -16,7 +16,7 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import jakarta.persistence.EntityManager;
-import org.hibernate.query.Query;
+import jakarta.persistence.Query;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -492,7 +492,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             Query query = em.createNativeQuery("select id from m_assignment where owner_oid=:oid");
             query.setParameter("oid", oid);
             List<Short> dbShorts = new ArrayList<>();
-            for (Number n : (List<Number>) query.list()) {
+            for (Number n : (List<Number>) query.getResultList()) {
                 dbShorts.add(n.shortValue());
             }
             Collections.sort(dbShorts);
