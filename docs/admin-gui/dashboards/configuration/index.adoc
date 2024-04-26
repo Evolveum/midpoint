@@ -14,8 +14,9 @@ doc-type: config
 :page-since: "4.2"
 :page-toc: top
 :page-keywords: [ 'dashboard', 'dashboards', 'configuration' ]
-:search-alias: "advanced report"
-:page-upkeep-status: green
+:search-alias: "dashboard configuration"
+:page-upkeep-status: yellow
+:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
 
 Documentation about dashboards can be found at multiple places in docs. To avoid confusion, please see
 
@@ -348,7 +349,7 @@ Last variable of the presentation container is `view`, this variable is also pro
 The main reason to configure a view would be the customization of the reported or presented object collection on which we based the dashboard widget.
 The widget object collection can be accessed via the IU *"More info"* button.
 
-
+//TODO check after sampleRef is fully in prod
 .*Example of `presentation`*:
 [%collapsible]
 ====
@@ -394,45 +395,13 @@ You can see basic configuration for objectCollection on xref:/midpoint/reference
 For dashboard, we can use policyRule with policyTreshold to define some policySituation.
 Example of object collection for resource, which have status set to "UP":
 
+//TODO check after sampleRef is fully in prod
 .*Example Object Collection*
 [%collapsible]
 ====
-[source,xml]
-----
-<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-                                  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                                  oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259">
-    <name>Resources Up</name>
-    <assignment>
-        <policyRule>
-            <policyConstraints>
-                <collectionStats>
-                    <collection>
-                        <interpretation>explicit</interpretation>
-                    </collection>
-                </collectionStats>
-            </policyConstraints>
-            <policySituation>#resourceHealthDanger</policySituation>
-            <policyThreshold>
-                <highWaterMark>
-                    <percentage>99.9</percentage>
-                </highWaterMark>
-            </policyThreshold>
-        </policyRule>
-    </assignment>
-    <type>ResourceType</type>
-    <filter>
-        <q:equal>
-            <q:path>operationalState/lastAvailabilityStatus</q:path>
-            <q:value>up</q:value>
-        </q:equal>
-    </filter>
-    <domain>
-        <collectionRef oid="00000000-0000-0000-0001-000000000006" type="c:ObjectCollectionType"/>
-    </domain>
-</objectCollection>
-----
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/object-collection-resource-up.xml[Git]
+
+sampleRef::samples/dashboard/object-collection-resource-up.xml[]
 ====
 
 Variable _domain_ is a set of object that represents "all the objects" used in this collection.
@@ -455,70 +424,24 @@ Now we show very simple example for widget of enabled users, that show only numb
 
 As first, we create an object collection with filter for users with value `enabled` in attribute activation/effectiveStatus.
 
-[%collapsible]
+//TODO check after sampleRef is fully in prod
 .*Example Object Collection*
+[%collapsible]
 ====
-[source,xml]
-----
-<objectCollection oid="00000000-0000-0000-0001-000000147896">
-   <name>All enabled users</name>
-    <type>UserType</type>
-    <filter>
-        <equal>
-            <path>activation/effectiveStatus</path>
-            <value>enabled</value>
-        </equal>
-    </filter>
-</objectCollection>
-----
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/object-collection-asynchronous-widget.xml[Git]
+
+sampleRef::samples/dashboard/object-collection-asynchronous-widget.xml[]
 ====
 
 And next we create dashboard with one widget for enabled users.
 
-[%collapsible]
+//TODO check after sampleRef is fully in prod
 .*Example Dashboard Configuration*
+[%collapsible]
 ====
-[source,xml]
-----
-<dashboard oid="f89709f9-7313-494f-a600-69ea75d95106">
-    <name>Example one widget for enabled users</name>
-    <display>
-        <label>Enabled users</label>
-    </display>
-    <widget>
-        <identifier>enabled-users</identifier>
-        <display>
-            <label>Enabled users</label>
-            <color>#00a65a</color>
-            <icon>
-                <cssClass>fa fa-user</cssClass>
-            </icon>
-        </display>
-        <data>
-            <sourceType>objectCollection</sourceType>
-            <collection>
-                <collectionRef oid="00000000-0000-0000-0001-000000147896" type="ObjectCollectionType"/>
-            </collection>
-        </data>
-        <presentation>
-            <dataField>
-                <fieldType>value</fieldType>
-                <expression>
-                    <proportional>
-                        <style>value-only</style>
-                    </proportional>
-                </expression>
-            </dataField>
-            <dataField>
-                <fieldType>unit</fieldType>
-                <expression>
-                    <value>enabled</value>
-                </expression>
-            </dataField>
-        </presentation>
-    </widget>
-</dashboard>
-----
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/dashboard-asynchronous-widget.xml[Git]
+
+sampleRef::samples/dashboard/dashboard-asynchronous-widget.xml[]
 ====
 
 Don't forget to add the new dashboard to admin gui in system configuration.
@@ -540,6 +463,7 @@ For example, we will use the same case as in the previous example for enabled us
 We create the same object collection.
 
 //TODO check after sampleRef is fully in prod
+
 .*Example Object Collection*
 [%collapsible]
 ====
@@ -551,8 +475,9 @@ sampleRef::samples/dashboard/howto/collection-enabled-users.xml[]
 Next, we have to create a dashboard. We also need to add the attribute `displaySourceType` with value `widgetData`.
 
 //TODO check after sampleRef is fully in prod
-[%collapsible]
+
 .*Example Dashboard Configuration*
+[%collapsible]
 ====
 link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/dashboard-asynchronous-widget.xml[Git]
 
@@ -562,8 +487,9 @@ sampleRef::samples/dashboard/dashboard-asynchronous-widget.xml[]
 Finally, we create a report for dashboard.
 
 //TODO check after sampleRef is fully in prod
-[%collapsible]
+
 .*Example Report Configuration*
+[%collapsible]
 ====
 link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/report-asynchronous-widget.xml[Git]
 

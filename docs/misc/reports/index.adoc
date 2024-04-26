@@ -51,6 +51,14 @@ It is also possible to send generated reports via email xref:/midpoint/reference
 
 For more information on export formats please have a look at xref:/midpoint/reference/misc/reports/report-formats.adoc[this] page.
 
+
+== Dashboards
+
+MidPoint also contains a dynamic way how to present the same data which we can use in reports.
+This is done with customizable dashboards and dashboard widgets.
+Dashboard configuration has its own section in the midPoint documentation.
+For more information on customizable dashboards please have a look at this xref:/midpoint/reference/admin-gui/dashboards/index.adoc[link].
+
 == See Also
 
 - xref:/midpoint/reference/misc/reports/examples/[Report Examples]

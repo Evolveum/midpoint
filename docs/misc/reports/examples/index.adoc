@@ -3,8 +3,7 @@
 :page-display-order: 100
 :page-toc: top
 :search-alias: "report examples"
-:page-upkeep-status: yellow
-:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
+:page-keywords: [ 'report', 'examples', 'reports', 'samples' ]
 
 == Description
 Common use-cases and user story examples for the midPoint Reporting feature.
