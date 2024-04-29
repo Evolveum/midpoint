@@ -207,6 +207,11 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         ShadowTablePanel shadowTablePanel = new ShadowTablePanel(ID_TABLE, getPanelConfiguration()) {
 
             @Override
+            protected boolean isDeleteOnlyRepoShadowAllow() {
+                return false;
+            }
+
+            @Override
             protected UserProfileStorage.TableId getTableId() {
                 return UserProfileStorage.TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
             }
