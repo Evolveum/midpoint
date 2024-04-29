@@ -11,6 +11,10 @@ compliance:
             description: 'Description of an idea for limiting access to internal information using classification scheme'
         '5.16':
             description: 'Management of user clearances'
+        '6.1':
+            description: 'Using clearances to represent personnel screening'
+        '6.3':
+            description: 'Using clearances to represent security training'
 ---
 = Information Classification and Clearances
 :page-toc: top
@@ -214,15 +218,15 @@ The policy rule prohibits assignment of privilege (policyAction=`enforce`) in ca
 The policy rule is specified in second-order inducement, therefore it is applied to all applications that have the `Category II` classification.
 The second-order inducement is the usual mechanism used in configurations based on xref:../metaroles/[meta-roles], such as this one.
 
-Similarly, definition of category III can be extended with requirements for special security clearance.
+Similarly, definition of category III can be extended with requirements for special security screening.
 We define the clearance first:
 
-.special-security-clearance.xml
+.special-security-screening.xml
 [source,xml]
 ----
 <role oid="147a93c6-c8c3-4430-9603-659ffeb5e544">
-    <name>Special security clearance</name>
-    <description>Special clearance awarded by security office, allowing access to sensitive information.</description>
+    <name>Special security screening</name>
+    <description>Special clearance awarded by security office after security screening, allowing access to sensitive information.</description>
     <assignment>
         <!-- Clearance archetype -->
         <targetRef oid="00000000-0000-0000-0000-000000000331" type="ArchetypeType"/>
@@ -256,10 +260,10 @@ We can use the approach described above the place requirement for the special cl
                 <hasNoAssignment>
                     <presentation>
                         <message>
-                            <fallbackMessage>Special security clearance required</fallbackMessage>
+                            <fallbackMessage>Special security screening required</fallbackMessage>
                         </message>
                     </presentation>
-                    <!-- Special security clearance -->
+                    <!-- Special security screening -->
                     <targetRef oid="147a93c6-c8c3-4430-9603-659ffeb5e544" type="RoleType" />
                 </hasNoAssignment>
             </policyConstraints>
@@ -283,7 +287,7 @@ The usual inducement can be used for that:
 <org oid="03a7128d-42c8-4056-9f2e-171658562eeb">
     <name>Chief Audit Office</name>
     <inducement>
-        <!-- Special security clearance -->
+        <!-- Special security screening -->
         <targetRef oid="147a93c6-c8c3-4430-9603-659ffeb5e544" type="RoleType" />
     </inducement>
 </org>

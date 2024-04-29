@@ -12,10 +12,7 @@ import java.util.*;
 import java.util.function.BiFunction;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.PathSet;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.repo.sqlbase.SqlBaseOperationTracker;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleMappingMixin;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.*;
@@ -30,6 +27,8 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.SystemException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.*;
 import com.querydsl.core.Tuple;
@@ -52,11 +51,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.VisibleForTesting;
@@ -159,6 +153,32 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         addContainerTableMapping(F_TRIGGER,
                 QTriggerMapping.init(repositoryContext),
                 joinOn((o, trg) -> o.oid.eq(trg.ownerOid)));
+
+        var valueMetadataMapping = addNestedMapping(InfraItemName.METADATA, ValueMetadataType.class);
+        valueMetadataMapping.addNestedMapping(ValueMetadataType.F_STORAGE, StorageMetadataType.class)
+                .addRefMapping(StorageMetadataType.F_CREATOR_REF,
+                        q -> q.creatorRefTargetOid,
+                        q -> q.creatorRefTargetType,
+                        q -> q.creatorRefRelationId,
+                        QUserMapping::getUserMapping)
+                .addItemMapping(StorageMetadataType.F_CREATE_CHANNEL,
+                        uriMapper(q -> q.createChannelId))
+                .addItemMapping(StorageMetadataType.F_CREATE_TIMESTAMP,
+                        timestampMapper(q -> q.createTimestamp))
+                .addRefMapping(StorageMetadataType.F_MODIFIER_REF,
+                        q -> q.modifierRefTargetOid,
+                        q -> q.modifierRefTargetType,
+                        q -> q.modifierRefRelationId,
+                        QUserMapping::getUserMapping)
+                .addItemMapping(StorageMetadataType.F_MODIFY_CHANNEL,
+                        uriMapper(q -> q.modifyChannelId))
+                .addItemMapping(StorageMetadataType.F_MODIFY_TIMESTAMP,
+                        timestampMapper(q -> q.modifyTimestamp));
+        valueMetadataMapping.addNestedMapping(ValueMetadataType.F_PROCESS, ProcessMetadataType.class)
+                .addRefMapping(ProcessMetadataType.F_CREATE_APPROVER_REF,
+                        QObjectReferenceMapping.initForCreateApprover(repositoryContext))
+                .addRefMapping(ProcessMetadataType.F_MODIFY_APPROVER_REF,
+                        QObjectReferenceMapping.initForModifyApprover(repositoryContext));
     }
 
     @Override
@@ -271,21 +291,51 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         // and needed setters (fields are not "interface-able") would create much more code.
         MetadataType metadata = schemaObject.getMetadata();
         if (metadata != null) {
-            setReference(metadata.getCreatorRef(),
+            legacyMetadataToRowObject(row, metadata);
+        }
+        // Value metadata are prefered
+        var valueMetadataPcv = schemaObject.asPrismContainerValue().getValueMetadata().getAnyValue();
+        if (valueMetadataPcv != null) {
+            valueMetadataToRowObject(row, (ValueMetadataType) valueMetadataPcv.asContainerable());
+
+        }
+
+        return row;
+    }
+
+    private void legacyMetadataToRowObject(R row, MetadataType metadata) {
+        setReference(metadata.getCreatorRef(),
+                o -> row.creatorRefTargetOid = o,
+                t -> row.creatorRefTargetType = t,
+                r -> row.creatorRefRelationId = r);
+        row.createChannelId = processCacheableUri(metadata.getCreateChannel());
+        row.createTimestamp = MiscUtil.asInstant(metadata.getCreateTimestamp());
+
+        setReference(metadata.getModifierRef(),
+                o -> row.modifierRefTargetOid = o,
+                t -> row.modifierRefTargetType = t,
+                r -> row.modifierRefRelationId = r);
+        row.modifyChannelId = processCacheableUri(metadata.getModifyChannel());
+        row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
+    }
+
+    private void valueMetadataToRowObject(R row, ValueMetadataType metadata) {
+        var storage = metadata.getStorage();
+        if (storage != null) {
+            setReference(storage.getCreatorRef(),
                     o -> row.creatorRefTargetOid = o,
                     t -> row.creatorRefTargetType = t,
                     r -> row.creatorRefRelationId = r);
-            row.createChannelId = processCacheableUri(metadata.getCreateChannel());
-            row.createTimestamp = MiscUtil.asInstant(metadata.getCreateTimestamp());
+            row.createChannelId = processCacheableUri(storage.getCreateChannel());
+            row.createTimestamp = MiscUtil.asInstant(storage.getCreateTimestamp());
 
-            setReference(metadata.getModifierRef(),
+            setReference(storage.getModifierRef(),
                     o -> row.modifierRefTargetOid = o,
                     t -> row.modifierRefTargetType = t,
                     r -> row.modifierRefRelationId = r);
-            row.modifyChannelId = processCacheableUri(metadata.getModifyChannel());
-            row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
+            row.modifyChannelId = processCacheableUri(storage.getModifyChannel());
+            row.modifyTimestamp = MiscUtil.asInstant(storage.getModifyTimestamp());
         }
-        return row;
     }
 
     /**

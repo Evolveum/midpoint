@@ -31,7 +31,10 @@
     </assignment>
     <type>ResourceType</type>
     <filter>
-        <q:text>operationalState/lastAvailabilityStatus = "up"</q:text>
+        <q:text>operationalState/lastAvailabilityStatus = "up"
+            and archetypeRef not matches (oid = "00000000-0000-0000-0000-000000000703")
+            and template != true and abstract != true
+        </q:text>
     </filter>
     <domain>
         <collectionRef oid="00000000-0000-0000-0001-000000000006" type="c:ObjectCollectionType"/>

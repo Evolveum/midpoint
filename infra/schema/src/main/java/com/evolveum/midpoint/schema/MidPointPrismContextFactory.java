@@ -241,9 +241,6 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerStaticNamespace(XMLConstants.W3C_XML_SCHEMA_NS_URI, DOMUtil.NS_W3C_XML_SCHEMA_PREFIX, false);
         schemaRegistry.registerStaticNamespace("http://www.w3.org/2001/XMLSchema-instance", "xsi", false);
 
-        // MID-6983: XSI Namespace is emmited by default
-        schemaRegistry.getNamespacePrefixMapper().addDeclaredByDefault("xsi");
-
         // Prism Schemas
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/annotation-3.xsd", "a");
 
@@ -296,9 +293,15 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/extension-3.xsd", "se");
 
         schemaRegistry.registerStaticNamespace(MidPointConstants.NS_RI, MidPointConstants.PREFIX_NS_RI, false);
-        schemaRegistry.getNamespacePrefixMapper().addDeclaredByDefault(MidPointConstants.PREFIX_NS_RI); // declared by default
 
         schemaRegistry.registerStaticNamespace(SchemaConstants.NS_ORG, SchemaConstants.PREFIX_NS_ORG, false);
-        schemaRegistry.getNamespacePrefixMapper().addDeclaredByDefault(SchemaConstants.PREFIX_NS_ORG); // declared by default
+        schemaRegistry.customizeNamespacePrefixMapper(namespacePrefixMapper -> {
+            // MID-6983: XSI Namespace is emmited by default
+            namespacePrefixMapper.addDeclaredByDefault("xsi");
+
+            namespacePrefixMapper.addDeclaredByDefault(MidPointConstants.PREFIX_NS_RI); // declared by default
+
+            namespacePrefixMapper.addDeclaredByDefault(SchemaConstants.PREFIX_NS_ORG); // declared by default
+        });
     }
 }

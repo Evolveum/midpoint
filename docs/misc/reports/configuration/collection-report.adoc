@@ -1,6 +1,6 @@
 = Report from Collections
 :page-nav-title: Report from Collections
-:page-display-order: 300
+:page-display-order: 100
 :page-toc: top
 :page-keywords: [ 'report', 'collection' ,'collections' ]
 :page-upkeep-status: green
@@ -188,6 +188,12 @@ image::collection-parameters.png[]
 ====
 sampleRef::samples/reports/report-user-list-advanced.xml[]
 ====
+
+When you click on the "Run original report" button, a report preview will be generated in a modal window.
+In this window you can click the "Run report" button.
+This will create a task which will generate the actual report output.
+Bear in mind that even the report preview can take some time to generate based on the complexity and size of data.
+We have a work package tracking this bug:MID-9648[]
 
 image::collection-parameter-example.png[75%]
 

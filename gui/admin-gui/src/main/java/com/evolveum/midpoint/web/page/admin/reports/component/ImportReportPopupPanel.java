@@ -270,7 +270,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
 
     @Override
     public int getHeight() {
-        return 100;
+        return 600;
     }
 
     @Override

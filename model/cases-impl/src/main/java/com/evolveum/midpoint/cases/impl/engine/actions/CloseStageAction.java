@@ -52,13 +52,13 @@ class CloseStageAction extends InternalAction {
             return new OpenStageAction(operation);
         } else {
             // Result of the last stage is the result of the whole case
-            return new CloseCaseAction(operation, closingInformation.getStageOutcomeUri());
+            return new CloseCaseAction(operation, closingInformation.getCaseOutcomeUri());
         }
     }
 
     private void recordAutoCompletionToCaseHistory() {
         assert autoClosingInformation != null;
-        StageCompletionEventType event = new StageCompletionEventType(beans.prismContext);
+        StageCompletionEventType event = new StageCompletionEventType();
         event.setTimestamp(beans.clock.currentTimeXMLGregorianCalendar());
         event.setStageNumber(operation.getCurrentStageNumber());
         event.setAutomatedDecisionReason(autoClosingInformation.getAutomatedStageCompletionReason());
