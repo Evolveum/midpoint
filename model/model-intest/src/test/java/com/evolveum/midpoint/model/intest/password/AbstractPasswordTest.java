@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.password;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -103,6 +105,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     protected static final String RESOURCE_DUMMY_MAVERICK_OID = "72a928b6-ff7b-11e7-9643-7366d7749c31";
     protected static final String RESOURCE_DUMMY_MAVERICK_NAME = "maverick";
 
+    protected static final DummyTestResource RESOURCE_DUMMY_INBOUND = new DummyTestResource(
+            TEST_DIR, "resource-dummy-inbound.xml", "3dbe59ee-2a7e-49ba-a447-218bf64e111b", "inbound");
+
     protected static final File PASSWORD_POLICY_UGLY_FILE = new File(TEST_DIR, "password-policy-ugly.xml");
     protected static final String PASSWORD_POLICY_UGLY_OID = "cfb3fa9e-027a-11e7-8e2c-dbebaacaf4ee";
 
@@ -170,6 +175,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         importObjectFromFile(PASSWORD_POLICY_MAVERICK_FILE);
         importObjectFromFile(SECURITY_POLICY_MAVERICK_FILE);
         initDummyResourcePirate(RESOURCE_DUMMY_MAVERICK_NAME, RESOURCE_DUMMY_MAVERICK_FILE, RESOURCE_DUMMY_MAVERICK_OID, initTask, initResult);
+
+        initTestObjects(initTask, initResult, RESOURCE_DUMMY_INBOUND);
 
         login(USER_ADMINISTRATOR_USERNAME);
     }
@@ -289,6 +296,73 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertThat(userJack.asObjectable().getCredentials().getPassword().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
 
         assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
+    }
+
+    /** MID-9504 */
+    @Test
+    public void test055ModifyUserJackPasswordWithInbound() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("user has an account on a resource with inbound password mapping");
+
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(PASSWORD_VALUE_PATH)
+                        .replace(protector.encryptString("d3adM3nT3llN0Tal3sXXX")) // just to be different
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(new AssignmentType()
+                                        .construction(
+                                                RESOURCE_DUMMY_INBOUND.construction(ShadowKindType.ACCOUNT, INTENT_DEFAULT)))
+                        .asObjectDelta(USER_JACK_OID),
+                null, task, result);
+        RESOURCE_DUMMY_INBOUND.controller.assertAccountByUsername("jack");
+        var shadowOid = assertUser(USER_JACK_OID, "before")
+                .singleLink()
+                .getOid();
+
+        prepareTest();
+
+        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+
+        // WHEN
+        when();
+        executeChanges(
+                List.of(
+                        deltaFor(UserType.class)
+                                .item(PASSWORD_VALUE_PATH)
+                                .replace(
+                                        protector.encryptString(USER_PASSWORD_1_CLEAR))
+                                .asObjectDelta(USER_JACK_OID),
+                        deltaFor(ShadowType.class)
+                                .item(PASSWORD_VALUE_PATH)
+                                .replace(
+                                        protector.encryptString(USER_PASSWORD_1_CLEAR))
+                                .asObjectDelta(shadowOid)
+                ),
+                null, task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack, "Jack Sparrow");
+
+        assertUserPassword(userJack, USER_PASSWORD_1_CLEAR);
+        assertPasswordMetadata(userJack, false, startCal, endCal);
+        // Password policy is not active yet. No history should be kept.
+        assertPasswordHistoryEntries(userJack);
+
+        displayDumpable("notifications", dummyTransport);
+
+        assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
+
+        unassignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_INBOUND.oid, INTENT_DEFAULT, task, result);
     }
 
     @Test

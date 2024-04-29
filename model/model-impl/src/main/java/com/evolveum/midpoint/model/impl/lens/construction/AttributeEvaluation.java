@@ -10,12 +10,13 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 import java.util.Collection;
 import java.util.Collections;
 
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -55,7 +56,7 @@ public class AttributeEvaluation<AH extends AssignmentHolderType>
     }
 
     @Override
-    ResourceObjectTypeDefinition getAssociationTargetObjectClassDefinition() {
+    ResourceAssociationDefinition getAssociationDefinition() {
         return null;
     }
 

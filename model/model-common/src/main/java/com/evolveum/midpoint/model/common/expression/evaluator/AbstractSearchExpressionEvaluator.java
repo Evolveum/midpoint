@@ -478,7 +478,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             // TODO: perhaps we should limit query to some reasonably high number of results?
             SearchResultList<PrismObject<O>> objects = objectResolver.searchObjects(targetTypeClass, query, options, task, result);
             for (PrismObject<O> object : objects) {
-                if (!isAcceptable(object)) {
+                if (!isAcceptable(object, context)) {
                     LOGGER.trace("Object {} was rejected by additional filtering", object);
                     continue;
                 }
@@ -491,7 +491,8 @@ public abstract class AbstractSearchExpressionEvaluator<
         }
 
         /** Provides additional filtering e.g. rejecting dead shadows as association targets. */
-        protected boolean isAcceptable(@NotNull PrismObject<O> object) {
+        protected boolean isAcceptable(@NotNull PrismObject<O> object, ExpressionEvaluationContext context)
+                throws ExpressionEvaluationException {
             return true;
         }
 

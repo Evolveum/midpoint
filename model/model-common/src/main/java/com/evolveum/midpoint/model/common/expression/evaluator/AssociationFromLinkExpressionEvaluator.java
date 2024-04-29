@@ -31,10 +31,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.schema.processor.ObjectFactory;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -52,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.model.common.expression.evaluator.AssociationRelatedEvaluatorUtil.getAssociationDefinition;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
 
 /**
@@ -97,13 +95,7 @@ public class AssociationFromLinkExpressionEvaluator
         AbstractRoleType thisRole = getRelevantRole(context);
         LOGGER.trace("Evaluating association from link {} on: {}", expressionEvaluatorBean.getDescription(), thisRole);
 
-        //noinspection unchecked
-        var rAssocTargetDefTypedValue = (TypedValue<ResourceObjectDefinition>)
-                        context.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
-        if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
-            throw new ExpressionEvaluationException("No association target object definition variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to create an association.");
-        }
-        ResourceObjectDefinition associationTargetDef = (ResourceObjectDefinition) rAssocTargetDefTypedValue.getValue();
+        var associationDefinition = getAssociationDefinition(context);
 
         ShadowDiscriminatorType projectionDiscriminator = expressionEvaluatorBean.getProjectionDiscriminator();
         if (projectionDiscriminator == null) {
@@ -118,7 +110,7 @@ public class AssociationFromLinkExpressionEvaluator
         PrismContainer<ShadowAssociationType> output = outputDefinition.instantiate();
 
         QName assocName = context.getMappingQName();
-        String resourceOid = associationTargetDef.getResourceOid();
+        String resourceOid = associationDefinition.getResourceOid();
         List<String> candidateShadowOidList = new ArrayList<>();
         // Always process the first role (myself) regardless of recursion setting
         gatherCandidateShadowsFromAbstractRole(thisRole, candidateShadowOidList);
@@ -208,10 +200,12 @@ public class AssociationFromLinkExpressionEvaluator
             List<PrismObject<ShadowType>> objects = objectResolver
                     .searchObjects(ShadowType.class, query, createNoFetchReadOnlyCollection(), context.getTask(), result);
             for (PrismObject<ShadowType> object : objects) {
-                PrismContainerValue<ShadowAssociationType> newValue = output.createNewValue();
-                ShadowAssociationType shadowAssociationType = newValue.asContainerable();
-                shadowAssociationType.setName(assocName);
-                toAssociation(object, shadowAssociationType);
+                if (ShadowUtil.isNotDead(object)) {
+                    PrismContainerValue<ShadowAssociationType> newValue = output.createNewValue();
+                    ShadowAssociationType shadowAssociationType = newValue.asContainerable();
+                    shadowAssociationType.setName(assocName);
+                    toAssociation(object, shadowAssociationType);
+                }
             }
         } catch (CommonException e) {
             throw new SystemException("Couldn't search for relevant shadows: " + e.getMessage(), e);

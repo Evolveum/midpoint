@@ -260,7 +260,7 @@ public abstract class ResourceObjectConstruction<
             ItemPath implicitTargetPath,
             QName mappingQName,
             D outputDefinition,
-            ResourceObjectTypeDefinition assocTargetObjectClassDefinition,
+            ResourceAssociationDefinition associationDefinition,
             Task task) throws SchemaException {
 
         if (!builder.isApplicableToChannel(lensContext.getChannel())) {
@@ -293,9 +293,9 @@ public abstract class ResourceObjectConstruction<
                 .addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT,
                         assignmentPath != null ? assignmentPath.getConstructionThisObject() : null, ObjectType.class);
 
-        if (assocTargetObjectClassDefinition != null) {
-            builder = builder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
-                    assocTargetObjectClassDefinition, ResourceObjectTypeDefinition.class);
+        if (associationDefinition != null) {
+            builder = builder.addVariableDefinition(
+                    ExpressionConstants.VAR_ASSOCIATION_DEFINITION, associationDefinition, ResourceAssociationDefinition.class);
         }
         builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, getResource(), ResourceType.class);
         builder = LensUtil.addAssignmentPathVariables(builder, getAssignmentPathVariables());

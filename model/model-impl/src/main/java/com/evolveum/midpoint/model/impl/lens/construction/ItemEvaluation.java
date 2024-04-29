@@ -13,6 +13,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+
 import jakarta.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.schema.util.SimulationUtil;
@@ -20,7 +22,6 @@ import com.evolveum.midpoint.task.api.Task;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -187,7 +188,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
 
         mappingBuilder = construction.initializeMappingBuilder(
                 mappingBuilder, itemPath, itemName, itemPrismDefinition,
-                getAssociationTargetObjectClassDefinition(), constructionEvaluation.task);
+                getAssociationDefinition(), constructionEvaluation.task);
 
         if (mappingBuilder == null) {
             return null;
@@ -222,7 +223,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         return mapping;
     }
 
-    abstract ResourceObjectTypeDefinition getAssociationTargetObjectClassDefinition();
+    abstract ResourceAssociationDefinition getAssociationDefinition();
 
     private ConfigurableValuePolicySupplier createValuePolicySupplier() {
         return new ConfigurableValuePolicySupplier() {

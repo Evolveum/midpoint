@@ -9,10 +9,19 @@ package com.evolveum.midpoint.model.intest.multi;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
+
 import java.io.File;
 import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -20,24 +29,20 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xnode.ListXNode;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.exception.*;
-
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorInstanceSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.util.TestUtil;
 
 /**
  * Test resources that have several connectors.
@@ -59,6 +64,14 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
     private static final String RESOURCE_DUMMY_OPALINE_SCRIPT_NAME = "opaline-script";
     private static final String CONF_USELESS_OPALINE = "USEless-opaline";
     private static final String CONF_USELESS_SCRIPT = "USEless-script";
+
+    private static final DummyTestResource RESOURCE_DUMMY_EXPRESSIONS = new DummyTestResource(
+            TEST_DIR, "resource-dummy-expressions.xml", "085ef1f0-ddcc-4086-a757-71b7fdb56a82", "expression");
+
+    private static final ItemPath USELESS_STRING_PATH = ItemPath.create(
+            ResourceType.F_CONNECTOR_CONFIGURATION,
+            SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
+            new ItemName("uselessString")); // the property itself has two different namespaces (we don't care)
 
     private static final String SCRIPT_RUNNER_NS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnectorScriptRunner";
     private static final ItemName SCRIPT_RUNNER_INSTANCE_ID = new ItemName(SCRIPT_RUNNER_NS, "instanceId");
@@ -361,6 +374,63 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
 
         then("the property is updated");
         assertPropertyAfter("opaline-script-240", task, result);
+    }
+
+    /** Test of const-based configuration property can be changed. MID-7918. */
+    @Test
+    public void test300ModifyConstConfigurationProperty() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("resource object");
+        importObject(RESOURCE_DUMMY_EXPRESSIONS, task, result);
+        var objectBefore = repositoryService.getObject(
+                ResourceType.class,
+                RESOURCE_DUMMY_EXPRESSIONS.oid,
+                createRawCollection(),
+                result);
+        var xmlBefore = prismContext.xmlSerializer().serialize(objectBefore);
+        displayValue("XML before", xmlBefore);
+
+        when("const configuration properties are modified");
+        var xmlEdited = xmlBefore
+                .replace("<const>useless</const>", "<const>drink</const>")
+                .replace("<const>blabla</const>", "<const>baseDn</const>");
+        var objectEdited = prismContext.parserFor(xmlEdited).xml().<ResourceType>parse();
+        var delta = objectBefore.diff(objectEdited);
+        displayDumpable("delta", delta);
+
+        executeChanges(delta, ModelExecuteOptions.create().raw(true), task, result);
+
+        then("the change is saved");
+        var objectAfter = repositoryService.getObject(
+                ResourceType.class,
+                RESOURCE_DUMMY_EXPRESSIONS.oid,
+                createRawCollection(),
+                result);
+        displayValue("Object after", prismContext.xmlSerializer().serialize(objectAfter));
+
+        var main = getConstExpressionValue(objectAfter.findProperty(USELESS_STRING_PATH));
+        assertThat(main).as("config property in main connector").isEqualTo("drink");
+
+        var additional = getConstExpressionValue(
+                objectAfter.findProperty(
+                        ResourceType.F_ADDITIONAL_CONNECTOR.append(
+                                objectAfter.asObjectable().getAdditionalConnector().get(0).getId(),
+                                USELESS_STRING_PATH)));
+        assertThat(additional).as("config property in additional connector").isEqualTo("baseDn");
+    }
+
+    private String getConstExpressionValue(PrismProperty<?> property) {
+        // Quite hacking. We simply want to dig out the const value from the XNode tree. The details can differ
+        // e.g. between native and generic repository.
+        var exprNode = ((MapXNode) property.getValue().getRawElement()).get(new QName("expression"));
+        var constNode = ((MapXNode) exprNode).get(new QName("const"));
+        if (constNode instanceof ListXNode list) {
+            constNode = list.get(0);
+        }
+        //noinspection unchecked
+        return ((PrimitiveXNode<String>) constNode).getStringValue();
     }
 
     private void assertPropertyAfter(String expected, Task task, OperationResult result) throws CommonException {

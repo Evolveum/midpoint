@@ -319,7 +319,14 @@ class ShadowedObjectConstruction {
 
         ShadowAssociationType associationValueBean = associationValue.asContainerable();
         QName associationName = associationValueBean.getName();
-        ResourceAssociationDefinition rAssociationDef = getAssociationDefinition(associationName);
+        var rAssociationDef = ctx.getObjectDefinitionRequired().findAssociationDefinition(associationName);
+        if (rAssociationDef == null) {
+            // This is quite legal. Imagine that we are looking for account/type1 type that has an association defined,
+            // but the shadow is classified (after being fetched) as account/type2 that does not have the association.
+            // We should simply ignore such association.
+            LOGGER.trace("Entitlement association with name {} does not exist in {}", associationName, ctx);
+            return false;
+        }
         ShadowKindType entitlementKind = rAssociationDef.getKind();
 
         for (String entitlementIntent : rAssociationDef.getIntents()) {
@@ -414,21 +421,6 @@ class ShadowedObjectConstruction {
                     associationValue, resourceObject, e.getMessage(), e);
             return null;
         }
-    }
-
-    @NotNull
-    private ResourceAssociationDefinition getAssociationDefinition(QName associationName) throws SchemaException {
-        ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
-        ResourceAssociationDefinition rEntitlementAssociationDef = objectDefinition.findAssociationDefinition(associationName);
-        if (rEntitlementAssociationDef == null) {
-            LOGGER.trace("Entitlement association with name {} couldn't be found in {} {}\nresource shadow:\n{}\nrepo shadow:\n{}",
-                    associationName, objectDefinition, ctx.getDesc(),
-                    resourceObject.debugDumpLazily(1), repoShadow.debugDumpLazily(1));
-            LOGGER.trace("Full [refined] definition: {}", objectDefinition.debugDumpLazily());
-            throw new SchemaException("Entitlement association with name " + associationName
-                    + " couldn't be found in " + ctx);
-        }
-        return rEntitlementAssociationDef;
     }
 
     @Contract("_, null -> fail")
