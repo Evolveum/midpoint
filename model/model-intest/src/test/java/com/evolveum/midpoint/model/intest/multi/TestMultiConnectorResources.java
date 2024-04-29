@@ -70,7 +70,7 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
 
     private static final ItemPath USELESS_STRING_PATH = ItemPath.create(
             ResourceType.F_CONNECTOR_CONFIGURATION,
-            SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
+            SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME,
             new ItemName("uselessString")); // the property itself has two different namespaces (we don't care)
 
     private static final String SCRIPT_RUNNER_NS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnectorScriptRunner";
@@ -272,7 +272,6 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
         property.setRealValue("opaline-script-230");
         configurationPropertiesContainerValue.add(property);
 
-        //noinspection unchecked
         PrismContainer<Containerable> configurationPropertiesContainer =
                 prismContext.itemFactory().createContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
         configurationPropertiesContainer.add(configurationPropertiesContainerValue);
@@ -332,7 +331,6 @@ public class TestMultiConnectorResources extends AbstractConfiguredModelIntegrat
         property.setRealValue("opaline-script-240");
         configurationPropertiesContainerValue.add(property);
 
-        //noinspection unchecked
         PrismContainer<Containerable> configurationPropertiesContainer =
                 prismContext.itemFactory().createContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
         configurationPropertiesContainer.add(configurationPropertiesContainerValue);
