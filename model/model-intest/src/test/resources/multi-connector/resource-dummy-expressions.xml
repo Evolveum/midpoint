@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="085ef1f0-ddcc-4086-a757-71b7fdb56a82"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+    <name>resource-dummy-expressions</name>
+    <documentation>Resource that has expressions in the configuration</documentation>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnectorPure</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnectorPure">
+        <icfc:configurationProperties>
+            <icfi:instanceId>expressions</icfi:instanceId>
+            <icfi:uselessString>
+                <expression>
+                    <const>useless</const>
+                </expression>
+            </icfi:uselessString>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <additionalConnector>
+        <name>scriptRunner</name>
+        <connectorRef type="ConnectorType">
+            <filter>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnectorScriptRunner</q:value>
+                </q:equal>
+            </filter>
+        </connectorRef>
+        <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnectorScriptRunner">
+            <icfc:configurationProperties>
+                <icfi:instanceId>expressions-script</icfi:instanceId>
+                <icfi:uselessString>
+                    <expression>
+                        <const>blabla</const>
+                    </expression>
+                </icfi:uselessString>
+            </icfc:configurationProperties>
+        </connectorConfiguration>
+    </additionalConnector>
+</resource>
