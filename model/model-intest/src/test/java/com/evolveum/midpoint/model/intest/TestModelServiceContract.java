@@ -1511,7 +1511,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         when();
-        executeChanges(createJacksAccountModifyDelta(), null, task, result);
+        // Creating empty partial processing option is the same as having none. This code is here just to test MID-9477.
+        var options = ModelExecuteOptions.create()
+                .partialProcessing(new PartialProcessingOptionsType());
+        executeChanges(createJacksAccountModifyDelta(), options, task, result);
 
         then();
         assertSuccess(result);
