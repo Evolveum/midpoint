@@ -10,14 +10,15 @@ import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinition.PrismContainerDefinitionMutator;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AssociationsCapabilityType;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
@@ -29,8 +30,6 @@ import com.evolveum.midpoint.prism.impl.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.config.ResourceObjectAssociationConfigItem;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -427,23 +426,29 @@ public class ShadowAssociationDefinitionImpl
     }
 
     public @NotNull ObjectFilter createTargetObjectsFilter() {
+        var resourceOid = stateNonNull(getTargetObjectDefinition().getResourceOid(), "No resource OID in %s", this);
         var objectDefinitions = getAssociationClassDefinition().getObjectObjectDefinitions();
         assertCheck(!objectDefinitions.isEmpty(), "No object type definitions (already checked)");
-        S_FilterEntryOrEmpty atomicFilter = PrismContext.get().queryFor(ShadowType.class);
-        List<ObjectFilter> orFilterClauses = new ArrayList<>();
-        objectDefinitions.stream()
-                .map(def -> def.getTypeIdentification())
-                .forEach(typeId -> orFilterClauses.add(
-                        atomicFilter
-                                .item(ShadowType.F_KIND).eq(typeId.getKind()) // FIXME treat also class definitions
-                                .and().item(ShadowType.F_INTENT).eq(typeId.getIntent())
-                                .buildFilter()));
-        OrFilter intentFilter = PrismContext.get().queryFactory().createOr(orFilterClauses);
-
-        var resourceOid = stateNonNull(getTargetObjectDefinition().getResourceOid(), "No resource OID in %s", this);
-        return atomicFilter.item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE)
-                .and().filter(intentFilter)
-                .buildFilter();
+        var firstObjectType = objectDefinitions.iterator().next().getTypeIdentification();
+        if (objectDefinitions.size() > 1 || firstObjectType == null) { // FIXME what if it's "default type def" for given class?
+            var objectClassNames = objectDefinitions.stream()
+                    .map(def -> def.getObjectClassName())
+                    .collect(Collectors.toSet());
+            var objectClassName = MiscUtil.extractSingletonRequired(
+                    objectClassNames,
+                    () -> new UnsupportedOperationException("Multiple object class names in " + this),
+                    () -> new IllegalStateException("No object class names in " + this));
+            return PrismContext.get().queryFor(ShadowType.class)
+                    .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE)
+                    .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClassName)
+                    .buildFilter();
+        } else {
+            return PrismContext.get().queryFor(ShadowType.class)
+                    .item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE)
+                    .and().item(ShadowType.F_KIND).eq(firstObjectType.getKind())
+                    .and().item(ShadowType.F_INTENT).eq(firstObjectType.getIntent())
+                    .buildFilter();
+        }
     }
 
     public @Nullable ShadowAssociationClassSimulationDefinition getSimulationDefinition() {

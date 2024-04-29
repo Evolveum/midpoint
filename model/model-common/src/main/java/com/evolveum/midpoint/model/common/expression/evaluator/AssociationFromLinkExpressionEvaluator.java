@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
+import static com.evolveum.midpoint.model.common.expression.evaluator.AssociationRelatedEvaluatorUtil.getAssociationDefinition;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
@@ -13,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -33,12 +36,11 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociation;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.processor.ShadowAssociation;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -87,13 +89,7 @@ public class AssociationFromLinkExpressionEvaluator
         AbstractRoleType thisRole = getRelevantRole(context);
         LOGGER.trace("Evaluating association from link {} on: {}", expressionEvaluatorBean.getDescription(), thisRole);
 
-        //noinspection unchecked
-        var rAssocTargetDefTypedValue = (TypedValue<ResourceObjectDefinition>)
-                        context.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
-        if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
-            throw new ExpressionEvaluationException("No association target object definition variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to create an association.");
-        }
-        ResourceObjectDefinition associationTargetDef = (ResourceObjectDefinition) rAssocTargetDefTypedValue.getValue();
+        var associationDefinition = getAssociationDefinition(context);
 
         ShadowDiscriminatorType projectionDiscriminator = expressionEvaluatorBean.getProjectionDiscriminator();
         if (projectionDiscriminator == null) {
@@ -110,7 +106,7 @@ public class AssociationFromLinkExpressionEvaluator
 
         var outputAssociation = createAssociationFromMatchingValues(
                 candidateShadowOidList,
-                associationTargetDef.getResourceOid(),
+                associationDefinition.getResourceOid(),
                 configNonNull(projectionDiscriminator.getKind(), "No kind in projectionDiscriminator in %s", desc),
                 projectionDiscriminator.getIntent(),
                 context,
@@ -194,9 +190,10 @@ public class AssociationFromLinkExpressionEvaluator
 
             ShadowAssociation outputAssociation = outputDefinition.instantiate();
             for (PrismObject<ShadowType> targetObject : targetObjects) {
-                // We also need to add identifiers here. Otherwise the delta won't match the shadow association.
-                // And therefore new values won't be computed correctly (MID-4948). This is not a clean systemic solution.
-                outputAssociation.createNewValueWithFullObject(AbstractShadow.of(targetObject));
+                if (ShadowUtil.isNotDead(targetObject)) {
+                    outputAssociation.createNewValueWithFullObject(
+                            AbstractShadow.of(targetObject));
+                }
             }
 
             return outputAssociation;
