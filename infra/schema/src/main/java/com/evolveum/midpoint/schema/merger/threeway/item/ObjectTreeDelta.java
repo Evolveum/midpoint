@@ -7,22 +7,16 @@
 
 package com.evolveum.midpoint.schema.merger.threeway.item;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import java.util.Collection;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O> {
 
@@ -30,7 +24,7 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
 
     private PrismObject<O> objectToAdd;
 
-    public ObjectTreeDelta( PrismObjectDefinition<O> definition) {
+    public ObjectTreeDelta(PrismObjectDefinition<O> definition) {
         super(definition);
     }
 
@@ -65,6 +59,11 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
     }
 
     @Override
+    public ContainerTreeDeltaValue<O> createNewValue() {
+        return new ObjectTreeDeltaValue<>();
+    }
+
+    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
 
@@ -81,26 +80,60 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
     }
 
     public static <O extends ObjectType> ObjectTreeDelta<O> from(ObjectDelta<O> delta) {
-        PrismObjectDefinition<O> def = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(delta.getObjectTypeClass());
-        // todo fix definition
+        SchemaRegistry registry = PrismContext.get().getSchemaRegistry();
+        PrismObjectDefinition<O> def = registry.findObjectDefinitionByCompileTimeClass(delta.getObjectTypeClass());
+
         ObjectTreeDelta<O> result = new ObjectTreeDelta<>(def);
         result.setOid(delta.getOid());
-        result.setObjectToAdd(delta.getObjectToAdd());
+        result.setObjectToAdd(delta.getObjectToAdd());  // todo this feels funky, probably should end up in value?
 
         // todo fix value to add, modification type somehow
         ObjectTreeDeltaValue<O> value = new ObjectTreeDeltaValue<>(null, null);
-        result.getValues().add(value);
+        result.addValue(value);
 
         delta.getModifications().forEach(modification -> {
-            if (modification instanceof ContainerDelta<?> containerDelta) {
-                value.getDeltas().add(ContainerTreeDelta.from(containerDelta));
+            if (modification instanceof ContainerDelta containerDelta) {
+                ContainerTreeDelta<?> ctd = result.findOrCreateItemDelta(containerDelta.getPath(), ContainerTreeDelta.class);
+
+                addItemDeltaValues(containerDelta, ctd);
             } else if (modification instanceof PropertyDelta propertyDelta) {
-                value.getDeltas().add(PropertyTreeDelta.from(propertyDelta));
+                PropertyTreeDelta<?> ptd = result.findOrCreateItemDelta(propertyDelta.getPath(), PropertyTreeDelta.class);
+
+                addItemDeltaValues(propertyDelta, ptd);
             } else if (modification instanceof ReferenceDelta referenceDelta) {
-                value.getDeltas().add(ReferenceTreeDelta.from(referenceDelta));
+                ReferenceTreeDelta rtd = result.findOrCreateItemDelta(referenceDelta.getPath(), ReferenceTreeDelta.class);
+
+                addItemDeltaValues(referenceDelta, rtd);
             }
         });
 
         return result;
+    }
+
+    private static <PV extends PrismValue, V extends ItemTreeDeltaValue<PV, ?>, ID extends ItemDelta<PV, ?>, ITD extends ItemTreeDelta<PV, ?, ?, V>> void addItemDeltaValues(
+            ID delta, ITD treeDelta) {
+
+        if (delta == null) {
+            return;
+        }
+
+        addDeltaValues(treeDelta, delta.getValuesToAdd(), ModificationType.ADD);
+        addDeltaValues(treeDelta, delta.getValuesToReplace(), ModificationType.REPLACE);
+        addDeltaValues(treeDelta, delta.getValuesToDelete(), ModificationType.DELETE);
+    }
+
+    private static <PV extends PrismValue, V extends ItemTreeDeltaValue<PV, ?>, ID extends ItemDelta<PV, ?>, ITD extends ItemTreeDelta<PV, ?, ?, V>> void addDeltaValues(
+            ITD treeDelta, Collection<PV> values, ModificationType modificationType) {
+        if (values == null) {
+            return;
+        }
+
+        for (PV value : values) {
+            V treeDeltaValue = treeDelta.createNewValue();
+            treeDeltaValue.setValue(value);
+            treeDeltaValue.setModificationType(modificationType);
+
+            treeDelta.addValue(treeDeltaValue);
+        }
     }
 }

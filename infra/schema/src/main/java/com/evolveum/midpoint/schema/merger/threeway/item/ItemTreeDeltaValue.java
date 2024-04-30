@@ -17,7 +17,9 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
-public class ItemTreeDeltaValue<V extends PrismValue> implements DebugDumpable {
+public abstract class ItemTreeDeltaValue<V extends PrismValue, P extends ItemTreeDelta> implements DebugDumpable {
+
+    private P parent;
 
     // todo improve
     private List<Object> naturalKey;
@@ -59,6 +61,14 @@ public class ItemTreeDeltaValue<V extends PrismValue> implements DebugDumpable {
         this.modificationType = modificationType;
     }
 
+    public P getParent() {
+        return parent;
+    }
+
+    public void setParent(P parent) {
+        this.parent = parent;
+    }
+
     @Override
     public String toString() {
         return debugDump();
@@ -79,11 +89,13 @@ public class ItemTreeDeltaValue<V extends PrismValue> implements DebugDumpable {
     }
 
     protected void debugDumpTitle(StringBuilder sb, int indent) {
-        sb.append(DebugUtil.debugDump(debugDumpShortName(), indent));
+        // todo fix debug dump ,this is a mess
+        sb.append(DebugUtil.debugDump(debugDumpShortName(), indent - 1)).append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "modification", modificationType, indent);
     }
 
     protected void debugDumpContent(StringBuilder sb, int indent) {
+        // todo fix debug dump ,this is a mess
         DebugUtil.debugDumpWithLabelLn(sb, "naturalKey", naturalKey, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "value", value, indent + 1);
     }

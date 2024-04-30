@@ -10,13 +10,13 @@ package com.evolveum.midpoint.schema.merger.threeway.item;
 import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 
-public class ReferenceTreeDeltaValue extends ItemTreeDeltaValue<PrismReferenceValue> {
+public class ReferenceTreeDeltaValue extends ItemTreeDeltaValue<PrismReferenceValue, ReferenceTreeDelta> {
+
+    public ReferenceTreeDeltaValue() {
+        this(null, null);
+    }
 
     public ReferenceTreeDeltaValue(PrismReferenceValue value, ModificationType modificationType) {
         super(value, modificationType);
-    }
-
-    public static ReferenceTreeDeltaValue from(PrismReferenceValue value, ModificationType modificationType) {
-        return new ReferenceTreeDeltaValue(value, modificationType);
     }
 }

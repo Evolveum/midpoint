@@ -8,27 +8,33 @@
 package com.evolveum.midpoint.schema.merger.threeway.item;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.function.BiFunction;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
-public class ItemTreeDelta<PV extends PrismValue, ID extends ItemDefinition<I>, I extends Item<PV, ID>, V extends ItemTreeDeltaValue> implements DebugDumpable {
+public abstract class ItemTreeDelta
+        <
+                PV extends PrismValue,
+                ID extends ItemDefinition<I>,
+                I extends Item<PV, ID>,
+                V extends ItemTreeDeltaValue
+                >
+        implements DebugDumpable {
+
+    private ContainerTreeDeltaValue<?> parent;
 
     private ID definition;
 
     private List<V> values;
 
-    public ItemTreeDelta( ID definition) {
+    public ItemTreeDelta(ID definition) {
         this.definition = definition;
     }
 
@@ -47,6 +53,14 @@ public class ItemTreeDelta<PV extends PrismValue, ID extends ItemDefinition<I>, 
 
     public QName getTypeName() {
         return definition.getTypeName();
+    }
+
+    public ContainerTreeDeltaValue<?> getParent() {
+        return parent;
+    }
+
+    public void setParent(ContainerTreeDeltaValue<?> parent) {
+        this.parent = parent;
     }
 
     @NotNull
@@ -72,19 +86,23 @@ public class ItemTreeDelta<PV extends PrismValue, ID extends ItemDefinition<I>, 
         this.values = values;
     }
 
-    public <D extends ItemTreeDelta> void addDeltaValues(
-            Collection<PV> values, ModificationType modificationType,
-            BiFunction<PV, ModificationType, V> valueFactoryFunction) {
+    public void addValue(@NotNull V value) {
+        value.setParent(this);
 
-        if (values == null) {
+        getValues().add(value);
+    }
+
+    public void removeValue(@NotNull V value) {
+        int index = getValues().indexOf(value);
+        if (index < 0) {
             return;
         }
 
-        for (PV value : values) {
-            V deltaValue = valueFactoryFunction.apply(value, modificationType);
-            getValues().add(deltaValue);
-        }
+        V removed = getValues().remove(index);
+        removed.setParent(null);
     }
+
+    public abstract V createNewValue();
 
     @Override
     public String toString() {
@@ -100,7 +118,7 @@ public class ItemTreeDelta<PV extends PrismValue, ID extends ItemDefinition<I>, 
         StringBuilder sb = new StringBuilder();
 
         DebugUtil.debugDumpWithLabelLn(sb, debugDumpShortName(), DebugUtil.formatElementName(getItemName()), indent);
-        DebugUtil.debugDump(sb, getValues(), indent + 1, true);
+        DebugUtil.debugDumpWithLabel(sb, "values", getValues(), indent + 1);
 
         return sb.toString();
     }

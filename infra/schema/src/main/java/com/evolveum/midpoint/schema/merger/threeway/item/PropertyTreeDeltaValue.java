@@ -10,7 +10,11 @@ package com.evolveum.midpoint.schema.merger.threeway.item;
 import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
-public class PropertyTreeDeltaValue<T> extends ItemTreeDeltaValue<PrismPropertyValue<T>> {
+public class PropertyTreeDeltaValue<T> extends ItemTreeDeltaValue<PrismPropertyValue<T>, PropertyTreeDelta<T>> {
+
+    public PropertyTreeDeltaValue() {
+        this(null, null);
+    }
 
     public PropertyTreeDeltaValue(PrismPropertyValue<T> value, ModificationType modificationType) {
         super(value, modificationType);
@@ -19,9 +23,5 @@ public class PropertyTreeDeltaValue<T> extends ItemTreeDeltaValue<PrismPropertyV
     @Override
     protected String debugDumpShortName() {
         return "PTDV";
-    }
-
-    public static <T> PropertyTreeDeltaValue<T> from(PrismPropertyValue<T> value, ModificationType modificationType) {
-        return new PropertyTreeDeltaValue<>(value, modificationType);
     }
 }

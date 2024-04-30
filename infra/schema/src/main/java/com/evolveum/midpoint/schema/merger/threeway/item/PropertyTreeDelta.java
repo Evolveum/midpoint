@@ -28,13 +28,8 @@ public class PropertyTreeDelta<T>
         return "PTD";
     }
 
-    public static <T> PropertyTreeDelta<T> from(PropertyDelta<T> delta) {
-        PropertyTreeDelta<T> result = new PropertyTreeDelta<>(delta.getDefinition());
-
-        result.addDeltaValues(delta.getValuesToAdd(), ModificationType.ADD, PropertyTreeDeltaValue::from);
-        result.addDeltaValues(delta.getValuesToReplace(), ModificationType.REPLACE, PropertyTreeDeltaValue::from);
-        result.addDeltaValues(delta.getValuesToDelete(), ModificationType.DELETE, PropertyTreeDeltaValue::from);
-
-        return result;
+    @Override
+    public PropertyTreeDeltaValue<T> createNewValue() {
+        return new PropertyTreeDeltaValue<>();
     }
 }

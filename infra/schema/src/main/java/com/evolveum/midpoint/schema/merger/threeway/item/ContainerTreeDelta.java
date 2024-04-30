@@ -7,15 +7,18 @@
 
 package com.evolveum.midpoint.schema.merger.threeway.item;
 
-import org.jetbrains.annotations.NotNull;
+import java.util.Objects;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 public class ContainerTreeDelta<C extends Containerable>
         extends ItemTreeDelta<PrismContainerValue<C>, PrismContainerDefinition<C>, PrismContainer<C>, ContainerTreeDeltaValue<C>> {
 
-    public ContainerTreeDelta( PrismContainerDefinition<C> definition) {
+    public ContainerTreeDelta(PrismContainerDefinition<C> definition) {
         super(definition);
     }
 
@@ -24,13 +27,39 @@ public class ContainerTreeDelta<C extends Containerable>
         return "CTD";
     }
 
-    public static <C extends Containerable> ContainerTreeDelta<C> from(@NotNull ContainerDelta<C> delta) {
-        ContainerTreeDelta<C> result = new ContainerTreeDelta<>(delta.getDefinition());
+    @Override
+    public ContainerTreeDeltaValue<C> createNewValue() {
+        return new ContainerTreeDeltaValue<>();
+    }
 
-        result.addDeltaValues(delta.getValuesToAdd(), ModificationType.ADD, ContainerTreeDeltaValue::from);
-        result.addDeltaValues(delta.getValuesToReplace(), ModificationType.REPLACE, ContainerTreeDeltaValue::from);
-        result.addDeltaValues(delta.getValuesToDelete(), ModificationType.DELETE, ContainerTreeDeltaValue::from);
+    public <D extends ItemTreeDelta> D findOrCreateItemDelta(ItemPath path, Class<D> deltaClass) {
+        if (ItemPath.isEmpty(path)) {
+            throw new IllegalArgumentException("Empty path specified");
+        }
 
-        return result;
+        Long id = path.firstToIdOrNull();
+        ContainerTreeDeltaValue<C> val = findValue(id);
+        if (val == null) {
+            val = createNewValue();
+            addValue(val);
+        }
+
+        ItemPath rest = path.startsWithId() ? path.rest() : path;
+        return val.findOrCreateItemDelta(rest, deltaClass);
+    }
+
+    public ContainerTreeDeltaValue<C> findValue(Long id) {
+        if (id == null) {
+            if (getDefinition().isSingleValue()) {
+                return getSingleValue();
+            } else {
+                throw new IllegalArgumentException("Attempt to get segment without an ID from a multi-valued container delta " + getItemName());
+            }
+        }
+
+        return getValues().stream()
+                .filter(v -> Objects.equals(id, v.getId()))
+                .findFirst()
+                .orElse(null);
     }
 }

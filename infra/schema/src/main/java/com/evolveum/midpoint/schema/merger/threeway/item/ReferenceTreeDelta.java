@@ -9,11 +9,9 @@ package com.evolveum.midpoint.schema.merger.threeway.item;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 
 public class ReferenceTreeDelta
         extends ItemTreeDelta<PrismReferenceValue, PrismReferenceDefinition, PrismReference, ReferenceTreeDeltaValue> {
@@ -27,13 +25,8 @@ public class ReferenceTreeDelta
         return "RTD";
     }
 
-    public static ReferenceTreeDelta from(ReferenceDelta delta) {
-        ReferenceTreeDelta result = new ReferenceTreeDelta(delta.getDefinition());
-
-        result.addDeltaValues(delta.getValuesToAdd(), ModificationType.ADD, ReferenceTreeDeltaValue::from);
-        result.addDeltaValues(delta.getValuesToReplace(), ModificationType.REPLACE, ReferenceTreeDeltaValue::from);
-        result.addDeltaValues(delta.getValuesToDelete(), ModificationType.DELETE, ReferenceTreeDeltaValue::from);
-
-        return result;
+    @Override
+    public ReferenceTreeDeltaValue createNewValue() {
+        return new ReferenceTreeDeltaValue();
     }
 }

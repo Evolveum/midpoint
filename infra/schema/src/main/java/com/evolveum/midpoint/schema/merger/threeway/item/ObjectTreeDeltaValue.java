@@ -13,6 +13,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class ObjectTreeDeltaValue<O extends ObjectType> extends ContainerTreeDeltaValue<O> {
 
+    public ObjectTreeDeltaValue() {
+    }
+
     public ObjectTreeDeltaValue(PrismContainerValue<O> value, ModificationType modificationType) {
         super(value, modificationType);
     }
@@ -24,6 +27,6 @@ public class ObjectTreeDeltaValue<O extends ObjectType> extends ContainerTreeDel
 
     @Override
     protected void debugDumpTitle(StringBuilder sb, int indent) {
-
+        // todo implement - whole title/content doesn't work correctly
     }
 }
