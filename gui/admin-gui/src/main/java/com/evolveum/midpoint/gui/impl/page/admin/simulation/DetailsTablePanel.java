@@ -9,6 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebComponent;
@@ -31,17 +34,14 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
     private static final String ID_TITLE = "title";
     private static final String ID_DETAILS = "details";
     private static final String ID_LABEL = "label";
+    private static final String ID_DESCRIPTION = "description";
     private static final String ID_VALUE = "value";
 
-    private IModel<String> iconCssClass;
+    private IModel<DisplayType> display;
 
-    private IModel<String> title;
-
-    public DetailsTablePanel(String id, IModel<String> iconCssClass, IModel<String> title, IModel<List<DetailsTableItem>> model) {
+    public DetailsTablePanel(String id, IModel<DisplayType> display, IModel<List<DetailsTableItem>> model) {
         super(id, model);
-
-        this.iconCssClass = iconCssClass;
-        this.title = title;
+        this.display = display;
 
         initLayout();
     }
@@ -57,14 +57,22 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
         add(AttributeModifier.append("class", "card"));
 
         WebComponent icon = new WebComponent(ID_ICON);
-        icon.add(AttributeModifier.append("class", iconCssClass));
-        icon.add(new VisibleBehaviour(() -> iconCssClass.getObject() != null));
+        IModel<String> iconCssClassModel =  getIconCssClassModel();
+        icon.add(AttributeModifier.append("class", iconCssClassModel));
+        icon.add(new VisibleBehaviour(() -> iconCssClassModel.getObject() != null));
         add(icon);
 
-        Label title = new Label(ID_TITLE, this.title);
+        IModel<String> titleModel =  getTitleModel();
+        Label title = new Label(ID_TITLE, titleModel);
         title.setRenderBodyOnly(true);
-        title.add(new VisibleBehaviour(() -> this.title.getObject() != null));
+        title.add(new VisibleBehaviour(() -> titleModel.getObject() != null));
         add(title);
+
+        IModel<String> descriptionModel =  getTitleModel();
+        Label description = new Label(ID_DESCRIPTION, descriptionModel);
+        description.setRenderBodyOnly(true);
+        description.add(new VisibleBehaviour(() -> descriptionModel.getObject() != null));
+        add(description);
 
         ListView<DetailsTableItem> details = new ListView<>(ID_DETAILS, getModel()) {
 
@@ -81,4 +89,34 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
         };
         add(details);
     }
+
+    private IModel<String> getIconCssClassModel() {
+        return () -> {
+            if (display == null || display.getObject() == null) {
+                return null;
+            }
+
+            return GuiDisplayTypeUtil.getIconCssClass(display.getObject());
+        };
+    }
+
+    private IModel<String> getTitleModel() {
+        return () -> {
+            if (display == null || display.getObject() == null) {
+                return null;
+            }
+            return GuiDisplayTypeUtil.getTranslatedLabel(display.getObject());
+        };
+
+    }
+
+    private IModel<String> getDescriptionModel() {
+        return () -> {
+            if (display == null || display.getObject() == null) {
+                return null;
+            }
+            return GuiDisplayTypeUtil.getHelp(display.getObject());
+        };
+
+    };
 }

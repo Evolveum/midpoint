@@ -25,6 +25,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -373,9 +374,11 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         };
         add(navigation);
 
+        DisplayType displayType = new DisplayType()
+                .label(createStringResource("PageSimulationResult.details").getString())
+                .icon(new IconType().cssClass("fa-solid fa-circle-question"));
         DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
-                () -> "fa-solid fa-circle-question",
-                createStringResource("PageSimulationResult.details"),
+                Model.of(displayType),
                 detailsModel);
         add(details);
 
