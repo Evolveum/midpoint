@@ -90,6 +90,11 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
     }
 
     @Override
+    protected boolean isObjectDetailsEnabled(IModel<SelectableBean<SimulationResultType>> rowModel) {
+        return WebComponentUtil.isAuthorizedForPage(PageSimulationResult.class);
+    }
+
+    @Override
     protected List<Component> createToolbarButtonsList(String buttonId) {
         return new ArrayList<>();
     }

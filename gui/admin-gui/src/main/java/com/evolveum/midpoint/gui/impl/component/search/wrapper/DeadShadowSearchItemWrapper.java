@@ -20,7 +20,7 @@ public class DeadShadowSearchItemWrapper extends ChoicesSearchItemWrapper<Boolea
     @Override
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
         DisplayableValue<Boolean> selectedValue = getValue();
-        if (selectedValue == null) {
+        if (selectedValue == null || selectedValue.getValue() == null) {
             return null;
         }
         Boolean value = selectedValue.getValue();
