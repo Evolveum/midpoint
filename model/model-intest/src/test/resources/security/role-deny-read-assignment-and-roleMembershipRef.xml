@@ -1,0 +1,21 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="2c328dbc-a40d-43a8-a9e1-266c96cad22d">
+    <name>role-deny-read-assignment-and-roleMembershipRef</name>
+    <authorization>
+        <name>deny-read-assignment-and-roleMembershipRef</name>
+        <decision>deny</decision>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>roleMembershipRef</item>
+        <item>assignment</item>
+    </authorization>
+</role>

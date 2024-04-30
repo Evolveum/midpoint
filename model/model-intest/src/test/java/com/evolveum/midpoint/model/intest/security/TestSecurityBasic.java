@@ -3128,6 +3128,37 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertGlobalStateUntouched();
     }
 
+    /** Searching for "roles of teammate" with denied access to `assignment` item. MID-9638. */
+    @Test
+    public void test320AutzDenyReadAssignmentAndRoleMembershipRef() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_READONLY.oid);
+        assignRole(USER_JACK_OID, ROLE_DENY_READ_ASSIGNMENT_AND_ROLE_MEMBERSHIP_REF.oid);
+        login(USER_JACK_USERNAME);
+
+        when("searching for users based on assignment/targetRef (forbidden)");
+        assertSearch(
+                UserType.class,
+                queryFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+                        .ref(ROLE_BASIC.oid) // at least alex has this role
+                        .build(),
+                0); // access to assignment/targetRef is explicitly denied
+
+        when("searching for roles of teammate alex (forbidden)");
+        var alexRolesQuery = createRolesOfTeammateQuery(USER_ALEX.oid);
+        assertSearch(RoleType.class, alexRolesQuery, 0);
+    }
+
+    private ObjectQuery createRolesOfTeammateQuery(String userOid) {
+        return queryFor(RoleType.class)
+                .referencedBy(UserType.class, UserType.F_ASSIGNMENT.append(AssignmentType.F_TARGET_REF))
+                .id(userOid)
+                .and().not().type(ArchetypeType.class)
+                .build();
+    }
+
     @Test
     public void test360AutzJackAuditorRole() throws Exception {
         given();
