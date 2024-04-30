@@ -384,8 +384,12 @@ These filters operate on object as a whole, so item path must be `.` (the dot).
 |===
 
 
-`. inOrg "00000000-1eam-0000-0000-111111111111"`::
-All object which are members of specified organization
+`. inOrg "f9444d2d-b625-4d5c-befd-36c9b5861ac4"`::
+All object which are members of specified organization and all its subunits (whole SUBTREE)
+
+`. inOrg[ONE_LEVEL] "f9444d2d-b625-4d5c-befd-36c9b5861ac4"`::
+If you need to match only users in specified organization, use ONE_LEVEL matching rule.
+
 `. isRoot`::
 All roles and organization units which are organization tree roots.
 
@@ -397,6 +401,24 @@ All roles and organization units which are organization tree roots.
 | exists | N/A | Matches if item exists (has any value). Filter does not have value.
 | type | object type | Matches if object is of specified type. Usually used in combination with `and` filter for dereferenced objects, or it is needed to match on property defined in more specific type.
 |===
+
+=== Filtering all objects of specified type
+
+Sometimes, in configuration files, you need to select all objects of specific object type.
+Object collection selecting all users in midPoint is an example of such case.
+
+To select all objects just omit `<filter>` element in the query or whole query.
+
+The object collection below lists all roles (all objects of RoleType) in midPoint.
+
+[source,XML]
+----
+<objectCollection oid="72b1f98e-f587-4b9f-b92b-72e251dbb255">
+    <name>All roles</name>
+    <type>RoleType</type>
+</objectCollection>
+----
+
 
 [#_query_examples]
 == Query Examples
