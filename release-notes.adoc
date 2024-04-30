@@ -29,6 +29,7 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 
 == Changes with Respect To Version 4.8.2
 
+** New implementation and look of date time picker.
 ** Fixed issue with Asynchronous Messaging Connector not working. See bug:MID-9512[].
 ** Fixed issue with reporting of errors during search objects in table by axiom query. See bug:MID-9499[] and bug:MID-9400[].
 ** Fixed icon of case outcome in column of table. See bug:MID-9533[].
