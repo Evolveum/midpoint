@@ -11,11 +11,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.util.TableUtil;
-
-import com.evolveum.midpoint.web.component.util.*;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,6 +44,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectDataProvider;
@@ -62,6 +58,7 @@ import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -79,6 +76,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -215,18 +216,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         query.setType(AbstractRoleType.class);
 
-        if (getPageBase().isNativeRepo()) {
-            ObjectQuery oq = getPrismContext().queryFor(AbstractRoleType.class)
-                    .referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
-                    .id(userOid)
-                    .and().not().type(ArchetypeType.class)
-                    .build();
-
-            query.setQuery(oq);
-            return;
-        }
-
         // searching for user assignments targets in two steps for non-native repository (doesn't support referencedBy)
+        // searching like this also in native repository since there's problem with creating autorization query for such
+        // referencedBy MID-9638
         Task task = page.createSimpleTask(OPERATION_LOAD_USER);
         OperationResult result = task.getResult();
         try {
@@ -327,7 +319,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 if (search != null && type.equals(search.getTypeClass())) {
                     return search;
                 }
-
 
                 SearchBuilder<?> searchBuilder = new SearchBuilder<>(type)
                         .modelServiceLocator(page);
@@ -918,7 +909,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             @Override
             protected DisplayType createDisplayType(IModel<SelectableBean<ObjectType>> model) {
-                OperationResult result =  new OperationResult("getIcon");
+                OperationResult result = new OperationResult("getIcon");
                 return GuiDisplayTypeUtil.getDisplayTypeForObject(model.getObject().getValue(), result, getPageBase());
             }
         });
