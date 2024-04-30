@@ -14,8 +14,10 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 
-public class TreeItemDeltaValue<V extends PrismValue> {
+public class ItemTreeDeltaValue<V extends PrismValue> implements DebugDumpable {
 
     // todo improve
     private List<Object> naturalKey;
@@ -24,7 +26,7 @@ public class TreeItemDeltaValue<V extends PrismValue> {
 
     private ModificationType modificationType;
 
-    public TreeItemDeltaValue(V value, ModificationType modificationType) {
+    public ItemTreeDeltaValue(V value, ModificationType modificationType) {
         this.value = value;
         this.modificationType = modificationType;
     }
@@ -55,5 +57,34 @@ public class TreeItemDeltaValue<V extends PrismValue> {
 
     public void setModificationType(ModificationType modificationType) {
         this.modificationType = modificationType;
+    }
+
+    @Override
+    public String toString() {
+        return debugDump();
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+
+        debugDumpTitle(sb, indent);
+        debugDumpContent(sb, indent);
+
+        return sb.toString();
+    }
+
+    protected String debugDumpShortName() {
+        return getClass().getSimpleName();
+    }
+
+    protected void debugDumpTitle(StringBuilder sb, int indent) {
+        sb.append(DebugUtil.debugDump(debugDumpShortName(), indent));
+        DebugUtil.debugDumpWithLabelLn(sb, "modification", modificationType, indent);
+    }
+
+    protected void debugDumpContent(StringBuilder sb, int indent) {
+        DebugUtil.debugDumpWithLabelLn(sb, "naturalKey", naturalKey, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "value", value, indent + 1);
     }
 }

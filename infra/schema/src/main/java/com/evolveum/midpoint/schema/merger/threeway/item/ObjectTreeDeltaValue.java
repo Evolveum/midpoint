@@ -11,9 +11,19 @@ import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class TreeObjectDeltaValue<O extends ObjectType> extends TreeContainerDeltaValue<O> {
+public class ObjectTreeDeltaValue<O extends ObjectType> extends ContainerTreeDeltaValue<O> {
 
-    public TreeObjectDeltaValue(PrismContainerValue<O> value, ModificationType modificationType) {
+    public ObjectTreeDeltaValue(PrismContainerValue<O> value, ModificationType modificationType) {
         super(value, modificationType);
+    }
+
+    @Override
+    protected String debugDumpShortName() {
+        return "OTDV";
+    }
+
+    @Override
+    protected void debugDumpTitle(StringBuilder sb, int indent) {
+
     }
 }

@@ -22,13 +22,13 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
-public class TreeItemDelta<PV extends PrismValue, ID extends ItemDefinition<I>, I extends Item<PV, ID>, V extends TreeItemDeltaValue> implements DebugDumpable {
+public class ItemTreeDelta<PV extends PrismValue, ID extends ItemDefinition<I>, I extends Item<PV, ID>, V extends ItemTreeDeltaValue> implements DebugDumpable {
 
     private ID definition;
 
     private List<V> values;
 
-    public TreeItemDelta( ID definition) {
+    public ItemTreeDelta( ID definition) {
         this.definition = definition;
     }
 
@@ -57,11 +57,22 @@ public class TreeItemDelta<PV extends PrismValue, ID extends ItemDefinition<I>, 
         return values;
     }
 
+    public V getSingleValue() {
+        List<V> values = getValues();
+        if (values.size() > 1) {
+            throw new IllegalStateException("More than one value in delta for " + getItemName());
+        } else if (values.isEmpty()) {
+            return null;
+        } else {
+            return values.get(0);
+        }
+    }
+
     public void setValues(@NotNull List<V> values) {
         this.values = values;
     }
 
-    public <D extends TreeItemDelta> void addDeltaValues(
+    public <D extends ItemTreeDelta> void addDeltaValues(
             Collection<PV> values, ModificationType modificationType,
             BiFunction<PV, ModificationType, V> valueFactoryFunction) {
 
@@ -80,11 +91,16 @@ public class TreeItemDelta<PV extends PrismValue, ID extends ItemDefinition<I>, 
         return debugDump();
     }
 
+    protected String debugDumpShortName() {
+        return getClass().getSimpleName();
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append(DebugUtil.formatElementName(getItemName()));
+        DebugUtil.debugDumpWithLabelLn(sb, debugDumpShortName(), DebugUtil.formatElementName(getItemName()), indent);
+        DebugUtil.debugDump(sb, getValues(), indent + 1, true);
 
         return sb.toString();
     }
