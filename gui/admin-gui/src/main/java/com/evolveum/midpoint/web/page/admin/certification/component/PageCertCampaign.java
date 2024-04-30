@@ -10,7 +10,9 @@ package com.evolveum.midpoint.web.page.admin.certification.component;
 import java.io.Serial;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.widget.MetricWidgetPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
@@ -18,11 +20,15 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.PageAdminCertification;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -66,10 +72,16 @@ public class PageCertCampaign extends PageAdmin {
     private static final Trace LOGGER = TraceManager.getTrace(PageCertCampaign.class);
     private static final String DOT_CLASS = PageCertCampaign.class.getName() + ".";
     private static final String OPERATION_LOAD_CAMPAIGN = DOT_CLASS + "loadCampaign";
+    private static final String OPERATION_LOAD_STATISTICS = DOT_CLASS + "loadStatistics";
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_DETAILS = "details";
+    private static final String ID_STATISTICS_CONTAINER = "statisticsContainer";
+    private static final String ID_ITEMS_LIST = "itemsList";
+    private static final String ID_STATISTICS = "statistics";
+    private static final String ID_STATISTIC_ITEM = "statisticItem";
 
     private IModel<AccessCertificationCampaignType> campaignModel;
+    private LoadableModel<AccessCertificationCasesStatisticsType> statModel;
 
     private IModel<List<DetailsTableItem>> detailsModel;
 
@@ -95,6 +107,7 @@ public class PageCertCampaign extends PageAdmin {
 
         detailsModel = new LoadableModel<>(false) {
 
+            @Serial private static final long serialVersionUID = 1L;
             @Override
             protected List<DetailsTableItem> load() {
                 List<DetailsTableItem> list = new ArrayList<>();
@@ -109,6 +122,7 @@ public class PageCertCampaign extends PageAdmin {
                         () -> stage != null ? "" + stage.getDeadline() : ""));
                 list.add(new DetailsTableItem(createStringResource("PageCertCampaign.currentState"),
                         null) {
+                    @Serial private static final long serialVersionUID = 1L;
                     @Override
                     public Component createValueComponent(String id) {
                         BadgePanel status = new BadgePanel(id, createBadgeModel());
@@ -126,6 +140,33 @@ public class PageCertCampaign extends PageAdmin {
             }
         };
 
+        statModel = new LoadableModel<>(false) {
+            @Serial private static final long serialVersionUID = 1L;
+            @Override
+            protected AccessCertificationCasesStatisticsType load() {
+                return loadStatistics();
+            }
+        };
+    }
+
+    private AccessCertificationCasesStatisticsType loadStatistics() {
+        Task task = createSimpleTask(OPERATION_LOAD_STATISTICS);
+        OperationResult result = task.getResult();
+        AccessCertificationCasesStatisticsType stat = null;
+        try {
+            stat = getCertificationService().getCampaignStatistics(campaignModel.getObject().getOid(),
+                    false, task, result);
+            result.recordSuccessIfUnknown();
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get campaign statistics", ex);
+            result.recordFatalError(getString("PageCertCampaign.message.loadStatistics.fatalerror"), ex);
+        }
+        result.recomputeStatus();
+
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            showResult(result);
+        }
+        return stat;
     }
 
     @NotNull
@@ -161,6 +202,7 @@ public class PageCertCampaign extends PageAdmin {
     private void initLayout() {
         NavigationPanel navigation = new NavigationPanel(ID_NAVIGATION) {
 
+            @Serial private static final long serialVersionUID = 1L;
             @Override
             protected IModel<String> createTitleModel() {
                 return createStringResource("PageCertCampaign.campaignView");
@@ -189,6 +231,30 @@ public class PageCertCampaign extends PageAdmin {
         details.setOutputMarkupId(true);
         add(details);
 
+        SimpleContainerPanel statisticsContainer = new SimpleContainerPanel(ID_STATISTICS_CONTAINER, Model.of()) {
+
+            @Serial private static final long serialVersionUID = 1L;
+            @Override
+            protected Component createContent(String id) {
+                Component content = super.createContent(id);
+                content.add(AttributeModifier.replace("class", "row"));
+                return content;
+            }
+
+            @Override
+            protected boolean isExpandable() {
+                return false;
+            }
+        };
+        add(statisticsContainer);
+
+        ListView<DashboardWidgetType> statistics = createWidgetList(ID_STATISTICS, ID_STATISTIC_ITEM, true);
+        statisticsContainer.add(new VisibleBehaviour(() -> !statistics.getModelObject().isEmpty()));
+        statisticsContainer.add(statistics);
+
+        CertificationItemsPanel items = new CertificationItemsPanel(ID_ITEMS_LIST, campaignModel.getObject().getOid());
+        items.setOutputMarkupId(true);
+        add(items);
     }
 
     private void onBackPerformed() {
@@ -231,6 +297,84 @@ public class PageCertCampaign extends PageAdmin {
             default:
                 return null;        // todo warning/error?
         }
+    }
+
+    private ListView<DashboardWidgetType> createWidgetList(String id, String widgetId, boolean eventMarks) {
+        return new ListView<>(id, createWidgetListModel(eventMarks)) {
+
+            @Serial private static final long serialVersionUID = 1L;
+            @Override
+            protected void populateItem(ListItem<DashboardWidgetType> item) {
+                item.add(new MetricWidgetPanel(widgetId, item.getModel()) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+                    @Override
+                    protected boolean isMoreInfoVisible() {
+                        return true;
+                    }
+
+                    @Override
+                    protected void onMoreInfoPerformed(AjaxRequestTarget target) {
+//                        openMarkMetricPerformed(item.getModelObject());
+                    }
+                });
+            }
+        };
+    }
+
+    private IModel<List<DashboardWidgetType>> createWidgetListModel(boolean eventMarkWidgets) {
+
+        return new LoadableDetachableModel<>() {
+
+            @Serial private static final long serialVersionUID = 1L;
+            @Override
+            protected List<DashboardWidgetType> load() {
+                List<DashboardWidgetType> widgets = new ArrayList<>();
+
+                DashboardWidgetType accepted = new DashboardWidgetType();
+                accepted.beginData()
+                        .sourceType(DashboardWidgetSourceTypeType.METRIC)
+                        .storedData("" + statModel.getObject().getMarkedAsAccept())
+                        .end();
+                accepted
+                        .beginDisplay()
+                                .label(createStringResource("PageCertCampaign.statistics.accepted").getString())
+                        .icon(new IconType().cssClass(GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED));
+                widgets.add(accepted);
+
+                DashboardWidgetType revoked = new DashboardWidgetType();
+                revoked.beginData()
+                        .sourceType(DashboardWidgetSourceTypeType.METRIC)
+                        .storedData("" + statModel.getObject().getMarkedAsRevoke())
+                        .end();
+                revoked
+                        .beginDisplay()
+                        .label(createStringResource("PageCertCampaign.statistics.revoked").getString());
+                widgets.add(revoked);
+
+                DashboardWidgetType reduced = new DashboardWidgetType();
+                reduced.beginData()
+                        .sourceType(DashboardWidgetSourceTypeType.METRIC)
+                        .storedData("" + statModel.getObject().getMarkedAsReduce())
+                        .end();
+                reduced
+                        .beginDisplay()
+                        .label(createStringResource("PageCertCampaign.statistics.reduced").getString());
+                widgets.add(reduced);
+
+                DashboardWidgetType notDecided = new DashboardWidgetType();
+                notDecided.beginData()
+                        .sourceType(DashboardWidgetSourceTypeType.METRIC)
+                        .storedData("" + statModel.getObject().getMarkedAsNotDecide())
+                        .end();
+                notDecided
+                        .beginDisplay()
+                        .label(createStringResource("PageCertCampaign.statistics.notDecided").getString())
+                        .icon(new IconType().cssClass(GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM + " "));
+                widgets.add(notDecided);
+                return widgets;
+            }
+        };
     }
 
 }

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,6 +17,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
+
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrWorkItemDto;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -793,6 +796,165 @@ public class ColumnUtils {
                 }
             });
         }
+        return columns;
+    }
+
+    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> getDefaultCertificationItemColumns
+            (PageBase pageBase) {
+        List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> columns = new ArrayList<>();
+
+        //todo progress column
+        columns.add(new AjaxLinkColumn<>(createStringResource("WorkItemsPanel.object")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+                AccessCertificationCaseType caseWorkItemType = unwrapRowModel(rowModel);
+                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseWorkItemType.getObjectRef(),
+                        true, pageBase));
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+                AccessCertificationCaseType caseWorkItemType = unwrapRowModel(rowModel);
+                dispatchToObjectDetailsPage(caseWorkItemType.getObjectRef(), pageBase, false);
+            }
+        });
+//        columns.add(new AjaxLinkColumn<>(createStringResource("WorkItemsPanel.target")) {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+//                CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+//                CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+//                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getTargetRef(), false, pageBase));
+//            }
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+//                CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+//                CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+//                dispatchToObjectDetailsPage(caseType.getTargetRef(), pageBase, false);
+//            }
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
+//                    final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+//                super.populateItem(cellItem, componentId, rowModel);
+//                Component c = cellItem.get(componentId);
+//
+//                CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+//                CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+//                PrismReferenceValue refVal = caseType.getTargetRef() != null ? caseType.getTargetRef().asReferenceValue() : null;
+//                String descriptionValue = refVal != null && refVal.getObject() != null ?
+//                        refVal.getObject().asObjectable().getDescription() : "";
+//
+//                c.add(new AttributeAppender("title", descriptionValue));
+//            }
+//
+//            @Override
+//            public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+//                CaseWorkItemType caseWorkItem = unwrapRowModel(rowModel);
+//                CaseType caseType = CaseTypeUtil.getCase(caseWorkItem);
+//                if (caseType == null) {
+//                    return false;
+//                }
+//
+//                ObjectReferenceType ref = caseType.getTargetRef();
+//                return ref != null && ref.getOid() != null;
+//            }
+//        });
+//        if (isFullView) {
+//            columns.add(new AbstractExportableColumn<>(
+//                    createStringResource("WorkItemsPanel.actors")) {
+//                private static final long serialVersionUID = 1L;
+//
+//                @Override
+//                public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
+//                        String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+//                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+//                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+//                    List<ObjectReferenceType> assigneeRefs = getActorsForWorkitem(caseWorkItemType, CaseTypeUtil.isClosed(caseType));
+//                    cellItem.add(getMultilineLinkPanel(componentId, assigneeRefs, pageBase));
+//                }
+//
+//                @Override
+//                public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+//                    String assignee = WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getAssigneeRef(), false);
+//                    return Model.of(assignee != null ? assignee : WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getCandidateRef(), true));
+//                }
+//
+//            });
+//        }
+//        columns.add(new AbstractExportableColumn<>(
+//                createStringResource("WorkItemsPanel.created")) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
+//                    String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+//                cellItem.add(new Label(componentId,
+//                        WebComponentUtil.getShortDateTimeFormattedValue(unwrapRowModel(rowModel).getCreateTimestamp(), pageBase)));
+//            }
+//
+//            @Override
+//            public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+//                return Model.of(WebComponentUtil.getShortDateTimeFormattedValue(unwrapRowModel(rowModel).getCreateTimestamp(), pageBase));
+//            }
+//        });
+//        if (isFullView) {
+//            columns.add(new AbstractColumn<>(createStringResource("WorkItemsPanel.started")) {
+//                private static final long serialVersionUID = 1L;
+//
+//                @Override
+//                public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
+//                        final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+//                    cellItem.add(new DateLabelComponent(componentId, new IModel<>() {
+//                        private static final long serialVersionUID = 1L;
+//
+//                        @Override
+//                        public Date getObject() {
+//                            CaseWorkItemType workItem = rowModel.getObject().getRealValue();
+//                            CaseType caseType = CaseTypeUtil.getCase(workItem);
+//                            return XmlTypeConverter.toDate(CaseTypeUtil.getStartTimestamp(caseType));
+//                        }
+//                    }, WebComponentUtil.getShortDateTimeFormat(pageBase)));
+//                }
+//            });
+//            columns.add(new AbstractExportableColumn<>(
+//                    createStringResource("WorkItemsPanel.deadline")) {
+//                private static final long serialVersionUID = 1L;
+//
+//                @Override
+//                public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
+//                        String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+//                    cellItem.add(new Label(componentId,
+//                            WebComponentUtil.getShortDateTimeFormattedValue(unwrapRowModel(rowModel).getDeadline(), pageBase)));
+//                }
+//
+//                @Override
+//                public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+//                    return Model.of(WebComponentUtil.getShortDateTimeFormattedValue(unwrapRowModel(rowModel).getDeadline(),
+//                            pageBase));
+//                }
+//            });
+//            columns.add(new AbstractExportableColumn<>(
+//                    createStringResource("WorkItemsPanel.escalationLevel")) {
+//                private static final long serialVersionUID = 1L;
+//
+//                @Override
+//                public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
+//                        String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+//                    cellItem.add(new Label(componentId, ApprovalContextUtil.getEscalationLevelInfo(unwrapRowModel(rowModel))));
+//                }
+//
+//                @Override
+//                public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+//                    return Model.of(ApprovalContextUtil.getEscalationLevelInfo(unwrapRowModel(rowModel)));
+//                }
+//            });
+//        }
         return columns;
     }
 
