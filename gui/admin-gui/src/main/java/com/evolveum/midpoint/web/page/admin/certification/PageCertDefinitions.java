@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -108,6 +109,11 @@ public class PageCertDefinitions extends PageAdminWorkItems {
                     @Override
                     public void objectDetailsPerformed(AccessCertificationDefinitionType service) {
                         PageCertDefinitions.this.detailsPerformed(service);
+                    }
+
+                    @Override
+                    protected boolean isObjectDetailsEnabled(IModel<SelectableBean<AccessCertificationDefinitionType>> rowModel) {
+                        return WebComponentUtil.isAuthorizedForPage(PageCertDefinition.class);
                     }
 
                     @Override
@@ -223,7 +229,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         return menu;
     }
 
-    protected void detailsPerformed(AccessCertificationDefinitionType service) {
+    private void detailsPerformed(AccessCertificationDefinitionType service) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, service.getOid());
         navigateToNext(PageCertDefinition.class, parameters);

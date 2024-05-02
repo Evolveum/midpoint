@@ -28,7 +28,7 @@ import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -152,7 +152,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
 
         mappingBuilder = construction.initializeMappingBuilder(
                 mappingBuilder, itemPath, itemName, itemDefinition,
-                getAssociationTargetObjectDefinition(), constructionEvaluation.task);
+                getAssociationDefinition(), constructionEvaluation.task);
 
         if (mappingBuilder == null) {
             return null;
@@ -192,7 +192,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         return mapping;
     }
 
-    abstract ResourceObjectDefinition getAssociationTargetObjectDefinition();
+    abstract ShadowAssociationDefinition getAssociationDefinition();
 
     private ConfigurableValuePolicySupplier createValuePolicySupplier() {
         return new ConfigurableValuePolicySupplier() {

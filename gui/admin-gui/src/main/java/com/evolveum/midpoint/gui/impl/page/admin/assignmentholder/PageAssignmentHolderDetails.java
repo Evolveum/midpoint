@@ -499,7 +499,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
     protected void checkDeltasExitPerformed(SerializableConsumer<AjaxRequestTarget> consumer, AjaxRequestTarget target) {
 
-        if (!hasUnsavedChanges(target)) {
+        if (!hasUnsavedChangesInWizard(target)) {
             consumer.accept(target);
             return;
         }

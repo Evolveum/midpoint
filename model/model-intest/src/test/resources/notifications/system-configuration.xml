@@ -12,6 +12,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
     <name>SystemConfiguration</name>
+    <globalSecurityPolicyRef oid="00000000-0000-0000-0000-000000000120"/>
     <logging>
         <rootLoggerAppender>File Appender</rootLoggerAppender>
         <rootLoggerLevel>INFO</rootLoggerLevel>
@@ -49,6 +50,12 @@
                 <recipientExpression>
                     <value>recipient@evolveum.com</value>
                 </recipientExpression>
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <code>Password: $event.focusPassword</code>
+                    </script>
+                </bodyExpression>
                 <transport>dummy:userPasswordNotifier</transport>
             </userPasswordNotifier>
         </handler>

@@ -153,7 +153,7 @@ public abstract class SecurityTraceEvent extends AbstractTraceEvent {
                     "Resulting filter:\n" + operation.debugDumpFilter(filter, 1),
                     "Total 'allow' filter:\n" + operation.debugDumpFilter(partialOp.getSecurityFilterAllow(), 1),
                     "Total 'deny' filter:\n" + operation.debugDumpFilter(partialOp.getSecurityFilterDeny(), 1),
-                    "Paths: " + partialOp.getQueryItemsSpec().shortDump());
+                    "Paths: " + partialOp.getQueryObjectsAutzCoverage().shortDump());
             return TraceRecord.of(
                     firstLine,
                     String.join("\n", nextLines));

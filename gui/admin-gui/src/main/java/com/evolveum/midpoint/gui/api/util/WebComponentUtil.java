@@ -690,6 +690,10 @@ public final class WebComponentUtil {
 
     public static boolean isAuthorized(Class<? extends ObjectType> clazz) {
         Class<? extends PageBase> detailsPage = DetailsPageUtil.getObjectDetailsPage(clazz);
+        return isAuthorizedForPage(detailsPage);
+    }
+
+    public static boolean isAuthorizedForPage(Class<? extends PageBase> detailsPage) {
         if (detailsPage == null) {
             return false;
         }

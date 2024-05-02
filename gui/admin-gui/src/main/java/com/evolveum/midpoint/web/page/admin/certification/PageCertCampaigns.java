@@ -412,7 +412,8 @@ public class PageCertCampaigns extends PageAdminCertification {
             public boolean isButtonVisible(IModel<CertCampaignListItemDto> model) {
                 final AccessCertificationCampaignType campaign = model.getObject().getCampaign();
 
-                return campaign.getState() != AccessCertificationCampaignStateType.IN_REMEDIATION
+                return campaign.getState() != null
+                        && campaign.getState() != AccessCertificationCampaignStateType.IN_REMEDIATION
                         && campaign.getState() != AccessCertificationCampaignStateType.CLOSED;
             }
 
@@ -915,6 +916,9 @@ public class PageCertCampaigns extends PageAdminCertification {
         int currentStage = campaign.getStageNumber();
         int numOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
         AccessCertificationCampaignStateType state = campaign.getState();
+        if (state == null) {
+            return null;
+        }
         String button;
         switch (state) {
             case CREATED:

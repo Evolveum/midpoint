@@ -262,7 +262,7 @@ public class Resolver {
         try {
             ObjectTypes type = getTypeFromReference(ref);
 
-            return modelService.getObject(type.getClassDefinition(), ref.getOid(), GetOperationOptions.createRawCollection(), task, result);
+            return modelService.getObject(type.getClassDefinition(), ref.getOid(), GetOperationOptions.createNoFetchCollection(), task, result);
         } catch (Exception ex) {
             return null;
         }
