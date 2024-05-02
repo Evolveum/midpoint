@@ -19,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.query.SelectorToFilterTranslator;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -91,7 +90,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             securityFilter = new PartialOp(nonStrict(phase)).computeFilter(result);
         } else {
             F filterBoth = new PartialOp(both()).computeFilter(result);
-            F filterRequest = new PartialOp( strict(REQUEST)).computeFilter(result);
+            F filterRequest = new PartialOp(strict(REQUEST)).computeFilter(result);
             F filterExecution = new PartialOp(strict(EXECUTION)).computeFilter(result);
             securityFilter =
                     gizmo.or(
@@ -118,13 +117,13 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
 
         private final @NotNull PhaseSelector phaseSelector;
 
-        /** TODO */
-        @NotNull private final QueryAutzItemPaths queryItemsSpec = new QueryAutzItemPaths();
+        /** What objects/items do we need the access to (to evaluate the query), and do we have it? */
+        @NotNull private final QueryObjectsAutzCoverage queryObjectsAutzCoverage = new QueryObjectsAutzCoverage();
 
-        /** TODO */
+        /** Filter returning the set of visible (allowed) objects. */
         private F securityFilterAllow = null;
 
-        /** TODO */
+        /** Filter returning the set of invisible (denied) objects. */
         private F securityFilterDeny = null;
 
         PartialOp(@NotNull PhaseSelector phaseSelector) {
@@ -145,7 +144,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
 
-            queryItemsSpec.addRequiredItems(origFilter); // MID-3916
+            queryObjectsAutzCoverage.addRequiredItems(filterType, origFilter); // MID-3916, MID-9670
             tracePartialOperationStarted();
 
             int i = 0;
@@ -173,6 +172,8 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                     continue;
                 }
 
+                queryObjectsAutzCoverage.processAuthorizationForOtherTypes(filterType, authorization);
+
                 var applicable = autzEvaluation.computeFilter();
 
                 // the end of processing of given authorization was logged as part of the method call above
@@ -182,13 +183,15 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                             gizmo.adopt(
                                     ObjectQueryUtil.simplify(autzEvaluation.getAutzFilter()),
                                     authorization);
+
+                    if (!gizmo.isNone(autzSecurityFilter)) {
+                        // If we are sure we match no objects, we ignore items allowed/denied by this authorization.
+                        queryObjectsAutzCoverage.processAuthorizationForFilterType(filterType, authorization);
+                    }
+
                     // The authorization is applicable to this situation. Now we can process the decision.
                     if (authorization.isAllow()) {
                         securityFilterAllow = gizmo.or(securityFilterAllow, autzSecurityFilter);
-                        if (!gizmo.isNone(autzSecurityFilter)) {
-                            // TODO resolve for shifted authorizations!
-                            queryItemsSpec.collectItems(authorization);
-                        }
                     } else { // "deny" type authorization
                         if (authorization.hasItemSpecification()) {
                             // TODO resolve for shifted authorizations!
@@ -208,11 +211,11 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                 }
             }
 
-            List<ItemPath> unsatisfiedItems = queryItemsSpec.evaluateUnsatisfiedItems();
-            if (!unsatisfiedItems.isEmpty()) {
+            String unsatisfiedItemsDescription = queryObjectsAutzCoverage.getUnsatisfiedItemsDescription();
+            if (unsatisfiedItemsDescription != null) {
                 F secFilter = gizmo.createDenyAll();
-                // TODO lazy string concatenation?
-                tracePartialOperationFinished(secFilter, "deny because items " + unsatisfiedItems + " are not allowed");
+                tracePartialOperationFinished(
+                        secFilter, "deny because items " + unsatisfiedItemsDescription + " are not allowed");
                 return secFilter;
             }
             securityFilterAllow = gizmo.simplify(securityFilterAllow);
@@ -239,7 +242,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                         new PartialFilterOperationStarted<>(
                                 this,
                                 phaseSelector,
-                                queryItemsSpec.shortDump()));
+                                queryObjectsAutzCoverage.shortDump()));
             }
         }
 
@@ -255,8 +258,8 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
         }
 
         /** For diagnostics purposes. */
-        @NotNull QueryAutzItemPaths getQueryItemsSpec() {
-            return queryItemsSpec;
+        @NotNull QueryObjectsAutzCoverage getQueryObjectsAutzCoverage() {
+            return queryObjectsAutzCoverage;
         }
 
         /** For diagnostics purposes. */

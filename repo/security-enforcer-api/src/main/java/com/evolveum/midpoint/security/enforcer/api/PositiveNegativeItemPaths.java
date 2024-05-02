@@ -206,7 +206,8 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
         }
     }
 
-    protected void dumpItems(StringBuilder sb, List<? extends ItemPath> items) {
+    // TODO move to a better place
+    public static void dumpItems(StringBuilder sb, List<? extends ItemPath> items) {
         if (items.isEmpty()) {
             sb.append("[none]");
         } else {
