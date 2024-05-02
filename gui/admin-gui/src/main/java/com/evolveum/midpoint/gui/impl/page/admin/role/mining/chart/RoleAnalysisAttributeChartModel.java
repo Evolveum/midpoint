@@ -5,14 +5,12 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.RoleAnalysisChartOptions;
 
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
@@ -50,10 +48,12 @@ public class RoleAnalysisAttributeChartModel extends LoadableModel<ChartConfigur
         return chart;
     }
 
-    private @NotNull RoleAnalysisChartOptions createChartOptions() {
-        RoleAnalysisChartOptions options = new RoleAnalysisChartOptions();
+    private @NotNull ChartOptions createChartOptions() {
+        ChartOptions options = new ChartOptions();
         options.setLegend(createLegendOptions());
         options.setIndexAxis(IndexAxis.AXIS_X.getValue());
+        options.setResponsive(true);
+        options.setMaintainAspectRatio(false);
         ChartAnimationOption chartAnimationOption = new ChartAnimationOption();
         chartAnimationOption.setDuration(0);
         options.setAnimation(chartAnimationOption);

@@ -5,15 +5,10 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.ChartScaleAxisOption;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.ChartScaleOption;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.RoleAnalysisChartDataSet;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.RoleAnalysisChartOptions;
 
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
@@ -54,10 +49,13 @@ public class RoleAnalysisStackedAttributeChartModel extends LoadableModel<ChartC
         return chart;
     }
 
-    private @NotNull RoleAnalysisChartOptions createChartOptions() {
-        RoleAnalysisChartOptions options = new RoleAnalysisChartOptions();
+    private @NotNull ChartOptions createChartOptions() {
+        ChartOptions options = new ChartOptions();
         options.setLegend(createLegendOptions());
         options.setIndexAxis(IndexAxis.AXIS_X.getValue());
+        options.setResponsive(true);
+        options.setMaintainAspectRatio(false);
+
         ChartAnimationOption chartAnimationOption = new ChartAnimationOption();
         chartAnimationOption.setDuration(0);
         options.setAnimation(chartAnimationOption);
@@ -90,15 +88,16 @@ public class RoleAnalysisStackedAttributeChartModel extends LoadableModel<ChartC
         datasetAttributeDensity.addBackgroudColor(getColor());
         datasetAttributeDensity.setBorderWidth(1);
 
-        RoleAnalysisChartDataSet datasetUsers = new RoleAnalysisChartDataSet();
+        ChartDataset datasetUsers = new ChartDataset();
         datasetUsers.setLabel("Users attribute");
         datasetUsers.addBackgroudColor("Red");
         datasetUsers.setStack("stack0");
 
-        RoleAnalysisChartDataSet datasetRoles = new RoleAnalysisChartDataSet();
+        ChartDataset datasetRoles = new ChartDataset();
         datasetRoles.setLabel("Roles attribute");
         datasetRoles.addBackgroudColor("Green");
         datasetRoles.setStack("stack1");
+
 
         List<AttributeAnalysisStructure> objects = roleAnalysisModelsPositive.getObject();
         Map<String, List<AttributeAnalysisStructure>> itemPathMap = objects.stream()
@@ -169,12 +168,12 @@ public class RoleAnalysisStackedAttributeChartModel extends LoadableModel<ChartC
         datasetAttributeDensity.addBackgroudColor(getColor());
         datasetAttributeDensity.setBorderWidth(1);
 
-        RoleAnalysisChartDataSet datasetUsers = new RoleAnalysisChartDataSet();
+        ChartDataset datasetUsers = new ChartDataset();
         datasetUsers.setLabel("Users compare");
         datasetUsers.addBackgroudColor("Red");
         datasetUsers.setStack("stack0");
 
-        RoleAnalysisChartDataSet datasetRoles = new RoleAnalysisChartDataSet();
+        ChartDataset datasetRoles = new ChartDataset();
         datasetRoles.setLabel("Roles compare");
         datasetRoles.addBackgroudColor("Green");
         datasetRoles.setStack("stack1");
