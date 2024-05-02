@@ -1486,6 +1486,8 @@
                         </xsd:annotation>
                     </xsd:element>
                     -->
+                    <xsd:element name="notificationSendingStrategy" type="c:NotificationSendingStrategy" minOccurs="0"
+                            default="ownNotificationToEachRecipient"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2085,6 +2087,42 @@
             -->
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:simpleType name="NotificationSendingStrategy">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines how the notification should be generated and sent.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="sameNotificationToAllRecipients">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This strategy means that the notification message is generated once within the notifier
+                        and sent to all the recipients. This strategy doesn't suppose locale setting processing
+                        during notification generating.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SAME_NOTIFICATION_TO_ALL_RECIPIENTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ownNotificationToEachRecipient">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This strategy means that the notification message is generated and sent for every recipient
+                        separately taking into every recipient locale settings.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OWN_NOTIFICATION_TO_EACH_RECIPIENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <!-- region Newer 4.5 message transport schema -->
     <!-- TODO add translation for added displayName-s -->
