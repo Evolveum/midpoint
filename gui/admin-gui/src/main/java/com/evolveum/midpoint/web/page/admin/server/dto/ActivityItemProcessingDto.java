@@ -132,7 +132,7 @@ public class ActivityItemProcessingDto implements Serializable {
         Long end = WebComponentUtil.getTimestampAsLong(processedItem.getEndTimestamp(), true);
         Long start = WebComponentUtil.getTimestampAsLong(processedItem.getStartTimestamp(), true);
 
-        Long duration = end-start;
+        Long duration = end - start;
         if (duration != null) {
             data.setDescription(WebComponentUtil.formatDurationWordsForLocal(duration, true, true));
         }
@@ -229,6 +229,8 @@ public class ActivityItemProcessingDto implements Serializable {
         ChartOptions options = new ChartOptions();
         options.setAnimation(createAnimation());
         options.setLegend(createChartLegend());
+        options.setResponsive(true);
+        options.setMaintainAspectRatio(false);
         return options;
     }
 

@@ -24,6 +24,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -95,6 +96,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     private static final String ID_CONFIGURATION = "configuration";
     private static final String ID_LIFECYCLE_STATE = "lifecycleState";
     private static final String OP_SET_LIFECYCLE_STATE_FOR_OBJECT_TYPE = DOT_CLASS + "setLyfecycleStateForObjectType";
+    private static final String ID_CHART_CONTAINER = "chartContainer";
     private static final String ID_STATISTICS = "statistics";
     private static final String ID_SHOW_STATISTICS = "showStatistics";
     private static final String ID_TASKS = "tasks";
@@ -335,12 +337,13 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     }
 
     private void createShowStatistics() {
-        CheckBoxPanel showStatistics = new CheckBoxPanel(ID_SHOW_STATISTICS, showStatisticsModel, createStringResource("ResourceObjectsPanel.showStatistics")) {
+        CheckBoxPanel showStatistics = new CheckBoxPanel(ID_SHOW_STATISTICS, showStatisticsModel,
+                createStringResource("ResourceObjectsPanel.showStatistics")) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
                 super.onUpdate(target);
-                target.add(getStatisticsPanel());
+                target.add(getStatisticsPanel().getParent());
             }
         };
         showStatistics.setOutputMarkupId(true);
@@ -348,6 +351,11 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     }
 
     private void createStatisticsPanel() {
+        WebMarkupContainer chartContainer = new WebMarkupContainer(ID_CHART_CONTAINER);
+        chartContainer.setOutputMarkupId(true);
+        chartContainer.add(new VisibleBehaviour(showStatisticsModel::getObject));
+        add(chartContainer);
+
         ShadowStatisticsModel statisticsModel = new ShadowStatisticsModel() {
 
             protected Integer createTotalsModel(final ObjectFilter situationFilter) {
@@ -367,8 +375,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                 new ChartJsPanel<>(ID_STATISTICS, statisticsModel);
         shadowStatistics.setOutputMarkupId(true);
         shadowStatistics.setOutputMarkupPlaceholderTag(true);
-        shadowStatistics.add(new VisibleBehaviour(showStatisticsModel::getObject));
-        add(shadowStatistics);
+        chartContainer.add(shadowStatistics);
     }
 
     private Integer countFor(ObjectFilter situationFilter) {
@@ -680,9 +687,8 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
         return (ShadowTablePanel) get(ID_TABLE);
     }
 
-    @SuppressWarnings("unchecked")
-    private ChartJsPanel<ChartConfiguration> getStatisticsPanel() {
-        return (ChartJsPanel<ChartConfiguration>) get(ID_STATISTICS);
+    private WebMarkupContainer getStatisticsPanel() {
+        return (WebMarkupContainer) get(ID_CHART_CONTAINER);
     }
 
 }
