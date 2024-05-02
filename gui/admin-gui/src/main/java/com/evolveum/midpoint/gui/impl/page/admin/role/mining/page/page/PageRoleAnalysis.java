@@ -7,15 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getSessionOptionType;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
 
 import java.io.Serial;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -30,11 +27,13 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -64,8 +63,6 @@ import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
 
 @PageDescriptor(
         urls = {
@@ -207,10 +204,8 @@ public class PageRoleAnalysis extends PageAdmin {
                 LoadableModel<PrismContainerDefinition<RoleAnalysisOptionType>> processModeDefinitionModel
                         = WebComponentUtil.getContainerDefinitionModel(RoleAnalysisOptionType.class);
 
-                LoadableModel<PrismContainerDefinition<AbstractAnalysisSessionOptionType>> abstractContainerDefinitionModel
-                        = WebComponentUtil.getContainerDefinitionModel(AbstractAnalysisSessionOptionType.class);
-
-                IColumn<SelectableBean<RoleAnalysisSessionType>, String> column = new AbstractExportableColumn<>(createStringResource("RoleAnalysisProcessModeType.processMode")) {
+                IColumn<SelectableBean<RoleAnalysisSessionType>, String> column = new AbstractExportableColumn<>(
+                        createStringResource("")) {
 
                     @Override
                     public Component getHeader(String componentId) {
@@ -232,96 +227,54 @@ public class PageRoleAnalysis extends PageAdmin {
                 };
                 columns.add(column);
 
-                column = new AbstractExportableColumn<>(createStringResource("AbstractAnalysisSessionOptionType.similarityThreshold")) {
+                column = new AbstractExportableColumn<>(
+                        createStringResource("")) {
 
                     @Override
                     public Component getHeader(String componentId) {
-                        return createColumnHeader(componentId, abstractContainerDefinitionModel,
-                                AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD);
+                        return createColumnHeader(componentId,
+                                processModeDefinitionModel, RoleAnalysisOptionType.F_ANALYSIS_CATEGORY);
                     }
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                        cellItem.add(new Label(componentId, extractSimilarity(model)));
+                        cellItem.add(new Label(componentId, extractCategoryMode(model)));
                     }
 
                     @Override
                     public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                        return extractSimilarity(rowModel);
+                        return extractCategoryMode(rowModel);
                     }
 
                 };
                 columns.add(column);
 
-                column = new AbstractExportableColumn<>(createStringResource("AbstractAnalysisSessionOptionType.minPropertiesOverlap")) {
+                column = new AbstractExportableColumn<>(createStringResource("")) {
 
                     @Override
                     public Component getHeader(String componentId) {
-                        return createColumnHeader(componentId, abstractContainerDefinitionModel,
-                                AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP);
+                        return createColumnHeader(componentId, containerDefinitionModel,
+                                ItemPath.create(RoleAnalysisSessionType.F_SESSION_STATISTIC,
+                                        RoleAnalysisSessionStatisticType.F_CLUSTER_COUNT));
                     }
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-
-                        cellItem.add(new Label(componentId, extractMinPropertiesOverlap(model)));
-                    }
-
-                    @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                        return extractMinPropertiesOverlap(rowModel);
-                    }
-
-                };
-                columns.add(column);
-
-                column = new AbstractExportableColumn<>(createStringResource("AbstractAnalysisSessionOptionType.propertiesRange")) {
-
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return createColumnHeader(componentId, abstractContainerDefinitionModel,
-                                AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE);
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                        cellItem.add(new Label(componentId, extractPropertiesRange(model)));
+                        cellItem.add(new Label(componentId, extractClusterObjectCount(model)));
 
                     }
 
                     @Override
                     public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                        return extractPropertiesRange(rowModel);
+                        return extractClusterObjectCount(rowModel);
                     }
 
                 };
                 columns.add(column);
 
-                column = new AbstractExportableColumn<>(createStringResource("AbstractAnalysisSessionOptionType.minMembersCount")) {
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return createColumnHeader(componentId, abstractContainerDefinitionModel,
-                                AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT);
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                        cellItem.add(new Label(componentId, extractMinGroupOption(model)));
-                    }
-
-                    @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                        return extractMinGroupOption(rowModel);
-                    }
-
-                };
-                columns.add(column);
-
-                column = new AbstractExportableColumn<>(createStringResource("RoleAnalysisSessionStatisticType.processedObjectCount")) {
+                column = new AbstractExportableColumn<>(createStringResource("")) {
 
                     @Override
                     public Component getHeader(String componentId) {
@@ -344,7 +297,7 @@ public class PageRoleAnalysis extends PageAdmin {
                 };
                 columns.add(column);
 
-                column = new AbstractExportableColumn<>(createStringResource("RoleAnalysisSessionStatisticType.meanDensity")) {
+                column = new AbstractExportableColumn<>(createStringResource("")) {
 
                     @Override
                     public Component getHeader(String componentId) {
@@ -506,67 +459,23 @@ public class PageRoleAnalysis extends PageAdmin {
             RoleAnalysisSessionType value = model.getObject().getValue();
             if (value != null
                     && value.getAnalysisOption() != null && value.getAnalysisOption().getProcessMode() != null) {
-                return Model.of(value.getAnalysisOption().getProcessMode().value()
-                        + "/" + value.getAnalysisOption().getAnalysisCategory().value());
+                return Model.of(value.getAnalysisOption().getProcessMode().value());
             }
 
         }
         return Model.of("");
     }
 
-    private static @NotNull IModel<String> extractSimilarity(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-        AbstractAnalysisSessionOptionType sessionOptionType = null;
-        if (model.getObject().getValue() != null) {
-            sessionOptionType = getSessionOptionType(model.getObject().getValue());
-        }
+    private static @NotNull IModel<String> extractCategoryMode(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+        if (model.getObject() != null) {
+            RoleAnalysisSessionType value = model.getObject().getValue();
+            if (value != null
+                    && value.getAnalysisOption() != null && value.getAnalysisOption().getAnalysisCategory() != null) {
+                return Model.of(value.getAnalysisOption().getAnalysisCategory().value());
+            }
 
-        if (sessionOptionType != null && sessionOptionType.getSimilarityThreshold() != null) {
-            return Model.of(sessionOptionType.getSimilarityThreshold() + " (%)");
-        } else {
-            return Model.of("");
         }
-    }
-
-    private static @NotNull IModel<String> extractMinPropertiesOverlap(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-        AbstractAnalysisSessionOptionType sessionOptionType = null;
-        if (model.getObject().getValue() != null) {
-            sessionOptionType = getSessionOptionType(model.getObject().getValue());
-        }
-
-        if (sessionOptionType != null && sessionOptionType.getMinPropertiesOverlap() != null) {
-            return Model.of(sessionOptionType.getMinPropertiesOverlap().toString());
-        } else {
-            return Model.of("");
-        }
-    }
-
-    private static @NotNull IModel<String> extractPropertiesRange(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-        AbstractAnalysisSessionOptionType sessionOptionType = null;
-        if (model.getObject().getValue() != null) {
-            sessionOptionType = getSessionOptionType(model.getObject().getValue());
-        }
-
-        if (sessionOptionType != null && sessionOptionType.getPropertiesRange() != null) {
-            RangeType propertiesRange = sessionOptionType.getPropertiesRange();
-            return Model.of("from " + propertiesRange.getMin()
-                    + " to "
-                    + propertiesRange.getMax());
-        } else {
-            return Model.of("");
-        }
-    }
-
-    private static @NotNull IModel<String> extractMinGroupOption(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-        AbstractAnalysisSessionOptionType sessionOptionType = null;
-        if (model.getObject().getValue() != null) {
-            sessionOptionType = getSessionOptionType(model.getObject().getValue());
-        }
-
-        if (sessionOptionType != null && sessionOptionType.getMinMembersCount() != null) {
-            return Model.of(sessionOptionType.getMinMembersCount().toString());
-        } else {
-            return Model.of("");
-        }
+        return Model.of("");
     }
 
     private static @NotNull IModel<String> extractProcessedObjectCount(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
@@ -575,6 +484,17 @@ public class PageRoleAnalysis extends PageAdmin {
                 && value.getSessionStatistic() != null
                 && value.getSessionStatistic().getProcessedObjectCount() != null) {
             return Model.of(value.getSessionStatistic().getProcessedObjectCount().toString());
+        } else {
+            return Model.of("");
+        }
+    }
+
+    private static @NotNull IModel<String> extractClusterObjectCount(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+        RoleAnalysisSessionType value = model.getObject().getValue();
+        if (value != null
+                && value.getSessionStatistic() != null
+                && value.getSessionStatistic().getClusterCount() != null) {
+            return Model.of(value.getSessionStatistic().getClusterCount().toString());
         } else {
             return Model.of("");
         }
