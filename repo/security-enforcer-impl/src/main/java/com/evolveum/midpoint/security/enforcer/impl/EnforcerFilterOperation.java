@@ -12,8 +12,12 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Authorization
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.REQUEST;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+
+import com.evolveum.midpoint.security.enforcer.impl.SecurityTraceEvent.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,10 +31,6 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
-import com.evolveum.midpoint.security.enforcer.impl.SecurityTraceEvent.FilterOperationFinished;
-import com.evolveum.midpoint.security.enforcer.impl.SecurityTraceEvent.FilterOperationStarted;
-import com.evolveum.midpoint.security.enforcer.impl.SecurityTraceEvent.PartialFilterOperationFinished;
-import com.evolveum.midpoint.security.enforcer.impl.SecurityTraceEvent.PartialFilterOperationStarted;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
@@ -49,6 +49,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
     private static final String PART_ID_PREFIX = "PART";
 
     @NotNull private final String[] operationUrls;
+    @NotNull private final String[] searchByOperationUrls;
     @NotNull final Class<T> filterType;
     @NotNull final AuthorizationSelectorExtractor selectorExtractor;
     final ObjectFilter origFilter;
@@ -59,6 +60,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
 
     EnforcerFilterOperation(
             @NotNull String[] operationUrls,
+            @NotNull String[] searchByOperationUrls,
             @NotNull Class<T> filterType,
             @NotNull AuthorizationSelectorExtractor selectorExtractor,
             ObjectFilter origFilter,
@@ -72,6 +74,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             @NotNull Task task) {
         super(principal, options, beans, task);
         this.operationUrls = operationUrls;
+        this.searchByOperationUrls = searchByOperationUrls;
         this.filterType = filterType;
         this.selectorExtractor = selectorExtractor;
         this.origFilter = origFilter;
@@ -145,14 +148,14 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                 ConfigurationException, SecurityViolationException {
 
             queryObjectsAutzCoverage.addRequiredItems(filterType, origFilter); // MID-3916, MID-9670
+
             tracePartialOperationStarted();
 
-            int i = 0;
+            AtomicInteger autzEvalCounter = new AtomicInteger(0);
             for (Authorization authorization : getAuthorizations()) {
 
-                AuthorizationFilterEvaluation<T> autzEvaluation;
-                autzEvaluation = new AuthorizationFilterEvaluation<>(
-                        i++,
+                var autzEvaluation = new AuthorizationFilterEvaluation<T>(
+                        autzEvalCounter.getAndIncrement(),
                         filterType,
                         origFilter,
                         authorization,
@@ -172,8 +175,6 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                     continue;
                 }
 
-                queryObjectsAutzCoverage.processAuthorizationForOtherTypes(filterType, authorization);
-
                 var applicable = autzEvaluation.computeFilter();
 
                 // the end of processing of given authorization was logged as part of the method call above
@@ -183,11 +184,6 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                             gizmo.adopt(
                                     ObjectQueryUtil.simplify(autzEvaluation.getAutzFilter()),
                                     authorization);
-
-                    if (!gizmo.isNone(autzSecurityFilter)) {
-                        // If we are sure we match no objects, we ignore items allowed/denied by this authorization.
-                        queryObjectsAutzCoverage.processAuthorizationForFilterType(filterType, authorization);
-                    }
 
                     // The authorization is applicable to this situation. Now we can process the decision.
                     if (authorization.isAllow()) {
@@ -209,6 +205,10 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                         }
                     }
                 }
+            }
+
+            for (var queryObjectAutzCoverageEntry : queryObjectsAutzCoverage.getAllEntries()) {
+                processSearchItemAuthorizations(autzEvalCounter, queryObjectAutzCoverageEntry, result);
             }
 
             String unsatisfiedItemsDescription = queryObjectsAutzCoverage.getUnsatisfiedItemsDescription();
@@ -236,6 +236,44 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             }
         }
 
+        private void processSearchItemAuthorizations(
+                AtomicInteger autzEvalCounter,
+                Map.Entry<Class<? extends ObjectType>, QueryObjectAutzCoverage> queryObjectAutzCoverageEntry,
+                OperationResult result)
+                throws ConfigurationException {
+
+            var type = queryObjectAutzCoverageEntry.getKey();
+            var objectAutzCoverage = queryObjectAutzCoverageEntry.getValue();
+
+            tracePartialOperationNote(
+                    "Looking for authorizations related to search items for %s: %s",
+                    type.getSimpleName(),
+                    objectAutzCoverage.getRequiredItems());
+
+            for (Authorization authorization : getAuthorizations()) {
+
+                var autzEvaluation = new AuthorizationSearchItemsEvaluation<>(
+                        autzEvalCounter.getAndIncrement(), type, authorization, EnforcerFilterOperation.this, result);
+
+                autzEvaluation.traceStart();
+
+                if (!autzEvaluation.isApplicableToActions(searchByOperationUrls)
+                        || !autzEvaluation.isApplicableToPhase(phaseSelector)) {
+                    autzEvaluation.traceEndNotApplicable();
+                    continue;
+                }
+
+                var authorizedSearchItems = autzEvaluation.getAuthorizedSearchItems();
+                if (authorizedSearchItems != null) {
+                    tracePartialOperationNote(
+                            "Providing path sets for '%s' authorization for %s: positives: %s, negatives: %s",
+                            authorization.getDecision(), type.getSimpleName(),
+                            authorizedSearchItems.positives(), authorizedSearchItems.negatives());
+                    objectAutzCoverage.processSearchItems(authorizedSearchItems, authorization.isAllow());
+                }
+            }
+        }
+
         private void tracePartialOperationStarted() {
             if (tracer.isEnabled()) {
                 tracer.trace(
@@ -243,6 +281,13 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                                 this,
                                 phaseSelector,
                                 queryObjectsAutzCoverage.shortDump()));
+            }
+        }
+
+        private void tracePartialOperationNote(@Nullable String message, Object... arguments) {
+            if (tracer.isEnabled()) {
+                tracer.trace(
+                        new PartialFilterOperationNote<>(this, message, arguments));
             }
         }
 

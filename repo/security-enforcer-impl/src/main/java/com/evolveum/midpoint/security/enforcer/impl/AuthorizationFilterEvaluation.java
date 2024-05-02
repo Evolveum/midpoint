@@ -79,7 +79,8 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
                 SelectorWithItems.of(selector, authorization.getItems(), authorization.getExceptItems(), selectorDesc);
         SelectorWithItems adjustedSelector = baseSelector.adjustToSubObjectFilter(filterType);
         if (adjustedSelector == null) {
-            traceAutzProcessingNote("No adjustment for selector exists: %s", selectorDesc);
+            traceAutzProcessingNote("No adjustment for selector exists (to %s): %s",
+                    filterType.getSimpleName(), selectorDesc);
         } else {
             var evaluation = new SelectorFilterEvaluation<>(
                     selectorId(i), adjustedSelector, filterType, originalFilter, adjustedSelector.getDescription(),

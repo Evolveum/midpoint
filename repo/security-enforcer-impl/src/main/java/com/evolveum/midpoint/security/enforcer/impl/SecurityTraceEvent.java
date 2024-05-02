@@ -125,6 +125,21 @@ public abstract class SecurityTraceEvent extends AbstractTraceEvent {
         }
     }
 
+    static class PartialFilterOperationNote<F> extends PartialFilterOperationRelated<F> {
+
+        PartialFilterOperationNote(
+                @NotNull EnforcerFilterOperation<?, F>.PartialOp partialOp,
+                @Nullable String message,
+                @Nullable Object[] arguments) {
+            super(partialOp, message, arguments);
+        }
+
+        @Override
+        public @NotNull TraceRecord defaultTraceRecord() {
+            return TraceRecord.of(getFormattedMessage("", ""));
+        }
+    }
+
     static class PartialFilterOperationFinished<F> extends PartialFilterOperationRelated<F> implements End {
 
         private final EnforcerFilterOperation<?, F>.PartialOp partialOp;
