@@ -491,7 +491,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     }
 
     private boolean isMidpointAccountSelected() {
-        Iterator<PasswordAccountDto> accounts = (Iterator<PasswordAccountDto>) provider.internalIterator(0, provider.size() - 1);
+        Iterator<PasswordAccountDto> accounts = (Iterator<PasswordAccountDto>) provider.internalIterator(0, provider.size());
         while (accounts.hasNext()) {
             PasswordAccountDto account = accounts.next();
             if (account.isMidpoint()) {
