@@ -75,6 +75,15 @@ public class ContainerTreeDeltaValue<C extends Containerable> extends ItemTreeDe
     }
 
     @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+
+        // todo
+
+        return sb.toString();
+    }
+
+    @Override
     protected void debugDumpTitle(StringBuilder sb, int indent) {
         super.debugDumpTitle(sb, indent);
 

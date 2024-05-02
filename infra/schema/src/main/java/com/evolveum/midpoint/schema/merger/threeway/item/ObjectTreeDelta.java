@@ -64,19 +64,13 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
     }
 
     @Override
-    public String debugDump(int indent) {
-        StringBuilder sb = new StringBuilder();
-
-        DebugUtil.debugDumpWithLabel(sb, debugDumpShortName(), DebugUtil.formatElementName(getItemName()), indent);
-        DebugUtil.debugDumpWithLabel(sb, "oid", oid, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "type", DebugUtil.formatElementName(getTypeName()), indent + 1);
-
-        ContainerTreeDeltaValue<O> value = getSingleValue();
-        if (value != null) {
-            sb.append(DebugUtil.debugDump(value, indent + 1));
+    protected void appendDebugDumpSuffix(StringBuilder sb) {
+        sb.append("(").append(getOid());
+        PrismContainerDefinition<O> def = getDefinition();
+        if (def != null) {
+            sb.append(", ").append(DebugUtil.formatElementName(def.getTypeName()));
         }
-
-        return sb.toString();
+        sb.append(")");
     }
 
     public static <O extends ObjectType> ObjectTreeDelta<O> from(ObjectDelta<O> delta) {
@@ -88,7 +82,8 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
         result.setObjectToAdd(delta.getObjectToAdd());  // todo this feels funky, probably should end up in value?
 
         // todo fix value to add, modification type somehow
-        ObjectTreeDeltaValue<O> value = new ObjectTreeDeltaValue<>(null, null);
+        ObjectTreeDeltaValue<O> value = new ObjectTreeDeltaValue<>();
+        value.setOid(delta.getOid());
         result.addValue(value);
 
         delta.getModifications().forEach(modification -> {

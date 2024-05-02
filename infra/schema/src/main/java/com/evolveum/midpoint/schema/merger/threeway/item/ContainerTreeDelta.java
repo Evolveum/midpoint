@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.merger.threeway.item;
 
+import java.util.Iterator;
 import java.util.Objects;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -14,6 +15,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DebugUtil;
 
 public class ContainerTreeDelta<C extends Containerable>
         extends ItemTreeDelta<PrismContainerValue<C>, PrismContainerDefinition<C>, PrismContainer<C>, ContainerTreeDeltaValue<C>> {
@@ -25,6 +27,37 @@ public class ContainerTreeDelta<C extends Containerable>
     @Override
     protected String debugDumpShortName() {
         return "CTD";
+    }
+
+    @Override
+    public String debugDump(int indent) {
+
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        if (DebugUtil.isDetailedDebugDump()) {
+            sb.append(debugDumpShortName()).append(": ");
+        }
+        sb.append(DebugUtil.formatElementName(getItemName()));
+        sb.append(": ");
+        appendDebugDumpSuffix(sb);
+
+        if (!getValues().isEmpty()) {
+            sb.append("\n");
+        }
+
+        Iterator<ContainerTreeDeltaValue<C>> i = getValues().iterator();
+        while (i.hasNext()) {
+            ContainerTreeDeltaValue<C> pval = i.next();
+            sb.append(pval.debugDump(indent + 1));
+            if (i.hasNext()) {
+                sb.append("\n");
+            }
+        }
+
+        return sb.toString();
+    }
+
+    protected void appendDebugDumpSuffix(StringBuilder sb) {
     }
 
     @Override

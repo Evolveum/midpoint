@@ -13,6 +13,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class ObjectTreeDeltaValue<O extends ObjectType> extends ContainerTreeDeltaValue<O> {
 
+    private String oid;
+
     public ObjectTreeDeltaValue() {
     }
 
@@ -20,13 +22,16 @@ public class ObjectTreeDeltaValue<O extends ObjectType> extends ContainerTreeDel
         super(value, modificationType);
     }
 
-    @Override
-    protected String debugDumpShortName() {
-        return "OTDV";
+    public String getOid() {
+        return oid;
+    }
+
+    public void setOid(String oid) {
+        this.oid = oid;
     }
 
     @Override
-    protected void debugDumpTitle(StringBuilder sb, int indent) {
-        // todo implement - whole title/content doesn't work correctly
+    protected String debugDumpShortName() {
+        return "OTDV";
     }
 }

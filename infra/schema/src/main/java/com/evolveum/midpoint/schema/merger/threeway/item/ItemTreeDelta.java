@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
+// todo visitable
 public abstract class ItemTreeDelta
         <
                 PV extends PrismValue,
