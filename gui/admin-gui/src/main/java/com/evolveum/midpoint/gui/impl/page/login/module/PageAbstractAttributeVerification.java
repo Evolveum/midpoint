@@ -167,13 +167,6 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
             }
 
             @Override
-            protected Map<String, String> getAttributeValuesMap() {
-                Map<String, String> nameAttribute = new HashMap<>();
-                nameAttribute.put("name", AuthConstants.ATTR_VERIFICATION_PARAMETER_START + item.getModelObject().getItemPath());
-                return nameAttribute;
-            }
-
-            @Override
             protected void remove(PrismPropertyValueWrapper valueToRemove, AjaxRequestTarget target)
                     throws SchemaException {
                 try {
