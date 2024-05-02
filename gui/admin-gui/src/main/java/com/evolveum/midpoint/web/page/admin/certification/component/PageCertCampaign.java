@@ -53,8 +53,8 @@ import org.jetbrains.annotations.NotNull;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/certification/campaigns",
-                        matchUrlForSecurity = "/admin/certification/campaigns")
+                @Url(mountUrl = "/admin/certification/campaign",
+                        matchUrlForSecurity = "/admin/certification/campaign")
         },
         encoder = OnePageParameterEncoder.class,
         action = {

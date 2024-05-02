@@ -68,9 +68,8 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
         title.add(new VisibleBehaviour(() -> titleModel.getObject() != null));
         add(title);
 
-        IModel<String> descriptionModel =  getTitleModel();
+        IModel<String> descriptionModel = getDescriptionModel();
         Label description = new Label(ID_DESCRIPTION, descriptionModel);
-        description.setRenderBodyOnly(true);
         description.add(new VisibleBehaviour(() -> descriptionModel.getObject() != null));
         add(description);
 

@@ -201,6 +201,13 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(SimulationResultProcessedObjectType.F_OID),
                 ItemPath.create(SimulationResultProcessedObjectType.F_EVENT_MARK_REF)
         ));
+
+        SEARCHABLE_OBJECTS.put(AccessCertificationCaseType.class, Arrays.asList(
+                ItemPath.create(AccessCertificationCaseType.F_OBJECT_REF),
+                ItemPath.create(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME),
+                ItemPath.create(AccessCertificationCaseType.F_OUTCOME),
+                ItemPath.create(AccessCertificationCaseType.F_TARGET_REF)
+        ));
     }
 
     static {
