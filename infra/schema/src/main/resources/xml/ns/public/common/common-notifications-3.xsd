@@ -1495,7 +1495,6 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.9</a:since>
-                                <a:since>4.8.3</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2107,7 +2106,6 @@
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
                 <a:since>4.9</a:since>
-                <a:since>4.8.3</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
