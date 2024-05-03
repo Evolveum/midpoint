@@ -93,7 +93,7 @@ public class UserBasedClustering implements Clusterable {
 
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap);
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(similarityDifference,
-                minUsersCount, distanceMeasure, minRolesOverlap, false);
+                minUsersCount, distanceMeasure, minRolesOverlap, ClusteringMode.BALANCED);
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
         return new RoleAnalysisAlgorithmUtils().processClusters(roleAnalysisService, dataPoints, clusters, session,
