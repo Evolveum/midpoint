@@ -27,6 +27,11 @@ public class DefaultStageClosingResult implements StageClosingResult {
     }
 
     @Override
+    public @Nullable String getCaseOutcomeUri() {
+        return stageOutcomeUri; // Normally (for everything except approvals) these are the same.
+    }
+
+    @Override
     public @NotNull String getStageOutcomeUri() {
         return stageOutcomeUri;
     }

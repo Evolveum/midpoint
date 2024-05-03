@@ -17,23 +17,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionR
 public class StageClosingResultImpl implements StageClosingResult {
 
     private final boolean shouldProcessingContinue;
-    @NotNull private final String outcomeUri;
+    @Nullable private final String caseOutcomeUri;
+    @NotNull private final String stageOutcomeUri;
 
-    // TODO - this is approval-specific!
     @Nullable private final AutomatedCompletionReasonType automatedCompletionReason;
 
     public StageClosingResultImpl(
             boolean shouldProcessingContinue,
-            @NotNull String outcomeUri,
+            @Nullable String caseOutcomeUri,
+            @NotNull String stageOutcomeUri,
             @Nullable AutomatedCompletionReasonType automatedCompletionReason) {
         this.shouldProcessingContinue = shouldProcessingContinue;
-        this.outcomeUri = outcomeUri;
+        this.caseOutcomeUri = caseOutcomeUri;
+        this.stageOutcomeUri = stageOutcomeUri;
         this.automatedCompletionReason = automatedCompletionReason;
     }
 
     @Override
     public @NotNull String getStageOutcomeUri() {
-        return outcomeUri;
+        return stageOutcomeUri;
+    }
+
+    @Override
+    public @Nullable String getCaseOutcomeUri() {
+        return caseOutcomeUri;
     }
 
     @Override

@@ -13,14 +13,17 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(
         urls = {
@@ -35,9 +38,17 @@ import org.apache.wicket.model.IModel;
                         label = "PageUser.auth.user.label",
                         description = "PageUser.auth.user.description")
         })
-public class PageSchema extends AbstractPageObjectDetails<SchemaType, SchemaDetailsModel> {
+public class PageSchema extends PageAssignmentHolderDetails<SchemaType, SchemaDetailsModel> {
 
         private static final long serialVersionUID = 1L;
+
+        public PageSchema(PageParameters pageParameters) {
+        super(pageParameters);
+    }
+
+        public PageSchema(PrismObject<SchemaType> schema) {
+        super(schema);
+    }
 
         public PageSchema() {
             super();

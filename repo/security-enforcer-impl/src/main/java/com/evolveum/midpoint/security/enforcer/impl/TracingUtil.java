@@ -20,9 +20,9 @@ public class TracingUtil {
 
     // TODO resolve spacing somehow
     static final String SEC = "SEC";
-    static final String PARTIAL_SEC_SPACE = " ".repeat(1);
-    static final String AUTZ_SPACE = " ".repeat(2);
-    static final String SEL_SPACE = " ".repeat(4);
+    static final String PARTIAL_SEC_SPACE = " ".repeat(2);
+    static final String AUTZ_SPACE = " ".repeat(4);
+    static final String SEL_SPACE = " ".repeat(6);
     static final String INTERIOR_SPACE = "  ";
 
     /** Using {@link SecurityEnforcerImpl} to ensure log compatibility. */

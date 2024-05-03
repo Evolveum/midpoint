@@ -108,7 +108,8 @@ public class SelectorWithItems {
      * by stepping down: creating a new selector for {@link AssignmentType} with a parent clause pointing to the original
      * selector.
      */
-    <T> SelectorWithItems adjustToSubObjectFilter(@NotNull Class<T> filterType) throws SchemaException, ConfigurationException {
+    @Nullable <T> SelectorWithItems adjustToSubObjectFilter(@NotNull Class<T> filterType)
+            throws SchemaException, ConfigurationException {
 
         Class<?> selectorType = selector.getEffectiveType();
         if (selectorType.isAssignableFrom(filterType) || filterType.isAssignableFrom(selectorType)) {
@@ -257,6 +258,11 @@ public class SelectorWithItems {
 
     boolean isParentLess() {
         return selector.isParentLess();
+    }
+
+    boolean hasOverlapWith(@NotNull Class<?> requiredType) {
+        return selector.getEffectiveType().isAssignableFrom(requiredType)
+                || requiredType.isAssignableFrom(selector.getEffectiveType());
     }
 
     private record Adjustment(@NotNull QName typeName, @NotNull ItemPath path) {

@@ -10,12 +10,12 @@
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>resource-dummy-wild-associations</name>
+    <documentation>
+        Contains an association with two intents: sport and art. These correspond to two distinct types of groups.
+    </documentation>
     <connectorRef type="ConnectorType">
         <filter>
             <q:and>
@@ -65,7 +65,7 @@
                 <ref>ri:interest</ref>
                 <tolerant>false</tolerant>
                 <kind>entitlement</kind>
-                <!-- Two intents, as per MID-7991 -->
+                <!-- Two intents, as per MID-7991, MID-9565, and MID-9561. -->
                 <intent>sport</intent>
                 <intent>art</intent>
                 <direction>objectToSubject</direction>

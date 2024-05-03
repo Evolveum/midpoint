@@ -38,6 +38,11 @@ public interface ShadowAssociationDefinition
     /**
      * Creates a filter that provides all shadows eligible as the target value for this association.
      *
+     * FIXME resolve limitations:
+     *  - single object class is allowed for given association
+     *  - if multiple object types are there, then the filter is for the whole class
+     *  - if type type is the default object type, then it's used as such (even if the whole OC should be returned)
+     *
      * TODO are these immediate targets (associated objects, if present), or the "final" targets?
      */
     ObjectFilter createTargetObjectsFilter();
@@ -56,4 +61,8 @@ public interface ShadowAssociationDefinition
     SimulatedShadowAssociationClassDefinition getSimulationDefinitionRequired();
 
     boolean isEntitlement();
+
+    default String getResourceOid() {
+        return getRepresentativeTargetObjectDefinition().getResourceOid();
+    }
 }

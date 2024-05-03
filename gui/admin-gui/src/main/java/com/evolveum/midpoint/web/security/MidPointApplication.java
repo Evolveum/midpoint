@@ -11,13 +11,15 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import javax.xml.datatype.Duration;
-
-import com.evolveum.midpoint.repo.common.subscription.SubscriptionStateCache;
 
 import jakarta.servlet.ServletContext;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.io.FileUtils;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -43,6 +45,8 @@ import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.pageStore.IPageStore;
+import org.apache.wicket.pageStore.disk.NestedFolders;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -94,6 +98,7 @@ import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionStateCache;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -168,6 +173,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired @Qualifier("descriptorLoader") private DescriptorLoader descriptorLoader;
     @Value("${midpoint.additionalPackagesToScan:}") private String additionalPackagesToScan;
     @Value("${wicket.request-cycle.timeout:60s}") private java.time.Duration requestCycleTimeout;
+    /**
+     * If set to false, we will not clean up disk page store files during application initialization.
+     */
+    @Value("${wicket.disk-page-store.cleanupOnStart:true}") private boolean diskPageStoreCleanupOnStart;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -323,6 +332,43 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         settings.setIncludeJavascriptFull(false);
         settings.setIncludeJavascript(false);
         settings.setIncludeCss(false);
+
+        cleanupWicketFileStore();
+    }
+
+    /**
+     * Currently default wicket {@link org.apache.wicket.pageStore.DiskPageStore} doesn't clear unused/old files created
+     * from sessions created in previous server runs.
+     *
+     * Also, if page store index wasn't created during previous shutdown, all existing files in this page store will never
+     * be removed.
+     *
+     * See MID-9430
+     */
+    private void cleanupWicketFileStore() {
+        if (!diskPageStoreCleanupOnStart) {
+            return;
+        }
+
+        setPageManagerProvider(new DefaultPageManagerProvider(this) {
+
+            @Override
+            protected IPageStore newPersistentStore() {
+                File fileStoreFolder = application.getStoreSettings().getFileStoreFolder();
+
+                NestedFolders folders = new NestedFolders(new File(fileStoreFolder, application.getName() + "-filestore"));
+                File wicketStoreBase = folders.getBase();
+                if (wicketStoreBase.exists() && wicketStoreBase.isDirectory()) {
+                    try {
+                        FileUtils.cleanDirectory(folders.getBase());
+                    } catch (IOException ex) {
+                        LOGGER.warn("Couldn't cleanup wicket store directory {}", wicketStoreBase, ex);
+                    }
+                }
+
+                return super.newPersistentStore();
+            }
+        });
     }
 
     public DeploymentInformationType getDeploymentInfo() {

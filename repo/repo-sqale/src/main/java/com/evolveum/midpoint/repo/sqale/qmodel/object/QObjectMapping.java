@@ -634,5 +634,13 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         fullObjectSkips = null; // Needs to be recomputed
     }
 
+    /**
+     * If mapping supports force reindex
+     *
+     * @return True if reindex is supported for specified objects.
+     */
+    public boolean isReindexSupported() {
+        return true;
+    }
     // endregion
 }

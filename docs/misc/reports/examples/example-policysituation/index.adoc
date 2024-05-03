@@ -6,7 +6,8 @@
 :page-wiki-metadata-create-date: 2020-05-04T13:00:25.101+02:00
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2020-05-04T14:37:22.496+02:00
-:page-upkeep-status: green
+:page-upkeep-status: yellow
+:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
 
 Please see xref:/midpoint/reference/admin-gui/dashboards/configuration/[Dashboard configuration] for basic information about configuration variables.
 
@@ -19,9 +20,12 @@ The Administrator needs to display all users which have value of description set
 
 At first, we need to configure a policy rule. In this Example we add the following snippet of configuration to our system configuration in Midpoint.
 
+//TODO check after sampleRef is fully in prod
 .*Example System Config configuration*
 [%collapsible]
 ====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/misc/system-policy-rec.xml[Git]
+
 sampleRef::samples/misc/system-policy-rec.xml[]
 ====
 
@@ -29,17 +33,23 @@ Now, we have to recompute all users in order to set our policySituation for them
 
 Afterwards We need to configure object collection for users with policySituation.
 
+//TODO check after sampleRef is fully in prod
 .*Example ObjectCollection configuration*
 [%collapsible]
 ====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/users-with-policySituation.xml[Git]
+
 sampleRef::samples/objectCollection/users-with-policySituation.xml[]
 ====
 
 When we have the object collection in place, we want to set up an import Dashboard object with a widget for our object collection.
 
+//TODO check after sampleRef is fully in prod
 .*Example Dashboard configuration*
 [%collapsible]
 ====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/users-policy-situation.xml[Git]
+
 sampleRef::samples/dashboard/users-policy-situation.xml[]
 ====
 
@@ -47,10 +57,12 @@ After the successful import of the dashboard object you can see the dashboard in
 
 We want to report it out as a table of users created by Midpoint, for this we can use a dashboard report.
 
-
+//TODO check after sampleRef is fully in prod
 .*Example Dashboard Report Configuration*
 [%collapsible]
 ====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/users-created-policy-dashboard-report.xml[Git]
+
 sampleRef::samples/reports/users-created-policy-dashboard-report.xml[]
 ====
 

@@ -125,6 +125,21 @@ public abstract class SecurityTraceEvent extends AbstractTraceEvent {
         }
     }
 
+    static class PartialFilterOperationNote<F> extends PartialFilterOperationRelated<F> {
+
+        PartialFilterOperationNote(
+                @NotNull EnforcerFilterOperation<?, F>.PartialOp partialOp,
+                @Nullable String message,
+                @Nullable Object[] arguments) {
+            super(partialOp, message, arguments);
+        }
+
+        @Override
+        public @NotNull TraceRecord defaultTraceRecord() {
+            return TraceRecord.of(getFormattedMessage("", ""));
+        }
+    }
+
     static class PartialFilterOperationFinished<F> extends PartialFilterOperationRelated<F> implements End {
 
         private final EnforcerFilterOperation<?, F>.PartialOp partialOp;
@@ -153,7 +168,7 @@ public abstract class SecurityTraceEvent extends AbstractTraceEvent {
                     "Resulting filter:\n" + operation.debugDumpFilter(filter, 1),
                     "Total 'allow' filter:\n" + operation.debugDumpFilter(partialOp.getSecurityFilterAllow(), 1),
                     "Total 'deny' filter:\n" + operation.debugDumpFilter(partialOp.getSecurityFilterDeny(), 1),
-                    "Paths: " + partialOp.getQueryItemsSpec().shortDump());
+                    "Paths: " + partialOp.getQueryObjectsAutzCoverage().shortDump());
             return TraceRecord.of(
                     firstLine,
                     String.join("\n", nextLines));

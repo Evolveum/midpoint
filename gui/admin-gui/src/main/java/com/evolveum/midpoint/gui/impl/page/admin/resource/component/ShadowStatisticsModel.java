@@ -56,6 +56,7 @@ public class ShadowStatisticsModel extends LoadableModel<ChartConfiguration> {
                 .item(ShadowType.F_SYNCHRONIZATION_SITUATION).eq(situation)
                 .buildFilter();
     }
+
     private ChartDataset createDataset(List<ShadowStatisticsDto> shadowStatistics) {
         ChartDataset dataset = new ChartDataset();
         dataset.setLabel("Shadow statistics");
@@ -72,8 +73,11 @@ public class ShadowStatisticsModel extends LoadableModel<ChartConfiguration> {
         ChartOptions options = new ChartOptions();
         options.setLegend(createLegendOptions());
         options.setIndexAxis(IndexAxis.AXIS_Y.getValue());
+        options.setResponsive(true);
+        options.setMaintainAspectRatio(false);
         return options;
     }
+
     private ChartLegendOption createLegendOptions() {
         ChartLegendOption legend = new ChartLegendOption();
         legend.setPosition("right");
@@ -82,7 +86,6 @@ public class ShadowStatisticsModel extends LoadableModel<ChartConfiguration> {
         legend.setLabels(label);
         return legend;
     }
-
 
     protected Integer createTotalsModel(ObjectFilter situationFilter) {
         return 0;

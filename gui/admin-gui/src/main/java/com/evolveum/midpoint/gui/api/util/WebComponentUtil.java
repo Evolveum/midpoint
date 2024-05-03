@@ -690,6 +690,10 @@ public final class WebComponentUtil {
 
     public static boolean isAuthorized(Class<? extends ObjectType> clazz) {
         Class<? extends PageBase> detailsPage = DetailsPageUtil.getObjectDetailsPage(clazz);
+        return isAuthorizedForPage(detailsPage);
+    }
+
+    public static boolean isAuthorizedForPage(Class<? extends PageBase> detailsPage) {
         if (detailsPage == null) {
             return false;
         }
@@ -2110,9 +2114,16 @@ public final class WebComponentUtil {
             if (StringUtils.isEmpty(templateOid)) {
                 return;
             }
-            String label = action.getDisplay() != null && PolyStringUtils.isNotEmpty(action.getDisplay().getLabel()) ?
-                    action.getDisplay().getLabel().getOrig() : action.getIdentifier();
-            menuItems.add(new InlineMenuItem(Model.of(label)) {
+
+            IModel<String> label = () -> {
+                DisplayType display = action.getDisplay();
+                if (display == null || display.getLabel() == null) {
+                    return action.getIdentifier();
+                }
+
+                return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(display.getLabel());
+            };
+            menuItems.add(new InlineMenuItem(label) {
                 @Serial private static final long serialVersionUID = 1L;
 
                 @Override

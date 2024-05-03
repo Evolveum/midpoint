@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.schema;
 
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.PrismSchemaModel;
 
 import com.evolveum.midpoint.gui.impl.prism.wrapper.SchemaPropertyWrapperImpl;
@@ -23,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 
 import org.apache.wicket.model.PropertyModel;
 
-public class SchemaDetailsModel extends ObjectDetailsModels<SchemaType> {
+public class SchemaDetailsModel extends AssignmentHolderDetailsModel<SchemaType> {
 
     private final PrismSchemaModel prismSchemaModel;
     private DefinitionsModel<DefinitionDto> schemaModel;

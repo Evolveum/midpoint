@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.security;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.test.TestObject;
 
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -289,8 +291,22 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertGetDeny(CaseType.class, CASE2.oid);
         assertGetDeny(CaseType.class, CASE3.oid);
         assertGetDeny(CaseType.class, CASE4.oid);
-        assertSearchCertCases(2);
         assertSearchCases(CASE1.oid);
+
+        // There are two visible search cases (because they reside in jack's campaigns).
+        // We will try searching for them using various filters.
+        assertSearchCertCases(2); // searching for all cases
+        assertSearchCertCases(queryForCertCasesByCampaignOwner(USER_JACK_OID), 2);
+        assertSearchCertCases(queryForCertCasesByStageNumber(1), 2);
+        assertSearchCertCases(queryForCertCasesByWorkItemOutcome(MODEL_CERTIFICATION_OUTCOME_ACCEPT), 1);
+        assertSearchCertWorkItems(
+                queryFor(AccessCertificationWorkItemType.class)
+                        .filter(
+                                CertCampaignTypeUtil.createWorkItemsForCampaignQuery(CAMPAIGN2.oid).getFilter())
+                        .and().item(AccessCertificationWorkItemType.F_ASSIGNEE_REF).ref(USER_ADMINISTRATOR_OID)
+                        .and().item(AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP).isNull()
+                        .build(),
+                2);
 
         assertGlobalStateUntouched();
     }
@@ -3126,6 +3142,37 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertNoAccess(userJack);
 
         assertGlobalStateUntouched();
+    }
+
+    /** Searching for "roles of teammate" with denied access to `assignment` item. MID-9638. */
+    @Test
+    public void test320AutzDenyReadAssignmentAndRoleMembershipRef() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_READONLY.oid);
+        assignRole(USER_JACK_OID, ROLE_DENY_READ_ASSIGNMENT_AND_ROLE_MEMBERSHIP_REF.oid);
+        login(USER_JACK_USERNAME);
+
+        when("searching for users based on assignment/targetRef (forbidden)");
+        assertSearch(
+                UserType.class,
+                queryFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+                        .ref(ROLE_BASIC.oid) // at least alex has this role
+                        .build(),
+                0); // access to assignment/targetRef is explicitly denied
+
+        when("searching for roles of teammate alex (forbidden)");
+        var alexRolesQuery = createRolesOfTeammateQuery(USER_ALEX.oid);
+        assertSearch(RoleType.class, alexRolesQuery, 0);
+    }
+
+    private ObjectQuery createRolesOfTeammateQuery(String userOid) {
+        return queryFor(RoleType.class)
+                .referencedBy(UserType.class, UserType.F_ASSIGNMENT.append(AssignmentType.F_TARGET_REF))
+                .id(userOid)
+                .and().not().type(ArchetypeType.class)
+                .build();
     }
 
     @Test

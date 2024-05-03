@@ -259,10 +259,23 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     public boolean hasUnsavedChanges(AjaxRequestTarget target) {
+        return hasUnsavedChanges(false, target);
+    }
+
+    public boolean hasUnsavedChangesInWizard(AjaxRequestTarget target) {
+        return hasUnsavedChanges(true, target);
+    }
+
+    private boolean hasUnsavedChanges(boolean inWizard, AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_SAVE);
 
         try {
-            Collection<ObjectDelta<? extends ObjectType>> deltas = getObjectDetailsModels().collectDeltas(result);
+            Collection<ObjectDelta<? extends ObjectType>> deltas;
+            if (inWizard) {
+                deltas = getObjectDetailsModels().collectDeltaWithoutSavedDeltas(result);
+            } else {
+                deltas = getObjectDetailsModels().collectDeltas(result);
+            }
 
             return !deltas.isEmpty();
         } catch (Throwable ex) {

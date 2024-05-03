@@ -265,7 +265,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 fail("unexpected success");
             } catch (SecurityViolationException e) {
                 assertExpectedException(e)
-                        .hasMessageContaining("Denied access to functionality of script in expression in mapping in autoassign mapping")
+                        .hasMessageContaining("Denied access to functionality of script in")
+                        .hasMessageContaining("expression in mapping in autoassign mapping")
                         .hasMessageContaining(DETAIL_REASON_MESSAGE_BOOM_RESTRICTED);
                 assertLocation(
                         e,
@@ -306,7 +307,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 fail("unexpected success");
             } catch (SecurityViolationException e) {
                 assertExpectedException(e)
-                        .hasMessageContaining("Denied access to functionality of script in condition in mapping in autoassign mapping")
+                        .hasMessageContaining("Denied access to functionality of script in")
+                        .hasMessageContaining("condition in mapping in autoassign mapping")
                         .hasMessageContaining(DETAIL_REASON_MESSAGE_BOOM_RESTRICTED);
                 assertLocation(
                         e,

@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_REC
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
@@ -151,6 +152,9 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                 return 0;
             }
 
+            boolean sendOwnMessageToEachRecipient = sendOwnMessageToEachRecipient(notifierConfig);
+            Message message = prepareMessage(notifierConfig, variables, transport, transportName, null, ctx, result);
+
             // TODO: Here we have string addresses already, this does not allow transport to have
             //  its own strategy (e.g. a default one) to obtain the address from the focus type.
             //  We should work here with recipient structure that can be either focus (for later
@@ -162,8 +166,11 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
             int sentMessages = 0;
             for (RecipientExpressionResultType recipient : recipients) {
+                if (sendOwnMessageToEachRecipient) {
+                    message = prepareMessage(notifierConfig, variables, transport, transportName, recipient, ctx, result);
+                }
                 sentMessages +=
-                        prepareAndSendMessage(notifierConfig, variables, transport, transportName, recipient, ctx, result);
+                        sendMessage(message, transport, transportName, recipient, ctx, result);
             }
             return sentMessages;
         } catch (Throwable t) {
@@ -174,35 +181,29 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
     }
 
-    private int prepareAndSendMessage(
+    private boolean sendOwnMessageToEachRecipient(ConfigurationItem<? extends N> notifierConfig) {
+        NotificationSendingStrategyType sendingStrategy = notifierConfig.value().getNotificationSendingStrategy();
+        return sendingStrategy == null || NotificationSendingStrategyType.SEPARATE_NOTIFICATION_TO_EACH_RECIPIENT.equals(sendingStrategy);
+    }
+
+    private Message prepareMessage(
             ConfigurationItem<? extends N> notifierConfig, VariablesMap variables,
             @NotNull Transport<?> transport, @Deprecated String transportName,
-            RecipientExpressionResultType recipient,
+            @Nullable RecipientExpressionResultType recipient,
             EventProcessingContext<? extends E> ctx, OperationResult result)
             throws SchemaException {
-        // TODO this is what we want in 4.6, parameter must go
-        //  But this will also mean rewriting existing tests from legacy to new transport style.
-        // String transportName = transport.getName();
 
-        String address = getRecipientAddress(transport, recipient, ctx, result);
-        if (address == null) {
-            getLogger().debug("Skipping notification as no recipient address was provided or determined for transport '{}'.", transportName);
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No recipient address provided/determined for notifier or transport");
-            return 0;
-        }
 
         MessageTemplateContentType messageTemplateContent = findMessageContent(notifierConfig.value(), recipient, result);
 
         String body = getBody(notifierConfig, messageTemplateContent, variables, transportName, ctx, result);
         if (body == null) {
-            getLogger().debug("Skipping notification as null body was provided for transport '{}'.", transportName);
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No message body");
-            return 0;
+            return new Message();
         }
 
+        Locale locale = recipient != null ? LocalizationUtil.toLocale(focusLanguageOrLocale(recipient)) : null;
         String subscriptionFooter =
-                SubscriptionUtil.missingSubscriptionAppeal(localizationService,
-                        LocalizationUtil.toLocale(focusLanguageOrLocale(recipient)));
+                SubscriptionUtil.missingSubscriptionAppeal(localizationService, locale);
         if (subscriptionFooter != null) {
             body += '\n' + subscriptionFooter;
         }
@@ -275,11 +276,37 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
         // setting addressing information
         message.setFrom(getFromFromExpression(notifierConfig, variables, ctx, result));
-        message.setTo(List.of(address));
         message.setCc(getCcBccAddresses(notifierConfig.value().getCcExpression(),
                 variables, "notification cc-expression", ctx, result));
         message.setBcc(getCcBccAddresses(notifierConfig.value().getBccExpression(),
                 variables, "notification bcc-expression", ctx, result));
+        return message;
+    }
+
+    private int sendMessage(
+            @NotNull Message message,
+            @NotNull Transport<?> transport, @Deprecated String transportName,
+            RecipientExpressionResultType recipient,
+            EventProcessingContext<? extends E> ctx, OperationResult result) {
+        // TODO this is what we want in 4.6, parameter must go
+        //  But this will also mean rewriting existing tests from legacy to new transport style.
+        // String transportName = transport.getName();
+
+        String address = getRecipientAddress(transport, recipient, ctx, result);
+        if (address == null) {
+            getLogger().debug("Skipping notification as no recipient address was provided or determined for transport '{}'.", transportName);
+            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No recipient address provided/determined for notifier or transport");
+            return 0;
+        }
+
+        String body = message.getBody();
+        if (body == null) {
+            getLogger().debug("Skipping notification as null body was provided for transport '{}'.", transportName);
+            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No message body");
+            return 0;
+        }
+
+        message.setTo(List.of(address));
 
         getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
         transport.send(
@@ -350,7 +377,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
     @Nullable
     private MessageTemplateContentType findMessageContent(
-            N notifierConfigBean, RecipientExpressionResultType recipient, OperationResult result) {
+            N notifierConfigBean, @Nullable RecipientExpressionResultType recipient, OperationResult result) {
         ObjectReferenceType messageTemplateRef = notifierConfigBean.getMessageTemplateRef();
         if (messageTemplateRef != null) {
             MessageTemplateType messageTemplate =
@@ -360,12 +387,14 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                         + " from the notifier: {}", messageTemplateRef.getOid(), notifierConfigBean);
             } else {
                 MessageTemplateContentType content = messageTemplate.getDefaultContent();
-                ObjectReferenceType recipientRef = recipient.getRecipientRef();
-                if (recipientRef != null) {
-                    MessageTemplateContentType localizedContent = findLocalizedContent(messageTemplate, recipientRef);
-                    if (localizedContent != null) {
-                        inheritAttachmentSetupFromDefaultContent(localizedContent, content);
-                        content = localizedContent; // otherwise it's default content
+                if (recipient != null) {
+                    ObjectReferenceType recipientRef = recipient.getRecipientRef();
+                    if (recipientRef != null) {
+                        MessageTemplateContentType localizedContent = findLocalizedContent(messageTemplate, recipientRef);
+                        if (localizedContent != null) {
+                            inheritAttachmentSetupFromDefaultContent(localizedContent, content);
+                            content = localizedContent; // otherwise it's default content
+                        }
                     }
                 }
                 return content;
