@@ -628,6 +628,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             @NotNull OperationResult operationResult)
             throws SchemaException, PreconditionViolationException, RepositoryException {
         try (var sqaleResult = SqlBaseOperationTracker.with(operationResult)){
+
             if (options == null) {
                 options = new RepoModifyOptions();
             }
@@ -661,6 +662,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             // Use reindex instead of modify if reindex is required by user, or repository
             // itself detected need for reindex during preparation read for modify.
             boolean reindex = updateContext.reindexNeeded() || options.isForceReindex();
+            // Only reindex if mapping supports reindex (most mappings, except simulation result)
+            reindex = reindex && updateContext.mapping().isReindexSupported();
             if (reindex) {
                 // UpdateTables is false, we want only to process modifications on fullObject
                 // do not modify nested items.
