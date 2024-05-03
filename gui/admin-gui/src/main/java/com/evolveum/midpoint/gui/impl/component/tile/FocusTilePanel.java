@@ -130,6 +130,9 @@ public class FocusTilePanel<F extends Serializable, T extends Tile<F>> extends B
             return type;
         }
 
+        // clone to avoid immutable property modification
+        type = type.clone();
+
         IconType icon = type.getIcon();
         icon.setCssClass(StringUtils.joinWith(" ", icon.getCssClass(), "fa-2x"));
 

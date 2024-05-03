@@ -115,6 +115,8 @@ public class RequestAccess implements Serializable {
     /**
      * Assignments that we're added to shopping cart from role catalog.
      * Not assigned to any user yet. Set is assigned as a whole to every new user for which we're requesting.
+     *
+     * These should only contain targetRef with proper oid and relation, nothing else.
      */
     private final Set<AssignmentType> templateAssignments = new HashSet<>();
 
@@ -126,7 +128,8 @@ public class RequestAccess implements Serializable {
     private QName defaultRelation;
 
     /**
-     * Used as backing field for combobox model. It can contain different values - string keys (custom length label), predefined values
+     * Used as backing field for combobox model.
+     * It can contain different values - string keys (custom length label), predefined values
      */
     private Object selectedValidity;
 
@@ -315,8 +318,6 @@ public class RequestAccess implements Serializable {
         }
 
         AssignmentConstraintsType constraints = getDefaultAssignmentConstraints();
-//        boolean allowSameRelation = isAllowSameRelation(constraints);
-//        boolean allowSameTarget = isAllowSameTarget(constraints);
 
         // we can't use selectedAssignments.contains(a) here because selectedAssignments can contain items other than targetRef
         // we'll also take assignment constraints into account
@@ -330,34 +331,6 @@ public class RequestAccess implements Serializable {
 
         // we'll add new assignments to templates (that would be added to all POIs added afterward)
         filterNotYetSelected.forEach(a -> templateAssignments.add(a.clone()));
-
-//        boolean changed = false;
-//        for (Map.Entry<ObjectReferenceType, List<AssignmentType>> entry : requestItems.entrySet()) {
-//            ObjectReferenceType poi = entry.getKey();
-//            List<ObjectReferenceType> existingAssignmentRefs = existingPoiRoleMemberships.get(poi);
-//
-//            for (AssignmentType newOne : filterNotYetSelected) {
-//                // we'll check if user has the same assignment already assigned
-//                boolean alreadyAssigned = containsReference(existingAssignmentRefs, newOne.getTargetRef(), allowSameRelation);
-//                if (alreadyAssigned && !allowSameTarget) {
-//                    // skip adding the same one, if it's not allowed
-//                    continue;
-//                }
-//
-//                for (List<AssignmentType> list : requestItems.values()) {
-//                    AssignmentType existing = findMatchingAssignment(list, newOne, allowSameRelation);
-//                    if (existing == null) {
-//                        list.add(newOne.clone());
-//                        changed = true;
-//                    }
-//                }
-//            }
-//
-//        }
-//
-//        if (changed) {
-//            markConflictsDirty();
-//        }
 
         for (List<AssignmentType> list : requestItems.values()) {
             filterNotYetSelected.forEach(a -> list.add(a.clone()));
