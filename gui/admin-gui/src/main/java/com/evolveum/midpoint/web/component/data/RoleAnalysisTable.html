@@ -10,10 +10,11 @@
 
 
 <wicket:panel>
-    <div class="card-footer" wicket:id="headerFooter"/>
+    <div class="card-footer" wicket:id="headerFooter">
+    </div>
     <div class="card-header" wicket:id="header"/>
-    <div wicket:id="tableContainer" id="tableScaleContainer"  class="card-body p-0 table-responsive">
-        <table class="table table-hover"  wicket:id="table"/>
+    <div wicket:id="tableContainer" id="tableScaleContainer" class="card-body p-0 table-responsive">
+        <table class="table table-hover" wicket:id="table"/>
     </div>
     <div class="card-footer" wicket:id="footer"/>
 </wicket:panel>
@@ -22,10 +23,11 @@
 <wicket:fragment wicket:id="pagingFooterHeader">
 
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2" wicket:id="footerContainer">
-
         <div class="d-flex">
-
             <form class="mr-3" wicket:id="form_bs_process">
+                <button type="button" class="btn btn-default btn-sm" data-card-widget="maximize">
+                    <i class="fas fa-expand"></i>
+                </button>
                 <div
                         wicket:id="process_selections_id" style="width: 150px"></div>
             </form>

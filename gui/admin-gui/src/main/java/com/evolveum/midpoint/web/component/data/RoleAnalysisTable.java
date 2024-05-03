@@ -72,6 +72,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
     private static final String ID_FORM = "form";
     private final boolean showAsCard = true;
+    private boolean showAsExpandCard = false;
     private final UserProfileStorage.TableId tableId;
     private String additionalBoxCssClasses = null;
     int columnCount;
@@ -95,6 +96,11 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider<T, ?> provider, int colSize) {
         setOutputMarkupId(true);
         add(AttributeAppender.prepend("class", () -> showAsCard ? "card" : ""));
+
+        if(isShowAsExpandCard()){
+            add(AttributeAppender.replace("class", "card maximized-card"));
+        }
+
         add(AttributeAppender.append("class", this::getAdditionalBoxCssClasses));
 
         WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
@@ -434,7 +440,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
             editButton.add(new VisibleBehaviour(RoleAnalysisTable.this::getMigrationButtonVisibility));
             editButton.titleAsLabel(true);
             editButton.setOutputMarkupId(true);
-            editButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+            editButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
 
             formBsProcess.add(editButton);
 
@@ -482,6 +488,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
             Label count = new Label(ID_COUNT, Model.of(title));
             count.setOutputMarkupId(true);
             footerContainer.add(count);
+
 
             RoleAnalysisTablePageable<?> roleAnalysisTablePageable = new RoleAnalysisTablePageable<>(navigation.size(),
                     getCurrentPage());
@@ -556,6 +563,14 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
     protected boolean getMigrationButtonVisibility() {
         return true;
+    }
+
+    public boolean isShowAsExpandCard() {
+        return showAsExpandCard;
+    }
+
+    public void setShowAsExpandCard(boolean showAsExpandCard) {
+        this.showAsExpandCard = showAsExpandCard;
     }
 
 }
