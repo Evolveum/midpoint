@@ -7,13 +7,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerPanel;
+
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.util.DateValidator;
+
+import java.util.Date;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -39,20 +43,20 @@ public class CustomValidityPanel extends BasePanel<CustomValidity> {
         form.add(new DateValidator(getFrom(), getTo()));
     }
 
-    public DateInput getFrom() {
-        return (DateInput) get(ID_FROM);
+    public TextField<Date> getFrom() {
+        return ((DateTimePickerPanel)get(ID_FROM)).getBaseFormComponent();
     }
 
-    public DateInput getTo() {
-        return (DateInput) get(ID_TO);
+    public TextField<Date> getTo() {
+        return ((DateTimePickerPanel)get(ID_TO)).getBaseFormComponent();
     }
 
     private void initLayout() {
-        DateInput from = new DateInput(ID_FROM, new PropertyModel<>(getModel(), "from"));
+        DateTimePickerPanel from = DateTimePickerPanel.createByDateModel(ID_FROM, new PropertyModel<>(getModel(), "from"));
         from.setOutputMarkupId(true);
         add(from);
 
-        DateInput to = new DateInput(ID_TO, new PropertyModel<>(getModel(), "to"));
+        DateTimePickerPanel to = DateTimePickerPanel.createByDateModel(ID_TO, new PropertyModel<>(getModel(), "to"));
         to.setOutputMarkupId(true);
         add(to);
     }

@@ -71,6 +71,8 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
         ChartOptions options = new ChartOptions();
         options.setLegend(createLegendOptions());
         options.setIndexAxis(IndexAxis.AXIS_X.getValue());
+        options.setResponsive(true);
+        options.setMaintainAspectRatio(false);
         return options;
     }
 

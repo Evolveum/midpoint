@@ -639,6 +639,45 @@ li.dropdown.user.user-menu {
 	float: left;
 	background-color: transparent;
 	margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (min-width: 1200px) {
+  .navbar-title {
+    min-width: fit-content;
+  }
+}
+
+.navbar-right {
+  margin-left: auto !important;
+  display: flex !important;
+
+  width: auto;
+  max-width: 100%;
+  min-width: fit-content;
+}
+
+@media (min-width: 1200px) {
+  .navbar-right {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
+.navbar-left {
+  width: fit-content;
+  min-width: 0;
+}
+
+@media (min-width: 1200px) {
+  .navbar-left {
+    min-width: auto;
+  }
 }
 
 .page-title {
@@ -655,6 +694,8 @@ li.dropdown.user.user-menu {
   font-size: 12px;
   padding: 7px 5px;
   color: inherit;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 
   //.border-radius(2px);
 

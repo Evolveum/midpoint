@@ -17,13 +17,12 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -107,6 +106,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     private static final String ID_LIFECYCLE_STATE = "lifecycleState";
     private static final String OP_SET_LIFECYCLE_STATE_FOR_OBJECT_TYPE = DOT_CLASS + "setLyfecycleStateForObjectType";
     private static final String ID_STATISTICS = "statistics";
+    private static final String ID_CHART_CONTAINER = "chartContainer";
     private static final String ID_SHOW_STATISTICS = "showStatistics";
     private static final String ID_TASKS = "tasks";
     private static final String OP_CREATE_TASK = DOT_CLASS + "createTask";
@@ -327,12 +327,13 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private void createShowStatistics() {
-        CheckBoxPanel showStatistics = new CheckBoxPanel(ID_SHOW_STATISTICS, showStatisticsModel, createStringResource("ResourceObjectsPanel.showStatistics")) {
+        CheckBoxPanel showStatistics = new CheckBoxPanel(ID_SHOW_STATISTICS, showStatisticsModel,
+                createStringResource("ResourceObjectsPanel.showStatistics")) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
                 super.onUpdate(target);
-                target.add(getStatisticsPanel());
+                target.add(getStatisticsPanel().getParent());
             }
         };
         showStatistics.setOutputMarkupId(true);
@@ -340,6 +341,11 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private void createStatisticsPanel() {
+        WebMarkupContainer chartContainer = new WebMarkupContainer(ID_CHART_CONTAINER);
+        chartContainer.setOutputMarkupId(true);
+        chartContainer.add(new VisibleBehaviour(showStatisticsModel::getObject));
+        add(chartContainer);
+
         ShadowStatisticsModel statisticsModel = new ShadowStatisticsModel() {
 
             protected Integer createTotalsModel(final ObjectFilter situationFilter) {
@@ -359,8 +365,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
                 new ChartJsPanel<>(ID_STATISTICS, statisticsModel);
         shadowStatistics.setOutputMarkupId(true);
         shadowStatistics.setOutputMarkupPlaceholderTag(true);
-        shadowStatistics.add(new VisibleBehaviour(() -> showStatisticsModel.getObject()));
-        add(shadowStatistics);
+        chartContainer.add(shadowStatistics);
     }
 
     private Integer countFor(ObjectFilter situationFilter) {
@@ -406,6 +411,13 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
             protected SearchContext createAdditionalSearchContext() {
                 SearchContext searchContext = new SearchContext();
                 searchContext.setPanelType(CollectionPanelType.REPO_SHADOW);
+                // MID-9569: selectedObjectDefinition has knowledge about detailed shadow type, so we can provide it
+                // directly to search (since we are also adding coordinates to filter) so Axiom Query can access
+                // additional attributes
+                var resTypeDef = getSelectedObjectTypeDefinition();
+                if (resTypeDef != null) {
+                    searchContext.setDefinitionOverride(resTypeDef.getPrismObjectDefinition());
+                }
                 return searchContext;
             }
 
@@ -864,8 +876,8 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         return (ShadowTablePanel) get(ID_TABLE);
     }
 
-    private ChartJsPanel getStatisticsPanel() {
-        return (ChartJsPanel) get(ID_STATISTICS);
+    private WebMarkupContainer getStatisticsPanel() {
+        return (WebMarkupContainer) get(ID_CHART_CONTAINER);
     }
 
 }

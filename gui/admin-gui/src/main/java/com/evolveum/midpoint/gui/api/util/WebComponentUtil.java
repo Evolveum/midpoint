@@ -22,6 +22,7 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -40,7 +41,6 @@ import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
-import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
@@ -1526,7 +1526,7 @@ public final class WebComponentUtil {
         if (date == null) {
             return null;
         }
-        PatternDateConverter converter = new PatternDateConverter(getLocalizedDatePattern(style), true);
+        DateConverter converter = new DateConverter(getLocalizedDatePattern(style), true);
         return converter.convertToString(date, getCurrentLocale());
     }
 

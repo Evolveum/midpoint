@@ -9,9 +9,9 @@ package com.evolveum.midpoint.web.util;
 
 import java.util.Date;
 
-import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -24,15 +24,15 @@ public class DateValidator extends AbstractFormValidator {
     private static final long serialVersionUID = 1L;
 
     private ItemPath identifier;
-    private DateTimeField dateFrom;
-    private DateTimeField dateTo;
+    private TextField<Date> dateFrom;
+    private TextField<Date> dateTo;
     private String messageKey = "DateValidator.defaultErrorMessage";
 
     public DateValidator() {
         this(null, null);
     }
 
-    public DateValidator(DateTimeField dateFrom, DateTimeField dateTo) {
+    public DateValidator(TextField<Date> dateFrom, TextField<Date> dateTo) {
         this.dateFrom = dateFrom;
         this.dateTo = dateTo;
     }
@@ -69,11 +69,11 @@ public class DateValidator extends AbstractFormValidator {
         }
     }
 
-    public void setDateFrom(DateTimeField dateFrom) {
+    public void setDateFrom(TextField<Date> dateFrom) {
         this.dateFrom = dateFrom;
     }
 
-    public void setDateTo(DateTimeField dateTo) {
+    public void setDateTo(TextField<Date> dateTo) {
         this.dateTo = dateTo;
     }
 
