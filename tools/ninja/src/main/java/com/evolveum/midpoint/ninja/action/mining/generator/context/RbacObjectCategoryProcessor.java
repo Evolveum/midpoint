@@ -1,4 +1,21 @@
+/*
+ * Copyright (C) 2010-2024 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.ninja.action.mining.generator.context;
+
+import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.getNameFromSet;
+import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.importUserAndResolveAuxRoles;
+import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGeneratorUtils.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.mining.generator.GeneratorOptions;
 import com.evolveum.midpoint.ninja.action.mining.generator.object.InitialObjectsDefinition;
@@ -7,15 +24,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import java.util.Set;
-
-import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.getNameFromSet;
-import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.importUserAndResolveAuxRoles;
-import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGeneratorUtils.*;
 
 enum RbacObjectCategoryProcessor {
     REGULR("Regular User"),
@@ -39,31 +47,152 @@ enum RbacObjectCategoryProcessor {
         this.displayName = displayName;
     }
 
+    public static RbacObjectCategoryProcessor getRandomCategory(RbacObjectCategoryProcessor category) {
+        Random random = new Random();
+        RbacObjectCategoryProcessor[] values = values();
+        RbacObjectCategoryProcessor randomCategory = category;
+        while (randomCategory == category) {
+            randomCategory = values[random.nextInt(values.length)];
+        }
+        return randomCategory;
+    }
+
+    public static RbacObjectCategoryProcessor getRandomCategory(RbacObjectCategoryProcessor category, RbacObjectCategoryProcessor category2) {
+        Random random = new Random();
+        RbacObjectCategoryProcessor[] values = values();
+        RbacObjectCategoryProcessor randomCategory = category;
+        while (randomCategory == category || randomCategory == category2) {
+            randomCategory = values[random.nextInt(values.length)];
+        }
+        return randomCategory;
+    }
+
     public void generateRbacData(@NotNull RepositoryService repository,
             @NotNull Log log,
             @NotNull GeneratorOptions generatorOptions,
             int total, Set<String> names, OperationResult result) {
         switch (this) {
+            case REGULR -> {
+                new RegularUser()
+                        .buildAndImportObjects(log, repository, generatorOptions, total, names, result);
+
+                resolveOutliers(REGULR, repository, log, generatorOptions, total, names, result);
+            }
+
+            case SEMI_REGULAR -> {
+                new SemiRegularUser(generatorOptions)
+                        .buildAndImportObjects(log, repository, generatorOptions, total, names, result);
+                resolveOutliers(SEMI_REGULAR, repository, log, generatorOptions, total, names, result);
+            }
+            case IRREGULAR -> {
+                new IrregularUser(generatorOptions)
+                        .buildAndImportObjects(log, repository, generatorOptions, total, names, result);
+                resolveOutliers(IRREGULAR, repository, log, generatorOptions, total, names, result);
+            }
+            case MANAGERS -> {
+                new ManagerUser(generatorOptions)
+                        .buildAndImportObjects(log, repository, generatorOptions, total, names, result);
+                resolveOutliers(MANAGERS, repository, log, generatorOptions, total, names, result);
+            }
+            case SALES -> {
+                new SalesUser(generatorOptions)
+                        .buildAndImportObjects(log, repository, generatorOptions, total, names, result);
+                resolveOutliers(SALES, repository, log, generatorOptions, total, names, result);
+            }
+            case SECURITY_OFFICERS -> {
+                new SecurityOfficer()
+                        .buildAndImportObjects(log, repository, generatorOptions, total, names, result);
+                resolveOutliers(SECURITY_OFFICERS, repository, log, generatorOptions, total, names, result);
+            }
+            case CONTRACTORS -> {
+                new Contractor(generatorOptions)
+                        .buildAndImportObjects(log, repository, generatorOptions, total, names, result);
+                resolveOutliers(CONTRACTORS, repository, log, generatorOptions, total, names, result);
+            }
+        }
+    }
+
+    private static void resolveOutliers(
+            @NotNull RbacObjectCategoryProcessor category,
+            @NotNull RepositoryService repository,
+            @NotNull Log log,
+            @NotNull GeneratorOptions generatorOptions,
+            int total,
+            Set<String> names,
+            OperationResult result) {
+        if (generatorOptions.getOutlierProbability() != 0.0) {
+            boolean candidate = isCandidate(generatorOptions.getOutlierProbability());
+            if (candidate) {
+                new OutlierMask(category)
+                        .buildAndImport(log, repository, generatorOptions, total, result);
+            }
+
+            candidate = isCandidate(generatorOptions.getOutlierProbability());
+            if (candidate) {
+                new OutlierMatuzalem(category)
+                        .buildAndImport(log, repository, generatorOptions, total, result);
+            }
+
+            candidate = isCandidate(generatorOptions.getOutlierProbability());
+            if (candidate) {
+                new OutlierJumper(category)
+                        .buildAndImport(log, repository, generatorOptions, total, result);
+            }
+
+            candidate = isCandidate(generatorOptions.getOutlierProbability());
+            if (candidate) {
+                new OutlierZombie(category)
+                        .buildAndImport(log, repository, generatorOptions, total, result);
+            }
+        }
+    }
+
+    public void generateRbacObject(
+            @NotNull UserType user,
+            boolean limited,
+            boolean partialLimited,
+            @NotNull GeneratorOptions generatorOptions) {
+        switch (this) {
+            case REGULR -> new
+                    RegularUser()
+                    .build(user);
+            case SEMI_REGULAR -> new
+                    SemiRegularUser(generatorOptions)
+                    .build(user, limited);
+            case IRREGULAR -> new
+                    IrregularUser(generatorOptions)
+                    .build(user);
+            case MANAGERS -> new
+                    ManagerUser(generatorOptions)
+                    .build(user, limited);
+            case SALES -> new
+                    SalesUser(generatorOptions)
+                    .build(user, limited, partialLimited);
+            case SECURITY_OFFICERS -> new
+                    SecurityOfficer()
+                    .build(user);
+            case CONTRACTORS -> new
+                    Contractor(generatorOptions)
+                    .build(user);
+        }
+    }
+
+    public void assignAccessByCategory(@NotNull UserType user, @NotNull GeneratorOptions generatorOptions, boolean includePlancton) {
+        switch (this) {
             case REGULR -> new RegularUser()
-                    .buildAndImportObjects(log, repository, generatorOptions, total, names, result);
-            case SEMI_REGULAR ->
-                    new SemiRegularUser(generatorOptions)
-                            .buildAndImportObjects(log, repository, generatorOptions, total, names, result);
-            case IRREGULAR ->
-                    new IrregularUser(generatorOptions)
-                            .buildAndImportObjects(log, repository, generatorOptions, total, names, result);
-            case MANAGERS ->
-                    new ManagerUser(generatorOptions)
-                            .buildAndImportObjects(log, repository, generatorOptions, total, names, result);
-            case SALES ->
-                    new SalesUser(generatorOptions)
-                            .buildAndImportObjects(log, repository, generatorOptions, total, names, result);
-            case SECURITY_OFFICERS ->
-                    new SecurityOfficer()
-                            .buildAndImportObjects(log, repository, generatorOptions, total, names, result);
-            case CONTRACTORS ->
-                    new Contractor(generatorOptions)
-                            .buildAndImportObjects(log, repository, generatorOptions, total, names, result);
+                    .assignAccess(user);
+            case SEMI_REGULAR -> new SemiRegularUser(generatorOptions)
+                    .assignAccess(user, includePlancton);
+            case IRREGULAR -> new IrregularUser(generatorOptions)
+                    .assignAccess(user, includePlancton);
+            case MANAGERS -> new ManagerUser(generatorOptions)
+                    .assignAccess(user, includePlancton);
+            case SALES -> new SalesUser(generatorOptions)
+                    .assignAccess(user, false, false);
+            case SECURITY_OFFICERS -> new SecurityOfficer()
+                    .assignAccess(user);
+            case CONTRACTORS -> new Contractor(generatorOptions)
+                    .assignAccess(user, includePlancton);
         }
     }
 
@@ -105,15 +234,28 @@ enum RbacObjectCategoryProcessor {
             user.setLocality(locale);
             user.setTitle(PolyStringType.fromOrig(randomlyJobTitleStructure));
 
-            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
-            user.getAssignment().add(createRoleAssignment(locationBusinessRoleOidValue));
-            user.getAssignment().add(createRoleAssignment(randomJobBusinessRoleOidValue));
+            assignAccess(user, locationBusinessRoleOidValue, randomJobBusinessRoleOidValue);
 
             user.getAssignment().add(createOrgAssignment(organizationOid));
 
             setUpArchetypeUser(user, archetypeOid);
 
             return user;
+        }
+
+        private void assignAccess(@NotNull UserType user, String locationBusinessRoleOidValue, String randomJobBusinessRoleOidValue) {
+            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
+            user.getAssignment().add(createRoleAssignment(locationBusinessRoleOidValue));
+            user.getAssignment().add(createRoleAssignment(randomJobBusinessRoleOidValue));
+        }
+
+        private void assignAccess(@NotNull UserType user) {
+            InitialObjectsDefinition.LocationInitialBusinessRole randomLocationBusinessRole = getRandomLocationBusinessRole();
+            String locationBusinessRoleOidValue = randomLocationBusinessRole.getOidValue();
+            InitialObjectsDefinition.JobInitialBusinessRole randomJobBusinessRole = getRandomJobBusinessRole();
+            String randomJobBusinessRoleOidValue = randomJobBusinessRole.getOidValue();
+
+            assignAccess(user, locationBusinessRoleOidValue, randomJobBusinessRoleOidValue);
         }
 
         /**
@@ -178,8 +320,6 @@ enum RbacObjectCategoryProcessor {
             List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(
                     0, generatorOptions);
 
-            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
-
             if (!limited) {
                 user.setLocality(locale);
             }
@@ -188,16 +328,35 @@ enum RbacObjectCategoryProcessor {
                 user.setTitle(PolyStringType.fromOrig(randomlyJobTitleStructure));
             }
 
-            for (InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
-                user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
-            }
+            assignAccess(user, randomPlanktonRoles, locationBusinessRoleOidValue);
 
-            user.getAssignment().add(createRoleAssignment(locationBusinessRoleOidValue));
             user.getAssignment().add(createOrgAssignment(organizationOid));
 
             setUpArchetypeUser(user, archetypeOid);
 
             return user;
+        }
+
+        private void assignAccess(@NotNull UserType user,
+                @NotNull List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles,
+                String locationBusinessRoleOidValue) {
+            for (InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
+                user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
+            }
+            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
+            user.getAssignment().add(createRoleAssignment(locationBusinessRoleOidValue));
+        }
+
+        private void assignAccess(@NotNull UserType user, boolean includePlancton) {
+            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(
+                    0, generatorOptions);
+            InitialObjectsDefinition.LocationInitialBusinessRole randomLocationBusinessRole = getRandomLocationBusinessRole();
+            String locationBusinessRoleOidValue = randomLocationBusinessRole.getOidValue();
+            if (!includePlancton) {
+                assignAccess(user, new ArrayList<>(), locationBusinessRoleOidValue);
+                return;
+            }
+            assignAccess(user, randomPlanktonRoles, locationBusinessRoleOidValue);
         }
 
         /**
@@ -266,18 +425,33 @@ enum RbacObjectCategoryProcessor {
             List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(
                     7, generatorOptions);
             user.getAssignment().add(createOrgAssignment(organizationOid));
-            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
 
             if (!randomlyJobTitleStructureWithNone.isEmpty()) {
                 user.setTitle(PolyStringType.fromOrig(randomlyJobTitleStructureWithNone));
             }
 
-            for (InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
-                user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
-            }
+            assignAccess(user, randomPlanktonRoles);
 
             setUpArchetypeUser(user, archetypeOid);
             return user;
+        }
+
+        private void assignAccess(@NotNull UserType user,
+                @NotNull List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles) {
+            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
+            for (InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
+                user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
+            }
+        }
+
+        private void assignAccess(@NotNull UserType user, boolean includePlancton) {
+            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(
+                    7, generatorOptions);
+            if (!includePlancton) {
+                assignAccess(user, new ArrayList<>());
+                return;
+            }
+            assignAccess(user, randomPlanktonRoles);
         }
 
         /**
@@ -347,23 +521,43 @@ enum RbacObjectCategoryProcessor {
             List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(
                     0, generatorOptions);
 
-            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
             user.setTitle(PolyStringType.fromOrig(jobTitle));
-            user.getAssignment().add(createRoleAssignment(managerRole.getOidValue()));
-            user.getAssignment().add(createRoleAssignment(locationBusinessRoleOidValue));
             user.getAssignment().add(createOrgAssignment(organizationOid));
 
             if (!limited) {
                 user.setLocality(locale);
             }
 
-            for (InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
-                user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
-            }
+            assignAccess(user, managerRole, locationBusinessRoleOidValue, randomPlanktonRoles);
 
             setUpArchetypeUser(user, archetypeOid);
 
             return user;
+        }
+
+        private void assignAccess(@NotNull UserType user,
+                InitialObjectsDefinition.@NotNull JobInitialBusinessRole managerRole,
+                @NotNull String locationBusinessRoleOidValue,
+                @NotNull List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles) {
+            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
+            user.getAssignment().add(createRoleAssignment(managerRole.getOidValue()));
+            user.getAssignment().add(createRoleAssignment(locationBusinessRoleOidValue));
+            for (InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
+                user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
+            }
+        }
+
+        private void assignAccess(@NotNull UserType user, boolean includePlancton) {
+            InitialObjectsDefinition.JobInitialBusinessRole managerRole = InitialObjectsDefinition.JobInitialBusinessRole.MANAGER;
+            InitialObjectsDefinition.LocationInitialBusinessRole randomLocationBusinessRole = getRandomLocationBusinessRole();
+            String locationBusinessRoleOidValue = randomLocationBusinessRole.getOidValue();
+            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(
+                    0, generatorOptions);
+            if (!includePlancton) {
+                assignAccess(user, managerRole, locationBusinessRoleOidValue, new ArrayList<>());
+                return;
+            }
+            assignAccess(user, managerRole, locationBusinessRoleOidValue, randomPlanktonRoles);
         }
 
         /**
@@ -436,26 +630,48 @@ enum RbacObjectCategoryProcessor {
 
             InitialObjectsDefinition.LocationInitialBusinessRole randomLocationBusinessRole = getRandomLocationBusinessRole();
 
-            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
             user.getAssignment().add(createOrgAssignment(organizationOid));
-            user.getAssignment().add(createRoleAssignment(salesBr.getOidValue()));
+
+            assignAccess(user, limited, partialLimited, salesBr, locationNewYorkBr, randomLocationBusinessRole);
 
             if (!limited) {
                 user.setTitle(PolyStringType.fromOrig(jobTitle));
 
                 if (!partialLimited) {
                     user.setLocality(PolyStringType.fromOrig(locationNewYorkBr.getLocale()));
-                    user.getAssignment().add(createRoleAssignment(locationNewYorkBr.getOidValue()));
                 } else {
                     user.setLocality(PolyStringType.fromOrig(randomLocationBusinessRole.getLocale()));
-                    user.getAssignment().add(createRoleAssignment(randomLocationBusinessRole.getOidValue()));
                 }
-
             }
 
             setUpArchetypeUser(user, archetypeOid);
 
             return user;
+        }
+
+        private void assignAccess(@NotNull UserType user, boolean limited, boolean partialLimited,
+                InitialObjectsDefinition.@NotNull JobInitialBusinessRole salesBr,
+                InitialObjectsDefinition.LocationInitialBusinessRole locationNewYorkBr,
+                InitialObjectsDefinition.LocationInitialBusinessRole randomLocationBusinessRole) {
+            user.getAssignment().add(createRoleAssignment(salesBr.getOidValue()));
+            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
+
+            if (!limited) {
+                if (!partialLimited) {
+                    user.getAssignment().add(createRoleAssignment(locationNewYorkBr.getOidValue()));
+                } else {
+                    user.getAssignment().add(createRoleAssignment(randomLocationBusinessRole.getOidValue()));
+                }
+            }
+        }
+
+        private void assignAccess(@NotNull UserType user, boolean limited, boolean partialLimited) {
+            InitialObjectsDefinition.JobInitialBusinessRole salesBr = InitialObjectsDefinition.JobInitialBusinessRole.SALES;
+            InitialObjectsDefinition.LocationInitialBusinessRole locationNewYorkBr = InitialObjectsDefinition
+                    .LocationInitialBusinessRole.LOCATION_NEW_YORK;
+            InitialObjectsDefinition.LocationInitialBusinessRole randomLocationBusinessRole = getRandomLocationBusinessRole();
+
+            assignAccess(user, limited, partialLimited, salesBr, locationNewYorkBr, randomLocationBusinessRole);
         }
 
         /**
@@ -484,12 +700,12 @@ enum RbacObjectCategoryProcessor {
                 log.info("Importing " + displayName + ": {}/{}", i + 1, total);
                 UserType user = new UserType();
                 user.setName(getNameFromSet(PolyStringType.fromOrig(displayName + " User " + i), names));
-                boolean limited = false;
-                boolean partialLimited = false;
+                boolean limited = true;
+                boolean partialLimited = true;
                 if (i < ninetyPercent) {
-                    limited = true;
+                    limited = false;
                     if (i < seventyPercent) {
-                        partialLimited = true;
+                        partialLimited = false;
                     }
                 }
                 user = build(user, limited, partialLimited);
@@ -515,13 +731,18 @@ enum RbacObjectCategoryProcessor {
          * Default constructor for the SecurityOfficer class.
          */
         public UserType build(@NotNull UserType user) {
-            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
             user.getAssignment().add(createOrgAssignment(organizationOid));
-            user.getAssignment().add(createRoleAssignment(securityOfficerRoleOidValue));
+
+            assignAccess(user);
 
             setUpArchetypeUser(user, archetypeOid);
 
             return user;
+        }
+
+        private void assignAccess(@NotNull UserType user) {
+            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
+            user.getAssignment().add(createRoleAssignment(securityOfficerRoleOidValue));
         }
 
         /**
@@ -585,16 +806,26 @@ enum RbacObjectCategoryProcessor {
             List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(
                     0, generatorOptions);
 
-            user.getAssignment().add(createRoleAssignment(birthContractorRole));
             user.getAssignment().add(createOrgAssignment(organizationOid));
 
-            for (InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
-                user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
-            }
+            assignAccess(user, randomPlanktonRoles);
 
             setUpArchetypeUser(user, archetypeOid);
 
             return user;
+        }
+
+        private void assignAccess(@NotNull UserType user,
+                boolean randomPlanktonRoles) {
+            assignAccess(user, randomPlanktonRoles ? getRandomPlanktonRoles(0, generatorOptions) : new ArrayList<>());
+        }
+
+        private void assignAccess(@NotNull UserType user,
+                @NotNull List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles) {
+            user.getAssignment().add(createRoleAssignment(birthContractorRole));
+            for (InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
+                user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
+            }
         }
 
         /**
@@ -626,6 +857,143 @@ enum RbacObjectCategoryProcessor {
             }
         }
 
+    }
+
+    public static class OutlierMatuzalem {
+
+        RbacObjectCategoryProcessor category;
+
+        public OutlierMatuzalem(RbacObjectCategoryProcessor category) {
+            this.category = category;
+        }
+
+        public void buildAndImport(
+                @NotNull Log log,
+                @NotNull RepositoryService repository,
+                @NotNull GeneratorOptions generatorOptions,
+                int total,
+                @NotNull OperationResult result) {
+
+            int outlierMatuzalemProbability = generatorOptions.getOutlierMatuzalemProbability();
+            int partition = (int) ((double) total / 100) * outlierMatuzalemProbability;
+
+            for (int i = 0; i < partition; i++) {
+                UserType user = new UserType();
+                user.setName(PolyStringType.fromOrig(category.getDisplayName() + "Matuzalem" + i));
+                category.generateRbacObject(user, false, false, generatorOptions);
+                RbacObjectCategoryProcessor randomCategory = getRandomCategory(category);
+                randomCategory.assignAccessByCategory(user, generatorOptions, false);
+                RbacObjectCategoryProcessor randomCategory2 = getRandomCategory(category, randomCategory);
+                randomCategory2.assignAccessByCategory(user, generatorOptions, false);
+                RbacObjectCategoryProcessor randomCategory3 = getRandomCategory(category);
+                if (randomCategory3 != randomCategory2) {
+                    randomCategory3.assignAccessByCategory(user, generatorOptions, false);
+                }
+                importUserAndResolveAuxRoles(user, repository, generatorOptions, result, log);
+            }
+
+        }
+
+    }
+
+    public static class OutlierJumper {
+        RbacObjectCategoryProcessor category;
+
+        public OutlierJumper(RbacObjectCategoryProcessor category) {
+            this.category = category;
+        }
+
+        public void buildAndImport(
+                @NotNull Log log,
+                @NotNull RepositoryService repository,
+                @NotNull GeneratorOptions generatorOptions,
+                int total,
+                @NotNull OperationResult result) {
+
+            int outlierJumperProbability = generatorOptions.getOutlierJumperProbability();
+            int partition = (int) ((double) total / 100) * outlierJumperProbability;
+
+            for (int i = 0; i < partition; i++) {
+                UserType user = new UserType();
+                user.setName(PolyStringType.fromOrig(category.getDisplayName() + "Jumper" + i));
+                category.generateRbacObject(user, false, false, generatorOptions);
+                RbacObjectCategoryProcessor randomCategory = getRandomCategory(category);
+                randomCategory.assignAccessByCategory(user, generatorOptions, false);
+
+                importUserAndResolveAuxRoles(user, repository, generatorOptions, result, log);
+            }
+
+        }
+
+    }
+
+    //TODO fixme
+    public static class OutlierZombie {
+
+        RbacObjectCategoryProcessor category;
+
+        public OutlierZombie(RbacObjectCategoryProcessor category) {
+            this.category = category;
+        }
+
+        public void buildAndImport(
+                @NotNull Log log,
+                @NotNull RepositoryService repository,
+                @NotNull GeneratorOptions generatorOptions,
+                int total,
+                @NotNull OperationResult result) {
+
+            int outlierZombieProbability = generatorOptions.getOutlierZombieProbability();
+            int partition = (int) ((double) total / 100) * outlierZombieProbability;
+
+            for (int i = 0; i < partition; i++) {
+                UserType user = new UserType();
+                user.setName(PolyStringType.fromOrig(category.getDisplayName() + "Zombie" + i));
+                category.generateRbacObject(user, false, false, generatorOptions);
+                user.getAssignment().clear();
+                List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(10);
+                for (InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
+                    user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
+                }
+
+                importUserAndResolveAuxRoles(user, repository, generatorOptions, result, log);
+            }
+
+        }
+    }
+
+    //TODO fixme
+    public static class OutlierMask {
+        RbacObjectCategoryProcessor category;
+
+        public OutlierMask(RbacObjectCategoryProcessor category) {
+            this.category = category;
+        }
+
+        public void buildAndImport(
+                @NotNull Log log,
+                @NotNull RepositoryService repository,
+                @NotNull GeneratorOptions generatorOptions,
+                int total,
+                @NotNull OperationResult result) {
+
+            int outlierMaskProbability = generatorOptions.getOutlierMaskProbability();
+            int partition = (int) ((double) total / 100) * outlierMaskProbability;
+
+            for (int i = 0; i < partition; i++) {
+                UserType user = new UserType();
+                user.setName(PolyStringType.fromOrig(category.getDisplayName() + "Mask" + i));
+
+                category.generateRbacObject(user, false, false, generatorOptions);
+                user.getAssignment().clear();
+                List<InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomNoiseRoles(3);
+                for (InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
+                    user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
+                }
+
+                importUserAndResolveAuxRoles(user, repository, generatorOptions, result, log);
+            }
+        }
     }
 
 }
