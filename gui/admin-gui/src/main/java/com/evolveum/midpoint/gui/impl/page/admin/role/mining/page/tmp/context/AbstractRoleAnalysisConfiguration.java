@@ -159,7 +159,7 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
             boolean isIndirect,
             RangeType propertiesRange,
             AnalysisAttributeSettingType analysisAttributeSetting,
-            ClusteringAttributeRuleType clusteringAttributeSetting,
+            ClusteringAttributeSettingType clusteringAttributeSetting,
             Double similarityThreshold,
             Integer minMembersCount,
             Integer minPropertiesOverlap) {
