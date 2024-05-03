@@ -1977,7 +1977,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         double sum = 0;
         int dataSize = 0;
         for (T item : data) {
-            int size = item.getMembers().size();
+            FrequencyItem frequencyItem = item.getFrequencyItem();
+            int memberCount = item.getMembers().size();
+            // We target importance for the lower frequency values. The higher the frequency the less important.
+            int weightSize = (int) (frequencyItem.getFrequency() * 100);
+            int size = memberCount * weightSize;
             dataSize += size;
             sum += (item.getFrequencyValue()) * size;
         }
@@ -1985,7 +1989,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
         double sumSquaredDiff = 0;
         for (T item : data) {
-            int size = item.getMembers().size();
+            FrequencyItem frequencyItem = item.getFrequencyItem();
+            int memberCount = item.getMembers().size();
+            int weightSize = (int) (frequencyItem.getFrequency() * 100);
+            int size = memberCount * weightSize;
             sumSquaredDiff += (Math.pow((item.getFrequencyValue()) - mean, 2)) * size;
         }
 
