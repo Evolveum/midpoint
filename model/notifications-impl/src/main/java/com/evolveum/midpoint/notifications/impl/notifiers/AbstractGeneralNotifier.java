@@ -182,8 +182,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     }
 
     private boolean sendOwnMessageToEachRecipient(ConfigurationItem<? extends N> notifierConfig) {
-        NotificationSendingStrategy sendingStrategy = notifierConfig.value().getNotificationSendingStrategy();
-        return sendingStrategy == null || NotificationSendingStrategy.OWN_NOTIFICATION_TO_EACH_RECIPIENT.equals(sendingStrategy);
+        NotificationSendingStrategyType sendingStrategy = notifierConfig.value().getNotificationSendingStrategy();
+        return sendingStrategy == null || NotificationSendingStrategyType.SEPARATE_NOTIFICATION_TO_EACH_RECIPIENT.equals(sendingStrategy);
     }
 
     private Message prepareMessage(
@@ -198,7 +198,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
         String body = getBody(notifierConfig, messageTemplateContent, variables, transportName, ctx, result);
         if (body == null) {
-            new Message();
+            return new Message();
         }
 
         Locale locale = recipient != null ? LocalizationUtil.toLocale(focusLanguageOrLocale(recipient)) : null;
