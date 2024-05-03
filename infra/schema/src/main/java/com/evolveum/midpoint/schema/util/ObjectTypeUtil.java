@@ -68,7 +68,8 @@ public class ObjectTypeUtil {
     /**
      * Never returns null. Returns empty collection instead.
      */
-    public static <T> Collection<T> getExtensionPropertyValuesNotNull(Containerable containerable, QName propertyQname) {
+    public static <T> @NotNull Collection<T> getExtensionPropertyValuesNotNull(
+            Containerable containerable, @NotNull QName propertyQname) {
         Collection<T> values = getExtensionPropertyValues(containerable, propertyQname);
         if (values == null) {
             return new ArrayList<>(0);
@@ -78,12 +79,14 @@ public class ObjectTypeUtil {
     }
 
     public static <T> Collection<T> getExtensionPropertyValues(Containerable containerable, QName propertyQname) {
-        PrismContainerValue pcv = containerable.asPrismContainerValue();
-        //noinspection unchecked
-        PrismContainer<Containerable> extensionContainer = pcv.findContainer(ObjectType.F_EXTENSION);
+        if (containerable == null) {
+            return null;
+        }
+        var extensionContainer = containerable.asPrismContainerValue().findContainer(ObjectType.F_EXTENSION);
         if (extensionContainer == null) {
             return null;
         }
+        //noinspection unchecked
         PrismProperty<T> property = extensionContainer.findProperty(ItemName.fromQName(propertyQname));
         if (property == null) {
             return null;
@@ -91,9 +94,11 @@ public class ObjectTypeUtil {
         return property.getRealValues();
     }
 
-    public static Collection<Referencable> getExtensionReferenceValues(ObjectType objectType, QName propertyQname) {
-        PrismObject<? extends ObjectType> object = objectType.asPrismObject();
-        PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
+    public static Collection<Referencable> getExtensionReferenceValues(Containerable containerable, QName propertyQname) {
+        if (containerable == null) {
+            return null;
+        }
+        var extensionContainer = containerable.asPrismContainerValue().findContainer(ObjectType.F_EXTENSION);
         if (extensionContainer == null) {
             return null;
         }
@@ -1329,8 +1334,8 @@ public class ObjectTypeUtil {
         throw new IllegalStateException("Cannot determine definition for " + propertyName + " in " + extension + " nor globally");
     }
 
-    public static void setExtensionContainerRealValues(PrismContext prismContext, PrismContainerValue<?> parent, ItemName containerName,
-            Object... values) throws SchemaException {
+    public static void setExtensionContainerRealValues(
+            PrismContext prismContext, PrismContainerValue<?> parent, ItemName containerName, Object... values) throws SchemaException {
         setExtensionItemRealValues(parent,
                 extension -> extension.removeContainer(containerName),
                 (extension, realValues) -> {
