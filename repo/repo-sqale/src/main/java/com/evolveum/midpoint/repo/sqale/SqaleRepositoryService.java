@@ -582,7 +582,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 prismObject.getOid(),
                 options.isForceReindex());
 
-        if (modifications.isEmpty() && !RepoModifyOptions.isForceReindex(options)) {
+        var reindex = options.isForceReindex() && updateContext.mapping().isReindexSupported();
+
+        if (modifications.isEmpty() && !reindex) {
             logger.debug("Modification list is empty, nothing was modified.");
             operationResult.recordStatus(OperationResultStatus.SUCCESS,
                     "Modification list is empty, nothing was modified.");
@@ -599,8 +601,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         }
         invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
         PrismObject<T> originalObject = prismObject.clone(); // for result later
-
-        boolean reindex = options.isForceReindex();
 
         if (reindex) {
             // UpdateTables is false, we want only to process modifications on fullObject
