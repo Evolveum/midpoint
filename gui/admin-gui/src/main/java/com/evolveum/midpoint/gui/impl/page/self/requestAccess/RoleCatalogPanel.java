@@ -113,7 +113,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private final PageBase page;
 
-    private IModel<SearchBoxModeType> searchModeModel = Model.of();
+    private final IModel<SearchBoxModeType> searchModeModel = Model.of();
 
     private LoadableModel<Search> searchModel;
 
@@ -360,7 +360,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 if (active == null) {
                     active = menu.activateFirstAvailableItem();
                 }
-                updateQueryModel(active);
+
+                updateQueryModelSearchAndParameters(active);
 
                 return menu;
             }
@@ -378,7 +379,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 menuModel.getObject();
 
                 RoleCatalogQuery catalogQuery = queryModel.getObject();
-                addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, catalogQuery.getParent());
 
                 ObjectQuery query = catalogQuery.getQuery();
                 query = query.clone();
@@ -586,58 +586,55 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         add(menu);
     }
 
+    private void updateQueryModelSearchAndParameters(ListGroupMenuItem<RoleCatalogQueryItem> item) {
+        updateQueryModel(item);
+
+        searchModel.reset();
+
+        TileTablePanel panel = getTileTable();
+        if (panel != null) {
+            ((ObjectDataProvider) panel.getProvider())
+                    .addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, queryModel.getObject().getParent());
+        }
+    }
+
     private void updateQueryModel(ListGroupMenuItem<RoleCatalogQueryItem> item) {
         RoleCatalogQuery query = queryModel.getObject();
 
         RoleCatalogQueryItem rcq = item != null ? item.getValue() : null;
 
-        boolean wasRoleTreeCatalog = query.getParent() != null;
-
         if (rcq == null) {
             updateFalseQuery(query);
-            if (wasRoleTreeCatalog) {
-                searchModel.reset();
-            }
-
             return;
         }
 
         if (rcq.rolesOfTeammate()) {
             updateQueryForRolesOfTeammate(query, getTeammateUserOid());
-            if (wasRoleTreeCatalog) {
-                searchModel.reset();
-            }
             return;
         }
 
         if (rcq.orgRef() != null) {
             updateQueryFromOrgRef(query, rcq.orgRef());
-            if (!wasRoleTreeCatalog) {
-                searchModel.reset();
-            }
             return;
         }
 
         RoleCollectionViewType collection = rcq.collection();
         if (collection == null) {
             updateFalseQuery(query);
-            if (wasRoleTreeCatalog) {
-                searchModel.reset();
-            }
             return;
         }
 
         if (collection.getCollectionRef() != null) {
             updateQueryFromCollectionRef(query, collection.getCollectionRef());
-        } else if (collection.getCollectionIdentifier() != null) {
-            updateQueryFromCollectionIdentifier(query, collection.getCollectionIdentifier());
-        } else {
-            updateFalseQuery(query);
+            return;
         }
 
-        if (wasRoleTreeCatalog) {
-            searchModel.reset();
+        if (collection.getCollectionIdentifier() != null) {
+            updateQueryFromCollectionIdentifier(query, collection.getCollectionIdentifier());
+            return;
         }
+
+        updateFalseQuery(query);
     }
 
     private String getTeammateUserOid() {
@@ -645,15 +642,17 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         return userRef != null ? userRef.getOid() : null;
     }
 
+    private TileTablePanel<?, ?> getTileTable() {
+        return (TileTablePanel<?, ?>) get(ID_TILES);
+    }
+
     private void onMenuClickPerformed(AjaxRequestTarget target, ListGroupMenuItem<RoleCatalogQueryItem> item) {
-        updateQueryModel(item);
-        searchModel.detach();
+        updateQueryModelSearchAndParameters(item);
 
-        TileTablePanel<?, ?> tilesTable = (TileTablePanel<?, ?>) get(ID_TILES);
+        TileTablePanel<?, ?> tilesTable = getTileTable();
         tilesTable.initHeaderFragment();
-        tilesTable.getTable().refreshSearch();
 
-        target.add(get(ID_TILES));
+        target.add(tilesTable);
         target.add(get(ID_MENU));
     }
 
