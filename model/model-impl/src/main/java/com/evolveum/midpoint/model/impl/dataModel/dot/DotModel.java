@@ -97,7 +97,7 @@ public class DotModel {
                 sb1.append(indent(indent + 1)).append("fontname=\"times-bold\";\n\n");
                 String previousNodeName = null;
                 indent++;
-                for (ResourceAttributeDefinition attrDef : def.getAttributeDefinitions()) {
+                for (ShadowSimpleAttributeDefinition attrDef : def.getAttributeDefinitions()) {
                     if (attrDef.isIgnored()) {
                         continue;
                     }

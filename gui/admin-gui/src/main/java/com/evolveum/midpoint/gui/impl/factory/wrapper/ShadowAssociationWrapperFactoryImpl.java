@@ -50,7 +50,7 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
 
     @Override
     public boolean match(ItemDefinition<?> def) {
-        return def instanceof ShadowAssociationDefinition;
+        return def instanceof ShadowReferenceAttributeDefinition;
     }
 
     @Override
@@ -106,10 +106,10 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
         return associationWrapper;
     }
 
-    private PrismReferenceDefinition createShadowAssocationDef(ShadowAssociationDefinition shadowAssociationDefinitions) {
+    private PrismReferenceDefinition createShadowAssocationDef(ShadowReferenceAttributeDefinition shadowReferenceAttributeDefinitions) {
         PrismReferenceDefinition shadowRefDef = getPrismContext().definitionFactory().newReferenceDefinition(
-                shadowAssociationDefinitions.getItemName(), ObjectReferenceType.COMPLEX_TYPE, 0, -1);
-        shadowRefDef.mutator().setDisplayName(shadowAssociationDefinitions.getDisplayName());
+                shadowReferenceAttributeDefinitions.getItemName(), ObjectReferenceType.COMPLEX_TYPE, 0, -1);
+        shadowRefDef.mutator().setDisplayName(shadowReferenceAttributeDefinitions.getDisplayName());
         shadowRefDef.mutator().setTargetTypeName(ShadowType.COMPLEX_TYPE);
         return shadowRefDef;
 
@@ -139,7 +139,7 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
 
     }
 
-    private Collection<? extends ShadowAssociationDefinition> loadRefinedAssociationDefinitions(PrismObject<ResourceType> resource, ShadowType shadow, OperationResult parentResult) {
+    private Collection<? extends ShadowReferenceAttributeDefinition> loadRefinedAssociationDefinitions(PrismObject<ResourceType> resource, ShadowType shadow, OperationResult parentResult) {
         OperationResult result = parentResult.createMinorSubresult(CREATE_ASSOCIATION_WRAPPER);
         ResourceSchema refinedResourceSchema;
         try {
@@ -229,7 +229,7 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
                 ItemStatus.ADDED ==  associationWrapper.getStatus() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
 
         Collection<PrismReferenceWrapper> shadowReferences = new ArrayList<>();
-        for (ShadowAssociationDefinition def : context.getRefinedAssociationDefinitions()) {
+        for (ShadowReferenceAttributeDefinition def : context.getRefinedAssociationDefinitions()) {
             PrismReference shadowAss = fillInShadowReference(def, item);
 
             PrismReferenceWrapper shadowReference = (PrismReferenceWrapper) referenceWrapperFactory.createWrapper(shadowValueWrapper, shadowAss, shadowAss.isEmpty() ? ItemStatus.ADDED : ItemStatus.NOT_CHANGED, context);
@@ -263,7 +263,7 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
 
     }
 
-    private PrismReference fillInShadowReference(ShadowAssociationDefinition def, PrismContainer<ShadowAssociationValueType> item) throws SchemaException {
+    private PrismReference fillInShadowReference(ShadowReferenceAttributeDefinition def, PrismContainer<ShadowAssociationValueType> item) throws SchemaException {
         PrismReferenceDefinition shadowRefDef = createShadowAssocationDef(def);
         PrismReference shadowAss = shadowRefDef.instantiate();
 

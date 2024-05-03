@@ -25,12 +25,12 @@ import java.util.Collection;
  * The association can be native or simulated; it can point right to the target object (like `group` object class),
  * or to an intermediate - a.k.a. "associated" - one (like `groupMembership` object class).
  *
- * @see ShadowItemDefinition
+ * @see ShadowAttributeDefinition
  */
-public interface ShadowAssociationDefinition
+public interface ShadowReferenceAttributeDefinition
         extends
         PrismContainerDefinition<ShadowAssociationValueType>,
-        ShadowItemDefinition<ShadowAssociation, ShadowAssociationValueType> {
+        ShadowAttributeDefinition<ShadowReferenceAttribute, ShadowAssociationValueType> {
 
     /** Returns "immediate neighbors". TODO */
     @NotNull Collection<AssociationParticipantType> getTargetParticipantTypes();
@@ -65,4 +65,6 @@ public interface ShadowAssociationDefinition
     default String getResourceOid() {
         return getRepresentativeTargetObjectDefinition().getResourceOid();
     }
+
+    @NotNull ShadowReferenceAttributeDefinition clone();
 }

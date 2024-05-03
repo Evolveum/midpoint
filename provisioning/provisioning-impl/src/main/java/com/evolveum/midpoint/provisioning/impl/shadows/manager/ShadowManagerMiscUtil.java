@@ -17,7 +17,7 @@ import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
@@ -75,7 +75,7 @@ public class ShadowManagerMiscUtil {
             return null;
         }
 
-        ResourceAttribute<?> primaryIdentifier = shadow.getPrimaryIdentifierAttribute();
+        ShadowSimpleAttribute<?> primaryIdentifier = shadow.getPrimaryIdentifierAttribute();
         if (primaryIdentifier == null) {
             return null;
         } else {
@@ -84,10 +84,10 @@ public class ShadowManagerMiscUtil {
         }
     }
 
-    private static ResourceAttribute<String> getPrimaryIdentifier(ShadowType shadow) throws SchemaException {
+    private static ShadowSimpleAttribute<String> getPrimaryIdentifier(ShadowType shadow) throws SchemaException {
         // Note about using ResourceObjectIdentifiers et al: We are not sure if we have the non-wildcard context here,
         // so let's go the traditional way.
-        Collection<? extends ResourceAttribute<?>> primaryIdentifiers = emptyIfNull(ShadowUtil.getPrimaryIdentifiers(shadow));
+        Collection<? extends ShadowSimpleAttribute<?>> primaryIdentifiers = emptyIfNull(ShadowUtil.getPrimaryIdentifiers(shadow));
         // Let's make this simple. We support single-attribute, single-value, string-only primary identifiers anyway
         if (primaryIdentifiers.isEmpty()) {
             // No primary identifiers. This can happen in some cases, e.g. for proposed shadows.
@@ -98,7 +98,7 @@ public class ShadowManagerMiscUtil {
             throw new SchemaException("Too many primary identifiers in " + shadow + ", this is not supported yet");
         }
         //noinspection unchecked
-        return (ResourceAttribute<String>) primaryIdentifiers.iterator().next();
+        return (ShadowSimpleAttribute<String>) primaryIdentifiers.iterator().next();
     }
 
     public static PendingOperationType findPendingAddOperation(ShadowType liveShadow) {

@@ -10,7 +10,7 @@ package com.evolveum.midpoint.provisioning.util;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-import com.evolveum.midpoint.schema.processor.ShadowItemDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -72,7 +72,7 @@ public class ShadowItemsToReturnProvider {
             shadowItemsToReturn.setReturnDefaultAttributes(false);
         }
 
-        Collection<? extends ShadowItemDefinition<?, ?>> explicit = getItemsToFetchExplicitly();
+        Collection<? extends ShadowAttributeDefinition<?, ?>> explicit = getItemsToFetchExplicitly();
         if (!explicit.isEmpty()) {
             shadowItemsToReturn.setItemsToReturn(explicit);
         }
@@ -142,13 +142,13 @@ public class ShadowItemsToReturnProvider {
         }
     }
 
-    private @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getItemsToFetchExplicitly() {
+    private @NotNull Collection<? extends ShadowAttributeDefinition<?, ?>> getItemsToFetchExplicitly() {
         return getRelevantItemDefinitionsStream()
                 .filter(itemDef -> shouldFetchExplicitly(itemDef))
                 .toList();
     }
 
-    private Stream<? extends ShadowItemDefinition<?, ?>> getRelevantItemDefinitionsStream() {
+    private Stream<? extends ShadowAttributeDefinition<?, ?>> getRelevantItemDefinitionsStream() {
         return objectDefinition.getShadowItemDefinitions().stream()
                 .filter(def -> !def.isSimulated());
     }
@@ -158,7 +158,7 @@ public class ShadowItemsToReturnProvider {
                 .anyMatch(def -> def.getFetchStrategy() == AttributeFetchStrategyType.MINIMAL);
     }
 
-    private boolean shouldFetchExplicitly(ShadowItemDefinition<?, ?> itemDef) {
+    private boolean shouldFetchExplicitly(ShadowAttributeDefinition<?, ?> itemDef) {
         AttributeFetchStrategyType fetchStrategy = itemDef.getFetchStrategy();
         if (fetchStrategy == EXPLICIT) {
             LOGGER.trace("Will fetch explicitly because it's configured so: {}", itemDef);
@@ -184,7 +184,7 @@ public class ShadowItemsToReturnProvider {
         }
     }
 
-    private boolean isFetchingRequestedByClient(ShadowItemDefinition<?, ?> itemDef) {
+    private boolean isFetchingRequestedByClient(ShadowAttributeDefinition<?, ?> itemDef) {
         return isFetchingRequestedByClient(itemDef.getStandardPath())
                 // This is a legacy (wrong) behavior we want to preserve (MID-5838)
                 || isFetchingRequestedByClient(itemDef.getItemName());

@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,7 +41,7 @@ public abstract class Operation implements DebugDumpable {
 
     public abstract boolean isAttributeDelta();
 
-    public abstract @Nullable ResourceAttributeDefinition<?> getAttributeDefinitionIfApplicable(
+    public abstract @Nullable ShadowSimpleAttributeDefinition<?> getAttributeDefinitionIfApplicable(
             @NotNull ResourceObjectDefinition objDef);
 
     /** Converts this Operation into respective xType bean */

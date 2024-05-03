@@ -108,8 +108,8 @@ public class ProvisioningUtil {
         QName matchingRuleQName;
         if (overridingMatchingRuleQName != null) {
             matchingRuleQName = overridingMatchingRuleQName;
-        } else if (propertyDef instanceof ResourceAttributeDefinition) {
-            matchingRuleQName = ((ResourceAttributeDefinition<?>) propertyDef).getMatchingRuleQName();
+        } else if (propertyDef instanceof ShadowSimpleAttributeDefinition) {
+            matchingRuleQName = ((ShadowSimpleAttributeDefinition<?>) propertyDef).getMatchingRuleQName();
         } else {
             matchingRuleQName = null;
         }

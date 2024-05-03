@@ -92,7 +92,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
             @NotNull MappingEvaluationRequests evaluationRequestsBeingCollected,
             @NotNull PathKeyedMap<ItemDefinition<?>> itemDefinitionMap,
             @NotNull FullContext context,
-            @NotNull PrismObject<F> focus,
+            @Nullable PrismObject<F> focus,
             @NotNull PrismObjectDefinition<F> focusDefinition) throws SchemaException, ConfigurationException {
         this(projectionContext,
                 lensContext,
@@ -346,16 +346,14 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
 
         for (var association : ShadowUtil.getAssociations(shadow)) {
             var associationDefinition = association.getDefinition();
-            var relevantProcessingDefinitions = associationDefinition.getComplexProcessingDefinition().stream()
-                    .filter(ComplexProcessingDefinition::needsInboundProcessing)
-                    .toList();
-            if (relevantProcessingDefinitions.isEmpty()) {
+            var relevantInboundDefinitions = associationDefinition.getRelevantInboundDefinitions();
+            if (relevantInboundDefinitions.isEmpty()) {
                 continue;
             }
             for (var associationValue : association.getAssociationValues()) {
-                for (var complexProcessingDefinition : relevantProcessingDefinitions) {
-                    LOGGER.trace("Processing association value: {} ({})", associationValue, relevantProcessingDefinitions);
-                    new ValueProcessing(associationValue, associationDefinition, complexProcessingDefinition)
+                for (var inboundProcessingDefinition : relevantInboundDefinitions) {
+                    LOGGER.trace("Processing association value: {} ({})", associationValue, relevantInboundDefinitions);
+                    new ValueProcessing(associationValue, associationDefinition, inboundProcessingDefinition)
                             .process(result);
                 }
             }
@@ -372,18 +370,18 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
     private class ValueProcessing {
 
         @NotNull private final ShadowAssociationValue associationValue;
-        @NotNull private final ShadowAssociationDefinition associationDefinition;
+        @NotNull private final ShadowReferenceAttributeDefinition associationDefinition;
         @NotNull private final ResourceObjectInboundDefinition inboundDefinition;
         @Deprecated // provide more abstract characterization (~ "assigned")
         @NotNull private final ItemPath focusItemPath;
 
         ValueProcessing(
                 @NotNull ShadowAssociationValue associationValue,
-                @NotNull ShadowAssociationDefinition associationDefinition,
-                @NotNull ComplexProcessingDefinition complexProcessingDefinition) throws ConfigurationException {
+                @NotNull ShadowReferenceAttributeDefinition associationDefinition,
+                @NotNull ResourceObjectInboundDefinition inboundDefinition) throws ConfigurationException {
             this.associationValue = associationValue;
             this.associationDefinition = associationDefinition;
-            this.inboundDefinition = complexProcessingDefinition.getInboundDefinition();
+            this.inboundDefinition = inboundDefinition;
             this.focusItemPath = configNonNull(
                     inboundDefinition.getFocusSpecification().getFocusItemPath(),
                     "No focus item path in %s", inboundDefinition);

@@ -58,7 +58,7 @@ public abstract class SimulatedShadowAssociationClassDefinition
      * */
     @NotNull private final ResourceObjectDefinition referentialObjectDefinition;
 
-    @NotNull private final ResourceAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition;
+    @NotNull private final ShadowSimpleAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition;
 
     /** Never empty. */
     @NotNull private final Collection<SimulatedAssociationClassParticipantDefinition> subjects;
@@ -75,7 +75,7 @@ public abstract class SimulatedShadowAssociationClassDefinition
             @NotNull ResourceObjectAssociationDirectionType direction,
             boolean requiresExplicitReferentialIntegrity,
             @NotNull ResourceObjectDefinition referentialObjectDefinition,
-            @NotNull ResourceAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition,
+            @NotNull ShadowSimpleAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition,
             @NotNull Collection<SimulatedAssociationClassParticipantDefinition> subjects,
             @NotNull Collection<SimulatedAssociationClassParticipantDefinition> objects) {
         super(associationClassName, referentialObjectDefinition);
@@ -119,13 +119,13 @@ public abstract class SimulatedShadowAssociationClassDefinition
         return requiresExplicitReferentialIntegrity;
     }
 
-    public <T> ResourceAttributeDefinition<T> getObjectAttributeDefinition(AttributeBinding binding) {
+    public <T> ShadowSimpleAttributeDefinition<T> getObjectAttributeDefinition(AttributeBinding binding) {
         return getObjectAttributeDefinition(binding.objectSide());
     }
 
-    private <T> ResourceAttributeDefinition<T> getObjectAttributeDefinition(QName attrName) {
+    private <T> ShadowSimpleAttributeDefinition<T> getObjectAttributeDefinition(QName attrName) {
         try {
-            return referentialObjectDefinition.findAttributeDefinitionRequired(attrName);
+            return referentialObjectDefinition.findSimpleAttributeDefinitionRequired(attrName);
         } catch (SchemaException e) {
             throw SystemException.unexpected(e, "(already checked at schema parse time)");
         }
@@ -158,7 +158,7 @@ public abstract class SimulatedShadowAssociationClassDefinition
         return primaryAttributeBinding.subjectSide();
     }
 
-    public @NotNull ResourceAttributeDefinition<?> getSubjectSidePrimaryBindingAttributeDef() {
+    public @NotNull ShadowSimpleAttributeDefinition<?> getSubjectSidePrimaryBindingAttributeDef() {
         return subjectSidePrimaryBindingAttributeDefinition;
     }
 
@@ -215,7 +215,7 @@ public abstract class SimulatedShadowAssociationClassDefinition
                 @NotNull ResourceObjectAssociationDirectionType direction,
                 boolean requiresExplicitReferentialIntegrity,
                 @NotNull ResourceObjectDefinition referentialObjectDefinition,
-                @NotNull ResourceAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition,
+                @NotNull ShadowSimpleAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition,
                 @NotNull Collection<SimulatedAssociationClassParticipantDefinition> subjects,
                 @NotNull Collection<SimulatedAssociationClassParticipantDefinition> objects) {
             super(associationClassName, localSubjectItemName,
@@ -251,7 +251,7 @@ public abstract class SimulatedShadowAssociationClassDefinition
                     definitionCI.isExplicitReferentialIntegrity(),
                     referentialObjectDefinition,
                     definitionCI.configNonNull(
-                            referentialSubjectDefinition.findAttributeDefinition(subjectSidePrimaryBindingAttrName),
+                            referentialSubjectDefinition.findSimpleAttributeDefinition(subjectSidePrimaryBindingAttrName),
                             "No definition for subject-side primary binding attribute %s in %s",
                             subjectSidePrimaryBindingAttrName, DESC),
                     getLegacySubjectDefinitions(definitionCI, referentialSubjectDefinition),
@@ -308,7 +308,7 @@ public abstract class SimulatedShadowAssociationClassDefinition
                 @NotNull ResourceObjectAssociationDirectionType direction,
                 boolean requiresExplicitReferentialIntegrity,
                 @NotNull ResourceObjectDefinition referentialObjectDefinition,
-                @NotNull ResourceAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition,
+                @NotNull ShadowSimpleAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition,
                 @NotNull Collection<SimulatedAssociationClassParticipantDefinition> subjects,
                 @NotNull Collection<SimulatedAssociationClassParticipantDefinition> objects) {
             super(associationClassLocalName, localSubjectItemName,
@@ -345,7 +345,7 @@ public abstract class SimulatedShadowAssociationClassDefinition
                     simulationCI.requiresExplicitReferentialIntegrity(),
                     referentialObjectDefinition,
                     simulationCI.configNonNull(
-                            referentialSubjectDefinition.findAttributeDefinition(subjectSidePrimaryBindingAttrName),
+                            referentialSubjectDefinition.findSimpleAttributeDefinition(subjectSidePrimaryBindingAttrName),
                             "No definition for subject-side primary binding attribute %s in %s",
                             subjectSidePrimaryBindingAttrName, DESC),
                     subjects,

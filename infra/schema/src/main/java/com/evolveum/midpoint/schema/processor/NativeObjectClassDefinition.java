@@ -16,7 +16,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.processor.NativeShadowAttributeDefinition.NativeShadowAttributeDefinitionBuilder;
+import com.evolveum.midpoint.schema.processor.NativeShadowSimpleAttributeDefinition.NativeShadowAttributeDefinitionBuilder;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 
@@ -39,11 +39,11 @@ public interface NativeObjectClassDefinition extends NativeObjectClassUcfDefinit
 
     @NotNull QName getQName();
 
-    @NotNull Collection<? extends NativeShadowItemDefinition> getItemDefinitions();
+    @NotNull Collection<? extends NativeShadowAttributeDefinition> getItemDefinitions();
 
-    @NotNull Collection<? extends NativeShadowAttributeDefinition<?>> getAttributeDefinitions();
+    @NotNull Collection<? extends NativeShadowSimpleAttributeDefinition<?>> getAttributeDefinitions();
 
-    @NotNull Collection<? extends NativeShadowAssociationDefinition> getAssociationDefinitions();
+    @NotNull Collection<? extends NativeShadowReferenceAttributeDefinition> getAssociationDefinitions();
 
     NativeObjectClassDefinition clone();
 
@@ -55,9 +55,9 @@ public interface NativeObjectClassDefinition extends NativeObjectClassUcfDefinit
         return attrName.matches(getSecondaryIdentifierName()); // TODO case sensitiveness?
     }
 
-    NativeShadowAttributeDefinition<?> findAttributeDefinition(@NotNull QName attrName);
+    NativeShadowSimpleAttributeDefinition<?> findSimpleAttributeDefinition(@NotNull QName attrName);
 
-    NativeShadowAssociationDefinition findAssociationDefinition(@NotNull QName assocName);
+    NativeShadowReferenceAttributeDefinition findReferenceAttributeDefinition(@NotNull QName attrName);
 
     interface NativeObjectClassDefinitionBuilder
             extends NativeObjectClassUcfDefinition.Mutable.Delegable, ComplexTypeDefinitionLikeBuilder {

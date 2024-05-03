@@ -51,13 +51,13 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
                 GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException;
 
     protected abstract String createTicketModify(ResourceObjectDefinition objectDefinition,
-            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
-            Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
+                                                 PrismObject<ShadowType> shadow, Collection<? extends ShadowSimpleAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
+                                                 Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
             SchemaException, ObjectAlreadyExistsException, ConfigurationException;
 
     protected abstract String createTicketDelete(ResourceObjectDefinition objectDefinition,
-            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid,
-            Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
+                                                 PrismObject<ShadowType> shadow, Collection<? extends ShadowSimpleAttribute<?>> identifiers, String resourceOid,
+                                                 Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
             SchemaException, ConfigurationException;
 
     @Override

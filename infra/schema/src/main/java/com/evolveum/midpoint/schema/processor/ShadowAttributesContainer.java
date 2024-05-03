@@ -23,17 +23,17 @@ import java.util.Collection;
  * TODO
  */
 @SuppressWarnings("rawtypes")
-public interface ResourceAttributeContainer extends ShadowItemsContainer, PrismContainer<ShadowAttributesType> {
+public interface ShadowAttributesContainer extends ShadowItemsContainer, PrismContainer<ShadowAttributesType> {
 
-    static ResourceAttributeContainer convertFromPrismContainer(
+    static ShadowAttributesContainer convertFromPrismContainer(
             @NotNull PrismContainer<?> origPrismContainer, @NotNull ResourceObjectDefinition resourceObjectDefinition) throws SchemaException {
         QName elementName = origPrismContainer.getElementName();
-        ResourceAttributeContainer attributesContainer = createEmptyContainer(elementName, resourceObjectDefinition);
+        ShadowAttributesContainer attributesContainer = createEmptyContainer(elementName, resourceObjectDefinition);
         for (Item item : origPrismContainer.getValue().getItems()) {
             if (item instanceof PrismProperty<?> property) {
                 attributesContainer.add(
                         resourceObjectDefinition
-                                .findAttributeDefinitionRequired(property.getElementName())
+                                .findSimpleAttributeDefinitionRequired(property.getElementName())
                                 .instantiateFrom(property));
             } else {
                 throw new SchemaException(
@@ -44,13 +44,13 @@ public interface ResourceAttributeContainer extends ShadowItemsContainer, PrismC
         return attributesContainer;
     }
 
-    static ResourceAttributeContainerImpl createEmptyContainer(
+    static ShadowAttributesContainerImpl createEmptyContainer(
             QName elementName, ResourceObjectDefinition resourceObjectDefinition) {
         ResourceAttributeContainerDefinition attributesContainerDefinition =
                 new ResourceAttributeContainerDefinitionImpl(
                         elementName,
                         resourceObjectDefinition.getAttributesComplexTypeDefinition());
-        return new ResourceAttributeContainerImpl(elementName, attributesContainerDefinition);
+        return new ShadowAttributesContainerImpl(elementName, attributesContainerDefinition);
     }
 
     @Override
@@ -80,9 +80,9 @@ public interface ResourceAttributeContainer extends ShadowItemsContainer, PrismC
      *
      * @return set of resource object attributes.
      */
-    @NotNull Collection<ResourceAttribute<?>> getAttributes();
+    @NotNull Collection<ShadowSimpleAttribute<?>> getAttributes();
 
-    void add(ResourceAttribute<?> attribute) throws SchemaException;
+    void add(ShadowSimpleAttribute<?> attribute) throws SchemaException;
 
 //    /**
 //     * Adds a {@link PrismProperty}, converting to {@link ResourceAttribute} if needed.
@@ -130,7 +130,7 @@ public interface ResourceAttributeContainer extends ShadowItemsContainer, PrismC
      *
      * @return set of identifier properties
      */
-    @NotNull Collection<ResourceAttribute<?>> getPrimaryIdentifiers();
+    @NotNull Collection<ShadowSimpleAttribute<?>> getPrimaryIdentifiers();
 
     /**
      * TODO review docs
@@ -148,9 +148,9 @@ public interface ResourceAttributeContainer extends ShadowItemsContainer, PrismC
      *
      * @return set of secondary identifier properties
      */
-    @NotNull Collection<ResourceAttribute<?>> getSecondaryIdentifiers();
+    @NotNull Collection<ShadowSimpleAttribute<?>> getSecondaryIdentifiers();
 
-    @NotNull Collection<ResourceAttribute<?>> getAllIdentifiers();
+    @NotNull Collection<ShadowSimpleAttribute<?>> getAllIdentifiers();
 
     /**
      * TODO review docs
@@ -168,7 +168,7 @@ public interface ResourceAttributeContainer extends ShadowItemsContainer, PrismC
      * @return attribute that should be used as a "technical" name
      *                 for the account.
      */
-    ResourceAttribute<String> getNamingAttribute();
+    ShadowSimpleAttribute<String> getNamingAttribute();
 
     /**
      * Finds a specific attribute in the resource object by name.
@@ -179,7 +179,7 @@ public interface ResourceAttributeContainer extends ShadowItemsContainer, PrismC
      *            attribute name to find.
      * @return found attribute or null
      */
-    <X> ResourceAttribute<X> findAttribute(QName attributeQName);
+    <X> ShadowSimpleAttribute<X> findAttribute(QName attributeQName);
 
     default boolean containsAttribute(QName attributeName) {
         return findAttribute(attributeName) != null;
@@ -194,20 +194,20 @@ public interface ResourceAttributeContainer extends ShadowItemsContainer, PrismC
      *            attribute definition to find.
      * @return found attribute or null
      */
-    <X> ResourceAttribute<X> findAttribute(ResourceAttributeDefinition attributeDefinition);
+    <X> ShadowSimpleAttribute<X> findAttribute(ShadowSimpleAttributeDefinition attributeDefinition);
 
-    <X> ResourceAttribute<X> findOrCreateAttribute(ResourceAttributeDefinition attributeDefinition) throws SchemaException;
+    <X> ShadowSimpleAttribute<X> findOrCreateAttribute(ShadowSimpleAttributeDefinition attributeDefinition) throws SchemaException;
 
-    <X> ResourceAttribute<X> findOrCreateAttribute(QName attributeName) throws SchemaException;
+    <X> ShadowSimpleAttribute<X> findOrCreateAttribute(QName attributeName) throws SchemaException;
 
-    default ResourceAttributeContainer add(QName attributeName, Object realValue) throws SchemaException {
+    default ShadowAttributesContainer add(QName attributeName, Object realValue) throws SchemaException {
         findOrCreateAttribute(attributeName)
                 .setRealValue(realValue);
         return this;
     }
 
-    <T> boolean contains(ResourceAttribute<T> attr);
+    <T> boolean contains(ShadowSimpleAttribute<T> attr);
 
     @Override
-    ResourceAttributeContainer clone();
+    ShadowAttributesContainer clone();
 }

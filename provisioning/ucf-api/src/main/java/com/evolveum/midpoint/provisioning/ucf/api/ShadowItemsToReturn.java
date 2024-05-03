@@ -10,7 +10,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 
-import com.evolveum.midpoint.schema.processor.ShadowItemDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 
 /**
  * This is something that maps to the "attributes to return" (or to get) in the underlying framework.
@@ -39,7 +39,7 @@ public class ShadowItemsToReturn implements Serializable {
     private boolean returnValidToExplicit = false;
 
     /** The list of items that we explicitly request to be returned. */
-    private Collection<? extends ShadowItemDefinition<?, ?>> itemsToReturn = null;
+    private Collection<? extends ShadowAttributeDefinition<?, ?>> itemsToReturn = null;
 
     public boolean isReturnDefaultAttributes() {
         return returnDefaultAttributes;
@@ -49,11 +49,11 @@ public class ShadowItemsToReturn implements Serializable {
         this.returnDefaultAttributes = returnDefaultAttributes;
     }
 
-    public Collection<? extends ShadowItemDefinition<?, ?>> getItemsToReturn() {
+    public Collection<? extends ShadowAttributeDefinition<?, ?>> getItemsToReturn() {
         return itemsToReturn;
     }
 
-    public void setItemsToReturn(Collection<? extends ShadowItemDefinition<?, ?>> itemsToReturn) {
+    public void setItemsToReturn(Collection<? extends ShadowAttributeDefinition<?, ?>> itemsToReturn) {
         this.itemsToReturn = itemsToReturn;
     }
 

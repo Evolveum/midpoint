@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.visualizer;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -59,7 +59,7 @@ public class ShadowDescriptionHandler implements VisualizationDescriptionHandler
         }
 
         if (StringUtils.isEmpty(name)) {
-            ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute(shadow);
+            ShadowSimpleAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute(shadow);
             Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
             name = realName != null ? realName.toString() : "ShadowDescriptionHandler.noName";
         }

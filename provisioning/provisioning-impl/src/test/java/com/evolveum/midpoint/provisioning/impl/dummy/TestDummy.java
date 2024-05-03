@@ -1074,8 +1074,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         then();
         assertSuccess(result);
 
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(accountWill);
-        ResourceAttribute<Object> titleAttribute = attributesContainer.findAttribute(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_QNAME);
+        ShadowAttributesContainer attributesContainer = ShadowUtil.getAttributesContainer(accountWill);
+        ShadowSimpleAttribute<Object> titleAttribute = attributesContainer.findAttribute(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_QNAME);
         assertNull("Title attribute sneaked in", titleAttribute);
 
         accountWill.checkConsistence();
@@ -1982,7 +1982,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         ResourceObjectClassDefinition objectClassDef =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
-        ResourceAttributeDefinition<?> attrDef = objectClassDef.findAttributeDefinition(
+        ShadowSimpleAttributeDefinition<?> attrDef = objectClassDef.findSimpleAttributeDefinition(
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
         assertNotNull(attrDef);
 
@@ -2008,7 +2008,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         ResourceObjectClassDefinition objectClassDef =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
-        ResourceAttributeDefinition<?> attrDef = objectClassDef.findAttributeDefinitionRequired(attrQName);
+        ShadowSimpleAttributeDefinition<?> attrDef = objectClassDef.findSimpleAttributeDefinitionRequired(attrQName);
         ObjectFilter filter = prismContext.queryFor(ShadowType.class)
                 .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attrVal)
                 .buildFilter();
@@ -2025,13 +2025,13 @@ public class TestDummy extends AbstractBasicDummyTest {
                 Resource.of(resource)
                         .getCompleteSchemaRequired()
                         .findDefinitionForObjectClassRequired(RI_ACCOUNT_OBJECT_CLASS);
-        ResourceAttribute<T1> attr1 =
+        ShadowSimpleAttribute<T1> attr1 =
                 objectDef
-                        .<T1>findAttributeDefinitionRequired(attr1QName)
+                        .<T1>findSimpleAttributeDefinitionRequired(attr1QName)
                         .instantiateFromRealValue(attr1Val);
-        ResourceAttribute<T2> attr2 =
+        ShadowSimpleAttribute<T2> attr2 =
                 objectDef
-                        .<T2>findAttributeDefinitionRequired(attr2QName)
+                        .<T2>findSimpleAttributeDefinitionRequired(attr2QName)
                         .instantiateFromRealValue(attr2Val);
         ObjectFilter filter = prismContext.queryFor(ShadowType.class)
                 .filter(attr1.normalizationAwareEqFilter())
@@ -3315,11 +3315,11 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         delta.checkConsistence();
         PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, task, result);
-        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(account);
+        Collection<ShadowSimpleAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(account);
         assertNotNull("Identifiers must not be null", identifiers);
         assertEquals("Expected one identifier", 1, identifiers.size());
 
-        ResourceAttribute<?> identifier = identifiers.iterator().next();
+        ShadowSimpleAttribute<?> identifier = identifiers.iterator().next();
 
         String shadowUuid = ACCOUNT_CPTMORGAN_NAME;
 
@@ -3594,8 +3594,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
         ResourceObjectClassDefinition defaultAccountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
-        ResourceAttributeDefinition<String> fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
-        ResourceAttribute<String> fullnameAttr = fullnameAttrDef.instantiate();
+        ShadowSimpleAttributeDefinition<String> fullnameAttrDef = defaultAccountDefinition.findSimpleAttributeDefinition("fullname");
+        ShadowSimpleAttribute<String> fullnameAttr = fullnameAttrDef.instantiate();
         PropertyDelta<String> fullnameDelta = fullnameAttr.createDelta(ItemPath.create(ShadowType.F_ATTRIBUTES,
                 fullnameAttrDef.getItemName()));
         fullnameDelta.setRealValuesToReplace("Good Daemon");
@@ -3888,10 +3888,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertTrue("Wrong type of current shadow: " + currentShadow.getClass().getName(),
                 currentShadow.canRepresent(ShadowType.class));
 
-        ResourceAttributeContainer attributesContainer = ShadowUtil
+        ShadowAttributesContainer attributesContainer = ShadowUtil
                 .getAttributesContainer(currentShadow);
         assertNotNull("No attributes container in current shadow", attributesContainer);
-        Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+        Collection<ShadowSimpleAttribute<?>> attributes = attributesContainer.getAttributes();
         assertFalse("Attributes container is empty", attributes.isEmpty());
         assertAttribute(currentShadow,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Edward Teach");
@@ -3940,10 +3940,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertTrue("Wrong type of current shadow: " + currentShadow.getClass().getName(),
                 currentShadow.canRepresent(ShadowType.class));
 
-        ResourceAttributeContainer attributesContainer = ShadowUtil
+        ShadowAttributesContainer attributesContainer = ShadowUtil
                 .getAttributesContainer(currentShadow);
         assertNotNull("No attributes container in current shadow", attributesContainer);
-        Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+        Collection<ShadowSimpleAttribute<?>> attributes = attributesContainer.getAttributes();
         assertFalse("Attributes container is empty", attributes.isEmpty());
         assertAttribute(currentShadow,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Blackbeard");
@@ -4101,13 +4101,13 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertNotNull("Current shadow missing", lastChange.getShadowedResourceObject());
         PrismAsserts.assertClass("current shadow", ShadowType.class, currentShadowType);
 
-        ResourceAttributeContainer attributesContainer = ShadowUtil
+        ShadowAttributesContainer attributesContainer = ShadowUtil
                 .getAttributesContainer(currentShadowType);
         assertNotNull("No attributes container in current shadow", attributesContainer);
-        Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+        Collection<ShadowSimpleAttribute<?>> attributes = attributesContainer.getAttributes();
         assertFalse("Attributes container is empty", attributes.isEmpty());
         assertEquals("Unexpected number of attributes", 3, attributes.size());
-        ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(MidPointConstants.NS_RI, "fullname"));
+        ShadowSimpleAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(MidPointConstants.NS_RI, "fullname"));
         assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
         assertEquals("Wrong value of fullname attribute in current shadow", "Sir Francis Drake",
                 fullnameAttribute.getRealValue());
@@ -4157,10 +4157,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertTrue("Wrong type of current shadow: " + currentShadow.getClass().getName(),
                 currentShadow.canRepresent(ShadowType.class));
 
-        ResourceAttributeContainer attributesContainer = ShadowUtil
+        ShadowAttributesContainer attributesContainer = ShadowUtil
                 .getAttributesContainer(currentShadow);
         assertNotNull("No attributes container in current shadow", attributesContainer);
-        Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+        Collection<ShadowSimpleAttribute<?>> attributes = attributesContainer.getAttributes();
         assertFalse("Attributes container is empty", attributes.isEmpty());
         assertAttribute(currentShadow,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Drake");
@@ -4217,10 +4217,10 @@ public class TestDummy extends AbstractBasicDummyTest {
             assertNotNull("Current shadow missing", lastChange.getShadowedResourceObject());
             PrismAsserts.assertClass("current shadow", ShadowType.class, currentShadowFromChange);
 
-            ResourceAttributeContainer attributesContainer = ShadowUtil
+            ShadowAttributesContainer attributesContainer = ShadowUtil
                     .getAttributesContainer(currentShadowFromChange);
             assertNotNull("No attributes container in current shadow", attributesContainer);
-            Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+            Collection<ShadowSimpleAttribute<?>> attributes = attributesContainer.getAttributes();
             assertFalse("Attributes container is empty", attributes.isEmpty());
             assertEquals("Unexpected number of attributes", 2, attributes.size());
 
@@ -4542,7 +4542,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 accountAfter.findProperty(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH).getDefinition();
         assertThat(titleDefinition)
                 .as("definition of title")
-                .isInstanceOf(ResourceAttributeDefinition.class);
+                .isInstanceOf(ShadowSimpleAttributeDefinition.class);
     }
 
     /**
@@ -4670,15 +4670,15 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
         PrismAsserts.assertClass("old shadow", ShadowType.class, oldShadow);
         ShadowType oldShadowType = oldShadow.asObjectable();
-        ResourceAttributeContainer attributesContainer = ShadowUtil
+        ShadowAttributesContainer attributesContainer = ShadowUtil
                 .getAttributesContainer(oldShadowType);
         assertNotNull("No attributes container in old shadow", attributesContainer);
-        Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+        Collection<ShadowSimpleAttribute<?>> attributes = attributesContainer.getAttributes();
         assertFalse("Attributes container is empty", attributes.isEmpty());
         if (expectedNumberOfAttributes != null) {
             assertEquals("Unexpected number of attributes", (int) expectedNumberOfAttributes, attributes.size());
         }
-        ResourceAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(SchemaConstants.ICFS_NAME);
         assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
         assertEquals("Wrong value of ICF name attribute in old  shadow", repoName,
                 icfsNameAttribute.getRealValue());

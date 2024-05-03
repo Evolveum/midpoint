@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifier;
 
@@ -156,7 +156,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
             ResourceObjectIdentifier.Primary<?> primaryIdentifier = identifiers.getPrimaryIdentifier();
             if (primaryIdentifier != null) {
                 // A kind of fallback
-                ResourceAttribute<?> attr = primaryIdentifier.getAttribute();
+                ShadowSimpleAttribute<?> attr = primaryIdentifier.getAttribute();
                 q = q.item(ShadowType.F_ATTRIBUTES.append(attr.getElementName()), attr.getDefinition())
                         .eq(attr.getValue())
                         .or();
@@ -165,7 +165,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
             }
         } else {
             for (var secondaryIdentifier : secondaryIdentifiers) {
-                ResourceAttribute<?> attr = secondaryIdentifier.getAttribute();
+                ShadowSimpleAttribute<?> attr = secondaryIdentifier.getAttribute();
                 q = q.item(ShadowType.F_ATTRIBUTES.append(attr.getElementName()), attr.getDefinition())
                         .eq(attr.getValue())
                         .or();

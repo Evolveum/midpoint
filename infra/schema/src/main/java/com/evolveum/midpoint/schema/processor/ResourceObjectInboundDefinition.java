@@ -25,12 +25,13 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Defines "complex inbound processing": correlation, synchronization reactions, inbounds for attributes, associations and "self".
+ * Defines "complex inbound processing": correlation, synchronization reactions, inbounds for attributes and associations.
  *
- * There are two main flavors:
+ * There are three main flavors:
  *
  * . standard {@link ResourceObjectDefinition}
- * . "embedded", defined by a {@link ComplexProcessingType}
+ * . for associations, based on {@link ResourceObjectAssociationNewType}
+ * . for structured attributes, based on {@link ComplexProcessingType}
  *
  * Currently, the processing assumes that we have a shadow as an input. It is either the regular shadow coming from
  * a resource, or an embedded shadow in the case of associations.
@@ -45,6 +46,10 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
 
     static ResourceObjectInboundDefinition forComplexProcessing(@Nullable ComplexProcessingType bean) {
         return bean != null ? new ComplexProcessingImplementation(bean) : empty();
+    }
+
+    static ResourceObjectInboundDefinition forAssociation(@Nullable ResourceObjectAssociationNewType bean) {
+        return bean != null ? new AssociationProcessingImplementation(bean) : empty();
     }
 
     ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException;
@@ -68,7 +73,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
     // TEMPORARY FIXME define the semantics
     boolean hasAnyInbounds();
 
-    default @Nullable ItemInboundDefinition getAssociationValueInboundDefinition() {
+    default @Nullable ItemInboundDefinition getDefaultObjectRefDefinition() {
         return null;
     }
 
@@ -207,20 +212,13 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
             return new FocusSpecification() {
                 @Override
                 public ItemPath getFocusItemPath() {
-                    // TODO reconsider the default value handling
-                    var focusBean = definitionBean.getFocus();
-                    var itemBean = focusBean != null ? focusBean.getItem() : null;
-                    if (itemBean != null) {
-                        return itemBean.getItemPath();
-                    } else {
-                        return FocusType.F_ASSIGNMENT;
-                    }
+                    return FocusType.F_ASSIGNMENT;
                 }
 
                 @Override
                 public String getAssignmentSubtype() {
                     var focusBean = definitionBean.getFocus();
-                    return focusBean != null ? focusBean.getSubtype() : null;
+                    return focusBean != null ? focusBean.getAssignmentSubtype() : null;
                 }
 
                 @Override
@@ -248,7 +246,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         }
 
         @Override
-        public @Nullable ItemInboundDefinition getAssociationValueInboundDefinition() {
+        public @Nullable ItemInboundDefinition getDefaultObjectRefDefinition() {
             return associationValueInboundDefinition;
         }
 
@@ -263,6 +261,139 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         private final ComplexProcessingResourceItemDefinitionType definitionBean;
 
         BeanBasedItemImplementation(ComplexProcessingResourceItemDefinitionType definitionBean) {
+            this.definitionBean = definitionBean;
+        }
+
+        @Override
+        public @NotNull List<InboundMappingType> getInboundMappingBeans() {
+            return definitionBean.getInbound();
+        }
+
+        @Override
+        public ItemCorrelatorDefinitionType getCorrelatorDefinition() {
+            return definitionBean.getCorrelator();
+        }
+    }
+
+    class AssociationProcessingImplementation implements ResourceObjectInboundDefinition {
+
+        @NotNull private final ResourceObjectAssociationNewType definitionBean;
+
+        @NotNull private final PathKeyedMap<ItemInboundDefinition> itemDefinitionsMap = new PathKeyedMap<>();
+
+        @NotNull private final Collection<SynchronizationReactionDefinition> synchronizationReactionDefinitions;
+
+        /** This is the inbound provided by unnamed `objectRef` definition. */
+        @Nullable private final ItemInboundDefinition defaultObjectRefDefinition;
+
+        AssociationProcessingImplementation(@NotNull ResourceObjectAssociationNewType definitionBean) {
+            this.definitionBean = definitionBean;
+            for (var itemDefBean : definitionBean.getAttribute()) {
+                var itemName = ItemPathTypeUtil.asSingleNameOrFail(itemDefBean.getRef()); // TODO error handling
+                itemDefinitionsMap.put(itemName, new AssociationBasedItemImplementation(itemDefBean));
+            }
+            Collection<ItemInboundDefinition> defaultObjectRefDefinitions = new ArrayList<>();
+            for (var objectRefBean : definitionBean.getObjectRef()) {
+                // TODO error handling
+                var value = new AssociationBasedItemImplementation(objectRefBean);
+                var refBean = objectRefBean.getRef();
+                if (refBean == null) {
+                    defaultObjectRefDefinitions.add(value);
+                } else {
+                    itemDefinitionsMap.put(refBean.getItemPath().asSingleNameOrFail(), value);
+                }
+            }
+            defaultObjectRefDefinition = MiscUtil.extractSingleton(defaultObjectRefDefinitions);
+            synchronizationReactionDefinitions =
+                    SynchronizationReactionDefinition.modern(
+                            definitionBean.getSynchronization());
+        }
+
+        @Override
+        public ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) {
+            return itemDefinitionsMap.get(itemName);
+        }
+
+        @Override
+        public ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) {
+            return itemDefinitionsMap.get(itemName);
+        }
+
+        @Override
+        public ResourceBidirectionalMappingType getActivationBidirectionalMappingType(ItemName itemName) {
+            return ResourceObjectDefinitionUtil.getActivationBidirectionalMappingType(
+                    definitionBean.getActivation(), itemName);
+        }
+
+        @Override
+        public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
+            return null; // probably makes no sense for associated objects
+        }
+
+        @Override
+        public DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases() {
+            return null; // currently not implemented
+        }
+
+        @Override
+        public @NotNull List<MappingType> getPasswordInbound() {
+            return List.of(); // currently not implemented
+        }
+
+        @Override
+        public @NotNull FocusSpecification getFocusSpecification() {
+            return new FocusSpecification() {
+                @Override
+                public ItemPath getFocusItemPath() {
+                    return FocusType.F_ASSIGNMENT;
+                }
+
+                @Override
+                public String getAssignmentSubtype() {
+                    var focusBean = definitionBean.getFocus();
+                    return focusBean != null ? focusBean.getAssignmentSubtype() : null;
+                }
+
+                @Override
+                public String getArchetypeOid() {
+                    return null; // TODO implement if needed
+                }
+            };
+        }
+
+        @Override
+        public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+            return synchronizationReactionDefinitions;
+        }
+
+        @Override
+        public CorrelationDefinitionType getCorrelation() {
+            return definitionBean.getCorrelation();
+        }
+
+        @Override
+        public boolean hasAnyInbounds() {
+            return defaultObjectRefDefinition != null
+                    || itemDefinitionsMap.values().stream()
+                    .anyMatch(def -> !def.getInboundMappingBeans().isEmpty());
+        }
+
+        @Override
+        public @Nullable ItemInboundDefinition getDefaultObjectRefDefinition() {
+            return defaultObjectRefDefinition;
+        }
+
+        @Override
+        public String debugDump(int indent) {
+            return definitionBean.debugDump(indent);
+        }
+    }
+
+    class AssociationBasedItemImplementation implements ItemInboundDefinition {
+
+        private final ResourceAttributeDefinitionType definitionBean;
+
+        AssociationBasedItemImplementation(ResourceAttributeDefinitionType definitionBean) {
             this.definitionBean = definitionBean;
         }
 

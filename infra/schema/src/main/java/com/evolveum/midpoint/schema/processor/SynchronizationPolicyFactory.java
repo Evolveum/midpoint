@@ -260,7 +260,7 @@ public class SynchronizationPolicyFactory {
             @NotNull CorrelationDefinitionType explicitDefinition,
             @NotNull ResourceType resource) throws ConfigurationException {
         CorrelationDefinitionType cloned = null;
-        for (ResourceAttributeDefinition<?> attributeDefinition : typeDef.getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition<?> attributeDefinition : typeDef.getAttributeDefinitions()) {
             ItemCorrelatorDefinitionType correlatorDefBean = attributeDefinition.getCorrelatorDefinition();
             if (correlatorDefBean != null) {
                 if (cloned == null) {
@@ -274,7 +274,7 @@ public class SynchronizationPolicyFactory {
 
     private static void addCorrelatorFromAttribute(
             @NotNull CorrelationDefinitionType overallCorrelationDefBean,
-            @NotNull ResourceAttributeDefinition<?> attributeDefinition,
+            @NotNull ShadowSimpleAttributeDefinition<?> attributeDefinition,
             @NotNull ItemCorrelatorDefinitionType attributeCorrelatorDefBean,
             @NotNull ResourceObjectTypeDefinition typeDef,
             @NotNull ResourceType resource) throws ConfigurationException {
@@ -291,7 +291,7 @@ public class SynchronizationPolicyFactory {
     }
 
     private static ItemPath determineFocusItemPath(
-            ResourceAttributeDefinition<?> attributeDefinition, @NotNull ItemCorrelatorDefinitionType attributeCorrelatorDefBean) {
+            ShadowSimpleAttributeDefinition<?> attributeDefinition, @NotNull ItemCorrelatorDefinitionType attributeCorrelatorDefBean) {
         ItemPathType explicitItemPath = attributeCorrelatorDefBean.getFocusItem();
         if (explicitItemPath != null) {
             return explicitItemPath.getItemPath();
@@ -301,7 +301,7 @@ public class SynchronizationPolicyFactory {
     }
 
     /** Tries to determine correlation (focus) item path from the inbound mapping target. */
-    private static ItemPath guessFocusItemPath(ResourceAttributeDefinition<?> attributeDefinition) {
+    private static ItemPath guessFocusItemPath(ShadowSimpleAttributeDefinition<?> attributeDefinition) {
         List<InboundMappingType> inboundMappingBeans = attributeDefinition.getInboundMappingBeans();
         if (inboundMappingBeans.size() != 1) {
             return null;

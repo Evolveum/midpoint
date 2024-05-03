@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.TunnelException;
@@ -47,21 +47,21 @@ public class DefinitionsUtil {
             if (subFilter instanceof PropertyValueFilter) {
                 PropertyValueFilter<?> valueFilter = (PropertyValueFilter<?>) subFilter;
                 ItemDefinition<?> definition = valueFilter.getDefinition();
-                if (definition instanceof ResourceAttributeDefinition) {
+                if (definition instanceof ShadowSimpleAttributeDefinition) {
                     return; // already has a resource-related definition
                 }
                 if (!ShadowType.F_ATTRIBUTES.equivalent(valueFilter.getParentPath())) {
                     return;
                 }
                 QName attributeName = valueFilter.getElementName();
-                ResourceAttributeDefinition<?> attributeDefinition =
-                        objectDefinition.findAttributeDefinition(attributeName);
+                ShadowSimpleAttributeDefinition<?> attributeDefinition =
+                        objectDefinition.findSimpleAttributeDefinition(attributeName);
                 if (attributeDefinition == null) {
                     throw new TunnelException(
                             new SchemaException("No definition for attribute " + attributeName + " in " + filter));
                 }
                 //noinspection unchecked,rawtypes
-                valueFilter.setDefinition((ResourceAttributeDefinition) attributeDefinition);
+                valueFilter.setDefinition((ShadowSimpleAttributeDefinition) attributeDefinition);
             }
         };
         try {

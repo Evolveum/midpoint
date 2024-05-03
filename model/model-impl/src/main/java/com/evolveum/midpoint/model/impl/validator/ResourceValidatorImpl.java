@@ -282,18 +282,18 @@ public class ResourceValidatorImpl implements ResourceValidator {
             ResourceObjectTypeDefinitionType objectType, ResourceAttributeDefinitionType attributeDef) {
         QName ref = itemRefToName(attributeDef.getRef());
         checkSchemaHandlingItem(ctx, path, objectType, attributeDef);
-        ResourceAttributeDefinition<?> rad = null;
+        ShadowSimpleAttributeDefinition<?> rad = null;
         // TODO rewrite using CompositeObjectDefinition
         if (ref != null) {
             boolean caseIgnoreAttributeNames = ResourceTypeUtil.isCaseIgnoreAttributeNames(ctx.resourceObject.asObjectable());
             if (ocdef != null) {
-                rad = ocdef.findAttributeDefinition(ref, caseIgnoreAttributeNames);
+                rad = ocdef.findSimpleAttributeDefinition(ref, caseIgnoreAttributeNames);
             }
             if (rad == null) {
                 for (QName auxOcName : getAuxiliaryObjectClassNames(objectType)) {
                     ResourceObjectDefinition auxOcDef = ctx.resourceSchema.findObjectClassDefinition(auxOcName);
                     if (auxOcDef != null) {
-                        rad = auxOcDef.findAttributeDefinition(ref, caseIgnoreAttributeNames);
+                        rad = auxOcDef.findSimpleAttributeDefinition(ref, caseIgnoreAttributeNames);
                         if (rad != null) {
                             break;
                         }
@@ -405,7 +405,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
     }
 
     private void checkMatchingRule(ResourceValidationContext ctx, ItemPath path,
-            ResourceObjectTypeDefinitionType objectType, ResourceAttributeDefinitionType attributeDef, QName ref, ResourceAttributeDefinition<?> rad) {
+            ResourceObjectTypeDefinitionType objectType, ResourceAttributeDefinitionType attributeDef, QName ref, ShadowSimpleAttributeDefinition<?> rad) {
         QName matchingRule = attributeDef.getMatchingRule();
         if (matchingRule == null) {
             return;
@@ -433,7 +433,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
         QName ref = itemRefToName(associationDef.getRef());
         if (ocdef != null) {
             if (ref != null) {
-                if (ocdef.findAttributeDefinition(ref, ResourceTypeUtil.isCaseIgnoreAttributeNames(ctx.resourceObject.asObjectable())) != null) {
+                if (ocdef.findSimpleAttributeDefinition(ref, ResourceTypeUtil.isCaseIgnoreAttributeNames(ctx.resourceObject.asObjectable())) != null) {
                     ctx.validationResult.add(Issue.Severity.ERROR,
                             CAT_SCHEMA_HANDLING, C_COLLIDING_ASSOCIATION_NAME,
                             getString(CLASS_DOT + C_COLLIDING_ASSOCIATION_NAME, getName(objectType), prettyPrintUsingStandardPrefix(ref)),

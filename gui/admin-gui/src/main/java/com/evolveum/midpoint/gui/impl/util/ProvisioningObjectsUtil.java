@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -299,11 +299,11 @@ public class ProvisioningObjectsUtil {
         }
         var shadowAssociationDefinitions = oc.getAssociationDefinitions();
 
-        for (ShadowAssociationDefinition shadowAssociationDefinition : shadowAssociationDefinitions) {
-            if (association != null && !shadowAssociationDefinition.getItemName().equivalent(association)) {
+        for (ShadowReferenceAttributeDefinition shadowReferenceAttributeDefinition : shadowAssociationDefinitions) {
+            if (association != null && !shadowReferenceAttributeDefinition.getItemName().equivalent(association)) {
                 continue;
             }
-            ObjectFilter filter = shadowAssociationDefinition.createTargetObjectsFilter();
+            ObjectFilter filter = shadowReferenceAttributeDefinition.createTargetObjectsFilter();
             query.setFilter(filter);        // TODO this overwrites existing filter (created in previous cycle iteration)... is it OK? [med]
         }
         return query.getFilter();
@@ -311,9 +311,9 @@ public class ProvisioningObjectsUtil {
 
     /** Creates a filter that provides all shadows eligible as the target value for this association. */
     public static ObjectFilter createAssociationShadowRefFilter(
-            ShadowAssociationDefinition shadowAssociationDefinition,
+            ShadowReferenceAttributeDefinition shadowReferenceAttributeDefinition,
             PrismContext prismContext, String resourceOid) {
-        return shadowAssociationDefinition.createTargetObjectsFilter();
+        return shadowReferenceAttributeDefinition.createTargetObjectsFilter();
     }
 
     public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?> itemWrapper,
@@ -538,8 +538,8 @@ public class ProvisioningObjectsUtil {
         return new ArrayList<>();
     }
 
-    public static List<ShadowAssociationDefinition> getRefinedAssociationDefinition(ConstructionType construction, PageBase pageBase) {
-        List<ShadowAssociationDefinition> associationDefinitions = new ArrayList<>();
+    public static List<ShadowReferenceAttributeDefinition> getRefinedAssociationDefinition(ConstructionType construction, PageBase pageBase) {
+        List<ShadowReferenceAttributeDefinition> associationDefinitions = new ArrayList<>();
 
         if (construction == null) {
             return associationDefinitions;
@@ -561,9 +561,9 @@ public class ProvisioningObjectsUtil {
         return associationDefinitions;
     }
 
-    public static List<ShadowAssociationDefinition> getRefinedAssociationDefinition(@NotNull ResourceObjectDefinition oc) {
+    public static List<ShadowReferenceAttributeDefinition> getRefinedAssociationDefinition(@NotNull ResourceObjectDefinition oc) {
 
-        List<ShadowAssociationDefinition> associationDefinitions = new ArrayList<>(oc.getAssociationDefinitions());
+        List<ShadowReferenceAttributeDefinition> associationDefinitions = new ArrayList<>(oc.getAssociationDefinitions());
 
         if (CollectionUtils.isEmpty(associationDefinitions)) {
             LOGGER.debug("Association not supported by resource object definition {}", oc);
@@ -589,8 +589,8 @@ public class ProvisioningObjectsUtil {
         return schema.findDefinitionForConstruction(construction);
     }
 
-    public static List<ShadowAssociationDefinition> getRefinedAssociationDefinition(ResourceType resource, ShadowKindType kind, String intent) {
-        List<ShadowAssociationDefinition> associationDefinitions = new ArrayList<>();
+    public static List<ShadowReferenceAttributeDefinition> getRefinedAssociationDefinition(ResourceType resource, ShadowKindType kind, String intent) {
+        List<ShadowReferenceAttributeDefinition> associationDefinitions = new ArrayList<>();
 
         try {
 
@@ -619,7 +619,7 @@ public class ProvisioningObjectsUtil {
         return associationDefinitions;
     }
 
-    public static String getAssociationDisplayName(ShadowAssociationDefinition assocDef) {
+    public static String getAssociationDisplayName(ShadowReferenceAttributeDefinition assocDef) {
         if (assocDef != null) {
             return assocDef.getHumanReadableDescription();
         } else {

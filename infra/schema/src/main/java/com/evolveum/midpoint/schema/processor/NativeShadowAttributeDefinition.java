@@ -7,17 +7,35 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.prism.PrismItemMatchingDefinition;
-import com.evolveum.midpoint.prism.PrismItemValuesDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition.PrismPropertyLikeDefinitionBuilder;
+import java.io.Serializable;
 
-public interface NativeShadowAttributeDefinition<T>
-        extends NativeShadowItemDefinition,
-        PrismItemValuesDefinition<T>,
-        PrismItemMatchingDefinition<T> {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-    interface NativeShadowAttributeDefinitionBuilder<T>
-            extends PrismPropertyLikeDefinitionBuilder<T>, NativeShadowItemDefinitionBuilder {
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.ShortDumpable;
 
+public interface NativeShadowAttributeDefinition extends
+        Cloneable, Freezable, Serializable, ShortDumpable,
+        PrismItemBasicDefinition,
+        PrismItemAccessDefinition,
+        PrismItemMiscDefinition,
+        PrismPresentationDefinition,
+        ShadowItemUcfDefinition {
+
+    @Nullable
+    ShadowReferenceParticipantRole getReferenceParticipantRoleIfPresent();
+
+    @NotNull
+    ShadowReferenceParticipantRole getReferenceParticipantRole();
+
+    NativeShadowAttributeDefinition clone();
+
+    interface NativeShadowAttributeDefinitionBuilder extends ItemDefinition.ItemDefinitionLikeBuilder {
+
+        void setNativeAttributeName(String value);
+        void setFrameworkAttributeName(String value);
+        void setReturnedByDefault(Boolean value);
+        void setReferenceParticipantRole(ShadowReferenceParticipantRole value);
     }
 }

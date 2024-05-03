@@ -33,8 +33,8 @@ import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -148,7 +148,7 @@ public class ShadowCreator {
         resourceObjectOrShadow.checkConsistence();
 
         ResourceObjectDefinition objectDef = resourceObjectOrShadow.getObjectDefinition();
-        ResourceAttributeContainer originalAttributesContainer = resourceObjectOrShadow.getAttributesContainer();
+        ShadowAttributesContainer originalAttributesContainer = resourceObjectOrShadow.getAttributesContainer();
 
         // An alternative would be to start with a clean shadow and fill-in the data from resource object.
         // But we could easily miss something. So let's clone the shadow instead.
@@ -174,9 +174,9 @@ public class ShadowCreator {
         repoShadowBean.setPrimaryIdentifierValue(primaryIdentifierValue != null ? primaryIdentifierValue.toString() : null);
 
         var repoAttributesContainer = repoShadowBean.asPrismObject().findOrCreateContainer(ShadowType.F_ATTRIBUTES);
-        for (ResourceAttribute<?> attribute : originalAttributesContainer.getAttributes()) {
+        for (ShadowSimpleAttribute<?> attribute : originalAttributesContainer.getAttributes()) {
             // TODO or should we use attribute.getDefinition()?
-            var attrDef = objectDef.findAttributeDefinitionRequired(attribute.getElementName());
+            var attrDef = objectDef.findSimpleAttributeDefinitionRequired(attribute.getElementName());
             if (ctx.shouldStoreAttributeInShadow(objectDef, attrDef)) {
                 var repoAttrDef = attrDef.toNormalizationAware();
                 var repoAttr = repoAttrDef.adoptRealValuesAndInstantiate(attribute.getRealValues());

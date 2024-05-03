@@ -27,19 +27,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Information about a resource attribute or association.
  *
  * . It is based on a "native" part, available from the connector (or from simulated associations capability definition);
- * see {@link NativeShadowItemDefinition}.
+ * see {@link NativeShadowAttributeDefinition}.
  * . This part is then optionally refined by the configuration in resource `schemaHandling` section.
  *
  * For the time being, it does not extend {@link ItemDefinition} because of typing complications:
- * {@link ShadowItem} cannot extend {@link Item}.
+ * {@link ShadowAttribute} cannot extend {@link Item}.
  *
- * @see ResourceAttributeDefinition
- * @see ShadowAssociationDefinition
+ * @see ShadowSimpleAttributeDefinition
+ * @see ShadowReferenceAttributeDefinition
  *
- * @param <I> item that is created by the instantiation of this definition
+ * @param <SA> item that is created by the instantiation of this definition
  * @param <R> real value stored in I
  */
-public interface ShadowItemDefinition<I extends ShadowItem<?, ?>, R>
+public interface ShadowAttributeDefinition<SA extends ShadowAttribute<?, ?>, R>
         extends
         PrismItemBasicDefinition,
         PrismItemAccessDefinition,
@@ -48,7 +48,8 @@ public interface ShadowItemDefinition<I extends ShadowItem<?, ?>, R>
         ShadowItemUcfDefinition,
         ShadowItemLayeredDefinition,
         LayeredDefinition,
-        ResourceObjectInboundDefinition.ItemInboundDefinition {
+        ResourceObjectInboundDefinition.ItemInboundDefinition,
+        Definition {
 
     /**
      * When set to true, allows to preserve attribute values that are set outside midPoint.
@@ -135,7 +136,8 @@ public interface ShadowItemDefinition<I extends ShadowItem<?, ?>, R>
      * Creates a view of the current definition for a given layer.
      * (May return even the original object e.g. if the layer matches the current one.)
      */
-    @NotNull ShadowItemDefinition<I, R> forLayer(@NotNull LayerType layer);
+    @NotNull
+    ShadowAttributeDefinition<SA, R> forLayer(@NotNull LayerType layer);
 
     /**
      * Provides a value that will override {@link #canRead(LayerType)} return values (for all layers).
@@ -184,7 +186,7 @@ public interface ShadowItemDefinition<I extends ShadowItem<?, ?>, R>
         return !getInboundMappingBeans().isEmpty();
     }
 
-    @NotNull Collection<ComplexProcessingDefinition> getComplexProcessingDefinition();
+    @NotNull Collection<ResourceObjectInboundDefinition> getRelevantInboundDefinitions();
 
     /**
      * Drives behavior of strong and normal mappings for this attribute.
@@ -245,9 +247,11 @@ public interface ShadowItemDefinition<I extends ShadowItem<?, ?>, R>
 
     boolean isIndexOnly();
 
-    @NotNull I instantiate() throws SchemaException;
+    @NotNull
+    SA instantiate() throws SchemaException;
 
-    @NotNull I instantiate(QName itemName) throws SchemaException;
+    @NotNull
+    SA instantiate(QName itemName) throws SchemaException;
 
     String getHumanReadableDescription();
 
@@ -255,4 +259,6 @@ public interface ShadowItemDefinition<I extends ShadowItem<?, ?>, R>
 
     /** If `true`, the item does not exist on the resource, but is simulated by midPoint. */
     boolean isSimulated();
+
+    @NotNull ShadowAttributeDefinition<SA, R> clone();
 }

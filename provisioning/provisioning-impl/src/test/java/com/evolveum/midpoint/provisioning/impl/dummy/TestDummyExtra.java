@@ -47,8 +47,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 
-import org.w3c.dom.Element;
-
 /**
  * Almost the same as TestDummy but with some extra things, such as:
  *
@@ -97,7 +95,7 @@ public class TestDummyExtra extends TestDummy {
 
         var associationDefinitions = accountRDef.getAssociationDefinitions();
         assertEquals("Wrong number of association defs", 3, associationDefinitions.size());
-        ShadowAssociationDefinition crewAssociationDef = accountRDef.findAssociationDefinition(ASSOCIATION_CREW_NAME);
+        ShadowReferenceAttributeDefinition crewAssociationDef = accountRDef.findAssociationDefinition(ASSOCIATION_CREW_NAME);
         assertNotNull("No definition for crew association", crewAssociationDef);
     }
 

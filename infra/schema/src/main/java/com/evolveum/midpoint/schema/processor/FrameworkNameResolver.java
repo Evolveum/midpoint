@@ -26,7 +26,7 @@ public interface FrameworkNameResolver {
     }
 
     static @Nullable ItemName findInObjectDefinition(@NotNull ResourceObjectDefinition definition, String frameworkName) {
-        for (ResourceAttributeDefinition<?> attributeDefinition : definition.getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition<?> attributeDefinition : definition.getAttributeDefinitions()) {
             if (frameworkName.equals(attributeDefinition.getFrameworkAttributeName())) {
                 return attributeDefinition.getItemName();
             }

@@ -14,7 +14,7 @@ import java.io.Serializable;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationsType;
@@ -138,7 +138,7 @@ public abstract class ShadowAssociationsCollection implements DebugDumpable {
 
         public @NotNull PrismPropertyValue<?> getSingleIdentifierValueRequired(@NotNull QName attrName, Object errorCtx)
                 throws SchemaException {
-            ResourceAttributeContainer attributesContainer =
+            ShadowAttributesContainer attributesContainer =
                     MiscUtil.requireNonNull(
                             associationValue().getAttributesContainerIfPresent(),
                             "No attributes container in %s in %s", this, errorCtx);

@@ -11,8 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ComplexProcessingDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -20,16 +19,14 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.DeepCloneOperation;
 import com.evolveum.midpoint.prism.ItemProcessing;
-import com.evolveum.midpoint.schema.processor.PropertyLimitations;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import javax.xml.namespace.QName;
 
 public interface ResourceAttributeDefinitionDelegator<T>
-        extends PropertyDefinitionDelegator<T>, ResourceAttributeDefinition<T> {
+        extends PropertyDefinitionDelegator<T>, ShadowSimpleAttributeDefinition<T> {
 
     @Override
-    ResourceAttributeDefinition<T> delegate();
+    ShadowSimpleAttributeDefinition<T> delegate();
 
     @Override
     default Boolean getReturnedByDefault() {
@@ -47,12 +44,12 @@ public interface ResourceAttributeDefinitionDelegator<T>
     }
 
     @Override
-    default @NotNull ResourceAttribute<T> instantiate() {
+    default @NotNull ShadowSimpleAttribute<T> instantiate() {
         return delegate().instantiate();
     }
 
     @Override
-    default @NotNull ResourceAttribute<T> instantiate(QName name) {
+    default @NotNull ShadowSimpleAttribute<T> instantiate(QName name) {
         return delegate().instantiate(name);
     }
 
@@ -123,7 +120,7 @@ public interface ResourceAttributeDefinitionDelegator<T>
 
     @Override
     default boolean isIgnored(LayerType layer) {
-        return ResourceAttributeDefinition.super.isIgnored(layer);
+        return ShadowSimpleAttributeDefinition.super.isIgnored(layer);
     }
 
     @Override
@@ -152,8 +149,8 @@ public interface ResourceAttributeDefinitionDelegator<T>
     }
 
     @Override
-    default @NotNull Collection<ComplexProcessingDefinition> getComplexProcessingDefinition() {
-        return delegate().getComplexProcessingDefinition();
+    default @NotNull Collection<ResourceObjectInboundDefinition> getRelevantInboundDefinitions() {
+        return delegate().getRelevantInboundDefinitions();
     }
 
     @Override
@@ -168,22 +165,22 @@ public interface ResourceAttributeDefinitionDelegator<T>
 
     @Override
     default boolean isOptional(LayerType layer) {
-        return ResourceAttributeDefinition.super.isOptional(layer);
+        return ShadowSimpleAttributeDefinition.super.isOptional(layer);
     }
 
     @Override
     default boolean isMandatory(LayerType layer) {
-        return ResourceAttributeDefinition.super.isMandatory(layer);
+        return ShadowSimpleAttributeDefinition.super.isMandatory(layer);
     }
 
     @Override
     default boolean isMultiValue(LayerType layer) {
-        return ResourceAttributeDefinition.super.isMultiValue(layer);
+        return ShadowSimpleAttributeDefinition.super.isMultiValue(layer);
     }
 
     @Override
     default boolean isSingleValue(LayerType layer) {
-        return ResourceAttributeDefinition.super.isSingleValue(layer);
+        return ShadowSimpleAttributeDefinition.super.isSingleValue(layer);
     }
 
     @Override
@@ -223,7 +220,7 @@ public interface ResourceAttributeDefinitionDelegator<T>
     }
 
     @Override
-    default ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
+    default ShadowSimpleAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
         return null;
     }
 
@@ -244,7 +241,7 @@ public interface ResourceAttributeDefinitionDelegator<T>
 
     @Override
     @NotNull
-    default ResourceAttributeDefinition<T> forLayer(@NotNull LayerType layer) {
+    default ShadowSimpleAttributeDefinition<T> forLayer(@NotNull LayerType layer) {
         return delegate().forLayer(layer);
     }
 

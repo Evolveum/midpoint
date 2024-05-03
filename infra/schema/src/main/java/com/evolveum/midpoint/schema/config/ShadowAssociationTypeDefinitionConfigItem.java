@@ -69,11 +69,11 @@ public class ShadowAssociationTypeDefinitionConfigItem
         return "the definition of association type '" + value().getName() + "'";
     }
 
-    public @Nullable AssociatedResourceObjectTypeDefinitionConfigItem getAssociatedObjectType() {
+    public @Nullable AssociatedResourceObjectTypeDefinitionConfigItem getAssociationObject() {
         return child(
-                value().getAssociatedObjectType(),
+                value().getAssociationObject(),
                 AssociatedResourceObjectTypeDefinitionConfigItem.class,
-                ShadowAssociationTypeDefinitionType.F_ASSOCIATED_OBJECT_TYPE);
+                ShadowAssociationTypeDefinitionType.F_ASSOCIATION_OBJECT);
     }
 
     public boolean isRelatedToSubjectItem(@NotNull ItemName itemName) {

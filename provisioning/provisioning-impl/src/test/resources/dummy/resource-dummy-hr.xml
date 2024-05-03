@@ -38,13 +38,13 @@
                     <intent>person</intent>
                 </objectType>
             </subject>
-            <associatedObjectType>
+            <associationObject>
                 <kind>associated</kind>
                 <intent>contract</intent>
                 <delineation>
                     <objectClass>ri:contract</objectClass>
                 </delineation>
-            </associatedObjectType>
+            </associationObject>
         </associationType>
     </schemaHandling>
 </resource>

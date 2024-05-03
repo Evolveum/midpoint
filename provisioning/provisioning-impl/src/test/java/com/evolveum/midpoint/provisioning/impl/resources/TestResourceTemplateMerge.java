@@ -472,16 +472,16 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 findObjectTypeDefinitionRequired(schema, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
 
         and("gossip is added in types-1");
-        ResourceAttributeDefinition<?> gossipDef =
-                accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME);
+        ShadowSimpleAttributeDefinition<?> gossipDef =
+                accountDef.findSimpleAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME);
         PropertyLimitations gossipModelLimitations = gossipDef.getLimitations(LayerType.MODEL);
         assertThat(gossipModelLimitations.canRead()).as("read access to gossip").isFalse();
         assertThat(gossipModelLimitations.canAdd()).as("add access to gossip").isTrue();
         assertThat(gossipModelLimitations.canModify()).as("modify access to gossip").isTrue();
 
         and("drink is updated");
-        ResourceAttributeDefinition<?> drinkDef =
-                accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+        ShadowSimpleAttributeDefinition<?> drinkDef =
+                accountDef.findSimpleAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
         PropertyLimitations drinkModelLimitations = drinkDef.getLimitations(LayerType.MODEL);
         assertThat(drinkModelLimitations.canRead()).as("read access to drink").isTrue();
         assertThat(drinkModelLimitations.canAdd()).as("add access to drink").isTrue(); // overridden in types-1
@@ -489,8 +489,8 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(drinkDef.isTolerant()).as("drink 'tolerant' flag").isFalse(); // overridden in types-1
 
         and("inbound mapping in weapon is updated");
-        ResourceAttributeDefinition<?> weaponDef =
-                accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME);
+        ShadowSimpleAttributeDefinition<?> weaponDef =
+                accountDef.findSimpleAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME);
         List<InboundMappingType> weaponInbounds = weaponDef.getInboundMappingBeans();
         assertThat(weaponInbounds).as("weapon inbound mappings").hasSize(1);
         InboundMappingType weaponInbound = weaponInbounds.get(0);
@@ -664,8 +664,8 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 findObjectTypeDefinitionRequired(schema, ShadowKindType.ACCOUNT, "employee");
 
         and("drink is updated");
-        ResourceAttributeDefinition<?> employeeDrinkDef =
-                employeeDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+        ShadowSimpleAttributeDefinition<?> employeeDrinkDef =
+                employeeDef.findSimpleAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
         PropertyLimitations drinkModelLimitations = employeeDrinkDef.getLimitations(LayerType.MODEL);
         assertThat(drinkModelLimitations.canRead()).as("read access to drink").isTrue();
         assertThat(drinkModelLimitations.canAdd()).as("add access to drink").isFalse();
@@ -677,8 +677,8 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 findObjectTypeDefinitionRequired(schema, ShadowKindType.ACCOUNT, "admin");
 
         and("drink is updated");
-        ResourceAttributeDefinition<?> adminDrinkDef =
-                adminDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+        ShadowSimpleAttributeDefinition<?> adminDrinkDef =
+                adminDef.findSimpleAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
         assertThat(adminDrinkDef.isTolerant()).as("drink 'tolerant' flag").isTrue(); // default
         assertThat(adminDrinkDef.isIgnored(LayerType.MODEL)).as("drink 'ignored' flag").isTrue(); // overridden
         assertThat(adminDrinkDef.getDocumentation()).isEqualTo("Administrators do not drink!");

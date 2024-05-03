@@ -70,7 +70,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
      *
      * See {@link UcfChange#identifiers}.
      */
-    @NotNull protected Collection<ResourceAttribute<?>> identifiers;
+    @NotNull protected Collection<ShadowSimpleAttribute<?>> identifiers;
 
     /**
      * Delta from the resource - if known.
@@ -103,7 +103,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
             int localSequenceNumber,
             @NotNull Object primaryIdentifierRealValue,
             @Nullable ResourceObjectDefinition resourceObjectDefinition,
-            @NotNull Collection<ResourceAttribute<?>> identifiers,
+            @NotNull Collection<ShadowSimpleAttribute<?>> identifiers,
             @Nullable UcfResourceObject ucfResourceObject,
             @Nullable ObjectDelta<ShadowType> objectDelta,
             @NotNull ErrorState initialErrorState,
@@ -245,7 +245,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
         return ObjectDelta.isAdd(objectDelta);
     }
 
-    public @NotNull Collection<ResourceAttribute<?>> getIdentifiers() {
+    public @NotNull Collection<ShadowSimpleAttribute<?>> getIdentifiers() {
         return identifiers;
     }
 
@@ -366,7 +366,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
 
         if (resourceObjectDefinition != null) {
             schemaCheck(!identifiers.isEmpty(), "No identifiers in the container but primary id value is known");
-            for (ResourceAttribute<?> identifier : identifiers) {
+            for (ShadowSimpleAttribute<?> identifier : identifiers) {
                 identifier.checkDefinitionConsistence(resourceObjectDefinition);
             }
         } else {

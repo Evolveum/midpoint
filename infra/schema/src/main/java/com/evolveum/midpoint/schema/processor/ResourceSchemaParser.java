@@ -349,7 +349,7 @@ class ResourceSchemaParser {
     }
 
     /**
-     * Creates {@link ShadowAssociationDefinition} objects in individual resource object types and classes.
+     * Creates {@link ShadowReferenceAttributeDefinition} objects in individual resource object types and classes.
      * Native and modern simulated ones are connected to their definitions parsed in {@link #parseAssociationClasses()};
      * whereas legacy simulated ones are processed here exclusively.
      */
@@ -478,7 +478,7 @@ class ResourceSchemaParser {
         }
 
         /**
-         * Creates {@link ShadowAssociationDefinition} for both real and virtual association items in the object definition.
+         * Creates {@link ShadowReferenceAttributeDefinition} for both real and virtual association items in the object definition.
          */
         void parseAssociationItems() throws ConfigurationException {
 
@@ -504,10 +504,10 @@ class ResourceSchemaParser {
             }
         }
 
-        private void parseNativeAssociation(@NotNull NativeShadowAssociationDefinition nativeAssocDef)
+        private void parseNativeAssociation(@NotNull NativeShadowReferenceAttributeDefinition nativeAssocDef)
                 throws ConfigurationException {
             var assocName = nativeAssocDef.getItemName();
-            var assocClassName = nativeAssocDef.getAssociationClassName();
+            var assocClassName = nativeAssocDef.getReferenceClassName();
             LOGGER.trace("Parsing association (native) {} of {}", assocName, assocClassName);
 
             var assocClassDef = stateNonNull(
@@ -529,7 +529,7 @@ class ResourceSchemaParser {
 
         private void parseNativeOrSimulatedAssociation(
                 @NotNull ItemName assocName,
-                @Nullable NativeShadowAssociationDefinition nativeAssocDef,
+                @Nullable NativeShadowReferenceAttributeDefinition nativeAssocDef,
                 @NotNull AbstractShadowAssociationClassDefinition assocClassDef) throws ConfigurationException {
             var assocTypeCIs = getRelevantAssociationTypes(assocName);
             if (assocTypeCIs.isEmpty()) {
@@ -547,7 +547,7 @@ class ResourceSchemaParser {
          */
         private void parseNativeOrSimulatedAssociation(
                 @NotNull ItemName assocName,
-                @Nullable NativeShadowAssociationDefinition nativeAssocDef,
+                @Nullable NativeShadowReferenceAttributeDefinition nativeAssocDef,
                 @NotNull AbstractShadowAssociationClassDefinition assocClassDef,
                 @Nullable ShadowAssociationTypeDefinitionConfigItem assocTypeCI)
                 throws ConfigurationException {
@@ -558,7 +558,8 @@ class ResourceSchemaParser {
             configCheck(assocDefBeanFromAssociationType == null || assocDefBeanFromObjectType == null,
                     "Association item cannot be defined both in association type and object type: "
                             + "declaring: %s, referencing: %s", declaringAssocName, assocName);
-            var assocDefBean = MiscUtil.getFirstNonNull(assocDefBeanFromAssociationType, assocDefBeanFromObjectType);
+            ResourceItemDefinitionType assocDefBean =
+                    MiscUtil.getFirstNonNull(assocDefBeanFromAssociationType, assocDefBeanFromObjectType);
             if (declaringAssocName != null && !declaringAssocName.equals(assocName)) {
                 // We need to adapt ShadowItemDefinitionImpl to allow itemName different from the native definition item name
                 throw new UnsupportedOperationException("Currently we don't support declaration of virtual associations");
@@ -566,9 +567,9 @@ class ResourceSchemaParser {
             var assocTypeDef = ShadowAssociationTypeDefinition.create(); // Just a placeholder for now
             definition.add(
                     nativeAssocDef != null ?
-                            ShadowAssociationDefinitionImpl.fromNative(
+                            ShadowReferenceAttributeDefinitionImpl.fromNative(
                                     nativeAssocDef, assocClassDef, assocTypeDef, assocDefBean) :
-                            ShadowAssociationDefinitionImpl.fromSimulated(
+                            ShadowReferenceAttributeDefinitionImpl.fromSimulated(
                                     ((SimulatedShadowAssociationClassDefinition) assocClassDef),
                                     assocClassDef, assocTypeDef, assocDefBean));
         }
@@ -630,12 +631,12 @@ class ResourceSchemaParser {
          */
         private void parseAttributesFromNativeObjectClass(@NotNull NativeObjectClassDefinition nativeClassDef, boolean auxiliary)
                 throws ConfigurationException {
-            for (NativeShadowAttributeDefinition<?> attrDef : nativeClassDef.getAttributeDefinitions()) {
+            for (NativeShadowSimpleAttributeDefinition<?> attrDef : nativeClassDef.getAttributeDefinitions()) {
                 parseNativeAttribute(attrDef, auxiliary);
             }
         }
 
-        private void parseNativeAttribute(@NotNull NativeShadowAttributeDefinition<?> rawAttrDef, boolean fromAuxClass)
+        private void parseNativeAttribute(@NotNull NativeShadowSimpleAttributeDefinition<?> rawAttrDef, boolean fromAuxClass)
                 throws ConfigurationException {
 
             ItemName attrName = rawAttrDef.getItemName();
@@ -655,10 +656,10 @@ class ResourceSchemaParser {
             }
 
             ResourceAttributeDefinitionType attrDefBean = value(definitionCI.getAttributeDefinitionIfPresent(attrName));
-            ResourceAttributeDefinition<?> attrDef;
+            ShadowSimpleAttributeDefinition<?> attrDef;
             try {
                 boolean ignored = ignoredAttributes.contains(attrName);
-                attrDef = ResourceAttributeDefinitionImpl.create(rawAttrDef, attrDefBean, ignored);
+                attrDef = ShadowSimpleAttributeDefinitionImpl.create(rawAttrDef, attrDefBean, ignored);
             } catch (SchemaException e) { // TODO throw the configuration exception right in the 'create' method
                 throw definitionCI.configException("Error while parsing attribute '%s' in %s: %s", attrName, DESC, e.getMessage());
             }
@@ -677,7 +678,7 @@ class ResourceSchemaParser {
         private void setupIdentifiers() {
             NativeObjectClassDefinition nativeDefinition = definition.getNativeObjectClassDefinition();
 
-            for (ResourceAttributeDefinition<?> attrDef : definition.getAttributeDefinitions()) {
+            for (ShadowSimpleAttributeDefinition<?> attrDef : definition.getAttributeDefinitions()) {
                 ItemName attrName = attrDef.getItemName();
 
                 if (nativeDefinition.isPrimaryIdentifier(attrName)) {
@@ -826,11 +827,12 @@ class ResourceSchemaParser {
             this.subjectTypeDefinition = _subjectTypeDefinition;
         }
 
-        @NotNull ShadowAssociationDefinitionImpl parse() throws ConfigurationException {
+        @NotNull
+        ShadowReferenceAttributeDefinitionImpl parse() throws ConfigurationException {
 
             checkNotPresentAsNative();
 
-            return ShadowAssociationDefinitionImpl.parseLegacy(
+            return ShadowReferenceAttributeDefinitionImpl.parseLegacy(
                     associationDefCI, resourceSchema, subjectTypeDefinition, getObjectTypeDefinitions());
         }
 
@@ -838,7 +840,7 @@ class ResourceSchemaParser {
             var nativeClassDef = subjectTypeDefinition.getNativeObjectClassDefinition();
             ItemName associationName = associationDefCI.getItemName();
             associationDefCI.configCheck(
-                    nativeClassDef.findAssociationDefinition(associationName) == null,
+                    nativeClassDef.findReferenceAttributeDefinition(associationName) == null,
                     "Native association '%s' already exists in %s; referenced by %s",
                     associationName, nativeClassDef, DESC);
         }

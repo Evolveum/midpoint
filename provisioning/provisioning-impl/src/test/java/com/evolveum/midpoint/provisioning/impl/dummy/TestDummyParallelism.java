@@ -40,7 +40,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -696,10 +696,10 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                 RESOURCE_DUMMY_OID,
                 new QName(MidPointConstants.NS_RI, OBJECTCLASS_GROUP_LOCAL_NAME));
 
-        ResourceAttributeDefinition<?> attrDef =
+        ShadowSimpleAttributeDefinition<?> attrDef =
                 ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable())
                         .findObjectClassDefinitionRequired(RI_GROUP_OBJECT_CLASS)
-                        .findAttributeDefinitionRequired(SchemaConstants.ICFS_NAME);
+                        .findSimpleAttributeDefinitionRequired(SchemaConstants.ICFS_NAME);
         ObjectFilter nameFilter = prismContext.queryFor(ShadowType.class)
                 .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(groupName)
                 .buildFilter();

@@ -21,16 +21,16 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Full prism definition of a {@link ResourceAttribute}: has a native part and a refined part from `schemaHandling`.
+ * Full prism definition of a {@link ShadowSimpleAttribute}: has a native part and a refined part from `schemaHandling`.
  *
  * TODO rename to ShadowAttributeDefinition (too many occurrences!)
  *
- * @see ResourceAttribute
+ * @see ShadowSimpleAttribute
  */
-public interface ResourceAttributeDefinition<T>
+public interface ShadowSimpleAttributeDefinition<T>
         extends
         PrismPropertyDefinition<T>,
-        ShadowItemDefinition<ResourceAttribute<T>, T> {
+        ShadowAttributeDefinition<ShadowSimpleAttribute<T>, T> {
 
     @Override
     default @NotNull Class<T> getTypeClass() {
@@ -38,36 +38,36 @@ public interface ResourceAttributeDefinition<T>
     }
 
     /**
-     * Creates a new {@link ResourceAttribute} from given {@link PrismProperty}.
+     * Creates a new {@link ShadowSimpleAttribute} from given {@link PrismProperty}.
      * Used in the process of "definition application" in `applyDefinitions` and similar methods.
      *
      * Assumes that the original property is correctly constructed, i.e. it has no duplicate values.
      */
-    default @NotNull ResourceAttribute<T> instantiateFrom(@NotNull PrismProperty<?> property) throws SchemaException {
+    default @NotNull ShadowSimpleAttribute<T> instantiateFrom(@NotNull PrismProperty<?> property) throws SchemaException {
         //noinspection unchecked
-        ResourceAttribute<T> attribute = instantiateFromRealValues((Collection<T>) property.getRealValues());
+        ShadowSimpleAttribute<T> attribute = instantiateFromRealValues((Collection<T>) property.getRealValues());
         attribute.setIncomplete(property.isIncomplete());
         return attribute;
     }
 
-    default @NotNull ResourceAttribute<T> instantiateFromValue(PrismPropertyValue<T> value) throws SchemaException {
-        ResourceAttribute<T> attribute = instantiate();
+    default @NotNull ShadowSimpleAttribute<T> instantiateFromValue(PrismPropertyValue<T> value) throws SchemaException {
+        ShadowSimpleAttribute<T> attribute = instantiate();
         attribute.add(value);
         return attribute;
     }
 
     /**
-     * Creates a new {@link ResourceAttribute} from given real values, converting them if necessary.
+     * Creates a new {@link ShadowSimpleAttribute} from given real values, converting them if necessary.
      *
      * Assumes that the values contain no duplicates and no nulls.
      */
-    default @NotNull ResourceAttribute<T> instantiateFromRealValues(@NotNull Collection<T> realValues) throws SchemaException {
-        ResourceAttribute<T> attribute = instantiate();
+    default @NotNull ShadowSimpleAttribute<T> instantiateFromRealValues(@NotNull Collection<T> realValues) throws SchemaException {
+        ShadowSimpleAttribute<T> attribute = instantiate();
         attribute.addNormalizedValues(realValues, this); // FIXME SKIP NORMALIZATION!!!
         return attribute;
     }
 
-    default @NotNull ResourceAttribute<T> instantiateFromRealValue(@NotNull T realValue) throws SchemaException {
+    default @NotNull ShadowSimpleAttribute<T> instantiateFromRealValue(@NotNull T realValue) throws SchemaException {
         return instantiateFromRealValues(List.of(realValue));
     }
 
@@ -75,10 +75,11 @@ public interface ResourceAttributeDefinition<T>
         return PrismUtil.convertPropertyValue(srcValue, this);
     }
 
-    @NotNull ResourceAttributeDefinition<T> clone();
+    @NotNull
+    ShadowSimpleAttributeDefinition<T> clone();
 
     @Override
-    ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation);
+    ShadowSimpleAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation);
 
     @NotNull PrismPropertyDefinition.PrismPropertyDefinitionMutator<T> mutator();
 
@@ -137,5 +138,6 @@ public interface ResourceAttributeDefinition<T>
     }
 
     @Override
-    @NotNull ResourceAttributeDefinition<T> forLayer(@NotNull LayerType layer);
+    @NotNull
+    ShadowSimpleAttributeDefinition<T> forLayer(@NotNull LayerType layer);
 }

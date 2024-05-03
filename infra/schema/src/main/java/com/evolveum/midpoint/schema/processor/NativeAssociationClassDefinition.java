@@ -24,19 +24,19 @@ public interface NativeAssociationClassDefinition
     String getName();
 
     /**
-     * {@link ShadowAssociationParticipantRole#SUBJECT} participants in this association. Never empty.
+     * {@link ShadowReferenceParticipantRole#SUBJECT} participants in this association. Never empty.
      */
     @NotNull Collection<NativeParticipant> getSubjects();
 
     /**
-     * {@link ShadowAssociationParticipantRole#OBJECT} participants in this association. Never empty.
+     * {@link ShadowReferenceParticipantRole#OBJECT} participants in this association. Never empty.
      */
     @NotNull Collection<NativeParticipant> getObjects();
 
     void addParticipant(
             @NotNull String objectClassName,
             @NotNull ItemName associationName,
-            @NotNull ShadowAssociationParticipantRole role);
+            @NotNull ShadowReferenceParticipantRole role);
 
     record NativeParticipant(@NotNull String objectClassName, @NotNull ItemName associationName) implements Serializable {
     }

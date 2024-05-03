@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.AcknowledgementSink;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -40,7 +40,7 @@ public class UcfAsyncUpdateChange extends UcfChange implements AcknowledgementSi
             int localSequenceNumber,
             @NotNull Object primaryIdentifierRealValue,
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
-            @NotNull Collection<ResourceAttribute<?>> identifiers,
+            @NotNull Collection<ShadowSimpleAttribute<?>> identifiers,
             @Nullable ObjectDelta<ShadowType> objectDelta,
             @Nullable UcfResourceObject currentResourceObject,
             boolean notificationOnly,

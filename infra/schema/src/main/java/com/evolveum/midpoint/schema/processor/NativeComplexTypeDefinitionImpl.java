@@ -17,7 +17,7 @@ import com.evolveum.midpoint.prism.schema.SerializableComplexTypeDefinition;
 import com.evolveum.midpoint.prism.schema.SerializableItemDefinition;
 import com.evolveum.midpoint.schema.processor.NativeObjectClassDefinition.NativeObjectClassDefinitionBuilder;
 
-import com.evolveum.midpoint.schema.processor.NativeShadowAttributeDefinition.NativeShadowAttributeDefinitionBuilder;
+import com.evolveum.midpoint.schema.processor.NativeShadowSimpleAttributeDefinition.NativeShadowAttributeDefinitionBuilder;
 
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -33,7 +33,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 /**
  * Represents native object class or association class definition.
  *
- * Similarly to {@link NativeShadowItemDefinitionImpl}, it is practical to merge these two into one implementation class.
+ * Similarly to {@link NativeShadowAttributeDefinitionImpl}, it is practical to merge these two into one implementation class.
  * The main reason is that both correspond to XSD complex type definition, and we need to instantiate them as early as
  * `xsd:complexType` is encountered in the schema; without reading the annotations up front.
  */
@@ -64,7 +64,7 @@ public class NativeComplexTypeDefinitionImpl
     private String displayName;
     private Integer displayOrder;
 
-    @NotNull private final List<NativeShadowItemDefinitionImpl<?>> itemDefinitions = new ArrayList<>();
+    @NotNull private final List<NativeShadowAttributeDefinitionImpl<?>> itemDefinitions = new ArrayList<>();
     //endregion
 
     //region The following applies to ASSOCIATION classes
@@ -119,52 +119,52 @@ public class NativeComplexTypeDefinitionImpl
     }
 
     @Override
-    public @NotNull List<NativeShadowItemDefinitionImpl<?>> getItemDefinitions() {
+    public @NotNull List<NativeShadowAttributeDefinitionImpl<?>> getItemDefinitions() {
         return itemDefinitions;
     }
 
     @Override
-    public @NotNull List<? extends NativeShadowAttributeDefinition<?>> getAttributeDefinitions() {
+    public @NotNull List<? extends NativeShadowSimpleAttributeDefinition<?>> getAttributeDefinitions() {
         return itemDefinitions.stream()
-                .filter(def -> !def.isAssociation())
+                .filter(def -> !def.isReference())
                 .toList();
     }
 
     @Override
-    public @NotNull List<? extends NativeShadowAssociationDefinition> getAssociationDefinitions() {
+    public @NotNull List<? extends NativeShadowReferenceAttributeDefinition> getAssociationDefinitions() {
         return itemDefinitions.stream()
-                .filter(def -> def.isAssociation())
+                .filter(def -> def.isReference())
                 .toList();
     }
 
     @Override
     public void add(DefinitionFragmentBuilder builder) {
         Object objectBuilt = builder.getObjectBuilt();
-        if (objectBuilt instanceof NativeShadowItemDefinitionImpl<?> itemDef) {
+        if (objectBuilt instanceof NativeShadowAttributeDefinitionImpl<?> itemDef) {
             addItemDefinition(itemDef);
         } else {
             throw new UnsupportedOperationException("Unsupported definition type: " + objectBuilt);
         }
     }
 
-    private void addItemDefinition(@NotNull NativeShadowItemDefinitionImpl<?> definition) {
+    private void addItemDefinition(@NotNull NativeShadowAttributeDefinitionImpl<?> definition) {
         itemDefinitions.add(definition);
     }
 
     @Override
-    public NativeShadowAttributeDefinition<?> findAttributeDefinition(@NotNull QName attrName) {
+    public NativeShadowSimpleAttributeDefinition<?> findSimpleAttributeDefinition(@NotNull QName attrName) {
         return itemDefinitions.stream()
-                .filter(def -> !def.isAssociation())
+                .filter(def -> !def.isReference())
                 .filter(def -> QNameUtil.match(def.getItemName(), attrName))
                 .findFirst()
                 .orElse(null);
     }
 
     @Override
-    public NativeShadowAssociationDefinition findAssociationDefinition(@NotNull QName assocName) {
+    public NativeShadowReferenceAttributeDefinition findReferenceAttributeDefinition(@NotNull QName attrName) {
         return itemDefinitions.stream()
-                .filter(def -> def.isAssociation())
-                .filter(def -> QNameUtil.match(def.getItemName(), assocName))
+                .filter(def -> def.isReference())
+                .filter(def -> QNameUtil.match(def.getItemName(), attrName))
                 .findFirst()
                 .orElse(null);
     }
@@ -185,7 +185,7 @@ public class NativeComplexTypeDefinitionImpl
     public void addParticipant(
             @NotNull String objectClassName,
             @NotNull ItemName associationName,
-            @NotNull ShadowAssociationParticipantRole role) {
+            @NotNull ShadowReferenceParticipantRole role) {
         switch (role) {
             case SUBJECT:
                 subjects.add(new NativeAssociationClassDefinition.NativeParticipant(objectClassName, associationName));
@@ -228,12 +228,12 @@ public class NativeComplexTypeDefinitionImpl
 
     @Override
     public <T> NativeShadowAttributeDefinitionBuilder<T> newPropertyLikeDefinition(QName elementName, QName typeName) {
-        return new NativeShadowItemDefinitionImpl<>(ItemName.fromQName(elementName), typeName);
+        return new NativeShadowAttributeDefinitionImpl<>(ItemName.fromQName(elementName), typeName);
     }
 
     @Override
     public ItemDefinitionLikeBuilder newContainerLikeDefinition(QName itemName, AbstractTypeDefinition ctd) {
-        return new NativeShadowItemDefinitionImpl<>(ItemName.fromQName(itemName), ctd.getTypeName());
+        return new NativeShadowAttributeDefinitionImpl<>(ItemName.fromQName(itemName), ctd.getTypeName());
     }
 
     @Override
@@ -365,6 +365,6 @@ public class NativeComplexTypeDefinitionImpl
     protected void performFreeze() {
         super.performFreeze();
         ucfData.freeze();
-        itemDefinitions.forEach(NativeShadowItemDefinitionImpl::freeze);
+        itemDefinitions.forEach(NativeShadowAttributeDefinitionImpl::freeze);
     }
 }

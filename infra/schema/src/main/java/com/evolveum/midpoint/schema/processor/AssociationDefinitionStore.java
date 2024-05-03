@@ -30,9 +30,9 @@ public interface AssociationDefinitionStore {
      * Note: these items are _not_ included in getDefinitions.
      * (BTW, ResourceAssociationDefinition is not a subtype of ItemDefinition, not even of Definition.)
      */
-    @NotNull List<? extends ShadowAssociationDefinition> getAssociationDefinitions();
+    @NotNull List<? extends ShadowReferenceAttributeDefinition> getAssociationDefinitions();
 
-    default ShadowAssociationDefinition findAssociationDefinition(QName name) {
+    default ShadowReferenceAttributeDefinition findAssociationDefinition(QName name) {
         return getAssociationDefinitions().stream()
                 .filter(a -> QNameUtil.match(a.getItemName(), name))
                 .findFirst().orElse(null);
@@ -45,13 +45,13 @@ public interface AssociationDefinitionStore {
         return findAssociationDefinition(associationName) != null;
     }
 
-    default ShadowAssociationDefinition findAssociationDefinitionRequired(QName name) throws SchemaException {
+    default ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName name) throws SchemaException {
         return findAssociationDefinitionRequired(name, () -> "");
     }
 
-    default ShadowAssociationDefinition findAssociationDefinitionRequired(QName name, Supplier<String> contextSupplier)
+    default ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName name, Supplier<String> contextSupplier)
             throws SchemaException {
-        ShadowAssociationDefinition def = findAssociationDefinition(name);
+        ShadowReferenceAttributeDefinition def = findAssociationDefinition(name);
         if (def == null) {
             throw new SchemaException("No definition of association named '" + name + "' in " + this + contextSupplier.get());
         }
@@ -60,7 +60,7 @@ public interface AssociationDefinitionStore {
 
     default @NotNull Collection<QName> getNamesOfAssociations() {
         return getAssociationDefinitions().stream()
-                .map(ShadowAssociationDefinition::getItemName)
+                .map(ShadowReferenceAttributeDefinition::getItemName)
                 .collect(Collectors.toCollection(HashSet::new));
     }
 }

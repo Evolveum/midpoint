@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +65,7 @@ public class AssociationTargetSearchExpressionEvaluatorFactory extends AbstractO
                 new AssociationTargetSearchExpressionEvaluator(
                         ELEMENT_NAME,
                         evaluatorBean,
-                        (ShadowAssociationDefinition) outputDefinition,
+                        (ShadowReferenceAttributeDefinition) outputDefinition,
                         protector,
                         getObjectResolver(),
                         getLocalizationService());

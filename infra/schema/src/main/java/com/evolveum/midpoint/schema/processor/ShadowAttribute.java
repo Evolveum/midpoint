@@ -12,15 +12,15 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * Access to both {@link ResourceAttribute} and {@link ShadowAssociation}.
+ * Access to both {@link ShadowSimpleAttribute} and {@link ShadowReferenceAttribute}.
  *
  * Currently, it cannot extend {@link Item} because of the clash on many methods, like {@link Item#getValue()}.
  * (To be researched further.)
  */
 @Experimental
-public interface ShadowItem<PV, RV> {
+public interface ShadowAttribute<PV, RV> {
 
-    ShadowItem<PV, RV> clone();
+    ShadowAttribute<PV, RV> clone();
 
     void setIncomplete(boolean incomplete);
 

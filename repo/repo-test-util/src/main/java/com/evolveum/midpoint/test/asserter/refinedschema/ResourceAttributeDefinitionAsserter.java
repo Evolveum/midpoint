@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.test.asserter.refinedschema;
 
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.test.asserter.prism.PrismPropertyDefinitionAsserter;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -23,27 +23,27 @@ public class ResourceAttributeDefinitionAsserter<T,RA> extends PrismPropertyDefi
 
     private ResourceObjectDefinition objectDefinition;
 
-    public ResourceAttributeDefinitionAsserter(ResourceAttributeDefinition<T> attrDefinition) {
+    public ResourceAttributeDefinitionAsserter(ShadowSimpleAttributeDefinition<T> attrDefinition) {
         super(attrDefinition);
     }
 
-    public ResourceAttributeDefinitionAsserter(ResourceAttributeDefinition<T> attrDefinition, String detail) {
+    public ResourceAttributeDefinitionAsserter(ShadowSimpleAttributeDefinition<T> attrDefinition, String detail) {
         super(attrDefinition, detail);
     }
 
-    public ResourceAttributeDefinitionAsserter(ResourceAttributeDefinition<T> attrDefinition, RA returnAsserter, String detail) {
+    public ResourceAttributeDefinitionAsserter(ShadowSimpleAttributeDefinition<T> attrDefinition, RA returnAsserter, String detail) {
         super(attrDefinition, returnAsserter, detail);
     }
 
-    public static <T> ResourceAttributeDefinitionAsserter<T,Void> forAttributeDefinition(ResourceAttributeDefinition<T> attrDefinition) {
+    public static <T> ResourceAttributeDefinitionAsserter<T,Void> forAttributeDefinition(ShadowSimpleAttributeDefinition<T> attrDefinition) {
         return new ResourceAttributeDefinitionAsserter<>(attrDefinition);
     }
 
     public static <T,RA> ResourceAttributeDefinitionAsserter<T,RA> forAttribute(
             ResourceObjectDefinition objectDefinition, QName attrName, RA returnAsserter, String desc) {
         //noinspection unchecked
-        ResourceAttributeDefinition<T> attrDefinition =
-                (ResourceAttributeDefinition<T>) objectDefinition.findAttributeDefinition(attrName);
+        ShadowSimpleAttributeDefinition<T> attrDefinition =
+                (ShadowSimpleAttributeDefinition<T>) objectDefinition.findSimpleAttributeDefinition(attrName);
         assertNotNull("No definition for attribute "+attrName+" in " + desc, attrDefinition);
         ResourceAttributeDefinitionAsserter<T, RA> asserter = new ResourceAttributeDefinitionAsserter<>(attrDefinition, returnAsserter, desc);
         asserter.objectDefinition = objectDefinition;
@@ -52,16 +52,16 @@ public class ResourceAttributeDefinitionAsserter<T,RA> extends PrismPropertyDefi
 
     public static <T,RA> ResourceAttributeDefinitionAsserter<T,RA> forAttribute(ResourceObjectDefinition objectClassDefinition, String attrName, RA returnAsserter, String desc) {
         //noinspection unchecked
-        ResourceAttributeDefinition<T> attrDefinition =
-                (ResourceAttributeDefinition<T>) objectClassDefinition.findAttributeDefinition(attrName);
+        ShadowSimpleAttributeDefinition<T> attrDefinition =
+                (ShadowSimpleAttributeDefinition<T>) objectClassDefinition.findSimpleAttributeDefinition(attrName);
         assertNotNull("No definition for attribute "+attrName+" in " + desc, attrDefinition);
         ResourceAttributeDefinitionAsserter<T, RA> asserter = new ResourceAttributeDefinitionAsserter<>(attrDefinition, returnAsserter, desc);
         asserter.objectDefinition = objectClassDefinition;
         return asserter;
     }
 
-    public ResourceAttributeDefinition<T> getDefinition() {
-        return (ResourceAttributeDefinition<T>) super.getDefinition();
+    public ShadowSimpleAttributeDefinition<T> getDefinition() {
+        return (ShadowSimpleAttributeDefinition<T>) super.getDefinition();
     }
 
     public ResourceAttributeDefinitionAsserter<T,RA> assertIsPrimaryIdentifier() {

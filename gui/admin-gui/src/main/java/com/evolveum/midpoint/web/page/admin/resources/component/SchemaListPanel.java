@@ -14,7 +14,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -23,10 +23,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
-import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ObjectClassDataProvider;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ObjectClassDetailsDto;
@@ -41,7 +39,6 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -309,7 +306,7 @@ public class SchemaListPanel extends BasePanel<PrismObjectWrapper<ResourceType>>
             return list;
         }
 
-        for (ResourceAttributeDefinition def : selected.getDefinition().getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition def : selected.getDefinition().getAttributeDefinitions()) {
             list.add(new AttributeDto(def));
         }
         return list;

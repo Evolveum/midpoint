@@ -29,27 +29,27 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
-    default @NotNull List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
+    default @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getAttributeDefinitions() {
         return delegate().getAttributeDefinitions();
     }
 
     @Override
-    default @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions() {
+    default @NotNull Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions() {
         return delegate().getShadowItemDefinitions();
     }
 
     @Override
-    default <T> @Nullable ResourceAttributeDefinition<T> findAttributeDefinition(QName name, boolean caseInsensitive) {
-        return delegate().findAttributeDefinition(name, caseInsensitive);
+    default <T> @Nullable ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinition(QName name, boolean caseInsensitive) {
+        return delegate().findSimpleAttributeDefinition(name, caseInsensitive);
     }
 
     @Override
-    default <T> ResourceAttributeDefinition<T> findAttributeDefinition(String name) {
-        return delegate().findAttributeDefinition(name);
+    default <T> ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinition(String name) {
+        return delegate().findSimpleAttributeDefinition(name);
     }
 
     @Override
-    default @NotNull Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers() {
+    default @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getPrimaryIdentifiers() {
         return delegate().getPrimaryIdentifiers();
     }
 
@@ -59,7 +59,7 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
-    default @NotNull Collection<? extends ResourceAttributeDefinition<?>> getSecondaryIdentifiers() {
+    default @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getSecondaryIdentifiers() {
         return delegate().getSecondaryIdentifiers();
     }
 
@@ -69,12 +69,12 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
-    default ResourceAttributeDefinition<?> getDescriptionAttribute() {
+    default ShadowSimpleAttributeDefinition<?> getDescriptionAttribute() {
         return delegate().getDescriptionAttribute();
     }
 
     @Override
-    default ResourceAttributeDefinition<?> getDisplayNameAttribute() {
+    default ShadowSimpleAttributeDefinition<?> getDisplayNameAttribute() {
         return delegate().getDisplayNameAttribute();
     }
 
@@ -134,7 +134,7 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
 
     @Override
     @NotNull
-    default List<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
+    default List<? extends ShadowReferenceAttributeDefinition> getAssociationDefinitions() {
         return delegate().getAssociationDefinitions();
     }
 

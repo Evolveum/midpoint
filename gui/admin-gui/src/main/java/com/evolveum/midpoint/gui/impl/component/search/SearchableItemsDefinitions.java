@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -438,12 +438,12 @@ public class SearchableItemsDefinitions {
             return;
         }
 
-        for (ResourceAttributeDefinition def : resourceObjectDefinition.getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition def : resourceObjectDefinition.getAttributeDefinitions()) {
             searchableDefinitions.put(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def);
         }
     }
 
-    private ItemName getAttributeName(ResourceAttributeDefinition def) {
+    private ItemName getAttributeName(ShadowSimpleAttributeDefinition def) {
         return def.getItemName();
     }
 

@@ -120,7 +120,7 @@ class ConnIdSchemaParser {
         @NotNull private final NativeObjectClassDefinitionBuilder ocDefBuilder;
 
         /** Already parsed attributes, indexed by their midPoint (UCF) QName. Used internally for some lookups. */
-        @NotNull private final Map<QName, NativeShadowItemDefinitionImpl<?>> parsedItemDefinitions = new HashMap<>();
+        @NotNull private final Map<QName, NativeShadowAttributeDefinitionImpl<?>> parsedItemDefinitions = new HashMap<>();
 
         /** Collecting information about supported special attributes (should be per object class, but currently is global). */
         @NotNull private final SpecialAttributes specialAttributes;
@@ -132,13 +132,13 @@ class ConnIdSchemaParser {
          * The definition of UID attribute, if present, and not overlapping with a different one.
          * In the case of overlap, the other attribute takes precedence, and its definition is used here.
          */
-        private NativeShadowItemDefinitionImpl<?> uidDefinition;
+        private NativeShadowAttributeDefinitionImpl<?> uidDefinition;
 
         /** True if UID is the same as NAME or another attribute, and therefore its definition was taken from it. */
         private boolean uidDefinitionTakenFromAnotherAttribute;
 
         /** The definition of NAME attribute, if present. */
-        private NativeShadowItemDefinitionImpl<?> nameDefinition;
+        private NativeShadowAttributeDefinitionImpl<?> nameDefinition;
 
         /**
          * The name of the object class is either like `AccountObjectClass`, `CustomPrivilegeObjectClass`, etc (for legacy mode)
@@ -212,7 +212,7 @@ class ConnIdSchemaParser {
         }
 
         private ItemName resolveFrameworkName(String frameworkName) {
-            for (NativeShadowItemDefinition parsedItemDefinition : parsedItemDefinitions.values()) {
+            for (NativeShadowAttributeDefinition parsedItemDefinition : parsedItemDefinitions.values()) {
                 if (frameworkName.equals(parsedItemDefinition.getFrameworkAttributeName())) {
                     return parsedItemDefinition.getItemName();
                 }
@@ -225,7 +225,7 @@ class ConnIdSchemaParser {
 
             QName xsdTypeName = xsdTypeInfo.xsdTypeName();
 
-            NativeShadowItemDefinitionImpl<?> mpItemDef = createNativeItemDefinition(xsdItemName, xsdTypeName);
+            NativeShadowAttributeDefinitionImpl<?> mpItemDef = createNativeItemDefinition(xsdItemName, xsdTypeName);
 
             var participantRole = xsdTypeInfo.associationParticipantRole();
             if (participantRole == null) {
@@ -234,7 +234,7 @@ class ConnIdSchemaParser {
                         PrettyPrinter.prettyPrintLazily(xsdItemName),
                         PrettyPrinter.prettyPrintLazily(xsdTypeName));
             } else {
-                mpItemDef.setAssociationParticipantRole(participantRole);
+                mpItemDef.setReferenceParticipantRole(participantRole);
                 LOGGER.trace("  association conversion: ConnId: {} ({}) -> XSD: {}",
                         connIdAttrName, connIdAttrInfo.getSubtype(), PrettyPrinter.prettyPrintLazily(xsdItemName));
             }
@@ -294,7 +294,7 @@ class ConnIdSchemaParser {
             }
         }
 
-        private void processCommonDefinitionParts(NativeShadowItemDefinitionImpl<?> mpItemDef, AttributeInfo connIdAttrInfo) {
+        private void processCommonDefinitionParts(NativeShadowAttributeDefinitionImpl<?> mpItemDef, AttributeInfo connIdAttrInfo) {
             mpItemDef.setMinOccurs(connIdAttrInfo.isRequired() ? 1 : 0);
             mpItemDef.setMaxOccurs(connIdAttrInfo.isMultiValued() ? -1 : 1);
 

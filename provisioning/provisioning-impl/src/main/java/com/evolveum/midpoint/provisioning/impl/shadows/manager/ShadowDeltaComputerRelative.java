@@ -88,7 +88,7 @@ class ShadowDeltaComputerRelative {
         for (ItemDelta<?, ?> modification : allModifications) {
             if (ShadowType.F_ATTRIBUTES.equivalent(modification.getParentPath())) {
                 QName attrName = modification.getElementName();
-                var attrDef = objectDefinition.findAttributeDefinitionRequired(attrName);
+                var attrDef = objectDefinition.findSimpleAttributeDefinitionRequired(attrName);
                 if (isNamingAttribute(attrName, objectDefinition)) {
                     // Naming attribute is changed -> the shadow name should change as well.
                     // TODO: change this to displayName attribute later

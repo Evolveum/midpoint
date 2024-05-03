@@ -28,8 +28,8 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -53,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabi
  *
  * . invoking UCF modify operation, including before/after scripts
  * . filtering out duplicate values (doing pre-read if needed)
- * . invoking operations in waves according to {@link ResourceAttributeDefinition#getModificationPriority()}
+ * . invoking operations in waves according to {@link ShadowSimpleAttributeDefinition#getModificationPriority()}
  * . treating READ+REPLACE mode
  *
  * Invoked either from {@link ResourceObjectModifyOperation} or when entitlement-side changes are executed.
@@ -268,7 +268,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
-        Collection<ResourceAttributeDefinition<?>> readReplaceAttributes = determineReadReplace(ctx, operationsWave, objectDefinition);
+        Collection<ShadowSimpleAttributeDefinition<?>> readReplaceAttributes = determineReadReplace(ctx, operationsWave, objectDefinition);
         LOGGER.trace("Read+Replace attributes: {}", readReplaceAttributes);
         if (!readReplaceAttributes.isEmpty()) {
             ShadowItemsToReturn shadowItemsToReturn = new ShadowItemsToReturn();
@@ -328,13 +328,13 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
         return operationsWave;
     }
 
-    private Collection<ResourceAttributeDefinition<?>> determineReadReplace(
+    private Collection<ShadowSimpleAttributeDefinition<?>> determineReadReplace(
             ProvisioningContext ctx,
             Collection<Operation> operations,
             ResourceObjectDefinition objectDefinition) {
-        Collection<ResourceAttributeDefinition<?>> retval = new ArrayList<>();
+        Collection<ShadowSimpleAttributeDefinition<?>> retval = new ArrayList<>();
         for (Operation operation : operations) {
-            ResourceAttributeDefinition<?> rad = operation.getAttributeDefinitionIfApplicable(objectDefinition);
+            ShadowSimpleAttributeDefinition<?> rad = operation.getAttributeDefinitionIfApplicable(objectDefinition);
             if (rad != null && isReadReplaceMode(ctx, rad, objectDefinition) && operation instanceof PropertyModificationOperation) {        // third condition is just to be sure
                 PropertyDelta<?> propertyDelta = ((PropertyModificationOperation<?>) operation).getPropertyDelta();
                 if (propertyDelta.isAdd() || propertyDelta.isDelete()) {
@@ -346,7 +346,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
     }
 
     private boolean isReadReplaceMode(
-            ProvisioningContext ctx, ResourceAttributeDefinition<?> rad, ResourceObjectDefinition objectDefinition) {
+            ProvisioningContext ctx, ShadowSimpleAttributeDefinition<?> rad, ResourceObjectDefinition objectDefinition) {
         if (rad.getReadReplaceMode() != null) {
             return rad.getReadReplaceMode();
         }
@@ -382,8 +382,8 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
                 PropertyDelta<?> propertyDelta = ((PropertyModificationOperation<?>) operation).getPropertyDelta();
                 if (isAttributeDelta(propertyDelta)) {
                     QName attributeName = propertyDelta.getElementName();
-                    ResourceAttributeDefinition<?> rad =
-                            ctx.getObjectDefinitionRequired().findAttributeDefinitionRequired(attributeName);
+                    ShadowSimpleAttributeDefinition<?> rad =
+                            ctx.getObjectDefinitionRequired().findSimpleAttributeDefinitionRequired(attributeName);
                     if ((requireAllAttributes || isReadReplaceMode(ctx, rad, ctx.getObjectDefinition()))
                             && (propertyDelta.isAdd() || propertyDelta.isDelete())) {
                         PropertyModificationOperation<?> newOp =
@@ -397,9 +397,9 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             retval.add(operation); // for yet-unprocessed operations
         }
         if (requireAllAttributes && current != null) {
-            for (ResourceAttribute<?> currentAttribute : current.getAttributes()) {
+            for (ShadowSimpleAttribute<?> currentAttribute : current.getAttributes()) {
                 if (!containsDelta(operations, currentAttribute.getElementName())) {
-                    ResourceAttributeDefinition<?> rad =
+                    ShadowSimpleAttributeDefinition<?> rad =
                             ctx.findAttributeDefinitionRequired(currentAttribute.getElementName());
                     if (rad.canModify()) {
                         //noinspection rawtypes
@@ -509,7 +509,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
         TreeMap<Integer, Collection<Operation>> waves = new TreeMap<>(); // operations indexed by priority
         List<Operation> others = new ArrayList<>(); // operations executed at the end (either non-priority ones or non-attribute modifications)
         for (Operation operation : operations) {
-            ResourceAttributeDefinition<?> rad = operation.getAttributeDefinitionIfApplicable(objectDefinition);
+            ShadowSimpleAttributeDefinition<?> rad = operation.getAttributeDefinitionIfApplicable(objectDefinition);
             if (rad != null && rad.getModificationPriority() != null) {
                 putIntoWaves(waves, rad.getModificationPriority(), operation);
                 continue;

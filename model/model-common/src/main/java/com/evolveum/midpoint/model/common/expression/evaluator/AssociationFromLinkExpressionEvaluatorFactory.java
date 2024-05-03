@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -65,7 +65,7 @@ public class AssociationFromLinkExpressionEvaluatorFactory extends AbstractObjec
                 new AssociationFromLinkExpressionEvaluator(
                         ELEMENT_NAME,
                         evaluatorBean,
-                        (ShadowAssociationDefinition) outputDefinition,
+                        (ShadowReferenceAttributeDefinition) outputDefinition,
                         protector,
                         getObjectResolver());
     }

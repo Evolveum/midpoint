@@ -402,7 +402,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         assertEquals("Unexpected number of definitions", getNumberOfAccountAttributeDefinitions(), accountDef.getDefinitions().size());
 
-        ResourceAttributeDefinition<?> usernameDef = accountDef.findAttributeDefinition(ATTR_USERNAME);
+        ShadowSimpleAttributeDefinition<?> usernameDef = accountDef.findSimpleAttributeDefinition(ATTR_USERNAME);
         assertNotNull("No definition for username", usernameDef);
         assertEquals(1, usernameDef.getMaxOccurs());
         assertEquals(1, usernameDef.getMinOccurs());
@@ -410,7 +410,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertTrue("No username update", usernameDef.canModify());
         assertTrue("No username read", usernameDef.canRead());
 
-        ResourceAttributeDefinition<?> fullnameDef = accountDef.findAttributeDefinition(ATTR_FULLNAME);
+        ShadowSimpleAttributeDefinition<?> fullnameDef = accountDef.findSimpleAttributeDefinition(ATTR_FULLNAME);
         assertNotNull("No definition for fullname", fullnameDef);
         assertEquals(1, fullnameDef.getMaxOccurs());
         assertEquals(0, fullnameDef.getMinOccurs());

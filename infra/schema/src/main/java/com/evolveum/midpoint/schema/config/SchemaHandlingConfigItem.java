@@ -45,7 +45,7 @@ public class SchemaHandlingConfigItem
     /** These are currently embedded in "association type" definitions. */
     private List<AssociatedResourceObjectTypeDefinitionConfigItem> getAssociatedObjectTypes() {
         return getAssociationTypes().stream()
-                .map(atDef -> atDef.getAssociatedObjectType())
+                .map(atDef -> atDef.getAssociationObject())
                 .filter(Objects::nonNull)
                 .toList();
     }

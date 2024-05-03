@@ -17,7 +17,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
- * Implementation of a CTD for a {@link ResourceAttributeContainer}.
+ * Implementation of a CTD for a {@link ShadowAttributesContainer}.
  *
  * It is simply a wrapper around {@link ResourceObjectDefinition} that hides all item definitions
  * except for attribute definitions.
@@ -35,14 +35,14 @@ class ShadowAttributesComplexTypeDefinitionImpl
     }
 
     @Override
-    public @NotNull List<? extends ResourceAttributeDefinition<?>> getDefinitions() {
+    public @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getDefinitions() {
         return objectDefinition.getAttributeDefinitions();
     }
 
     @Override
     public <ID extends ItemDefinition<?>> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
         var def = objectDefinition.findItemDefinition(path, clazz);
-        if (def instanceof ResourceAttributeDefinition<?>) {
+        if (def instanceof ShadowSimpleAttributeDefinition<?>) {
             return def;
         } else {
             return null;
@@ -56,12 +56,12 @@ class ShadowAttributesComplexTypeDefinitionImpl
     }
 
     @Override
-    public @NotNull List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
+    public @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getAttributeDefinitions() {
         return objectDefinition.getAttributeDefinitions();
     }
 
     @Override
-    public @NotNull Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers() {
+    public @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getPrimaryIdentifiers() {
         return objectDefinition.getPrimaryIdentifiers();
     }
 
@@ -71,7 +71,7 @@ class ShadowAttributesComplexTypeDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<? extends ResourceAttributeDefinition<?>> getSecondaryIdentifiers() {
+    public @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getSecondaryIdentifiers() {
         return objectDefinition.getSecondaryIdentifiers();
     }
 

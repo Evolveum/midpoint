@@ -272,15 +272,15 @@ class ConnIdToUcfObjectConversion {
                 return;
             }
             Uid uid = co.getUid();
-            ResourceAttributeDefinition<?> uidDefinition = ConnIdUtil.getUidDefinition(resourceObjectDefinition);
+            ShadowSimpleAttributeDefinition<?> uidDefinition = ConnIdUtil.getUidDefinition(resourceObjectDefinition);
             if (uidDefinition == null) {
                 throw new SchemaException("No definition for ConnId UID attribute found in " + resourceObjectDefinition);
             }
             var attributesContainer = ShadowUtil.getOrCreateAttributesContainer(convertedObject);
             if (!attributesContainer.getValue().contains(uidDefinition.getItemName())) {
                 //noinspection unchecked
-                ResourceAttribute<String> uidResourceObjectAttribute =
-                        (ResourceAttribute<String>) uidDefinition.instantiate();
+                ShadowSimpleAttribute<String> uidResourceObjectAttribute =
+                        (ShadowSimpleAttribute<String>) uidDefinition.instantiate();
                 uidResourceObjectAttribute.setRealValue(uid.getUidValue());
                 attributesContainer.getValue().add(uidResourceObjectAttribute);
             }
@@ -369,7 +369,7 @@ class ConnIdToUcfObjectConversion {
                     lazy(() -> "original ConnId name: '%s' in resource object identified by %s".formatted(
                             connIdAttrName, connectorObjectFragment.getIdentification())));
 
-            ShadowItem<?, ?> convertedItem = mpDefinition.instantiate();
+            ShadowAttribute<?, ?> convertedItem = mpDefinition.instantiate();
             var expectedClass = resolvePrimitiveIfNecessary(mpDefinition.getTypeClass());
 
             // Note: we skip uniqueness checks here because the attribute in the resource object is created from scratch.
@@ -387,7 +387,7 @@ class ConnIdToUcfObjectConversion {
                             "The value '%s' does not conform to the definition %s: expected type: %s, actual type: %s",
                             convertedValue, mpDefinition, expectedClass, realClass);
                     //noinspection unchecked,rawtypes
-                    ((ShadowItem) convertedItem).addValueSkipUniquenessCheck(convertedValue);
+                    ((ShadowAttribute) convertedItem).addValueSkipUniquenessCheck(convertedValue);
                 }
             }
 

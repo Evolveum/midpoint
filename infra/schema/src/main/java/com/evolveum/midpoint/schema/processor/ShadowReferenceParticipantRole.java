@@ -9,15 +9,15 @@ package com.evolveum.midpoint.schema.processor;
 
 import org.jetbrains.annotations.NotNull;
 
-/** Association has two sides (participants): subject and object. This enum marks them. */
-public enum ShadowAssociationParticipantRole {
+/** Reference has two sides (participants): subject and object. This enum marks them. */
+public enum ShadowReferenceParticipantRole {
 
     SUBJECT("subject"),
     OBJECT("object");
 
     @NotNull private final String value;
 
-    ShadowAssociationParticipantRole(@NotNull String value) {
+    ShadowReferenceParticipantRole(@NotNull String value) {
         this.value = value;
     }
 

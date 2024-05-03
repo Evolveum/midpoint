@@ -19,7 +19,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.processor.ShadowAssociation;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
 
 import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection;
 
@@ -41,7 +41,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfModifyReturnValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -259,8 +259,8 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
             QName firstPathName = path.firstName();
             if (ShadowUtil.isAttributeModification(firstPathName)) {
                 QName attrName = path.rest().firstNameOrFail();
-                ResourceAttributeDefinition<?> attrDef =
-                        ctx.getObjectDefinitionRequired().findAttributeDefinitionRequired(attrName);
+                ShadowSimpleAttributeDefinition<?> attrDef =
+                        ctx.getObjectDefinitionRequired().findSimpleAttributeDefinitionRequired(attrName);
                 if (attrDef.isVolatilityTrigger()) {
                     LOGGER.trace("Volatility trigger attribute {} is being changed", attrName);
                     return true;
@@ -343,7 +343,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
                         itemDeltaPath, DebugUtil.debugDumpLazily(associations, 1));
 
                 // Update explicit-ref-integrity associations if the subject binding attribute (e.g. a DN) is being changed.
-                for (ShadowAssociation association : associations) {
+                for (ShadowReferenceAttribute association : associations) {
                     ItemName associationName = association.getElementName();
                     var associationDefinition =
                             ctx.getObjectDefinitionRequired().findAssociationDefinitionRequired(
@@ -425,7 +425,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
                     PropertyModificationOperation<?> attributeModification =
                             new PropertyModificationOperation<>(propertyDelta);
                     // TODO will this work for passwords as well?
-                    ResourceAttributeDefinition<?> attrDef = objectDefinition.findAttributeDefinition(itemDelta.getElementName());
+                    ShadowSimpleAttributeDefinition<?> attrDef = objectDefinition.findSimpleAttributeDefinition(itemDelta.getElementName());
                     if (attrDef != null) {
                         attributeModification.setMatchingRuleQName(attrDef.getMatchingRuleQName());
                         if (itemDelta.getDefinition() == null) {

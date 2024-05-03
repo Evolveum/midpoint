@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.config.ResourceAttributeDefinitionConfigItem;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -66,7 +66,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
                     attributeConstrDefinitionCI.configNonNull(
                             attributeConstrDefinitionCI.getOutbound(), "No outbound section in %s", DESC);
 
-            ResourceAttributeDefinition<?> attributeDef =
+            ShadowSimpleAttributeDefinition<?> attributeDef =
                     attributeConstrDefinitionCI.configNonNull(
                             construction.findAttributeDefinition(attrName),
                             "Attribute '%s' not found in schema for resource object type %s on %s; as defined in %s",

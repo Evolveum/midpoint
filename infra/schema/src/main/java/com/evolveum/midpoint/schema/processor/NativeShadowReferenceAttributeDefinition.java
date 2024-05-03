@@ -11,15 +11,15 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
-public interface NativeShadowAssociationDefinition
-        extends NativeShadowItemDefinition {
+public interface NativeShadowReferenceAttributeDefinition
+        extends NativeShadowAttributeDefinition {
 
-    /** This is the association class name. */
+    /** This is the reference class name. */
     @Override
     @NotNull QName getTypeName();
 
     /** This is more understandable for clients. */
-    @NotNull default QName getAssociationClassName() {
+    @NotNull default QName getReferenceClassName() {
         return getTypeName();
     }
 }

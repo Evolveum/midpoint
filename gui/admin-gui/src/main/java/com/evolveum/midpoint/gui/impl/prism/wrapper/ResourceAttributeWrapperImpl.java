@@ -33,7 +33,7 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
 
     @Serial private static final long serialVersionUID = 1L;
 
-    public ResourceAttributeWrapperImpl(PrismContainerValueWrapper<?> parent, ResourceAttribute<T> item, ItemStatus status) {
+    public ResourceAttributeWrapperImpl(PrismContainerValueWrapper<?> parent, ShadowSimpleAttribute<T> item, ItemStatus status) {
         super(parent, item, status);
     }
 
@@ -42,8 +42,8 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
         return getRefinedAttributeDefinition().isTolerant();
     }
 
-    private ResourceAttributeDefinition<T> getRefinedAttributeDefinition() {
-        return (ResourceAttributeDefinition<T>) getItemDefinition();
+    private ShadowSimpleAttributeDefinition<T> getRefinedAttributeDefinition() {
+        return (ShadowSimpleAttributeDefinition<T>) getItemDefinition();
     }
 
     @Override
@@ -113,8 +113,8 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public @NotNull Collection<ComplexProcessingDefinition> getComplexProcessingDefinition() {
-        return getRefinedAttributeDefinition().getComplexProcessingDefinition();
+    public @NotNull Collection<ResourceObjectInboundDefinition> getRelevantInboundDefinitions() {
+        return getRefinedAttributeDefinition().getRelevantInboundDefinitions();
     }
 
     @Override
@@ -179,12 +179,12 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
 
     @NotNull
     @Override
-    public ResourceAttributeDefinition<T> clone() {
+    public ShadowSimpleAttributeDefinition<T> clone() {
         return getRefinedAttributeDefinition().clone();
     }
 
     @Override
-    public ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
+    public ShadowSimpleAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
         return getRefinedAttributeDefinition().deepClone(operation);
     }
 
@@ -199,7 +199,7 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public @NotNull ResourceAttributeDefinition<T> forLayer(@NotNull LayerType layer) {
+    public @NotNull ShadowSimpleAttributeDefinition<T> forLayer(@NotNull LayerType layer) {
         return getRefinedAttributeDefinition().forLayer(layer);
     }
 
@@ -250,13 +250,13 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
 
     @NotNull
     @Override
-    public ResourceAttribute<T> instantiate() {
+    public ShadowSimpleAttribute<T> instantiate() {
         return getRefinedAttributeDefinition().instantiate();
     }
 
     @NotNull
     @Override
-    public ResourceAttribute<T> instantiate(QName name) {
+    public ShadowSimpleAttribute<T> instantiate(QName name) {
         return getRefinedAttributeDefinition().instantiate(name);
     }
 

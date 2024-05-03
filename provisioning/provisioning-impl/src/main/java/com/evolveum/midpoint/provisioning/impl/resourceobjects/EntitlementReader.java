@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.config.AssociationConfigItem.AttributeBinding;
 import com.evolveum.midpoint.schema.processor.SimulatedShadowAssociationClassDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -60,7 +60,7 @@ class EntitlementReader {
             SecurityViolationException, ExpressionEvaluationException {
 
         LOGGER.trace("Starting simulated associations read operation");
-        for (ShadowAssociationDefinition associationDef : subjectCtx.getAssociationDefinitions()) {
+        for (ShadowReferenceAttributeDefinition associationDef : subjectCtx.getAssociationDefinitions()) {
             if (!isSimulated(associationDef)
                     || !isVisible(associationDef, subjectCtx)
                     || !doesMatchSubjectDelineation(associationDef, subjectCtx)) {

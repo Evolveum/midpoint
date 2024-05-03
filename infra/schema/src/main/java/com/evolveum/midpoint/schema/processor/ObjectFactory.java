@@ -26,30 +26,30 @@ import javax.xml.namespace.QName;
 @Experimental
 public class ObjectFactory {
 
-    public static <T> ResourceAttribute<T> createResourceAttribute(QName name, ResourceAttributeDefinition<T> definition) {
-        return new ResourceAttributeImpl<>(name, definition);
+    public static <T> ShadowSimpleAttribute<T> createResourceAttribute(QName name, ShadowSimpleAttributeDefinition<T> definition) {
+        return new ShadowSimpleAttributeImpl<>(name, definition);
     }
 
     /**
-     * Creates {@link ResourceAttributeDefinition} with given parameters.
+     * Creates {@link ShadowSimpleAttributeDefinition} with given parameters.
      *
      * The created definition is effectively immutable.
      */
     @VisibleForTesting
-    public static <T> ResourceAttributeDefinition<T> createResourceAttributeDefinition(
+    public static <T> ShadowSimpleAttributeDefinition<T> createResourceAttributeDefinition(
             @NotNull QName name, @NotNull QName typeName) throws SchemaException {
-        return ResourceAttributeDefinitionImpl.create(
+        return ShadowSimpleAttributeDefinitionImpl.create(
                 createNativeItemDefinition(name, typeName));
     }
 
-    public static <T> NativeShadowItemDefinitionImpl<T> createNativeItemDefinition(
+    public static <T> NativeShadowAttributeDefinitionImpl<T> createNativeItemDefinition(
             @NotNull QName name, @NotNull QName typeName) {
-        return new NativeShadowItemDefinitionImpl<>(ItemName.fromQName(name), typeName);
+        return new NativeShadowAttributeDefinitionImpl<>(ItemName.fromQName(name), typeName);
     }
 
-    public static ResourceAttributeContainer createResourceAttributeContainer(
+    public static ShadowAttributesContainer createResourceAttributeContainer(
             QName name, ResourceAttributeContainerDefinition definition) {
-        return new ResourceAttributeContainerImpl(name, definition);
+        return new ShadowAttributesContainerImpl(name, definition);
     }
 
     public static NativeResourceSchemaBuilder createNativeResourceSchemaBuilder() {

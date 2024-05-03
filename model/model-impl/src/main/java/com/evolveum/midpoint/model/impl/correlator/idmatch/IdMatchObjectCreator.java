@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.VariableItemPathSegment;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.util.MatchingUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -71,7 +71,7 @@ class IdMatchObjectCreator {
         if (configBean.getSorIdentifierProperty() != null) {
             sorIdPropertyPath = configBean.getSorIdentifierProperty().getItemPath();
         } else {
-            ResourceAttribute<?> primaryIdentifier =
+            ShadowSimpleAttribute<?> primaryIdentifier =
                     MiscUtil.extractSingletonRequired(
                             ShadowUtil.getPrimaryIdentifiers(shadow),
                             () -> new IllegalStateException("Multiple primary identifiers in " + shadow),

@@ -691,7 +691,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         validateShadow(shadow, "add", false);
         ShadowType shadowType = shadow.asObjectable();
 
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
+        ShadowAttributesContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
         OperationResult result = parentResult.createSubresult(OP_ADD_OBJECT);
         result.addParam("resourceObject", shadow);
 
@@ -824,12 +824,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             throw new GenericFrameworkException("ConnId did not returned UID after create");
         }
 
-        Collection<ResourceAttribute<?>> identifiers =
+        Collection<ShadowSimpleAttribute<?>> identifiers =
                 ConnIdUtil.convertToIdentifiers(
                         uid,
                         attributesContainer.getDefinition().getResourceObjectDefinition(),
                         resourceSchema);
-        for (ResourceAttribute<?> identifier: identifiers) {
+        for (ShadowSimpleAttribute<?> identifier: identifiers) {
             attributesContainer.getValue().addReplaceExisting(identifier);
         }
         connIdResult.recordSuccess();
@@ -846,7 +846,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         ShadowType shadowBean = shadow.asObjectable();
         QName objectClassName = shadowBean.getObjectClass();
         if (objectClassName == null) {
-            ResourceAttributeContainer attrContainer = ShadowUtil.getAttributesContainer(shadowBean);
+            ShadowAttributesContainer attrContainer = ShadowUtil.getAttributesContainer(shadowBean);
             if (attrContainer == null) {
                 return null;
             }
@@ -866,14 +866,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         if (attributesContainer == null) {
             throw new IllegalArgumentException("Cannot " + operation + " shadow without attributes container");
         }
-        ResourceAttributeContainer resourceAttributesContainer = ShadowUtil.getAttributesContainer(shadow);
+        ShadowAttributesContainer resourceAttributesContainer = ShadowUtil.getAttributesContainer(shadow);
         if (resourceAttributesContainer == null) {
             throw new IllegalArgumentException("Cannot " + operation
                     + " shadow without attributes container of type ResourceAttributeContainer, got "
                     + attributesContainer.getClass());
         }
         if (requireUid) {
-            Collection<ResourceAttribute<?>> identifiers = resourceAttributesContainer.getPrimaryIdentifiers();
+            Collection<ShadowSimpleAttribute<?>> identifiers = resourceAttributesContainer.getPrimaryIdentifiers();
             if (identifiers == null || identifiers.isEmpty()) {
                 throw new IllegalArgumentException("Cannot " + operation + " shadow without identifiers");
             }
@@ -1048,7 +1048,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
                 knownExecutedOperations.add(
                         new PropertyModificationOperation<>(nameDelta));
             } else {
-                ResourceAttributeDefinition<Object> definition = objectClassDef.findAttributeDefinition(name);
+                ShadowSimpleAttributeDefinition<Object> definition = objectClassDef.findSimpleAttributeDefinition(name);
 
                 if (definition == null) {
                     throw new SchemaException("Returned delta references attribute '" + name + "' that has no definition.");
@@ -1306,7 +1306,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
     }
 
     private PropertyDelta<?> createNameDelta(
-            @NotNull Name name, @NotNull ResourceAttributeDefinition<?> nameDefinition) {
+            @NotNull Name name, @NotNull ShadowSimpleAttributeDefinition<?> nameDefinition) {
         //noinspection unchecked
         PropertyDelta<String> nameDelta =
                 (PropertyDelta<String>) PrismContext.get().deltaFactory().property().create(
@@ -1316,7 +1316,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         return nameDelta;
     }
 
-    private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition<String> uidDefinition) {
+    private PropertyDelta<String> createUidDelta(Uid uid, ShadowSimpleAttributeDefinition<String> uidDefinition) {
         PropertyDelta<String> uidDelta =
                 PrismContext.get().deltaFactory().property()
                         .create(ItemPath.create(ShadowType.F_ATTRIBUTES, uidDefinition.getItemName()),
@@ -1964,23 +1964,23 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         }
     }
 
-    private ResourceAttributeDefinition<?> getNameDefinition(ResourceObjectIdentification.WithPrimary identification)
+    private ShadowSimpleAttributeDefinition<?> getNameDefinition(ResourceObjectIdentification.WithPrimary identification)
             throws SchemaException {
         ResourceObjectDefinition objDef = identification.getResourceObjectDefinition();
         var namingAttributeDef = objDef.getNamingAttribute();
         if (namingAttributeDef != null) {
             return namingAttributeDef;
         }
-        var icfsNameDef = objDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        var icfsNameDef = objDef.findSimpleAttributeDefinition(SchemaConstants.ICFS_NAME);
         if (icfsNameDef != null) {
             return icfsNameDef;
         }
         throw new SchemaException("No naming attribute definition for " + identification);
     }
 
-    private <T> ResourceAttributeDefinition<T> getUidDefinition(ResourceObjectIdentification.WithPrimary identification) {
+    private <T> ShadowSimpleAttributeDefinition<T> getUidDefinition(ResourceObjectIdentification.WithPrimary identification) {
         //noinspection unchecked
-        return (ResourceAttributeDefinition<T>) identification.getPrimaryIdentifierAttribute().getDefinition();
+        return (ShadowSimpleAttributeDefinition<T>) identification.getPrimaryIdentifierAttribute().getDefinition();
     }
 
     @Override

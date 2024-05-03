@@ -63,31 +63,31 @@ public class ResourceAttributeContainerDefinitionImpl
     }
 
     @Override
-    public Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers() {
+    public Collection<? extends ShadowSimpleAttributeDefinition<?>> getPrimaryIdentifiers() {
         return getComplexTypeDefinition().getPrimaryIdentifiers();
     }
 
     @Override
-    public Collection<? extends ResourceAttributeDefinition<?>> getSecondaryIdentifiers() {
+    public Collection<? extends ShadowSimpleAttributeDefinition<?>> getSecondaryIdentifiers() {
         return getComplexTypeDefinition().getSecondaryIdentifiers();
     }
 
     @Override
-    public Collection<? extends ResourceAttributeDefinition<?>> getAllIdentifiers() {
+    public Collection<? extends ShadowSimpleAttributeDefinition<?>> getAllIdentifiers() {
         return getComplexTypeDefinition().getAllIdentifiers();
     }
 
     @NotNull
     @Override
-    public ResourceAttributeContainer instantiate() {
+    public ShadowAttributesContainer instantiate() {
         return instantiate(getItemName());
     }
 
     @NotNull
     @Override
-    public ResourceAttributeContainer instantiate(QName name) {
+    public ShadowAttributesContainer instantiate(QName name) {
         name = DefinitionUtil.addNamespaceIfApplicable(name, this.itemName);
-        return new ResourceAttributeContainerImpl(name, this);
+        return new ShadowAttributesContainerImpl(name, this);
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
@@ -106,18 +106,18 @@ public class ResourceAttributeContainerDefinitionImpl
     }
 
     @Override
-    public <T> ResourceAttributeDefinition<T> findAttributeDefinition(ItemPath elementPath) {
+    public <T> ShadowSimpleAttributeDefinition<T> findAttributeDefinition(ItemPath elementPath) {
         if (elementPath.isSingleName()) {
             // this is a bit of hack
             //noinspection unchecked
-            return findLocalItemDefinition(elementPath.asSingleNameOrFail(), ResourceAttributeDefinition.class, false);
+            return findLocalItemDefinition(elementPath.asSingleNameOrFail(), ShadowSimpleAttributeDefinition.class, false);
         } else {
             //noinspection unchecked
-            return findItemDefinition(elementPath, ResourceAttributeDefinition.class);
+            return findItemDefinition(elementPath, ShadowSimpleAttributeDefinition.class);
         }
     }
 
-    private List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
+    private List<? extends ShadowSimpleAttributeDefinition<?>> getAttributeDefinitions() {
         return getComplexTypeDefinition().getAttributeDefinitions();
     }
 
@@ -126,7 +126,7 @@ public class ResourceAttributeContainerDefinitionImpl
         StringBuilder sb = new StringBuilder();
         sb.append(DebugDumpable.INDENT_STRING.repeat(Math.max(0, indent)));
         sb.append(this);
-        for (ResourceAttributeDefinition<?> def : getDefinitions()) {
+        for (ShadowSimpleAttributeDefinition<?> def : getDefinitions()) {
             sb.append("\n");
             sb.append(def.debugDump(indent+1));
             if (getComplexTypeDefinition().isPrimaryIdentifier(def.getItemName())) {
@@ -144,7 +144,7 @@ public class ResourceAttributeContainerDefinitionImpl
 
     // Only attribute definitions should be here.
     @Override
-    public @NotNull List<? extends ResourceAttributeDefinition<?>> getDefinitions() {
+    public @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getDefinitions() {
         return getAttributeDefinitions();
     }
 

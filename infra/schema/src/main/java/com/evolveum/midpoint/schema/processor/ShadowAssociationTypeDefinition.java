@@ -23,7 +23,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
  * . optionally an "associated object"; TODO we need a better term here.
  *
  * This definition is derived from {@link ShadowAssociationTypeDefinitionType}. However, there's not much here!
- * Almost everything from that bean goes to the {@link ShadowAssociationDefinition} attached to the subject or an object.
+ * Almost everything from that bean goes to the {@link ShadowReferenceAttributeDefinition} attached to the subject or an object.
  * We only need to keep additional {@link AssociationParticipantType}s here - eventually. Currently we do not support
  * that.
  *

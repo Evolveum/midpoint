@@ -70,7 +70,7 @@ public class SimulatedAssociationClassParticipantDefinition implements Serializa
         return participantType.getObjectDefinition();
     }
 
-    public <T> ResourceAttributeDefinition<T> getObjectAttributeDefinition(@NotNull AttributeBinding binding) {
+    public <T> ShadowSimpleAttributeDefinition<T> getObjectAttributeDefinition(@NotNull AttributeBinding binding) {
         return getObjectAttributeDefinition(binding.objectSide());
     }
 
@@ -78,9 +78,9 @@ public class SimulatedAssociationClassParticipantDefinition implements Serializa
         return delineation;
     }
 
-    private <T> ResourceAttributeDefinition<T> getObjectAttributeDefinition(QName attrName) {
+    private <T> ShadowSimpleAttributeDefinition<T> getObjectAttributeDefinition(QName attrName) {
         try {
-            return getObjectDefinition().findAttributeDefinitionRequired(attrName);
+            return getObjectDefinition().findSimpleAttributeDefinitionRequired(attrName);
         } catch (SchemaException e) {
             throw SystemException.unexpected(e, "(already checked at schema parse time)");
         }

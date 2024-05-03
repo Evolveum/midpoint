@@ -200,7 +200,7 @@ public class NativeResourceSchemaImpl
                             .addParticipant(
                                     objectClassDefinition.getName(),
                                     associationDefinition.getItemName(),
-                                    associationDefinition.getAssociationParticipantRole());
+                                    associationDefinition.getReferenceParticipantRole());
                 }
             }
 

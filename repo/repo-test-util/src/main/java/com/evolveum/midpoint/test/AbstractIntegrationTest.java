@@ -595,7 +595,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         PrismContainer<Containerable> attrCont = object.findContainer(ShadowType.F_ATTRIBUTES);
         for (Item<?, ?> attr : attrCont.getValue().getItems()) {
             if (attr instanceof PrismProperty<?> && attr.getDefinition() == null) {
-                ResourceAttributeDefinition<String> attrDef =
+                ShadowSimpleAttributeDefinition<String> attrDef =
                         ObjectFactory.createResourceAttributeDefinition(attr.getElementName(), DOMUtil.XSD_STRING);
                 //noinspection unchecked,rawtypes
                 ((PrismProperty<?>) attr).setDefinition((PrismPropertyDefinition) attrDef);
@@ -1179,7 +1179,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
         ResourceObjectDefinition ocDef = rSchema.findDefinitionForObjectClassRequired(objectClass);
         if (ocDef.getSecondaryIdentifiers().isEmpty()) {
-            ResourceAttributeDefinition<?> idDef = ocDef.getPrimaryIdentifiers().iterator().next();
+            ShadowSimpleAttributeDefinition<?> idDef = ocDef.getPrimaryIdentifiers().iterator().next();
             PrismProperty<String> idProp = attributesContainer.findProperty(idDef.getItemName());
             assertNotNull(idProp, "No primary identifier (" + idDef.getItemName() + ") attribute in shadow for " + username);
             if (nameMatchingRule == null) {
@@ -1198,7 +1198,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         } else {
             boolean found = false;
             List<String> wasValues = new ArrayList<>();
-            for (ResourceAttributeDefinition<?> idSecDef : ocDef.getSecondaryIdentifiers()) {
+            for (ShadowSimpleAttributeDefinition<?> idSecDef : ocDef.getSecondaryIdentifiers()) {
                 PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getItemName());
                 wasValues.addAll(IntegrationTestTools.toStringValues(idProp.getRealValues()));
                 assertNotNull(idProp, "No secondary identifier (" + idSecDef.getItemName() + ") attribute in shadow for " + username);
@@ -1233,7 +1233,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             MatchingRule<String> nameMatchingRule) throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
         ResourceObjectDefinition ocDef = rSchema.findDefinitionForObjectClass(shadow.asObjectable().getObjectClass());
-        ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
+        ShadowSimpleAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
         PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
         PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getItemName());
         assertNotNull(idProp, "No secondary identifier (" + idSecDef.getItemName() + ") attribute in shadow for " + expectedIdentifier);
@@ -1510,24 +1510,24 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         if (rawRepoVersion) {
             PrismContainer<?> attrContainer = shadowObject.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
             if (uid != null) {
-                var uidAttrDef = objectDef.findAttributeDefinitionRequired(ICFS_UID).toNormalizationAware();
+                var uidAttrDef = objectDef.findSimpleAttributeDefinitionRequired(ICFS_UID).toNormalizationAware();
                 attrContainer.add(
                         uidAttrDef.adoptRealValuesAndInstantiate(List.of(uid)));
             }
             if (name != null) {
-                var nameAttrDef = objectDef.findAttributeDefinitionRequired(ICFS_NAME).toNormalizationAware();
+                var nameAttrDef = objectDef.findSimpleAttributeDefinitionRequired(ICFS_NAME).toNormalizationAware();
                 attrContainer.add(
                         nameAttrDef.adoptRealValuesAndInstantiate(List.of(name)));
             }
         } else {
             var attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadowObject, objectDef);
             if (uid != null) {
-                var uidAttrDef = objectDef.findAttributeDefinitionRequired(ICFS_UID);
+                var uidAttrDef = objectDef.findSimpleAttributeDefinitionRequired(ICFS_UID);
                 attrContainer.add(
                         uidAttrDef.instantiateFromRealValue(uid));
             }
             if (name != null) {
-                var nameAttrDef = objectDef.findAttributeDefinitionRequired(ICFS_NAME);
+                var nameAttrDef = objectDef.findSimpleAttributeDefinitionRequired(ICFS_NAME);
                 attrContainer.add(
                         nameAttrDef.instantiateFromRealValue(name));
             }
@@ -1545,9 +1545,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         ResourceObjectDefinition objectClassDefinition = refinedSchema.findDefaultDefinitionForKindRequired(shadowBean.getKind());
         shadowBean.setObjectClass(objectClassDefinition.getTypeName());
-        ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-        ResourceAttributeDefinition<T> attrDef = objectClassDefinition.findAttributeDefinitionRequired(attributeName);
-        ResourceAttribute<T> attr = attrDef.instantiate();
+        ShadowAttributesContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
+        ShadowSimpleAttributeDefinition<T> attrDef = objectClassDefinition.findSimpleAttributeDefinitionRequired(attributeName);
+        ShadowSimpleAttribute<T> attr = attrDef.instantiate();
         attr.addRealValues(values);
         attrContainer.add(attr);
     }
@@ -1606,8 +1606,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         var resource = Resource.of(resourceObject);
         var objDef = resource.getCompleteSchemaRequired().findDefinitionForObjectClassRequired(objectClass);
         //noinspection unchecked
-        ResourceAttributeDefinition<String> attrDef =
-                (ResourceAttributeDefinition<String>) MiscUtil.requireNonNull(
+        ShadowSimpleAttributeDefinition<String> attrDef =
+                (ShadowSimpleAttributeDefinition<String>) MiscUtil.requireNonNull(
                         objDef.getNamingAttribute(), () -> "No naming attribute definition for " + objDef);
         var namingAttr = attrDef.instantiateFromRealValue(name);
         var q = resource.queryFor(objectClass)
@@ -1691,7 +1691,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         ResourceObjectDefinition defaultAccountDef =
                 resource.getCompleteSchemaRequired()
                         .findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
-        ResourceAttributeDefinition<?> primaryIdentifierDef = defaultAccountDef.getPrimaryIdentifierRequired();
+        ShadowSimpleAttributeDefinition<?> primaryIdentifierDef = defaultAccountDef.getPrimaryIdentifierRequired();
         return resource.queryFor(defaultAccountDef.getObjectClassName())
                 .and().item(ShadowType.F_ATTRIBUTES, primaryIdentifierDef.getItemName()).eq(identifier)
                 .build();
@@ -1711,10 +1711,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             @NotNull PrismObject<ResourceType> resource,
             boolean mustBeLive,
             boolean forRepository) throws SchemaException, ConfigurationException {
-        Collection<? extends ResourceAttributeDefinition<?>> identifierDefs = objectDef.getSecondaryIdentifiers();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> identifierDefs = objectDef.getSecondaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected secondary identifier set in " + resource + " refined schema: " + identifierDefs;
         //noinspection unchecked
-        var identifierDef = (ResourceAttributeDefinition<String>) identifierDefs.iterator().next();
+        var identifierDef = (ShadowSimpleAttributeDefinition<String>) identifierDefs.iterator().next();
         var identifier = identifierDef.instantiateFromRealValue(identifierValue);
         var q = Resource.of(resource)
                 .queryFor(objectDef.getTypeName())
@@ -1738,8 +1738,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected ObjectQuery createShadowQueryByAttribute(ResourceObjectClassDefinition rAccount, String attributeName, String attributeValue, PrismObject<ResourceType> resource) {
         //noinspection RedundantExplicitVariableType
-        ResourceAttributeDefinition<Object> attrDef =
-                (ResourceAttributeDefinition<Object>) rAccount.findAttributeDefinition(attributeName);
+        ShadowSimpleAttributeDefinition<Object> attrDef =
+                (ShadowSimpleAttributeDefinition<Object>) rAccount.findSimpleAttributeDefinition(attributeName);
         return prismContext.queryFor(ShadowType.class)
                 .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attributeValue)
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getTypeName())
@@ -1769,14 +1769,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return getObjectDefinition(ShadowType.class);
     }
 
-    protected @NotNull <T> ResourceAttributeDefinition<T> getAttributeDefinitionRequired(
+    protected @NotNull <T> ShadowSimpleAttributeDefinition<T> getAttributeDefinitionRequired(
             ResourceType resource, ShadowKindType kind, String attributeLocalName)
             throws SchemaException, ConfigurationException {
         //noinspection unchecked
-        return (ResourceAttributeDefinition<T>) ResourceSchemaFactory
+        return (ShadowSimpleAttributeDefinition<T>) ResourceSchemaFactory
                 .getCompleteSchemaRequired(resource)
                 .findDefaultDefinitionForKindRequired(kind)
-                .findAttributeDefinitionRequired(new ItemName(MidPointConstants.NS_RI, attributeLocalName));
+                .findSimpleAttributeDefinitionRequired(new ItemName(MidPointConstants.NS_RI, attributeLocalName));
     }
 
     protected void assertPassword(ShadowType shadow, String expectedPassword) throws SchemaException, EncryptionException {
@@ -3198,11 +3198,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 attributeDefinition, newRealValue);
     }
 
-    protected ResourceAttributeDefinition getAttributeDefinition(PrismObject<ResourceType> resource, QName attributeName)
+    protected ShadowSimpleAttributeDefinition getAttributeDefinition(PrismObject<ResourceType> resource, QName attributeName)
             throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
         ResourceObjectDefinition accountDefinition = rSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
-        return accountDefinition.findAttributeDefinition(attributeName);
+        return accountDefinition.findSimpleAttributeDefinition(attributeName);
     }
 
     protected ObjectDelta<ShadowType> createModifyAccountShadowAddDelta(String accountOid, ItemPath propertyName, Object... newRealValue) {
@@ -4451,7 +4451,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     @SuppressWarnings("SameParameterValue")
     protected void assertAttributeFlags(ResourceObjectDefinition def,
             QName attrName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
-        ResourceAttributeDefinition<?> attrDef = def.findAttributeDefinition(attrName);
+        ShadowSimpleAttributeDefinition<?> attrDef = def.findSimpleAttributeDefinition(attrName);
         assertThat(attrDef).as("attribute " + attrName + " definition").isNotNull();
         assertThat(attrDef.canRead()).as("readability flag for " + attrName).isEqualTo(expectedRead);
         assertThat(attrDef.canAdd()).as("addition flag for " + attrName).isEqualTo(expectedAdd);

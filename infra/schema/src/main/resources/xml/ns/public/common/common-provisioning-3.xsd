@@ -1687,7 +1687,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="associatedObjectType" type="tns:AssociatedResourceObjectTypeDefinitionType" minOccurs="0">
+            <xsd:element name="associationObject" type="tns:AssociatedResourceObjectTypeDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         If the association contains its own data (in the form of "associated object type"), they can be defined
@@ -1704,7 +1704,7 @@
     <xsd:complexType name="ComplexProcessingType">
         <xsd:annotation>
             <xsd:documentation>
-                Complex mapping between the resource item and a focus item, including correlation and synchronization actions.
+                Processing of a complex (structured) values.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -1782,17 +1782,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="item" type="t:ItemPathType" minOccurs="0" default="assignment">
+            <xsd:element name="assignmentSubtype" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Item that represents the association (the default is "assignment").
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="subtype" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Assignment subtype (if the item is assignment).
+                        Assignment subtype (if applicable).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1873,7 +1866,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" >
+            <xsd:element name="association" type="tns:ResourceObjectAssociationNewType" minOccurs="0" >
                 <xsd:annotation>
                     <xsd:documentation>
                         The definition that is to be applied to the association items.
@@ -3300,6 +3293,67 @@
                             <xsd:appinfo>
                                 <a:displayName>ResourceObjectAssociationType.explicitReferentialIntegrity</a:displayName>
                             </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ResourceObjectAssociationNewType">
+        <xsd:annotation>
+            <xsd:documentation>
+                New definition of an association.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ResourceItemDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="focus" type="tns:ComplexProcessingFocusDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The "focus side" of this mapping, i.e., to which part(s) of the focus object should be the given
+                                resource object item mapped.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="attribute" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectRef" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of activation handling for this account type.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="correlation" type="tns:CorrelationDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How objects of this type are correlated to focus objects?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="synchronization" type="tns:SynchronizationReactionsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

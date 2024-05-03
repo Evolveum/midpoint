@@ -35,8 +35,8 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -109,8 +109,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         shadowType.setResourceRef(resourceRef);
         shadowType.setObjectClass(defaultAccountDefinition.getTypeName());
         PrismObject<ShadowType> shadow = shadowType.asPrismObject();
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, defaultAccountDefinition);
-        ResourceAttribute<String> icfsNameProp = attributesContainer.findOrCreateAttribute(SchemaConstants.ICFS_NAME);
+        ShadowAttributesContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, defaultAccountDefinition);
+        ShadowSimpleAttribute<String> icfsNameProp = attributesContainer.findOrCreateAttribute(SchemaConstants.ICFS_NAME);
         icfsNameProp.setRealValue(ACCOUNT_JACK_USERNAME);
 
         // WHEN
@@ -315,7 +315,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
     private void checkUcfShadow(PrismObject<ShadowType> shadow, ResourceObjectClassDefinition objectClassDefinition) {
         assertNotNull("No objectClass in shadow " + shadow, shadow.asObjectable().getObjectClass());
         assertEquals("Wrong objectClass in shadow " + shadow, objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
-        Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
+        Collection<ShadowSimpleAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
         assertNotNull("No attributes in shadow " + shadow, attributes);
         assertFalse("Empty attributes in shadow " + shadow, attributes.isEmpty());
     }

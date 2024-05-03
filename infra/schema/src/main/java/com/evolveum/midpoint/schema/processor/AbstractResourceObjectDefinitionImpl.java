@@ -64,13 +64,13 @@ public abstract class AbstractResourceObjectDefinitionImpl
     /**
      * Definition of attributes.
      *
-     * It seems that elements are strictly of {@link ResourceAttributeDefinitionImpl} class, but this is currently
+     * It seems that elements are strictly of {@link ShadowSimpleAttributeDefinitionImpl} class, but this is currently
      * not enforceable in the compile time - see e.g. {@link #copyDefinitionDataFrom(LayerType, ResourceObjectDefinition)}
      * or {@link #addInternal(ItemDefinition)}. TODO reconsider if it's ok this way.
      *
      * Frozen after creation.
      */
-    @NotNull final DeeplyFreezableList<ResourceAttributeDefinition<?>> attributeDefinitions =
+    @NotNull final DeeplyFreezableList<ShadowSimpleAttributeDefinition<?>> attributeDefinitions =
             new DeeplyFreezableList<>();
 
     /**
@@ -79,7 +79,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
      *
      * Temporary/experimental.
      */
-    private Map<QName, ResourceAttributeDefinition<?>> attributeDefinitionMap;
+    private Map<QName, ShadowSimpleAttributeDefinition<?>> attributeDefinitionMap;
 
     /**
      * Names of primary identifiers. They are the same for both raw and refined definitions.
@@ -120,11 +120,11 @@ public abstract class AbstractResourceObjectDefinitionImpl
     /**
      * Definition of associations. Immutable.
      */
-    @NotNull final DeeplyFreezableList<ShadowAssociationDefinition> associationDefinitions =
+    @NotNull final DeeplyFreezableList<ShadowReferenceAttributeDefinition> associationDefinitions =
             new DeeplyFreezableList<>();
 
     /** Definitions of attributes + associations. Created when freezing. */
-    @NotNull private final FreezableList<ShadowItemDefinition<?, ?>> itemDefinitions = new FreezableList<>();
+    @NotNull private final FreezableList<ShadowAttributeDefinition<?, ?>> itemDefinitions = new FreezableList<>();
 
     /**
      * The "source" bean for this definition.
@@ -182,38 +182,38 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     @NotNull
     @Override
-    public List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
+    public List<? extends ShadowSimpleAttributeDefinition<?>> getAttributeDefinitions() {
         return attributeDefinitions;
     }
 
     @Override
-    public @NotNull List<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
+    public @NotNull List<? extends ShadowReferenceAttributeDefinition> getAssociationDefinitions() {
         return associationDefinitions;
     }
 
     @Override
-    public <T> @Nullable ResourceAttributeDefinition<T> findAttributeDefinition(QName name, boolean caseInsensitive) {
+    public <T> @Nullable ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinition(QName name, boolean caseInsensitive) {
         if (caseInsensitive || isMutable() || QNameUtil.isUnqualified(name)) {
-            return ResourceObjectDefinition.super.findAttributeDefinition(name, caseInsensitive);
+            return ResourceObjectDefinition.super.findSimpleAttributeDefinition(name, caseInsensitive);
         } else {
             //noinspection unchecked
-            return (ResourceAttributeDefinition<T>) attributeDefinitionMap.get(name);
+            return (ShadowSimpleAttributeDefinition<T>) attributeDefinitionMap.get(name);
         }
     }
 
     @NotNull
     @Override
-    public Collection<ResourceAttributeDefinition<?>> getPrimaryIdentifiers() {
+    public Collection<ShadowSimpleAttributeDefinition<?>> getPrimaryIdentifiers() {
         return primaryIdentifiersNames.stream()
-                .map(this::findAttributeDefinitionStrictlyRequired)
+                .map(this::findSimpleAttributeDefinitionStrictlyRequired)
                 .collect(Collectors.toUnmodifiableList());
     }
 
     @NotNull
     @Override
-    public Collection<ResourceAttributeDefinition<?>> getSecondaryIdentifiers() {
+    public Collection<ShadowSimpleAttributeDefinition<?>> getSecondaryIdentifiers() {
         return secondaryIdentifiersNames.stream()
-                .map(this::findAttributeDefinitionStrictlyRequired)
+                .map(this::findSimpleAttributeDefinitionStrictlyRequired)
                 .collect(Collectors.toUnmodifiableList());
     }
 
@@ -433,7 +433,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     private void createAttributeDefinitionMap() {
-        var map = new HashMap<QName, ResourceAttributeDefinition<?>>();
+        var map = new HashMap<QName, ShadowSimpleAttributeDefinition<?>>();
         attributeDefinitions.forEach(def -> {
             var previous = map.put(def.getItemName(), def);
             stateCheck(previous == null, "Multiple definitions for attribute %s in %s", def, this);
@@ -480,11 +480,11 @@ public abstract class AbstractResourceObjectDefinitionImpl
         var associationDefinitions = _this.getAssociationDefinitions();
         sb.append(") with ").append(attributeDefinitions.size()).append(" attribute");
         sb.append(" and ").append(associationDefinitions.size()).append(" association definitions");
-        for (ResourceAttributeDefinition<?> rAttrDef : attributeDefinitions) {
+        for (ShadowSimpleAttributeDefinition<?> rAttrDef : attributeDefinitions) {
             sb.append("\n");
             sb.append(rAttrDef.debugDump(indent + 1, layer));
         }
-        for (ShadowAssociationDefinition assocDef : associationDefinitions) {
+        for (ShadowReferenceAttributeDefinition assocDef : associationDefinitions) {
             sb.append("\n");
             sb.append(assocDef.debugDump(indent + 1));
         }
@@ -518,9 +518,9 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions() {
+    public @NotNull Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions() {
         //noinspection unchecked
-        return (Collection<? extends ShadowItemDefinition<?, ?>>) getDefinitions();
+        return (Collection<? extends ShadowAttributeDefinition<?, ?>>) getDefinitions();
     }
 
     @Override
@@ -701,10 +701,10 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     private void addInternal(@NotNull ItemDefinition<?> definition) {
-        if (definition instanceof ResourceAttributeDefinition<?> resourceAttributeDefinition) {
+        if (definition instanceof ShadowSimpleAttributeDefinition<?> resourceAttributeDefinition) {
             // Can occur during definition replacement.
             attributeDefinitions.add(resourceAttributeDefinition);
-        } else if (definition instanceof ShadowAssociationDefinitionImpl associationDefinition) {
+        } else if (definition instanceof ShadowReferenceAttributeDefinitionImpl associationDefinition) {
             associationDefinitions.add(associationDefinition);
         } else {
             throw new IllegalArgumentException(
@@ -742,15 +742,15 @@ public abstract class AbstractResourceObjectDefinitionImpl
     @Override
     public void validate() throws SchemaException {
         Set<QName> attributeNames = new HashSet<>();
-        for (ResourceAttributeDefinition<?> attributeDefinition : getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition<?> attributeDefinition : getAttributeDefinitions()) {
             QName attrName = attributeDefinition.getItemName();
             if (!attributeNames.add(attrName)) {
                 throw new SchemaException("Duplicate definition of attribute " + attrName + " in " + this);
             }
         }
 
-        Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = getPrimaryIdentifiers();
-        Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifiers = getSecondaryIdentifiers();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> primaryIdentifiers = getPrimaryIdentifiers();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> secondaryIdentifiers = getSecondaryIdentifiers();
 
         if (primaryIdentifiers.isEmpty() && secondaryIdentifiers.isEmpty()) {
             throw new SchemaException("No identifiers in definition of object class " + getTypeName() + " in " + this);
@@ -761,7 +761,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         return definitionBean;
     }
 
-    void addAssociationDefinition(@NotNull ShadowAssociationDefinition associationDef) {
+    void addAssociationDefinition(@NotNull ShadowReferenceAttributeDefinition associationDef) {
         checkMutable();
         associationDefinitions.add(associationDef);
         invalidatePrismObjectDefinition();
@@ -798,7 +798,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     @Override
     public ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException {
-        return findAttributeDefinition(itemName);
+        return findSimpleAttributeDefinition(itemName);
     }
 
     @Override

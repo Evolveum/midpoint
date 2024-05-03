@@ -74,7 +74,7 @@ class ShadowedObjectConstruction {
     @NotNull private final ExistingResourceObject resourceObject;
 
     /** Attributes of the resource object. */
-    @NotNull private final ResourceAttributeContainer resourceObjectAttributes;
+    @NotNull private final ShadowAttributesContainer resourceObjectAttributes;
 
     /** Associations of the resource object. */
     @Nullable private final PrismContainer<ShadowAssociationsType> resourceObjectAssociations;
@@ -308,7 +308,7 @@ class ShadowedObjectConstruction {
 
         resultingShadowedBean.asPrismObject().removeContainer(ShadowType.F_ATTRIBUTES);
 
-        ResourceAttributeContainer resultAttributes = resourceObjectAttributes.clone();
+        ShadowAttributesContainer resultAttributes = resourceObjectAttributes.clone();
         resultAttributes.applyDefinition(authoritativeDefinition.toResourceAttributeContainerDefinition());
 
         b.accessChecker.filterGetAttributes(resultAttributes, authoritativeDefinition, result);

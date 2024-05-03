@@ -122,9 +122,9 @@ public interface ResourceObjectDefinition
      *
      * NOTE: Currently seems to be not used. (Neither not set nor used.)
      */
-    default @Nullable ResourceAttributeDefinition<?> getDescriptionAttribute() {
+    default @Nullable ShadowSimpleAttributeDefinition<?> getDescriptionAttribute() {
         QName name = getDescriptionAttributeName();
-        return name != null ? findAttributeDefinitionStrictlyRequired(name) : null;
+        return name != null ? findSimpleAttributeDefinitionStrictlyRequired(name) : null;
     }
 
     /**
@@ -137,9 +137,9 @@ public interface ResourceObjectDefinition
     /**
      * Returns the attribute used as a visible name of the resource object.
      */
-    default @Nullable ResourceAttributeDefinition<?> getNamingAttribute() {
+    default @Nullable ShadowSimpleAttributeDefinition<?> getNamingAttribute() {
         QName name = getNamingAttributeName();
-        return name != null ? findAttributeDefinitionStrictlyRequired(name) : null;
+        return name != null ? findSimpleAttributeDefinitionStrictlyRequired(name) : null;
     }
 
     /**
@@ -166,9 +166,9 @@ public interface ResourceObjectDefinition
      *
      * NOTE: Currently seems to be not used. (Neither not set nor used.)
      */
-    default ResourceAttributeDefinition<?> getDisplayNameAttribute() {
+    default ShadowSimpleAttributeDefinition<?> getDisplayNameAttribute() {
         QName name = getDisplayNameAttributeName();
-        return name != null ? findAttributeDefinitionStrictlyRequired(name) : null;
+        return name != null ? findSimpleAttributeDefinitionStrictlyRequired(name) : null;
     }
 
     /**
@@ -525,10 +525,10 @@ public interface ResourceObjectDefinition
     }
 
     /** TODO ... ignoreCase will be part of the schema, soon ... */
-    default ShadowItemDefinition<?, ?> findShadowItemDefinitionRequired(
+    default ShadowAttributeDefinition<?, ?> findShadowItemDefinitionRequired(
             @NotNull ItemName itemName, boolean ignoreCase, Object errorCtx) throws SchemaException {
 
-        var attributeDefinition = findAttributeDefinition(itemName, ignoreCase);
+        var attributeDefinition = findSimpleAttributeDefinition(itemName, ignoreCase);
         var associationDefinition = findAssociationDefinition(itemName);
 
         stateCheck(attributeDefinition == null || associationDefinition == null,
@@ -544,7 +544,7 @@ public interface ResourceObjectDefinition
     }
 
     /** Returns both attribute and association definitions. */
-    @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions();
+    @NotNull Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions();
 
     default @NotNull ShadowAttributesComplexTypeDefinition getAttributesComplexTypeDefinition() {
         return ShadowAttributesComplexTypeDefinitionImpl.of(this);

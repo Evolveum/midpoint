@@ -112,7 +112,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         assertLayerRefinedSchema(schema, LayerType.PRESENTATION, LayerType.PRESENTATION);
 
         ResourceObjectDefinition accountDef = schema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
-        ResourceAttributeDefinition<?> userPasswordAttribute = accountDef.findAttributeDefinition("userPassword");
+        ShadowSimpleAttributeDefinition<?> userPasswordAttribute = accountDef.findSimpleAttributeDefinition("userPassword");
         assertNotNull("No userPassword attribute", userPasswordAttribute);
         assertTrue("userPassword not ignored", userPasswordAttribute.isIgnored());
     }
@@ -200,13 +200,13 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         assertEquals("Wrong kind", ShadowKindType.ENTITLEMENT, rEntDef.getKind());
 
-        Collection<? extends ResourceAttributeDefinition<?>> entAttrDefs = rEntDef.getAttributeDefinitions();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> entAttrDefs = rEntDef.getAttributeDefinitions();
         assertNotNull("Null attributeDefinitions", entAttrDefs);
         assertFalse("Empty attributeDefinitions", entAttrDefs.isEmpty());
         assertEquals("Unexpected number of attributeDefinitions", 11, entAttrDefs.size());
         // TODO
 
-        ResourceAttributeDefinition<?> entDisplayNameAttributeDef = rEntDef.getDisplayNameAttribute();
+        ShadowSimpleAttributeDefinition<?> entDisplayNameAttributeDef = rEntDef.getDisplayNameAttribute();
         assertNotNull("No entitlement displayNameAttribute", entDisplayNameAttributeDef);
         assertEquals("Wrong entitlement displayNameAttribute", QNAME_CN, entDisplayNameAttributeDef.getItemName());
 
@@ -227,16 +227,16 @@ public class TestRefinedSchema extends AbstractUnitTest {
             assertEquals("Wrong kind", ShadowKindType.ACCOUNT, ((ResourceObjectTypeDefinition) accountDef).getKind());
         }
 
-        Collection<? extends ResourceAttributeDefinition<?>> accAttrsDef = accountDef.getAttributeDefinitions();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> accAttrsDef = accountDef.getAttributeDefinitions();
         assertNotNull("Null attributeDefinitions", accAttrsDef);
         assertFalse("Empty attributeDefinitions", accAttrsDef.isEmpty());
         assertEquals("Unexpected number of attributeDefinitions", 55, accAttrsDef.size());
 
-        ResourceAttributeDefinition<?> disabledAttribute = accountDef.findAttributeDefinition("ds-pwp-account-disabled");
+        ShadowSimpleAttributeDefinition<?> disabledAttribute = accountDef.findSimpleAttributeDefinition("ds-pwp-account-disabled");
         assertNotNull("No ds-pwp-account-disabled attribute", disabledAttribute);
         assertTrue("ds-pwp-account-disabled not ignored", disabledAttribute.isIgnored());
 
-        ResourceAttributeDefinition<?> displayNameAttributeDef = accountDef.getDisplayNameAttribute();
+        ShadowSimpleAttributeDefinition<?> displayNameAttributeDef = accountDef.getDisplayNameAttribute();
         assertNotNull("No account displayNameAttribute", displayNameAttributeDef);
         assertEquals("Wrong account displayNameAttribute", QNAME_UID, displayNameAttributeDef.getItemName());
 
@@ -260,7 +260,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
             assertRefinedToLayer(rComplexTypeDefinition, sourceLayer);
         }
 
-        ResourceAttributeDefinition<?> riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new ItemName(MidPointConstants.NS_RI, "uid"));
+        ShadowSimpleAttributeDefinition<?> riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new ItemName(MidPointConstants.NS_RI, "uid"));
         assertNotNull("No ri:uid def in ResourceAttributeContainerDefinition", riUidAttrDef);
         System.out.println("\nri:uid def " + riUidAttrDef.getClass() + " (" + sourceLayer + ")");
         System.out.println(riUidAttrDef.debugDump());
@@ -276,9 +276,9 @@ public class TestRefinedSchema extends AbstractUnitTest {
                         riUidAttrDef.canModify());
             }
 
-            Collection<? extends ResourceAttributeDefinition<?>> definitionsFromResAttrContainerDef =
+            Collection<? extends ShadowSimpleAttributeDefinition<?>> definitionsFromResAttrContainerDef =
                     resAttrContainerDef.getDefinitions();
-            for (ResourceAttributeDefinition<?> definitionFromResAttrContainerDef : definitionsFromResAttrContainerDef) {
+            for (ShadowSimpleAttributeDefinition<?> definitionFromResAttrContainerDef : definitionsFromResAttrContainerDef) {
                 assertRefinedToLayer(definitionFromResAttrContainerDef, sourceLayer);
             }
         }
@@ -294,7 +294,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         assertEquals("Wrong layer in " + ocDef, expectedLayer, ocDef.getCurrentLayer());
     }
 
-    private void assertRefinedToLayer(ResourceAttributeDefinition<?> attrDef, LayerType expectedLayer) {
+    private void assertRefinedToLayer(ShadowSimpleAttributeDefinition<?> attrDef, LayerType expectedLayer) {
         if (expectedLayer == null) {
             // This is OK, it may not be layer-bound.
             return;
@@ -471,7 +471,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
             assertTrue(((ResourceObjectTypeDefinition) rAccount).isDefaultForKind());
         }
 
-        Collection<? extends ResourceAttributeDefinition<?>> attrs = rAccount.getAttributeDefinitions();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> attrs = rAccount.getAttributeDefinitions();
         assertFalse(attrs.isEmpty());
 
         assertAttributeDef(attrs, SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, 1, 1, "Distinguished Name", 110,
@@ -506,11 +506,11 @@ public class TestRefinedSchema extends AbstractUnitTest {
                 sourceLayer, validationLayer);
     }
 
-    private void assertAttributeDef(Collection<? extends ResourceAttributeDefinition<?>> attrDefs, QName name,
-            QName typeName, int minOccurs, int maxOccurs, String displayName, Integer displayOrder,
-            boolean hasOutbound, boolean ignore, boolean canCreate, boolean canRead, boolean canUpdate,
-            LayerType sourceLayer, LayerType validationLayer) {
-        for (ResourceAttributeDefinition<?> def : attrDefs) {
+    private void assertAttributeDef(Collection<? extends ShadowSimpleAttributeDefinition<?>> attrDefs, QName name,
+                                    QName typeName, int minOccurs, int maxOccurs, String displayName, Integer displayOrder,
+                                    boolean hasOutbound, boolean ignore, boolean canCreate, boolean canRead, boolean canUpdate,
+                                    LayerType sourceLayer, LayerType validationLayer) {
+        for (ShadowSimpleAttributeDefinition<?> def : attrDefs) {
             if (def.getItemName().equals(name)) {
                 assertEquals("Attribute " + name + " (" + sourceLayer + ") type mismatch", typeName, def.getTypeName());
                 assertEquals("Attribute " + name + " (" + sourceLayer + ") minOccurs mismatch", minOccurs, def.getMinOccurs());
@@ -529,7 +529,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         Assert.fail("Attribute " + name + " not found");
     }
 
-    private void assertNativeAttributeDef(Collection<? extends NativeShadowAttributeDefinition<?>> attrDefs, QName name,
+    private void assertNativeAttributeDef(Collection<? extends NativeShadowSimpleAttributeDefinition<?>> attrDefs, QName name,
             QName typeName, int minOccurs, int maxOccurs, String displayName, Integer displayOrder,
             boolean canCreate, boolean canRead, boolean canUpdate) {
         for (var def : attrDefs) {
@@ -556,12 +556,12 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         // Try matching
         PrismObject<ShadowType> shadow = rAccount.getPrismObjectDefinition().instantiate();
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, rAccount);
-        ResourceAttribute<String> confusingAttr1 = createStringAttribute(new QName("http://whatever.com", "confuseMe"), "HowMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChudkWood");
+        ShadowAttributesContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, rAccount);
+        ShadowSimpleAttribute<String> confusingAttr1 = createStringAttribute(new QName("http://whatever.com", "confuseMe"), "HowMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChudkWood");
         attributesContainer.add(confusingAttr1);
-        ResourceAttribute<String> nameAttr = createStringAttribute(SchemaConstants.ICFS_NAME, identifierValue);
+        ShadowSimpleAttribute<String> nameAttr = createStringAttribute(SchemaConstants.ICFS_NAME, identifierValue);
         attributesContainer.add(nameAttr);
-        ResourceAttribute<String> confusingAttr2 = createStringAttribute(new QName("http://whatever.com", "confuseMeAgain"), "WoodchuckWouldChuckNoWoodAsWoodchuckCannotChuckWood");
+        ShadowSimpleAttribute<String> confusingAttr2 = createStringAttribute(new QName("http://whatever.com", "confuseMeAgain"), "WoodchuckWouldChuckNoWoodAsWoodchuckCannotChuckWood");
         attributesContainer.add(confusingAttr2);
         shadow.asObjectable().resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE);
 
@@ -572,10 +572,10 @@ public class TestRefinedSchema extends AbstractUnitTest {
         assertFalse("Test attr nonsense was matched in " + message, protectedPattern.matches(abstractShadow));
     }
 
-    private ResourceAttribute<String> createStringAttribute(QName attrName, String value) throws SchemaException {
-        ResourceAttributeDefinition<String> testAttrDef =
+    private ShadowSimpleAttribute<String> createStringAttribute(QName attrName, String value) throws SchemaException {
+        ShadowSimpleAttributeDefinition<String> testAttrDef =
                 ObjectFactory.createResourceAttributeDefinition(attrName, DOMUtil.XSD_STRING);
-        ResourceAttribute<String> testAttr = testAttrDef.instantiate();
+        ShadowSimpleAttribute<String> testAttr = testAttrDef.instantiate();
         testAttr.setRealValue(value);
         return testAttr;
     }
@@ -606,8 +606,8 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         assertTrue(rAccountDef.isDefaultForKind());
 
-        Collection<? extends ResourceAttributeDefinition<?>> rAccountAttrs = rAccountDef.getAttributeDefinitions();
-        Collection<? extends NativeShadowAttributeDefinition<?>> rAccountAttrsRaw =
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> rAccountAttrs = rAccountDef.getAttributeDefinitions();
+        Collection<? extends NativeShadowSimpleAttributeDefinition<?>> rAccountAttrsRaw =
                 rAccountDef.getNativeObjectClassDefinition().getAttributeDefinitions();
         assertFalse(rAccountAttrs.isEmpty());
 
@@ -656,16 +656,16 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         assertEquals("Wrong kind", ShadowKindType.ACCOUNT, rAccountDef.getKind());
 
-        Collection<? extends ResourceAttributeDefinition<?>> accAttrsDef = rAccountDef.getAttributeDefinitions();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> accAttrsDef = rAccountDef.getAttributeDefinitions();
         assertNotNull("Null attributeDefinitions", accAttrsDef);
         assertFalse("Empty attributeDefinitions", accAttrsDef.isEmpty());
         assertEquals("Unexpected number of attributeDefinitions", 53, accAttrsDef.size());
 
-        ResourceAttributeDefinition<?> disabledAttribute = rAccountDef.findAttributeDefinition("ds-pwp-account-disabled");
+        ShadowSimpleAttributeDefinition<?> disabledAttribute = rAccountDef.findSimpleAttributeDefinition("ds-pwp-account-disabled");
         assertNotNull("No ds-pwp-account-disabled attribute", disabledAttribute);
         assertTrue("ds-pwp-account-disabled not ignored", disabledAttribute.isIgnored());
 
-        ResourceAttributeDefinition<?> displayNameAttributeDef = rAccountDef.getDisplayNameAttribute();
+        ShadowSimpleAttributeDefinition<?> displayNameAttributeDef = rAccountDef.getDisplayNameAttribute();
         assertNotNull("No account displayNameAttribute", displayNameAttributeDef);
         assertEquals("Wrong account displayNameAttribute", QNAME_DN,
                 displayNameAttributeDef.getItemName());
@@ -682,12 +682,12 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         assertEquals("Wrong kind", ShadowKindType.ENTITLEMENT, rEntDef.getKind());
 
-        Collection<? extends ResourceAttributeDefinition<?>> entAttrDefs = rEntDef.getAttributeDefinitions();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> entAttrDefs = rEntDef.getAttributeDefinitions();
         assertNotNull("Null attributeDefinitions", entAttrDefs);
         assertFalse("Empty attributeDefinitions", entAttrDefs.isEmpty());
         assertEquals("Unexpected number of attributeDefinitions", 12, entAttrDefs.size());
 
-        ResourceAttributeDefinition<?> entDisplayNameAttributeDef = rEntDef.getDisplayNameAttribute();
+        ShadowSimpleAttributeDefinition<?> entDisplayNameAttributeDef = rEntDef.getDisplayNameAttribute();
         assertNotNull("No entitlement displayNameAttribute", entDisplayNameAttributeDef);
         assertEquals("Wrong entitlement displayNameAttribute", QNAME_DN,
                 entDisplayNameAttributeDef.getItemName());
@@ -703,7 +703,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         System.out.println("\nResourceAttributeContainerDefinition ComplexTypeDefinition");
         System.out.println(rComplexTypeDefinition.debugDump());
 
-        ResourceAttributeDefinition<?> riUidAttrDef = resAttrContainerDef.findAttributeDefinition(
+        ShadowSimpleAttributeDefinition<?> riUidAttrDef = resAttrContainerDef.findAttributeDefinition(
                 new ItemName(MidPointConstants.NS_RI, "uid"));
         assertNotNull("No ri:uid def in ResourceAttributeContainerDefinition", riUidAttrDef);
         System.out.println("\nri:uid def " + riUidAttrDef.getClass());

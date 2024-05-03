@@ -33,7 +33,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
- * Represents a specific shadow association value - i.e. something that is put into {@link ShadowAssociation}.
+ * Represents a specific shadow association value - i.e. something that is put into {@link ShadowReferenceAttribute}.
  * For example, a single group membership for a given account: `joe` is a member of `admins`.
  *
  * NOTE: As an experiment, we try to keep instances as consistent as possible. E.g., we require correct `shadowRef` etc.
@@ -76,7 +76,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
      */
     public static @NotNull ShadowAssociationValue of(
             @NotNull ShadowAssociationValueType bean,
-            @NotNull ShadowAssociationDefinition definition) {
+            @NotNull ShadowReferenceAttributeDefinition definition) {
         PrismContainerValue<?> pcv = bean.asPrismContainerValue();
         if (pcv instanceof ShadowAssociationValue shadowAssociationValue) {
             return shadowAssociationValue;
@@ -157,7 +157,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         return clone;
     }
 
-    public @NotNull ResourceAttributeContainer getAttributesContainerRequired() {
+    public @NotNull ShadowAttributesContainer getAttributesContainerRequired() {
         return ShadowUtil.getAttributesContainerRequired(getShadowBean());
     }
 
@@ -179,8 +179,8 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         return getAttributesContainerRequired().getDefinitionRequired().getTypeName();
     }
 
-    public @NotNull ShadowAssociationDefinition getDefinitionRequired() {
-        return stateNonNull((ShadowAssociationDefinition) getDefinition(), "No definition in %s", this);
+    public @NotNull ShadowReferenceAttributeDefinition getDefinitionRequired() {
+        return stateNonNull((ShadowReferenceAttributeDefinition) getDefinition(), "No definition in %s", this);
     }
 
     public @NotNull ResourceObjectIdentification<?> getIdentification() {
@@ -217,7 +217,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         return getShadowRequired().getObjectDefinition();
     }
 
-    public ResourceAttributeContainer getAttributesContainerIfPresent() {
+    public ShadowAttributesContainer getAttributesContainerIfPresent() {
         var shadow = getShadowIfPresent();
         return shadow != null ? shadow.getAttributesContainer() : null;
     }

@@ -42,7 +42,7 @@ class AccessChecker {
         OperationResult result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
         try {
 
-            for (ResourceAttribute<?> attribute : resourceObject.getAttributes()) {
+            for (ShadowSimpleAttribute<?> attribute : resourceObject.getAttributes()) {
                 PropertyLimitations limitations =
                         ctx.findAttributeDefinitionRequired(attribute.getElementName())
                                 .getLimitations(LayerType.MODEL);
@@ -91,7 +91,7 @@ class AccessChecker {
                 }
                 QName attrName = attrDelta.getElementName();
                 LOGGER.trace("Checking attribute {} definition present in {}", attrName, resourceObjectDefinition);
-                ResourceAttributeDefinition<?> attrDef = resourceObjectDefinition.findAttributeDefinitionRequired(attrName);
+                ShadowSimpleAttributeDefinition<?> attrDef = resourceObjectDefinition.findSimpleAttributeDefinitionRequired(attrName);
                 PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
                 if (limitations == null) {
                     continue;
@@ -121,15 +121,15 @@ class AccessChecker {
     }
 
     void filterGetAttributes(
-            ResourceAttributeContainer attributeContainer,
+            ShadowAttributesContainer attributeContainer,
             ResourceObjectDefinition objectDefinition,
             OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
-        List<ResourceAttribute<?>> attributesToRemove = new ArrayList<>();
+        List<ShadowSimpleAttribute<?>> attributesToRemove = new ArrayList<>();
         try {
-            for (ResourceAttribute<?> attribute : attributeContainer.getAttributes()) {
+            for (ShadowSimpleAttribute<?> attribute : attributeContainer.getAttributes()) {
                 QName attrName = attribute.getElementName();
-                ResourceAttributeDefinition<?> attrDef = objectDefinition.findAttributeDefinition(attrName);
+                ShadowSimpleAttributeDefinition<?> attrDef = objectDefinition.findSimpleAttributeDefinition(attrName);
                 if (attrDef == null) { // TODO
                     String message = "Unknown attribute " + attrName + " in objectclass " + objectDefinition;
                     result.recordFatalError(message);
@@ -149,7 +149,7 @@ class AccessChecker {
                     attributesToRemove.add(attribute);
                 }
             }
-            for (ResourceAttribute<?> attributeToRemove : attributesToRemove) {
+            for (ShadowSimpleAttribute<?> attributeToRemove : attributesToRemove) {
                 LOGGER.trace("Removing non-readable attribute {}", attributeToRemove);
                 attributeContainer.remove(attributeToRemove);
             }

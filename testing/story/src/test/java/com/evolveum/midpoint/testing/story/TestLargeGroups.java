@@ -20,7 +20,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -125,7 +125,7 @@ public class TestLargeGroups extends AbstractStoryTest {
 
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
-        ResourceAttributeDefinition<Object> nameDefinition = libraryMidpointFunctions
+        ShadowSimpleAttributeDefinition<Object> nameDefinition = libraryMidpointFunctions
                 .getAttributeDefinition(resourceDummy, RI_GROUP_OBJECT_CLASS, SchemaConstants.ICFS_NAME);
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(resourceDummy.getOid())
