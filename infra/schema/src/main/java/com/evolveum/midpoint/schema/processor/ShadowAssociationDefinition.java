@@ -27,7 +27,14 @@ public interface ShadowAssociationDefinition
         PrismContainerDefinition<ShadowAssociationValueType>,
         ShadowItemDefinition<ShadowAssociation, ShadowAssociationValueType> {
 
-    /** Creates a filter that provides all shadows eligible as the target value for this association. */
+    /**
+     * Creates a filter that provides all shadows eligible as the target value for this association.
+     *
+     * FIXME resolve limitations:
+     *  - single object class is allowed for given association
+     *  - if multiple object types are there, then the filter is for the whole class
+     *  - if type type is the default object type, then it's used as such (even if the whole OC should be returned)
+     */
     ObjectFilter createTargetObjectsFilter();
 
     ResourceObjectDefinition getTargetObjectDefinition();
@@ -47,4 +54,8 @@ public interface ShadowAssociationDefinition
     ShadowAssociationTypeDefinitionNew getAssociationTypeDefinition();
 
     boolean isEntitlement();
+
+    default String getResourceOid() {
+        return getTargetObjectDefinition().getResourceOid();
+    }
 }

@@ -6631,14 +6631,47 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return assertContainerSearch(AccessCertificationCaseType.class, null, expectedNumber);
     }
 
+    protected List<AccessCertificationCaseType> assertSearchCertCases(ObjectQuery query, int expectedNumber) throws CommonException {
+        return assertContainerSearch(AccessCertificationCaseType.class, query, expectedNumber);
+    }
+
+    protected ObjectQuery queryForCertCasesByCampaignOwner(String ownerOid) {
+        return queryFor(AccessCertificationCaseType.class)
+                .item(PrismConstants.T_PARENT, AccessCertificationCampaignType.F_OWNER_REF).ref(ownerOid)
+                .build();
+    }
+
+    protected ObjectQuery queryForCertCasesByStageNumber(int number) {
+        return queryFor(AccessCertificationCaseType.class)
+                .item(AccessCertificationCaseType.F_STAGE_NUMBER).eq(number)
+                .build();
+    }
+
+    protected ObjectQuery queryForCertCasesByWorkItemOutcome(String outcomeUri) {
+        return queryFor(AccessCertificationCaseType.class)
+                .exists(AccessCertificationCaseType.F_WORK_ITEM)
+                .block()
+                    .item(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).eq(outcomeUri)
+                .endBlock()
+                .build();
+    }
+
     protected void assertCertCasesSearch(AccessCertificationCaseId... ids) throws CommonException {
         var cases = assertSearchCertCases(ids.length);
         var realIds = AccessCertificationCaseId.of(cases);
         assertThat(realIds).as("certification cases IDs").containsExactlyInAnyOrder(ids);
     }
 
-    protected void assertCertWorkItemsSearch(AccessCertificationWorkItemId... ids) throws CommonException {
-        var workItems = assertContainerSearch(AccessCertificationWorkItemType.class, null, ids.length);
+    protected void assertSearchCertWorkItems(ObjectQuery query, int expectedResults) throws CommonException {
+        assertContainerSearch(AccessCertificationWorkItemType.class, query, expectedResults);
+    }
+
+    protected void assertSearchCertWorkItems(AccessCertificationWorkItemId... ids) throws CommonException {
+        assertSearchCertWorkItems(null, ids);
+    }
+
+    protected void assertSearchCertWorkItems(ObjectQuery query, AccessCertificationWorkItemId... ids) throws CommonException {
+        var workItems = assertContainerSearch(AccessCertificationWorkItemType.class, query, ids.length);
         var realIds = AccessCertificationWorkItemId.of(workItems);
         assertThat(realIds).as("certification work items IDs").containsExactlyInAnyOrder(ids);
     }

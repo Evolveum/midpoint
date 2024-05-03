@@ -9,18 +9,20 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ResourceAttributeWrapper;
 
-import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import java.io.Serial;
 
 /**
  * @author katkav
  */
 public class ResourceAttributeDefinitionPanel<T> extends PrismPropertyPanel<T> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(ResourceAttributeDefinitionPanel.class);
 
     private static final String ID_HEADER = "header";
@@ -36,7 +38,14 @@ public class ResourceAttributeDefinitionPanel<T> extends PrismPropertyPanel<T> {
 
     @Override
     protected ItemHeaderPanel createHeaderPanel() {
-        return new ResourceAttributeDefinitionHeaderPanel<>(ID_HEADER, getResourceAttributeDefinitionModel());
+        return new ResourceAttributeDefinitionHeaderPanel<>(ID_HEADER, getResourceAttributeDefinitionModel()) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void refreshPanel(AjaxRequestTarget target) {
+                target.add(ResourceAttributeDefinitionPanel.this);
+            }
+        };
     }
 
     private IModel<ResourceAttributeWrapper<T>> getResourceAttributeDefinitionModel(){

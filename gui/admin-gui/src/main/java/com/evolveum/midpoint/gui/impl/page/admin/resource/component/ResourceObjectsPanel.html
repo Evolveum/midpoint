@@ -17,8 +17,10 @@
         <div wicket:id="showStatistics" class="ml-auto"/>
     </div>
 
-    <div class="col-12 mb-4">
-        <canvas wicket:id="statistics" width="400" height="80"></canvas>
+    <div wicket:id="chartContainer">
+        <div class="col-12" style="position: relative; height:20vh; width:80vw">
+            <canvas wicket:id="statistics"></canvas>
+        </div>
     </div>
 
     <div wicket:id="table"/>

@@ -8,9 +8,12 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -154,7 +157,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
-        return true;
+        O object = rowModel.getObject().getValue();
+        return WebComponentUtil.isAuthorized(object.getClass());
     }
 
     protected List<ObjectReferenceType> getNewObjectReferencesList(CompiledObjectCollectionView collectionView, AssignmentObjectRelation relation) {

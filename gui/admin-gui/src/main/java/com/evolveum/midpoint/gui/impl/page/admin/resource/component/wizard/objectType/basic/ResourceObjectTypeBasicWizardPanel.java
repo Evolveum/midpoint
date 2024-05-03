@@ -65,6 +65,8 @@ public class ResourceObjectTypeBasicWizardPanel extends AbstractWizardPanel<Reso
                 if (result == null || result.isError()) {
                     target.add(getFeedback());
                     refresh(target);
+                } else {
+                    onExitPerformed(target);
                 }
             }
 

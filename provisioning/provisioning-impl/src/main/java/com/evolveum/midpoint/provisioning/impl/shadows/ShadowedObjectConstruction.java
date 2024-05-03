@@ -332,9 +332,18 @@ class ShadowedObjectConstruction {
 
         LOGGER.trace("Adopting association value (acquiring shadowRef) for {}", iterableAssociationValue);
 
+        var associationName = iterableAssociationValue.name();
         var associationValue = iterableAssociationValue.associationValue();
         var attributesContainer = associationValue.getAttributesContainerRequired();
         var associationClassDef = associationValue.getAssociationClassDefinition();
+
+        if (authoritativeDefinition.findAssociationDefinition(associationName) == null) {
+            // This is quite legal. Imagine that we are looking for account/type1 type that has an association defined,
+            // but the shadow is classified (after being fetched) as account/type2 that does not have the association.
+            // We should simply ignore such association.
+            LOGGER.trace("Association with name {} does not exist in {}, ignoring the value", associationName, ctx);
+            return false;
+        }
 
         boolean potentialMatch = false;
 

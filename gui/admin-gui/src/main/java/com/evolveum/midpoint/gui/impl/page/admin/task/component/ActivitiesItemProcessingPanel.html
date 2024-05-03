@@ -13,7 +13,9 @@
             <div class="card-header">
                 <h3 class="card-title" wicket:id="summary"></h3>
                 <span class="ml-1"><wicket:message key="TaskIterativeInformationPanel.progressSummary.description"/></span>
-                <h4><div wicket:id="wallClockThroughput"/></h4>
+                <h4>
+                    <div wicket:id="wallClockThroughput"/>
+                </h4>
             </div>
 
             <div class="card-body">
@@ -24,7 +26,9 @@
                         </div>
                     </wicket:enclosure>
                     <div class="col-12 col-xl-4 col-xxl-3 mb-3">
-                        <canvas wicket:id="chart" width="200" height="100"></canvas>
+                        <div class="col-xl-12" style="height:35vh;">
+                            <canvas wicket:id="chart"></canvas>
+                        </div>
                     </div>
                     <div class="col-xl-12 col-xxl-6">
                         <div class="activity-item-processing" wicket:id="successItem"/>

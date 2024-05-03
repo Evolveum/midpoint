@@ -487,6 +487,13 @@ public class AuthorizationEvaluation {
         }
     }
 
+    void traceEndNotApplicable(String message, Object... arguments) {
+        if (op.tracer.isEnabled()) {
+            op.tracer.trace(
+                    new AuthorizationProcessingFinished(this, message, arguments));
+        }
+    }
+
     void traceEndNotApplicable() {
         if (op.tracer.isEnabled()) {
             op.tracer.trace(
@@ -498,6 +505,13 @@ public class AuthorizationEvaluation {
         if (op.tracer.isEnabled()) {
             op.tracer.trace(
                     new AuthorizationProcessingFinished(this, "applied"));
+        }
+    }
+
+    void traceEndApplied(String message, Object... arguments) {
+        if (op.tracer.isEnabled()) {
+            op.tracer.trace(
+                    new AuthorizationProcessingFinished(this, message, arguments));
         }
     }
 

@@ -79,7 +79,7 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
      *
      * Note that currently `newIncludeItems` and `newExcludeItems` cannot be both non-empty.
      */
-    protected void collectItemPaths(
+    public void collectItemPaths(
             Collection<? extends ItemPath> newIncludedItems, Collection<? extends ItemPath> newExcludedItems) {
         if (allItemsIncluded) {
             // We already explicitly include everything.
@@ -206,7 +206,8 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
         }
     }
 
-    protected void dumpItems(StringBuilder sb, List<? extends ItemPath> items) {
+    // TODO move to a better place
+    public static void dumpItems(StringBuilder sb, List<? extends ItemPath> items) {
         if (items.isEmpty()) {
             sb.append("[none]");
         } else {
