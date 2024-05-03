@@ -65,6 +65,10 @@ For more information see xref:/midpoint/reference/deployment/ninja/command/verif
 *** Expanded user permission table settings, providing administrators with additional control and customization options.
 ** Performance and GUI Enhancements:
 *** Performance optimizations and user interface enhancements to improve overall user experience and efficiency.
+* Request access
+** Role catalog (tree) now has search filter with scope and type selectable.
+Tree node search is now same for all nodes.
+(Previously it was scope=one for non leaf nodes).
 
 === Other Improvements
 
