@@ -25,6 +25,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.Nullable;
+
 enum RbacObjectCategoryProcessor {
     REGULR("Regular User"),
     SEMI_REGULAR("Semi Regular User"),
@@ -177,6 +179,40 @@ enum RbacObjectCategoryProcessor {
         }
     }
 
+    public @Nullable String retrieveOrgUnit(@NotNull GeneratorOptions generatorOptions) {
+        switch (this) {
+            case REGULR -> {
+                return new
+                        RegularUser().getOrganizationOid();
+            }
+            case SEMI_REGULAR -> {
+                return new
+                        SemiRegularUser(generatorOptions).getOrganizationOid();
+            }
+            case IRREGULAR -> {
+                return new
+                        IrregularUser(generatorOptions).getOrganizationOid();
+            }
+            case MANAGERS -> {
+                return new
+                        ManagerUser(generatorOptions).getOrganizationOid();
+            }
+            case SALES -> {
+                return new
+                        SalesUser(generatorOptions).getOrganizationOid();
+            }
+            case SECURITY_OFFICERS -> {
+                return new
+                        SecurityOfficer().getOrganizationOid();
+            }
+            case CONTRACTORS -> {
+                return new
+                        Contractor(generatorOptions).getOrganizationOid();
+            }
+        }
+        return null;
+    }
+
     public void assignAccessByCategory(@NotNull UserType user, @NotNull GeneratorOptions generatorOptions, boolean includePlancton) {
         switch (this) {
             case REGULR -> new RegularUser()
@@ -201,7 +237,6 @@ enum RbacObjectCategoryProcessor {
      * It contains methods to build a UserType object with attributes specific to a Regular User.
      */
     public static class RegularUser {
-
         String organizationOid = InitialObjectsDefinition.Organization.REGULAR.getOidValue();
         String birthEmployeeRole = InitialObjectsDefinition.BirthrightBusinessRole.EMPLOYEE.getOidValue();
         String archetypeOid = InitialObjectsDefinition.Archetypes.REGULAR_USER.getOidValue();
@@ -241,6 +276,10 @@ enum RbacObjectCategoryProcessor {
             setUpArchetypeUser(user, archetypeOid);
 
             return user;
+        }
+
+        public String getOrganizationOid() {
+            return organizationOid;
         }
 
         private void assignAccess(@NotNull UserType user, String locationBusinessRoleOidValue, String randomJobBusinessRoleOidValue) {
@@ -335,6 +374,10 @@ enum RbacObjectCategoryProcessor {
             setUpArchetypeUser(user, archetypeOid);
 
             return user;
+        }
+
+        public String getOrganizationOid() {
+            return organizationOid;
         }
 
         private void assignAccess(@NotNull UserType user,
@@ -436,6 +479,10 @@ enum RbacObjectCategoryProcessor {
             return user;
         }
 
+        public String getOrganizationOid() {
+            return organizationOid;
+        }
+
         private void assignAccess(@NotNull UserType user,
                 @NotNull List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles) {
             user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
@@ -533,6 +580,10 @@ enum RbacObjectCategoryProcessor {
             setUpArchetypeUser(user, archetypeOid);
 
             return user;
+        }
+
+        public String getOrganizationOid() {
+            return organizationOid;
         }
 
         private void assignAccess(@NotNull UserType user,
@@ -649,6 +700,10 @@ enum RbacObjectCategoryProcessor {
             return user;
         }
 
+        public String getOrganizationOid() {
+            return organizationOid;
+        }
+
         private void assignAccess(@NotNull UserType user, boolean limited, boolean partialLimited,
                 InitialObjectsDefinition.@NotNull JobInitialBusinessRole salesBr,
                 InitialObjectsDefinition.LocationInitialBusinessRole locationNewYorkBr,
@@ -740,6 +795,10 @@ enum RbacObjectCategoryProcessor {
             return user;
         }
 
+        public String getOrganizationOid() {
+            return organizationOid;
+        }
+
         private void assignAccess(@NotNull UserType user) {
             user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
             user.getAssignment().add(createRoleAssignment(securityOfficerRoleOidValue));
@@ -815,6 +874,10 @@ enum RbacObjectCategoryProcessor {
             return user;
         }
 
+        public String getOrganizationOid() {
+            return organizationOid;
+        }
+
         private void assignAccess(@NotNull UserType user,
                 boolean randomPlanktonRoles) {
             assignAccess(user, randomPlanktonRoles ? getRandomPlanktonRoles(0, generatorOptions) : new ArrayList<>());
@@ -879,7 +942,7 @@ enum RbacObjectCategoryProcessor {
 
             for (int i = 0; i < partition; i++) {
                 UserType user = new UserType();
-                user.setName(PolyStringType.fromOrig(category.getDisplayName() + "Matuzalem" + i));
+                user.setName(PolyStringType.fromOrig("Matuzalem: " + category.getDisplayName() + i));
                 category.generateRbacObject(user, false, false, generatorOptions);
                 RbacObjectCategoryProcessor randomCategory = getRandomCategory(category);
                 randomCategory.assignAccessByCategory(user, generatorOptions, false);
@@ -897,7 +960,7 @@ enum RbacObjectCategoryProcessor {
     }
 
     public static class OutlierJumper {
-        RbacObjectCategoryProcessor category;
+        private RbacObjectCategoryProcessor category;
 
         public OutlierJumper(RbacObjectCategoryProcessor category) {
             this.category = category;
@@ -915,7 +978,7 @@ enum RbacObjectCategoryProcessor {
 
             for (int i = 0; i < partition; i++) {
                 UserType user = new UserType();
-                user.setName(PolyStringType.fromOrig(category.getDisplayName() + "Jumper" + i));
+                user.setName(PolyStringType.fromOrig("Jumper: " + category.getDisplayName() + i));
                 category.generateRbacObject(user, false, false, generatorOptions);
                 RbacObjectCategoryProcessor randomCategory = getRandomCategory(category);
                 randomCategory.assignAccessByCategory(user, generatorOptions, false);
@@ -948,12 +1011,23 @@ enum RbacObjectCategoryProcessor {
 
             for (int i = 0; i < partition; i++) {
                 UserType user = new UserType();
-                user.setName(PolyStringType.fromOrig(category.getDisplayName() + "Zombie" + i));
+                user.setName(PolyStringType.fromOrig("Zombie: " + category.getDisplayName() + i));
                 category.generateRbacObject(user, false, false, generatorOptions);
                 user.getAssignment().clear();
-                List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(10);
-                for (InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
-                    user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
+                String orgAssignment = category.retrieveOrgUnit(generatorOptions);
+                if (orgAssignment != null) {
+                    user.getAssignment().add(createOrgAssignment(orgAssignment));
+                }
+                if (generatorOptions.isPlanktonDisable()) {
+                    List<InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomNoiseRoles(6);
+                    for (InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
+                        user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
+                    }
+                } else {
+                    List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(10);
+                    for (InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
+                        user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
+                    }
                 }
 
                 importUserAndResolveAuxRoles(user, repository, generatorOptions, result, log);
@@ -982,10 +1056,8 @@ enum RbacObjectCategoryProcessor {
 
             for (int i = 0; i < partition; i++) {
                 UserType user = new UserType();
-                user.setName(PolyStringType.fromOrig(category.getDisplayName() + "Mask" + i));
-
+                user.setName(PolyStringType.fromOrig("Mask: " + category.getDisplayName() + i));
                 category.generateRbacObject(user, false, false, generatorOptions);
-                user.getAssignment().clear();
                 List<InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomNoiseRoles(3);
                 for (InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
                     user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));

@@ -83,7 +83,7 @@ public class ImportAction {
             importArchetypes(initialObjectsDefinition, repositoryService, result, log);
         }
 
-        if (!generatorOptions.isPlanktonDisable()) {
+        if (!generatorOptions.isPlanktonDisable() || generatorOptions.getOutlierZombieProbability() != 0.0) {
             importPlanktonRoles(initialObjectsDefinition, repositoryService, result, log);
         }
 
