@@ -9,6 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -27,10 +30,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 @PanelType(name = "rm-category")
 @PanelInstance(identifier = "rm-category",
@@ -81,6 +80,24 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
     @Override
     protected @NotNull IModel<String> getBreadcrumbLabel() {
         return getTextModel();
+    }
+
+    @Override
+    protected Component createTilePanel(String id, IModel<Tile<AnalysisCategory>> tileModel) {
+
+        RoleAnalysisSessionType session = getAssignmentHolderDetailsModel().getObjectType();
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+
+        boolean isVisible = true;
+        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+            if (tileModel.getObject().getValue().equals(AnalysisCategory.DEPARTMENT)) {
+                isVisible = false;
+            }
+        }
+        Component tilePanel = super.createTilePanel(id, tileModel);
+        tilePanel.setVisible(isVisible);
+        return tilePanel;
     }
 
     @Override

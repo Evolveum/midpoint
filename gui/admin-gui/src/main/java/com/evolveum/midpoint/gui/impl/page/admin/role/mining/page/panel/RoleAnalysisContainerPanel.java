@@ -137,7 +137,9 @@ public class RoleAnalysisContainerPanel<AH extends AssignmentHolderType> extends
             }
         }
 
-        if (analysisCategory == null || analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
+        if (analysisCategory == null
+                || analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)
+                || analysisCategory.equals(RoleAnalysisCategoryType.DEPARTMENT)) {
             return ItemVisibility.AUTO;
         } else {
             if (path.equivalent(ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS,

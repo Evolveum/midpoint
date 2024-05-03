@@ -48,15 +48,15 @@ public class OutlierModeConfiguration extends AbstractRoleAnalysisConfiguration 
                 propertyRange,
                 getDefaultAnalysisAttributes(),
                 null,
-                70.,
-                2,
-                5);
+                90.,
+                10,
+                2);
 
         updateDetectionOptions(2,
                 2,
                 new RangeType()
-                        .min(10.0)
-                        .max(100.0),
+                        .min(2.0)
+                        .max(2.0),
                 RoleAnalysisDetectionProcessType.SKIP);
     }
 

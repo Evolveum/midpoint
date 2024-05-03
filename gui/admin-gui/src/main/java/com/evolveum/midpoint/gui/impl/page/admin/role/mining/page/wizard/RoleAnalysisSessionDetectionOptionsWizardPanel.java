@@ -35,7 +35,7 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
 
     @Override
     protected void onInitialize() {
-        updateNewValues();
+//        updateNewValues();
 
         super.onInitialize();
     }

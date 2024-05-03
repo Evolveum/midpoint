@@ -1912,6 +1912,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="department">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during basic analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DEPARTMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="advanced">
                 <xsd:annotation>
                     <xsd:documentation>

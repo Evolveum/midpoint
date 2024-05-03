@@ -24,8 +24,7 @@ public enum AnalysisCategory implements TileEnum {
     STANDARD("fa fa-cogs"),
     BALANCED_COVERAGE("fa fa-balance-scale"),
     EXACT_ACCESS_SIMILARITY("fa fa-key"),
-    EXPLORATORY("fa fa-search"),
-    MINIMAL("fa fa-random"),
+    DEPARTMENT("fa fa-building"),
     ADVANCED("fa fa-sliders-h"),
     OUTLIER("fa fa-wrench");
 
@@ -45,32 +44,28 @@ public enum AnalysisCategory implements TileEnum {
             LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
             @NotNull Task task,
             @NotNull OperationResult result) {
-         switch (this) {
-            case STANDARD
-                    -> new StandardModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
-            case BALANCED_COVERAGE
-                    -> new BalancedCoverageModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
-            case EXACT_ACCESS_SIMILARITY
-                    -> new ExactSimilarityModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
-            case EXPLORATORY
-                    -> new ExploratoryModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
-            case MINIMAL
-                    -> new MinimalConditionModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
-            case ADVANCED
-                    -> new AdvancedModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
-            case OUTLIER
-                    -> new OutlierModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
-        };
+        switch (this) {
+            case STANDARD -> new StandardModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+            case BALANCED_COVERAGE -> new BalancedCoverageModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+            case EXACT_ACCESS_SIMILARITY -> new ExactSimilarityModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+            case DEPARTMENT -> new DepartmentModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+            case ADVANCED -> new AdvancedModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+            case OUTLIER -> new OutlierModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+        }
     }
 
     public RoleAnalysisCategoryType resolveCategoryMode() {
         return switch (this) {
-            case STANDARD, MINIMAL -> RoleAnalysisCategoryType.STANDARD;
+            case STANDARD -> RoleAnalysisCategoryType.STANDARD;
             case BALANCED_COVERAGE -> RoleAnalysisCategoryType.BALANCED;
             case EXACT_ACCESS_SIMILARITY -> RoleAnalysisCategoryType.EXACT;
-            case EXPLORATORY -> RoleAnalysisCategoryType.EXPLORATION;
+            case DEPARTMENT -> RoleAnalysisCategoryType.DEPARTMENT;
             case ADVANCED -> RoleAnalysisCategoryType.ADVANCED;
             case OUTLIER -> RoleAnalysisCategoryType.OUTLIERS;
         };
     }
+
+
+
+
 }

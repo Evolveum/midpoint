@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -16,16 +20,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-
-public class ExploratoryModeConfiguration extends AbstractRoleAnalysisConfiguration {
+public class DepartmentModeConfiguration extends AbstractRoleAnalysisConfiguration {
 
     RoleAnalysisService service;
     Task task;
     OperationResult result;
     LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper;
 
-    public ExploratoryModeConfiguration(
+    public DepartmentModeConfiguration(
             RoleAnalysisService service,
             LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
             Task task,
@@ -39,25 +41,44 @@ public class ExploratoryModeConfiguration extends AbstractRoleAnalysisConfigurat
 
     @Override
     public void updateConfiguration() {
-        RangeType propertyRange = new RangeType()
-                .min(1.0)
-                .max(Double.valueOf(getMaxPropertyCount()));
+        RangeType propertyRange = createPropertyRange();
+        ClusteringAttributeSettingType clusteringSetting = createClusteringSetting();
 
         updatePrimaryOptions(null,
                 false,
                 propertyRange,
                 getDefaultAnalysisAttributes(),
-                null,
-                80.0,
+                clusteringSetting,
+                0.0,
                 2,
-                2);
+                1);
 
         updateDetectionOptions(2,
                 2,
-                new RangeType()
-                        .min(10.0)
-                        .max(100.0),
-                RoleAnalysisDetectionProcessType.SKIP);
+                createDetectionRange(),
+                RoleAnalysisDetectionProcessType.FULL);
+    }
+
+    private RangeType createPropertyRange() {
+        double minPropertyCount = 2.0;
+        double maxPropertyCount = Double.valueOf(getMaxPropertyCount());
+        return new RangeType().min(minPropertyCount).max(maxPropertyCount);
+    }
+
+    private @NotNull ClusteringAttributeSettingType createClusteringSetting() {
+        RoleAnalysisAttributeDef orgAssignment = RoleAnalysisAttributeDefUtils.getOrgAssignment();
+        ClusteringAttributeSettingType clusteringSetting = new ClusteringAttributeSettingType();
+        ClusteringAttributeRuleType rule = new ClusteringAttributeRuleType()
+                .attributeIdentifier(orgAssignment.getDisplayValue())
+                .isMultiValue(true)
+                .weight(1.0)
+                .similarity(100.0);
+        clusteringSetting.getClusteringAttributeRule().add(rule);
+        return clusteringSetting;
+    }
+
+    private RangeType createDetectionRange() {
+        return new RangeType().min(90.0).max(100.0);
     }
 
     @Override
