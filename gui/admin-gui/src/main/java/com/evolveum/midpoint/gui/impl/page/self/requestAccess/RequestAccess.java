@@ -133,7 +133,7 @@ public class RequestAccess implements Serializable {
      */
     private Object selectedValidity;
 
-    private Duration validity;
+    private Duration validityDuration;
 
     private String comment;
 
@@ -171,11 +171,10 @@ public class RequestAccess implements Serializable {
     }
 
     public void setSelectedValidity(Object selectedValidity) {
-        if (selectedValidity instanceof ValidityPredefinedValueType) {
-            ValidityPredefinedValueType predefined = (ValidityPredefinedValueType) selectedValidity;
-            setValidity(predefined.getDuration());
+        if (selectedValidity instanceof ValidityPredefinedValueType predefined) {
+            setValidityDuration(predefined.getDuration());
         } else {
-            setValidity(null);
+            setValidityDuration(null);
         }
 
         this.selectedValidity = selectedValidity;
@@ -399,21 +398,35 @@ public class RequestAccess implements Serializable {
 
         templateAssignments.forEach(a -> counts.put(a.clone(), 0));
 
-        for (Map.Entry<ObjectReferenceType, List<AssignmentType>> entry : requestItems.entrySet()) {
-            ObjectReferenceType poi = entry.getKey();
+        for (Map.Entry<ObjectReferenceType, List<AssignmentType>> requestItem : requestItems.entrySet()) {
+            ObjectReferenceType poi = requestItem.getKey();
 
-            for (AssignmentType real : entry.getValue()) {
-                int count = counts.computeIfAbsent(real, k -> 0);
-                counts.replace(real, count + 1);
+            for (AssignmentType real : requestItem.getValue()) {
+                AssignmentType counted = findAssignmentByTargetRef(counts.keySet(), real.getTargetRef());
+                if (counted != null) {
+                    int count = counts.get(counted);
+                    counts.replace(counted, count + 1);
+                }
 
-                poiNames.computeIfAbsent(real, k -> new ArrayList<>()).add(poi.getTargetName());
+                poiNames.computeIfAbsent(counted, k -> new ArrayList<>()).add(poi.getTargetName());
             }
         }
 
         return counts.entrySet().stream()
                 .map(e -> new ShoppingCartItem(e.getKey(), e.getValue(), poiNames.get(e.getKey())))
                 .sorted()
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
+    }
+
+    private AssignmentType findAssignmentByTargetRef(Set<AssignmentType> assignments, ObjectReferenceType targetRef) {
+        if (assignments == null || targetRef == null) {
+            return null;
+        }
+
+        return assignments.stream()
+                .filter(a -> referencesEqual(a.getTargetRef(), targetRef, false))
+                .findFirst()
+                .orElse(null);
     }
 
     public QName getRelation() {
@@ -454,7 +467,7 @@ public class RequestAccess implements Serializable {
         relation = null;
 
         selectedValidity = null;
-        validity = null;
+        validityDuration = null;
 
         comment = null;
 
@@ -613,10 +626,9 @@ public class RequestAccess implements Serializable {
             Collection<EvaluatedPolicyRuleTrigger<?>> triggers, boolean warning) {
 
         for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
-            if (trigger instanceof EvaluatedExclusionTrigger) {
-                createConflicts(userRef, conflicts, evaluatedAssignment, (EvaluatedExclusionTrigger) trigger, warning);
-            } else if (trigger instanceof EvaluatedCompositeTrigger) {
-                EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
+            if (trigger instanceof EvaluatedExclusionTrigger evaluatedExclusionTrigger) {
+                createConflicts(userRef, conflicts, evaluatedAssignment, evaluatedExclusionTrigger, warning);
+            } else if (trigger instanceof EvaluatedCompositeTrigger compositeTrigger) {
                 Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
                 createConflicts(userRef, conflicts, evaluatedAssignment, innerTriggers, warning);
             }
@@ -830,16 +842,20 @@ public class RequestAccess implements Serializable {
     }
 
     public Duration getValidity() {
-        return validity;
+        return validityDuration;
     }
 
-    public void setValidity(Duration validity) {
-        if (Objects.equals(this.validity, validity)) {
+    public void setValidityDuration(Duration validity) {
+        if (Objects.equals(this.validityDuration, validity)) {
             return;
         }
 
-        this.validity = validity;
+        this.validityDuration = validity;
 
+        setRequestItemsValidity(validity);
+    }
+
+    private void setRequestItemsValidity(Duration validity) {
         XMLGregorianCalendar from = validity != null ? XmlTypeConverter.createXMLGregorianCalendar() : null;
 
         XMLGregorianCalendar to = null;
@@ -848,10 +864,10 @@ public class RequestAccess implements Serializable {
             to.add(validity);
         }
 
-        setValidity(from, to);
+        setRequestItemsValidity(from, to);
     }
 
-    public void setValidity(XMLGregorianCalendar from, XMLGregorianCalendar to) {
+    public void setRequestItemsValidity(XMLGregorianCalendar from, XMLGregorianCalendar to) {
         for (List<AssignmentType> list : requestItems.values()) {
             list.forEach(a -> {
                 if (from == null && to == null) {
@@ -1030,9 +1046,6 @@ public class RequestAccess implements Serializable {
      * This method checks if there is already assignment for specific role in shopping cart - matching is
      * done based on targetRef oid and relation.
      * Matching takes into account {@link AssignmentConstraintsType}.
-     *
-     * @param newTargetRef
-     * @return
      */
     public boolean canAddTemplateAssignment(ObjectReferenceType newTargetRef) {
         AssignmentConstraintsType constraints = getDefaultAssignmentConstraints();
