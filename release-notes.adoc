@@ -33,6 +33,10 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 * Fixed issue with Asynchronous Messaging Connector not working. See bug:MID-9512[].
 * Fixed issue with reporting of errors during search objects in table by axiom query. See bug:MID-9499[] and bug:MID-9400[].
 * Fixed icon of case outcome in column of table. See bug:MID-9533[].
+* Fixed `associationTargetSearch` evaluator for associations with multiple intents. See bug:MID-9561[] and bug:MID-9565[].
+* Fixed `associationFromLink` evaluator for dead shadows. See bug:MID-9468[] and bug:MID-9487[].
+* Fixed handling of related object types that differ in associations. See bug:MID-9591[] and https://github.com/Evolveum/midpoint/commit/6c8ddc2fd1d44d44b6ef0bd49a2c29ece4b57742[this commit].
+* Fixed editing of configuration properties with `const` feature (via XML). See bug:MID-7918[].
 * Changes in initial objects:
 ** 250-object-collection-resource.xml: `All resources` object collection was updated with a filter to exclude resource templates.
 ** 251-object-collection-resource-up.xml: `Resources up` object collection was updated with a filter to exclude resource templates.
