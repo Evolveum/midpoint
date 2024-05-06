@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.ninja.action.mining.generator.context;
 
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGeneratorUtils.*;
+import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacObjectCategoryProcessor.generateRbacData;
 import static com.evolveum.midpoint.ninja.action.mining.generator.object.InitialObjectsDefinition.getNoiseRolesObjects;
 
 import java.io.IOException;
@@ -301,17 +302,17 @@ public class ImportAction {
         int contractorsCount = (int) (userCount * (partsInt[6] / 100.0));
 
         RepositoryService repository = context.getRepository();
-        resolveUsers(repository, regularUsersCount, RbacObjectCategoryProcessor.REGULR);
-        resolveUsers(repository, semiRegularUsersCount, RbacObjectCategoryProcessor.SEMI_REGULAR);
-        resolveUsers(repository, irregularUsersCount, RbacObjectCategoryProcessor.IRREGULAR);
-        resolveUsers(repository, managersCount, RbacObjectCategoryProcessor.MANAGERS);
-        resolveUsers(repository, salesCount, RbacObjectCategoryProcessor.SALES);
-        resolveUsers(repository, securityOfficersCount, RbacObjectCategoryProcessor.SECURITY_OFFICERS);
-        resolveUsers(repository, contractorsCount, RbacObjectCategoryProcessor.CONTRACTORS);
+        resolveUsers(repository, regularUsersCount, RbacObjectCategoryProcessor.Category.REGULR, names);
+        resolveUsers(repository, semiRegularUsersCount, RbacObjectCategoryProcessor.Category.SEMI_REGULAR, names);
+        resolveUsers(repository, irregularUsersCount, RbacObjectCategoryProcessor.Category.IRREGULAR, names);
+        resolveUsers(repository, managersCount, RbacObjectCategoryProcessor.Category.MANAGERS, names);
+        resolveUsers(repository, salesCount, RbacObjectCategoryProcessor.Category.SALES, names);
+        resolveUsers(repository, securityOfficersCount, RbacObjectCategoryProcessor.Category.SECURITY_OFFICERS, names);
+        resolveUsers(repository, contractorsCount, RbacObjectCategoryProcessor.Category.CONTRACTORS, names);
     }
 
-    private void resolveUsers(@NotNull RepositoryService repository, int usersCount, @NotNull RbacObjectCategoryProcessor rbacObjectCategoryProcessor) {
-        rbacObjectCategoryProcessor.generateRbacData(repository, log, generatorOptions, usersCount, names, result);
+    private void resolveUsers(@NotNull RepositoryService repository, int usersCount, RbacObjectCategoryProcessor.Category category, Set<String> names) {
+        generateRbacData(repository, category, log, generatorOptions, usersCount, names, result);
     }
 
     /**
