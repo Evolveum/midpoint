@@ -1,5 +1,4 @@
 = Module focusIdentification
-:page-since: "4.8.3"
 
 Focus identification authentication module.
 Module that according to the specified attributes tries to find a user in midPoint.

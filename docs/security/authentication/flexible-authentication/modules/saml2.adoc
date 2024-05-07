@@ -1,5 +1,4 @@
 = Module saml2
-:page-since: "4.8.3"
 
 SAML2 authentication module supports authentication via Identity provider with SAML2.
 SAML2 module has a little complicated configuration.
