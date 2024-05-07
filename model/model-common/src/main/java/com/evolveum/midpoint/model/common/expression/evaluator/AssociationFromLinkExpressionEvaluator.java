@@ -203,10 +203,12 @@ public class AssociationFromLinkExpressionEvaluator
             List<PrismObject<ShadowType>> objects = objectResolver
                     .searchObjects(ShadowType.class, query, createNoFetchReadOnlyCollection(), context.getTask(), result);
             for (PrismObject<ShadowType> object : objects) {
-                PrismContainerValue<ShadowAssociationType> newValue = output.createNewValue();
-                ShadowAssociationType shadowAssociationType = newValue.asContainerable();
-                shadowAssociationType.setName(assocName);
-                toAssociation(object, shadowAssociationType);
+                if (ShadowUtil.isNotDead(object)) {
+                    PrismContainerValue<ShadowAssociationType> newValue = output.createNewValue();
+                    ShadowAssociationType shadowAssociationType = newValue.asContainerable();
+                    shadowAssociationType.setName(assocName);
+                    toAssociation(object, shadowAssociationType);
+                }
             }
         } catch (CommonException e) {
             throw new SystemException("Couldn't search for relevant shadows: " + e.getMessage(), e);
