@@ -113,7 +113,7 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
             for (var prv : values) {
                 rootOr.add(createRefCondition(hibernateQuery,
                                 MiscUtil.singletonOrEmptySet(prv.getOid()), prv.getRelation(), prv.getTargetType(), filter.getFilter()));
-            };
+            }
             return refCondition(rootOr);
         } else {
             return refCondition(
@@ -218,7 +218,7 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
     /**
      * Only targetFilter as exists filter - this is usable only if ref Filter does not
      * specify relation or oid or targetType
-     * 
+     *
      */
     private Condition targetFilterCondition() throws QueryException {
         ObjectFilter targetFilter = Objects.requireNonNull(filter.getFilter());
