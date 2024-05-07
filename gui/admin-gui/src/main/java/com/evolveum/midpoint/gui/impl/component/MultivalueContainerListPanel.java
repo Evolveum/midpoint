@@ -267,4 +267,9 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     public List<C> getSelectedRealObjects() {
         return getSelectedObjects().stream().map(o -> o.getRealValue()).collect(Collectors.toList());
     }
+
+    @Override
+    protected boolean isFulltextEnabled() {
+        return false;
+    }
 }
