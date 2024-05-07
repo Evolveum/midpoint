@@ -610,12 +610,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     private void updateQueryModelSearchAndParameters(ListGroupMenuItem<RoleCatalogQueryItem> item) {
-        RoleCatalogQuery query = queryModel.getObject();
-        if (query.getParent() != null) {
+        boolean saveSearchType = updateQueryModel(item);
+        if (saveSearchType) {
             searchModel.saveType();
         }
-
-        updateQueryModel(item);
 
         searchModel.reset();
     }
@@ -623,42 +621,44 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     private boolean updateQueryModel(ListGroupMenuItem<RoleCatalogQueryItem> item) {
         RoleCatalogQuery query = queryModel.getObject();
 
+        boolean saveSearchType = query.getParent() != null;
+
         RoleCatalogQueryItem rcq = item != null ? item.getValue() : null;
 
         if (rcq == null) {
             updateFalseQuery(query);
-            return true;
+            return saveSearchType;
         }
 
         if (rcq.rolesOfTeammate()) {
             updateQueryForRolesOfTeammate(query, getTeammateUserOid());
-            return true;
+            return saveSearchType;
         }
 
         if (rcq.orgRef() != null) {
             updateQueryFromOrgRef(query, rcq.orgRef());
-            return false;
+            return saveSearchType;
         }
 
         RoleCollectionViewType collection = rcq.collection();
         if (collection == null) {
             updateFalseQuery(query);
-            return true;
+            return saveSearchType;
         }
 
         if (collection.getCollectionRef() != null) {
             updateQueryFromCollectionRef(query, collection.getCollectionRef());
-            return true;
+            return saveSearchType;
         }
 
         if (collection.getCollectionIdentifier() != null) {
             updateQueryFromCollectionIdentifier(query, collection.getCollectionIdentifier());
-            return true;
+            return saveSearchType;
         }
 
         updateFalseQuery(query);
 
-        return true;
+        return saveSearchType;
     }
 
     private String getTeammateUserOid() {
