@@ -1,0 +1,66 @@
+= Search using Shadow Attributes
+
+Query Language parsing requires access to schema definitions to be present and shadow attributes are special case that their definition depends on resource and shadow object class.
+
+There are two types of shadow attributes search in Query language:
+
+link:#context-aware-search[Context-aware]::
+    Shadow schema definition could be determined from place, where filter is used (eg. GUI - Resource Object views). There is no need to specify additional shadow properties and resource in query.
+
+link:free-form-search[Free-form]::
+    Shadow schema definition could not be determined from place, where filter is used. (eg. Generic search queries, dereferencing shadow objects in queries). *Additional shadow properties and resource needs to be specified in query.*
+
+[#context-aware-search]
+== Context-aware search
+
+In some places in GUI and configuration the resource and shadow object class is determined by context and you could query shadow attributes directly without need to specify shadow resource.
+
+.Simple Attributes query example
+```
+attributes/email startsWith "jsmith"
+```
+
+You can use simple format of query (just attributes) in:
+
+* *GUI - Resource Details*: Accounts, Entitlements, Generics and Resource Objects panels
+
+* Configuration (currently only in):
+** Resource Configuration
+*** Protected Objects pattern
+*** Delineation patterns
+** `AssociationTargetSearch` expressions
+
+[#free-form-search]
+== Free-form search
+
+In places, where attributes schema can not be determined by query usage context, in order to search in shadow attributes you need to add to your query also conditions for:
+
+* `resourceRef`: Resource on which shadow is present,  currently only matching resource using oid is supported for querying attributes. 
+
+* shadow object class specification, one of:
+** `kind` and `intent`: Kind and intent of shadow. Eg. 
+** `objectClass` (since 4.8.3): Object Class of shadow, you need to use also `ri` prefix. Eg. `objectClass = "ri:AccountObjectClass"`
+
+IMPORTANT: Without using `resourceRef`, `kind` and `intent` or `objectClass` in query, midPoint can not determine shadow attributes schema and parsing query will result in error, that there is no definition for attributes. 
+
+
+
+=== Examples
+.Searching shadows using `kind` and `intent`
+[source, axiom]
+----
+resourceRef matches (oid = "20ba8cfc-5606-4549-9c9c-c519b7fa2490")
+and kind = "account"
+and intent = "default"
+and attributes/email startsWith "jsmith"
+----
+
+.Searching shadows using `objectClass` 
+[source, axiom]
+----
+resourceRef matches (oid = "20ba8cfc-5606-4549-9c9c-c519b7fa2490")
+and objectClass = "ri:AccountObjectClass"
+and attributes/email startsWith "jsmith"
+----
+
+
