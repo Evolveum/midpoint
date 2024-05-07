@@ -7,23 +7,21 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering;
 
+import java.util.List;
+
+import com.google.common.collect.ListMultimap;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import com.google.common.collect.ListMultimap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.*;
 
 /**
  * Implements the outlier category clustering operation for role analysis.
@@ -68,42 +66,7 @@ public class OutlierClustering implements Clusterable {
         };
 
         return advancedClustering.executeClustering(roleAnalysisService, modelService, session, handler, task, result);
-//
-//        RoleAnalysisProcessModeType processMode = session.getAnalysisOption().getProcessMode();
-//
-//        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-//            RoleBasedClustering roleBasedClustering = new RoleBasedClustering() {
-//                @Override
-//                public @NotNull ListMultimap<List<String>, String> loadData(
-//                        @NotNull ModelService modelService,
-//                        @NotNull Task task,
-//                        @NotNull OperationResult result,
-//                        int minUserOccupancy,
-//                        int maxUserOccupancy,
-//                        @NotNull RoleAnalysisSessionOptionType sessionOptionType) {
-//                    return loadRoleBasedMembershipMultimapData(
-//                            modelService, minUserOccupancy, maxUserOccupancy, sessionOptionType.getQuery(), task, result);
-//                }
-//            };
-//
-//            return roleBasedClustering.executeClustering(roleAnalysisService, modelService, session, handler, task, result);
-//        } else {
-//            UserBasedClustering userBasedClustering = new UserBasedClustering() {
-//                @Override
-//                public @NotNull ListMultimap<List<String>, String> loadData(
-//                        @NotNull ModelService modelService,
-//                        @NotNull Task task,
-//                        @NotNull OperationResult result,
-//                        int minRolesOccupancy,
-//                        int maxRolesOccupancy,
-//                        @NotNull UserAnalysisSessionOptionType sessionOptionType) {
-//                    return loadUserBasedMembershipMultimapData(modelService, minRolesOccupancy,
-//                            maxRolesOccupancy, sessionOptionType.getQuery(), task, result);
-//                }
-//            };
-//            return userBasedClustering
-//                    .executeClustering(roleAnalysisService, modelService, session, handler, task, result);
-//        }
 
     }
+
 }

@@ -44,7 +44,7 @@ public class OutlierModeConfiguration extends AbstractRoleAnalysisConfiguration 
                 .max(Double.valueOf(getMaxPropertyCount()));
 
         updatePrimaryOptions(null,
-                true,
+                getProcessMode().equals(RoleAnalysisProcessModeType.USER),
                 propertyRange,
                 getDefaultAnalysisAttributes(),
                 null,
@@ -91,7 +91,4 @@ public class OutlierModeConfiguration extends AbstractRoleAnalysisConfiguration 
         return maxPropertiesObjects;
     }
 
-    public @NotNull Integer getMinPropertyCount(Integer maxPropertiesObjects) {
-        return maxPropertiesObjects < 10 ? 1 : 10;
-    }
 }
