@@ -1288,7 +1288,7 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
-| attributes | Attributes | tns:ShadowAttributesType |  | 
+| attributes | Attributes | tns:ShadowAttributesType |  | See xref:../search-using-shadow-attributes/[Search Using Shadow Attributes] for details 
 | correlation |  | xref:#_shadowcorrelationstatetype[tns:ShadowCorrelationStateType] |  | 
 | dead | Dead | xsd:boolean |  | 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_objecttype[ObjectType] | 
