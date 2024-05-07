@@ -77,6 +77,9 @@ public class DepartmentModeConfiguration extends AbstractRoleAnalysisConfigurati
         return clusteringSetting;
     }
 
+    // TODO: We should probably use department mode for discovery of department roles.
+    //  For example roles that cover 90%+ of users in a department should be used as department inducement.
+    //  Also these structured classes should be used for migration process specification.
     private RangeType createDetectionRange() {
         return new RangeType().min(90.0).max(100.0);
     }
@@ -112,7 +115,4 @@ public class DepartmentModeConfiguration extends AbstractRoleAnalysisConfigurati
         return maxPropertiesObjects;
     }
 
-    public @NotNull Integer getMinPropertyCount(Integer maxPropertiesObjects) {
-        return maxPropertiesObjects < 10 ? 1 : 10;
-    }
 }
