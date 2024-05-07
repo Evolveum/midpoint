@@ -3274,7 +3274,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="metricRef" type="tns:SimulationMetricReferenceType"/>
+            <xsd:element name="metricRef" type="tns:SimulationMetricReferenceType" minOccurs="0"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
