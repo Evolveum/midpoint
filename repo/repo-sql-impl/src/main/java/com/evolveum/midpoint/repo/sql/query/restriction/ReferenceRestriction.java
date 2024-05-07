@@ -12,6 +12,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.query.ExistsFilter;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
+import com.evolveum.midpoint.repo.sql.query.hqm.condition.ExistsCondition;
+
+import com.evolveum.midpoint.repo.sql.query.resolution.HqlEntityInstance;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -101,14 +110,15 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         if (valuesWithWildcardOid && valuesWithSpecifiedOid || relations.size() > 1 || targetTypes.size() > 1) {
             // We must use 'OR' clause
             OrCondition rootOr = hibernateQuery.createOr();
-            values.forEach(prv -> rootOr
-                    .add(createRefCondition(hibernateQuery,
-                            MiscUtil.singletonOrEmptySet(prv.getOid()), prv.getRelation(), prv.getTargetType())));
+            for (var prv : values) {
+                rootOr.add(createRefCondition(hibernateQuery,
+                                MiscUtil.singletonOrEmptySet(prv.getOid()), prv.getRelation(), prv.getTargetType(), filter.getFilter()));
+            }
             return refCondition(rootOr);
         } else {
             return refCondition(
                     createRefCondition(hibernateQuery, oids,
-                            MiscUtil.extractSingleton(relations), MiscUtil.extractSingleton(targetTypes)));
+                            MiscUtil.extractSingleton(relations), MiscUtil.extractSingleton(targetTypes), filter.getFilter()));
         }
     }
 
@@ -125,7 +135,7 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
     }
 
     private Condition createRefCondition(HibernateQuery hibernateQuery,
-            Collection<String> oids, QName relation, QName targetType) {
+            Collection<String> oids, QName relation, QName targetType, ObjectFilter targetFilter) throws QueryException {
         String hqlPath = hqlDataInstance.getHqlPath();
 
         final String targetOidHqlProperty, relationHqlProperty, targetTypeHqlProperty;
@@ -151,6 +161,10 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         if (targetType != null) {
             conjunction.add(handleEqInOrNull(hibernateQuery, hqlPath + "." + targetTypeHqlProperty,
                     ClassMapper.getHQLTypeForQName(targetType)));
+        }
+
+        if (targetFilter != null) {
+            conjunction.add(targetFilterCondition(targetType, hqlPath + "." + targetOidHqlProperty));
         }
         return conjunction;
     }
@@ -178,18 +192,49 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         }
     }
 
-    private Condition targetFilterCondition() throws QueryException {
-        ObjectFilter existsFilter = context.getPrismContext().queryFor(context.getType())
-                .exists(filter.getFullPath().append(T_OBJECT_REFERENCE))
-                .filter(Objects.requireNonNull(filter.getFilter()))
-                .buildFilter();
+    private Condition targetFilterCondition(QName targetType, String targetOidPath) throws QueryException {
 
-        return context.getInterpreter().interpretFilter(context, existsFilter, this);
+        @SuppressWarnings("raw")
+        Class targetClass = linkDefinition.getTargetDefinition().getJaxbClass();
+        if (targetClass == null && targetType == null && itemDefinition instanceof PrismReferenceDefinition refDef) {
+            // JPA did not provide targetClass, user did not specified targeType
+            // We need to compute targetClass based on schema
+            targetType = Optional.of(refDef.getTargetTypeName()).orElse(PrismContext.get().getDefaultReferenceTargetType());
+        }
+
+        if (targetType != null) {
+            targetClass = SchemaRegistry.get().determineClassForType(targetType);
+        }
+
+        @SuppressWarnings("unchecked")
+        InterpretationContext subcontext = context.createSubcontext(targetClass);
+
+        ExistsCondition existsCondition = new ExistsCondition(subcontext);
+        existsCondition.addCorrelationCondition("oid", targetOidPath);
+        existsCondition.interpretFilter(filter.getFilter());
+        return existsCondition;
+    }
+
+    /**
+     * Only targetFilter as exists filter - this is usable only if ref Filter does not
+     * specify relation or oid or targetType
+     *
+     */
+    private Condition targetFilterCondition() throws QueryException {
+        ObjectFilter targetFilter = Objects.requireNonNull(filter.getFilter());
+
+        //noinspection deprecation
+        ExistsFilter existsFilter = context.getPrismContext().queryFactory().createExists(
+                filter.getFullPath().append(T_OBJECT_REFERENCE),
+                context.getType(), // source type (start of the path), not the target type
+                context.getPrismContext(),
+                targetFilter);
+
+        QueryInterpreter interpreter = context.getInterpreter();
+        return interpreter.interpretFilter(context, existsFilter, this);
     }
 
     private Condition refCondition(Condition condition) throws QueryException {
-        return filter.getFilter() != null
-                ? context.getHibernateQuery().createAnd(condition, targetFilterCondition())
-                : condition;
+        return condition;
     }
 }

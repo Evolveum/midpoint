@@ -1,4 +1,5 @@
 = Module correlation
+:page-nav-title: Module correlation
 
 Correlation module gives the possibility to find identity(es) (user object(s) for now) in midpoint using xref:/midpoint/reference/correlation/index.adoc[correlation] mechanism within authentication process.
 This module is used during xref:/midpoint/reference/security/credentials/identity-recovery/index.adoc[Identity recovery] flow as the second authentication module.

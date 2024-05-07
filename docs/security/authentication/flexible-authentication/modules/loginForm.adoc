@@ -1,4 +1,5 @@
 = Module loginForm
+:page-nav-title: Module loginForm
 
 LoginForm module is used for interactive log-in of a user by using HTML forms.
 

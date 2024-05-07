@@ -1,4 +1,5 @@
 = Module archetypeSelection
+:page-nav-title: Module archetypeSelection
 
 Archetype selection module is used during xref:/midpoint/reference/security/credentials/identity-recovery/index.adoc[Identity recovery] flow.
 During this module processing the user can select an archetype which will be used in the following authentication modules in sequence.
