@@ -1,5 +1,4 @@
 = Module ldap
-:page-since: "4.8.3"
 
 LDAP authentication module supports authentication via LDAP server.
 This module contains next attributes:

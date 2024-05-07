@@ -1,5 +1,4 @@
 = Module hint
-:page-since: "4.8.3"
 
 Hint authentication module.
 Special module which was implemented to be able to use it during resetting password.

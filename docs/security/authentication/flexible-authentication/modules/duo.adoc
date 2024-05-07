@@ -1,5 +1,4 @@
 = Module duo
-:page-since: "4.8.3"
 
 Module is used for 2FA authentication. Module use duo server for authentication via hardware key of mobile, tablet and so on. We can't use it as only one authentication module. We need some primary authentication module for example saml, loginForm, etc.
 

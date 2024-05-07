@@ -1,5 +1,4 @@
 = Module mailNonce
-:page-since: "4.8.3"
 
 WARNING: From midPoint version 4.8, `mailNonce` module can't be the first module in the sequence. Before `mailNonce` module, we need to use authentication module for identification of the user, for example `focusIdentification`.
 

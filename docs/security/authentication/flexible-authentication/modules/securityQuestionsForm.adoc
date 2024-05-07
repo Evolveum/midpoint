@@ -1,5 +1,4 @@
 = Module securityQuestionsForm
-:page-since: "4.8.3"
 
 Definition of "security questions form" module.
 The module is used for interactive log-in of a user by answering a set of security questions.

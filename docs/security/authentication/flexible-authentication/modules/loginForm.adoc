@@ -1,15 +1,15 @@
-= Module httpBasic
-:page-since: "4.8.3"
+= Module loginForm
 
-Definition of HTTP BASIC authentication module (RFC 7617).
+LoginForm module is used for interactive log-in of a user by using HTML forms.
 
-.Example of httpBasic module
+
+.Example of loginForm module
 [source,xml]
 ----
-<httpBasic>
-    <identifier>internalHttpBasic</identifier>
-    <description>Http basic username/password authentication, default user password</description>
-</httpBasic>
+<loginForm>
+    <identifier>internalLoginForm</identifier>
+    <description>Internal username/password authentication, default user password, login form</description>
+</loginForm>
 ----
 
 == See also
