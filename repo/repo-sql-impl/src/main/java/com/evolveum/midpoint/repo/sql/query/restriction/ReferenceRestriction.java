@@ -227,7 +227,6 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         ExistsFilter existsFilter = context.getPrismContext().queryFactory().createExists(
                 filter.getFullPath().append(T_OBJECT_REFERENCE),
                 context.getType(), // source type (start of the path), not the target type
-                context.getPrismContext(),
                 targetFilter);
 
         QueryInterpreter interpreter = context.getInterpreter();
