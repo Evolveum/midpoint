@@ -48,6 +48,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.RepeatingAttributeForm;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
@@ -597,16 +598,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                                 && value.getClusterStatistics().getMembershipDensity() != null) {
                             AnalysisClusterStatisticType clusterStatistics = model.getObject().getValue().getClusterStatistics();
                             Double density = clusterStatistics.getMembershipDensity();
-                            String pointsDensity = String.format("%.3f",
-                                    density);
-
-                            String colorClass = densityBasedColor(density);
-
-                            Label label = new Label(componentId, pointsDensity + " (%)");
-                            label.setOutputMarkupId(true);
-                            label.add(new AttributeModifier("class", colorClass));
-                            label.add(AttributeModifier.append("style", "width: 100px;"));
-                            cellItem.add(label);
+                            initDensityProgressPanel(cellItem, componentId, density);
                         } else {
 
                             cellItem.add(new EmptyPanel(componentId));
@@ -648,6 +640,41 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
         basicTable.setOutputMarkupId(true);
 
         return basicTable;
+    }
+
+    private static void initDensityProgressPanel(
+            @NotNull Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
+            @NotNull String componentId,
+            @NotNull Double density) {
+        String pointsDensity = String.format("%.3f",
+                density);
+
+        String colorClass = densityBasedColor(density);
+
+        ProgressBar progressBar = new ProgressBar(componentId) {
+
+            @Override
+            public boolean isInline() {
+                return true;
+            }
+
+            @Override
+            public double getActualValue() {
+                return Double.parseDouble(pointsDensity);
+            }
+
+            @Override
+            public String getProgressBarColor() {
+                return colorClass;
+            }
+
+            @Override
+            public String getBarTitle() {
+                return "";
+            }
+        };
+        progressBar.setOutputMarkupId(true);
+        cellItem.add(progressBar);
     }
 
     private MainObjectListPanel<RoleAnalysisClusterType> getTable() {

@@ -14,6 +14,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismObject;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -40,6 +42,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisChartPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
@@ -318,14 +321,7 @@ public class PageRoleAnalysis extends PageAdmin {
                             String meanDensity = new DecimalFormat("#.###")
                                     .format(Math.round(density * 1000.0) / 1000.0);
 
-                            String colorClass = densityBasedColor(density);
-
-                            Label label = new Label(componentId, meanDensity + " (%)");
-                            label.setOutputMarkupId(true);
-                            label.add(new AttributeModifier("class", colorClass));
-                            label.add(AttributeModifier.append("style", "width: 100px;"));
-
-                            cellItem.add(label);
+                            initDensityProgressPanel(cellItem, componentId, meanDensity);
                         } else {
                             cellItem.add(new EmptyPanel(componentId));
                         }
@@ -378,6 +374,15 @@ public class PageRoleAnalysis extends PageAdmin {
                         RoleAnalysisOperationStatus operationStatus = session.getOperationStatus();
                         if (operationStatus != null) {
                             taskRef = operationStatus.getTaskRef();
+                            if (taskRef == null || taskRef.getOid() == null) {
+                                taskRef = null;
+                            } else {
+                                PrismObject<TaskType> object = roleAnalysisService
+                                        .getObject(TaskType.class, taskRef.getOid(), task, result);
+                                if (object == null) {
+                                    taskRef = null;
+                                }
+                            }
                         }
 
                         ObjectReferenceType finalTaskRef = taskRef;
@@ -391,9 +396,30 @@ public class PageRoleAnalysis extends PageAdmin {
                                 }
                             }
                         };
+                        String buttonClass = resolveButtonClass(operationStatus);
+
+                        ajaxLinkPanel.add(AttributeModifier.replace("class", "btn btn-sm " + buttonClass));
                         ajaxLinkPanel.setEnabled(taskRef != null);
                         ajaxLinkPanel.setOutputMarkupId(true);
                         cellItem.add(ajaxLinkPanel);
+                    }
+
+                    @NotNull
+                    private static String resolveButtonClass(@NotNull RoleAnalysisOperationStatus operationStatus) {
+                        OperationResultStatusType status = operationStatus.getStatus();
+                        String message = operationStatus.getMessage();
+                        String buttonClass = "btn-outline-secondary bg-secondary";
+                        if (status.equals(OperationResultStatusType.IN_PROGRESS)) {
+                            buttonClass = "btn-outline-warning bg-warning";
+                        } else if (status.equals(OperationResultStatusType.FATAL_ERROR)
+                                || status.equals(OperationResultStatusType.PARTIAL_ERROR)) {
+                            buttonClass = "btn-outline-danger bg-danger";
+                        } else if (status.equals(OperationResultStatusType.SUCCESS) && message.contains("7/7")) {
+                            buttonClass = "btn-outline-success bg-success";
+                        } else if (status.equals(OperationResultStatusType.SUCCESS)) {
+                            buttonClass = "btn-outline-primary bg-primary";
+                        }
+                        return buttonClass;
                     }
                 };
                 columns.add(column);
@@ -432,6 +458,38 @@ public class PageRoleAnalysis extends PageAdmin {
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
+    }
+
+    private static void initDensityProgressPanel(
+            @NotNull Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+            @NotNull String componentId,
+            @NotNull String meanDensity) {
+        String colorClass = densityBasedColor(Double.parseDouble(meanDensity));
+
+        ProgressBar progressBar = new ProgressBar(componentId) {
+
+            @Override
+            public boolean isInline() {
+                return true;
+            }
+
+            @Override
+            public double getActualValue() {
+                return Double.parseDouble(meanDensity);
+            }
+
+            @Override
+            public String getProgressBarColor() {
+                return colorClass;
+            }
+
+            @Override
+            public String getBarTitle() {
+                return "";
+            }
+        };
+        progressBar.setOutputMarkupId(true);
+        cellItem.add(progressBar);
     }
 
     private <C extends Containerable> PrismPropertyHeaderPanel<?> createColumnHeader(String componentId,
