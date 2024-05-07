@@ -34,12 +34,23 @@ public class ValueBasedDefinitionLookupsImpl {
 
     private static final Set<ItemPath> RESOURCE_KIND_INTENT_PATHS = ImmutableSet.of(ShadowType.F_RESOURCE_REF, ShadowType.F_KIND, ShadowType.F_INTENT);
 
+    private static final Set<ItemPath> RESOURCE_OBJECTCLASS_PATHS = ImmutableSet.of(ShadowType.F_RESOURCE_REF, ShadowType.F_OBJECT_CLASS);
+
     /**
      * Value Lookup helper for Shadow
      *
      *
      **/
-    private ValueBasedDefinitionLookupHelper shadowLookupByKindAndIntent = new ValueBasedDefinitionLookupHelper() {
+    private ValueBasedDefinitionLookupHelper shadowLookupByKindAndIntent = new ShadowLookup(RESOURCE_KIND_INTENT_PATHS);
+    private ValueBasedDefinitionLookupHelper shadowLookupByObjectClass = new ShadowLookup(RESOURCE_OBJECTCLASS_PATHS);
+
+    private class ShadowLookup implements ValueBasedDefinitionLookupHelper {
+
+        private final Set<ItemPath> paths;
+
+        public ShadowLookup(Set<ItemPath> paths) {
+            this.paths = paths;
+        }
 
         @Override
         public @NotNull QName baseTypeName() {
@@ -48,7 +59,7 @@ public class ValueBasedDefinitionLookupsImpl {
 
         @Override
         public @NotNull Set<ItemPath> valuePaths() {
-            return RESOURCE_KIND_INTENT_PATHS;
+            return paths;
         }
 
         @Nullable
@@ -108,9 +119,8 @@ public class ValueBasedDefinitionLookupsImpl {
     @PostConstruct
     public void init() {
         PrismContext.get().registerValueBasedDefinitionLookup(shadowLookupByKindAndIntent);
+        PrismContext.get().registerValueBasedDefinitionLookup(shadowLookupByObjectClass);
         this.lookupTask = taskManager.createTaskInstance("system-resource-lookup-for-queries");
     }
-
-
 
 }
