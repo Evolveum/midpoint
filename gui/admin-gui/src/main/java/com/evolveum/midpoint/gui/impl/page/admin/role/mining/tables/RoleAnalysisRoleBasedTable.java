@@ -164,7 +164,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
         RoleAnalysisTable<MiningUserTypeChunk> table = new RoleAnalysisTable<>(
                 ID_DATATABLE, provider, initColumns(roles, reductionObjects),
-                null, true, specialColumnCount) {
+                null, true, specialColumnCount, displayValueOptionModel) {
 
             @Override
             protected @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRoleContainer() {

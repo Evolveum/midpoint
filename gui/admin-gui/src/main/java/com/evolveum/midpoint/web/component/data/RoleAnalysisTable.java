@@ -7,12 +7,16 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyTableScaleScript;
 
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
+import com.evolveum.midpoint.web.component.AjaxButton;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -31,6 +35,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,13 +82,23 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     private String additionalBoxCssClasses = null;
     int columnCount;
     static boolean isRoleMining = false;
+    LoadableDetachableModel<DisplayValueOption> displayValueOptionModel;
 
     public RoleAnalysisTable(String id, ISortableDataProvider<T, ?> provider, List<IColumn<T, String>> columns,
-            UserProfileStorage.TableId tableId, boolean isRoleMining, int columnCount) {
+            UserProfileStorage.TableId tableId, boolean isRoleMining, int columnCount,
+            LoadableDetachableModel<DisplayValueOption> displayValueOptionModel) {
         super(id);
         this.tableId = tableId;
         RoleAnalysisTable.isRoleMining = isRoleMining;
         this.columnCount = columnCount;
+        this.displayValueOptionModel = displayValueOptionModel;
+
+        if (displayValueOptionModel != null) {
+            DisplayValueOption displayValueOption = displayValueOptionModel.getObject();
+            if (displayValueOption != null) {
+                showAsExpandCard = displayValueOption.isFullPage();
+            }
+        }
         initLayout(columns, provider, columnCount);
     }
 
@@ -97,7 +112,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
         setOutputMarkupId(true);
         add(AttributeAppender.prepend("class", () -> showAsCard ? "card" : ""));
 
-        if(isShowAsExpandCard()){
+        if (isShowAsExpandCard()) {
             add(AttributeAppender.replace("class", "card maximized-card"));
         }
 
@@ -400,6 +415,21 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
             Form<?> formBsProcess = new MidpointForm<>("form_bs_process");
             footerContainer.add(formBsProcess);
 
+            AjaxButton ajaxButton = new AjaxButton("expandButton") {
+                @Override
+                public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                    showAsExpandCard = !showAsExpandCard;
+                    int value = 0;
+                    if (showAsExpandCard) {
+                        value = 1;
+                    }
+                    getPageBase().getPageParameters().remove(PARAM_TABLE_SETTING);
+                    getPageBase().getPageParameters().add(PARAM_TABLE_SETTING, value);
+                }
+            };
+
+            formBsProcess.add(ajaxButton);
+
             CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE,
                     LayeredIconCssStyle.IN_ROW_STYLE);
 
@@ -488,7 +518,6 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
             Label count = new Label(ID_COUNT, Model.of(title));
             count.setOutputMarkupId(true);
             footerContainer.add(count);
-
 
             RoleAnalysisTablePageable<?> roleAnalysisTablePageable = new RoleAnalysisTablePageable<>(navigation.size(),
                     getCurrentPage());

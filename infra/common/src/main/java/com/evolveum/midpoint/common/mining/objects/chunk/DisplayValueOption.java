@@ -20,6 +20,7 @@ public class DisplayValueOption implements Serializable {
     RoleAnalysisSortMode sortMode;
     RoleAnalysisProcessModeType processMode;
     RoleAnalysisChunkMode chunkMode;
+    boolean isFullPage = false;
 
     public DisplayValueOption() {
     }
@@ -71,6 +72,14 @@ public class DisplayValueOption implements Serializable {
 
     public void setChunkMode(RoleAnalysisChunkMode chunkMode) {
         this.chunkMode = chunkMode;
+    }
+
+    public boolean isFullPage() {
+        return isFullPage;
+    }
+
+    public void setFullPage(boolean fullPage) {
+        isFullPage = fullPage;
     }
 
 }

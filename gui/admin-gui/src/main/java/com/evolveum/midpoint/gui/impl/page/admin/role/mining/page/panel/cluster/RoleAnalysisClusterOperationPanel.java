@@ -46,7 +46,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysis
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisUserBasedTable;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -87,6 +86,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
     public static final String PARAM_CANDIDATE_ROLE_ID = "candidateRoleId";
     public static final String PARAM_DETECTED_PATER_ID = "detectedPatternId";
+    public static final String PARAM_TABLE_SETTING = "tableSetting";
     boolean isOutlierDetection = false;
 
     public List<String> getCandidateRoleContainerId() {
@@ -94,6 +94,14 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         if (!stringValue.isNull()) {
             String[] split = stringValue.toString().split(",");
             return Arrays.asList(split);
+        }
+        return null;
+    }
+
+    public Integer getParameterTableSetting() {
+        StringValue stringValue = getPageBase().getPageParameters().get(PARAM_TABLE_SETTING);
+        if (!stringValue.isNull()) {
+            return Integer.valueOf(stringValue.toString());
         }
         return null;
     }
@@ -136,6 +144,10 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             mode = analysisOption.getProcessMode();
             isRoleMode = mode.equals(RoleAnalysisProcessModeType.ROLE);
             displayValueOptionModel.getObject().setProcessMode(mode);
+            Integer parameterTableSetting = getParameterTableSetting();
+            if (parameterTableSetting != null && parameterTableSetting == 1) {
+                displayValueOptionModel.getObject().setFullPage(true);
+            }
         }
 
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
@@ -151,7 +163,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
         List<AttributeAnalysisStructure> attributeAnalysisStructures = extractAttributeAnalysis(cluster);
         RoleAnalysisAttributeChartPanel roleAnalysisChartPanel = new RoleAnalysisAttributeChartPanel(
-                ID_CHART_PANEL, attributeAnalysisStructures, cluster){
+                ID_CHART_PANEL, attributeAnalysisStructures, cluster) {
             @Override
             public boolean isExpanded() {
                 return false;
@@ -297,7 +309,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         }
 
         RoleAnalysisSortMode sortMode = displayValueOption.getSortMode();
-        if(sortMode == null) {
+        if (sortMode == null) {
             displayValueOption.setSortMode(RoleAnalysisSortMode.NONE);
             sortMode = RoleAnalysisSortMode.NONE;
         }
@@ -441,7 +453,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
                 List<DetectedPattern> detectedPatternList = transformDefaultPattern(cluster);
                 DetectedPatternPopupPanel detailsPanel = new DetectedPatternPopupPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                        Model.of("Patterns panel"), cluster, detectedPatternList);
+                        Model.of("Patterns panel"), detectedPatternList);
 
                 getPageBase().showMainPopup(detailsPanel, target);
             }
@@ -525,7 +537,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
                 List<DetectedPattern> detectedPatternList = transformDefaultPattern(cluster);
                 DetectedPatternPopupPanel detailsPanel = new DetectedPatternPopupPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                        Model.of("Patterns panel"), cluster, detectedPatternList);
+                        Model.of("Patterns panel"), detectedPatternList);
 
                 getPageBase().showMainPopup(detailsPanel, target);
             }

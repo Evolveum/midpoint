@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.resolveDateAndTime;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_CANDIDATE_ROLE_ID;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.generateObjectColors;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
@@ -30,6 +31,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
@@ -567,6 +569,11 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
                                 parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
                                 parameters.add("panelId", "clusterDetails");
                                 parameters.add(PARAM_CANDIDATE_ROLE_ID, id.toString());
+                                StringValue fullTableSetting = getPageBase().getPageParameters().get(PARAM_TABLE_SETTING);
+                                if (fullTableSetting != null && fullTableSetting.toString() != null) {
+                                    parameters.add(PARAM_TABLE_SETTING, fullTableSetting.toString());
+                                }
+
                                 Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                                         .getObjectDetailsPage(RoleAnalysisClusterType.class);
                                 getPageBase().navigateToNext(detailsPageClass, parameters);

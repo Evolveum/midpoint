@@ -169,7 +169,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
         RoleAnalysisTable<MiningRoleTypeChunk> table = new RoleAnalysisTable<>(
                 ID_DATATABLE, provider, initColumns(users, reductionObjects),
-                null, true, specialColumnCount) {
+                null, true, specialColumnCount, displayValueOptionModel) {
 
             @Override
             protected @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRoleContainer() {
@@ -568,7 +568,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                         RoleAnalysisObjectStatus objectStatus = new RoleAnalysisObjectStatus(status.toggleStatus());
                         objectStatus.setContainerId(new HashSet<>(getPatternIdentifiers()));
                         object.setObjectStatus(objectStatus);
-                        target.add(getTable().setOutputMarkupId(true));
+                        target.add(getTable().getDataTable().setOutputMarkupId(true));
                         return rowModel.getObject().getStatus();
                     }
                 };
@@ -661,7 +661,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                             objectStatus.setContainerId(new HashSet<>(getPatternIdentifiers()));
                             userChunk.setObjectStatus(objectStatus);
 
-                            target.add(getTable().setOutputMarkupId(true));
+                            target.add(getTable().getDataTable().setOutputMarkupId(true));
                             return userChunk.getStatus();
                         }
 

@@ -19,21 +19,19 @@ import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisDetectedPatternTable;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 public class DetectedPatternPopupPanel extends BasePanel<String> implements Popupable {
 
     private static final String ID_PANEL = "panel";
 
     public DetectedPatternPopupPanel(String id, IModel<String> messageModel,
-            RoleAnalysisClusterType cluster,
             List<DetectedPattern> detectedPatterns) {
         super(id, messageModel);
 
-        initLayout(cluster, detectedPatterns);
+        initLayout(detectedPatterns);
     }
 
-    public void initLayout(RoleAnalysisClusterType cluster, List<DetectedPattern> detectedPatterns) {
+    public void initLayout(List<DetectedPattern> detectedPatterns) {
 
         RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL,
                 new LoadableDetachableModel<>() {
@@ -41,7 +39,8 @@ public class DetectedPatternPopupPanel extends BasePanel<String> implements Popu
                     protected List<DetectedPattern> load() {
                         return detectedPatterns;
                     }
-                }, true);
+                }, true) {
+        };
 
         components.setOutputMarkupId(true);
         add(components);

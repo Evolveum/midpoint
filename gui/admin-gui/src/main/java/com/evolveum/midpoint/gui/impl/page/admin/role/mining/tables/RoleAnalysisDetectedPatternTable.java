@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
 
@@ -41,6 +42,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
@@ -670,6 +672,11 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                         parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
                         parameters.add("panelId", "clusterDetails");
                         parameters.add(PARAM_DETECTED_PATER_ID, rowModel.getObject().getId());
+                        StringValue fullTableSetting = getPageBase().getPageParameters().get(PARAM_TABLE_SETTING);
+                        if (fullTableSetting != null && fullTableSetting.toString() != null) {
+                            parameters.add(PARAM_TABLE_SETTING, fullTableSetting.toString());
+                        }
+
                         Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                                 .getObjectDetailsPage(RoleAnalysisClusterType.class);
                         getPageBase().navigateToNext(detailsPageClass, parameters);
