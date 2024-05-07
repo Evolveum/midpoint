@@ -1,4 +1,5 @@
 = Module httpHeader
+:page-nav-title: Module httpHeader
 
 Pseudo-authentication for pre-authenticated users.
 Based on HTTP header values.

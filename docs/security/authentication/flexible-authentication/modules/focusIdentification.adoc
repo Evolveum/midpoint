@@ -1,4 +1,5 @@
 = Module focusIdentification
+:page-nav-title: Module focusIdentification
 
 Focus identification authentication module.
 Module that according to the specified attributes tries to find a user in midPoint.

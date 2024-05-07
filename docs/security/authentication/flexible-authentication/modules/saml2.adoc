@@ -1,4 +1,5 @@
 = Module saml2
+:page-nav-title: Module saml2
 
 SAML2 authentication module supports authentication via Identity provider with SAML2.
 SAML2 module has a little complicated configuration.
