@@ -1,4 +1,5 @@
 = Module ldap
+:page-nav-title: Module ldap
 
 LDAP authentication module supports authentication via LDAP server.
 This module contains next attributes:

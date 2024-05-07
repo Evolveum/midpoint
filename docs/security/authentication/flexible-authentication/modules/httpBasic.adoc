@@ -1,4 +1,5 @@
 = Module httpBasic
+:page-nav-title: Module httpBasic
 
 Definition of HTTP BASIC authentication module (RFC 7617).
 

@@ -1,4 +1,5 @@
 = Module hint
+:page-nav-title: Module hint
 
 Hint authentication module.
 Special module which was implemented to be able to use it during resetting password.

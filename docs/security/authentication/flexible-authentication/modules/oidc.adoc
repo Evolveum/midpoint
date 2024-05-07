@@ -1,4 +1,5 @@
 = Module oidc
+:page-nav-title: Module oidc
 
 ++++
 {% include since.html since="4.5" %}
