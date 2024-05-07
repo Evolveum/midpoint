@@ -7,7 +7,7 @@ There are two types of shadow attributes search in Query language:
 link:#context-aware-search[Context-aware]::
     Shadow schema definition could be determined from place, where filter is used (eg. GUI - Resource Object views). There is no need to specify additional shadow properties and resource in query.
 
-link:free-form-search[Free-form]::
+link:#free-form-search[Free-form]::
     Shadow schema definition could not be determined from place, where filter is used. (eg. Generic search queries, dereferencing shadow objects in queries). *Additional shadow properties and resource needs to be specified in query.*
 
 [#context-aware-search]
