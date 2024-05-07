@@ -121,7 +121,7 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
             return serviceLocator.getLocalizationService().translate((PolyString) realValue,
                     serviceLocator.getLocale(), true);
         }
-        return realValue.toString();
+        return realValue == null ? "" : realValue.toString();
     }
 
     private String getExpressionValue(ExpressionType expressionType, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
