@@ -13,9 +13,6 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.util.RelationUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -40,13 +37,18 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
+import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,6 +58,7 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -77,6 +80,8 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     private static final String ID_MESSAGE = "message";
 
     private Fragment footer;
+
+    private IModel<ItemSecurityConstraints> assignmentSecurityConstraints;
 
     private IModel<RequestAccess> requestAccess;
 
@@ -168,6 +173,38 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                     return valueWrapper;
                 } catch (Exception ex) {
                     LOGGER.debug("Couldn't load extensions", ex);
+                }
+
+                return null;
+            }
+        };
+
+        assignmentSecurityConstraints = new LoadableModel<>() {
+
+            @Override
+            protected ItemSecurityConstraints load() {
+                List<ObjectReferenceType> pois = requestAccess.getObject().getPersonOfInterest();
+                if (pois == null || pois.isEmpty()) {
+                    return null;
+                }
+
+                Task task = getPageBase().createSimpleTask("Load assignment edit schema");
+                try {
+                    PrismObject<UserType> user = WebModelServiceUtils.loadObject(
+                            pois.get(0), true, getPageBase(), task, task.getResult());
+                    if (user == null) {
+                        return null;
+                    }
+
+                    PrismObject<AbstractRoleType> target = WebModelServiceUtils.loadObject(
+                            getModelObject().getAssignment().getTargetRef(), true, getPageBase(), task, task.getResult());
+                    return getPageBase()
+                            .getModelInteractionService()
+                            .getAllowedRequestAssignmentItems(user, target, task, task.getResult());
+                } catch (Exception ex) {
+                    getPageBase().error(
+                            getString("ShoppingCartEditPanel.message.couldNotLoadAssignmentEditSchema", ex.getMessage()));
+                    LOGGER.debug("Couldn't load assignment edit schema", ex);
                 }
 
                 return null;
@@ -274,12 +311,30 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         DropDownChoice administrativeStatus = new DropDownChoice(ID_ADMINISTRATIVE_STATUS, model,
                 WebComponentUtil.createReadonlyModelFromEnum(ActivationStatusType.class),
                 WebComponentUtil.getEnumChoiceRenderer(this));
+        administrativeStatus.add(
+                new VisibleBehaviour(
+                        () -> isItemVisible(ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS))));
         administrativeStatus.setNullValid(true);
         add(administrativeStatus);
 
         CustomValidityPanel customValidity = new CustomValidityPanel(ID_CUSTOM_VALIDITY, customValidityModel);
-        customValidity.add(new EnableBehaviour(() -> validitySettingsEnabled));
+        customValidity.add(new VisibleEnableBehaviour(
+                () -> isItemVisible(ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM))
+                        || isItemVisible(ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)),
+                () -> validitySettingsEnabled));
         add(customValidity);
+    }
+
+    private boolean isItemVisible(ItemPath path) {
+        ItemSecurityConstraints constraints = assignmentSecurityConstraints.getObject();
+        if (constraints == null) {
+            return false;
+        }
+
+        AuthorizationDecisionType decision = constraints.findItemDecision(
+                AssignmentHolderType.F_ASSIGNMENT.append(path));
+
+        return decision == AuthorizationDecisionType.ALLOW;
     }
 
     private void initFooter() {
