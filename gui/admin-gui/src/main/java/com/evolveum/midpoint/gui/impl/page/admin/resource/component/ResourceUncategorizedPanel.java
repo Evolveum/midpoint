@@ -269,6 +269,11 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
                 }
                 return List.of();
             }
+
+            @Override
+            protected boolean isFulltextEnabled() {
+                return false;
+            }
         };
         shadowTablePanel.setOutputMarkupId(true);
         add(shadowTablePanel);
