@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.security;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.test.TestObject;
 
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -289,8 +291,22 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertGetDeny(CaseType.class, CASE2.oid);
         assertGetDeny(CaseType.class, CASE3.oid);
         assertGetDeny(CaseType.class, CASE4.oid);
-        assertSearchCertCases(2);
         assertSearchCases(CASE1.oid);
+
+        // There are two visible search cases (because they reside in jack's campaigns).
+        // We will try searching for them using various filters.
+        assertSearchCertCases(2); // searching for all cases
+        assertSearchCertCases(queryForCertCasesByCampaignOwner(USER_JACK_OID), 2);
+        assertSearchCertCases(queryForCertCasesByStageNumber(1), 2);
+        assertSearchCertCases(queryForCertCasesByWorkItemOutcome(MODEL_CERTIFICATION_OUTCOME_ACCEPT), 1);
+        assertSearchCertWorkItems(
+                queryFor(AccessCertificationWorkItemType.class)
+                        .filter(
+                                CertCampaignTypeUtil.createWorkItemsForCampaignQuery(CAMPAIGN2.oid).getFilter())
+                        .and().item(AccessCertificationWorkItemType.F_ASSIGNEE_REF).ref(USER_ADMINISTRATOR_OID)
+                        .and().item(AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP).isNull()
+                        .build(),
+                2);
 
         assertGlobalStateUntouched();
     }

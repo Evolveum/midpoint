@@ -7,21 +7,23 @@
 
 package com.evolveum.midpoint.security.enforcer.impl;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.ShortDumpable;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.TypedItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Contains the complete information about required and authorized items used for a query evaluation.
@@ -37,7 +39,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class QueryObjectsAutzCoverage implements ShortDumpable {
 
-    private final Map<Class<?>, QueryObjectAutzCoverage> objectAutzCoverages = new HashMap<>();
+    /** Required and authorized search items for specific object types. */
+    private final Map<Class<? extends ObjectType>, QueryObjectAutzCoverage> objectAutzCoverages = new HashMap<>();
 
     /**
      * Takes all items referenced by the given filter and adds them here as required ones.
@@ -45,80 +48,66 @@ public class QueryObjectsAutzCoverage implements ShortDumpable {
      * TODO What about right-hand-side ones? What about ownedBy and other currently ignored types of filters?
      */
     void addRequiredItems(@NotNull Class<?> filterType, @Nullable ObjectFilter filter) {
-        addRequiredItemsRecursively(filterType, filter, ItemPath.EMPTY_PATH);
-    }
-
-    private void addRequiredItemsRecursively(
-            @NotNull Class<?> filterType, @Nullable ObjectFilter filter, @NotNull ItemPath localRoot) {
-        if (filter == null
-                || filter instanceof UndefinedFilter
-                || filter instanceof NoneFilter
-                || filter instanceof AllFilter) {
-            // No specific items are present here
-        } else if (filter instanceof ValueFilter<?, ?> valueFilter) {
-            addRequiredItem(
-                    filterType,
-                    localRoot.append(valueFilter.getFullPath()));
-        } else if (filter instanceof ExistsFilter existsFilter) {
-            ItemPath existsRoot = localRoot.append(existsFilter.getFullPath());
-            // Currently, we require also the root path to be authorized. This may be relaxed eventually
-            // (but checking there is at least one item required by the inner filter). However, it is maybe safer
-            // to require it in the current way.
-            addRequiredItem(filterType, existsRoot);
-            addRequiredItemsRecursively(filterType, existsFilter.getFilter(), existsRoot);
-        } else if (filter instanceof TypeFilter typeFilter) {
-            // TODO what object type should be required here?
-            addRequiredItemsRecursively(filterType, typeFilter.getFilter(), localRoot);
-        } else if (filter instanceof LogicalFilter logicalFilter) {
-            for (ObjectFilter condition : logicalFilter.getConditions()) {
-                addRequiredItemsRecursively(filterType, condition, localRoot);
-            }
-        } else if (filter instanceof OrgFilter) {
-            // Currently, no item is connected to this kind of filter; TODO consider parentOrgRef
-        } else if (filter instanceof ReferencedByFilter referencedByFilter) {
-            // This is a preliminary implementation; working for filters like this:
-            //
-            // . referencedBy (
-            //   @type = UserType
-            //   and @path = assignment/targetRef
-            //   and # = "00000000-0000-0000-0000-000000000002"
-            // )
-            //
-            // but not like this:
-            //
-            // . referencedBy (
-            //   @type = AssignmentType
-            //   and @path = targetRef
-            //   and . ownedBy (
-            //     @type = UserType
-            //     and @path = assignment
-            //     and # = "00000000-0000-0000-0000-000000000002"
-            //   )
-            // )
-            //
-            // FIXME finish this
-            var type = referencedByFilter.getType().getTypeClass();
-            if (type != null) {
-                // this should be normally the case
-                addRequiredItem(type, referencedByFilter.getPath());
-            }
-        } else if (filter instanceof InOidFilter) {
-            // No item here (OID is not considered to be an item, for now).
-        } else if (filter instanceof OwnedByFilter) {
-            // Used for container searches. We currently do not support authorization at this level.
-            // TODO reconsider after we start supporting authorizations for containers
-        } else if (filter instanceof FullTextFilter) {
-            // No item here.
-        } else {
-            throw new AssertionError("Unsupported kind of filter: " + filter);
+        if (filter == null) {
+            return;
         }
+        var schemaRegistry = PrismContext.get().getSchemaRegistry();
+        filter.collectUsedPaths(
+                TypedItemPath.of(
+                        schemaRegistry.determineTypeForClassRequired(filterType)),
+                typedItemPath -> addRequiredItem(
+                        schemaRegistry.determineClassForTypeRequired(typedItemPath.getRootType()),
+                        typedItemPath.getPath()),
+                true);
     }
 
     private void addRequiredItem(
             @NotNull Class<?> type, @NotNull ItemPath itemPath) {
-        objectAutzCoverages
-                .computeIfAbsent(type, k -> new QueryObjectAutzCoverage())
-                .addRequiredItem(itemPath);
+        if (itemPath.startsWith(PrismConstants.T_PARENT)) {
+            // temporary solution; we should know the broader context
+            var parent = determineParent(type);
+            if (parent != null) {
+                addRequiredItem(parent.type, itemPath.rest());
+            }
+        } else if (!ObjectType.class.isAssignableFrom(type)) {
+            // temporary solution; we should know the broader context
+            var parent = determineParent(type);
+            if (parent != null) {
+                addRequiredItem(parent.type, parent.path.append(itemPath));
+            }
+        } else {
+            //noinspection unchecked
+            objectAutzCoverages
+                    .computeIfAbsent((Class<? extends ObjectType>) type, k -> new QueryObjectAutzCoverage())
+                    .addRequiredItem(itemPath);
+        }
+    }
+
+    // See also SelectorWithItems#getCandidateAdjustments
+    private Parent determineParent(@NotNull Class<?> type) {
+        if (AccessCertificationCaseType.class.isAssignableFrom(type)) {
+            return new Parent(AccessCertificationCampaignType.class, AccessCertificationCampaignType.F_CASE);
+        } else if (AccessCertificationWorkItemType.class.isAssignableFrom(type)) {
+            return new Parent(AccessCertificationCaseType.class, AccessCertificationCaseType.F_WORK_ITEM);
+        } else if (CaseWorkItemType.class.isAssignableFrom(type)) {
+            return new Parent(CaseType.class, CaseType.F_WORK_ITEM);
+        } else if (AssignmentType.class.isAssignableFrom(type)) {
+            return new Parent(AssignmentHolderType.class, AssignmentHolderType.F_ASSIGNMENT);
+        } else if (OperationExecutionType.class.isAssignableFrom(type)) {
+            return new Parent(ObjectType.class, ObjectType.F_OPERATION_EXECUTION);
+        } else if (SimulationResultProcessedObjectType.class.isAssignableFrom(type)) {
+            return new Parent(SimulationResultType.class, SimulationResultType.F_PROCESSED_OBJECT);
+        } else {
+            return null; // ignoring this requirement
+        }
+    }
+
+    private record Parent(@NotNull Class<?> type, @NotNull ItemPath path) {
+    }
+
+    // TODO better name
+    @NotNull Collection<Map.Entry<Class<? extends ObjectType>, QueryObjectAutzCoverage>> getAllEntries() {
+        return objectAutzCoverages.entrySet();
     }
 
     @Nullable String getUnsatisfiedItemsDescription() {
@@ -136,43 +125,16 @@ public class QueryObjectsAutzCoverage implements ShortDumpable {
         return MiscUtil.nullIfEmpty(desc);
     }
 
-    /**
-     * Updates the "authorized items" information, based on a specific authorization. The authorization
-     * has already passed basic checks, like actions, limitations, phase, etc BUT not other, finer checks
-     * like detailed filtering via object selectors. This method is called only for types that differ from the
-     * type we are filtering on. (See {@link #processAuthorizationForFilterType(Class, Authorization)} for the latter.)
-     *
-     * TEMPORARY/LIMITED IMPLEMENTATION
-     */
-    void processAuthorizationForOtherTypes(@NotNull Class<?> filterType, @NotNull Authorization authorization)
-            throws ConfigurationException {
-        for (var entry : objectAutzCoverages.entrySet()) {
-            Class<?> type = entry.getKey();
-            if (!type.equals(filterType)) {
-                entry.getValue().processAuthorization(type, authorization);
-            }
-        }
-    }
-
-    /**
-     * Updates the "authorized items" information, based on a specific authorization. Called for the same type as the
-     * one we are filtering on. The authorization proved itself applicable.
-     *
-     * TEMPORARY/LIMITED IMPLEMENTATION
-     */
-    void processAuthorizationForFilterType(@NotNull Class<?> filterType, @NotNull Authorization authorization)
-            throws ConfigurationException {
-        var coverages = objectAutzCoverages.get(filterType);
-        if (coverages != null) {
-            coverages.processAuthorization(filterType, authorization);
-        }
-    }
-
     @Override
     public void shortDump(StringBuilder sb) {
         sb.append(
                 objectAutzCoverages.entrySet().stream()
                         .map(e -> e.getKey().getSimpleName() + ": " + e.getValue().shortDump())
                         .collect(Collectors.joining("; ")));
+    }
+
+    @Override
+    public String toString() {
+        return shortDump();
     }
 }

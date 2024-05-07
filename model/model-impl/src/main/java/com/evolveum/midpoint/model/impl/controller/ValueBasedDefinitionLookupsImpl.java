@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.model.impl.controller;
 
+import com.evolveum.midpoint.model.impl.schema.transform.TransformableContainerDefinition;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableObjectDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -10,7 +11,9 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import com.google.common.collect.ImmutableSet;
@@ -21,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,13 +33,23 @@ public class ValueBasedDefinitionLookupsImpl {
 
 
     private static final Set<ItemPath> RESOURCE_KIND_INTENT_PATHS = ImmutableSet.of(ShadowType.F_RESOURCE_REF, ShadowType.F_KIND, ShadowType.F_INTENT);
+    private static final Set<ItemPath> RESOURCE_OBJECTCLASS_PATHS = ImmutableSet.of(ShadowType.F_RESOURCE_REF, ShadowType.F_OBJECT_CLASS);
 
     /**
      * Value Lookup helper for Shadow
      *
      *
      **/
-    private ValueBasedDefinitionLookupHelper shadowLookupByKindAndIntent = new ValueBasedDefinitionLookupHelper() {
+    private ValueBasedDefinitionLookupHelper shadowLookupByKindAndIntent = new ShadowLookup(RESOURCE_KIND_INTENT_PATHS);
+    private ValueBasedDefinitionLookupHelper shadowLookupByObjectClass = new ShadowLookup(RESOURCE_OBJECTCLASS_PATHS);
+
+    private class ShadowLookup implements ValueBasedDefinitionLookupHelper {
+
+        private final Set<ItemPath> paths;
+
+        public ShadowLookup(Set<ItemPath> paths) {
+            this.paths = paths;
+        }
 
         @Override
         public @NotNull QName baseTypeName() {
@@ -44,7 +58,7 @@ public class ValueBasedDefinitionLookupsImpl {
 
         @Override
         public @NotNull Set<ItemPath> valuePaths() {
-            return RESOURCE_KIND_INTENT_PATHS;
+            return paths;
         }
 
         @Nullable
@@ -78,6 +92,8 @@ public class ValueBasedDefinitionLookupsImpl {
             }
             // We did not successfully found schema, do not override
             return null;
+
+
         }
     };
 

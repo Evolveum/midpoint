@@ -10,12 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
-import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.enforcer.api.PositiveNegativeItemPaths;
+import com.evolveum.midpoint.security.enforcer.impl.AuthorizationSearchItemsEvaluation.AuthorizedSearchItems;
 import com.evolveum.midpoint.util.ShortDumpable;
-
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -40,6 +37,10 @@ public class QueryObjectAutzCoverage implements ShortDumpable {
         requiredItems.add(itemPath);
     }
 
+    @NotNull List<ItemPath> getRequiredItems() {
+        return requiredItems;
+    }
+
     /** Returns items that are required but we have no authorizations for. */
     List<ItemPath> getUnsatisfiedItems() {
         List<ItemPath> unsatisfiedItems = new ArrayList<>();
@@ -52,28 +53,13 @@ public class QueryObjectAutzCoverage implements ShortDumpable {
         return unsatisfiedItems;
     }
 
-    /** Extracts allowed/denied item paths from given authorization. */
-    void processAuthorization(Class<?> type, Authorization authorization) throws ConfigurationException {
-        // TODO implement at least minimal tracing here
-        if (isAuthorizationIrrelevantForType(type, authorization)) {
-            return;
-        }
-        if (authorization.isAllow()) {
-            allowedItemPaths.collectItems(authorization);
+    /** Applies item/exceptItem information derived from an authorization. */
+    void processSearchItems(@NotNull AuthorizedSearchItems searchItems, boolean isAllow) {
+        if (isAllow) {
+            allowedItemPaths.collectItemPaths(searchItems.positives(), searchItems.negatives());
         } else {
-            deniedItemPaths.collectItems(authorization);
+            deniedItemPaths.collectItemPaths(searchItems.positives(), searchItems.negatives());
         }
-    }
-
-    private boolean isAuthorizationIrrelevantForType(Class<?> requiredType, Authorization authorization)
-            throws ConfigurationException {
-        for (ValueSelector selector : authorization.getParsedObjectSelectors()) {
-            var typeInSelector = selector.getEffectiveType();
-            if (!typeInSelector.isAssignableFrom(requiredType) && !requiredType.isAssignableFrom(typeInSelector)) {
-                return true; // no overlap
-            }
-        }
-        return false;
     }
 
     @Override

@@ -326,7 +326,7 @@ public class SearchBoxConfigurationBuilder {
     }
 
     private IndirectSearchItemConfigurationType createIndirectSearchItemConfigurationType() {
-        if (isGovernanceCards()) {
+        if (isGovernanceCards() || collectionPanelType == CollectionPanelType.ROLE_CATALOG) {
             return null;
         }
         IndirectSearchItemConfigurationType indirectItem = new IndirectSearchItemConfigurationType();
@@ -351,7 +351,8 @@ public class SearchBoxConfigurationBuilder {
     private boolean isOrgMemberPanel() {
         return collectionPanelType == CollectionPanelType.ORG_MEMBER_MEMBER
                 || collectionPanelType == CollectionPanelType.ORG_MEMBER_GOVERNANCE
-                || collectionPanelType == CollectionPanelType.MEMBER_ORGANIZATION;
+                || collectionPanelType == CollectionPanelType.MEMBER_ORGANIZATION
+                || collectionPanelType == CollectionPanelType.ROLE_CATALOG;
     }
 
     private boolean isRoleMemberPanel() {
@@ -385,6 +386,7 @@ public class SearchBoxConfigurationBuilder {
             case SERVICE_MEMBER_MEMBER:
             case ORG_MEMBER_MEMBER:
             case MEMBER_WIZARD:
+            case ROLE_CATALOG:
                 return getSupportedMembersTabRelations();
         }
         return null;
@@ -432,6 +434,12 @@ public class SearchBoxConfigurationBuilder {
                         ServiceType.COMPLEX_TYPE);
             case MEMBER_WIZARD:
                 return Arrays.asList(UserType.COMPLEX_TYPE);
+            case ROLE_CATALOG:
+                return List.of(
+                        AbstractRoleType.COMPLEX_TYPE,
+                        OrgType.COMPLEX_TYPE,
+                        RoleType.COMPLEX_TYPE,
+                        ServiceType.COMPLEX_TYPE);
         }
         return new ArrayList<>();
     }

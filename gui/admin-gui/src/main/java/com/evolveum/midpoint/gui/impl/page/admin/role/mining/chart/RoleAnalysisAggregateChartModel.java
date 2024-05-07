@@ -5,21 +5,16 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.*;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.ChartTitleOption;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisModel;
-
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisModel;
 import com.evolveum.wicket.chartjs.*;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * The RoleAnalysisAggregateChartModel class is a LoadableModel that generates aggregate
@@ -90,10 +85,12 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
         return chartData;
     }
 
-    private @NotNull RoleAnalysisChartOptions createChartOptions() {
-        RoleAnalysisChartOptions options = new RoleAnalysisChartOptions();
+    private @NotNull ChartOptions createChartOptions() {
+        ChartOptions options = new ChartOptions();
         options.setLegend(createLegendOptions());
         options.setIndexAxis(IndexAxis.AXIS_X.getValue());
+        options.setResponsive(true);
+        options.setMaintainAspectRatio(false);
 
         ChartInteractionOption interaction = new ChartInteractionOption();
         interaction.setMode("index");
@@ -106,6 +103,7 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
                 new ChartTitleOption();
         chartTitleXOption.setDisplay(true);
         chartTitleXOption.setText(getXAxisTitle());
+
         chartScaleXAxisOption.setTitle(chartTitleXOption);
 
         ChartScaleAxisOption chartScaleYAxisOption = new ChartScaleAxisOption();

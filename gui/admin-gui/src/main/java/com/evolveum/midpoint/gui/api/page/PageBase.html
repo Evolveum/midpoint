@@ -21,17 +21,17 @@
                 <a wicket:id="menuToggle" class="nav-link" data-widget="pushmenu" href="#" role="button" wicket:message="title:Accessibility.PageBase.pushmenu.title"><i class="fas fa-bars"></i></a>
             </div>
             <div class="ml-2 navbar-title" wicket:id="pageTitleContainer" role="heading" aria-level="1">
-                        <span class="page-title" wicket:id="pageTitle">
-                            <span wicket:id="deploymentName"/>
-                            <span wicket:id="pageTitleReal"/>
-                        </span>
+                <span class="page-title" wicket:id="pageTitle">
+                    <span wicket:id="deploymentName"/>
+                    <span wicket:id="pageTitleReal"/>
+                </span>
             </div>
             <div class="ml-3 mt-2">
                 <i id="ajax_busy" class="fas fa-sync fa-spin fa-lg" style="visibility: hidden;"></i>
             </div>
-            <div class="ml-auto d-flex">
-                <div class="nav-item d-none d-md-inline">
-                    <ol class="breadcrumb" wicket:message="aria-label:PageBase.breadcrumb" role="navigation">
+            <div class="navbar-right">
+                <div class="nav-item d-none d-md-inline" style="min-width: 0; width: 100%">
+                    <ol class="breadcrumb d-none d-xl-flex justify-content-end" wicket:message="aria-label:PageBase.breadcrumb" role="navigation" style="width: 100%; overflow: hidden;">
                         <li wicket:id="breadcrumb">
                             <a wicket:id="bcLink">
                                 <i wicket:id="bcIcon"></i>&nbsp;
