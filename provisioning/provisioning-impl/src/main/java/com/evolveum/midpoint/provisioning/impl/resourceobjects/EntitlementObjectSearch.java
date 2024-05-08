@@ -12,7 +12,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.ShadowItemsToReturn;
 import com.evolveum.midpoint.provisioning.util.ShadowItemsToReturnProvider;
 import com.evolveum.midpoint.schema.config.AssociationConfigItem.AttributeBinding;
-import com.evolveum.midpoint.schema.processor.SimulatedShadowAssociationClassDefinition;
+import com.evolveum.midpoint.schema.processor.SimulatedShadowReferenceTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.SimulatedAssociationClassParticipantDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -42,7 +42,7 @@ class EntitlementObjectSearch<T> {
     private static final Trace LOGGER = TraceManager.getTrace(EntitlementObjectSearch.class);
 
     @NotNull private final ProvisioningContext subjectCtx;
-    @NotNull private final SimulatedShadowAssociationClassDefinition simulationDefinition;
+    @NotNull private final SimulatedShadowReferenceTypeDefinition simulationDefinition;
     @NotNull private final AttributeBinding attributeBinding;
     @NotNull private final ShadowType subject;
 
@@ -60,7 +60,7 @@ class EntitlementObjectSearch<T> {
 
     EntitlementObjectSearch(
             @NotNull ProvisioningContext subjectCtx,
-            @NotNull SimulatedShadowAssociationClassDefinition simulationDefinition,
+            @NotNull SimulatedShadowReferenceTypeDefinition simulationDefinition,
             @NotNull AttributeBinding attributeBinding,
             @NotNull ShadowType subject) throws SchemaException {
 

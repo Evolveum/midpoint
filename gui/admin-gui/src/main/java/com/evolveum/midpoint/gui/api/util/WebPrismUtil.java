@@ -400,7 +400,7 @@ public class WebPrismUtil {
                 objectTypeDef = schema.getObjectTypeDefinition(identifier);
 
                 if (objectTypeDef != null) {
-                    objectTypeDef.getAttributeDefinitions()
+                    objectTypeDef.getSimpleAttributeDefinitions()
                             .forEach(attr -> allAttributes.add(attr));
                 }
             }
@@ -412,7 +412,7 @@ public class WebPrismUtil {
                         .findFirst();
 
                 if (!objectClassDef.isEmpty()) {
-                    objectClassDef.get().getAttributeDefinitions().forEach(attr -> allAttributes.add(attr));
+                    objectClassDef.get().getSimpleAttributeDefinitions().forEach(attr -> allAttributes.add(attr));
                     defs.stream()
                             .filter(d -> {
                                 for (QName auxClass : objectType.getDelineation().getAuxiliaryObjectClass()) {
@@ -422,7 +422,7 @@ public class WebPrismUtil {
                                 }
                                 return false;
                             })
-                            .forEach(d -> d.getAttributeDefinitions()
+                            .forEach(d -> d.getSimpleAttributeDefinitions()
                                     .forEach(attr -> allAttributes.add(attr)));
                 }
             }

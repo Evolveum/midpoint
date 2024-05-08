@@ -28,7 +28,7 @@ public interface ItemDefinitionProvider {
             ResourceObjectDefinition objectDefinition) {
         return itemPath -> {
             if (itemPath.startsWithName(ShadowType.F_ATTRIBUTES)) {
-                return objectDefinition.findSimpleAttributeDefinition(itemPath.rest().asSingleName());
+                return (ItemDefinition<?>) objectDefinition.findAttributeDefinition(itemPath.rest().asSingleName());
             } else {
                 return null;
             }

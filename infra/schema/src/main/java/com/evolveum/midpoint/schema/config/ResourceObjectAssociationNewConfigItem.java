@@ -7,17 +7,9 @@
 
 package com.evolveum.midpoint.schema.config;
 
-import java.util.List;
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationNewType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 
 /**
  * TEMPORARY
@@ -31,47 +23,47 @@ public class ResourceObjectAssociationNewConfigItem
         super(original);
     }
 
-    public @NotNull ItemName getItemName() throws ConfigurationException {
-        return singleNameRequired(value().getRef(), "association name (ref)");
-    }
-
-    public boolean hasInbounds() {
-        return !value().getInbound().isEmpty();
-    }
-
-    public @Nullable MappingConfigItem getOutboundMapping() {
-        return child(
-                value().getOutbound(),
-                MappingConfigItem.class,
-                ResourceObjectAssociationType.F_OUTBOUND);
-    }
-
-    public @NotNull MappingConfigItem getOutboundMappingRequired() throws ConfigurationException {
-        return nonNull(getOutboundMapping(), "outbound mapping");
-    }
-
-    public @NotNull List<InboundMappingConfigItem> getInboundMappings() {
-        return children(
-                value().getInbound(),
-                InboundMappingConfigItem.class,
-                ResourceObjectAssociationType.F_INBOUND);
-    }
-
-    public boolean isExclusiveStrong() {
-        return Boolean.TRUE.equals(value().isExclusiveStrong());
-    }
-
-    public boolean isTolerant() {
-        return BooleanUtils.isNotFalse(value().isTolerant());
-    }
-
-    public @NotNull List<String> getTolerantValuePatterns() {
-        return value().getTolerantValuePattern();
-    }
-
-    public @NotNull List<String> getIntolerantValuePatterns() {
-        return value().getIntolerantValuePattern();
-    }
+//    public @NotNull ItemName getItemName() throws ConfigurationException {
+//        return singleNameRequired(value().getRef(), "association name (ref)");
+//    }
+//
+//    public boolean hasInbounds() {
+//        return !value().getInbound().isEmpty();
+//    }
+//
+//    public @Nullable MappingConfigItem getOutboundMapping() {
+//        return child(
+//                value().getOutbound(),
+//                MappingConfigItem.class,
+//                ResourceObjectAssociationType.F_OUTBOUND);
+//    }
+//
+//    public @NotNull MappingConfigItem getOutboundMappingRequired() throws ConfigurationException {
+//        return nonNull(getOutboundMapping(), "outbound mapping");
+//    }
+//
+//    public @NotNull List<InboundMappingConfigItem> getInboundMappings() {
+//        return children(
+//                value().getInbound(),
+//                InboundMappingConfigItem.class,
+//                ResourceObjectAssociationType.F_INBOUND);
+//    }
+//
+//    public boolean isExclusiveStrong() {
+//        return Boolean.TRUE.equals(value().isExclusiveStrong());
+//    }
+//
+//    public boolean isTolerant() {
+//        return BooleanUtils.isNotFalse(value().isTolerant());
+//    }
+//
+//    public @NotNull List<String> getTolerantValuePatterns() {
+//        return value().getTolerantValuePattern();
+//    }
+//
+//    public @NotNull List<String> getIntolerantValuePatterns() {
+//        return value().getIntolerantValuePattern();
+//    }
 
     @Override
     public String debugDump(int indent) {
@@ -83,7 +75,7 @@ public class ResourceObjectAssociationNewConfigItem
         return "resource association definition for '" + value().getRef() + "'";
     }
 
-    public QName getMatchingRule() {
-        return value().getMatchingRule();
-    }
+//    public QName getMatchingRule() {
+//        return value().getMatchingRule();
+//    }
 }

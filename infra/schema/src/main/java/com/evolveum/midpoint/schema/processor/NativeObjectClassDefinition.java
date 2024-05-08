@@ -28,6 +28,8 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.SchemaMigration;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 
+import org.jetbrains.annotations.TestOnly;
+
 /**
  * Object class definition as seen by the connector (or manually configured via XSD).
  *
@@ -39,11 +41,12 @@ public interface NativeObjectClassDefinition extends NativeObjectClassUcfDefinit
 
     @NotNull QName getQName();
 
-    @NotNull Collection<? extends NativeShadowAttributeDefinition> getItemDefinitions();
+    @NotNull Collection<? extends NativeShadowAttributeDefinition> getAttributeDefinitions();
 
-    @NotNull Collection<? extends NativeShadowSimpleAttributeDefinition<?>> getAttributeDefinitions();
+    @TestOnly
+    @NotNull Collection<? extends NativeShadowSimpleAttributeDefinition<?>> getSimpleAttributeDefinitions();
 
-    @NotNull Collection<? extends NativeShadowReferenceAttributeDefinition> getAssociationDefinitions();
+    @NotNull Collection<? extends NativeShadowReferenceAttributeDefinition> getReferenceAttributeDefinitions();
 
     NativeObjectClassDefinition clone();
 

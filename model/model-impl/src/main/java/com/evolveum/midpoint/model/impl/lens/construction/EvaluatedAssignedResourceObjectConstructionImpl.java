@@ -56,7 +56,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
 
         // [EP:CONST] DONE
         for (ResourceAttributeDefinitionConfigItem attributeConstrDefinitionCI : getTypedConfigItemRequired().getAttributes()) {
-            QName attrName = attributeConstrDefinitionCI.getAttributeName();
+            QName attrName = attributeConstrDefinitionCI.getAttributeNameSyntax();
 
             attributeConstrDefinitionCI.configCheck(
                     !attributeConstrDefinitionCI.hasInbounds(), "Cannot process inbound section in %s", DESC);

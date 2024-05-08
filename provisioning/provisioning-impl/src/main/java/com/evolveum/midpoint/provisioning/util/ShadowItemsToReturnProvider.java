@@ -149,7 +149,7 @@ public class ShadowItemsToReturnProvider {
     }
 
     private Stream<? extends ShadowAttributeDefinition<?, ?>> getRelevantItemDefinitionsStream() {
-        return objectDefinition.getShadowItemDefinitions().stream()
+        return objectDefinition.getAttributeDefinitions().stream()
                 .filter(def -> !def.isSimulated());
     }
 

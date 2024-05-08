@@ -79,12 +79,12 @@ class MappedItems<T extends Containerable> {
                     source.getOwningAssociationDefinition(), selfInboundDefinition);
         }
 
-        for (var attributeDef : source.resourceObjectDefinition.getAttributeDefinitions()) {
+        for (var attributeDef : source.resourceObjectDefinition.getSimpleAttributeDefinitions()) {
             createMappedItemForAttribute(
                     attributeDef, source.inboundDefinition.getAttributeInboundDefinition(attributeDef.getItemName()));
         }
 
-        for (var associationDef : source.resourceObjectDefinition.getAssociationDefinitions()) {
+        for (var associationDef : source.resourceObjectDefinition.getReferenceAttributeDefinitions()) {
             createMappedItemForAssociation(
                     associationDef, source.inboundDefinition.getAssociationInboundDefinition(associationDef.getItemName()));
         }

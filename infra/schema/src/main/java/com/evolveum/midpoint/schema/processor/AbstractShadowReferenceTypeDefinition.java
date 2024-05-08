@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.schema.processor;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -17,31 +16,31 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.schema.config.ResourceObjectAssociationConfigItem;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
- * Definition of an association class: a named type of association (linkage) between exactly two shadows.
+ * Definition of a reference type: a named type of references between shadows.
  *
  * . It can be either native or simulated.
  * Each participant can be a set of object definitions: classes or types, potentially mixing both.
+ *
+ * TODO finalize this
  */
-public abstract class AbstractShadowAssociationClassDefinition implements DebugDumpable, Serializable {
+public abstract class AbstractShadowReferenceTypeDefinition implements DebugDumpable, Serializable {
 
-    /** Name of this association class, e.g. `membership`. */
-    @NotNull private final String localClassName;
+    /** Name of this type, e.g. `membership`. */
+    @NotNull private final String localName;
 
     /** Representative definition of an object. TODO clarify/remove! */
     @NotNull private final ResourceObjectDefinition representativeObjectDefinition;
 
-    AbstractShadowAssociationClassDefinition(
-            @NotNull String localClassName,
+    AbstractShadowReferenceTypeDefinition(
+            @NotNull String localName,
             @NotNull ResourceObjectDefinition representativeObjectDefinition) {
         //argCheck(NS_RI.equals(localClassName.getNamespaceURI()), "Wrong namespace in association class name: %s", localClassName);
-        this.localClassName = localClassName;
+        this.localName = localName;
         this.representativeObjectDefinition = representativeObjectDefinition;
     }
 
@@ -91,15 +90,15 @@ public abstract class AbstractShadowAssociationClassDefinition implements DebugD
 //    }
 
     public @NotNull String getLocalName() {
-        return localClassName;
+        return localName;
     }
 
     public @NotNull QName getQName() {
-        return new QName(NS_RI, localClassName);
+        return new QName(NS_RI, localName);
     }
 
     /** This is more understandable to clients. */
-    public @NotNull QName getAssociationClassName() {
+    public @NotNull QName getReferenceTypeName() {
         return getQName();
     }
 
@@ -113,8 +112,8 @@ public abstract class AbstractShadowAssociationClassDefinition implements DebugD
         return representativeObjectDefinition;
     }
 
-    public @Nullable SimulatedShadowAssociationClassDefinition getSimulationDefinition() {
-        return this instanceof SimulatedShadowAssociationClassDefinition simulationDefinition ?
+    public @Nullable SimulatedShadowReferenceTypeDefinition getSimulationDefinition() {
+        return this instanceof SimulatedShadowReferenceTypeDefinition simulationDefinition ?
                 simulationDefinition : null;
     }
 
@@ -131,7 +130,7 @@ public abstract class AbstractShadowAssociationClassDefinition implements DebugD
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "name", localClassName, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "name", localName, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "targetObjectDefinition", String.valueOf(representativeObjectDefinition), indent + 1);
         return sb.toString();
     }

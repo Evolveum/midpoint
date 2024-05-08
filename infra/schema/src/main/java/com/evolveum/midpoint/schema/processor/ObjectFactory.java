@@ -15,8 +15,8 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.xml.namespace.QName;
 
@@ -26,8 +26,9 @@ import javax.xml.namespace.QName;
 @Experimental
 public class ObjectFactory {
 
-    public static <T> ShadowSimpleAttribute<T> createResourceAttribute(QName name, ShadowSimpleAttributeDefinition<T> definition) {
-        return new ShadowSimpleAttributeImpl<>(name, definition);
+    @TestOnly
+    public static <T> ShadowSimpleAttribute<T> createSimpleAttribute(QName name) {
+        return new ShadowSimpleAttributeImpl<>(name, null);
     }
 
     /**
@@ -35,21 +36,16 @@ public class ObjectFactory {
      *
      * The created definition is effectively immutable.
      */
-    @VisibleForTesting
-    public static <T> ShadowSimpleAttributeDefinition<T> createResourceAttributeDefinition(
+    @TestOnly
+    public static <T> ShadowSimpleAttributeDefinition<T> createSimpleAttributeDefinition(
             @NotNull QName name, @NotNull QName typeName) throws SchemaException {
         return ShadowSimpleAttributeDefinitionImpl.create(
-                createNativeItemDefinition(name, typeName));
+                createNativeAttributeDefinition(name, typeName));
     }
 
-    public static <T> NativeShadowAttributeDefinitionImpl<T> createNativeItemDefinition(
+    public static <T> NativeShadowAttributeDefinitionImpl<T> createNativeAttributeDefinition(
             @NotNull QName name, @NotNull QName typeName) {
         return new NativeShadowAttributeDefinitionImpl<>(ItemName.fromQName(name), typeName);
-    }
-
-    public static ShadowAttributesContainer createResourceAttributeContainer(
-            QName name, ResourceAttributeContainerDefinition definition) {
-        return new ShadowAttributesContainerImpl(name, definition);
     }
 
     public static NativeResourceSchemaBuilder createNativeResourceSchemaBuilder() {

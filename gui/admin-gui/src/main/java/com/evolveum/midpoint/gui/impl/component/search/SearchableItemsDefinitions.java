@@ -438,7 +438,7 @@ public class SearchableItemsDefinitions {
             return;
         }
 
-        for (ShadowSimpleAttributeDefinition def : resourceObjectDefinition.getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition def : resourceObjectDefinition.getSimpleAttributeDefinitions()) {
             searchableDefinitions.put(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def);
         }
     }

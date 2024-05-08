@@ -276,7 +276,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
             throws SchemaException, ConfigurationException {
         // TODO the object should have the composite definition by now!
         ResourceObjectDefinition ocDef = effectiveCtx.computeCompositeObjectDefinition(resourceObject);
-        for (ShadowSimpleAttributeDefinition<?> attrDef : ocDef.getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition<?> attrDef : ocDef.getSimpleAttributeDefinitions()) {
             if (attrDef.isIndexOnly()) {
                 ItemPath path = ItemPath.create(ShadowType.F_ATTRIBUTES, attrDef.getItemName());
                 LOGGER.trace("Marking item {} as incomplete because it's index-only", path);

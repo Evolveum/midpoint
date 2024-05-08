@@ -29,14 +29,14 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
-    default @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getAttributeDefinitions() {
-        return delegate().getAttributeDefinitions();
+    default @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getSimpleAttributeDefinitions() {
+        return delegate().getSimpleAttributeDefinitions();
     }
 
-    @Override
-    default @NotNull Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions() {
-        return delegate().getShadowItemDefinitions();
-    }
+//    @Override
+//    default @NotNull Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions() {
+//        return delegate().getShadowItemDefinitions();
+//    }
 
     @Override
     default <T> @Nullable ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinition(QName name, boolean caseInsensitive) {
@@ -133,9 +133,8 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
-    @NotNull
-    default List<? extends ShadowReferenceAttributeDefinition> getAssociationDefinitions() {
-        return delegate().getAssociationDefinitions();
+    default @NotNull List<? extends ShadowReferenceAttributeDefinition> getReferenceAttributeDefinitions() {
+        return delegate().getReferenceAttributeDefinitions();
     }
 
     @Override
@@ -248,7 +247,7 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     @Nullable
     default String getLifecycleState() {
         return delegate().getLifecycleState();
-    };
+    }
 
     @Override
     default @NotNull Collection<QName> getConfiguredAuxiliaryObjectClassNames() {

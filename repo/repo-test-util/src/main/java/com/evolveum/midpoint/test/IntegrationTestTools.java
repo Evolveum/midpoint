@@ -852,7 +852,7 @@ public class IntegrationTestTools {
 
         assertNotNull("No object class definition " + RI_ACCOUNT_OBJECT_CLASS, accountDefinition);
         assertTrue("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is not default account", accountDefinition.isDefaultAccountDefinition());
-        assertFalse("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is empty", accountDefinition.getAttributeDefinitions().isEmpty());
+        assertFalse("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is empty", accountDefinition.getSimpleAttributeDefinitions().isEmpty());
 
         Collection<? extends ShadowSimpleAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
         assertNotNull("Null identifiers for " + RI_ACCOUNT_OBJECT_CLASS, identifiers);

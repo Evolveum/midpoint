@@ -226,7 +226,7 @@ public class ResourceSchemaFactory {
             throws SchemaException {
         var schema = new NativeResourceSchemaImpl();
         SchemaParsingUtil.parse(schema, sourceXsdElement, true, description, false);
-        schema.computeAssociationClasses();
+        schema.computeReferenceTypes();
         schema.freeze();
         return schema;
     }

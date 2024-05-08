@@ -297,7 +297,7 @@ public class ProvisioningObjectsUtil {
         if (oc == null) {
             return null;
         }
-        var shadowAssociationDefinitions = oc.getAssociationDefinitions();
+        var shadowAssociationDefinitions = oc.getReferenceAttributeDefinitions();
 
         for (ShadowReferenceAttributeDefinition shadowReferenceAttributeDefinition : shadowAssociationDefinitions) {
             if (association != null && !shadowReferenceAttributeDefinition.getItemName().equivalent(association)) {
@@ -390,7 +390,7 @@ public class ProvisioningObjectsUtil {
         }
 
         if (ShadowType.F_ASSOCIATIONS.equivalent(itemWrapper.getPath())) {
-            if (ocd != null && CollectionUtils.isNotEmpty(ocd.getAssociationDefinitions())) {
+            if (ocd != null && CollectionUtils.isNotEmpty(ocd.getReferenceAttributeDefinitions())) {
                 return ItemVisibility.AUTO;
             } else {
                 return ItemVisibility.HIDDEN;
@@ -444,7 +444,7 @@ public class ProvisioningObjectsUtil {
             return false;
         }
 
-        return CollectionUtils.isNotEmpty(ocd.getAssociationDefinitions());
+        return CollectionUtils.isNotEmpty(ocd.getReferenceAttributeDefinitions());
     }
 
     public static void toggleResourceMaintenance(@NotNull PrismObject<ResourceType> resource, String operation, AjaxRequestTarget target, PageBase pageBase) {
@@ -563,7 +563,7 @@ public class ProvisioningObjectsUtil {
 
     public static List<ShadowReferenceAttributeDefinition> getRefinedAssociationDefinition(@NotNull ResourceObjectDefinition oc) {
 
-        List<ShadowReferenceAttributeDefinition> associationDefinitions = new ArrayList<>(oc.getAssociationDefinitions());
+        List<ShadowReferenceAttributeDefinition> associationDefinitions = new ArrayList<>(oc.getReferenceAttributeDefinitions());
 
         if (CollectionUtils.isEmpty(associationDefinitions)) {
             LOGGER.debug("Association not supported by resource object definition {}", oc);

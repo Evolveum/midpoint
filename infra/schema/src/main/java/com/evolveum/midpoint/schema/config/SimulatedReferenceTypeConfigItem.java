@@ -19,13 +19,13 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedAssociationClassType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedReferenceTypeDefinitionType;
 
-public class SimulatedAssociationClassConfigItem
-        extends ConfigurationItem<SimulatedAssociationClassType> {
+public class SimulatedReferenceTypeConfigItem
+        extends ConfigurationItem<SimulatedReferenceTypeDefinitionType> {
 
     @SuppressWarnings("unused") // called dynamically
-    public SimulatedAssociationClassConfigItem(@NotNull ConfigurationItem<SimulatedAssociationClassType> original) {
+    public SimulatedReferenceTypeConfigItem(@NotNull ConfigurationItem<SimulatedReferenceTypeDefinitionType> original) {
         super(original);
     }
 
@@ -46,7 +46,7 @@ public class SimulatedAssociationClassConfigItem
         return child(
                 value().getSubject(),
                 SimulatedAssociationClassParticipantConfigItem.Subject.class,
-                SimulatedAssociationClassType.F_SUBJECT);
+                SimulatedReferenceTypeDefinitionType.F_SUBJECT);
     }
 
     public @NotNull SimulatedAssociationClassParticipantConfigItem.Object getObject()
@@ -54,7 +54,7 @@ public class SimulatedAssociationClassConfigItem
         return child(
                 value().getObject(),
                 SimulatedAssociationClassParticipantConfigItem.Object.class,
-                SimulatedAssociationClassType.F_OBJECT);
+                SimulatedReferenceTypeDefinitionType.F_OBJECT);
     }
 
 

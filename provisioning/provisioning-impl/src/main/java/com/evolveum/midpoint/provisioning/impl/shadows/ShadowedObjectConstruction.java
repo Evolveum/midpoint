@@ -334,7 +334,7 @@ class ShadowedObjectConstruction {
         var associationName = iterableAssociationValue.name();
         var associationValue = iterableAssociationValue.associationValue();
 
-        if (authoritativeDefinition.findAssociationDefinition(associationName) == null) {
+        if (authoritativeDefinition.findReferenceAttributeDefinition(associationName) == null) {
             // This is quite legal. Imagine that we are looking for account/type1 type that has an association defined,
             // but the shadow is classified (after being fetched) as account/type2 that does not have the association.
             // We should simply ignore such association.

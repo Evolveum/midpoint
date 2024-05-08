@@ -192,7 +192,7 @@ public class ShadowSimpleAttributeDefinitionImpl<T>
 
     @Override
     public String getDebugDumpClassName() {
-        return "RAD";
+        return "SSimpleAttrDef";
     }
 
     @Override

@@ -291,7 +291,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
         if (SchemaCapabilityType.class.isAssignableFrom(capability)) {
             return "fa fa-table-cells";
         }
-        if (AssociationsCapabilityType.class.isAssignableFrom(capability)) {
+        if (ReferencesCapabilityType.class.isAssignableFrom(capability)) {
             return "fa fa-shield";
         }
         return "fa fa-circle";

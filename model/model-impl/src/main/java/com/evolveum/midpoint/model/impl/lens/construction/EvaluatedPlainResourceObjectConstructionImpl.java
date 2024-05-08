@@ -64,7 +64,7 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
 
-        for (ShadowSimpleAttributeDefinition<?> attributeDef : objectDefinition.getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition<?> attributeDef : objectDefinition.getSimpleAttributeDefinitions()) {
             MappingType outboundMappingBean = attributeDef.getOutboundMappingBean();
             if (outboundMappingBean == null) {
                 continue;
@@ -97,7 +97,7 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
         List<AssociationEvaluation<AH>> associationsToEvaluate = new ArrayList<>();
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
-        for (var associationDefinition : objectDefinition.getAssociationDefinitions()) {
+        for (var associationDefinition : objectDefinition.getReferenceAttributeDefinitions()) {
             var outboundMappingBean = associationDefinition.getOutboundMappingBean();
             if (outboundMappingBean == null) {
                 continue;

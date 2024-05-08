@@ -164,7 +164,7 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Association for " + kind + "/" + shadowIntent + " not supported by resource " + resource);
             return null;
         }
-        var shadowAssociationDefinitions = objectDefinition.getAssociationDefinitions();
+        var shadowAssociationDefinitions = objectDefinition.getReferenceAttributeDefinitions();
 
         if (CollectionUtils.isEmpty(shadowAssociationDefinitions)) {
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Association for " + kind + "/" + shadowIntent + " not supported by resource " + resource);

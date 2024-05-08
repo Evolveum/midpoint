@@ -480,8 +480,32 @@ public class NativeShadowAttributeDefinitionImpl<T>
         }
     }
 
+    @Override
     public boolean isReference() {
         return referenceParticipantRole != null;
+    }
+
+    @Override
+    public boolean isSimple() {
+        return !isReference();
+    }
+
+    @Override
+    public @NotNull NativeShadowSimpleAttributeDefinition<?> asSimple() {
+        if (isSimple()) {
+            return this;
+        } else {
+            throw new IllegalStateException("Not a simple attribute definition: " + this);
+        }
+    }
+
+    @Override
+    public @NotNull NativeShadowReferenceAttributeDefinition asReference() {
+        if (isReference()) {
+            return this;
+        } else {
+            throw new IllegalStateException("Not a reference attribute definition: " + this);
+        }
     }
 
     /**

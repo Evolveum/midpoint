@@ -112,8 +112,8 @@
 
     <capabilities>
         <configured>
-            <cap:associations>
-                <cap:associationClass>
+            <cap:references>
+                <cap:type>
                     <cap:name>ri:groupMembership</cap:name>
                     <cap:subject>
                         <cap:delineation>
@@ -130,8 +130,8 @@
                         <cap:primaryBindingAttributeRef>ri:members</cap:primaryBindingAttributeRef>
                     </cap:object>
                     <cap:direction>objectToSubject</cap:direction>
-                </cap:associationClass>
-                <cap:associationClass>
+                </cap:type>
+                <cap:type>
                     <cap:name>ri:privilegePossession</cap:name>
                     <cap:subject>
                         <cap:delineation>
@@ -147,8 +147,8 @@
                         <cap:primaryBindingAttributeRef>icfs:name</cap:primaryBindingAttributeRef>
                     </cap:object>
                     <cap:direction>subjectToObject</cap:direction>
-                </cap:associationClass>
-            </cap:associations>
+                </cap:type>
+            </cap:references>
             <cap:countObjects>
                 <cap:simulate>pagedSearchEstimate</cap:simulate>
             </cap:countObjects>

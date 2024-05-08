@@ -200,7 +200,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         assertEquals("Wrong kind", ShadowKindType.ENTITLEMENT, rEntDef.getKind());
 
-        Collection<? extends ShadowSimpleAttributeDefinition<?>> entAttrDefs = rEntDef.getAttributeDefinitions();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> entAttrDefs = rEntDef.getSimpleAttributeDefinitions();
         assertNotNull("Null attributeDefinitions", entAttrDefs);
         assertFalse("Empty attributeDefinitions", entAttrDefs.isEmpty());
         assertEquals("Unexpected number of attributeDefinitions", 11, entAttrDefs.size());
@@ -210,7 +210,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         assertNotNull("No entitlement displayNameAttribute", entDisplayNameAttributeDef);
         assertEquals("Wrong entitlement displayNameAttribute", QNAME_CN, entDisplayNameAttributeDef.getItemName());
 
-        assertEquals("Unexpected number of entitlement associations", 1, accountDef.getAssociationDefinitions().size());
+        assertEquals("Unexpected number of entitlement associations", 1, accountDef.getReferenceAttributeDefinitions().size());
     }
 
     private void assertAccountObjectDefinition(
@@ -227,7 +227,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
             assertEquals("Wrong kind", ShadowKindType.ACCOUNT, ((ResourceObjectTypeDefinition) accountDef).getKind());
         }
 
-        Collection<? extends ShadowSimpleAttributeDefinition<?>> accAttrsDef = accountDef.getAttributeDefinitions();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> accAttrsDef = accountDef.getSimpleAttributeDefinitions();
         assertNotNull("Null attributeDefinitions", accAttrsDef);
         assertFalse("Empty attributeDefinitions", accAttrsDef.isEmpty());
         assertEquals("Unexpected number of attributeDefinitions", 55, accAttrsDef.size());
@@ -471,7 +471,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
             assertTrue(((ResourceObjectTypeDefinition) rAccount).isDefaultForKind());
         }
 
-        Collection<? extends ShadowSimpleAttributeDefinition<?>> attrs = rAccount.getAttributeDefinitions();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> attrs = rAccount.getSimpleAttributeDefinitions();
         assertFalse(attrs.isEmpty());
 
         assertAttributeDef(attrs, SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, 1, 1, "Distinguished Name", 110,
@@ -574,7 +574,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
     private ShadowSimpleAttribute<String> createStringAttribute(QName attrName, String value) throws SchemaException {
         ShadowSimpleAttributeDefinition<String> testAttrDef =
-                ObjectFactory.createResourceAttributeDefinition(attrName, DOMUtil.XSD_STRING);
+                ObjectFactory.createSimpleAttributeDefinition(attrName, DOMUtil.XSD_STRING);
         ShadowSimpleAttribute<String> testAttr = testAttrDef.instantiate();
         testAttr.setRealValue(value);
         return testAttr;
@@ -606,9 +606,9 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         assertTrue(rAccountDef.isDefaultForKind());
 
-        Collection<? extends ShadowSimpleAttributeDefinition<?>> rAccountAttrs = rAccountDef.getAttributeDefinitions();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> rAccountAttrs = rAccountDef.getSimpleAttributeDefinitions();
         Collection<? extends NativeShadowSimpleAttributeDefinition<?>> rAccountAttrsRaw =
-                rAccountDef.getNativeObjectClassDefinition().getAttributeDefinitions();
+                rAccountDef.getNativeObjectClassDefinition().getSimpleAttributeDefinitions();
         assertFalse(rAccountAttrs.isEmpty());
 
         assertNativeAttributeDef(rAccountAttrsRaw, QNAME_DN,
@@ -656,7 +656,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         assertEquals("Wrong kind", ShadowKindType.ACCOUNT, rAccountDef.getKind());
 
-        Collection<? extends ShadowSimpleAttributeDefinition<?>> accAttrsDef = rAccountDef.getAttributeDefinitions();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> accAttrsDef = rAccountDef.getSimpleAttributeDefinitions();
         assertNotNull("Null attributeDefinitions", accAttrsDef);
         assertFalse("Empty attributeDefinitions", accAttrsDef.isEmpty());
         assertEquals("Unexpected number of attributeDefinitions", 53, accAttrsDef.size());
@@ -682,7 +682,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
 
         assertEquals("Wrong kind", ShadowKindType.ENTITLEMENT, rEntDef.getKind());
 
-        Collection<? extends ShadowSimpleAttributeDefinition<?>> entAttrDefs = rEntDef.getAttributeDefinitions();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> entAttrDefs = rEntDef.getSimpleAttributeDefinitions();
         assertNotNull("Null attributeDefinitions", entAttrDefs);
         assertFalse("Empty attributeDefinitions", entAttrDefs.isEmpty());
         assertEquals("Unexpected number of attributeDefinitions", 12, entAttrDefs.size());
@@ -692,7 +692,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         assertEquals("Wrong entitlement displayNameAttribute", QNAME_DN,
                 entDisplayNameAttributeDef.getItemName());
 
-        assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getAssociationDefinitions().size());
+        assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getReferenceAttributeDefinitions().size());
 
         ResourceAttributeContainerDefinition resAttrContainerDef = rAccountDef.toResourceAttributeContainerDefinition();
         assertNotNull("No ResourceAttributeContainerDefinition", resAttrContainerDef);

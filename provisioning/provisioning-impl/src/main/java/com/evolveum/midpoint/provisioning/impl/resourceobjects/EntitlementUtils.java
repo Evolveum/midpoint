@@ -126,7 +126,7 @@ class EntitlementUtils {
 
     /** FIXME very imprecise implementation - deals only with aux OC specification! */
     private static boolean doesMatchSubjectDelineation(
-            SimulatedShadowAssociationClassDefinition simulationDef, ProvisioningContext subjectCtx) {
+            SimulatedShadowReferenceTypeDefinition simulationDef, ProvisioningContext subjectCtx) {
         // We assume the subjectDef reflects the actual aux classes possessed by the subject shadow.
         ResourceObjectDefinition subjectDef = subjectCtx.getObjectDefinitionRequired();
         for (SimulatedAssociationClassParticipantDefinition subjectDelineation : simulationDef.getSubjects()) {

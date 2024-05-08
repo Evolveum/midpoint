@@ -18,7 +18,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 /**
  * Definition of an association class as seen by the connector (or defined in the simulated associations capability).
  */
-public interface NativeAssociationClassDefinition
+public interface NativeReferenceTypeDefinition
         extends Cloneable, Serializable, DebugDumpable {
 
     String getName();

@@ -13,14 +13,14 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedAssociationClassParticipantType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedReferenceTypeParticipantType;
 
 public abstract class SimulatedAssociationClassParticipantConfigItem
-        extends ConfigurationItem<SimulatedAssociationClassParticipantType> {
+        extends ConfigurationItem<SimulatedReferenceTypeParticipantType> {
 
     @SuppressWarnings({ "unused", "WeakerAccess" }) // called dynamically
     public SimulatedAssociationClassParticipantConfigItem(
-            @NotNull ConfigurationItem<SimulatedAssociationClassParticipantType> original) {
+            @NotNull ConfigurationItem<SimulatedReferenceTypeParticipantType> original) {
         super(original);
     }
 
@@ -38,13 +38,13 @@ public abstract class SimulatedAssociationClassParticipantConfigItem
         return children(
                 nonEmpty(value().getDelineation(), "delineations"),
                 SimulatedAssociationClassParticipantDelineationConfigItem.class,
-                SimulatedAssociationClassParticipantType.F_DELINEATION);
+                SimulatedReferenceTypeParticipantType.F_DELINEATION);
     }
 
     public static class Object extends SimulatedAssociationClassParticipantConfigItem {
 
         @SuppressWarnings("unused") // called dynamically
-        public Object(@NotNull ConfigurationItem<SimulatedAssociationClassParticipantType> original) {
+        public Object(@NotNull ConfigurationItem<SimulatedReferenceTypeParticipantType> original) {
             super(original);
         }
 
@@ -57,7 +57,7 @@ public abstract class SimulatedAssociationClassParticipantConfigItem
     public static class Subject extends SimulatedAssociationClassParticipantConfigItem {
 
         @SuppressWarnings("unused") // called dynamically
-        public Subject(@NotNull ConfigurationItem<SimulatedAssociationClassParticipantType> original) {
+        public Subject(@NotNull ConfigurationItem<SimulatedReferenceTypeParticipantType> original) {
             super(original);
         }
 

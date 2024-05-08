@@ -572,8 +572,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             ShadowAttributesContainer attributesContainer = ShadowUtil.getAttributesContainer(accountToAdd);
             if (attributesContainer != null) {
                 for (ShadowSimpleAttribute<?> attribute: attributesContainer.getAttributes()) {
-                    ShadowSimpleAttributeDefinition<?> rAttrDef = requireNonNull(rAccountDef.findSimpleAttributeDefinition(attribute.getElementName()));
-                    if (!rAttrDef.isTolerant()) {
+                    var attrDef = requireNonNull(rAccountDef.findAttributeDefinition(attribute.getElementName()));
+                    if (!attrDef.isTolerant()) {
                         throw new PolicyViolationException("Attempt to add object with non-tolerant attribute "+attribute.getElementName()+" in "+
                                 "account "+accountContext.getKey()+" during "+activityDescription);
                     }
@@ -583,8 +583,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             for(ItemDelta<?,?> modification: primaryDelta.getModifications()) {
                 if (modification.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
                     PropertyDelta<?> attrDelta = (PropertyDelta<?>) modification;
-                    ShadowSimpleAttributeDefinition<?> rAttrDef = requireNonNull(rAccountDef.findSimpleAttributeDefinition(attrDelta.getElementName()));
-                    if (!rAttrDef.isTolerant()) {
+                    var attrDef = requireNonNull(rAccountDef.findAttributeDefinition(attrDelta.getElementName()));
+                    if (!attrDef.isTolerant()) {
                         throw new PolicyViolationException("Attempt to modify non-tolerant attribute "+attrDelta.getElementName()+" in "+
                                 "account "+accountContext.getKey()+" during "+activityDescription);
                     }

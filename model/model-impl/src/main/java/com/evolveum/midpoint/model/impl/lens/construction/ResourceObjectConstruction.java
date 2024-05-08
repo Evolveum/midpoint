@@ -506,20 +506,19 @@ public abstract class ResourceObjectConstruction<
         return null;
     }
 
-    @NotNull
-    ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName associationName, Object errorCtx)
+    @NotNull ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName associationName, Object errorCtx)
             throws ConfigurationException {
         if (resourceObjectDefinition == null) {
             throw new IllegalStateException("Construction " + this + " was not evaluated:\n" + this.debugDump());
         }
-        ShadowReferenceAttributeDefinition assocDef = resourceObjectDefinition.findAssociationDefinition(associationName);
-        if (assocDef != null) {
-            return assocDef;
+        var inMain = resourceObjectDefinition.findReferenceAttributeDefinition(associationName);
+        if (inMain != null) {
+            return inMain;
         }
-        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
-            ShadowReferenceAttributeDefinition auxAssocDef = auxiliaryObjectClassDefinition.findAssociationDefinition(associationName);
-            if (auxAssocDef != null) {
-                return auxAssocDef;
+        for (var auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+            var inAux = auxiliaryObjectClassDefinition.findReferenceAttributeDefinition(associationName);
+            if (inAux != null) {
+                return inAux;
             }
         }
         throw new ConfigurationException(

@@ -277,7 +277,8 @@ public class ObjectModificationConstraintEvaluator
     }
 
     private boolean isEntitlementChange(QName assocName, ResourceObjectDefinition objectDefinition) {
-        ShadowReferenceAttributeDefinition assocDef = objectDefinition.findAssociationDefinition(assocName);
+        // FIXME reconsider this (move to real association definitions)
+        var assocDef = objectDefinition.findReferenceAttributeDefinition(assocName);
         return assocDef != null && assocDef.isEntitlement();
     }
 

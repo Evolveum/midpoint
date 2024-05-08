@@ -15,6 +15,10 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.ShortDumpable;
 
+/**
+ * NOTE: Never try to determine type (simple/reference) by querying the interfaces. The default implementation implements
+ * both interfaces. Use {@link #isSimple()} and {@link #isReference()} methods instead.
+ */
 public interface NativeShadowAttributeDefinition extends
         Cloneable, Freezable, Serializable, ShortDumpable,
         PrismItemBasicDefinition,
@@ -30,6 +34,14 @@ public interface NativeShadowAttributeDefinition extends
     ShadowReferenceParticipantRole getReferenceParticipantRole();
 
     NativeShadowAttributeDefinition clone();
+
+    boolean isSimple();
+
+    boolean isReference();
+
+    @NotNull NativeShadowSimpleAttributeDefinition<?> asSimple();
+
+    @NotNull NativeShadowReferenceAttributeDefinition asReference();
 
     interface NativeShadowAttributeDefinitionBuilder extends ItemDefinition.ItemDefinitionLikeBuilder {
 

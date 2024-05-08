@@ -118,7 +118,7 @@ public class ResourceAttributeContainerDefinitionImpl
     }
 
     private List<? extends ShadowSimpleAttributeDefinition<?>> getAttributeDefinitions() {
-        return getComplexTypeDefinition().getAttributeDefinitions();
+        return getComplexTypeDefinition().getSimpleAttributeDefinitions();
     }
 
     @Override

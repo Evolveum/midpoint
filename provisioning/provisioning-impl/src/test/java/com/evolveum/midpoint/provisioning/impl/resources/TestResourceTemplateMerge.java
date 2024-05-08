@@ -506,10 +506,10 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 .as("protected objects names")
                 .containsExactlyInAnyOrder("root", "daemon", "extra");
 
-        and("association ri:group is updated");
-        var associationDefinitions = accountDef.getAssociationDefinitions();
-        displayCollection("associations", associationDefinitions);
-        assertThat(associationDefinitions).as("association definitions").hasSize(2);
+        and("legacy association ri:group is updated");
+        var referenceAttributeDefinitions = accountDef.getReferenceAttributeDefinitions();
+        displayCollection("reference attributes", referenceAttributeDefinitions);
+        assertThat(referenceAttributeDefinitions).as("definitions of reference attributes").hasSize(2);
 
         QName groupQName = new QName(NS_RI, "group");
         var groupDef = accountDef.findAssociationDefinitionRequired(groupQName, () -> "");

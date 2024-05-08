@@ -24,7 +24,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Information about a resource attribute or association.
+ * Information about a resource attribute.
  *
  * . It is based on a "native" part, available from the connector (or from simulated associations capability definition);
  * see {@link NativeShadowAttributeDefinition}.
@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @see ShadowReferenceAttributeDefinition
  *
  * @param <SA> item that is created by the instantiation of this definition
- * @param <R> real value stored in I
+ * @param <R> real value stored in SA
  */
 public interface ShadowAttributeDefinition<SA extends ShadowAttribute<?, ?>, R>
         extends
@@ -261,4 +261,11 @@ public interface ShadowAttributeDefinition<SA extends ShadowAttribute<?, ?>, R>
     boolean isSimulated();
 
     @NotNull ShadowAttributeDefinition<SA, R> clone();
+
+    /**
+     * Provides a debug dump respective to the given layer.
+     *
+     * TODO reconsider this method
+     */
+    String debugDump(int indent, LayerType layer);
 }

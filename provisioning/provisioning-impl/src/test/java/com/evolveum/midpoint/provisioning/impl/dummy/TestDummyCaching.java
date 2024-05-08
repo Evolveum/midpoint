@@ -419,7 +419,7 @@ public class TestDummyCaching extends TestDummy {
 
     @Override
     protected @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
-        return getAccountDefaultDefinition().getAttributeDefinitions().stream()
+        return getAccountDefaultDefinition().getSimpleAttributeDefinitions().stream()
                 .map(def -> def.getItemName())
                 .toList();
     }

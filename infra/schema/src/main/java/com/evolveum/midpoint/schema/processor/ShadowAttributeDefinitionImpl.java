@@ -596,18 +596,10 @@ public abstract class ShadowAttributeDefinitionImpl<
 
     @Override
     public @NotNull Collection<ResourceObjectInboundDefinition> getRelevantInboundDefinitions() {
-        List<ResourceObjectInboundDefinition> rv = new ArrayList<>();
-        if (customizationBean instanceof ResourceObjectAssociationNewType newDefinitionBean) {
-            var inboundDefinition = ResourceObjectInboundDefinition.forAssociation(newDefinitionBean);
-            if (inboundDefinition.hasAnyInbounds()) {
-                rv.add(inboundDefinition);
-            }
-        }
-        customizationBean.getComplexProcessing().stream()
+        return customizationBean.getComplexProcessing().stream()
                 .map(bean -> ResourceObjectInboundDefinition.forComplexProcessing(bean))
                 .filter(ResourceObjectInboundDefinition::hasAnyInbounds)
-                .forEach(rv::add);
-        return rv;
+                .toList();
     }
 
     @Override

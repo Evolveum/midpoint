@@ -153,12 +153,12 @@ public class ResourceAttributeRefPanelFactory
             }
 
             if (ConstructionType.F_ASSOCIATION.equivalent(attributeWrapper.getItemName())) {
-                return rOcd.getAssociationDefinitions().stream()
+                return rOcd.getReferenceAttributeDefinitions().stream()
                         .map(ShadowReferenceAttributeDefinition::getItemName)
                         .collect(Collectors.toList());
             }
 
-            Collection<? extends ShadowSimpleAttributeDefinition<?>> attrDefs = rOcd.getAttributeDefinitions();
+            Collection<? extends ShadowSimpleAttributeDefinition<?>> attrDefs = rOcd.getSimpleAttributeDefinitions();
             return attrDefs.stream().map(a -> a.getItemName()).collect(Collectors.toList());
 
         } catch (SchemaException | ConfigurationException e) {

@@ -18,14 +18,14 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 /**
  * Association class that is backed by a native implementation.
  */
-public class NativelyProvidedShadowAssociationClassDefinition extends AbstractShadowAssociationClassDefinition {
+public class NativelyProvidedShadowReferenceTypeDefinition extends AbstractShadowReferenceTypeDefinition {
 
-    @NotNull private final NativeAssociationClassDefinition nativeClassDef;
+    @NotNull private final NativeReferenceTypeDefinition nativeClassDef;
     @NotNull private final Collection<AssociationParticipantType> subjectTypes;
     @NotNull private final Collection<AssociationParticipantType> objectTypes;
 
-    private NativelyProvidedShadowAssociationClassDefinition(
-            @NotNull NativeAssociationClassDefinition nativeClassDef,
+    private NativelyProvidedShadowReferenceTypeDefinition(
+            @NotNull NativeReferenceTypeDefinition nativeClassDef,
             @NotNull Collection<AssociationParticipantType> subjectTypes,
             @NotNull Collection<AssociationParticipantType> objectTypes) {
         super(nativeClassDef.getName(), objectTypes.iterator().next().objectDefinition);
@@ -34,9 +34,9 @@ public class NativelyProvidedShadowAssociationClassDefinition extends AbstractSh
         this.objectTypes = objectTypes;
     }
 
-    public static NativelyProvidedShadowAssociationClassDefinition create(
-            @NotNull NativeAssociationClassDefinition nativeClassDef, @NotNull ResourceSchema schema) {
-        return new NativelyProvidedShadowAssociationClassDefinition(
+    public static NativelyProvidedShadowReferenceTypeDefinition create(
+            @NotNull NativeReferenceTypeDefinition nativeClassDef, @NotNull ResourceSchema schema) {
+        return new NativelyProvidedShadowReferenceTypeDefinition(
                 nativeClassDef,
                 convertParticipants(nativeClassDef.getSubjects(), schema),
                 convertParticipants(nativeClassDef.getObjects(), schema));
@@ -44,7 +44,7 @@ public class NativelyProvidedShadowAssociationClassDefinition extends AbstractSh
 
     @NotNull
     private static Collection<AssociationParticipantType> convertParticipants(
-            @NotNull Collection<NativeAssociationClassDefinition.NativeParticipant> nativeParticipants, @NotNull ResourceSchema schema) {
+            @NotNull Collection<NativeReferenceTypeDefinition.NativeParticipant> nativeParticipants, @NotNull ResourceSchema schema) {
         return nativeParticipants.stream()
                 .map(nativeParticipant ->
                         AssociationParticipantType.forObjectClass(

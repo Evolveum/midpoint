@@ -1155,7 +1155,7 @@ public class ShadowUtil {
         getOrCreateAssociationsContainer(shadow).add(association);
     }
 
-    public static void addShadowItem(ShadowType shadow, ShadowAttribute<?, ?> item) throws SchemaException {
+    public static void addShadowAttribute(ShadowType shadow, ShadowAttribute<?, ?> item) throws SchemaException {
         if (item instanceof ShadowSimpleAttribute<?> attribute) {
             addAttribute(shadow, attribute);
         } else if (item instanceof ShadowReferenceAttribute association) {

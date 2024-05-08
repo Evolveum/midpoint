@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.config.AssociationConfigItem.AttributeBinding;
 import com.evolveum.midpoint.schema.config.ResourceObjectAssociationConfigItem;
-import com.evolveum.midpoint.schema.config.SimulatedAssociationClassConfigItem;
+import com.evolveum.midpoint.schema.config.SimulatedReferenceTypeConfigItem;
 import com.evolveum.midpoint.schema.config.SimulatedAssociationClassParticipantDelineationConfigItem;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -36,8 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssoci
 /**
  * Specifies how to simulate the association class: what are the participants, what attributes to use for the association, etc.
  */
-public abstract class SimulatedShadowAssociationClassDefinition
-        extends AbstractShadowAssociationClassDefinition
+public abstract class SimulatedShadowReferenceTypeDefinition
+        extends AbstractShadowReferenceTypeDefinition
         implements Serializable, DebugDumpable {
 
     @NotNull private final ItemName localSubjectItemName;
@@ -66,7 +66,7 @@ public abstract class SimulatedShadowAssociationClassDefinition
     /** Never empty. */
     @NotNull private final Collection<SimulatedAssociationClassParticipantDefinition> objects;
 
-    private SimulatedShadowAssociationClassDefinition(
+    private SimulatedShadowReferenceTypeDefinition(
             @NotNull String associationClassName,
             @NotNull ItemName localSubjectItemName,
             @NotNull AttributeBinding primaryAttributeBinding,
@@ -204,7 +204,7 @@ public abstract class SimulatedShadowAssociationClassDefinition
     }
 
     /** Simulation as defined in pre-4.9 way (in "association" item in resource object type definition). */
-    static class Legacy extends SimulatedShadowAssociationClassDefinition {
+    static class Legacy extends SimulatedShadowReferenceTypeDefinition {
 
         private Legacy(
                 @NotNull String associationClassName,
@@ -227,7 +227,7 @@ public abstract class SimulatedShadowAssociationClassDefinition
         /**
          * Note that the subject definition is currently being built. However, it should have all the attributes in place.
          */
-        static @NotNull SimulatedShadowAssociationClassDefinition parse(
+        static @NotNull SimulatedShadowReferenceTypeDefinition parse(
                 @NotNull ResourceObjectAssociationConfigItem.Legacy definitionCI,
                 @NotNull ResourceSchemaImpl schemaBeingParsed,
                 @NotNull ResourceObjectTypeDefinition referentialSubjectDefinition,
@@ -297,7 +297,7 @@ public abstract class SimulatedShadowAssociationClassDefinition
     }
 
     static class Modern
-            extends SimulatedShadowAssociationClassDefinition {
+            extends SimulatedShadowReferenceTypeDefinition {
 
         private Modern(
                 @NotNull String associationClassLocalName,
@@ -318,7 +318,7 @@ public abstract class SimulatedShadowAssociationClassDefinition
         }
 
         static Modern parse(
-                @NotNull SimulatedAssociationClassConfigItem simulationCI,
+                @NotNull SimulatedReferenceTypeConfigItem simulationCI,
                 @NotNull ResourceSchemaImpl schemaBeingParsed) throws ConfigurationException {
 
             var primaryBinding = simulationCI.getPrimaryAttributeBinding();
@@ -353,14 +353,14 @@ public abstract class SimulatedShadowAssociationClassDefinition
         }
 
         private static Collection<SimulatedAssociationClassParticipantDefinition> getSubjectDefinitions(
-                @NotNull SimulatedAssociationClassConfigItem simulationCI,
+                @NotNull SimulatedReferenceTypeConfigItem simulationCI,
                 @NotNull ResourceSchemaImpl resourceSchema) throws ConfigurationException {
             var delineationCIs = simulationCI.getSubject().getDelineations();
             return definitionsFromSimulationConfiguration(delineationCIs, resourceSchema);
         }
 
         private static Collection<SimulatedAssociationClassParticipantDefinition> getObjectDefinitions(
-                @NotNull SimulatedAssociationClassConfigItem simulationCI,
+                @NotNull SimulatedReferenceTypeConfigItem simulationCI,
                 @NotNull ResourceSchemaImpl resourceSchema) throws ConfigurationException {
             var delineationCIs = simulationCI.getObject().getDelineations();
             return definitionsFromSimulationConfiguration(delineationCIs, resourceSchema);

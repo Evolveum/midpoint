@@ -306,7 +306,7 @@ public class SchemaListPanel extends BasePanel<PrismObjectWrapper<ResourceType>>
             return list;
         }
 
-        for (ShadowSimpleAttributeDefinition def : selected.getDefinition().getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition def : selected.getDefinition().getSimpleAttributeDefinitions()) {
             list.add(new AttributeDto(def));
         }
         return list;

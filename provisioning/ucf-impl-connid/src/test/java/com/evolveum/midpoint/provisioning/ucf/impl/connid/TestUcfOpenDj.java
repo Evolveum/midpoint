@@ -195,7 +195,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         QName objectClassQname = OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME;
         ResourceObjectClassDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
         assertNotNull("No object class definition " + objectClassQname, accountDefinition);
-        assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.getAttributeDefinitions().isEmpty());
+        assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.getSimpleAttributeDefinitions().isEmpty());
 
         Collection<? extends ShadowSimpleAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
         assertNotNull("Null identifiers for " + objectClassQname, identifiers);

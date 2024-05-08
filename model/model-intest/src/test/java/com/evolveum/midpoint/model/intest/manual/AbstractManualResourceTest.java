@@ -818,7 +818,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         return Resource.of(resource)
                 .getCompleteSchemaRequired()
                 .findDefinitionForObjectClassRequired(RI_ACCOUNT_OBJECT_CLASS)
-                .getAllAttributesNames();
+                .getAllSimpleAttributesNames();
     }
 
     @Test

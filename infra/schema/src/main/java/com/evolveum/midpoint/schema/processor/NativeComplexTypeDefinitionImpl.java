@@ -41,7 +41,7 @@ public class NativeComplexTypeDefinitionImpl
         extends AbstractFreezable
         implements
         NativeObjectClassDefinition,
-        NativeAssociationClassDefinition,
+        NativeReferenceTypeDefinition,
         AbstractTypeDefinition,
         SerializableComplexTypeDefinition,
         NativeObjectClassUcfDefinition.Delegable,
@@ -64,15 +64,15 @@ public class NativeComplexTypeDefinitionImpl
     private String displayName;
     private Integer displayOrder;
 
-    @NotNull private final List<NativeShadowAttributeDefinitionImpl<?>> itemDefinitions = new ArrayList<>();
+    @NotNull private final List<NativeShadowAttributeDefinitionImpl<?>> attributeDefinitions = new ArrayList<>();
     //endregion
 
     //region The following applies to ASSOCIATION classes
-    /** See {@link NativeAssociationClassDefinition#getSubjects()}. */
-    @NotNull private final Set<NativeAssociationClassDefinition.NativeParticipant> subjects = new HashSet<>();
+    /** See {@link NativeReferenceTypeDefinition#getSubjects()}. */
+    @NotNull private final Set<NativeReferenceTypeDefinition.NativeParticipant> subjects = new HashSet<>();
 
-    /** See {@link NativeAssociationClassDefinition#getObjects()}. */
-    @NotNull private final Set<NativeAssociationClassDefinition.NativeParticipant> objects = new HashSet<>();
+    /** See {@link NativeReferenceTypeDefinition#getObjects()}. */
+    @NotNull private final Set<NativeReferenceTypeDefinition.NativeParticipant> objects = new HashSet<>();
     //endregion
 
     /** False for object classes, true for association classes. */
@@ -119,20 +119,20 @@ public class NativeComplexTypeDefinitionImpl
     }
 
     @Override
-    public @NotNull List<NativeShadowAttributeDefinitionImpl<?>> getItemDefinitions() {
-        return itemDefinitions;
+    public @NotNull List<NativeShadowAttributeDefinitionImpl<?>> getAttributeDefinitions() {
+        return attributeDefinitions;
     }
 
     @Override
-    public @NotNull List<? extends NativeShadowSimpleAttributeDefinition<?>> getAttributeDefinitions() {
-        return itemDefinitions.stream()
+    public @NotNull List<? extends NativeShadowSimpleAttributeDefinition<?>> getSimpleAttributeDefinitions() {
+        return attributeDefinitions.stream()
                 .filter(def -> !def.isReference())
                 .toList();
     }
 
     @Override
-    public @NotNull List<? extends NativeShadowReferenceAttributeDefinition> getAssociationDefinitions() {
-        return itemDefinitions.stream()
+    public @NotNull List<? extends NativeShadowReferenceAttributeDefinition> getReferenceAttributeDefinitions() {
+        return attributeDefinitions.stream()
                 .filter(def -> def.isReference())
                 .toList();
     }
@@ -148,12 +148,12 @@ public class NativeComplexTypeDefinitionImpl
     }
 
     private void addItemDefinition(@NotNull NativeShadowAttributeDefinitionImpl<?> definition) {
-        itemDefinitions.add(definition);
+        attributeDefinitions.add(definition);
     }
 
     @Override
     public NativeShadowSimpleAttributeDefinition<?> findSimpleAttributeDefinition(@NotNull QName attrName) {
-        return itemDefinitions.stream()
+        return attributeDefinitions.stream()
                 .filter(def -> !def.isReference())
                 .filter(def -> QNameUtil.match(def.getItemName(), attrName))
                 .findFirst()
@@ -162,7 +162,7 @@ public class NativeComplexTypeDefinitionImpl
 
     @Override
     public NativeShadowReferenceAttributeDefinition findReferenceAttributeDefinition(@NotNull QName attrName) {
-        return itemDefinitions.stream()
+        return attributeDefinitions.stream()
                 .filter(def -> def.isReference())
                 .filter(def -> QNameUtil.match(def.getItemName(), attrName))
                 .findFirst()
@@ -188,10 +188,10 @@ public class NativeComplexTypeDefinitionImpl
             @NotNull ShadowReferenceParticipantRole role) {
         switch (role) {
             case SUBJECT:
-                subjects.add(new NativeAssociationClassDefinition.NativeParticipant(objectClassName, associationName));
+                subjects.add(new NativeReferenceTypeDefinition.NativeParticipant(objectClassName, associationName));
                 break;
             case OBJECT:
-                objects.add(new NativeAssociationClassDefinition.NativeParticipant(objectClassName, associationName));
+                objects.add(new NativeReferenceTypeDefinition.NativeParticipant(objectClassName, associationName));
                 break;
             default:
                 throw new AssertionError(role);
@@ -272,7 +272,7 @@ public class NativeComplexTypeDefinitionImpl
 
     @Override
     public @NotNull Collection<? extends SerializableItemDefinition> getDefinitionsToSerialize() {
-        return itemDefinitions;
+        return attributeDefinitions;
     }
 
     @Override
@@ -319,7 +319,7 @@ public class NativeComplexTypeDefinitionImpl
         clone.association = association;
         // objects
         clone.ucfData().copyFrom(ucfData);
-        itemDefinitions.forEach(def -> clone.addItemDefinition(def.clone()));
+        attributeDefinitions.forEach(def -> clone.addItemDefinition(def.clone()));
         // associations
         clone.subjects.addAll(subjects);
         clone.objects.addAll(objects);
@@ -333,7 +333,7 @@ public class NativeComplexTypeDefinitionImpl
         if (association) {
             sb.append(subjects).append(" <-> ").append(objects);
         } else {
-            sb.append(itemDefinitions.size()).append(" item definitions");
+            sb.append(attributeDefinitions.size()).append(" item definitions");
         }
         sb.append("}");
         return sb.toString();
@@ -345,7 +345,7 @@ public class NativeComplexTypeDefinitionImpl
         if (!association) {
             DebugUtil.debugDumpWithLabelLn(sb, "UCF data", ucfData, indent + 1);
             DebugUtil.debugDumpLabelLn(sb, "Items", indent + 1);
-            sb.append(DebugUtil.debugDump(itemDefinitions, indent + 1));
+            sb.append(DebugUtil.debugDump(attributeDefinitions, indent + 1));
         } else {
             DebugUtil.debugDumpLabelLn(sb, "Subjects", indent + 1);
             sb.append(DebugUtil.debugDump(subjects, indent + 1));
@@ -365,6 +365,6 @@ public class NativeComplexTypeDefinitionImpl
     protected void performFreeze() {
         super.performFreeze();
         ucfData.freeze();
-        itemDefinitions.forEach(NativeShadowAttributeDefinitionImpl::freeze);
+        attributeDefinitions.forEach(NativeShadowAttributeDefinitionImpl::freeze);
     }
 }

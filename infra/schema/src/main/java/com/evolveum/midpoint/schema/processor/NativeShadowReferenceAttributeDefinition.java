@@ -19,7 +19,7 @@ public interface NativeShadowReferenceAttributeDefinition
     @NotNull QName getTypeName();
 
     /** This is more understandable for clients. */
-    @NotNull default QName getReferenceClassName() {
+    @NotNull default QName getReferenceTypeName() {
         return getTypeName();
     }
 }

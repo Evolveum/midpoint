@@ -599,7 +599,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
                 optionsBuilder.setReturnDefaultAttributes(true);
             } else {
                 // Add all the attributes that are defined as "returned by default" by the schema
-                for (var itemDef : resourceObjectDefinition.getShadowItemDefinitions()) {
+                for (var itemDef : resourceObjectDefinition.getAttributeDefinitions()) {
                     if (itemDef.isReturnedByDefault()) {
                         icfAttrsToGet.add(
                                 ucfAttributeNameToConnId(itemDef));

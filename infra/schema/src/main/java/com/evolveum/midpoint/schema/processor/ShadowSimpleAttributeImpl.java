@@ -228,7 +228,7 @@ public class ShadowSimpleAttributeImpl<T> extends PrismPropertyImpl<T> implement
     }
 
     @Override
-    public void addValueSkipUniquenessCheck(PrismPropertyValue<T> value) throws SchemaException {
+    public void addValueSkipUniquenessCheck(PrismPropertyValue<T> value) {
         // This also recomputes the value, so e.g. computes the "norm" for polystrings.
         // It may be good or not; nevertheless, it makes TestOpenDjDumber.test478b to pass.
         addValue(value, false);

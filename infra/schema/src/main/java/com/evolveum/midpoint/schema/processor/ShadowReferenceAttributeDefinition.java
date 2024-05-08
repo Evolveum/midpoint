@@ -56,9 +56,9 @@ public interface ShadowReferenceAttributeDefinition
 
     ContainerDelta<ShadowAssociationValueType> createEmptyDelta();
 
-    SimulatedShadowAssociationClassDefinition getSimulationDefinition();
+    SimulatedShadowReferenceTypeDefinition getSimulationDefinition();
 
-    SimulatedShadowAssociationClassDefinition getSimulationDefinitionRequired();
+    SimulatedShadowReferenceTypeDefinition getSimulationDefinitionRequired();
 
     boolean isEntitlement();
 

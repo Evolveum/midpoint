@@ -16,34 +16,18 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Provides information about definitions of associations.
+ *
+ * Note that these are real
  */
 public interface AssociationDefinitionStore {
 
-    /**
-     * Returns definitions of all associations as an unmodifiable collection.
-     *
-     * Note: these items are _not_ included in getDefinitions.
-     * (BTW, ResourceAssociationDefinition is not a subtype of ItemDefinition, not even of Definition.)
-     */
-    @NotNull List<? extends ShadowReferenceAttributeDefinition> getAssociationDefinitions();
+    ShadowReferenceAttributeDefinition findReferenceAttributeDefinition(QName name);
 
-    default ShadowReferenceAttributeDefinition findAssociationDefinition(QName name) {
-        return getAssociationDefinitions().stream()
-                .filter(a -> QNameUtil.match(a.getItemName(), name))
-                .findFirst().orElse(null);
-    }
-
-    /**
-     * Returns true if there is an association with the given name defined.
-     */
-    default boolean containsAssociationDefinition(@NotNull QName associationName) {
-        return findAssociationDefinition(associationName) != null;
-    }
+    @NotNull List<? extends ShadowReferenceAttributeDefinition> getReferenceAttributeDefinitions();
 
     default ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName name) throws SchemaException {
         return findAssociationDefinitionRequired(name, () -> "");
@@ -51,15 +35,16 @@ public interface AssociationDefinitionStore {
 
     default ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName name, Supplier<String> contextSupplier)
             throws SchemaException {
-        ShadowReferenceAttributeDefinition def = findAssociationDefinition(name);
+        ShadowReferenceAttributeDefinition def = findReferenceAttributeDefinition(name);
         if (def == null) {
-            throw new SchemaException("No definition of association named '" + name + "' in " + this + contextSupplier.get());
+            throw new SchemaException("No definition of association (reference attribute) named '%s' in %s%s".formatted(
+                    name, this, contextSupplier.get()));
         }
         return def;
     }
 
     default @NotNull Collection<QName> getNamesOfAssociations() {
-        return getAssociationDefinitions().stream()
+        return getReferenceAttributeDefinitions().stream()
                 .map(ShadowReferenceAttributeDefinition::getItemName)
                 .collect(Collectors.toCollection(HashSet::new));
     }

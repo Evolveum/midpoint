@@ -260,7 +260,7 @@ public class SynchronizationPolicyFactory {
             @NotNull CorrelationDefinitionType explicitDefinition,
             @NotNull ResourceType resource) throws ConfigurationException {
         CorrelationDefinitionType cloned = null;
-        for (ShadowSimpleAttributeDefinition<?> attributeDefinition : typeDef.getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition<?> attributeDefinition : typeDef.getSimpleAttributeDefinitions()) {
             ItemCorrelatorDefinitionType correlatorDefBean = attributeDefinition.getCorrelatorDefinition();
             if (correlatorDefBean != null) {
                 if (cloned == null) {

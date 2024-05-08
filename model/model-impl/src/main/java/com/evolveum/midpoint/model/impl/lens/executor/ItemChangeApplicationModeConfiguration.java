@@ -71,7 +71,7 @@ public class ItemChangeApplicationModeConfiguration {
     public static ItemChangeApplicationModeConfiguration of(ResourceObjectDefinition objectDefinition) {
         PathKeyedMap<ItemChangeApplicationModeType> modeMap = new PathKeyedMap<>();
         if (objectDefinition != null) {
-            for (ShadowSimpleAttributeDefinition<?> attrDef : objectDefinition.getAttributeDefinitions()) {
+            for (ShadowSimpleAttributeDefinition<?> attrDef : objectDefinition.getSimpleAttributeDefinitions()) {
                 ItemChangeApplicationModeType mode = attrDef.getChangeApplicationMode();
                 if (mode != null) {
                     modeMap.put(ShadowType.F_ATTRIBUTES.append(attrDef.getItemName()), mode);

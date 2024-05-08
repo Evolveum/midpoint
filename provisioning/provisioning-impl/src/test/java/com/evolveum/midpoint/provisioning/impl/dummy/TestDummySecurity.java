@@ -80,8 +80,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
     private <T> void setAttribute(PrismObject<ShadowType> account, String attrName, T val) throws SchemaException {
         PrismContainer<Containerable> attrsCont = account.findContainer(ShadowType.F_ATTRIBUTES);
-        ShadowSimpleAttribute<T> attr = ObjectFactory.createResourceAttribute(
-            dummyResourceCtl.getAttributeQName(attrName), null);
+        ShadowSimpleAttribute<T> attr = ObjectFactory.createSimpleAttribute(dummyResourceCtl.getAttributeQName(attrName));
         attr.setRealValue(val);
         attrsCont.add(attr);
     }

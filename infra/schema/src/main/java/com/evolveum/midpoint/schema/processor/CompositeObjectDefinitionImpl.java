@@ -57,10 +57,7 @@ public class CompositeObjectDefinitionImpl
     @NotNull private final Collection<? extends ResourceObjectDefinition> auxiliaryDefinitions;
 
     /** Lazily computed, but only when this instance is immutable. */
-    private volatile List<ShadowSimpleAttributeDefinition<?>> allAttributeDefinitions;
-
-    /** Same as {@link #allAttributeDefinitions} but also for associations. */
-    private volatile List<ShadowAttributeDefinition<?, ?>> allShadowAttributeDefinitions;
+    private volatile List<? extends ShadowAttributeDefinition<?, ?>> allAttributeDefinitions;
 
     private PrismObjectDefinition<ShadowType> prismObjectDefinition;
 
@@ -247,13 +244,6 @@ public class CompositeObjectDefinitionImpl
         return structuralDefinition.getSecondaryIdentifiersNames();
     }
 
-    // TODO - ok???
-    @NotNull
-    @Override
-    public List<? extends ShadowReferenceAttributeDefinition> getAssociationDefinitions() {
-        return structuralDefinition.getAssociationDefinitions();
-    }
-
     @Override
     public @NotNull Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
         return structuralDefinition.getProtectedObjectPatterns();
@@ -358,7 +348,7 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull synchronized List<? extends ShadowSimpleAttributeDefinition<?>> getAttributeDefinitions() {
+    public synchronized @NotNull List<? extends ShadowAttributeDefinition<?, ?>> getAttributeDefinitions() {
         if (auxiliaryDefinitions.isEmpty()) {
             return structuralDefinition.getAttributeDefinitions();
         }
@@ -367,7 +357,7 @@ public class CompositeObjectDefinitionImpl
             return allAttributeDefinitions;
         }
 
-        List<ShadowSimpleAttributeDefinition<?>> collectedDefinitions = collectAttributeDefinitions();
+        List<? extends ShadowAttributeDefinition<?, ?>> collectedDefinitions = collectAttributeDefinitions();
         if (isImmutable()) {
             allAttributeDefinitions = collectedDefinitions;
         } else {
@@ -377,71 +367,71 @@ public class CompositeObjectDefinitionImpl
         return collectedDefinitions;
     }
 
-    private @NotNull List<ShadowSimpleAttributeDefinition<?>> collectAttributeDefinitions() {
+    private @NotNull List<? extends ShadowAttributeDefinition<?, ?>> collectAttributeDefinitions() {
         // Adds all attribute definitions from aux OCs that are not already known.
-        ArrayList<ShadowSimpleAttributeDefinition<?>> collectedDefinitions =
+        ArrayList<ShadowAttributeDefinition<?, ?>> collectedDefinitions =
                 new ArrayList<>(structuralDefinition.getAttributeDefinitions());
         for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
-            for (ShadowSimpleAttributeDefinition<?> auxRAttrDef : auxiliaryObjectClassDefinition.getAttributeDefinitions()) {
-                boolean shouldAdd = true;
-                for (ShadowSimpleAttributeDefinition<?> def : collectedDefinitions) {
-                    if (def.getItemName().equals(auxRAttrDef.getItemName())) { // FIXME what about case in-sensitiveness?
-                        shouldAdd = false;
-                        break;
-                    }
-                }
-                if (shouldAdd) {
-                    collectedDefinitions.add(auxRAttrDef);
-                }
-            }
-        }
-        return collectedDefinitions;
-    }
-
-    @Override
-    public @NotNull synchronized Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions() {
-        if (auxiliaryDefinitions.isEmpty()) {
-            return structuralDefinition.getShadowItemDefinitions();
-        }
-
-        if (allShadowAttributeDefinitions != null) {
-            return allShadowAttributeDefinitions;
-        }
-
-        List<ShadowAttributeDefinition<?, ?>> collectedDefinitions = collectShadowItemDefinitions();
-        if (isImmutable()) {
-            allShadowAttributeDefinitions = collectedDefinitions;
-        } else {
-            // it's not safe to cache the definitions if this instance is mutable
-        }
-
-        return collectedDefinitions;
-    }
-
-    private @NotNull List<ShadowAttributeDefinition<?, ?>> collectShadowItemDefinitions() {
-        // Adds all definitions from aux OCs that are not already known.
-        ArrayList<ShadowAttributeDefinition<?, ?>> collectedDefinitions =
-                new ArrayList<>(structuralDefinition.getShadowItemDefinitions());
-        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
-            for (ShadowAttributeDefinition<?, ?> auxDef : auxiliaryObjectClassDefinition.getShadowItemDefinitions()) {
+            for (var auxAttrDef : auxiliaryObjectClassDefinition.getSimpleAttributeDefinitions()) {
                 boolean shouldAdd = true;
                 for (var def : collectedDefinitions) {
-                    if (def.getItemName().equals(auxDef.getItemName())) { // FIXME what about case in-sensitiveness?
+                    if (def.getItemName().equals(auxAttrDef.getItemName())) { // FIXME what about case in-sensitiveness?
                         shouldAdd = false;
                         break;
                     }
                 }
                 if (shouldAdd) {
-                    collectedDefinitions.add(auxDef);
+                    collectedDefinitions.add(auxAttrDef);
                 }
             }
         }
         return collectedDefinitions;
     }
+
+//    @Override
+//    public @NotNull synchronized Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions() {
+//        if (auxiliaryDefinitions.isEmpty()) {
+//            return structuralDefinition.getShadowItemDefinitions();
+//        }
+//
+//        if (allShadowAttributeDefinitions != null) {
+//            return allShadowAttributeDefinitions;
+//        }
+//
+//        List<ShadowAttributeDefinition<?, ?>> collectedDefinitions = collectShadowItemDefinitions();
+//        if (isImmutable()) {
+//            allShadowAttributeDefinitions = collectedDefinitions;
+//        } else {
+//            // it's not safe to cache the definitions if this instance is mutable
+//        }
+//
+//        return collectedDefinitions;
+//    }
+//
+//    private @NotNull List<ShadowAttributeDefinition<?, ?>> collectShadowItemDefinitions() {
+//        // Adds all definitions from aux OCs that are not already known.
+//        ArrayList<ShadowAttributeDefinition<?, ?>> collectedDefinitions =
+//                new ArrayList<>(structuralDefinition.getShadowItemDefinitions());
+//        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
+//            for (ShadowAttributeDefinition<?, ?> auxDef : auxiliaryObjectClassDefinition.getShadowItemDefinitions()) {
+//                boolean shouldAdd = true;
+//                for (var def : collectedDefinitions) {
+//                    if (def.getItemName().equals(auxDef.getItemName())) { // FIXME what about case in-sensitiveness?
+//                        shouldAdd = false;
+//                        break;
+//                    }
+//                }
+//                if (shouldAdd) {
+//                    collectedDefinitions.add(auxDef);
+//                }
+//            }
+//        }
+//        return collectedDefinitions;
+//    }
 
     @Override
     public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
-        return getAttributeDefinitions();
+        return getSimpleAttributeDefinitions();
     }
 
     @Override

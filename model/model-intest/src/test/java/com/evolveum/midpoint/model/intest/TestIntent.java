@@ -16,6 +16,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 
@@ -67,6 +68,9 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        var testResult = testResource(RESOURCE_DUMMY_OID, initTask, initResult);
+        assertSuccess(testResult);
+
         addObject(SHADOW_GROUP_DUMMY_TESTERS_FILE, initTask, initResult);
 
         initTestObjects(initTask, initResult,
@@ -74,6 +78,9 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
         guestPrivilege = new DummyPrivilege("guest");
         RESOURCE_DUMMY_INTENTS.controller.getDummyResource().addPrivilege(guestPrivilege);
+
+        var schema = ResourceSchemaFactory.getCompleteSchema(getDummyResourceType());
+        displayDumpable("dummy schema", schema);
 
         rememberSteadyResources();
     }
@@ -141,9 +148,13 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         when("user is assigned 'test' account");
-        executeChanges(
+        traced(createModelAndProvisioningLoggingTracingProfile(),
+                () -> executeChanges(
                 createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, ACCOUNT_INTENT_TEST, true),
-                null, task, result);
+                null, task, result));
+//        executeChanges(
+//                createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, ACCOUNT_INTENT_TEST, true),
+//                null, task, result);
 
         // THEN
         then();

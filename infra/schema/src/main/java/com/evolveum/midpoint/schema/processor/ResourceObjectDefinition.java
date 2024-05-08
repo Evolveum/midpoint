@@ -524,27 +524,8 @@ public interface ResourceObjectDefinition
         }
     }
 
-    /** TODO ... ignoreCase will be part of the schema, soon ... */
-    default ShadowAttributeDefinition<?, ?> findShadowItemDefinitionRequired(
-            @NotNull ItemName itemName, boolean ignoreCase, Object errorCtx) throws SchemaException {
-
-        var attributeDefinition = findSimpleAttributeDefinition(itemName, ignoreCase);
-        var associationDefinition = findAssociationDefinition(itemName);
-
-        stateCheck(attributeDefinition == null || associationDefinition == null,
-                "'%s' is both an attribute and an association in '%s' (should be checked already)",
-                itemName, this);
-        if (attributeDefinition != null) {
-            return attributeDefinition;
-        } else if (associationDefinition != null) {
-            return associationDefinition;
-        } else {
-            throw new SchemaException("Unknown attribute/association '%s' in '%s'; %s".formatted(itemName, this, errorCtx));
-        }
-    }
-
-    /** Returns both attribute and association definitions. */
-    @NotNull Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions();
+//    /** Returns both attribute and association definitions. */
+//    @NotNull Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions();
 
     default @NotNull ShadowAttributesComplexTypeDefinition getAttributesComplexTypeDefinition() {
         return ShadowAttributesComplexTypeDefinitionImpl.of(this);
@@ -577,5 +558,16 @@ public interface ResourceObjectDefinition
     @Override
     default boolean canRepresent(QName typeName) {
         return QNameUtil.match(typeName, getTypeName());
+    }
+
+    @Override
+    @NotNull
+    default List<? extends ShadowReferenceAttributeDefinition> getReferenceAttributeDefinitions() {
+        return AttributeDefinitionStore.super.getReferenceAttributeDefinitions();
+    }
+
+    @Override
+    default ShadowReferenceAttributeDefinition findReferenceAttributeDefinition(QName name) {
+        return AttributeDefinitionStore.super.findReferenceAttributeDefinition(name);
     }
 }

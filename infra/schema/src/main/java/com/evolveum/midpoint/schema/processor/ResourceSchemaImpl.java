@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
@@ -48,7 +49,7 @@ public class ResourceSchemaImpl
     @NotNull final NativeResourceSchema nativeSchema;
 
     /**
-     * All known association classes, native or simulated (modern). Legacy simulated associations are not here.
+     * All known reference types, native or simulated (modern). Legacy simulated associations are not here.
      *
      * Indexed by the local name.
      * Note that these are not among the definitions, because they are not "prismified".
@@ -57,7 +58,7 @@ public class ResourceSchemaImpl
      *
      * TODO make the collection freezable
      */
-    @NotNull private final Map<String, AbstractShadowAssociationClassDefinition> associationClassDefinitionsMap = new HashMap<>();
+    @NotNull private final Map<String, AbstractShadowReferenceTypeDefinition> referenceTypeDefinitionMap = new HashMap<>();
 
     private static final LayerType DEFAULT_LAYER = LayerType.MODEL;
 
@@ -106,33 +107,39 @@ public class ResourceSchemaImpl
         return nativeSchema.serializeToXsd();
     }
 
-    void addAssociationClassDefinition(@NotNull AbstractShadowAssociationClassDefinition definition)
+    void addReferenceTypeDefinition(@NotNull AbstractShadowReferenceTypeDefinition definition)
             throws ConfigurationException {
-        var existing = associationClassDefinitionsMap.put(definition.getLocalName(), definition);
+        var existing = referenceTypeDefinitionMap.put(definition.getLocalName(), definition);
         configCheck(existing == null,
-                "Duplicate definition of association class %s in %s",
+                "Duplicate definition of reference type %s in %s",
                 definition.getLocalName(), this);
     }
 
-    private @Nullable AbstractShadowAssociationClassDefinition getAssociationClassDefinition(@NotNull String name) {
-        return associationClassDefinitionsMap.get(name);
+    private @Nullable AbstractShadowReferenceTypeDefinition getReferenceTypeDefinition(@NotNull String name) {
+        return referenceTypeDefinitionMap.get(name);
     }
 
-    @Nullable
-    AbstractShadowAssociationClassDefinition getAssociationClassDefinition(@NotNull QName name) {
-        return getAssociationClassDefinition(QNameUtil.getLocalPartCheckingNamespace(name, NS_RI));
+    @Nullable AbstractShadowReferenceTypeDefinition getReferenceTypeDefinition(@NotNull QName name) {
+        return getReferenceTypeDefinition(QNameUtil.getLocalPartCheckingNamespace(name, NS_RI));
     }
 
-    @NotNull Collection<AbstractShadowAssociationClassDefinition> getAssociationClasses() {
-        return associationClassDefinitionsMap.values();
+    @NotNull AbstractShadowReferenceTypeDefinition getReferenceTypeDefinitionRequired(@NotNull QName name, Object errorCtx)
+            throws ConfigurationException {
+        return MiscUtil.configNonNull(
+                getReferenceTypeDefinition(QNameUtil.getLocalPartCheckingNamespace(name, NS_RI)),
+                "Unknown reference type '%s' in %s %s", name, this, errorCtx);
+    }
+
+    @NotNull Collection<AbstractShadowReferenceTypeDefinition> getReferenceTypes() {
+        return referenceTypeDefinitionMap.values();
     }
 
     @Override
     protected void extendDebugDump(StringBuilder sb, int indent) {
         super.extendDebugDump(sb, indent);
-        if (!associationClassDefinitionsMap.isEmpty()) {
+        if (!referenceTypeDefinitionMap.isEmpty()) {
             sb.append("\n");
-            sb.append(DebugUtil.debugDump(associationClassDefinitionsMap.values(), indent, false));
+            sb.append(DebugUtil.debugDump(referenceTypeDefinitionMap.values(), indent, false));
         }
     }
 
@@ -173,7 +180,7 @@ public class ResourceSchemaImpl
 
     private void copyContent(ResourceSchemaImpl target) {
         super.copyContent(target);
-        target.associationClassDefinitionsMap.putAll(associationClassDefinitionsMap);
+        target.referenceTypeDefinitionMap.putAll(referenceTypeDefinitionMap);
     }
 
     /**

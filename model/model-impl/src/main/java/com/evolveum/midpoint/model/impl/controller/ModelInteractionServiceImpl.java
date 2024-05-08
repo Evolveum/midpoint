@@ -402,7 +402,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         // Let's work on the copied list, as we modify (replace = delete+add) the definitions in the object definition.
         List<? extends ShadowSimpleAttributeDefinition<?>> definitionsCopy =
-                new ArrayList<>(objectDefinition.getAttributeDefinitions());
+                new ArrayList<>(objectDefinition.getSimpleAttributeDefinitions());
         for (ShadowSimpleAttributeDefinition<?> rAttrDef : definitionsCopy) {
             ItemPath attributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, rAttrDef.getItemName());
             AuthorizationDecisionType attributeReadDecision =

@@ -70,12 +70,12 @@ public class SchemaHandlingConfigItem
      *
      * Maybe we can remove this method, as we migrated the beans to config items here.
      */
-    public void checkAttributeNames() throws ConfigurationException {
+    public void checkSyntaxOfAttributeNames() throws ConfigurationException {
         for (var objectClassDefCI : getObjectClasses()) {
-            objectClassDefCI.checkAttributeNames();
+            objectClassDefCI.checkSyntaxOfAttributeNames();
         }
         for (var objectTypeDefCI : getAllObjectTypes()) {
-            objectTypeDefCI.checkAttributeNames();
+            objectTypeDefCI.checkSyntaxOfAttributeNames();
         }
     }
 

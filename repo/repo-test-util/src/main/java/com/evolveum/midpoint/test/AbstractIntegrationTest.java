@@ -596,7 +596,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         for (Item<?, ?> attr : attrCont.getValue().getItems()) {
             if (attr instanceof PrismProperty<?> && attr.getDefinition() == null) {
                 ShadowSimpleAttributeDefinition<String> attrDef =
-                        ObjectFactory.createResourceAttributeDefinition(attr.getElementName(), DOMUtil.XSD_STRING);
+                        ObjectFactory.createSimpleAttributeDefinition(attr.getElementName(), DOMUtil.XSD_STRING);
                 //noinspection unchecked,rawtypes
                 ((PrismProperty<?>) attr).setDefinition((PrismPropertyDefinition) attrDef);
             }

@@ -255,7 +255,7 @@ public final class ResourceObjectTypeDefinitionImpl
         }
         ResourceObjectTypeDefinitionImpl that = (ResourceObjectTypeDefinitionImpl) o;
         return attributeDefinitions.equals(that.attributeDefinitions)
-                && associationDefinitions.equals(that.associationDefinitions)
+//                && associationDefinitions.equals(that.associationDefinitions)
                 && primaryIdentifiersNames.equals(that.primaryIdentifiersNames)
                 && secondaryIdentifiersNames.equals(that.secondaryIdentifiersNames)
                 && refinedObjectClassDefinition.equals(that.refinedObjectClassDefinition)
@@ -406,7 +406,7 @@ public final class ResourceObjectTypeDefinitionImpl
 
     @Override
     public boolean hasAnyInbounds() {
-        return getShadowItemDefinitions().stream()
+        return getAttributeDefinitions().stream()
                 .anyMatch(def -> def.hasInboundMapping());
     }
 }

@@ -253,19 +253,19 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         Collection<ResourceObjectDefinition> auxiliaryObjectClassDefinitions = projCtx.getAuxiliaryObjectClassDefinitions();
         for (QName deleteAuxOcName: deletedAuxObjectClassNames) {
             ResourceObjectDefinition auxOcDef = refinedResourceSchema.findDefinitionForObjectClassRequired(deleteAuxOcName);
-            for (ShadowSimpleAttributeDefinition<?> auxAttrDef: auxOcDef.getAttributeDefinitions()) {
+            for (ShadowSimpleAttributeDefinition<?> auxAttrDef: auxOcDef.getSimpleAttributeDefinitions()) {
                 QName auxAttrName = auxAttrDef.getItemName();
                 if (attributesToDelete.contains(auxAttrName)) {
                     continue;
                 }
-                var structuralAttrDef = structuralObjectDefinition.findSimpleAttributeDefinition(auxAttrName);
+                var structuralAttrDef = structuralObjectDefinition.findAttributeDefinition(auxAttrName);
                 if (structuralAttrDef == null) {
                     boolean found = false;
                     for (ResourceObjectDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
                         if (QNameUtil.contains(deletedAuxObjectClassNames, auxiliaryObjectClassDefinition.getTypeName())) {
                             continue;
                         }
-                        var existingAuxAttrDef = auxiliaryObjectClassDefinition.findSimpleAttributeDefinition(auxAttrName);
+                        var existingAuxAttrDef = auxiliaryObjectClassDefinition.findAttributeDefinition(auxAttrName);
                         if (existingAuxAttrDef != null) {
                             found = true;
                             break;

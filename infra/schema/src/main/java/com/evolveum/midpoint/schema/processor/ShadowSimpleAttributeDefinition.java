@@ -83,13 +83,6 @@ public interface ShadowSimpleAttributeDefinition<T>
 
     @NotNull PrismPropertyDefinition.PrismPropertyDefinitionMutator<T> mutator();
 
-    /**
-     * Provides a debug dump respective to the given layer.
-     *
-     * TODO reconsider this method
-     */
-    String debugDump(int indent, LayerType layer);
-
 //    /**
 //     * Creates a copy of the definition, with a given customizer applied to the _raw_ part of the definition.
 //     *

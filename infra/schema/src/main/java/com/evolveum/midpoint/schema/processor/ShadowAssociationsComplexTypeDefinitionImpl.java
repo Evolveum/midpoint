@@ -34,7 +34,7 @@ class ShadowAssociationsComplexTypeDefinitionImpl
 
     @Override
     public @NotNull List<? extends ShadowReferenceAttributeDefinition> getDefinitions() {
-        return objectDefinition.getAssociationDefinitions();
+        return objectDefinition.getReferenceAttributeDefinitions();
     }
 
     @Override
@@ -53,13 +53,12 @@ class ShadowAssociationsComplexTypeDefinitionImpl
                 objectDefinition.clone());
     }
 
-    @Override
-    public @NotNull List<? extends ShadowReferenceAttributeDefinition> getAssociationDefinitions() {
-        return objectDefinition.getAssociationDefinitions();
+    public @NotNull List<? extends ShadowReferenceAttributeDefinition> getReferenceAttributeDefinitions() {
+        return objectDefinition.getReferenceAttributeDefinitions();
     }
 
     @Override
     public String toString() {
-        return "SAssocCTD (" + getAssociationDefinitions().size() + " associations) in " + objectDefinition;
+        return "SAssocCTD (" + getReferenceAttributeDefinitions().size() + " associations) in " + objectDefinition;
     }
 }

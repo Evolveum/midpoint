@@ -8,7 +8,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.*;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdTypeMapper.connIdTypeToXsdTypeInfo;
-import static com.evolveum.midpoint.schema.processor.ObjectFactory.createNativeItemDefinition;
+import static com.evolveum.midpoint.schema.processor.ObjectFactory.createNativeAttributeDefinition;
 
 import java.util.*;
 import javax.xml.namespace.QName;
@@ -86,7 +86,7 @@ class ConnIdSchemaParser {
             }
         }
 
-        schemaBuilder.computeAssociationClasses();
+        schemaBuilder.computeReferenceTypes();
 
         NativeResourceSchema nativeSchema = schemaBuilder.getObjectBuilt();
         nativeSchema.freeze();
@@ -158,7 +158,7 @@ class ConnIdSchemaParser {
             for (AttributeInfo connIdAttrInfo : connIdClassInfo.getAttributeInfo()) {
                 boolean isSpecial = specialAttributes.updateWithAttribute(connIdAttrInfo);
                 if (isSpecial) {
-                    continue; // Skip this attribute, capability is sufficient
+                    continue; // Skip this attribute, the capability presence is sufficient
                 }
                 var xsdAttrName = connIdAttributeNameToUcf(
                         connIdAttrInfo.getName(), connIdAttrInfo.getNativeName(), this::resolveFrameworkName);
@@ -178,7 +178,7 @@ class ConnIdSchemaParser {
             if (uidDefinition == null) {
                 // Every object has UID in ConnId, therefore add a default definition if no other was specified.
                 // Uid is a primary identifier of every object (this is the ConnId way).
-                uidDefinition = createNativeItemDefinition(SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING);
+                uidDefinition = createNativeAttributeDefinition(SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING);
                 uidDefinition.setMinOccurs(0); // It must not be present on create hence it cannot be mandatory.
                 uidDefinition.setMaxOccurs(1);
                 uidDefinition.setReadOnly();
@@ -225,7 +225,7 @@ class ConnIdSchemaParser {
 
             QName xsdTypeName = xsdTypeInfo.xsdTypeName();
 
-            NativeShadowAttributeDefinitionImpl<?> mpItemDef = createNativeItemDefinition(xsdItemName, xsdTypeName);
+            NativeShadowAttributeDefinitionImpl<?> mpItemDef = createNativeAttributeDefinition(xsdItemName, xsdTypeName);
 
             var participantRole = xsdTypeInfo.associationParticipantRole();
             if (participantRole == null) {

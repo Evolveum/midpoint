@@ -36,7 +36,7 @@ class ShadowAttributesComplexTypeDefinitionImpl
 
     @Override
     public @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getDefinitions() {
-        return objectDefinition.getAttributeDefinitions();
+        return objectDefinition.getSimpleAttributeDefinitions();
     }
 
     @Override
@@ -56,7 +56,7 @@ class ShadowAttributesComplexTypeDefinitionImpl
     }
 
     @Override
-    public @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getAttributeDefinitions() {
+    public @NotNull List<? extends ShadowAttributeDefinition<?, ?>> getAttributeDefinitions() {
         return objectDefinition.getAttributeDefinitions();
     }
 
@@ -82,6 +82,6 @@ class ShadowAttributesComplexTypeDefinitionImpl
 
     @Override
     public String toString() {
-        return "RACTD (" + getAttributeDefinitions().size() + " attributes) in " + objectDefinition;
+        return "RACTD (" + getSimpleAttributeDefinitions().size() + " attributes) in " + objectDefinition;
     }
 }

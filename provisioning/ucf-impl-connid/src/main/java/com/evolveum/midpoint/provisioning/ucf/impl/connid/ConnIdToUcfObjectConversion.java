@@ -363,13 +363,13 @@ class ConnIdToUcfObjectConversion {
 
             // We have no ConnId definition at hand to distinguish between attributes and associations.
             // We could do something with the value(s) but in theory, there can be no values.
-            var mpDefinition = resourceObjectDefinition.findShadowItemDefinitionRequired(
+            var mpDefinition = resourceObjectDefinition.findShadowAttributeDefinitionRequired(
                     convertedAttrName,
                     getResourceSchema().isCaseIgnoreAttributeNames(),
                     lazy(() -> "original ConnId name: '%s' in resource object identified by %s".formatted(
                             connIdAttrName, connectorObjectFragment.getIdentification())));
 
-            ShadowAttribute<?, ?> convertedItem = mpDefinition.instantiate();
+            ShadowAttribute<?, ?> convertedAttr = mpDefinition.instantiate();
             var expectedClass = resolvePrimitiveIfNecessary(mpDefinition.getTypeClass());
 
             // Note: we skip uniqueness checks here because the attribute in the resource object is created from scratch.
@@ -387,14 +387,14 @@ class ConnIdToUcfObjectConversion {
                             "The value '%s' does not conform to the definition %s: expected type: %s, actual type: %s",
                             convertedValue, mpDefinition, expectedClass, realClass);
                     //noinspection unchecked,rawtypes
-                    ((ShadowAttribute) convertedItem).addValueSkipUniquenessCheck(convertedValue);
+                    ((ShadowAttribute) convertedAttr).addValueSkipUniquenessCheck(convertedValue);
                 }
             }
 
-            convertedItem.setIncomplete(ConnIdAttributeUtil.isIncomplete(connIdAttr));
-            if (!convertedItem.hasNoValues() || convertedItem.isIncomplete()) {
-                LOGGER.trace("Converted attribute/association {}", convertedItem);
-                ShadowUtil.addShadowItem(convertedObject, convertedItem);
+            convertedAttr.setIncomplete(ConnIdAttributeUtil.isIncomplete(connIdAttr));
+            if (!convertedAttr.hasNoValues() || convertedAttr.isIncomplete()) {
+                LOGGER.trace("Converted attribute/association {}", convertedAttr);
+                ShadowUtil.addShadowAttribute(convertedObject, convertedAttr);
             }
         }
 

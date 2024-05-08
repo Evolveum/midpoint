@@ -662,7 +662,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
      */
     public @NotNull Collection<? extends ShadowReferenceAttributeDefinition> getAssociationDefinitions() {
         return resourceObjectDefinition != null ?
-                resourceObjectDefinition.getAssociationDefinitions() : List.of();
+                resourceObjectDefinition.getReferenceAttributeDefinitions() : List.of();
     }
 
     // TODO consider removal
