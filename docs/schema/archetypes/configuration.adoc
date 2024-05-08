@@ -409,7 +409,7 @@ Therefore, midPoint is designed to support three kinds of archetype:
 
 * structural - only one can be assigned to the object directly, can be extended, can extend other structural or abstract archetypes
 
-* auxiliary (not yet supported)- can be assigned to the object with structural archetype assigned, object can have more then one auxiliary archetypes assigned
+* auxiliary - can be assigned to the object with structural archetype assigned, object can have more than one auxiliary archetypes assigned
 
 For now, only structural archetypes are implemented and supported.
 Since version 4.2 it is possible to define hierarchy between structural archetypes, so there can be one parent which is extended by its child.
