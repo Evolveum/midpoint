@@ -230,7 +230,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             return;
         }
 
-        query.setType(DEFAULT_ROLE_CATALOG_TYPE);
+        query.setType(AbstractRoleType.class);
 
         // searching for user assignments targets in two steps for non-native repository (doesn't support referencedBy)
         // searching like this also in native repository since there's problem with creating autorization query for such
