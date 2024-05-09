@@ -536,7 +536,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         TestUtil.assertSuccess(result);
 
         display("workItems", workItems);
-        assertEquals("Wrong number of certification cases", 7, workItems.size());
+        assertEquals("Wrong number of certification work items", 7, workItems.size());
         checkAllWorkItemsSanity(workItems);
     }
 

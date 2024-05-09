@@ -15,6 +15,8 @@ compliance:
             description: 'Using clearances to represent personnel screening'
         '6.3':
             description: 'Using clearances to represent security training'
+        '6.6':
+            description: 'Using clearances to represent non-disclosure agreement'
 ---
 = Information Classification and Clearances
 :page-toc: top
@@ -235,6 +237,9 @@ We define the clearance first:
 ----
 
 We can use the approach described above the place requirement for the special clearance to category III definition:
+
+// TODO: add NDA (or internal employee status) as additional requirement for cat.III system (ISO27001 6.6)
+// TIP: Internal employee archetype may include (induce) NDA clearance, as employees have non-disclosure clauses in their employment contracts.
 
 .category-3.xml
 [source,xml]

@@ -1,0 +1,374 @@
+= Module saml2
+:page-nav-title: Module saml2
+
+SAML2 authentication module supports authentication via Identity provider with SAML2.
+SAML2 module has a little complicated configuration.
+This module contains specific attribute:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `serviceProvider`
+| Basic configuration of SP.
+| true
+| _AuthenticationModuleSaml2ServiceProviderType_
+
+|===
+
+== AuthenticationModuleSaml2ServiceProviderType
+
+_AuthenticationModuleSaml2ServiceProviderType_ contains following configuration attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type | Default | Unused from 4.4
+
+| `entityId`
+| Unique identifier of the service provider.
+| true
+| _String_
+|
+|
+
+
+| `alias`
+| Unique alias used to identify the selected local service provider based on used URL.
+| false
+| _String_
+|
+|
+
+
+| `aliasForPath`
+| Alias used for AssertionConsumerServiceURL.
+| false
+| _String_
+|
+|
+
+
+| `defaultSigningAlgorithm`
+| Default signing algorithm.
+Possible values are RSA_SHA1, RSA_SHA256, RSA_SHA512 and RSA_RIPEMD160.
+| false
+| _enum_
+| RSA_SHA256
+|
+
+
+| `signRequests`
+| Flag indicating whether this service signs authentication requests.
+| false
+| _boolean_
+| false
+|
+
+
+| `keys`
+| Key used by service provider.
+| false
+| _AuthenticationModuleSaml2KeyType_
+|
+|
+
+
+| `identityProvider`
+| Possible identity providers for this service provider.
+| true
+| _AuthenticationModuleSaml2ProviderType_
+|
+|
+
+
+|===
+
+
+== AuthenticationModuleSaml2KeyType
+
+_AuthenticationModuleSaml2KeyType_ contains following configuration attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `activeSimpleKey`
+| Base key used for signing and dencryption.
+You can use only one from active keys, or can be both null.
+| true
+| _ModuleSaml2SimpleKeyType_
+
+
+| `activeKeyStoreKey`
+| Base key used for signing and dencryption.
+You can use only one from active keys, or can be both null.
+| true
+| _ModuleSaml2KeyStoreKeyType_
+
+
+| `standBySimpleKey`
+| Other keys.
+
+| true
+| _ModuleSaml2SimpleKeyType_
+
+
+| `standByKeyStoreKey`
+| Other keys.
+| true
+| _ModuleSaml2KeyStoreKeyType_
+
+
+|===
+
+
+== ModuleSaml2SimpleKeyType
+
+_ModuleSaml2SimpleKeyType_ contains following attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `privateKey`
+| Private key.
+| true
+| _ProtectedStringType_
+
+
+| `passphrase`
+| Password.
+| true
+| _ProtectedStringType_
+
+
+| `certificate`
+| Certificate of key.
+| true
+| _ProtectedStringType_
+
+
+| `type`
+| Type of key.
+Possible values are SIGNING, UNSPECIFIED and DECRYPTION.
+| false
+| _enum_
+
+|===
+
+
+
+.Example of ModuleSaml2SimpleKeyType
+[source,xml]
+----
+<activeSimpleKey>
+    <name>sp-signing-key</name>
+    <privateKey>
+        <t:clearValue>"primary key"</t:clearValue>
+    </privateKey>
+    <passphrase>
+        <t:clearValue>"password"</t:clearValue>
+    </passphrase>
+    <certificate>
+        <t:clearValue>"certificate"</t:clearValue>
+    </certificate>
+</activeSimpleKey>
+----
+
+
+== ModuleSaml2KeyStoreKeyType
+
+_ModuleSaml2KeyStoreKeyType_ contains following attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `keyStorePath`
+| Path to KeyStore.
+| true
+| _String_
+
+
+| `keyStorePassword`
+| Password of KeyStore.
+| true
+| _ProtectedStringType_
+
+
+| `keyAlias`
+| Alias of private key in KeyStore.
+| true
+| _ProtectedStringType_
+
+
+| `keyPassword`
+| Password of private key with alias '`keyAlias`' in KeyStore.
+| true
+| _ProtectedStringType_
+
+
+| `type`
+| Type of key.
+Possible values are SIGNING, UNSPECIFIED and DECRYPTION.
+| false
+| _enum_
+
+|===
+
+
+.Example of ModuleSaml2KeyStoreKeyType
+[source,xml]
+----
+<activeKeyStoreKey>
+    <keyStorePath>/home/lskublik/keyStore</keyStorePath>
+    <keyStorePassword>
+        <t:clearValue>"password of keyStore"</t:clearValue>
+    </keyStorePassword>
+    <keyAlias>sp-signing-key-1</keyAlias>
+    <keyPassword>
+        <t:clearValue>"password of private key"</t:clearValue>
+    </keyPassword>
+</activeKeyStoreKey>
+----
+
+
+== AuthenticationModuleSaml2ProviderType
+
+_AuthenticationModuleSaml2ProviderType_ represents one Identity Providers.
+AuthenticationModuleSaml2ProviderType contains following attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type | Default
+
+| `entityId`
+| Unique identifier of the service provider.
+| true
+| _String_
+|
+
+
+| `metadata`
+| Metadata of Identity provider.
+| true
+| _AuthenticationModuleSaml2MetadataType_
+|
+
+
+| `linkText`
+| User friendly name of provider.
+| false
+| _String_
+|
+
+
+| `authenticationRequestBinding`
+| SAML2 binding used for authentication request.
+| true
+| _String_
+|
+
+
+| `verificationKeys`
+|
+| false
+| _ProtectedStringType_
+|
+
+
+| `nameOfUsernameAttribute`
+| Name of attribute in response, which value define name of user in Midpoint.
+For example 'uid'.
+| true
+| _String_
+|
+
+|===
+
+
+== AuthenticationModuleSaml2ProviderMetadataType
+
+_AuthenticationModuleSaml2ProviderMetadataType_ represents metadata of provider.
+You can choose from one definition for metadata: _metadataUrl_, _xml_ and _pathToFile_.
+
+[%autowidth]
+|===
+| Name | Description
+
+| `metadataUrl`
+| URL, which show metadata.
+
+
+| `xml`
+| Xml of metadata encrypted by base64.
+
+
+| `pathToFile`
+| Path to xml file, which contains metadata.
+
+|===
+
+
+.Example of saml2 module
+[source,xml]
+----
+<saml2>
+    <identifier>mySamlSso</identifier>
+    <description>My internal enterprise SAML-based SSO system.</description>
+    <serviceProvider>
+        <entityId>sp_midpoint</entityId>
+        <signRequests>true</signRequests>
+        <keys>
+            .
+            .
+            .
+        </keys>
+        <identityProvider>
+            <entityId>https://idptestbed/idp/shibboleth</entityId>
+            <metadata>
+                <xml>PD94bWwgdmVyc2lvbj0iMS4wI...</xml>
+            </metadata>
+            <linkText>Shibboleth</linkText>
+            <authenticationRequestBinding>urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST</authenticationRequestBinding>
+            <nameOfUsernameAttribute>uid</nameOfUsernameAttribute>
+        </identityProvider>
+    </serviceProvider>
+</saml2>
+----
+
+== Generation of service provider metadata
+Midpoint can generate metadata of SP. You can get it via link http://<midpointHost>/midpoint/auth/<authenticationSequenceUrlSuffix>/<saml2ModuleName>/metadata/<registrationId>.
+RegistrationId is 'aliasForPath', when is provided, or 'alias', when is provided, or 'entityId' of SP.
+
+Generation of metadata works only if your sequence use only saml2 authentication module or saml2 authentication module is first in chain of your sequence. When you want to use a chain and saml2 module won't be first authentication module, we recommend to create sequence only with saml module, generate metadata and then add other modules.
+
+If Midpoint is located behind a reverse proxy it may be useful to set the _publicHttpUrlPattern_ setting to the right value in order for the SAML endpoints (in the SP Metadata and in the SAMLRequest) to reflect the right URLs (see below)
+
+.Example of public URL configuration
+[source,xml]
+----
+<systemConfiguration>
+    .
+    .
+    .
+    <infrastructure>
+        <publicHttpUrlPattern>https://public.url.local/midpoint</publicHttpUrlPattern>
+    </infrastructure>
+    .
+    .
+    .
+</systemConfiguration>
+----
+
+== Migration Saml2 authentication module from 4.3
+Dependency for support of `saml2` authentication module was changed to https://github.com/spring-projects/spring-security/tree/main/saml2/saml2-service-provider[Spring Security saml2-service-provider].
+
+
+* Functionality of a new module is equivalent to the functionality of old `saml2` module, however some configuration properties are not available in the new module.
+Such properties were tagged as _deprecated_ in schema of saml2 authentication module.
+* Attribute 'provider' has to be changed to 'identityProvider' in 'serviceProvider'.
+* When keys of 'type' ENCRYPTION are used, they need to be removed. Service provider will obtain them from metadata for identity provider.
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]
