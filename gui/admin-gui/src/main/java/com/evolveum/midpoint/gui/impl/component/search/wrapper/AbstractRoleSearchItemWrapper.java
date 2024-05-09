@@ -167,7 +167,7 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
         return null;
     }
 
-    private ScopeSearchItemWrapper getScopeSearchItemWrapper() {
+    public ScopeSearchItemWrapper getScopeSearchItemWrapper() {
         return scopeSearchItemWrapper;
     }
 

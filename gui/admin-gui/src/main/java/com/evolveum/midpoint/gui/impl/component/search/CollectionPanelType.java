@@ -9,9 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public enum CollectionPanelType {
     ROLE_MEMBER_GOVERNANCE(true, "roleGovernance", true, FocusType.COMPLEX_TYPE),
@@ -31,7 +29,8 @@ public enum CollectionPanelType {
     PROJECTION_SHADOW(false, null, false, null),
     DEBUG(false, null, false, null),
     ASSIGNABLE(false, null, false, null),
-    SIMULATION_PROCESSED_OBJECTS(false, null, false, null);
+    SIMULATION_PROCESSED_OBJECTS(false, null, false, null),
+    ROLE_CATALOG(true, null, false, RoleType.COMPLEX_TYPE);
 
     private boolean memberPanel;
     private String panelInstance;
