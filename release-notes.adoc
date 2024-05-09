@@ -29,6 +29,14 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 
 == Changes with Respect To Version 4.8.2
 
+* Tomcat container work directory size growing issue fixed. See bug:MID-9430[].
+* GUI header layout improvements. See bug:MID-9579[].
+* Missing localization keys fixed in GUI. See bug:MID-9589[], bug:MID-9610[]
+* Request access wizard
+** Shopping cart summary
+*** Items duplication. See bug:MID-9672[]
+*** Items editor authorizations. See bug:MID-9673[]
+** Role catalog search improvements. See bug:MID-9598[], bug:MID-9686[]
 * New implementation and look of date time picker.
 * Fixed issue with Asynchronous Messaging Connector not working. See bug:MID-9512[].
 * Fixed issue with reporting of errors during search objects in table by axiom query. See bug:MID-9499[] and bug:MID-9400[].
