@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,10 +53,6 @@ import com.evolveum.midpoint.gui.impl.component.menu.listGroup.CustomListGroupMe
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuPanel;
-import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
@@ -334,6 +332,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             private SearchBoxModeType searchMode;
 
+            private SearchBoxScopeType searchScope;
+
             @Override
             protected Search<?> load() {
                 RoleCatalogQuery rcq = queryModel.getObject();
@@ -356,6 +356,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     search.setSearchMode(searchMode);
                 }
 
+                if (rcq.getParent() != null) {
+                    AbstractRoleSearchItemWrapper roleSearch = search.findMemberSearchItem();
+                    if (searchScope != null && roleSearch.getScopeSearchItemWrapper() != null) {
+                        roleSearch.getScopeSearchItemWrapper().setValue(new SearchValue(searchScope));
+                    }
+                }
+
                 return search;
             }
 
@@ -372,6 +379,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 Search search = getObject();
 
                 queryType = search.getTypeClass();
+                searchScope = search.findMemberSearchItem().getScopeValue();
             }
         };
 
