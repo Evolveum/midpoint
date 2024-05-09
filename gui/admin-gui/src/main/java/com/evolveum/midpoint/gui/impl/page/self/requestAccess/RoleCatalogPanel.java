@@ -202,6 +202,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     private void updateQueryFromOrgRef(RoleCatalogQuery query, ObjectReferenceType ref) {
+        query.setQuery(null);
+        query.setType(DEFAULT_ROLE_CATALOG_TYPE);
+
+        query.setParent(ref);
+    }
+
+    private ObjectQuery createParentRefQuery(ObjectReferenceType ref) {
         OrgFilter.Scope scope = OrgFilter.Scope.ONE_LEVEL;
 
         AbstractRoleSearchItemWrapper roleSearch = searchModel.getObject().findMemberSearchItem();
@@ -212,16 +219,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             }
         }
 
-        ObjectQuery oq = getPrismContext()
+        return getPrismContext()
                 .queryFor(DEFAULT_ROLE_CATALOG_TYPE)
                 .isInScopeOf(ref.getOid(), scope)
                 .asc(AbstractRoleType.F_NAME)
                 .build();
-
-        query.setQuery(oq);
-        query.setType(DEFAULT_ROLE_CATALOG_TYPE);
-
-        query.setParent(ref);
     }
 
     private void updateQueryForRolesOfTeammate(RoleCatalogQuery query, String userOid) {
@@ -233,7 +235,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         query.setType(AbstractRoleType.class);
 
         // searching for user assignments targets in two steps for non-native repository (doesn't support referencedBy)
-        // searching like this also in native repository since there's problem with creating autorization query for such
+        // searching like this also in native repository since there's problem with creating authorization query for such
         // referencedBy MID-9638
         Task task = page.createSimpleTask(OPERATION_LOAD_USER);
         OperationResult result = task.getResult();
@@ -404,7 +406,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 RoleCatalogQuery catalogQuery = queryModel.getObject();
 
                 ObjectQuery query = catalogQuery.getQuery();
+                if (query != null) {
                 query = query.clone();
+                } else if (catalogQuery.getParent() != null) {
+                    // this is quite a mess since query couldn't be created at during building RoleCatalogQuery
+                    // since scope might have changes in search panel and queryModel wouldn't know...
+                    query = createParentRefQuery(catalogQuery.getParent());
+                }
 
                 Class<? extends AbstractRoleType> type = catalogQuery.getType();
 
