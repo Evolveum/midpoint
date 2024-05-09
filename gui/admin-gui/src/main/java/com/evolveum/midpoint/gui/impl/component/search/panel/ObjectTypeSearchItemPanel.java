@@ -6,19 +6,19 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.ObjectTypeSearchItemWrapper;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
+import java.util.List;
+import javax.xml.namespace.QName;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 
-import javax.xml.namespace.QName;
-import java.util.List;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.ObjectTypeSearchItemWrapper;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 
 public class ObjectTypeSearchItemPanel<T> extends SingleSearchItemPanel<ObjectTypeSearchItemWrapper> {
 
@@ -55,14 +55,19 @@ public class ObjectTypeSearchItemPanel<T> extends SingleSearchItemPanel<ObjectTy
     }
 
     private IModel<List<QName>> getSortedAvailableData() {
-        QNameObjectTypeChoiceRenderer qNameObjectTypeChoiceRenderer = new QNameObjectTypeChoiceRenderer();
-        List<QName> values = getModelObject().getAvailableValues();
-        values.sort((q1, q2) -> {
-            String displayValue1 = qNameObjectTypeChoiceRenderer.getDisplayValue(q1).toString();
-            String displayValue2 = qNameObjectTypeChoiceRenderer.getDisplayValue(q2).toString();
-            return displayValue1.compareToIgnoreCase(displayValue2);
-        });
-        return Model.ofList(values);
-    }
+        return new LoadableDetachableModel<>() {
 
+            @Override
+            protected List<QName> load() {
+                QNameObjectTypeChoiceRenderer qNameObjectTypeChoiceRenderer = new QNameObjectTypeChoiceRenderer();
+                List<QName> values = getModelObject().getAvailableValues();
+                values.sort((q1, q2) -> {
+                    String displayValue1 = qNameObjectTypeChoiceRenderer.getDisplayValue(q1).toString();
+                    String displayValue2 = qNameObjectTypeChoiceRenderer.getDisplayValue(q2).toString();
+                    return displayValue1.compareToIgnoreCase(displayValue2);
+                });
+                return values;
+            }
+        };
+    }
 }
