@@ -20,6 +20,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ObjectSynchronizationReactionDefinition;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import com.google.common.base.Preconditions;
@@ -130,7 +131,7 @@ public class SynchronizationPolicyFactory {
 
         ResourceObjectTypeDelineation delineation = getDelineation(synchronizationBean, typeDef, resource);
 
-        Collection<SynchronizationReactionDefinition> reactions =
+        var reactions =
                 typeDef.hasSynchronizationReactionsDefinition() ?
                         typeDef.getSynchronizationReactions() :
                         getSynchronizationReactions(synchronizationBean);
@@ -198,12 +199,12 @@ public class SynchronizationPolicyFactory {
      * Especially treats the existence of `correlationDefinition/cases` item. If such an item is present,
      * "create correlation cases" action is added to "disputed" reaction (or such reaction is created, if there's none).
      */
-    private static List<SynchronizationReactionDefinition> getSynchronizationReactions(
+    private static List<ObjectSynchronizationReactionDefinition> getSynchronizationReactions(
             @NotNull ObjectSynchronizationType synchronizationBean) throws ConfigurationException {
         ClockworkSettings defaultSettings = ClockworkSettings.of(synchronizationBean);
         boolean legacyCorrelationCasesEnabled = isLegacyCorrelationCasesSettingOn(synchronizationBean);
 
-        List<SynchronizationReactionDefinition> list = new ArrayList<>();
+        List<ObjectSynchronizationReactionDefinition> list = new ArrayList<>();
 
         boolean createCasesActionAdded = false;
         for (LegacySynchronizationReactionType synchronizationReactionBean : synchronizationBean.getReaction()) {

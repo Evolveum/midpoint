@@ -16,7 +16,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
 
+import com.evolveum.midpoint.model.impl.sync.ItemSynchronizationState;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ItemSynchronizationReactionDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -37,7 +39,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingInitializ
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingOutputProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingTimeEval;
 import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluation;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationState;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -483,14 +484,12 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
         }
 
         // FIXME temporary
-        private SynchronizationReactionDefinition determineReaction(SimplifiedCorrelationResult correlationResult) {
-            var synchronizationState = SynchronizationState.fromCorrelationResult(correlationResult);
-            // UNLINKED is treated as LINKED, as we have no concept of linking here
-            SynchronizationSituationType situation =
-                    synchronizationState.situation() != SynchronizationSituationType.UNLINKED ?
-                            synchronizationState.situation() : SynchronizationSituationType.LINKED;
-            for (var reaction : inboundDefinition.getSynchronizationReactions()) {
-                if (reaction.getSituations().contains(situation)) {
+        private ItemSynchronizationReactionDefinition determineReaction(SimplifiedCorrelationResult correlationResult) {
+            var synchronizationState = ItemSynchronizationState.fromCorrelationResult(correlationResult);
+            ItemSynchronizationSituationType situation = synchronizationState.situation();
+            for (var abstractReaction : inboundDefinition.getSynchronizationReactions()) {
+                var reaction = (ItemSynchronizationReactionDefinition) abstractReaction;
+                if (reaction.matchesSituation(situation)) {
                     // TODO evaluate other aspects, like condition etc
                     LOGGER.trace("Determined synchronization reaction: {}", reaction);
                     return reaction;
@@ -502,7 +501,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
 
         private void executeReaction(
                 @NotNull SimplifiedCorrelationResult correlationResult,
-                @Nullable SynchronizationReactionDefinition synchronizationReaction,
+                @Nullable ItemSynchronizationReactionDefinition synchronizationReaction,
                 @NotNull OperationResult result)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, SecurityViolationException,
                 CommunicationException, StopProcessingProjectionException, ObjectNotFoundException {
@@ -511,12 +510,12 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
             }
             for (var action : synchronizationReaction.getActions()) {
                 // TODO implement using action factory, like the regular ones are
-                var beanClass = action.getNewDefinitionBeanClassRequired();
-                if (AddFocusSynchronizationActionType.class.equals(beanClass)) {
+                var beanClass = action.getClass();
+                if (AddFocusValueItemSynchronizationActionType.class.equals(beanClass)) {
                     executeAdd(result);
-                } else if (DeleteFocusSynchronizationActionType.class.equals(beanClass)) {
+                } else if (DeleteFocusValueItemSynchronizationActionType.class.equals(beanClass)) {
                     executeDelete();
-                } else if (SynchronizeSynchronizationActionType.class.equals(beanClass)) {
+                } else if (SynchronizeItemSynchronizationActionType.class.equals(beanClass)) {
                     executeSynchronize(correlationResult, result);
                 } else {
                     throw new UnsupportedOperationException("Action " + action + " is not supported here");

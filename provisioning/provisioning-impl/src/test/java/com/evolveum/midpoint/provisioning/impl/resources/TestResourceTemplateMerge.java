@@ -26,7 +26,6 @@ import javax.xml.namespace.QName;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
@@ -98,7 +97,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
     /** Adds a resource to repository, fills-in connector OID externally. */
     private void addResourceObject(TestObject<ResourceType> resource, List<String> connectorTypes, OperationResult result)
-            throws CommonException, EncryptionException {
+            throws CommonException {
         addResource(resource, connectorTypes, false, result);
         resource.reload(result);
     }
@@ -521,9 +520,9 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 .isEqualTo(groupQName); // i.e. it's qualified
 
         and("synchronization reactions are correctly merged");
-        Collection<SynchronizationReactionDefinition> reactions = accountDef.getSynchronizationReactions();
+        var reactions = accountDef.getSynchronizationReactions();
         assertThat(reactions).as("sync reactions").hasSize(2);
-        SynchronizationReactionDefinition unnamed =
+        var unnamed =
                 reactions.stream().filter(r -> r.getName() == null).findFirst().orElseThrow();
         assertThat(unnamed.getSituations())
                 .as("situations in unnamed")
@@ -534,7 +533,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(unnamed.getActions().get(0).getNewDefinitionBeanClass())
                 .as("action in unnamed")
                 .isEqualTo(DeleteResourceObjectSynchronizationActionType.class);
-        SynchronizationReactionDefinition reaction1 =
+        var reaction1 =
                 reactions.stream().filter(r -> "reaction1".equals(r.getName())).findFirst().orElseThrow();
         assertThat(reaction1.getSituations())
                 .as("situations in reaction1")

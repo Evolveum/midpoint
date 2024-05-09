@@ -324,8 +324,7 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
-    @NotNull
-    default Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+    default @NotNull Collection<? extends SynchronizationReactionDefinition> getSynchronizationReactions() {
         return delegate().getSynchronizationReactions();
     }
 

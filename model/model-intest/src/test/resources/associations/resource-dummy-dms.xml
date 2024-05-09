@@ -192,11 +192,11 @@
                         <reaction>
                             <situation>unmatched</situation>
                             <actions>
-                                <addFocus/>
+                                <addFocusValue/>
                             </actions>
                         </reaction>
                         <reaction>
-                            <situation>linked</situation>
+                            <situation>matched</situation>
                             <actions>
                                 <synchronize/>
                             </actions>

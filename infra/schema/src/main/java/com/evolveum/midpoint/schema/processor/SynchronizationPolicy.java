@@ -21,6 +21,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
+import static com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.*;
+
 /**
  * Information needed to carry out synchronization-related activities (classification, correlation,
  * and execution of synchronization reactions). This class exists to unify the "legacy" way of specifying
@@ -74,7 +76,7 @@ public class SynchronizationPolicy {
     /**
      * Reactions, already ordered.
      */
-    @NotNull private final List<SynchronizationReactionDefinition> reactions;
+    @NotNull private final List<? extends ObjectSynchronizationReactionDefinition> reactions;
 
     private final boolean hasLegacyConfiguration;
 
@@ -86,7 +88,7 @@ public class SynchronizationPolicy {
             boolean opportunistic,
             @Nullable String name,
             @NotNull ResourceObjectTypeDelineation delineation,
-            @NotNull Collection<SynchronizationReactionDefinition> reactions,
+            @NotNull Collection<? extends ObjectSynchronizationReactionDefinition> reactions,
             @NotNull ResourceObjectTypeDefinition objectTypeDefinition,
             boolean hasLegacyConfiguration) {
         this.focusTypeName = focusTypeName;
@@ -159,7 +161,7 @@ public class SynchronizationPolicy {
         return objectTypeDefinition.getObjectClassName();
     }
 
-    public @NotNull List<SynchronizationReactionDefinition> getReactions() {
+    public @NotNull List<? extends ObjectSynchronizationReactionDefinition> getReactions() {
         return reactions;
     }
 

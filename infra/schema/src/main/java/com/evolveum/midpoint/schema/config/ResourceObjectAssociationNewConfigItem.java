@@ -9,17 +9,17 @@ package com.evolveum.midpoint.schema.config;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationNewType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationDefinitionType;
 
 /**
  * TEMPORARY
  */
 public class ResourceObjectAssociationNewConfigItem
-        extends ConfigurationItem<ResourceObjectAssociationNewType>
+        extends ConfigurationItem<ShadowAssociationDefinitionType>
         implements AssociationConfigItem {
 
     @SuppressWarnings({ "unused", "WeakerAccess" }) // called dynamically
-    public ResourceObjectAssociationNewConfigItem(@NotNull ConfigurationItem<ResourceObjectAssociationNewType> original) {
+    public ResourceObjectAssociationNewConfigItem(@NotNull ConfigurationItem<ShadowAssociationDefinitionType> original) {
         super(original);
     }
 

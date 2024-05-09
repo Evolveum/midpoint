@@ -249,11 +249,11 @@
                             <situation>unmatched</situation>
                             <actions>
                                 <!-- If the matching assignment does not exist, midPoint will create and synchronize it -->
-                                <addFocus/>
+                                <addFocusValue/>
                             </actions>
                         </reaction>
                         <reaction>
-                            <situation>linked</situation>
+                            <situation>matched</situation>
                             <actions>
                                 <!-- If the matching assignment exists, midPoint will synchronize it. -->
                                 <synchronize/>
@@ -263,7 +263,7 @@
                             <situation>deleted</situation>
                             <actions>
                                 <!-- This should case deletion of no-longer-connected assignments. Not implemented yet. -->
-                                <deleteFocus/>
+                                <deleteFocusValue/>
                             </actions>
                         </reaction>
                     </synchronization>

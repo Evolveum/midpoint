@@ -300,7 +300,7 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+    public @NotNull Collection<? extends SynchronizationReactionDefinition> getSynchronizationReactions() {
         return structuralDefinition.getSynchronizationReactions();
     }
 

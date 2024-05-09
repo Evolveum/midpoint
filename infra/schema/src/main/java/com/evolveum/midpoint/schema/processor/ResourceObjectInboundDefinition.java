@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
+import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ItemSynchronizationReactionDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -30,7 +31,7 @@ import java.util.List;
  * There are three main flavors:
  *
  * . standard {@link ResourceObjectDefinition}
- * . for associations, based on {@link ResourceObjectAssociationNewType}
+ * . for associations, based on {@link ShadowAssociationDefinitionType}
  * . for structured attributes, based on {@link ComplexProcessingType}
  *
  * Currently, the processing assumes that we have a shadow as an input. It is either the regular shadow coming from
@@ -48,7 +49,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         return bean != null ? new ComplexProcessingImplementation(bean) : empty();
     }
 
-    static ResourceObjectInboundDefinition forAssociation(@Nullable ResourceObjectAssociationNewType bean) {
+    static ResourceObjectInboundDefinition forAssociation(@Nullable ShadowAssociationDefinitionType bean) {
         return bean != null ? new AssociationProcessingImplementation(bean) : empty();
     }
 
@@ -66,7 +67,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
 
     @NotNull FocusSpecification getFocusSpecification();
 
-    @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions();
+    @NotNull Collection<? extends SynchronizationReactionDefinition> getSynchronizationReactions();
 
     CorrelationDefinitionType getCorrelation();
 
@@ -122,7 +123,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         }
 
         @Override
-        public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+        public @NotNull Collection<? extends SynchronizationReactionDefinition> getSynchronizationReactions() {
             return List.of();
         }
 
@@ -148,7 +149,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
 
         @NotNull private final PathKeyedMap<ItemInboundDefinition> itemDefinitionsMap = new PathKeyedMap<>();
 
-        @NotNull private final Collection<SynchronizationReactionDefinition> synchronizationReactionDefinitions;
+        @NotNull private final Collection<ItemSynchronizationReactionDefinition> synchronizationReactionDefinitions;
 
         /** This is the inbound provided by "ref = '.'", i.e., related to the association value itself. */
         @Nullable private final ItemInboundDefinition associationValueInboundDefinition;
@@ -172,7 +173,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
             }
             associationValueInboundDefinition = MiscUtil.extractSingleton(associationValueInbounds);
             synchronizationReactionDefinitions =
-                    SynchronizationReactionDefinition.modern(
+                    SynchronizationReactionDefinition.itemLevel(
                             definitionBean.getSynchronization());
         }
 
@@ -229,7 +230,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         }
 
         @Override
-        public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+        public @NotNull Collection<? extends SynchronizationReactionDefinition> getSynchronizationReactions() {
             return synchronizationReactionDefinitions;
         }
 
@@ -277,16 +278,16 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
 
     class AssociationProcessingImplementation implements ResourceObjectInboundDefinition {
 
-        @NotNull private final ResourceObjectAssociationNewType definitionBean;
+        @NotNull private final ShadowAssociationDefinitionType definitionBean;
 
         @NotNull private final PathKeyedMap<ItemInboundDefinition> itemDefinitionsMap = new PathKeyedMap<>();
 
-        @NotNull private final Collection<SynchronizationReactionDefinition> synchronizationReactionDefinitions;
+        @NotNull private final Collection<ItemSynchronizationReactionDefinition> synchronizationReactionDefinitions;
 
         /** This is the inbound provided by unnamed `objectRef` definition. */
         @Nullable private final ItemInboundDefinition defaultObjectRefDefinition;
 
-        AssociationProcessingImplementation(@NotNull ResourceObjectAssociationNewType definitionBean) {
+        AssociationProcessingImplementation(@NotNull ShadowAssociationDefinitionType definitionBean) {
             this.definitionBean = definitionBean;
             for (var itemDefBean : definitionBean.getAttribute()) {
                 var itemName = ItemPathTypeUtil.asSingleNameOrFail(itemDefBean.getRef()); // TODO error handling
@@ -305,7 +306,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
             }
             defaultObjectRefDefinition = MiscUtil.extractSingleton(defaultObjectRefDefinitions);
             synchronizationReactionDefinitions =
-                    SynchronizationReactionDefinition.modern(
+                    SynchronizationReactionDefinition.itemLevel(
                             definitionBean.getSynchronization());
         }
 
@@ -362,7 +363,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         }
 
         @Override
-        public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+        public @NotNull Collection<? extends SynchronizationReactionDefinition> getSynchronizationReactions() {
             return synchronizationReactionDefinitions;
         }
 

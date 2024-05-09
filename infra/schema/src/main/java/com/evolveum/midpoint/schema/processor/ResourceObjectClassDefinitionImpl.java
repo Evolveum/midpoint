@@ -314,7 +314,7 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+    public @NotNull Collection<? extends SynchronizationReactionDefinition> getSynchronizationReactions() {
         return List.of();
     }
 

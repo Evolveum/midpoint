@@ -69,7 +69,7 @@ public class ShadowReferenceAttributeDefinitionImpl
     private Integer maxOccurs;
 
     /** TODO */
-    private ResourceObjectAssociationNewType associationDefinitionBean;
+    private ShadowAssociationDefinitionType associationDefinitionBean;
 
     private ShadowReferenceAttributeDefinitionImpl(
             @NotNull AbstractShadowReferenceTypeDefinition typeDefinition,
@@ -247,11 +247,11 @@ public class ShadowReferenceAttributeDefinitionImpl
         maxOccurs = value;
     }
 
-    public ResourceObjectAssociationNewType getAssociationDefinitionBean() {
+    public ShadowAssociationDefinitionType getAssociationDefinitionBean() {
         return associationDefinitionBean;
     }
 
-    public void setAssociationDefinitionBean(ResourceObjectAssociationNewType associationDefinitionBean) {
+    public void setAssociationDefinitionBean(ShadowAssociationDefinitionType associationDefinitionBean) {
         checkMutable();
         this.associationDefinitionBean = associationDefinitionBean;
     }
