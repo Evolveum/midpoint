@@ -34,7 +34,7 @@ public class CampaignStateHelper implements Serializable {
         campaignStateClassMap = Collections.unmodifiableMap(map);
     }
 
-    public static enum CampaignAction {
+    public enum CampaignAction {
         START_CAMPAIGN(new DisplayType()
                 .label("CampaignAction.startCampaign")
                 .cssClass("btn-primary")

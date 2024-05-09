@@ -12,6 +12,8 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.widget.MetricWidgetPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -114,7 +116,14 @@ public class PageCertCampaign extends PageAdmin {
                 list.add(new DetailsTableItem(createStringResource("PageCertCampaign.iteration"),
                         () -> "" + CertCampaignTypeUtil.norm(campaignModel.getObject().getIteration())));
                 list.add(new DetailsTableItem(createStringResource("PageCertCampaign.progress"),
-                        () -> "" )); //todo calculate progress
+                        () -> "" ) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Component createValueComponent(String id) {
+                        return new ProgressBarPanel(id, createProgressBarModel());
+                    }
+                }); //todo calculate progress
                 list.add(new DetailsTableItem(createStringResource("PageCertCampaigns.table.stage"),
                         () -> "" + campaignModel.getObject().getStageNumber()));
                 AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaignModel.getObject());
@@ -223,6 +232,7 @@ public class PageCertCampaign extends PageAdmin {
         DisplayType displayType = new DisplayType()
                 .label(WebComponentUtil.getName(campaignModel.getObject()))
                 .help(campaignModel.getObject().getDescription())
+                .cssClass("font-weight-bold")
                 .icon(new IconType()
                         .cssClass(IconAndStylesUtil.createDefaultColoredIcon(AccessCertificationCampaignType.COMPLEX_TYPE)));
         DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
@@ -377,4 +387,18 @@ public class PageCertCampaign extends PageAdmin {
         };
     }
 
+    protected @NotNull LoadableModel<List<ProgressBar>> createProgressBarModel() {
+        return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<ProgressBar> load() {
+                AccessCertificationCampaignType campaign = campaignModel.getObject();
+                float completed = CertCampaignTypeUtil.getCasesCompletedPercentageAllStagesAllIterations(campaign);
+
+                ProgressBar progressBar = new ProgressBar(completed, ProgressBar.State.INFO);
+                return Collections.singletonList(progressBar);
+            }
+        };
+    }
 }

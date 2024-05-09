@@ -42,6 +42,7 @@ public class ProgressBarPanel extends BasePanel<List<ProgressBar>> {
 
     @Override
     protected void onComponentTag(ComponentTag tag) {
+        tag.setName("div");
         super.onComponentTag(tag);
 
         checkComponentTag(tag, "div");
