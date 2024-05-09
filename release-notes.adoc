@@ -45,6 +45,7 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 * Fixed `associationFromLink` evaluator for dead shadows. See bug:MID-9468[] and bug:MID-9487[].
 * Fixed handling of related object types that differ in associations. See bug:MID-9591[] and https://github.com/Evolveum/midpoint/commit/6c8ddc2fd1d44d44b6ef0bd49a2c29ece4b57742[this commit].
 * Fixed editing of configuration properties with `const` feature (via XML). See bug:MID-7918[].
+* Added `basic.setExtensionPropertyValues` method. See bug:MID-9554[].
 * Fixed and improved search behaviour for request access role catalog (role tree).
 Now scope and object type can be used to search. See bug:MID-9598[].
 * Fixed closing approval case with 'skip' outcome for last stage. See bug:MID-9533[].
