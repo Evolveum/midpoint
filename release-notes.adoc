@@ -46,6 +46,12 @@ Now scope and object type can be used to search. See bug:MID-9598[].
 * Adding check option for removing resource data on confirm popup of shadow removing. See bug:MID-9661[].
 * Hide full text search if isn't allow. See bug:MID-9457[].
 * Display all shadows in the table for projections when value for 'dead' search item is 'undefined'. See bug:MID-9659[]
+* Resolving the issue for creating a new member object with predefined by archetype options on members panel.
+* Resolving several issues for Self Credentials page.
+Now password propagation to resource takes into account the script, defined in resource for credentials, in case of the appropriate configuration.
+* Notification sending strategy was added to the general notifier configuration.
+It is possible to configure now if the notification message should be generated once and sent to all recipients in the same form or if the message should be generated for each recipient separately.
+More details can be found in the xrefv:/midpoint/reference/support-4.8/misc/notifications/general/#basic-structure-of-the-notification-definition[Basic structure of the notification definition].
 
 * Changes in initial objects:
 ** 250-object-collection-resource.xml: `All resources` object collection was updated with a filter to exclude resource templates.
