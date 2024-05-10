@@ -94,6 +94,7 @@ public class MiningOperationChunk implements Serializable {
             return Double.compare(similarity2, similarity1);
         };
 
+
         miningRoleTypeChunks.subList(0, Collections.frequency(miningRoleTypeChunks, thisStatusFirst))
                 .sort(jaccardComparator);
 
