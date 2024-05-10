@@ -84,7 +84,15 @@ public abstract class ItemTreeDelta
     }
 
     public void setValues(@NotNull List<V> values) {
-        this.values = values;
+        List<V> existing = getValues();
+        existing.forEach(v -> v.setParent(null));
+        existing.clear();
+
+        values.forEach(v -> {
+            v.setParent(this);
+
+            existing.add(v);
+        });
     }
 
     public void addValue(@NotNull V value) {
@@ -198,7 +206,7 @@ public abstract class ItemTreeDelta
         }
 
         for (V value : getValues()) {
-            if (value.match(other)) {
+            if (value.match(other, strategy)) {
                 return value;
             }
         }

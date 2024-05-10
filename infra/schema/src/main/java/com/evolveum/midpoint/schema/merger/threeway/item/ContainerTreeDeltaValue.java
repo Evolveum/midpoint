@@ -21,19 +21,34 @@ public class ContainerTreeDeltaValue<C extends Containerable> extends ItemTreeDe
 
     private List<ItemTreeDelta<?, ?, ?, ?>> deltas;
 
+    private Long id;
+
     public ContainerTreeDeltaValue() {
-        this(null, null);
+        this(null);
+    }
+
+    public ContainerTreeDeltaValue(Long id) {
+        this(id, null, null);
     }
 
     public ContainerTreeDeltaValue(PrismContainerValue<C> value, ModificationType modificationType) {
+        this(null, value, modificationType);
+    }
 
+    public ContainerTreeDeltaValue(Long id, PrismContainerValue<C> value, ModificationType modificationType) {
         super(value, modificationType);
+
+        this.id = id;
     }
 
     public Long getId() {
         PrismContainerValue<C> value = getValue();
 
-        return value != null ? value.getId() : null;
+        return value != null ? value.getId() : id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public List<ItemTreeDelta<?, ?, ?, ?>> getDeltas() {
@@ -53,24 +68,15 @@ public class ContainerTreeDeltaValue<C extends Containerable> extends ItemTreeDe
     }
 
     @Override
-    public String debugDump(int indent) {
-        StringBuilder sb = new StringBuilder();
-
-        // todo
-
-        return sb.toString();
+    protected void debugDumpIdentifiers(StringBuilder sb) {
+        if (getId() != null) {
+            sb.append(" id: ").append(getId());
+        }
     }
 
     @Override
-    protected void debugDumpTitle(StringBuilder sb, int indent) {
-        super.debugDumpTitle(sb, indent);
-
-        DebugUtil.debugDumpWithLabel(sb, "id", getId(), indent);
-    }
-
-    @Override
-    protected void debugDumpContent(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabel(sb, "deltas", deltas, indent + 1);
+    protected void debugDumpChildren(StringBuilder sb, int indent) {
+        DebugUtil.debugDump(sb, deltas, indent, false);
     }
 
     public <D extends ItemTreeDelta> D findItemDelta(ItemPath path, Class<D> deltaClass) {
@@ -180,7 +186,7 @@ public class ContainerTreeDeltaValue<C extends Containerable> extends ItemTreeDe
     }
 
     @Override
-    public <V extends ItemTreeDeltaValue> boolean match(V other) {
+    public <V extends ItemTreeDeltaValue> boolean match(V other, EquivalenceStrategy strategy) {
         if (other == null) {
             return false;
         }

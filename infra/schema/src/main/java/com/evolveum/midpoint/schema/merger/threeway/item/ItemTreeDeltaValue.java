@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.merger.threeway.item;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
@@ -82,26 +83,34 @@ public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends Item
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
 
-        debugDumpTitle(sb, indent);
-        debugDumpContent(sb, indent);
+        DebugUtil.debugDumpLabel(sb, debugDumpShortName(), indent);
+
+        debugDumpIdentifiers(sb);
+
+        if (naturalKey != null) {
+            DebugUtil.debugDumpWithLabelLn(sb, "naturalKey", naturalKey, indent + 1);
+        } else {
+            sb.append("\n");
+        }
+
+        DebugUtil.debugDumpWithLabelLn(sb, "modification", modificationType, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "value", value, indent + 1);
+
+        debugDumpChildren(sb, indent);
 
         return sb.toString();
     }
 
+    protected void debugDumpIdentifiers(StringBuilder sb) {
+
+    }
+
+    protected void debugDumpChildren(StringBuilder sb, int indent) {
+
+    }
+
     protected String debugDumpShortName() {
         return getClass().getSimpleName();
-    }
-
-    protected void debugDumpTitle(StringBuilder sb, int indent) {
-        // todo fix debug dump ,this is a mess
-        sb.append(DebugUtil.debugDump(debugDumpShortName(), indent - 1)).append("\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "modification", modificationType, indent);
-    }
-
-    protected void debugDumpContent(StringBuilder sb, int indent) {
-        // todo fix debug dump ,this is a mess
-        DebugUtil.debugDumpWithLabelLn(sb, "naturalKey", naturalKey, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "value", value, indent + 1);
     }
 
     @Override
@@ -130,7 +139,7 @@ public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends Item
                 return List.of(new Conflict(this, other));
             }
 
-            List<ModificationType> list = List.of(modificationType, other.modificationType);
+            List<ModificationType> list = Arrays.asList(modificationType, other.modificationType);
             if (!list.contains(ModificationType.ADD) || !list.contains(ModificationType.REPLACE)) {
                 return List.of(new Conflict(this, other));
             }
@@ -147,30 +156,6 @@ public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends Item
         return !getConflictsWith(other, strategy).isEmpty();
     }
 
-//    // todo fix generics
-//    public boolean hasConflictWith(ItemTreeDeltaValue other) {
-//        if (other == null) {
-//            return false;
-//        }
-//
-//        if (modificationType == null && other.modificationType == null) {
-//            return false;
-//        }
-//
-//        if (modificationType != other.modificationType) {
-//            if (!getParent().getDefinition().isSingleValue()) {
-//                return true;
-//            }
-//
-//            List<ModificationType> list = List.of(modificationType, other.modificationType);
-//            if (!list.contains(ModificationType.ADD) || !list.contains(ModificationType.REPLACE)) {
-//                return true;
-//            }
-//        }
-//
-//        return hasConflictWith(value);
-//    }
-
     protected boolean hasConflictWith(PV otherValue) {
         if (value == null || otherValue == null) {
             return false;
@@ -179,7 +164,7 @@ public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends Item
         return !value.equals(otherValue, EquivalenceStrategy.REAL_VALUE);   // todo add equivalence strategy
     }
 
-    public <V extends ItemTreeDeltaValue> boolean match(V other) {
+    public <V extends ItemTreeDeltaValue> boolean match(V other, EquivalenceStrategy strategy) {
         if (other == null) {
             return false;
         }
@@ -188,7 +173,7 @@ public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends Item
             return false;
         }
 
-        return value.equals(other.getValue(), EquivalenceStrategy.REAL_VALUE);
+        return value.equals(other.getValue(), strategy);
     }
 
     public boolean containsModifications() {

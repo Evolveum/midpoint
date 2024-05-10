@@ -8,28 +8,59 @@
 package com.evolveum.midpoint.schema.merger;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.io.FileUtils;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
+import com.evolveum.midpoint.schema.merger.threeway.item.Conflict;
 import com.evolveum.midpoint.schema.merger.threeway.item.ObjectTreeDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-public class ThreeWayMergeTest extends AbstractSchemaTest {
+public class TreeDeltaTest extends AbstractSchemaTest {
 
-    @Test
+    @Test(enabled = false)
     public void testInitialObjectsConflicts() {
-        File objects44Dir = new File("src/test/resources/objects/44");
+        File objects44Dir = new File("../_mess/_init-objects-diff/initial-objects/4.4.8");
+        File objectsCurrentDir = new File("../repo/system-init/src/main/resources/initial-objects");
+
+        Map<String, PrismObject<?>> objects44 = loadObjects(objects44Dir);
+        Map<String, PrismObject<?>> objectsCurrent = loadObjects(objectsCurrentDir);
+
+        objects44.forEach((oid, object44) -> {
+            PrismObject<?> objectCurrent = objectsCurrent.get(oid);
+            if (objectCurrent == null) {
+                return;
+            }
+
+        });
+    }
+
+    private Map<String, PrismObject<?>> loadObjects(File dir) {
+        Map<String, PrismObject<?>> map = new HashMap<>();
+
+        FileUtils.listFiles(dir, new String[] { "xml" }, true).forEach(file -> {
+            try {
+                PrismObject<?> object = PrismTestUtil.parseObject(file);
+                map.put(object.getOid(), object);
+            } catch (SchemaException | IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        return map;
     }
 
     @Test
@@ -160,8 +191,8 @@ public class ThreeWayMergeTest extends AbstractSchemaTest {
 
         ObjectDelta<UserType> leftToBase = ctx.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                    .delete(a1.asPrismContainerValue())
-                    .add(a1new.asPrismContainerValue())
+                .delete(a1.asPrismContainerValue())
+                .add(a1new.asPrismContainerValue())
                 .asObjectDelta(oid);
 
         ObjectDelta<UserType> rightToBase = ctx.deltaFor(UserType.class)
@@ -176,33 +207,27 @@ public class ThreeWayMergeTest extends AbstractSchemaTest {
         AssertJUnit.assertTrue(leftTreeDelta.hasConflictWith(rightTreeDelta));
     }
 
-
     // todo this doesn't fail only by accident, because current algorithm
     //  doesn't check for modification type in other subtree, just on the same level...
     //  FIX ME
     @Test
-    public void noConflictAssignmentAndPropertyAdd() throws SchemaException {
-        final String oid = UUID.randomUUID().toString();
+    public void conflictActivation() throws SchemaException {
         PrismContext ctx = PrismTestUtil.getPrismContext();
 
-        // GIVEN
-        AssignmentType a1 = new AssignmentType()
-                .id(1L)
-                .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE);
+        final String oid = UUID.randomUUID().toString();
 
-        AssignmentType a1new = new AssignmentType()
-                .id(1L)
-                .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE)
-                .description("New description");
+        // GIVEN
+        ActivationType a1 = new ActivationType()
+                .administrativeStatus(ActivationStatusType.DISABLED)
+                .disableReason("New reason");
 
         ObjectDelta<UserType> leftToBase = ctx.deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT)
-                .delete(a1.asPrismContainerValue())
-                .add(a1new.asPrismContainerValue())
+                .item(UserType.F_ACTIVATION)
+                .replace(a1.asPrismContainerValue())
                 .asObjectDelta(oid);
 
         ObjectDelta<UserType> rightToBase = ctx.deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_DESCRIPTION).replace(List.of("New description"))
+                .item(UserType.F_ACTIVATION, ActivationType.F_DISABLE_REASON).add(List.of("New description"))
                 .asObjectDelta(oid);
 
         // WHEN
@@ -210,6 +235,9 @@ public class ThreeWayMergeTest extends AbstractSchemaTest {
         ObjectTreeDelta<UserType> rightTreeDelta = ObjectTreeDelta.fromItemDelta(rightToBase);
 
         // THEN
-        AssertJUnit.assertFalse(leftTreeDelta.hasConflictWith(rightTreeDelta));
+        List<Conflict> conflicts = leftTreeDelta.getConflictsWith(rightTreeDelta);
+        conflicts.forEach(System.out::println);
+
+        AssertJUnit.assertFalse(conflicts.isEmpty());
     }
 }

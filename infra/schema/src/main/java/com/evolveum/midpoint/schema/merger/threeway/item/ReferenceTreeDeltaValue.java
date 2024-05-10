@@ -19,4 +19,9 @@ public class ReferenceTreeDeltaValue extends ItemTreeDeltaValue<PrismReferenceVa
     public ReferenceTreeDeltaValue(PrismReferenceValue value, ModificationType modificationType) {
         super(value, modificationType);
     }
+
+    @Override
+    protected String debugDumpShortName() {
+        return "RTDV";
+    }
 }

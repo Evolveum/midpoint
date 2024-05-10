@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -62,16 +61,6 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
     @Override
     public ContainerTreeDeltaValue<O> createNewValue() {
         return new ObjectTreeDeltaValue<>();
-    }
-
-    @Override
-    protected void appendDebugDumpSuffix(StringBuilder sb) {
-        sb.append("(").append(getOid());
-        PrismContainerDefinition<O> def = getDefinition();
-        if (def != null) {
-            sb.append(", ").append(DebugUtil.formatElementName(def.getTypeName()));
-        }
-        sb.append(")");
     }
 
     public static <O extends ObjectType> ObjectTreeDelta<O> fromItemDelta(ObjectDelta<O> delta) {

@@ -73,6 +73,8 @@ public class ContainerTreeDelta<C extends Containerable>
         ContainerTreeDeltaValue<C> val = findValue(id);
         if (val == null) {
             val = createNewValue();
+            val.setId(id);
+
             addValue(val);
         }
 
