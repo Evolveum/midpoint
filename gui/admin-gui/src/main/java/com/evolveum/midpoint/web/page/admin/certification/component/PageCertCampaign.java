@@ -22,8 +22,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.PageAdminCertification;
+
+import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -77,13 +78,11 @@ public class PageCertCampaign extends PageAdmin {
     private static final String OPERATION_LOAD_STATISTICS = DOT_CLASS + "loadStatistics";
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_DETAILS = "details";
-    private static final String ID_STATISTICS_CONTAINER = "statisticsContainer";
+    private static final String ID_RESPONSES_CONTAINER = "responsesContainer";
+    private static final String ID_RESPONSES = "responses";
     private static final String ID_ITEMS_LIST = "itemsList";
-    private static final String ID_STATISTICS = "statistics";
-    private static final String ID_STATISTIC_ITEM = "statisticItem";
-
     private IModel<AccessCertificationCampaignType> campaignModel;
-    private LoadableModel<AccessCertificationCasesStatisticsType> statModel;
+    private LoadableModel<AccessCertificationCasesStatisticsType> statisticsModel;
 
     private IModel<List<DetailsTableItem>> detailsModel;
 
@@ -121,7 +120,7 @@ public class PageCertCampaign extends PageAdmin {
 
                     @Override
                     public Component createValueComponent(String id) {
-                        return new ProgressBarPanel(id, createProgressBarModel());
+                        return new ProgressBarPanel(id, createCampaignProgressModel());
                     }
                 }); //todo calculate progress
                 list.add(new DetailsTableItem(createStringResource("PageCertCampaigns.table.stage"),
@@ -149,7 +148,7 @@ public class PageCertCampaign extends PageAdmin {
             }
         };
 
-        statModel = new LoadableModel<>(false) {
+        statisticsModel = new LoadableModel<>(false) {
             @Serial private static final long serialVersionUID = 1L;
             @Override
             protected AccessCertificationCasesStatisticsType load() {
@@ -241,26 +240,16 @@ public class PageCertCampaign extends PageAdmin {
         details.setOutputMarkupId(true);
         add(details);
 
-        SimpleContainerPanel statisticsContainer = new SimpleContainerPanel(ID_STATISTICS_CONTAINER, Model.of()) {
+        SimpleContainerPanel responsesContainer = new SimpleContainerPanel(ID_RESPONSES_CONTAINER,
+                createStringResource("PageCertCampaign.statistics.responses"));
+        responsesContainer.add(AttributeModifier.append("class", "card p-4"));
+        responsesContainer.setOutputMarkupId(true);
+        add(responsesContainer);
 
-            @Serial private static final long serialVersionUID = 1L;
-            @Override
-            protected Component createContent(String id) {
-                Component content = super.createContent(id);
-                content.add(AttributeModifier.replace("class", "row"));
-                return content;
-            }
+        ProgressBarPanel responsesPanel = new ProgressBarPanel(ID_RESPONSES, createResponseStatisticsModel());
+        responsesPanel.setOutputMarkupId(true);
+        responsesContainer.add(responsesPanel);
 
-            @Override
-            protected boolean isExpandable() {
-                return false;
-            }
-        };
-        add(statisticsContainer);
-
-        ListView<DashboardWidgetType> statistics = createWidgetList(ID_STATISTICS, ID_STATISTIC_ITEM, true);
-        statisticsContainer.add(new VisibleBehaviour(() -> !statistics.getModelObject().isEmpty()));
-        statisticsContainer.add(statistics);
 
         CertificationItemsPanel items = new CertificationItemsPanel(ID_ITEMS_LIST, campaignModel.getObject().getOid());
         items.setOutputMarkupId(true);
@@ -309,85 +298,7 @@ public class PageCertCampaign extends PageAdmin {
         }
     }
 
-    private ListView<DashboardWidgetType> createWidgetList(String id, String widgetId, boolean eventMarks) {
-        return new ListView<>(id, createWidgetListModel(eventMarks)) {
-
-            @Serial private static final long serialVersionUID = 1L;
-            @Override
-            protected void populateItem(ListItem<DashboardWidgetType> item) {
-                item.add(new MetricWidgetPanel(widgetId, item.getModel()) {
-
-                    @Serial private static final long serialVersionUID = 1L;
-                    @Override
-                    protected boolean isMoreInfoVisible() {
-                        return true;
-                    }
-
-                    @Override
-                    protected void onMoreInfoPerformed(AjaxRequestTarget target) {
-//                        openMarkMetricPerformed(item.getModelObject());
-                    }
-                });
-            }
-        };
-    }
-
-    private IModel<List<DashboardWidgetType>> createWidgetListModel(boolean eventMarkWidgets) {
-
-        return new LoadableDetachableModel<>() {
-
-            @Serial private static final long serialVersionUID = 1L;
-            @Override
-            protected List<DashboardWidgetType> load() {
-                List<DashboardWidgetType> widgets = new ArrayList<>();
-
-                DashboardWidgetType accepted = new DashboardWidgetType();
-                accepted.beginData()
-                        .sourceType(DashboardWidgetSourceTypeType.METRIC)
-                        .storedData("" + statModel.getObject().getMarkedAsAccept())
-                        .end();
-                accepted
-                        .beginDisplay()
-                                .label(createStringResource("PageCertCampaign.statistics.accepted").getString())
-                        .icon(new IconType().cssClass(GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED));
-                widgets.add(accepted);
-
-                DashboardWidgetType revoked = new DashboardWidgetType();
-                revoked.beginData()
-                        .sourceType(DashboardWidgetSourceTypeType.METRIC)
-                        .storedData("" + statModel.getObject().getMarkedAsRevoke())
-                        .end();
-                revoked
-                        .beginDisplay()
-                        .label(createStringResource("PageCertCampaign.statistics.revoked").getString());
-                widgets.add(revoked);
-
-                DashboardWidgetType reduced = new DashboardWidgetType();
-                reduced.beginData()
-                        .sourceType(DashboardWidgetSourceTypeType.METRIC)
-                        .storedData("" + statModel.getObject().getMarkedAsReduce())
-                        .end();
-                reduced
-                        .beginDisplay()
-                        .label(createStringResource("PageCertCampaign.statistics.reduced").getString());
-                widgets.add(reduced);
-
-                DashboardWidgetType notDecided = new DashboardWidgetType();
-                notDecided.beginData()
-                        .sourceType(DashboardWidgetSourceTypeType.METRIC)
-                        .storedData("" + statModel.getObject().getMarkedAsNotDecide())
-                        .end();
-                notDecided
-                        .beginDisplay()
-                        .label(createStringResource("PageCertCampaign.statistics.notDecided").getString())
-                        .icon(new IconType().cssClass(GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM + " "));
-                widgets.add(notDecided);
-                return widgets;
-            }
-        };
-    }
-
-    protected @NotNull LoadableModel<List<ProgressBar>> createProgressBarModel() {
+    private @NotNull LoadableModel<List<ProgressBar>> createCampaignProgressModel() {
         return new LoadableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -398,6 +309,49 @@ public class PageCertCampaign extends PageAdmin {
 
                 ProgressBar progressBar = new ProgressBar(completed, ProgressBar.State.INFO);
                 return Collections.singletonList(progressBar);
+            }
+        };
+    }
+
+    private @NotNull LoadableModel<List<ProgressBar>> createResponseStatisticsModel() {
+        return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<ProgressBar> load() {
+
+                List<ProgressBar> progressBars = new ArrayList<>();
+
+                CertificationItemResponseHelper responseHelper =
+                        new CertificationItemResponseHelper(AccessCertificationResponseType.ACCEPT);
+                ProgressBar accepted = new ProgressBar(statisticsModel.getObject().getMarkedAsAccept(),
+                        responseHelper.getProgressBarState());
+                progressBars.add(accepted);
+
+                responseHelper =
+                        new CertificationItemResponseHelper(AccessCertificationResponseType.REVOKE);
+                ProgressBar revoked = new ProgressBar(statisticsModel.getObject().getMarkedAsRevoke(),
+                        responseHelper.getProgressBarState());
+                progressBars.add(revoked);
+
+                responseHelper =
+                        new CertificationItemResponseHelper(AccessCertificationResponseType.REDUCE);
+                ProgressBar reduced = new ProgressBar(statisticsModel.getObject().getMarkedAsReduce(),
+                        responseHelper.getProgressBarState());
+                progressBars.add(reduced);
+
+                responseHelper =
+                        new CertificationItemResponseHelper(AccessCertificationResponseType.NOT_DECIDED);
+                ProgressBar notDecided = new ProgressBar(statisticsModel.getObject().getMarkedAsNotDecide(),
+                        responseHelper.getProgressBarState());
+                progressBars.add(notDecided);
+
+                responseHelper =
+                        new CertificationItemResponseHelper(AccessCertificationResponseType.NO_RESPONSE);
+                ProgressBar noResponse = new ProgressBar(statisticsModel.getObject().getWithoutResponse(),
+                        responseHelper.getProgressBarState());
+                progressBars.add(noResponse);
+                return progressBars;
             }
         };
     }
