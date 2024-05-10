@@ -13,13 +13,13 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathComparatorUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
-// todo visitable
 public abstract class ItemTreeDelta
         <
                 PV extends PrismValue,
@@ -27,7 +27,7 @@ public abstract class ItemTreeDelta
                 I extends Item<PV, ID>,
                 V extends ItemTreeDeltaValue
                 >
-        implements DebugDumpable {
+        implements DebugDumpable, Visitable {
 
     private ContainerTreeDeltaValue<?> parent;
 
@@ -122,5 +122,91 @@ public abstract class ItemTreeDelta
         DebugUtil.debugDumpWithLabel(sb, "values", getValues(), indent + 1);
 
         return sb.toString();
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+
+        getValues().forEach(value -> value.accept(visitor));
+    }
+
+    public ItemPath getPath() {
+        if (parent == null) {
+            return ItemPath.create(getItemName());
+        }
+
+        return parent.getPath().append(getItemName());
+    }
+
+    @NotNull
+    public List<Conflict> getConflictsWith(ItemTreeDelta<PV, ID, I, V> other, EquivalenceStrategy strategy) {
+        if (other == null) {
+            return List.of();
+        }
+
+        if (!ItemPathComparatorUtil.equivalent(getPath(), other.getPath())) {
+            return List.of();
+        }
+
+        if (definition.isSingleValue()) {
+            V value = getSingleValue();
+
+            V otherValue = other.getSingleValue();
+            if (value == null && otherValue == null) {
+                return List.of();
+            }
+
+            if (value == null || otherValue == null) {
+                return List.of(new Conflict(value, otherValue));
+            }
+
+            return value.getConflictsWith(otherValue, strategy);
+        }
+
+        List<Conflict> conflicts = new ArrayList<>();
+        for (V value : getValues()) {
+            V otherValue = other.findMatchingValue(value, strategy);
+            if (otherValue == null) {
+                continue;
+            }
+
+            List<Conflict> valueConflicts = value.getConflictsWith(otherValue, strategy);
+            conflicts.addAll(valueConflicts);
+        }
+
+        return conflicts;
+    }
+
+    @NotNull
+    public List<Conflict> getConflictsWith(ItemTreeDelta<PV, ID, I, V> other) {
+        return getConflictsWith(other, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+    }
+
+    public boolean hasConflictWith(ItemTreeDelta<PV, ID, I, V> other, EquivalenceStrategy strategy) {
+        return !getConflictsWith(other, strategy).isEmpty();
+    }
+
+    public boolean hasConflictWith(ItemTreeDelta<PV, ID, I, V> other) {
+        return hasConflictWith(other, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+    }
+
+    // todo use strategy
+    protected V findMatchingValue(V other, EquivalenceStrategy strategy) {
+        if (definition.isSingleValue()) {
+            return getSingleValue();
+        }
+
+        for (V value : getValues()) {
+            if (value.match(other)) {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
+    public boolean containsModifications() {
+        return getValues().stream().anyMatch(V::containsModifications);
     }
 }

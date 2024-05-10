@@ -31,7 +31,6 @@ public class ContainerTreeDelta<C extends Containerable>
 
     @Override
     public String debugDump(int indent) {
-
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         if (DebugUtil.isDetailedDebugDump()) {
@@ -94,5 +93,14 @@ public class ContainerTreeDelta<C extends Containerable>
                 .filter(v -> Objects.equals(id, v.getId()))
                 .findFirst()
                 .orElse(null);
+    }
+
+    @Override
+    public boolean containsModifications() {
+        if (super.containsModifications()) {
+            return true;
+        }
+
+        return getValues().stream().anyMatch(ContainerTreeDeltaValue::containsModifications);
     }
 }

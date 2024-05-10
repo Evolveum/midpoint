@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O> {
@@ -73,7 +74,7 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
         sb.append(")");
     }
 
-    public static <O extends ObjectType> ObjectTreeDelta<O> from(ObjectDelta<O> delta) {
+    public static <O extends ObjectType> ObjectTreeDelta<O> fromItemDelta(ObjectDelta<O> delta) {
         SchemaRegistry registry = PrismContext.get().getSchemaRegistry();
         PrismObjectDefinition<O> def = registry.findObjectDefinitionByCompileTimeClass(delta.getObjectTypeClass());
 
@@ -130,5 +131,19 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
 
             treeDelta.addValue(treeDeltaValue);
         }
+    }
+
+    public ObjectDelta<O> toObjectDelta() throws SchemaException {
+        ObjectDelta<O> delta = PrismContext.get().deltaFor(getDefinition().getCompileTimeClass())
+                .asObjectDelta(getOid());
+        delta.setObjectToAdd(getObjectToAdd());
+
+        // todo implement
+        ContainerTreeDeltaValue<O> value = getSingleValue();
+        if (value != null) {
+            // todo
+        }
+
+        return delta;
     }
 }

@@ -14,21 +14,25 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
-public abstract class ItemTreeDeltaValue<V extends PrismValue, P extends ItemTreeDelta> implements DebugDumpable {
+public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends ItemTreeDelta> implements DebugDumpable, Visitable {
 
-    private P parent;
+    private ITD parent;
 
     // todo improve
     private List<Object> naturalKey;
 
-    private V value;
+    private PV value;
 
     private ModificationType modificationType;
 
-    public ItemTreeDeltaValue(V value, ModificationType modificationType) {
+    public ItemTreeDeltaValue(PV value, ModificationType modificationType) {
         this.value = value;
         this.modificationType = modificationType;
     }
@@ -45,11 +49,11 @@ public abstract class ItemTreeDeltaValue<V extends PrismValue, P extends ItemTre
         this.naturalKey = naturalKey;
     }
 
-    public V getValue() {
+    public PV getValue() {
         return value;
     }
 
-    public void setValue(V value) {
+    public void setValue(PV value) {
         this.value = value;
     }
 
@@ -61,11 +65,11 @@ public abstract class ItemTreeDeltaValue<V extends PrismValue, P extends ItemTre
         this.modificationType = modificationType;
     }
 
-    public P getParent() {
+    public ITD getParent() {
         return parent;
     }
 
-    public void setParent(P parent) {
+    public void setParent(ITD parent) {
         this.parent = parent;
     }
 
@@ -98,5 +102,96 @@ public abstract class ItemTreeDeltaValue<V extends PrismValue, P extends ItemTre
         // todo fix debug dump ,this is a mess
         DebugUtil.debugDumpWithLabelLn(sb, "naturalKey", naturalKey, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "value", value, indent + 1);
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
+
+    public ItemPath getPath() {
+        return parent != null ? parent.getPath() : null;
+    }
+
+    @NotNull
+    public List<Conflict> getConflictsWith(ItemTreeDeltaValue other, EquivalenceStrategy strategy) {
+        if (other == null) {
+            return List.of();
+        }
+
+        // todo check parent path?
+
+        if (modificationType == null && other.modificationType == null) {
+            return List.of();
+        }
+
+        if (modificationType != other.modificationType) {
+            if (!getParent().getDefinition().isSingleValue()) {
+                return List.of(new Conflict(this, other));
+            }
+
+            List<ModificationType> list = List.of(modificationType, other.modificationType);
+            if (!list.contains(ModificationType.ADD) || !list.contains(ModificationType.REPLACE)) {
+                return List.of(new Conflict(this, other));
+            }
+        }
+
+        if (value.equals(other.getValue(), strategy)) {
+            return List.of();
+        }
+
+        return List.of(new Conflict(this, other));
+    }
+
+    public boolean hasConflictWith(ItemTreeDeltaValue other, EquivalenceStrategy strategy) {
+        return !getConflictsWith(other, strategy).isEmpty();
+    }
+
+//    // todo fix generics
+//    public boolean hasConflictWith(ItemTreeDeltaValue other) {
+//        if (other == null) {
+//            return false;
+//        }
+//
+//        if (modificationType == null && other.modificationType == null) {
+//            return false;
+//        }
+//
+//        if (modificationType != other.modificationType) {
+//            if (!getParent().getDefinition().isSingleValue()) {
+//                return true;
+//            }
+//
+//            List<ModificationType> list = List.of(modificationType, other.modificationType);
+//            if (!list.contains(ModificationType.ADD) || !list.contains(ModificationType.REPLACE)) {
+//                return true;
+//            }
+//        }
+//
+//        return hasConflictWith(value);
+//    }
+
+    protected boolean hasConflictWith(PV otherValue) {
+        if (value == null || otherValue == null) {
+            return false;
+        }
+
+        return !value.equals(otherValue, EquivalenceStrategy.REAL_VALUE);   // todo add equivalence strategy
+    }
+
+    public <V extends ItemTreeDeltaValue> boolean match(V other) {
+        if (other == null) {
+            return false;
+        }
+
+        if (value == null || other.getValue() == null) {
+            return false;
+        }
+
+        return value.equals(other.getValue(), EquivalenceStrategy.REAL_VALUE);
+    }
+
+    public boolean containsModifications() {
+        return modificationType != null;
     }
 }
