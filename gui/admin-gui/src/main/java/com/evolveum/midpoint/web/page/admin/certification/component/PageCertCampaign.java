@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -246,7 +247,20 @@ public class PageCertCampaign extends PageAdmin {
         responsesContainer.setOutputMarkupId(true);
         add(responsesContainer);
 
-        ProgressBarPanel responsesPanel = new ProgressBarPanel(ID_RESPONSES, createResponseStatisticsModel());
+        ProgressBarPanel responsesPanel = new ProgressBarPanel(ID_RESPONSES, createResponseStatisticsModel()) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected boolean isSimpleView() {
+                return false;
+            }
+
+            @Override
+            protected boolean isPercentageBar() {
+                return false;
+            }
+        };
         responsesPanel.setOutputMarkupId(true);
         responsesContainer.add(responsesPanel);
 
@@ -325,34 +339,48 @@ public class PageCertCampaign extends PageAdmin {
                 CertificationItemResponseHelper responseHelper =
                         new CertificationItemResponseHelper(AccessCertificationResponseType.ACCEPT);
                 ProgressBar accepted = new ProgressBar(statisticsModel.getObject().getMarkedAsAccept(),
-                        responseHelper.getProgressBarState());
+                        responseHelper.getProgressBarState(),
+                        new SingleLocalizableMessage(responseHelper.getLabelKey()));
                 progressBars.add(accepted);
 
                 responseHelper =
                         new CertificationItemResponseHelper(AccessCertificationResponseType.REVOKE);
                 ProgressBar revoked = new ProgressBar(statisticsModel.getObject().getMarkedAsRevoke(),
-                        responseHelper.getProgressBarState());
+                        responseHelper.getProgressBarState(),
+                        new SingleLocalizableMessage(responseHelper.getLabelKey()));
                 progressBars.add(revoked);
 
                 responseHelper =
                         new CertificationItemResponseHelper(AccessCertificationResponseType.REDUCE);
                 ProgressBar reduced = new ProgressBar(statisticsModel.getObject().getMarkedAsReduce(),
-                        responseHelper.getProgressBarState());
+                        responseHelper.getProgressBarState(),
+                        new SingleLocalizableMessage(responseHelper.getLabelKey()));
                 progressBars.add(reduced);
 
                 responseHelper =
                         new CertificationItemResponseHelper(AccessCertificationResponseType.NOT_DECIDED);
                 ProgressBar notDecided = new ProgressBar(statisticsModel.getObject().getMarkedAsNotDecide(),
-                        responseHelper.getProgressBarState());
+                        responseHelper.getProgressBarState(),
+                        new SingleLocalizableMessage(responseHelper.getLabelKey()));
                 progressBars.add(notDecided);
 
                 responseHelper =
                         new CertificationItemResponseHelper(AccessCertificationResponseType.NO_RESPONSE);
                 ProgressBar noResponse = new ProgressBar(statisticsModel.getObject().getWithoutResponse(),
-                        responseHelper.getProgressBarState());
+                        responseHelper.getProgressBarState(),
+                        new SingleLocalizableMessage(responseHelper.getLabelKey()));
                 progressBars.add(noResponse);
                 return progressBars;
             }
         };
+    }
+
+    private double getResponsesProgressBarValue(int responsesCount) {
+        int totalCount = statisticsModel.getObject().getMarkedAsAccept() +
+                statisticsModel.getObject().getMarkedAsRevoke() +
+                statisticsModel.getObject().getMarkedAsReduce() +
+                statisticsModel.getObject().getMarkedAsNotDecide() +
+                statisticsModel.getObject().getWithoutResponse();
+        return totalCount > 0 ? (double) responsesCount / totalCount * 100 : 0;
     }
 }

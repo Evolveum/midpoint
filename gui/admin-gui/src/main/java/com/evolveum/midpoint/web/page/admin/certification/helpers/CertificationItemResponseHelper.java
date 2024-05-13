@@ -80,4 +80,9 @@ public class CertificationItemResponseHelper {
                 .orElse(ProgressBar.State.INFO);
     }
 
+    public String getLabelKey() {
+        CertificationItemResponse itemResponse = RESPONSES_MAP.get(response);
+        return "CertificationItemResponse." + itemResponse.name();
+    }
+
 }
