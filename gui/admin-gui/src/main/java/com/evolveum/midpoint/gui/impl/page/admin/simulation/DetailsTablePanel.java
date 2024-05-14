@@ -13,10 +13,10 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebComponent;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -32,7 +32,6 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final String ID_TITLE_CONTAINER = "titleContainer";
     private static final String ID_ICON = "icon";
     private static final String ID_TITLE = "title";
     private static final String ID_DETAILS = "details";
@@ -60,22 +59,19 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
         add(AttributeModifier.append("class", "card"));
 
         IModel<String> titleModel =  getTitleModel();
-        WebMarkupContainer titleContainer = new WebMarkupContainer(ID_TITLE_CONTAINER);
-        titleContainer.add(new VisibleBehaviour(() -> titleModel.getObject() != null));
-        titleContainer.add(AttributeModifier.append("class", getAdditionalTitleClass()));
-        titleContainer.setOutputMarkupId(true);
-        add(titleContainer);
+
+        IModel<String> iconCssClassModel =  getIconCssClassModel();
 
         WebComponent icon = new WebComponent(ID_ICON);
-        IModel<String> iconCssClassModel =  getIconCssClassModel();
-        icon.add(AttributeModifier.append("class", iconCssClassModel));
         icon.add(new VisibleBehaviour(() -> iconCssClassModel.getObject() != null));
-        titleContainer.add(icon);
+        icon.add(AttributeModifier.append("class", iconCssClassModel));
+//        icon.add(AttributeAppender.append("style", getIconBackgroundColor()));
+        add(icon);
 
         Label title = new Label(ID_TITLE, titleModel);
 //        title.setRenderBodyOnly(true);
         title.add(AttributeModifier.append("class", display.getObject().getCssClass()));
-        titleContainer.add(title);
+        add(title);
 
         IModel<String> descriptionModel = getDescriptionModel();
         Label description = new Label(ID_DESCRIPTION, descriptionModel);
@@ -98,24 +94,32 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
         add(details);
     }
 
-    private String getAdditionalTitleClass() {
-        if (isVerticalTitlePanel()) {
-            return "d-flex flex-column justify-content-center w-100";
-        }
-        return "";
-    }
-
-    protected boolean isVerticalTitlePanel() {
-        return false;
-    }
-
     private IModel<String> getIconCssClassModel() {
         return () -> {
             if (display == null || display.getObject() == null) {
                 return null;
             }
 
-            return GuiDisplayTypeUtil.getIconCssClass(display.getObject());
+            String cssClass = GuiDisplayTypeUtil.getIconCssClass(display.getObject());
+            String iconColor =  GuiDisplayTypeUtil.getIconColor(display.getObject());
+            if (StringUtils.isNotEmpty(iconColor)) {
+                return cssClass + " bg-" + iconColor;
+            }
+            return cssClass;
+        };
+    }
+
+    private IModel<String> getIconBackgroundColor() {
+        return () -> {
+            if (display == null || display.getObject() == null) {
+                return null;
+            }
+
+            String iconColor =  GuiDisplayTypeUtil.getIconColor(display.getObject());
+            if (StringUtils.isNotEmpty(iconColor)) {
+                return "background-color: " + iconColor + ";";
+            }
+            return "";
         };
     }
 

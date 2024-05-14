@@ -232,20 +232,11 @@ public class PageCertCampaign extends PageAdmin {
         DisplayType displayType = new DisplayType()
                 .label(WebComponentUtil.getName(campaignModel.getObject()))
                 .help(campaignModel.getObject().getDescription())
-                .cssClass("font-weight-bold d-flex justify-content-center")
                 .icon(new IconType()
                         .cssClass(getDetailsTablePanelIconCssClass()));
         DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
                 Model.of(displayType),
-                detailsModel) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected boolean isVerticalTitlePanel() {
-                return true;
-            }
-        };
+                detailsModel);
         details.setOutputMarkupId(true);
         add(details);
 
@@ -279,10 +270,7 @@ public class PageCertCampaign extends PageAdmin {
     }
 
     private String getDetailsTablePanelIconCssClass() {
-        StringBuilder sb = new StringBuilder(
-                IconAndStylesUtil.createDefaultColoredIcon(AccessCertificationCampaignType.COMPLEX_TYPE));
-        sb.append(" d-flex justify-content-center mr-2 info-box-icon-ethereal-image");
-        return sb.toString();
+        return IconAndStylesUtil.createDefaultColoredIcon(AccessCertificationCampaignType.COMPLEX_TYPE);
     }
 
     private void onBackPerformed() {
