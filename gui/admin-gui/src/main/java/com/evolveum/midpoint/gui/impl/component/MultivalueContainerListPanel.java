@@ -300,4 +300,9 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     protected boolean isDuplicationSupported() {
         return isCreateNewObjectVisible();
     }
+
+    @Override
+    protected boolean isFulltextEnabled() {
+        return false;
+    }
 }

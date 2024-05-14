@@ -57,6 +57,12 @@ As we generate the e-mail, it simply makes sense to also set some text to the bo
 
 Based on this presumptions the structure of the notification will be as following:
 
+* notification sending strategy
+
+By default, midPoint will generate, customize (e.g. with localization settings) and send notification message to each recipient (in case of multiple recipients) separately.
+This strategy can be changed with notificationSendingStrategy configuration.
+Possible values are: _sameNotificationToAllRecipients_ (a notification message is generated once, and sent to all the recipients in the same form) and _separateNotificationToEachRecipient_ (the default value, a notification message is generated and sent to every recipient separately, taking into account such individual settings as local).
+
 [source,xml]
 ----
 <notificationConfiguration>
@@ -93,6 +99,7 @@ Based on this presumptions the structure of the notification will be as followin
                 </script>
             </bodyExpression>
             <transport>mail</transport>
+            <notificationSendingStrategy>sameNotificationToAllRecipients</notificationSendingStrategy>
         </generalNotifier>
     </handler>
     ...

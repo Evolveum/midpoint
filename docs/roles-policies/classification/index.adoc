@@ -17,6 +17,8 @@ compliance:
             description: 'Using clearances to represent security training'
         '6.6':
             description: 'Using clearances to represent non-disclosure agreement'
+        '8.3':
+            description: 'Ensuring that only users with appropriate clearances get access to sensitive information'
 ---
 = Information Classification and Clearances
 :page-toc: top

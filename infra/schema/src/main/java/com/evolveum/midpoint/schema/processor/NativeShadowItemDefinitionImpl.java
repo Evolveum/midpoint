@@ -350,8 +350,18 @@ public class NativeShadowItemDefinitionImpl<T>
     }
 
     @Override
+    public DisplayHint getDisplayHint() {
+        return PrismPresentationDefinition.Delegable.super.getDisplayHint();
+    }
+
+    @Override
     public String getDisplayName() {
         return PrismPresentationDefinition.Delegable.super.getDisplayName();
+    }
+
+    @Override
+    public String getDocumentation() {
+        return PrismPresentationDefinition.Delegable.super.getDocumentation();
     }
 
     @Override

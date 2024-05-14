@@ -1,0 +1,39 @@
+= Module httpHeader
+:page-nav-title: Module httpHeader
+
+Pseudo-authentication for pre-authenticated users.
+Based on HTTP header values.
+This module contains specific attributes:
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `usernameHeader`
+| Name of HTTP header that contains username.
+| true
+| _String_
+
+
+| `logoutUrl`
+| Url for redirect after logout.
+Default is '/'.
+| false
+| _String_
+
+|===
+
+
+
+.Example of httpHeader module
+[source,xml]
+----
+<httpHeader>AuthenticationModuleSaml2ProviderMetadataType
+    <identifier>httpHeader</identifier>
+    <logoutUrl>http://localhost:8081/Identity_provider/Logout</logoutUrl>
+    <usernameHeader>uid</usernameHeader>
+</httpHeader>
+----
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]

@@ -6,11 +6,17 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.SchemaPropertyWrapperImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.prism_schema_3.PrismSchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +38,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  */
 @Component
 public class SchemaWrapperFactoryImpl
-        extends PrismPropertyWrapperFactoryImpl<SchemaDefinitionType> {
+        extends PrismContainerWrapperFactoryImpl<PrismSchemaType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaWrapperFactoryImpl.class);
 
@@ -52,32 +58,52 @@ public class SchemaWrapperFactoryImpl
         return super.getOrder() - 100;
     }
 
-    @Override
-    protected PrismPropertyValue<SchemaDefinitionType> createNewValue(PrismProperty<SchemaDefinitionType> item) throws SchemaException {
-        PrismPropertyValue<SchemaDefinitionType> newValue = getPrismContext().itemFactory().createPropertyValue();
-        item.add(newValue);
-        return newValue;
-    }
+//    @Override
+//    public PrismContainerWrapper<PrismSchemaType> createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException {
+//        ItemName name = def.getItemName();
+//
+//        PrismProperty<SchemaDefinitionType> childItem = parent.getNewValue().findProperty(name);
+//
+//        ItemStatus status = getStatus(childItem);
+//
+//        if (skipCreateWrapper(def, status, context, childItem == null || CollectionUtils.isEmpty(childItem.getValues()))) {
+//            LOGGER.trace("Skipping creating wrapper for non-existent item. It is not supported for {}", def);
+//            return null;
+//        }
+//
+//        if (childItem == null) {
+//            childItem = (I) parent.getNewValue().findOrCreateItem(name);
+//        }
+//
+//        return createWrapper(parent, childItem, status, context);
+//    }
 
-    @Override
-    protected PrismPropertyWrapper<SchemaDefinitionType> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismProperty<SchemaDefinitionType> item,
-            ItemStatus status, WrapperContext wrapperContext) {
-        PrismPropertyWrapper<SchemaDefinitionType> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
-        return propertyWrapper;
-    }
-
-
-    @Override
-    public SchemaPropertyWrapperImpl createValueWrapper(PrismPropertyWrapper<SchemaDefinitionType> parent, PrismPropertyValue<SchemaDefinitionType> value,
-            ValueStatus status, WrapperContext context) {
-
-        return new SchemaPropertyWrapperImpl(parent, value, status);
-    }
-
-    //TODO maybe special panel here?
-    @Override
-    public void registerWrapperPanel(PrismPropertyWrapper<SchemaDefinitionType> wrapper) {
-        getRegistry().registerWrapperPanel(wrapper.getTypeName(), PrismPropertyPanel.class);
-    }
+    //    @Override
+//    protected PrismPropertyValue<SchemaDefinitionType> createNewValue(PrismProperty<SchemaDefinitionType> item) throws SchemaException {
+//        PrismPropertyValue<SchemaDefinitionType> newValue = getPrismContext().itemFactory().createPropertyValue();
+//        item.add(newValue);
+//        return newValue;
+//    }
+//
+//    @Override
+//    protected PrismPropertyWrapper<SchemaDefinitionType> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismProperty<SchemaDefinitionType> item,
+//            ItemStatus status, WrapperContext wrapperContext) {
+//        PrismPropertyWrapper<SchemaDefinitionType> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
+//        return propertyWrapper;
+//    }
+//
+//
+//    @Override
+//    public SchemaPropertyWrapperImpl createValueWrapper(PrismPropertyWrapper<SchemaDefinitionType> parent, PrismPropertyValue<SchemaDefinitionType> value,
+//            ValueStatus status, WrapperContext context) {
+//
+//        return new SchemaPropertyWrapperImpl(parent, value, status);
+//    }
+//
+//    //TODO maybe special panel here?
+//    @Override
+//    public void registerWrapperPanel(PrismPropertyWrapper<SchemaDefinitionType> wrapper) {
+//        getRegistry().registerWrapperPanel(wrapper.getTypeName(), PrismPropertyPanel.class);
+//    }
 
 }

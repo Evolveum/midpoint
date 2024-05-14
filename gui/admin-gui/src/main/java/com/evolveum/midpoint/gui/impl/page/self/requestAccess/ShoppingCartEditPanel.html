@@ -18,25 +18,29 @@
             <select class="form-control" wicket:id="relation"/>
         </div>
     </div>
-    <div class="col-12">
-        <div class="form-group">
-            <label class="col-form-label">
-                <wicket:message key="ActivationType.administrativeStatus"/>
-                <span class="text-gray font-weight-light">- <wicket:message key="ShoppingCartEditPanel.optional"/></span>
-            </label>
-            <select class="form-control" wicket:id="administrativeStatus"/>
+    <wicket:enclosure child="administrativeStatus">
+        <div class="col-12">
+            <div class="form-group">
+                <label class="col-form-label">
+                    <wicket:message key="ActivationType.administrativeStatus"/>
+                    <span class="text-gray font-weight-light">- <wicket:message key="ShoppingCartEditPanel.optional"/></span>
+                </label>
+                <select class="form-control" wicket:id="administrativeStatus"/>
+            </div>
         </div>
-    </div>
-    <div class="col-12">
-        <div class="form-group">
-            <label class="col-form-label">
-                <wicket:message key="ShoppingCartEditPanel.validity"/>
-                <span class="text-gray font-weight-light">- <wicket:message key="ShoppingCartEditPanel.optional"/></span>
-            </label>
+    </wicket:enclosure>
+    <wicket:enclosure child="customValidity">
+        <div class="col-12">
+            <div class="form-group">
+                <label class="col-form-label">
+                    <wicket:message key="ShoppingCartEditPanel.validity"/>
+                    <span class="text-gray font-weight-light">- <wicket:message key="ShoppingCartEditPanel.optional"/></span>
+                </label>
 
-            <div wicket:id="customValidity"/>
+                <div wicket:id="customValidity"/>
+            </div>
         </div>
-    </div>
+    </wicket:enclosure>
     <wicket:enclosure child="extension">
         <div class="col-12">
             <div class="form-group">

@@ -1,0 +1,52 @@
+= Module focusIdentification
+:page-nav-title: Module focusIdentification
+
+Focus identification authentication module.
+Module that according to the specified attributes tries to find a user in midPoint.
+If only focusIdentification module is defined, authentication won't succeed.
+This module is marked as not sufficient to live on its own.
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `item`
+| Structure defining how the user should be looked for.
+| true
+| _ModuleItemConfigurationType_
+
+|===
+
+*ModuleItemConfigurationType consists of the following attributes:*
+
+[%autowidth]
+|===
+| Name | Description | Required | Type
+
+| `path`
+| The path to the focus attribute according to which the focus should be found.
+| true
+| _ItemPathType_
+
+| `matchingRule`
+| Matching rule which should be used for this item while filtering or comparing
+| false
+| _QName_
+
+
+|===
+
+.Example of focusIdentification module
+[source,xml]
+----
+<focusIdentification>
+    <identifier>focusId</identifier>
+    <item>
+        <path>name</path>
+        <matchingRule>polyStringNorm</matchingRule>
+    </item>
+</focusIdentification>
+----
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]

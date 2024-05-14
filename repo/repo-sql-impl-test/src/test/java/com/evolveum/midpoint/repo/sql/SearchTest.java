@@ -22,6 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.query.TypedQuery;
+
 import org.assertj.core.api.Condition;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -1828,6 +1830,46 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test990searchUsingRefSubfilter() throws Exception {
+        OperationResult result = new OperationResult("search");
+        var role = repositoryService.addObject(new RoleType().name("Managed Role").asPrismObject(), null, result);
+        var correctOrgUnit = repositoryService.addObject(new OrgType().name("foo-bar-baz").asPrismObject(), null, result);
+        var incorrectUser = repositoryService.
+                addObject(new UserType()
+                                .name("incorrect-user")
+                                .assignment(new AssignmentType()
+                                        .targetRef(role, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER))
+                                .assignment(new AssignmentType()
+                                        .targetRef(correctOrgUnit, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
+                                )
+                                .asPrismObject(),
+                null,result);
+        var correctUser = repositoryService.
+                addObject(new UserType()
+                                .name("correct-user")
+                                .assignment(new AssignmentType()
+                                        .targetRef(role, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
+                                )
+                                .assignment(new AssignmentType()
+                                        .targetRef(correctOrgUnit, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER)
+                                )
+                                .asPrismObject(),
+                        null,result);
+
+        var query = TypedQuery.parse(UserType.class,
+                "assignment/targetRef matches (relation = manager and @ matches (. type OrgType and name contains '-'))");
+
+        var users = repositoryService.searchObjects(query.getType(), query.toObjectQuery(), null, result);
+
+        assertThat(users)
+                .as("users found")
+                .hasSize(1)
+                .map(u -> u.getName().getOrig())
+                .containsExactlyInAnyOrder("correct-user");
+
+    }
+
+    @Test
     public void test999MultipleOrdersAreSupportedByFluentApiAndRepository() throws SchemaException {
         given("search users query ordered by family and given name");
         ObjectQuery query = prismContext.queryFor(UserType.class)
@@ -1840,7 +1882,8 @@ public class SearchTest extends BaseSQLRepoTest {
 
         then("sorted users are returned");
         assertThatOperationResult(opResult).isSuccess();
-        assertThat(result).hasSize(4);
+        // Previous test added two new users
+        assertThat(result).hasSize(6);
         // Various DB can use various order (default NULL ordering for H2 vs PG) so we just check it works
         // without actually checking the order (we do this properly in the Native repo test).
     }

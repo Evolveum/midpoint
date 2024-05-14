@@ -306,6 +306,16 @@ public class NativeComplexTypeDefinitionImpl
     }
 
     @Override
+    public DisplayHint getDisplayHint() {
+        return null;
+    }
+
+    @Override
+    public String getDocumentation() {
+        return null;
+    }
+
+    @Override
     public Object getObjectBuilt() {
         return this;
     }
