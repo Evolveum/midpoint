@@ -23,7 +23,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends ItemTreeDelta> implements DebugDumpable, Visitable {
 
@@ -184,18 +184,14 @@ public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends Item
     }
 
     public Collection<? extends ItemDelta<?, ?>> getModifications() {
-        return null;
-    }
-
-    public ItemDelta<?, ?> toDelta() throws SchemaException {
         ITD parent = getParent();
         if (parent == null) {
-            throw new SchemaException("No parent defined for this value");
+            throw new SystemException("No parent defined for this value");
         }
 
         ItemDelta<?, ?> delta = parent.getDefinition().createEmptyDelta(getPath());
         TreeDeltaUtils.addItemTreeDeltaValue(delta, this);
 
-        return delta;
+        return new ArrayList<>(List.of(delta));
     }
 }

@@ -33,10 +33,11 @@ public class TreeDeltaUtils {
 
     public static void addItemTreeDeltaValue(@NotNull ItemDelta delta, @NotNull ItemTreeDeltaValue value) {
         ModificationType modificationType = value.getModificationType();
-        PrismValue prismValue = value.getValue();
-        if (modificationType == null || prismValue == null) {
+        if (modificationType == null || value.getValue() == null) {
             return;
         }
+        
+        PrismValue prismValue = value.getValue().clone();
 
         switch (modificationType) {
             case ADD -> delta.addValueToAdd(prismValue);

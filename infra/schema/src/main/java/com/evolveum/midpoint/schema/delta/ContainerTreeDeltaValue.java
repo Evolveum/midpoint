@@ -7,11 +7,10 @@
 
 package com.evolveum.midpoint.schema.delta;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -208,5 +207,14 @@ public class ContainerTreeDeltaValue<C extends Containerable> extends ItemTreeDe
         }
 
         return getDeltas().stream().anyMatch(ItemTreeDelta::containsModifications);
+    }
+
+    @Override
+    public Collection<? extends ItemDelta<?, ?>> getModifications() {
+        Collection<? extends ItemDelta<?, ?>> modifications = super.getModifications();
+
+        getDeltas().forEach(delta -> modifications.addAll((Collection) delta.getModifications()));
+
+        return modifications;
     }
 }

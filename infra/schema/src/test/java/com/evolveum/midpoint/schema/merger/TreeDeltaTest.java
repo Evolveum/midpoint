@@ -82,6 +82,9 @@ public class TreeDeltaTest extends AbstractSchemaTest {
         ObjectTreeDelta<UserType> leftTreeDelta = ObjectTreeDelta.fromItemDelta(leftToBase);
         ObjectTreeDelta<UserType> rightTreeDelta = ObjectTreeDelta.fromItemDelta(rightToBase);
 
+        AssertJUnit.assertTrue(leftToBase.equivalent(leftTreeDelta.toObjectDelta()));
+        AssertJUnit.assertTrue(rightToBase.equivalent(rightTreeDelta.toObjectDelta()));
+
         AssertJUnit.assertFalse(leftTreeDelta.hasConflictWith(rightTreeDelta));
     }
 

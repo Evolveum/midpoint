@@ -10,6 +10,8 @@ package com.evolveum.midpoint.schema.delta;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
@@ -61,6 +63,11 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
     @Override
     public ContainerTreeDeltaValue<O> createNewValue() {
         return new ObjectTreeDeltaValue<>();
+    }
+
+    @Override
+    public ItemPath getPath() {
+        return ItemPath.EMPTY_PATH;
     }
 
     public static <O extends ObjectType> ObjectTreeDelta<O> fromItemDelta(ObjectDelta<O> delta) {
@@ -122,16 +129,18 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
         }
     }
 
-    // todo ideally fix generics and rename this to toDelta()
     public ObjectDelta<O> toObjectDelta() throws SchemaException {
         ObjectDelta<O> delta = PrismContext.get().deltaFor(getDefinition().getCompileTimeClass())
                 .asObjectDelta(getOid());
-        delta.setObjectToAdd(getObjectToAdd());
+        PrismObject<O> object = getObjectToAdd();
+        if (object != null) {
+            delta.setChangeType(ChangeType.ADD);
+            delta.setObjectToAdd(getObjectToAdd());
+        }
 
-        // todo implement
         ContainerTreeDeltaValue<O> value = getSingleValue();
         if (value != null) {
-            // todo
+            delta.getModifications().addAll((Collection) value.getModifications());
         }
 
         return delta;

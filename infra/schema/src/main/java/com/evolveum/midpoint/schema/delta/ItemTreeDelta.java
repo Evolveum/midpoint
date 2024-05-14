@@ -221,15 +221,11 @@ public abstract class ItemTreeDelta
         return getValues().stream().anyMatch(V::containsModifications);
     }
 
-    public ItemDelta<PV, ID> toDelta() {
+    public Collection<? extends ItemDelta<?, ?>> getModifications() {
         ItemDelta<PV, ID> delta = (ItemDelta<PV, ID>) getDefinition().createEmptyDelta(getPath());
 
         getValues().forEach(v -> TreeDeltaUtils.addItemTreeDeltaValue(delta, v));
 
-        return delta;
-    }
-
-    public Collection<? extends ItemDelta<?, ?>> getModifications() {
-        return null;
+        return new ArrayList<>(List.of(delta));
     }
 }
