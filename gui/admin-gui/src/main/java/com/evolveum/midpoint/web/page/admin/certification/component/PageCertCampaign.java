@@ -232,12 +232,20 @@ public class PageCertCampaign extends PageAdmin {
         DisplayType displayType = new DisplayType()
                 .label(WebComponentUtil.getName(campaignModel.getObject()))
                 .help(campaignModel.getObject().getDescription())
-                .cssClass("font-weight-bold")
+                .cssClass("font-weight-bold d-flex justify-content-center")
                 .icon(new IconType()
-                        .cssClass(IconAndStylesUtil.createDefaultColoredIcon(AccessCertificationCampaignType.COMPLEX_TYPE)));
+                        .cssClass(getDetailsTablePanelIconCssClass()));
         DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
                 Model.of(displayType),
-                detailsModel);
+                detailsModel) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected boolean isVerticalTitlePanel() {
+                return true;
+            }
+        };
         details.setOutputMarkupId(true);
         add(details);
 
@@ -268,6 +276,13 @@ public class PageCertCampaign extends PageAdmin {
         CertificationItemsPanel items = new CertificationItemsPanel(ID_ITEMS_LIST, campaignModel.getObject().getOid());
         items.setOutputMarkupId(true);
         add(items);
+    }
+
+    private String getDetailsTablePanelIconCssClass() {
+        StringBuilder sb = new StringBuilder(
+                IconAndStylesUtil.createDefaultColoredIcon(AccessCertificationCampaignType.COMPLEX_TYPE));
+        sb.append(" d-flex justify-content-center mr-2 info-box-icon-ethereal-image");
+        return sb.toString();
     }
 
     private void onBackPerformed() {

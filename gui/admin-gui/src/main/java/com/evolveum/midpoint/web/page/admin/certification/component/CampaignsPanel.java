@@ -130,7 +130,7 @@ public class CampaignsPanel extends BasePanel {
 
                     @Override
                     protected String getTileCssClasses() {
-                        return "col-12 col-md-6 col-lg-4 col-xxl-6i px-2";
+                        return "col-12 col-md-4 col-lg-3 col-xxl-4i px-2";
                     }
 
                     @Override
@@ -156,6 +156,11 @@ public class CampaignsPanel extends BasePanel {
                     @Override
                     protected boolean isTogglePanelVisible() {
                         return true;
+                    }
+
+                    @Override
+                    protected String getTileCssStyle() {
+                        return "min-height: 340px;";
                     }
 
                 };

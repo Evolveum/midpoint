@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.io.Serial;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
@@ -15,6 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebComponent;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -28,8 +30,9 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
  */
 public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
+    private static final String ID_TITLE_CONTAINER = "titleContainer";
     private static final String ID_ICON = "icon";
     private static final String ID_TITLE = "title";
     private static final String ID_DETAILS = "details";
@@ -56,18 +59,23 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
     private void initLayout() {
         add(AttributeModifier.append("class", "card"));
 
+        IModel<String> titleModel =  getTitleModel();
+        WebMarkupContainer titleContainer = new WebMarkupContainer(ID_TITLE_CONTAINER);
+        titleContainer.add(new VisibleBehaviour(() -> titleModel.getObject() != null));
+        titleContainer.add(AttributeModifier.append("class", getAdditionalTitleClass()));
+        titleContainer.setOutputMarkupId(true);
+        add(titleContainer);
+
         WebComponent icon = new WebComponent(ID_ICON);
         IModel<String> iconCssClassModel =  getIconCssClassModel();
         icon.add(AttributeModifier.append("class", iconCssClassModel));
         icon.add(new VisibleBehaviour(() -> iconCssClassModel.getObject() != null));
-        add(icon);
+        titleContainer.add(icon);
 
-        IModel<String> titleModel =  getTitleModel();
         Label title = new Label(ID_TITLE, titleModel);
 //        title.setRenderBodyOnly(true);
         title.add(AttributeModifier.append("class", display.getObject().getCssClass()));
-        title.add(new VisibleBehaviour(() -> titleModel.getObject() != null));
-        add(title);
+        titleContainer.add(title);
 
         IModel<String> descriptionModel = getDescriptionModel();
         Label description = new Label(ID_DESCRIPTION, descriptionModel);
@@ -88,6 +96,17 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
             }
         };
         add(details);
+    }
+
+    private String getAdditionalTitleClass() {
+        if (isVerticalTitlePanel()) {
+            return "d-flex flex-column justify-content-center w-100";
+        }
+        return "";
+    }
+
+    protected boolean isVerticalTitlePanel() {
+        return false;
     }
 
     private IModel<String> getIconCssClassModel() {
