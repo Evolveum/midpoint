@@ -43,6 +43,7 @@ public abstract class SchemaConstants {
     public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
     public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3";
     public static final String NS_CASE = "http://midpoint.evolveum.com/xml/ns/public/common/case-3";
+    public static final String NS_PRISM_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
 
     /**
      * Namespace for default (built-in) object collections, such as "all objects", "all roles", ...

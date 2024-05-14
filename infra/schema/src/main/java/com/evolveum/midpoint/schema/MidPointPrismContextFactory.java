@@ -262,6 +262,9 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/api-types-3.xsd", "apti",
                 com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectFactory.class.getPackage());
 
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/prism-schema-3.xsd", "prisms",
+                com.evolveum.midpoint.xml.ns._public.common.prism_schema_3.ObjectFactory.class.getPackage());
+
         schemaRegistry.registerPrismSchemasFromWsdlResource("xml/ns/public/model/model-3.wsdl",
                 Collections.singletonList(ObjectFactory.class.getPackage()));
 
@@ -291,6 +294,8 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-extension-3.xsd", "connext");
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/extension-3.xsd", "se");
+
+        schemaRegistry.registerStaticNamespace(MidPointConstants.NS_JAXB, MidPointConstants.PREFIX_NS_JAXB, false);
 
         schemaRegistry.registerStaticNamespace(MidPointConstants.NS_RI, MidPointConstants.PREFIX_NS_RI, false);
 
