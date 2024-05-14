@@ -7,15 +7,25 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
 import java.io.Serial;
+import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +56,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -210,7 +224,175 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
             };
         }
 
-        return super.createDetailsFragment();
+        return new DetailsFragment(ID_DETAILS_VIEW, "test", PageRoleAnalysisSession.this) {
+
+            @Override
+            protected void initFragmentLayout() {
+
+                RoleAnalysisSessionType session = getObjectDetailsModels().getObjectType();
+                IModel<List<DetailsTableItem>> detailsModelIModel = loadDetailsModel(session);
+
+                MidpointForm<?> form = new MidpointForm<>("mainForm") {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onDetach() {
+                        super.onDetach();
+                    }
+
+                };
+
+                form.setMultiPart(true);
+                add(form);
+
+                initButtons(form);
+
+                DisplayType displayType = new DisplayType()
+                        .label(session.getName())
+                        .help(getLastRebuildTimeStamp(session))
+                        .icon(new IconType()
+                                .cssClass(IconAndStylesUtil.createDefaultColoredIcon(RoleAnalysisSessionType.COMPLEX_TYPE) + " fa-2x fa-inverse"));
+
+                NavigationHeaderTablePanel details = new NavigationHeaderTablePanel("navigationHeader",
+                        Model.of(displayType),
+                        detailsModelIModel) {
+
+                    @Override
+                    public Component getNavigationComponent() {
+                        return initNavigation();
+                    }
+                };
+                form.add(details);
+
+                ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration();
+                initMainPanel(defaultConfiguration, form);
+
+            }
+
+            @NotNull
+            private IModel<List<DetailsTableItem>> loadDetailsModel(@NotNull RoleAnalysisSessionType session) {
+                RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
+
+                RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+                RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+                RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+
+                String mode = Character.
+                        toUpperCase(processMode.value().charAt(0))
+                        + processMode.value().substring(1)
+                        + "/"
+                        + Character
+                        .toUpperCase(analysisCategory.value().charAt(0))
+                        + analysisCategory.value().substring(1);
+
+                Double density = sessionStatistic.getMeanDensity();
+                if (density == null) {
+                    density = 0.0;
+                }
+
+                String formattedDensity = new DecimalFormat("#.###")
+                        .format(Math.round(density * 1000.0) / 1000.0);
+
+                List<DetailsTableItem> detailsModel = List.of(
+                        new DetailsTableItem(createStringResource("Mode"),
+                                Model.of(mode)){
+                            @Override
+                            public Component createValueComponent(String id) {
+                                return new Label(id, getValue());
+                            }
+                        },
+                        new DetailsTableItem(createStringResource("Cluster count"),
+                                Model.of(sessionStatistic.getClusterCount().toString())) {
+                            @Override
+                            public Component createValueComponent(String id) {
+                                return new IconWithLabel(id, getValue()) {
+                                    @Override
+                                    public String getIconCssClass() {
+                                        return IconAndStylesUtil.createDefaultColoredIcon(RoleAnalysisClusterType.COMPLEX_TYPE);
+                                    }
+
+                                    @Override
+                                    protected String getComponentCssClass() {
+                                        return super.getComponentCssClass() + " justify-content-end";
+                                    }
+                                };
+                            }
+                        },
+                        new DetailsTableItem(createStringResource("Processed objects"),
+                                Model.of(sessionStatistic.getProcessedObjectCount().toString())) {
+                            @Override
+                            public Component createValueComponent(String id) {
+                                return new IconWithLabel(id, getValue()) {
+                                    @Override
+                                    public String getIconCssClass() {
+                                        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+                                            return IconAndStylesUtil.createDefaultColoredIcon(RoleType.COMPLEX_TYPE);
+                                        }
+                                        return IconAndStylesUtil.createDefaultColoredIcon(UserType.COMPLEX_TYPE);
+                                    }
+
+                                    @Override
+                                    protected String getComponentCssClass() {
+                                        return super.getComponentCssClass() + " justify-content-end";
+                                    }
+                                };
+                            }
+                        },
+                        new DetailsTableItem(createStringResource("Mean density"),
+                                Model.of(formattedDensity)) {
+
+                            @Override
+                            public Component createValueComponent(String id) {
+                                String colorClass = densityBasedColor(Double.parseDouble(getValue().getObject()));
+                                ProgressBar progressBar = new ProgressBar(id) {
+
+                                    @Override
+                                    public boolean isInline() {
+                                        return true;
+                                    }
+
+                                    @Override
+                                    public double getActualValue() {
+                                        return Double.parseDouble(getValue().getObject());
+                                    }
+
+                                    @Override
+                                    public String getProgressBarColor() {
+                                        return colorClass;
+                                    }
+
+                                    @Override
+                                    public String getBarTitle() {
+                                        return "";
+                                    }
+                                };
+                                progressBar.setOutputMarkupId(true);
+                                return progressBar;
+                            }
+
+                        });
+
+                return Model.ofList(detailsModel);
+            }
+        };
+
+    }
+
+    private String getLastRebuildTimeStamp(@NotNull RoleAnalysisSessionType objectType) {
+        String lastRebuild = "Last rebuild: ";
+        RoleAnalysisOperationStatus operationStatus = objectType.getOperationStatus();
+        if (operationStatus != null) {
+            XMLGregorianCalendar createTimestamp = operationStatus.getCreateTimestamp();
+            if (createTimestamp != null) {
+                int eonAndYear = createTimestamp.getYear();
+                int month = createTimestamp.getMonth();
+                int day = createTimestamp.getDay();
+                String time = day + "/" + month + "/" + eonAndYear;
+                lastRebuild = lastRebuild + time;
+            }
+        }
+        return lastRebuild;
     }
 
     @Override
