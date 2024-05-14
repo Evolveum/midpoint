@@ -5,10 +5,11 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.schema.merger.threeway.item;
+package com.evolveum.midpoint.schema.delta;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
@@ -180,6 +181,10 @@ public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends Item
 
     public boolean containsModifications() {
         return modificationType != null;
+    }
+
+    public Collection<? extends ItemDelta<?, ?>> getModifications() {
+        return null;
     }
 
     public ItemDelta<?, ?> toDelta() throws SchemaException {

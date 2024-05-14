@@ -5,9 +5,10 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.schema.merger.threeway.item;
+package com.evolveum.midpoint.schema.delta;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -226,5 +227,9 @@ public abstract class ItemTreeDelta
         getValues().forEach(v -> TreeDeltaUtils.addItemTreeDeltaValue(delta, v));
 
         return delta;
+    }
+
+    public Collection<? extends ItemDelta<?, ?>> getModifications() {
+        return null;
     }
 }

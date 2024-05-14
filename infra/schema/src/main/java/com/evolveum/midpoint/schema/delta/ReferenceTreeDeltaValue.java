@@ -5,23 +5,23 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.schema.merger.threeway.item;
+package com.evolveum.midpoint.schema.delta;
 
 import com.evolveum.midpoint.prism.ModificationType;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 
-public class PropertyTreeDeltaValue<T> extends ItemTreeDeltaValue<PrismPropertyValue<T>, PropertyTreeDelta<T>> {
+public class ReferenceTreeDeltaValue extends ItemTreeDeltaValue<PrismReferenceValue, ReferenceTreeDelta> {
 
-    public PropertyTreeDeltaValue() {
+    public ReferenceTreeDeltaValue() {
         this(null, null);
     }
 
-    public PropertyTreeDeltaValue(PrismPropertyValue<T> value, ModificationType modificationType) {
+    public ReferenceTreeDeltaValue(PrismReferenceValue value, ModificationType modificationType) {
         super(value, modificationType);
     }
 
     @Override
     protected String debugDumpShortName() {
-        return "PTDV";
+        return "RTDV";
     }
 }
