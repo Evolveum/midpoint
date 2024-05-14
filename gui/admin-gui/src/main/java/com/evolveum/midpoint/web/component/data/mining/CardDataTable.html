@@ -1,0 +1,40 @@
+/*
+* Copyright (C) 2010-2024 Evolveum and contributors
+*
+* This work is dual-licensed under the Apache License 2.0
+* and European Union Public License. See LICENSE file for details.
+*/
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <caption wicket:id="caption"></caption>
+    <colgroup wicket:id="colGroup"></colgroup>
+    <thead wicket:id="topToolbars">
+    <wicket:container wicket:id="toolbars"></wicket:container>
+    </thead>
+
+    <tbody wicket:id="body">
+
+    <div wicket:id="rows" class="">
+
+
+        <td class="bg-light" style="display: inline-block;width: 25%; position: relative;">
+            <div class="bg-white" style="aspect-ratio: 1 / 0.8;">
+                <div wicket:id="cells">
+                    <div wicket:id="cell">
+                        [cell]
+                    </div>
+                </div>
+            </div>
+        </td>
+
+
+    </div>
+
+    </tbody>
+    <tfoot wicket:id="bottomToolbars">
+    <wicket:container wicket:id="toolbars"></wicket:container>
+    </tfoot>
+</wicket:panel>
+
+

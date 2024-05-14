@@ -138,6 +138,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     protected WebMarkupContainer createTilesContainer(String idTilesContainer, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
         Fragment tilesFragment = new Fragment(idTilesContainer, ID_TILES_FRAGMENT, TileTablePanel.this);
+        tilesFragment.add(AttributeAppender.replace("class", getTileContainerCssClass()));
 
         PageableListView tiles = createTilesPanel(ID_TILES, provider);
         tilesFragment.add(tiles);
@@ -258,12 +259,16 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return view.getProvider();
     }
 
-    private PageableListView getTiles(){
+    private PageableListView getTiles() {
         return (PageableListView) get(ID_TILES_CONTAINER).get(ID_TILES);
     }
 
     protected String getTileCssClasses() {
         return null;
+    }
+
+    protected String getTileContainerCssClass() {
+        return "row justify-content-left pt-3";
     }
 
     protected Component createTile(String id, IModel<T> model) {

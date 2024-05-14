@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.mining;
 
+import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.createAttributeMap;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
@@ -2231,6 +2232,46 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             LOGGER.error("Couldn't modify  RoleAnalysisOutlierType {}", outlier, e);
         }
 
+    }
+
+    @Override
+    @NotNull
+    public List<DetectedPattern> findTopPatters(
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        SearchResultList<PrismObject<RoleAnalysisClusterType>> clusterSearchResult;
+        try {
+            clusterSearchResult = modelService.searchObjects(RoleAnalysisClusterType.class, null, null, task, result);
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
+                ConfigurationException |
+                ExpressionEvaluationException e) {
+            throw new RuntimeException(e);
+        }
+        if (clusterSearchResult == null) {
+            return new ArrayList<>();
+        }
+
+        List<DetectedPattern> topDetectedPatterns = new ArrayList<>();
+        for (PrismObject<RoleAnalysisClusterType> prismObject : clusterSearchResult) {
+            List<DetectedPattern> detectedPatterns = transformDefaultPattern(prismObject.asObjectable());
+
+            double maxOverallConfidence = 0;
+            DetectedPattern topDetectedPattern = null;
+            for (DetectedPattern detectedPattern : detectedPatterns) {
+                double itemsConfidence = detectedPattern.getItemsConfidence();
+                double reductionFactorConfidence = detectedPattern.getReductionFactorConfidence();
+                double overallConfidence = itemsConfidence + reductionFactorConfidence;
+                if (overallConfidence > maxOverallConfidence) {
+                    maxOverallConfidence = overallConfidence;
+                    topDetectedPattern = detectedPattern;
+                }
+            }
+            if (topDetectedPattern != null) {
+                topDetectedPatterns.add(topDetectedPattern);
+            }
+
+        }
+        return topDetectedPatterns;
     }
 
 }

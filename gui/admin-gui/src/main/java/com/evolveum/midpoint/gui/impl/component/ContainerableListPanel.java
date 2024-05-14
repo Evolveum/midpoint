@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
+import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCardTablePanel;
 import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -19,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -240,6 +242,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
         if (isCollapsableTable()) {
             table = initCollapsableItemTable();
+        } else if (isCardTable()) {
+           table = initCardItemTable();
         } else {
             table = initItemTable();
         }
@@ -258,6 +262,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
      * @return {@code true} if the table is collapsible, {@code false} otherwise.
      */
     protected boolean isCollapsableTable() {
+        return false;
+    }
+
+    protected boolean isCardTable() {
         return false;
     }
 
@@ -487,6 +495,87 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return itemTable;
     }
 
+    protected RoleAnalysisCardTablePanel<PO> initCardItemTable() {
+
+        List<IColumn<PO, String>> columns = createColumns();
+        ISelectableDataProvider<PO> provider = createProvider();
+        setDefaultSorting(provider);
+        setUseCounting(provider);
+        RoleAnalysisCardTablePanel<PO> itemTable = new RoleAnalysisCardTablePanel<>(ID_ITEMS_TABLE,
+                provider, columns, getTableId()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Component createHeader(String headerId) {
+                if (isPreview()) {
+                    return createWidgetHeader(headerId);
+                }
+                Component header = ContainerableListPanel.this.createHeader(headerId);
+                header.add(new VisibleBehaviour(() -> isHeaderVisible()));
+                return header;
+
+            }
+
+            @Override
+            protected Item<PO> customizeNewRowItem(Item<PO> item, IModel<PO> model) {
+                item.add(AttributeModifier.append("class", () -> GuiImplUtil.getObjectStatus(model.getObject())));
+
+                customProcessNewRowItem(item, model);
+                return item;
+            }
+
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                if (isPreview()) {
+                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, (PreviewContainerPanelConfigurationType) config);
+                }
+                return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
+            }
+
+            @Override
+            public String getAdditionalBoxCssClasses() {
+                return ContainerableListPanel.this.getAdditionalBoxCssClasses();
+            }
+
+            @Override
+            protected boolean hideFooterIfSinglePage() {
+                return ContainerableListPanel.this.hideFooterIfSinglePage();
+            }
+
+            @Override
+            public int getAutoRefreshInterval() {
+                return ContainerableListPanel.this.getAutoRefreshInterval();
+            }
+
+            @Override
+            public boolean isAutoRefreshEnabled() {
+                return ContainerableListPanel.this.isRefreshEnabled();
+            }
+
+            @Override
+            public boolean enableSavePageSize() {
+                return ContainerableListPanel.this.enableSavePageSize();
+            }
+
+            @Override
+            protected boolean isPagingVisible() {
+                return ContainerableListPanel.this.isPagingVisible();
+            }
+        };
+        itemTable.setOutputMarkupId(true);
+
+        itemTable.setItemsPerPage(getDefaultPageSize());
+
+        if (getPageStorage() != null) {
+            ObjectPaging pageStorage = getPageStorage().getPaging();
+            if (pageStorage != null) {
+                itemTable.setCurrentPage(pageStorage);
+            }
+        }
+
+        return itemTable;
+    }
+
     protected Item<PO> newRowItem(String id, int index, Item<PO> item, @NotNull IModel<PO> rowModel) {
         return null;
     }
@@ -614,6 +703,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                     @Override
                     protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
                         return isMenuItemVisible(rowModel);
+                    }
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<PO>> cellItem, String componentId, IModel<PO> rowModel) {
+//                        cellItem.add(Attr))
+                        super.populateItem(cellItem, componentId, rowModel);
                     }
                 };
                 columns.add(actionsColumn);

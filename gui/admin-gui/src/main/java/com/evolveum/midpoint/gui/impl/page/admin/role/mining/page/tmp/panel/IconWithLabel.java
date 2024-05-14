@@ -6,14 +6,16 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
+import java.io.Serial;
+
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-
-import java.io.Serial;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
 public class IconWithLabel extends BasePanel<String> {
 
@@ -28,16 +30,41 @@ public class IconWithLabel extends BasePanel<String> {
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "d-flex align-items-center gap-1"));
+        add(AttributeAppender.append("class", getComponentCssClass()));
 
         Label image = new Label(ID_ICON);
         image.add(AttributeModifier.replace("class", getIconCssClass()));
         image.setOutputMarkupId(true);
         add(image);
 
-        Label label = new Label(ID_TEXT, getModel());
-        label.setOutputMarkupId(true);
-        add(label);
+        if (isLink()) {
+            AjaxLinkPanel components = new AjaxLinkPanel(ID_TEXT, getModel()) {
+
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    onClickPerform(target);
+                }
+            };
+            components.setOutputMarkupId(true);
+            add(components);
+        } else {
+            Label label = new Label(ID_TEXT, getModel());
+            label.setOutputMarkupId(true);
+            add(label);
+        }
+
+    }
+
+    protected String getComponentCssClass() {
+        return "d-flex align-items-center gap-1";
+    }
+
+    protected void onClickPerform(AjaxRequestTarget target) {
+
+    }
+
+    protected boolean isLink() {
+        return false;
     }
 
     public String getIconCssClass() {

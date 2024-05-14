@@ -12,22 +12,19 @@ import java.util.Map;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-
-import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
-
-import com.evolveum.midpoint.common.mining.utils.values.ZScoreData;
-
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
+import com.evolveum.midpoint.common.mining.utils.values.ZScoreData;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -682,6 +679,7 @@ public interface RoleAnalysisService {
 
     /**
      * Performs attribute analysis for user roles.
+     *
      * @param attributeRoleDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for role analysis.
      * @param objectOid The OID of the object to analyze.
      * @param task Task used for processing the attribute analysis.
@@ -781,7 +779,7 @@ public interface RoleAnalysisService {
      * @param session The RoleAnalysisSessionType object that contains the analysis options.
      * @param complexType The QName object that represents the complex type of the attribute.
      * @return A list of RoleAnalysisAttributeDef objects that match the provided complex type.
-     *         Returns null if no matching attributes are found or if the analysis option or process mode is not set in the session.
+     * Returns null if no matching attributes are found or if the analysis option or process mode is not set in the session.
      */
     @Nullable List<RoleAnalysisAttributeDef> resolveAnalysisAttributes(
             @NotNull RoleAnalysisSessionType session,
@@ -821,7 +819,6 @@ public interface RoleAnalysisService {
 
     List<RoleAnalysisAttributeDef> resolveUserAttributes(@NotNull RoleAnalysisSessionType session);
 
-
     @Nullable Set<String> resolveUserValueToMark(
             @NotNull PrismObject<UserType> prismUser,
             @NotNull List<RoleAnalysisAttributeDef> itemDef);
@@ -856,4 +853,14 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull String sessionOid);
+
+    /**
+     * Search for the top detected patterns over all clusters
+     *
+     * @param task the task
+     * @param result the operation result
+     */
+    @NotNull List<DetectedPattern> findTopPatters(
+            @NotNull Task task,
+            @NotNull OperationResult result);
 }
