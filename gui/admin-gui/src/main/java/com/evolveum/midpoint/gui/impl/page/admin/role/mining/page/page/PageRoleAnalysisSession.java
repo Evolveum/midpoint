@@ -6,16 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
+
 import java.io.Serial;
 import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -41,8 +38,13 @@ import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.SessionSummaryPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.RoleAnalysisSessionWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -54,12 +56,9 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -115,6 +114,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
     @Override
     public void addAdditionalButtons(RepeatingView repeatingView) {
+
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_OBJECT_TASK_ICON,
                 LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton rebuildButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
@@ -205,7 +205,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        return createStringResource("RoleMining.page.cluster.title");
+        return Model.of();
     }
 
     @Override
@@ -246,7 +246,49 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                 form.setMultiPart(true);
                 add(form);
 
-                initButtons(form);
+                InlineOperationalButtonsPanel<RoleAnalysisSessionType> opButtonPanel = new InlineOperationalButtonsPanel<>("buttons", getObjectDetailsModels().getObjectWrapperModel()) {
+
+                    @Override
+                    protected IModel<String> getDeleteButtonTitleModel() {
+                        return Model.of("Remove session");
+                    }
+
+                    @Override
+                    protected void savePerformed(AjaxRequestTarget target) {
+                        PageRoleAnalysisSession.this.savePerformed(target);
+                    }
+
+                    @Override
+                    protected IModel<String> getTitle() {
+                        return createStringResource("RoleAnalysis.page.session.title");
+                    }
+
+                    @Override
+                    protected void backPerformed(AjaxRequestTarget target) {
+                        super.backPerformed(target);
+                        onBackPerform(target);
+                    }
+
+                    @Override
+                    protected void addButtons(RepeatingView repeatingView) {
+                        addAdditionalButtons(repeatingView);
+                    }
+
+                    @Override
+                    protected void deleteConfirmPerformed(AjaxRequestTarget target) {
+                        super.deleteConfirmPerformed(target);
+                        afterDeletePerformed(target);
+                    }
+
+                    @Override
+                    protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                        return PageRoleAnalysisSession.this.hasUnsavedChanges(target);
+                    }
+                };
+
+                form.add(opButtonPanel);
+
+//                initButtons(form);
 
                 DisplayType displayType = new DisplayType()
                         .label(session.getName())
@@ -296,7 +338,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
                 List<DetailsTableItem> detailsModel = List.of(
                         new DetailsTableItem(createStringResource("Mode"),
-                                Model.of(mode)){
+                                Model.of(mode)) {
                             @Override
                             public Component createValueComponent(String id) {
                                 return new Label(id, getValue());
@@ -466,5 +508,6 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         };
 
     }
+
 }
 

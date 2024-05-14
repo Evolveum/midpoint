@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
+import java.io.Serial;
 import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
@@ -27,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 public class NavigationHeaderTablePanel extends BasePanel<List<DetailsTableItem>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON = "icon";
     private static final String ID_ICON_BOX = "iconBox";
