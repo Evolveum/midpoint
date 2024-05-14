@@ -45,4 +45,7 @@ public class MidPointConstants {
 
     public static final String PROFILING_LOGGER_NAME = OperationExecutionLogger.PROFILING_LOGGER_NAME;
     public static final String JAVA_HOME_ENVIRONMENT_VARIABLE = "JAVA_HOME";
+
+    public static final String NS_JAXB = "https://jakarta.ee/xml/ns/jaxb";
+    public static final String PREFIX_NS_JAXB = "jaxb";
 }
