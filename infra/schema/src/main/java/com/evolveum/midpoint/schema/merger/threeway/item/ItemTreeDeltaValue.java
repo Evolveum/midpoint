@@ -17,10 +17,12 @@ import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends ItemTreeDelta> implements DebugDumpable, Visitable {
 
@@ -161,7 +163,7 @@ public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends Item
             return false;
         }
 
-        return !value.equals(otherValue, EquivalenceStrategy.REAL_VALUE);   // todo add equivalence strategy
+        return !value.equals(otherValue, EquivalenceStrategy.REAL_VALUE);
     }
 
     public <V extends ItemTreeDeltaValue> boolean match(V other, EquivalenceStrategy strategy) {
@@ -178,5 +180,17 @@ public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends Item
 
     public boolean containsModifications() {
         return modificationType != null;
+    }
+
+    public ItemDelta<?, ?> toDelta() throws SchemaException {
+        ITD parent = getParent();
+        if (parent == null) {
+            throw new SchemaException("No parent defined for this value");
+        }
+
+        ItemDelta<?, ?> delta = parent.getDefinition().createEmptyDelta(getPath());
+        TreeDeltaUtils.addItemTreeDeltaValue(delta, this);
+
+        return delta;
     }
 }

@@ -122,6 +122,7 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
         }
     }
 
+    // todo ideally fix generics and rename this to toDelta()
     public ObjectDelta<O> toObjectDelta() throws SchemaException {
         ObjectDelta<O> delta = PrismContext.get().deltaFor(getDefinition().getCompileTimeClass())
                 .asObjectDelta(getOid());

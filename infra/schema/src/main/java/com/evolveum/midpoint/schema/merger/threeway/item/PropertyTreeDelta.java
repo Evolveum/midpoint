@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.schema.merger.threeway.item;
 
-import com.evolveum.midpoint.prism.ModificationType;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismProperty;

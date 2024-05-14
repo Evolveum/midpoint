@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathComparatorUtil;
@@ -35,7 +36,7 @@ public abstract class ItemTreeDelta
 
     private List<V> values;
 
-    public ItemTreeDelta(ID definition) {
+    public ItemTreeDelta(@NotNull ID definition) {
         this.definition = definition;
     }
 
@@ -44,14 +45,16 @@ public abstract class ItemTreeDelta
         return definition;
     }
 
-    public void setDefinition(ID definition) {
+    public void setDefinition(@NotNull ID definition) {
         this.definition = definition;
     }
 
+    @NotNull
     public QName getItemName() {
         return definition.getItemName();
     }
 
+    @NotNull
     public QName getTypeName() {
         return definition.getTypeName();
     }
@@ -199,7 +202,6 @@ public abstract class ItemTreeDelta
         return hasConflictWith(other, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
     }
 
-    // todo use strategy
     protected V findMatchingValue(V other, EquivalenceStrategy strategy) {
         if (definition.isSingleValue()) {
             return getSingleValue();
@@ -216,5 +218,13 @@ public abstract class ItemTreeDelta
 
     public boolean containsModifications() {
         return getValues().stream().anyMatch(V::containsModifications);
+    }
+
+    public ItemDelta<PV, ID> toDelta() {
+        ItemDelta<PV, ID> delta = (ItemDelta<PV, ID>) getDefinition().createEmptyDelta(getPath());
+
+        getValues().forEach(v -> TreeDeltaUtils.addItemTreeDeltaValue(delta, v));
+
+        return delta;
     }
 }
