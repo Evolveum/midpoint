@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,10 +53,6 @@ import com.evolveum.midpoint.gui.impl.component.menu.listGroup.CustomListGroupMe
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuPanel;
-import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
@@ -202,6 +200,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     private void updateQueryFromOrgRef(RoleCatalogQuery query, ObjectReferenceType ref) {
+        query.setQuery(null);
+        query.setType(DEFAULT_ROLE_CATALOG_TYPE);
+
+        query.setParent(ref);
+    }
+
+    private ObjectQuery createParentRefQuery(ObjectReferenceType ref) {
         OrgFilter.Scope scope = OrgFilter.Scope.ONE_LEVEL;
 
         AbstractRoleSearchItemWrapper roleSearch = searchModel.getObject().findMemberSearchItem();
@@ -212,16 +217,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             }
         }
 
-        ObjectQuery oq = getPrismContext()
+        return getPrismContext()
                 .queryFor(DEFAULT_ROLE_CATALOG_TYPE)
                 .isInScopeOf(ref.getOid(), scope)
                 .asc(AbstractRoleType.F_NAME)
                 .build();
-
-        query.setQuery(oq);
-        query.setType(DEFAULT_ROLE_CATALOG_TYPE);
-
-        query.setParent(ref);
     }
 
     private void updateQueryForRolesOfTeammate(RoleCatalogQuery query, String userOid) {
@@ -233,7 +233,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         query.setType(AbstractRoleType.class);
 
         // searching for user assignments targets in two steps for non-native repository (doesn't support referencedBy)
-        // searching like this also in native repository since there's problem with creating autorization query for such
+        // searching like this also in native repository since there's problem with creating authorization query for such
         // referencedBy MID-9638
         Task task = page.createSimpleTask(OPERATION_LOAD_USER);
         OperationResult result = task.getResult();
@@ -332,6 +332,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             private SearchBoxModeType searchMode;
 
+            private SearchBoxScopeType searchScope;
+
             @Override
             protected Search<?> load() {
                 RoleCatalogQuery rcq = queryModel.getObject();
@@ -354,6 +356,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     search.setSearchMode(searchMode);
                 }
 
+                if (rcq.getParent() != null) {
+                    AbstractRoleSearchItemWrapper roleSearch = search.findMemberSearchItem();
+                    if (searchScope != null && roleSearch.getScopeSearchItemWrapper() != null) {
+                        roleSearch.getScopeSearchItemWrapper().setValue(new SearchValue(searchScope));
+                    }
+                }
+
                 return search;
             }
 
@@ -370,6 +379,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 Search search = getObject();
 
                 queryType = search.getTypeClass();
+                searchScope = search.findMemberSearchItem().getScopeValue();
             }
         };
 
@@ -404,7 +414,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 RoleCatalogQuery catalogQuery = queryModel.getObject();
 
                 ObjectQuery query = catalogQuery.getQuery();
+                if (query != null) {
                 query = query.clone();
+                } else if (catalogQuery.getParent() != null) {
+                    // this is quite a mess since query couldn't be created at during building RoleCatalogQuery
+                    // since scope might have changes in search panel and queryModel wouldn't know...
+                    query = createParentRefQuery(catalogQuery.getParent());
+                }
 
                 Class<? extends AbstractRoleType> type = catalogQuery.getType();
 
