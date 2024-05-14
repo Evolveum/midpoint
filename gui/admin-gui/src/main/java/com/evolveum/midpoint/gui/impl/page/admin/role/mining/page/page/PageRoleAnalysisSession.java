@@ -296,7 +296,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                         .icon(new IconType()
                                 .cssClass(IconAndStylesUtil.createDefaultColoredIcon(RoleAnalysisSessionType.COMPLEX_TYPE) + " fa-2x fa-inverse"));
 
-                NavigationHeaderTablePanel details = new NavigationHeaderTablePanel("navigationHeader",
+                NavigationDetailsTablePanel details = new NavigationDetailsTablePanel("navigationHeader",
                         Model.of(displayType),
                         detailsModelIModel) {
 

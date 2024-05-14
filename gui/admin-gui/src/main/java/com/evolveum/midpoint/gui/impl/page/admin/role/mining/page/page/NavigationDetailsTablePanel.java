@@ -26,7 +26,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
-public class NavigationHeaderTablePanel extends BasePanel<List<DetailsTableItem>> {
+public class NavigationDetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -40,7 +40,7 @@ public class NavigationHeaderTablePanel extends BasePanel<List<DetailsTableItem>
 
     private final IModel<DisplayType> display;
 
-    public NavigationHeaderTablePanel(String id, IModel<DisplayType> display, IModel<List<DetailsTableItem>> model) {
+    public NavigationDetailsTablePanel(String id, IModel<DisplayType> display, IModel<List<DetailsTableItem>> model) {
         super(id, model);
         this.display = display;
 
