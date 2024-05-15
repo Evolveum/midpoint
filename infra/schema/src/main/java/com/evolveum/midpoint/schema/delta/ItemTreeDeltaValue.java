@@ -184,14 +184,31 @@ public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends Item
     }
 
     public Collection<? extends ItemDelta<?, ?>> getModifications() {
+        return getModifications(false);
+    }
+
+    public Collection<? extends ItemDelta<?, ?>> getModifications(boolean ignoreItself) {
         ITD parent = getParent();
         if (parent == null) {
             throw new SystemException("No parent defined for this value");
         }
 
-        ItemDelta<?, ?> delta = parent.getDefinition().createEmptyDelta(getPath());
-        TreeDeltaUtils.addItemTreeDeltaValue(delta, this);
+        if (ignoreItself) {
+            return new ArrayList<>();
+        }
 
-        return new ArrayList<>(List.of(delta));
+        ItemDelta<?, ?> delta = parent.getDefinition().createEmptyDelta(getParent().getPath());
+        TreeDeltaUtils.populateItemDelta(delta, this);
+
+        Collection deltas = new ArrayList<>();
+        if (!delta.isEmpty()) {
+            deltas.add(delta);
+        }
+
+        return deltas;
+    }
+
+    public void addValueToDelta(ItemDelta<?, ?> delta) {
+        TreeDeltaUtils.populateItemDelta(delta, this);
     }
 }

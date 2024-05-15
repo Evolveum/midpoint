@@ -140,7 +140,7 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
 
         ContainerTreeDeltaValue<O> value = getSingleValue();
         if (value != null) {
-            delta.getModifications().addAll((Collection) value.getModifications());
+            delta.getModifications().addAll((Collection) value.getModifications(true));
         }
 
         return delta;

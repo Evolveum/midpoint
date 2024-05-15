@@ -7,7 +7,10 @@
 
 package com.evolveum.midpoint.schema.delta;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -135,12 +138,14 @@ public class ContainerTreeDeltaValue<C extends Containerable> extends ItemTreeDe
 
     @Override
     public ItemPath getPath() {
+        Long id = getId();
+
         ItemTreeDelta parent = getParent();
         if (parent == null) {
-            return getId() != null ? ItemPath.create(getId()) : null;
+            return id != null ? ItemPath.create(id) : null;
         }
 
-        return parent.getPath().append(getId());
+        return id != null ? parent.getPath().append(id) : parent.getPath();
     }
 
     @Override
@@ -210,8 +215,8 @@ public class ContainerTreeDeltaValue<C extends Containerable> extends ItemTreeDe
     }
 
     @Override
-    public Collection<? extends ItemDelta<?, ?>> getModifications() {
-        Collection<? extends ItemDelta<?, ?>> modifications = super.getModifications();
+    public Collection<? extends ItemDelta<?, ?>> getModifications(boolean ignoreItself) {
+        Collection<? extends ItemDelta<?, ?>> modifications = super.getModifications(ignoreItself);
 
         getDeltas().forEach(delta -> modifications.addAll((Collection) delta.getModifications()));
 

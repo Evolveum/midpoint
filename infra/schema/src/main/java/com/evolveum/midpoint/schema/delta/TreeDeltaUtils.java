@@ -31,18 +31,19 @@ public class TreeDeltaUtils {
 
     }
 
-    public static void addItemTreeDeltaValue(@NotNull ItemDelta delta, @NotNull ItemTreeDeltaValue value) {
+    public static void populateItemDelta(@NotNull ItemDelta delta, @NotNull ItemTreeDeltaValue value) {
         ModificationType modificationType = value.getModificationType();
-        if (modificationType == null || value.getValue() == null) {
+        PrismValue prismValue = value.getValue();
+        if (modificationType == null || prismValue == null) {
             return;
         }
-        
-        PrismValue prismValue = value.getValue().clone();
+
+        PrismValue cloned = prismValue.clone();
 
         switch (modificationType) {
-            case ADD -> delta.addValueToAdd(prismValue);
-            case DELETE -> delta.addValueToDelete(prismValue);
-            case REPLACE -> delta.addValueToReplace(prismValue);
+            case ADD -> delta.addValueToAdd(cloned);
+            case DELETE -> delta.addValueToDelete(cloned);
+            case REPLACE -> delta.addValueToReplace(cloned);
         }
     }
 }
