@@ -21291,7 +21291,6 @@
                 Schema definition type. Replacement for extension schema defined in midPoint.home
             </xsd:documentation>
             <xsd:appinfo>
-                <!--<a:container>true</a:container>-->
                 <a:since>4.9</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
@@ -21299,17 +21298,10 @@
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
-                    <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                    <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                type which this schema extends
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                xsd schema definition
+                                Xsd schema definition.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

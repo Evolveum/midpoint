@@ -10,7 +10,7 @@
 :page-toc: top
 
 Security policy object contains definition of a security-related setting for an midPoint instance.
-It refers to password policies and contains configuration for different types of credentials (security questions, nonce, password).
+It refers to password policies and contains configuration for different types of authentication and credentials (security questions, nonce, password).
 It is also used to define password resets, self-service registration and so on.
 
 == Security Policy Merging
@@ -251,5 +251,5 @@ Since midPoint 3.6 the security policy may also be specified for each xref:/midp
 == See Also
 
 * xref:/midpoint/reference/security/credentials/password-related-configuration/[Password-Related Configuration]
-
 * xref:/midpoint/reference/security/credentials/password-policy/[Password Policy]
+* link:/midpoint/reference/security/authentication/flexible-authentication/[Flexible Authentication]

@@ -296,6 +296,10 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
 
     @Override
     public <OW extends PrismObjectWrapper<O>, O extends ObjectType> OW findObjectWrapper() {
+        if (this instanceof PrismObjectWrapper) {
+            return (OW) this;
+        }
+
         if (parent == null) {
             return null;
         }

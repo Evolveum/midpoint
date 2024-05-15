@@ -72,7 +72,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         return createWrapper(parent, childItem, status, context);
     }
 
-    ItemStatus getStatus(I childItem) {
+    ItemStatus getStatus(Item childItem) {
         if (childItem == null) {
             return ItemStatus.ADDED;
         }
