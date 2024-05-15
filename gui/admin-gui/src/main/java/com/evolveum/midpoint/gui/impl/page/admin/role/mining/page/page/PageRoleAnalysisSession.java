@@ -157,10 +157,6 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
     }
 
-    public StringResourceModel setDetectionButtonTitle() {
-        return ((PageBase) getPage()).createStringResource("PageAnalysisSession.button.save");
-    }
-
     @Override
     protected void onInitialize() {
         super.onInitialize();
@@ -497,7 +493,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                 LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton editConfigurationButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
                 iconBuilder.build(),
-                setDetectionButtonTitle()) {
+                ((PageBase) getPage()).createStringResource("PageRoleAnalysisSession.button.configure")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -521,7 +517,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                 LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton rebuildButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
                 iconBuilder.build(),
-                setDetectionButtonTitle()) {
+                ((PageBase) getPage()).createStringResource("PageRoleAnalysisSession.button.rebuild")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
