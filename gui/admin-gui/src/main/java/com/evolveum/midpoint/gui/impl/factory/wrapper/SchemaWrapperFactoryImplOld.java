@@ -41,9 +41,10 @@ public class SchemaWrapperFactoryImplOld
 
     @Override
     public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {
-        return QNameUtil.match(SchemaDefinitionType.COMPLEX_TYPE, def.getTypeName())
-                && parent != null
-                && QNameUtil.match(parent.getTypeName(), SchemaType.COMPLEX_TYPE);
+        return false;
+//        return QNameUtil.match(SchemaDefinitionType.COMPLEX_TYPE, def.getTypeName())
+//                && parent != null
+//                && QNameUtil.match(parent.getTypeName(), SchemaType.COMPLEX_TYPE);
     }
 
     @Override
