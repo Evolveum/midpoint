@@ -7,14 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.schema.component;
 
-import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.ItemDefinitionDto;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.TextPanel;
@@ -50,19 +47,17 @@ import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 @PanelType(name = "schemaPanel")
 @PanelInstance(identifier = "schemaPanel",
         applicableForType = SchemaType.class,
-        display = @PanelDisplay(label = "SchemaPanel.title", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 25))
-public class SchemaPanel<T extends DefinitionDto> extends AbstractObjectMainPanel<SchemaType, SchemaDetailsModel> {
+        display = @PanelDisplay(label = "SchemaPanelOld.title", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 25))
+public class SchemaPanelOld<T extends DefinitionDto> extends AbstractObjectMainPanel<SchemaType, SchemaDetailsModel> {
 
     private static final String ID_DEFS = "defs";
     private static final String ID_FORM = "form";
 
-    public SchemaPanel(String id, SchemaDetailsModel model, ContainerPanelConfigurationType config) {
+    public SchemaPanelOld(String id, SchemaDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
@@ -129,7 +124,7 @@ public class SchemaPanel<T extends DefinitionDto> extends AbstractObjectMainPane
                 getObjectDetailsModels().reset();
                 getObjectDetailsModels().reloadPrismObjectModel(extensionType.asPrismObject());
 
-                target.add(SchemaPanel.this);
+                target.add(SchemaPanelOld.this);
             }
         };
         createDef.setOutputMarkupId(true);
