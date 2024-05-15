@@ -115,32 +115,9 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     @Override
     public void addAdditionalButtons(RepeatingView repeatingView) {
 
-        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_OBJECT_TASK_ICON,
-                LayeredIconCssStyle.IN_ROW_STYLE);
-        AjaxCompositedIconSubmitButton rebuildButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
-                iconBuilder.build(),
-                setDetectionButtonTitle()) {
-            @Serial private static final long serialVersionUID = 1L;
+        initEditConfigurationButton(repeatingView);
 
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                clusteringPerform(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(((PageBase) getPage()).getFeedbackPanel());
-            }
-        };
-        rebuildButton.titleAsLabel(true);
-        rebuildButton.setOutputMarkupId(true);
-        rebuildButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
-        repeatingView.add(rebuildButton);
-
-        Form<?> form = rebuildButton.findParent(Form.class);
-        if (form != null) {
-            form.setDefaultButton(rebuildButton);
-        }
+        initRebuildButton(repeatingView);
 
     }
 
@@ -222,6 +199,12 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                             createStringResource("RoleAnalysis.menu.nonNativeRepositoryWarning")));
                 }
             };
+        }
+
+        if (canShowWizard()) {
+            setShowedByWizard(true);
+            getObjectDetailsModels().reset();
+            return createWizardFragment();
         }
 
         return new DetailsFragment(ID_DETAILS_VIEW, "test", PageRoleAnalysisSession.this) {
@@ -507,6 +490,59 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
             }
         };
 
+    }
+
+    private void initEditConfigurationButton(@NotNull RepeatingView repeatingView) {
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
+                LayeredIconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton editConfigurationButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
+                iconBuilder.build(),
+                setDetectionButtonTitle()) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                clusteringPerform(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+        editConfigurationButton.titleAsLabel(true);
+        editConfigurationButton.setOutputMarkupId(true);
+        editConfigurationButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        repeatingView.add(editConfigurationButton);
+    }
+
+    private void initRebuildButton(@NotNull RepeatingView repeatingView) {
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_REFRESH,
+                LayeredIconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton rebuildButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
+                iconBuilder.build(),
+                setDetectionButtonTitle()) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                clusteringPerform(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+        rebuildButton.titleAsLabel(true);
+        rebuildButton.setOutputMarkupId(true);
+        rebuildButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+        repeatingView.add(rebuildButton);
+
+        Form<?> form = rebuildButton.findParent(Form.class);
+        if (form != null) {
+            form.setDefaultButton(rebuildButton);
+        }
     }
 
 }

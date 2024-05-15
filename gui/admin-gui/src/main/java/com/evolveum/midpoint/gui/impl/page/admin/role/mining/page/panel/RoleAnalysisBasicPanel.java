@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -34,13 +35,18 @@ import java.util.List;
 @PanelType(name = "miningBasic", defaultContainerPath = "empty")
 @PanelInstance(identifier = "sessionBasic",
         applicableForType = RoleAnalysisSessionType.class,
-        defaultPanel = true,
-        display = @PanelDisplay(label = "pageAdminFocus.basic", order = 10))
+        display = @PanelDisplay(
+                label = "RoleAnalysis.overview.panel",
+                icon = GuiStyleConstants.CLASS_INFO_CIRCLE,
+                order = 10))
 
 @PanelInstance(identifier = "clusterBasic",
         applicableForType = RoleAnalysisClusterType.class,
         defaultPanel = true,
-        display = @PanelDisplay(label = "pageAdminFocus.basic", order = 10))
+        display = @PanelDisplay(
+                label = "RoleAnalysis.overview.panel",
+                icon = GuiStyleConstants.CLASS_INFO_CIRCLE,
+                order = 10))
 public class RoleAnalysisBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {
 
     private static final String ID_MAIN_PANEL = "main";

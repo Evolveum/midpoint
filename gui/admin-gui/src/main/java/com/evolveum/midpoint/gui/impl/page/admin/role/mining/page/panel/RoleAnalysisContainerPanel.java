@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
         applicableForType = RoleAnalysisClusterType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisClusterType.detectionOption",
-                icon = GuiStyleConstants.CLASS_OPTIONS,
+                icon = GuiStyleConstants.CLASS_OPTIONS_COGS,
                 order = 30
         ),
         containerPath = "detectionOption",
@@ -44,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisSessionType.sessionOptions",
-                icon = GuiStyleConstants.CLASS_OPTIONS,
+                icon = GuiStyleConstants.CLASS_OPTIONS_COGS,
                 order = 40
         ),
         containerPath = "roleModeOptions",
@@ -56,24 +56,12 @@ import org.jetbrains.annotations.NotNull;
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisSessionType.sessionOptions",
-                icon = GuiStyleConstants.CLASS_OPTIONS,
+                icon = GuiStyleConstants.CLASS_OPTIONS_COG,
                 order = 40
         ),
+        childOf = RoleAnalysisSessionOptions.class,
         containerPath = "userModeOptions",
         type = "UserAnalysisSessionOptionType",
-        expanded = true
-)
-
-@PanelInstance(
-        identifier = "sessionStatistics",
-        applicableForType = RoleAnalysisSessionType.class,
-        display = @PanelDisplay(
-                label = "RoleAnalysisSessionType.sessionStatistic",
-                icon = GuiStyleConstants.CLASS_REPORT_ICON,
-                order = 50
-        ),
-        containerPath = "sessionStatistic",
-        type = "RoleAnalysisSessionStatisticType",
         expanded = true
 )
 
@@ -82,9 +70,10 @@ import org.jetbrains.annotations.NotNull;
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisDetectionOptionType.defaultDetectionOption",
-                icon = GuiStyleConstants.CLASS_OPTIONS,
+                icon = GuiStyleConstants.CLASS_OPTIONS_COG,
                 order = 30
         ),
+        childOf = RoleAnalysisSessionOptions.class,
         containerPath = "defaultDetectionOption",
         type = "RoleAnalysisDetectionOptionType",
         expanded = true

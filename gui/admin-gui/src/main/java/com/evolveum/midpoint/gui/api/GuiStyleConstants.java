@@ -164,6 +164,7 @@ public class GuiStyleConstants {
     public static final String CLASS_TEST_CONNECTION_MENU_ITEM = "fa fa-question";
     public static final String CLASS_DELETE_MENU_ITEM = "fa fa-minus";
     public static final String CLASS_EDIT_MENU_ITEM = "fa fa-edit";
+    public static final String CLASS_REFRESH = "fa fa-refresh";
     public static final String CLASS_SUSPEND_MENU_ITEM = "fa fa-pause";
     public static final String CLASS_RESUME_MENU_ITEM = "fa fa-check-square";
     public static final String CLASS_STOP_MENU_ITEM = "fa fa-stop";
@@ -206,7 +207,9 @@ public class GuiStyleConstants {
 
     public static final String CLASS_SYSTEM_CONFIGURATION_ICON = "fa fa-cog";
 
-    public static final String CLASS_OPTIONS = "fa fa-cogs";
+    public static final String CLASS_OPTIONS_COGS = "fa fa-cogs";
+    public static final String CLASS_OPTIONS_COG = "fa fa-cog";
+    public static final String CLASS_INFO_CIRCLE = "fa fa-info-circle";
     public static final String CLASS_SYSTEM_CONFIGURATION_ICON_COLORED = CLASS_SYSTEM_CONFIGURATION_ICON + " object-shadow-color";
 
     public static final String CLASS_ASSIGN = "fa fa-link";

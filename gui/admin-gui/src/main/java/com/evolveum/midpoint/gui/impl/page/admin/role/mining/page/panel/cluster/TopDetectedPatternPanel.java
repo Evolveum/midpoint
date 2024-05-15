@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
         identifier = "topDetectedPattern",
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
-                label = "RoleAnalysisDetectionPatternType.topDetectedPattern",
+                label = "RoleAnalysisDetectionPatternType.action.suggestion",
                 icon = GuiStyleConstants.CLASS_ICON_SEARCH,
                 order = 30
         )

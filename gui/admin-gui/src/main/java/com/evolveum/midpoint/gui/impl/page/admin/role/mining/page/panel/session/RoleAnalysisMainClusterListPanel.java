@@ -82,6 +82,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelInstance(
         identifier = "clusters",
         applicableForType = RoleAnalysisSessionType.class,
+        defaultPanel = true,
         display = @PanelDisplay(
                 label = "RoleAnalysisSessionType.roleAnalysisClusterRef",
                 icon = GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON,
