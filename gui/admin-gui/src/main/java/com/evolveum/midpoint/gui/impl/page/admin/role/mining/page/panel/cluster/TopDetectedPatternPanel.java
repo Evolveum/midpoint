@@ -59,7 +59,7 @@ public class TopDetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysi
     @NotNull
     private RoleAnalysisDetectedPatternTable loadTable() {
 
-        RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL, getObjectDetailsModels().getObjectType(), true) {
+        RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL, getPageBase(), getObjectDetailsModels().getObjectType()) {
             @Override
             protected void onRefresh(AjaxRequestTarget target) {
                 PageParameters parameters = new PageParameters();

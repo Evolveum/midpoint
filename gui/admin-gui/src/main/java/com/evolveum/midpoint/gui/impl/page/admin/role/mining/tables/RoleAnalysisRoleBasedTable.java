@@ -172,6 +172,11 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
             }
 
             @Override
+            public String getAdditionalBoxCssClasses() {
+                return " m-0";
+            }
+
+            @Override
             protected boolean getMigrationButtonVisibility() {
                 Set<RoleAnalysisCandidateRoleType> candidateRole = getCandidateRole();
                 if (candidateRole != null) {

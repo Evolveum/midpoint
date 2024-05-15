@@ -125,6 +125,11 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
             }
 
             @Override
+            public String getAdditionalBoxCssClasses() {
+                return " m-0";
+            }
+
+            @Override
             protected ISelectableDataProvider<SelectableBean<RoleAnalysisClusterType>> createProvider() {
                 SelectableBeanObjectDataProvider<RoleAnalysisClusterType> provider = createSelectableBeanObjectDataProvider(() ->
                         getCustomizeContentQuery(), null);

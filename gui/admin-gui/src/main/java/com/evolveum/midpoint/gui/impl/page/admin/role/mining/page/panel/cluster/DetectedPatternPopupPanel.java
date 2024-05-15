@@ -17,6 +17,7 @@ import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisDetectedPatternTable;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
@@ -33,15 +34,14 @@ public class DetectedPatternPopupPanel extends BasePanel<String> implements Popu
 
     public void initLayout(List<DetectedPattern> detectedPatterns) {
 
-        RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL,
+        RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL, (PageBase) getPage(),
                 new LoadableDetachableModel<>() {
                     @Override
                     protected List<DetectedPattern> load() {
                         return detectedPatterns;
                     }
-                }, true) {
+                }) {
         };
-
         components.setOutputMarkupId(true);
         add(components);
     }

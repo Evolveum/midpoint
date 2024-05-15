@@ -96,7 +96,6 @@ public class NavigationDetailsTablePanel extends BasePanel<List<DetailsTableItem
 
     protected void addPanelProperty() {
         add(AttributeModifier.append("class", "card"));
-        add(AttributeModifier.append("style", "style=margin:0px"));
     }
 
     protected Component getNavigationComponent() {

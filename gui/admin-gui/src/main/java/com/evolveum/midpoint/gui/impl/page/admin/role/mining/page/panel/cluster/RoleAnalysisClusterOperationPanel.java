@@ -67,8 +67,6 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
     private static final String ID_MAIN_PANEL = "main";
     private static final String ID_DATATABLE = "datatable_extra";
-    private static final String ID_CHART_PANEL = "chartPanel";
-
     private static final String DOT_CLASS = RoleAnalysisClusterOperationPanel.class.getName() + ".";
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
     private final OperationResult result = new OperationResult(OP_PREPARE_OBJECTS);
@@ -160,17 +158,6 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         webMarkupContainer.setOutputMarkupId(true);
 
         loadMiningTable(webMarkupContainer, analysePattern);
-
-        List<AttributeAnalysisStructure> attributeAnalysisStructures = extractAttributeAnalysis(cluster);
-        RoleAnalysisAttributeChartPanel roleAnalysisChartPanel = new RoleAnalysisAttributeChartPanel(
-                ID_CHART_PANEL, attributeAnalysisStructures, cluster) {
-            @Override
-            public boolean isExpanded() {
-                return false;
-            }
-        };
-        roleAnalysisChartPanel.setOutputMarkupId(true);
-        webMarkupContainer.add(roleAnalysisChartPanel);
 
         add(webMarkupContainer);
 

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 import java.io.Serial;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -27,6 +28,7 @@ public class RoleAnalysisClusterOccupationPanel extends BasePanel<String> {
     }
 
     private void initLayout() {
+        this.add(AttributeAppender.append("class", getComponentCssClass()));
         Component firstPanel = createFirstPanel(ID_FIRST_PANEL);
         firstPanel.setOutputMarkupId(true);
         add(firstPanel);
@@ -50,5 +52,9 @@ public class RoleAnalysisClusterOccupationPanel extends BasePanel<String> {
 
     public Component createSeparatorPanel(String idSeparatorPanel) {
         return new WebMarkupContainer(idSeparatorPanel);
+    }
+
+    public String getComponentCssClass() {
+        return "";
     }
 }

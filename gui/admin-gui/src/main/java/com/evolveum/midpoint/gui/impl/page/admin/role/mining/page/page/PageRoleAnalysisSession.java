@@ -203,7 +203,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
             return createWizardFragment();
         }
 
-        return new DetailsFragment(ID_DETAILS_VIEW, "test", PageRoleAnalysisSession.this) {
+        return new DetailsFragment(ID_DETAILS_VIEW, "fragment", PageRoleAnalysisSession.this) {
 
             @Override
             protected void initFragmentLayout() {

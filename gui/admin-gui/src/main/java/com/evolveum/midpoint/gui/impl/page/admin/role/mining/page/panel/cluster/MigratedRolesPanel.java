@@ -13,6 +13,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisClusterAction;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelInstance(
         identifier = "migratedRoles",
         applicableForType = RoleAnalysisClusterType.class,
+        childOf = RoleAnalysisClusterAction.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisClusterType.migratedRoles",
                 icon = GuiStyleConstants.CLASS_GROUP_ICON,
@@ -115,6 +117,12 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
 
         BoxedTablePanel<RoleType> table = new BoxedTablePanel<>(
                 ID_PANEL, provider, initColumns()) {
+
+            @Override
+            public String getAdditionalBoxCssClasses() {
+                return " m-0";
+            }
+
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 AjaxIconButton refreshIcon = new AjaxIconButton(id, new Model<>(GuiStyleConstants.CLASS_RECONCILE),

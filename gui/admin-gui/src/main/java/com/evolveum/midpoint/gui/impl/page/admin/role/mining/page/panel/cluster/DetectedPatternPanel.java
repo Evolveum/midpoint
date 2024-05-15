@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.tran
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisClusterAction;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterT
 @PanelInstance(
         identifier = "detectedPattern",
         applicableForType = RoleAnalysisClusterType.class,
+        childOf = RoleAnalysisClusterAction.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisDetectionPatternType.detectedPattern",
                 icon = GuiStyleConstants.CLASS_ICON_SEARCH,
@@ -64,13 +67,13 @@ public class DetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysisCl
 
     @NotNull
     private RoleAnalysisDetectedPatternTable loadTable() {
-        RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL,
+        RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL, getPageBase(),
                 new LoadableDetachableModel<>() {
                     @Override
                     protected List<DetectedPattern> load() {
                         return transformDefaultPattern(getObjectDetailsModels().getObjectType());
                     }
-                }, false) {
+                }) {
             @Override
             protected void onRefresh(AjaxRequestTarget target) {
                 PageParameters parameters = new PageParameters();

@@ -9,8 +9,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 import java.io.Serial;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
@@ -24,6 +26,8 @@ public class IconWithLabel extends BasePanel<String> {
     private static final String ID_TEXT = "label";
     private static final String ID_ICON = "icon";
 
+    private static final String ID_SUB_COMPONENT = "subComponent";
+
     public IconWithLabel(String id, IModel<String> model) {
         super(id, model);
         initLayout();
@@ -36,6 +40,10 @@ public class IconWithLabel extends BasePanel<String> {
         image.add(AttributeModifier.replace("class", getIconCssClass()));
         image.setOutputMarkupId(true);
         add(image);
+
+        Component subComponent = getSubComponent(ID_SUB_COMPONENT);
+        subComponent.setOutputMarkupId(true);
+        add(subComponent);
 
         if (isLink()) {
             AjaxLinkPanel components = new AjaxLinkPanel(ID_TEXT, getModel()) {
@@ -67,7 +75,11 @@ public class IconWithLabel extends BasePanel<String> {
         return false;
     }
 
-    public String getIconCssClass() {
+    protected String getIconCssClass() {
         return "";
+    }
+
+    protected Component getSubComponent(String id) {
+        return new WebMarkupContainer(id);
     }
 }

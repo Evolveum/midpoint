@@ -172,6 +172,11 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 null, true, specialColumnCount, displayValueOptionModel) {
 
             @Override
+            public String getAdditionalBoxCssClasses() {
+                return " m-0";
+            }
+
+            @Override
             protected @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRoleContainer() {
                 return getCandidateRole();
             }

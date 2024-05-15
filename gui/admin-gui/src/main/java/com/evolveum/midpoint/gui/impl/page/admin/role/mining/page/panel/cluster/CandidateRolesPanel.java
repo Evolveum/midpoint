@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisClusterAction;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelInstance(
         identifier = "candidateRoles",
         applicableForType = RoleAnalysisClusterType.class,
+        childOf = RoleAnalysisClusterAction.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisClusterType.candidateRoles",
                 icon = GuiStyleConstants.CLASS_GROUP_ICON,
@@ -82,6 +85,7 @@ public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClu
 
         RoleAnalysisCandidateRoleTable components = new RoleAnalysisCandidateRoleTable(ID_PANEL,
                 getObjectDetailsModels().getObjectType(), cacheCandidate, roles, null) {
+
             @Override
             protected void onRefresh(AjaxRequestTarget target) {
                 performRefresh();

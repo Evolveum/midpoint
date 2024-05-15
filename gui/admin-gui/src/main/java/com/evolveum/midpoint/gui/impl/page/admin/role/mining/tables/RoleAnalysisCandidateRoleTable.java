@@ -92,6 +92,11 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
         MainObjectListPanel<RoleType> table = new MainObjectListPanel<>(ID_DATATABLE, RoleType.class, null) {
 
             @Override
+            public String getAdditionalBoxCssClasses() {
+                return " m-0";
+            }
+
+            @Override
             protected IColumn<SelectableBean<RoleType>, String> createCheckboxColumn() {
                 return new CheckBoxHeaderColumn<>() {
 
