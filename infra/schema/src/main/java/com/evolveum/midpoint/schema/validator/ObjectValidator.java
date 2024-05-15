@@ -191,11 +191,13 @@ public class ObjectValidator {
         NaturalKeyDefinition naturalKey = def.getNaturalKeyInstance();
 
         for (PrismContainerValue<?> value : container.getValues()) {
-            for (QName key : constituents) {
-                if (value.findItem(ItemPath.create(key)) == null) {
-                    warn(
-                            result, ValidationItemType.MISSING_NATURAL_KEY,
-                            "Missing natural key constituent: " + key.getLocalPart(), container, value);
+            if (check(ValidationItemType.MISSING_NATURAL_KEY)) {
+                for (QName key : constituents) {
+                    if (value.findItem(ItemPath.create(key)) == null) {
+                        warn(
+                                result, ValidationItemType.MISSING_NATURAL_KEY,
+                                "Missing natural key constituent: " + key.getLocalPart(), container, value);
+                    }
                 }
             }
 
