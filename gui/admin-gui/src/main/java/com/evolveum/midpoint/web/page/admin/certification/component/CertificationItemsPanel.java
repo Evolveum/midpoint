@@ -21,19 +21,26 @@ import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.certification.dto.SearchingUtils;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
@@ -60,7 +67,37 @@ public class CertificationItemsPanel extends
     }
 
     private List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> initColumns() {
-        return ColumnUtils.getDefaultCertificationItemColumns(getPageBase());
+        List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> columns =
+                ColumnUtils.getDefaultCertificationItemColumns(getPageBase());
+        columns.add(createShowDetailsColumn());
+        return columns;
+    }
+
+    private IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String> createShowDetailsColumn() {
+        return new AjaxLinkColumn<>(Model.of("")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+                return createStringResource("CertificationItemsPanel.showDetails");
+            }
+
+
+            @Override
+            public void onClick(AjaxRequestTarget target,
+                    IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+                showResponseDetailsPopup(target, rowModel.getObject());
+            }
+
+        };
+    }
+
+    private void showResponseDetailsPopup(AjaxRequestTarget target,
+            PrismContainerValueWrapper<AccessCertificationCaseType> rowModel) {
+        CertResponseDetailsPanel panel = new CertResponseDetailsPanel(getPageBase().getMainPopupBodyId(),
+                Model.of(rowModel.getRealValue()));
+        getPageBase().showMainPopup(panel, target);
     }
 
     @Override
