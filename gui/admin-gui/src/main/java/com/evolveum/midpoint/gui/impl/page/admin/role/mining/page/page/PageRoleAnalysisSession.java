@@ -23,7 +23,6 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
@@ -498,7 +497,10 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-                clusteringPerform(target);
+                RoleAnalysisReconfigureSessionPopupPanel detailsPanel = new RoleAnalysisReconfigureSessionPopupPanel(((PageBase) getPage()).getMainPopupBodyId(),
+                        getObjectDetailsModels());
+
+                getPageBase().showMainPopup(detailsPanel, target);
             }
 
             @Override

@@ -107,6 +107,14 @@ public class MainPopupDialog extends ModalDialog {
         getDialogComponent().addOrReplace(footer);
     }
 
+    public void setTitleComponent(@NotNull Component titleComponent) {
+        if (!ID_TITLE.equals(titleComponent.getId())) {
+            throw new IllegalArgumentException("Title component id has to be " + ID_TITLE + ", but real value is " + titleComponent.getId());
+        }
+
+        getDialogComponent().addOrReplace(titleComponent);
+    }
+
     @Override
     protected WebMarkupContainer newDialog(String dialogId) {
         return new MidpointForm<>(dialogId);

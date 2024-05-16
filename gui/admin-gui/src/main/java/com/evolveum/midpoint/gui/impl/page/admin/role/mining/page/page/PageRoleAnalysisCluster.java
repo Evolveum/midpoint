@@ -32,7 +32,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.bouncycastle.math.raw.Mod;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -58,8 +57,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
 
@@ -125,6 +122,9 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         if (form != null) {
             form.setDefaultButton(detection);
         }
+
+        initEditConfigurationButton(repeatingView);
+
     }
 
     public void detectionPerform(AjaxRequestTarget target) {
@@ -575,6 +575,38 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
             }
         };
 
+    }
+
+    private void initEditConfigurationButton(@NotNull RepeatingView repeatingView) {
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
+                LayeredIconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton editConfigurationButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
+                iconBuilder.build(),
+                ((PageBase) getPage()).createStringResource("PageRoleAnalysisCluster.button.configure")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                RoleAnalysisReconfigureClusterPopupPanel detailsPanel = new RoleAnalysisReconfigureClusterPopupPanel(((PageBase) getPage()).getMainPopupBodyId(),
+                        getObjectDetailsModels()) {
+                    @Override
+                    protected void finalSubmitPerform(AjaxRequestTarget target) {
+                        detectionPerform(target);
+                    }
+                };
+
+                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+        editConfigurationButton.titleAsLabel(true);
+        editConfigurationButton.setOutputMarkupId(true);
+        editConfigurationButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        repeatingView.add(editConfigurationButton);
     }
 
     private String getLastRebuildTimeStamp(@NotNull RoleAnalysisClusterType objectType) {

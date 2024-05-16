@@ -34,54 +34,6 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
 
     @Override
     protected void onInitialize() {
-//        try {
-//            Task task = getPageBase().createSimpleTask("countObjects");
-//            OperationResult result = task.getResult();
-//            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
-//            RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
-//            RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
-//            RoleAnalysisCategoryType analysisCategory = processModeObject.getAnalysisCategory();
-//
-//            PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> primaryOptions = getContainerFormModel().getObject()
-//                    .getValue();
-//
-//            Class<? extends ObjectType> propertiesClass = UserType.class;
-//            if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-//                propertiesClass = RoleType.class;
-//            }
-//
-//            Integer maxPropertiesObjects;
-//
-//            ModelService modelService = getPageBase().getModelService();
-//
-//            maxPropertiesObjects = modelService.countObjects(propertiesClass, null, null, task, result);
-//
-//            if (maxPropertiesObjects == null) {
-//                maxPropertiesObjects = 1000000;
-//            }
-//
-//            double minObject = maxPropertiesObjects < 10 ? 1.0 : 10;
-//            boolean isIndirect = analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS);
-//
-//            if (primaryOptions.getNewValue().getValue().isIsIndirect() == null) {
-//                setNewValue(primaryOptions, AbstractAnalysisSessionOptionType.F_IS_INDIRECT, isIndirect);
-//            }
-//
-//            if (primaryOptions.getNewValue().getValue().getPropertiesRange() == null
-//                    || primaryOptions.getNewValue().getValue().getPropertiesRange().getMin() == null
-//                    || primaryOptions.getNewValue().getValue().getPropertiesRange().getMax() == null) {
-//                setNewValue(primaryOptions, AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE, new RangeType()
-//                        .min(minObject)
-//                        .max(maxPropertiesObjects.doubleValue()));
-//            }
-//
-//        } catch (SchemaException e) {
-//            throw new RuntimeException("Failed to update values session filtering options values", e);
-//        } catch (ObjectNotFoundException | SecurityViolationException | ConfigurationException |
-//                CommunicationException | ExpressionEvaluationException e) {
-//            throw new RuntimeException("Cloud not count objects", e);
-//        }
-
         super.onInitialize();
     }
 
@@ -97,13 +49,16 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
         LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
         RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
         RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
-
+        PrismContainerWrapperModel<RoleAnalysisSessionType, AbstractAnalysisSessionOptionType> containerWrapperModel;
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
+            containerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
                     ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS));
+        }else {
+            containerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
+                    ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS));
         }
-        return PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
-                ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS));
+        containerWrapperModel.getObject().setExpanded(true);
+        return containerWrapperModel;
     }
 
     protected boolean checkMandatory(ItemWrapper itemWrapper) {

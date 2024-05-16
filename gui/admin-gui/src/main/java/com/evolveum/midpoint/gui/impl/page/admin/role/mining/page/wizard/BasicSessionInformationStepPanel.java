@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -37,6 +39,13 @@ public class BasicSessionInformationStepPanel extends AbstractFormWizardStepPane
 
     public BasicSessionInformationStepPanel(AssignmentHolderDetailsModel<RoleAnalysisSessionType> model) {
         super(model);
+    }
+
+    @Override
+    protected IModel<? extends PrismContainerWrapper> getContainerFormModel() {
+        IModel<? extends PrismContainerWrapper> containerFormModel = super.getContainerFormModel();
+        containerFormModel.getObject().setExpanded(true);
+        return containerFormModel;
     }
 
     @Override

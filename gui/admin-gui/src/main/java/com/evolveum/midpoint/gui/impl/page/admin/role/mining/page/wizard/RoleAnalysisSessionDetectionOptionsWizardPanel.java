@@ -35,56 +35,7 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
 
     @Override
     protected void onInitialize() {
-//        updateNewValues();
-
         super.onInitialize();
-    }
-
-    private void updateNewValues() {
-        try {
-            RoleAnalysisSessionType realValue = getDetailsModel().getObjectWrapper().getValue().getRealValue();
-            PrismContainerValueWrapper<RoleAnalysisDetectionOptionType> sessionType = getContainerFormModel().getObject()
-                    .getValue();
-
-            RoleAnalysisOptionType analysisOption = realValue.getAnalysisOption();
-            if (analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
-                setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY, realValue.getRoleModeOptions().getMinPropertiesOverlap());
-                setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY, realValue.getRoleModeOptions().getMinMembersCount());
-            } else {
-                setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY, realValue.getUserModeOptions().getMinMembersCount());
-                setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY, realValue.getUserModeOptions().getMinPropertiesOverlap());
-            }
-
-            setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_DETECTION_PROCESS_MODE, RoleAnalysisDetectionProcessType.PARTIAL);
-
-            if (analysisOption.getAnalysisCategory().equals(RoleAnalysisCategoryType.OUTLIERS)) {
-                setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE, new RangeType()
-                        .min(2.0)
-                        .max(2.0));
-            } else {
-                setNewValue(sessionType, RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE, new RangeType()
-                        .min(DEFAULT_MIN_FREQUENCY)
-                        .max(DEFAULT_MAX_FREQUENCY));
-            }
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void setNewValue(PrismContainerValueWrapper<RoleAnalysisDetectionOptionType> sessionType,
-            ItemName itemName, Object realValue) throws SchemaException {
-
-        if (sessionType.findProperty(itemName) != null) {
-            sessionType.findProperty(itemName).getValue().setRealValue(realValue);
-        } else {
-            LOGGER.warn("Property not found: " + itemName);
-        }
-    }
-
-    @Override
-    protected IModel<? extends PrismContainerWrapper<RoleAnalysisDetectionOptionType>> getContainerFormModel() {
-        return PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
-                ItemPath.create(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION));
     }
 
     @Override
@@ -115,6 +66,15 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
     @Override
     public String getStepId() {
         return WORK_PANEL_TYPE;
+    }
+
+    @Override
+    protected IModel<? extends PrismContainerWrapper<RoleAnalysisDetectionOptionType>> getContainerFormModel() {
+        PrismContainerWrapperModel<RoleAnalysisSessionType, RoleAnalysisDetectionOptionType> containerWrapperModel =
+                PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
+                ItemPath.create(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION));
+        containerWrapperModel.getObject().setExpanded(true);
+        return containerWrapperModel;
     }
 
     protected boolean checkMandatory(ItemWrapper itemWrapper) {
