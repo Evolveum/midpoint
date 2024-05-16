@@ -65,8 +65,15 @@ public class ExtractPatternUtils {
 
             detectedPattern.setRoleAttributeAnalysisResult(roleAnalysisClusterDetectionType.getRoleAttributeAnalysisResult());
             detectedPattern.setUserAttributeAnalysisResult(roleAnalysisClusterDetectionType.getUserAttributeAnalysisResult());
-            detectedPattern.setItemsConfidence(roleAnalysisClusterDetectionType.getItemConfidence());
-            detectedPattern.setReductionFactorConfidence(roleAnalysisClusterDetectionType.getReductionConfidence());
+            Double itemConfidence = roleAnalysisClusterDetectionType.getItemConfidence();
+            if (itemConfidence != null) {
+                detectedPattern.setItemsConfidence(itemConfidence);
+            }
+            Double reductionConfidence = roleAnalysisClusterDetectionType.getReductionConfidence();
+            if (reductionConfidence != null) {
+                detectedPattern.setReductionFactorConfidence(reductionConfidence);
+            }
+
             detectedPattern.setClusterRef(new ObjectReferenceType().oid(cluster.getOid()).type(RoleAnalysisClusterType.COMPLEX_TYPE));
             mergedIntersection.add(detectedPattern);
 

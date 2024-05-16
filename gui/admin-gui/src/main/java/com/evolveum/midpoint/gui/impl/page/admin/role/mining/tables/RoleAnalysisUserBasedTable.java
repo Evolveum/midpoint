@@ -573,7 +573,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                         RoleAnalysisObjectStatus objectStatus = new RoleAnalysisObjectStatus(status.toggleStatus());
                         objectStatus.setContainerId(new HashSet<>(getPatternIdentifiers()));
                         object.setObjectStatus(objectStatus);
-                        target.add(getTable().getDataTable().setOutputMarkupId(true));
+                        target.add(getTable().setOutputMarkupId(true));
                         return rowModel.getObject().getStatus();
                     }
                 };
@@ -666,7 +666,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                             objectStatus.setContainerId(new HashSet<>(getPatternIdentifiers()));
                             userChunk.setObjectStatus(objectStatus);
 
-                            target.add(getTable().getDataTable().setOutputMarkupId(true));
+                            target.add(getTable().setOutputMarkupId(true));
                             return userChunk.getStatus();
                         }
 

@@ -440,7 +440,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
                 List<DetectedPattern> detectedPatternList = transformDefaultPattern(cluster);
                 DetectedPatternPopupPanel detailsPanel = new DetectedPatternPopupPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                        Model.of("Patterns panel"), detectedPatternList);
+                        Model.of("Patterns panel"), detectedPatternList, ((PageBase) getPage()));
 
                 getPageBase().showMainPopup(detailsPanel, target);
             }
@@ -524,7 +524,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
                 List<DetectedPattern> detectedPatternList = transformDefaultPattern(cluster);
                 DetectedPatternPopupPanel detailsPanel = new DetectedPatternPopupPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                        Model.of("Patterns panel"), detectedPatternList);
+                        Model.of("Patterns panel"), detectedPatternList, ((PageBase) getPage()));
 
                 getPageBase().showMainPopup(detailsPanel, target);
             }

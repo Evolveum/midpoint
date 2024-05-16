@@ -24,17 +24,23 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 public class DetectedPatternPopupPanel extends BasePanel<String> implements Popupable {
 
     private static final String ID_PANEL = "panel";
+    PageBase pageBase;
 
     public DetectedPatternPopupPanel(String id, IModel<String> messageModel,
-            List<DetectedPattern> detectedPatterns) {
+            List<DetectedPattern> detectedPatterns, PageBase pageBase) {
         super(id, messageModel);
+        this.pageBase = pageBase;
 
         initLayout(detectedPatterns);
     }
 
+    public PageBase getPageBase() {
+        return pageBase;
+    }
+
     public void initLayout(List<DetectedPattern> detectedPatterns) {
 
-        RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL, (PageBase) getPage(),
+        RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL, DetectedPatternPopupPanel.this.getPageBase(),
                 new LoadableDetachableModel<>() {
                     @Override
                     protected List<DetectedPattern> load() {
