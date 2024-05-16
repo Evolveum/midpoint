@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.SearchingUtils;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -118,6 +119,11 @@ public class CertificationItemsPanel extends
             }
 
         };
+    }
+
+    @Override
+    protected IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String> createCheckboxColumn() {
+        return null;
     }
 
     @Override

@@ -810,100 +810,26 @@ public class ColumnUtils {
         List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> columns = new ArrayList<>();
 
         //todo progress column
-
-        columns.add(new CompositedIconColumn<>(createIconColumnHeaderModel()) {
-
-            @Override
-            protected CompositedIcon getCompositedIcon(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-                AccessCertificationCaseType caseWorkItemType = unwrapRowModel(rowModel);
-                if (caseWorkItemType.getObjectRef() == null || caseWorkItemType.getObjectRef().getOid() == null) {
-                    return new CompositedIconBuilder().build();
-                }
-                OperationResult result = new OperationResult("createCompositedIconForCertificationCaseObject");
-                List<ObjectType> referencedObject = WebComponentUtil.loadReferencedObjectList(
-                        Collections.singletonList(caseWorkItemType.getObjectRef()), result.getOperation(), pageBase);
-                if (CollectionUtils.isEmpty(referencedObject)) {
-                    return new CompositedIconBuilder().build();
-                }
-                return WebComponentUtil.createCompositeIconForObject(referencedObject.get(0), result, pageBase);
-            }
-        });
-        columns.add(new AjaxLinkColumn<>(createStringResource("WorkItemsPanel.object")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-                AccessCertificationCaseType caseWorkItemType = unwrapRowModel(rowModel);
-                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseWorkItemType.getObjectRef(),
-                        true, pageBase));
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-                AccessCertificationCaseType certItem = unwrapRowModel(rowModel);
-                dispatchToObjectDetailsPage(certItem.getObjectRef(), pageBase, false);
-            }
-        });
-        columns.add(new CompositedIconColumn<>(createIconColumnHeaderModel()) {
-
-            @Override
-            protected CompositedIcon getCompositedIcon(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-                AccessCertificationCaseType caseWorkItemType = unwrapRowModel(rowModel);
-                if (caseWorkItemType.getTargetRef() == null || caseWorkItemType.getTargetRef().getOid() == null) {
-                    return new CompositedIconBuilder().build();
-                }
-                OperationResult result = new OperationResult("createCompositedIconForCertificationCaseTarget");
-                List<ObjectType> referencedObject = WebComponentUtil.loadReferencedObjectList(
-                        Collections.singletonList(caseWorkItemType.getTargetRef()), result.getOperation(), pageBase);
-                if (CollectionUtils.isEmpty(referencedObject)) {
-                    return new CompositedIconBuilder().build();
-                }
-                return WebComponentUtil.createCompositeIconForObject(referencedObject.get(0), result, pageBase);
-            }
-        });
-        columns.add(new AjaxLinkColumn<>(createStringResource("WorkItemsPanel.target")) {
+        columns.add(new ObjectReferenceColumn<>(createStringResource("WorkItemsPanel.object"),
+                "") {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-                AccessCertificationCaseType certItem = unwrapRowModel(rowModel);
-                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(certItem.getTargetRef(),
-                        false, pageBase));
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-                AccessCertificationCaseType certItem = unwrapRowModel(rowModel);
-                dispatchToObjectDetailsPage(certItem.getTargetRef(), pageBase, false);
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationCaseType>>> cellItem,
-                    String componentId, final IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-                super.populateItem(cellItem, componentId, rowModel);
-                Component c = cellItem.get(componentId);
-
-                AccessCertificationCaseType certItem = unwrapRowModel(rowModel);
-                PrismReferenceValue refVal = certItem.getTargetRef() != null ? certItem.getTargetRef().asReferenceValue() : null;
-                String descriptionValue = refVal != null && refVal.getObject() != null ?
-                        refVal.getObject().asObjectable().getDescription() : "";
-
-                c.add(new AttributeAppender("title", descriptionValue));
-            }
-
-            @Override
-            public boolean isEnabled(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-                AccessCertificationCaseType certItem = unwrapRowModel(rowModel);
-                if (certItem == null) {
-                    return false;
-                }
-
-                ObjectReferenceType ref = certItem.getTargetRef();
-                return ref != null && ref.getOid() != null;
+            public IModel<List<ObjectReferenceType>> extractDataModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+                return () -> Collections.singletonList(unwrapRowModel(rowModel).getObjectRef());
             }
         });
+        columns.add(new ObjectReferenceColumn<>(createStringResource("WorkItemsPanel.target"),
+                "") {
 
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<List<ObjectReferenceType>> extractDataModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+                return () -> Collections.singletonList(unwrapRowModel(rowModel).getTargetRef());
+            }
+        });
        columns.add(new ObjectReferenceColumn<>(createStringResource("PageCertCampaign.table.reviewers"),
                "") {
 
