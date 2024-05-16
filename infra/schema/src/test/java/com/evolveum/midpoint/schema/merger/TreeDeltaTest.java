@@ -7,21 +7,14 @@
 
 package com.evolveum.midpoint.schema.merger;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
-import org.apache.commons.io.FileUtils;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
 import com.evolveum.midpoint.schema.delta.Conflict;
@@ -31,46 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class TreeDeltaTest extends AbstractSchemaTest {
-
-    @Test//(enabled = false)
-    public void testInitialObjectsConflicts() {
-        System.out.println(new File(".").getAbsolutePath());
-        File objects44Dir = new File("../../_mess/_init-objects-diff/initial-objects/4.4.8");
-        File objectsCurrentDir = new File("../../repo/system-init/src/main/resources/initial-objects");
-
-        Map<String, PrismObject> objects44 = loadObjects(objects44Dir);
-        Map<String, PrismObject> objectsCurrent = loadObjects(objectsCurrentDir);
-
-        objects44.forEach((oid, object44) -> {
-            if (!object44.isOfType(SystemConfigurationType.class)) {
-                return;
-            }
-
-            PrismObject objectCurrent = objectsCurrent.get(oid);
-            if (objectCurrent == null) {
-                return;
-            }
-
-            ObjectDelta<? extends ObjectType> delta = object44.diff(objectCurrent, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS);
-            ObjectTreeDelta<?> treeDelta = ObjectTreeDelta.fromItemDelta(delta);
-            System.out.println(treeDelta.debugDump());
-        });
-    }
-
-    private Map<String, PrismObject> loadObjects(File dir) {
-        Map<String, PrismObject> map = new HashMap<>();
-
-        FileUtils.listFiles(dir, new String[] { "xml" }, true).forEach(file -> {
-            try {
-                PrismObject<?> object = PrismTestUtil.parseObject(file);
-                map.put(object.getOid(), object);
-            } catch (SchemaException | IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        return map;
-    }
 
     @Test
     public void testSingleValuePropertyNoConflict() throws SchemaException {
@@ -177,7 +130,6 @@ public class TreeDeltaTest extends AbstractSchemaTest {
 
         ObjectTreeDelta<UserType> leftTreeDelta = toObjectTreeDelta(leftToBase);
         ObjectTreeDelta<UserType> rightTreeDelta = toObjectTreeDelta(rightToBase);
-
 
     }
 
