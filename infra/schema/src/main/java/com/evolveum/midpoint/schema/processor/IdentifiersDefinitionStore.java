@@ -34,13 +34,13 @@ public interface IdentifiersDefinitionStore {
      *
      * @return definition of identifier attributes
      */
-    @NotNull Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers();
+    @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getPrimaryIdentifiers();
 
     /** Currently, there must be exactly one primary identifier. */
-    default <T> @NotNull ResourceAttributeDefinition<T> getPrimaryIdentifierRequired() {
-        Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = getPrimaryIdentifiers();
+    default <T> @NotNull ShadowSimpleAttributeDefinition<T> getPrimaryIdentifierRequired() {
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> primaryIdentifiers = getPrimaryIdentifiers();
         //noinspection unchecked
-        return (ResourceAttributeDefinition<T>) MiscUtil.extractSingletonRequired(
+        return (ShadowSimpleAttributeDefinition<T>) MiscUtil.extractSingletonRequired(
                 primaryIdentifiers,
                 () -> new IllegalStateException("No primary identifier in " + this),
                 () -> new IllegalStateException("Multiple primary identifiers in " + this + ": " + primaryIdentifiers));
@@ -76,14 +76,14 @@ public interface IdentifiersDefinitionStore {
      *
      * @return definition of secondary identifier attributes
      */
-    @NotNull Collection<? extends ResourceAttributeDefinition<?>> getSecondaryIdentifiers();
+    @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getSecondaryIdentifiers();
 
     /** In general, there may be more (or zero) secondary identifiers present. But in special cases we may expect just one. */
     @VisibleForTesting
-    default <T> @NotNull ResourceAttributeDefinition<T> getSecondaryIdentifierRequired() {
-        Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifiers = getSecondaryIdentifiers();
+    default <T> @NotNull ShadowSimpleAttributeDefinition<T> getSecondaryIdentifierRequired() {
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> secondaryIdentifiers = getSecondaryIdentifiers();
         //noinspection unchecked
-        return (ResourceAttributeDefinition<T>) MiscUtil.extractSingletonRequired(
+        return (ShadowSimpleAttributeDefinition<T>) MiscUtil.extractSingletonRequired(
                 secondaryIdentifiers,
                 () -> new IllegalStateException("No secondary identifier in " + this),
                 () -> new IllegalStateException("Multiple secondary identifiers in " + this + ": " + secondaryIdentifiers));
@@ -116,7 +116,7 @@ public interface IdentifiersDefinitionStore {
     /**
      * Returns both primary and secondary identifiers.
      */
-    default @NotNull Collection<? extends ResourceAttributeDefinition<?>> getAllIdentifiers() {
+    default @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getAllIdentifiers() {
         return MiscUtil.unionExtends(
                 getPrimaryIdentifiers(), getSecondaryIdentifiers());
     }

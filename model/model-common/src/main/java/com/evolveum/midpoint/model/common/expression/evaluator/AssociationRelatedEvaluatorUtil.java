@@ -9,18 +9,18 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 
 import org.jetbrains.annotations.NotNull;
 
 class AssociationRelatedEvaluatorUtil {
 
-    static @NotNull ShadowAssociationDefinition getAssociationDefinition(ExpressionEvaluationContext context)
+    static @NotNull ShadowReferenceAttributeDefinition getAssociationDefinition(ExpressionEvaluationContext context)
             throws ExpressionEvaluationException {
         var associationDefinitionTypedValue = context.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_DEFINITION);
         var associationDefinition = associationDefinitionTypedValue != null ?
-                (ShadowAssociationDefinition) associationDefinitionTypedValue.getValue() : null;
+                (ShadowReferenceAttributeDefinition) associationDefinitionTypedValue.getValue() : null;
         if (associationDefinition == null) {
             throw new ExpressionEvaluationException(
                     ("No association definition variable in %s; the expression may be used in a wrong place. "

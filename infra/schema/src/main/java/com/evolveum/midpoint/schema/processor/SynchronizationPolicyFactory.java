@@ -20,6 +20,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ObjectSynchronizationReactionDefinition;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import com.google.common.base.Preconditions;
@@ -130,7 +131,7 @@ public class SynchronizationPolicyFactory {
 
         ResourceObjectTypeDelineation delineation = getDelineation(synchronizationBean, typeDef, resource);
 
-        Collection<SynchronizationReactionDefinition> reactions =
+        var reactions =
                 typeDef.hasSynchronizationReactionsDefinition() ?
                         typeDef.getSynchronizationReactions() :
                         getSynchronizationReactions(synchronizationBean);
@@ -198,12 +199,12 @@ public class SynchronizationPolicyFactory {
      * Especially treats the existence of `correlationDefinition/cases` item. If such an item is present,
      * "create correlation cases" action is added to "disputed" reaction (or such reaction is created, if there's none).
      */
-    private static List<SynchronizationReactionDefinition> getSynchronizationReactions(
+    private static List<ObjectSynchronizationReactionDefinition> getSynchronizationReactions(
             @NotNull ObjectSynchronizationType synchronizationBean) throws ConfigurationException {
         ClockworkSettings defaultSettings = ClockworkSettings.of(synchronizationBean);
         boolean legacyCorrelationCasesEnabled = isLegacyCorrelationCasesSettingOn(synchronizationBean);
 
-        List<SynchronizationReactionDefinition> list = new ArrayList<>();
+        List<ObjectSynchronizationReactionDefinition> list = new ArrayList<>();
 
         boolean createCasesActionAdded = false;
         for (LegacySynchronizationReactionType synchronizationReactionBean : synchronizationBean.getReaction()) {
@@ -260,7 +261,7 @@ public class SynchronizationPolicyFactory {
             @NotNull CorrelationDefinitionType explicitDefinition,
             @NotNull ResourceType resource) throws ConfigurationException {
         CorrelationDefinitionType cloned = null;
-        for (ResourceAttributeDefinition<?> attributeDefinition : typeDef.getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition<?> attributeDefinition : typeDef.getSimpleAttributeDefinitions()) {
             ItemCorrelatorDefinitionType correlatorDefBean = attributeDefinition.getCorrelatorDefinition();
             if (correlatorDefBean != null) {
                 if (cloned == null) {
@@ -274,7 +275,7 @@ public class SynchronizationPolicyFactory {
 
     private static void addCorrelatorFromAttribute(
             @NotNull CorrelationDefinitionType overallCorrelationDefBean,
-            @NotNull ResourceAttributeDefinition<?> attributeDefinition,
+            @NotNull ShadowSimpleAttributeDefinition<?> attributeDefinition,
             @NotNull ItemCorrelatorDefinitionType attributeCorrelatorDefBean,
             @NotNull ResourceObjectTypeDefinition typeDef,
             @NotNull ResourceType resource) throws ConfigurationException {
@@ -291,7 +292,7 @@ public class SynchronizationPolicyFactory {
     }
 
     private static ItemPath determineFocusItemPath(
-            ResourceAttributeDefinition<?> attributeDefinition, @NotNull ItemCorrelatorDefinitionType attributeCorrelatorDefBean) {
+            ShadowSimpleAttributeDefinition<?> attributeDefinition, @NotNull ItemCorrelatorDefinitionType attributeCorrelatorDefBean) {
         ItemPathType explicitItemPath = attributeCorrelatorDefBean.getFocusItem();
         if (explicitItemPath != null) {
             return explicitItemPath.getItemPath();
@@ -301,7 +302,7 @@ public class SynchronizationPolicyFactory {
     }
 
     /** Tries to determine correlation (focus) item path from the inbound mapping target. */
-    private static ItemPath guessFocusItemPath(ResourceAttributeDefinition<?> attributeDefinition) {
+    private static ItemPath guessFocusItemPath(ShadowSimpleAttributeDefinition<?> attributeDefinition) {
         List<InboundMappingType> inboundMappingBeans = attributeDefinition.getInboundMappingBeans();
         if (inboundMappingBeans.size() != 1) {
             return null;

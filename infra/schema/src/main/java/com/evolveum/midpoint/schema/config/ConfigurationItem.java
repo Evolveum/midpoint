@@ -28,7 +28,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
  * Currently, the most prominent information is the origin of the item value.
  */
 @Experimental
-public class ConfigurationItem<T extends Serializable & Cloneable> implements ConfigurationItemable<T>, Serializable, Cloneable {
+public class ConfigurationItem<T extends Serializable & Cloneable>
+        implements ConfigurationItemable<T>, Serializable, Cloneable {
 
     @Serial private static final long serialVersionUID = 0L;
 
@@ -190,8 +191,9 @@ public class ConfigurationItem<T extends Serializable & Cloneable> implements Co
                 .toList();
     }
 
+    @Override
     @Contract("null, _, _ -> null; !null, _, _ -> !null")
-    protected <X extends Serializable & Cloneable, CI extends ConfigurationItem<X>> CI child(
+    public <X extends Serializable & Cloneable, CI extends ConfigurationItem<X>> CI child(
             @Nullable X value, @NotNull Class<CI> clazz, Object... pathSegments) {
         var ci = child(value, pathSegments);
         return ci != null ? ci.as(clazz) : null;

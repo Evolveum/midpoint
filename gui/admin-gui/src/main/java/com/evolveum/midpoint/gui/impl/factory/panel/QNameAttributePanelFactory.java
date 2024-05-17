@@ -13,7 +13,7 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.input.converter.AutoCompleteDisplayableValueConverter;
 import com.evolveum.midpoint.gui.impl.converter.QNameConverter;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -233,7 +233,7 @@ public class QNameAttributePanelFactory extends DropDownChoicePanelFactory imple
         private final String help;
         private final QName value;
 
-        private AssociationDisplayableValue(ResourceAttributeDefinition attributeDefinition) {
+        private AssociationDisplayableValue(ShadowSimpleAttributeDefinition attributeDefinition) {
             this.displayName = attributeDefinition.getDisplayName() == null ?
                     attributeDefinition.getItemName().getLocalPart() : attributeDefinition.getDisplayName();
             this.help = attributeDefinition.getHelp();

@@ -8,14 +8,14 @@
 package com.evolveum.midpoint.schema.config;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import javax.xml.namespace.QName;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 
@@ -42,11 +42,12 @@ public class SchemaHandlingConfigItem
                 SchemaHandlingType.F_OBJECT_TYPE);
     }
 
+    /** These are currently embedded in "association type" definitions. */
     private List<AssociatedResourceObjectTypeDefinitionConfigItem> getAssociatedObjectTypes() {
-        return children(
-                value().getAssociatedObjectType(),
-                AssociatedResourceObjectTypeDefinitionConfigItem.class,
-                SchemaHandlingType.F_ASSOCIATED_OBJECT_TYPE);
+        return getAssociationTypes().stream()
+                .map(atDef -> atDef.getAssociationObject())
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     public List<AbstractResourceObjectTypeDefinitionConfigItem<?>> getAllObjectTypes() {
@@ -63,43 +64,50 @@ public class SchemaHandlingConfigItem
                 SchemaHandlingType.F_ASSOCIATION_TYPE);
     }
 
-    public List<ShadowAssociationTypeNewDefinitionConfigItem> getAssociationTypesNew() {
-        return children(
-                value().getAssociationTypeNew(),
-                ShadowAssociationTypeNewDefinitionConfigItem.class,
-                SchemaHandlingType.F_ASSOCIATION_TYPE_NEW);
-    }
-
     /**
      * Checks that all attribute names (`ref` elements) are valid - before even starting to parse the schema.
      * Otherwise, the parsing may fail at unusual places, generating confusing error messages. See also MID-8162.
      *
      * Maybe we can remove this method, as we migrated the beans to config items here.
      */
-    public void checkAttributeNames() throws ConfigurationException {
+    public void checkSyntaxOfAttributeNames() throws ConfigurationException {
         for (var objectClassDefCI : getObjectClasses()) {
-            objectClassDefCI.checkAttributeNames();
+            objectClassDefCI.checkSyntaxOfAttributeNames();
         }
         for (var objectTypeDefCI : getAllObjectTypes()) {
-            objectTypeDefCI.checkAttributeNames();
+            objectTypeDefCI.checkSyntaxOfAttributeNames();
         }
     }
 
-    public @Nullable ShadowAssociationTypeDefinitionConfigItem findAssociationTypeCI(@NotNull QName name)
-            throws ConfigurationException {
-        List<ShadowAssociationTypeDefinitionConfigItem> matching = new ArrayList<>();
-        for (ShadowAssociationTypeDefinitionConfigItem ci : getAssociationTypes()) {
-            if (QNameUtil.match(name, ci.getAssociationClassName())) {
-                matching.add(ci);
-            }
-        }
-        return MiscUtil.extractSingleton(
-                matching,
-                () -> new ConfigurationException("Multiple association type with class name " + name));
-    }
+//    public @Nullable ShadowAssociationTypeDefinitionConfigItem findAssociationTypeCI(@NotNull QName name)
+//            throws ConfigurationException {
+//        List<ShadowAssociationTypeDefinitionConfigItem> matching = new ArrayList<>();
+//        for (ShadowAssociationTypeDefinitionConfigItem ci : getAssociationTypes()) {
+//            if (QNameUtil.match(name, ci.getAssociationClassName())) {
+//                matching.add(ci);
+//            }
+//        }
+//        return MiscUtil.extractSingleton(
+//                matching,
+//                () -> new ConfigurationException("Multiple association type with class name " + name));
+//    }
 
     @Override
     public @NotNull String localDescription() {
         return "schema handling";
+    }
+
+    public @NotNull Collection<ShadowAssociationTypeDefinitionConfigItem> getAssociationTypesFor(
+            @NotNull ResourceObjectTypeIdentification typeIdentification, @NotNull ItemName itemName)
+            throws ConfigurationException {
+        List<ShadowAssociationTypeDefinitionConfigItem> matching = new ArrayList<>();
+        for (ShadowAssociationTypeDefinitionConfigItem at : getAssociationTypes()) {
+            var subject = at.getSubject();
+            if (subject.getTypeIdentifiers().contains(typeIdentification)
+                    && subject.isRelevantForItem(itemName)) {
+                matching.add(at);
+            }
+        }
+        return matching;
     }
 }

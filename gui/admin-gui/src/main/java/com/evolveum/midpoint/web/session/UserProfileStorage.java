@@ -80,6 +80,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PAGE_REPORTS,
         PAGE_CERT_CAMPAIGN_OUTCOMES_PANEL,
         PAGE_CERT_CAMPAIGNS_PANEL,
+        PAGE_CAMPAIGNS,
         PAGE_CERT_DECISIONS_PANEL,
         PAGE_CERT_DEFINITIONS_PANEL,
         PAGE_CASE_WORK_ITEMS_PANEL,

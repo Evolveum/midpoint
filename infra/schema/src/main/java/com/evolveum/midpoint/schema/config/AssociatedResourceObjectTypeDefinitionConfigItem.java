@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociatedResourceObjectTypeDefinitionType;
 
+/** TODO remove before 4.9 release, if not needed. */
 public class AssociatedResourceObjectTypeDefinitionConfigItem
         extends AbstractResourceObjectTypeDefinitionConfigItem<AssociatedResourceObjectTypeDefinitionType> {
 

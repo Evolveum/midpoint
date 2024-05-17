@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.schema.processor;
 
 /**
- * Complex type definition for a {@link ResourceAttributeContainer}.
+ * Complex type definition for a {@link ShadowAttributesContainer}.
  */
 public interface ShadowAttributesComplexTypeDefinition
         extends

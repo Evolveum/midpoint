@@ -75,7 +75,7 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
 
     public static @NotNull ResourceObjectIdentification<?> of(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
-            @NotNull Collection<? extends ResourceAttribute<?>> identifierAttributes) throws SchemaException {
+            @NotNull Collection<? extends ShadowSimpleAttribute<?>> identifierAttributes) throws SchemaException {
         return of(resourceObjectDefinition,
                 ResourceObjectIdentifiers.of(resourceObjectDefinition, identifierAttributes));
     }
@@ -89,8 +89,8 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
     /** Creates new identification with a primary identifier. */
     public static WithPrimary withPrimary(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
-            @NotNull ResourceAttribute<?> primaryIdentifierAttribute,
-            @NotNull Collection<? extends ResourceAttribute<?>> secondaryIdentifierAttributes) {
+            @NotNull ShadowSimpleAttribute<?> primaryIdentifierAttribute,
+            @NotNull Collection<? extends ShadowSimpleAttribute<?>> secondaryIdentifierAttributes) {
         return new WithPrimary(
                 resourceObjectDefinition,
                 ResourceObjectIdentifiers.withPrimary(
@@ -115,11 +115,11 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
 
     private static @NotNull ResourceObjectIdentification<?> fromIdentifiersOrAttributes(
             @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull Collection<? extends ResourceAttribute<?>> allAttributes,
+            @NotNull Collection<? extends ShadowSimpleAttribute<?>> allAttributes,
             boolean nonIdentifiersAllowed) throws SchemaException {
         Collection<ResourceObjectIdentifier.Primary<?>> primaryIdentifiers = new ArrayList<>();
         Collection<ResourceObjectIdentifier.Secondary<?>> secondaryIdentifiers = new ArrayList<>();
-        for (ResourceAttribute<?> attribute : allAttributes) {
+        for (ShadowSimpleAttribute<?> attribute : allAttributes) {
             if (objectDefinition.isPrimaryIdentifier(attribute.getElementName())) {
                 primaryIdentifiers.add(ResourceObjectIdentifier.Primary.of(attribute));
             } else if (objectDefinition.isSecondaryIdentifier(attribute.getElementName())) {
@@ -137,13 +137,13 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
 
     public static @NotNull ResourceObjectIdentification<?> fromIdentifiers(
             @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull Collection<? extends ResourceAttribute<?>> allIdentifiers) throws SchemaException {
+            @NotNull Collection<? extends ShadowSimpleAttribute<?>> allIdentifiers) throws SchemaException {
         return fromIdentifiersOrAttributes(objectDefinition, allIdentifiers, false);
     }
 
     public static @NotNull ResourceObjectIdentification<?> fromAttributes(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
-            @NotNull Collection<? extends ResourceAttribute<?>> attributes) {
+            @NotNull Collection<? extends ShadowSimpleAttribute<?>> attributes) {
         try {
             return fromIdentifiersOrAttributes(resourceObjectDefinition, attributes, true);
         } catch (SchemaException e) {
@@ -183,9 +183,9 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
         return primaryIdentifier != null ? Set.of(primaryIdentifier) : Set.of();
     }
 
-    public abstract @Nullable ResourceAttribute<?> getPrimaryIdentifierAttribute();
+    public abstract @Nullable ShadowSimpleAttribute<?> getPrimaryIdentifierAttribute();
 
-    public @NotNull Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiersAsAttributes() {
+    public @NotNull Collection<? extends ShadowSimpleAttribute<?>> getPrimaryIdentifiersAsAttributes() {
         return MiscUtil.asListExceptForNull(getPrimaryIdentifierAttribute());
     }
 
@@ -193,12 +193,12 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
         return identifiers.getSecondaryIdentifiers();
     }
 
-    public @NotNull Collection<? extends ResourceAttribute<?>> getSecondaryIdentifiersAsAttributes() {
+    public @NotNull Collection<? extends ShadowSimpleAttribute<?>> getSecondaryIdentifiersAsAttributes() {
         return ResourceObjectIdentifiers.asAttributes(identifiers.getSecondaryIdentifiers());
     }
 
     /** Returns all identifiers, both primary and secondary, as an unmodifiable collection. */
-    public @NotNull Collection<? extends ResourceAttribute<?>> getAllIdentifiersAsAttributes() {
+    public @NotNull Collection<? extends ShadowSimpleAttribute<?>> getAllIdentifiersAsAttributes() {
         return ResourceObjectIdentifiers.asAttributes(
                 Sets.union(getPrimaryIdentifiers(), getSecondaryIdentifiers()));
     }
@@ -248,13 +248,13 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
         return bean;
     }
 
-    private ResourceObjectIdentifiersType getIdentifiersAsBean(Collection<? extends ResourceAttribute<?>> identifiers)
+    private ResourceObjectIdentifiersType getIdentifiersAsBean(Collection<? extends ShadowSimpleAttribute<?>> identifiers)
             throws SchemaException {
         if (identifiers.isEmpty()) {
             return null;
         }
         ResourceObjectIdentifiersType identifiersBean = new ResourceObjectIdentifiersType();
-        for (ResourceAttribute<?> identifier : identifiers) {
+        for (ShadowSimpleAttribute<?> identifier : identifiers) {
             //noinspection unchecked
             identifiersBean.asPrismContainerValue().add(identifier.clone());
         }
@@ -294,7 +294,7 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
         }
 
         @Override
-        public @NotNull ResourceAttribute<?> getPrimaryIdentifierAttribute() {
+        public @NotNull ShadowSimpleAttribute<?> getPrimaryIdentifierAttribute() {
             return identifiers.getPrimaryIdentifier().getAttribute();
         }
 
@@ -319,7 +319,7 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
         }
 
         @Override
-        public @Nullable ResourceAttribute<?> getPrimaryIdentifierAttribute() {
+        public @Nullable ShadowSimpleAttribute<?> getPrimaryIdentifierAttribute() {
             return null;
         }
 

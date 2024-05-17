@@ -258,7 +258,7 @@ public abstract class ResourceObjectConstruction<
             ItemPath implicitTargetPath,
             QName mappingQName,
             D outputDefinition,
-            ShadowAssociationDefinition associationDefinition,
+            ShadowReferenceAttributeDefinition associationDefinition,
             Task task) throws SchemaException {
 
         if (!builder.isApplicableToChannel(lensContext.getChannel())) {
@@ -293,7 +293,7 @@ public abstract class ResourceObjectConstruction<
 
         if (associationDefinition != null) {
             builder = builder.addVariableDefinition(
-                    ExpressionConstants.VAR_ASSOCIATION_DEFINITION, associationDefinition, ShadowAssociationDefinition.class);
+                    ExpressionConstants.VAR_ASSOCIATION_DEFINITION, associationDefinition, ShadowReferenceAttributeDefinition.class);
         }
         builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, getResource(), ResourceType.class);
         builder = LensUtil.addAssignmentPathVariables(builder, getAssignmentPathVariables());
@@ -489,16 +489,16 @@ public abstract class ResourceObjectConstruction<
         auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDefinition);
     }
 
-    public ResourceAttributeDefinition<?> findAttributeDefinition(QName attributeName) {
+    public ShadowSimpleAttributeDefinition<?> findAttributeDefinition(QName attributeName) {
         if (resourceObjectDefinition == null) {
             throw new IllegalStateException("Construction " + this + " was not evaluated:\n" + this.debugDump());
         }
-        ResourceAttributeDefinition<?> attrDef = resourceObjectDefinition.findAttributeDefinition(attributeName);
+        ShadowSimpleAttributeDefinition<?> attrDef = resourceObjectDefinition.findSimpleAttributeDefinition(attributeName);
         if (attrDef != null) {
             return attrDef;
         }
         for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
-            ResourceAttributeDefinition<?> auxAttrDef = auxiliaryObjectClassDefinition.findAttributeDefinition(attributeName);
+            ShadowSimpleAttributeDefinition<?> auxAttrDef = auxiliaryObjectClassDefinition.findSimpleAttributeDefinition(attributeName);
             if (auxAttrDef != null) {
                 return auxAttrDef;
             }
@@ -506,19 +506,19 @@ public abstract class ResourceObjectConstruction<
         return null;
     }
 
-    @NotNull ShadowAssociationDefinition findAssociationDefinitionRequired(QName associationName, Object errorCtx)
+    @NotNull ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName associationName, Object errorCtx)
             throws ConfigurationException {
         if (resourceObjectDefinition == null) {
             throw new IllegalStateException("Construction " + this + " was not evaluated:\n" + this.debugDump());
         }
-        ShadowAssociationDefinition assocDef = resourceObjectDefinition.findAssociationDefinition(associationName);
-        if (assocDef != null) {
-            return assocDef;
+        var inMain = resourceObjectDefinition.findReferenceAttributeDefinition(associationName);
+        if (inMain != null) {
+            return inMain;
         }
-        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
-            ShadowAssociationDefinition auxAssocDef = auxiliaryObjectClassDefinition.findAssociationDefinition(associationName);
-            if (auxAssocDef != null) {
-                return auxAssocDef;
+        for (var auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+            var inAux = auxiliaryObjectClassDefinition.findReferenceAttributeDefinition(associationName);
+            if (inAux != null) {
+                return inAux;
             }
         }
         throw new ConfigurationException(

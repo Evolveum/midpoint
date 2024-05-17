@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationsTy
 /**
  * Container holding associations. It must have the correct definitions applied.
  *
- * @see ResourceAttributeContainer
+ * @see ShadowAttributesContainer
  */
 public interface ShadowAssociationsContainer extends ShadowItemsContainer, PrismContainer<ShadowAssociationsType> {
 
@@ -37,7 +37,7 @@ public interface ShadowAssociationsContainer extends ShadowItemsContainer, Prism
             var associationName = item.getElementName();
             var associationDef = resourceObjectDefinition.findAssociationDefinitionRequired(associationName, () -> ""); // TODO
             associationsContainer.add(
-                    ShadowAssociation.convertFromPrismItem(item.clone(), associationDef));
+                    ShadowReferenceAttribute.convertFromPrismItem(item.clone(), associationDef));
         }
         return associationsContainer;
     }
@@ -55,12 +55,12 @@ public interface ShadowAssociationsContainer extends ShadowItemsContainer, Prism
      * Returns the resource object associations. Their order is insignificant.
      * The returned set is immutable!
      */
-    @NotNull Collection<ShadowAssociation> getAssociations();
+    @NotNull Collection<ShadowReferenceAttribute> getAssociations();
 
     @Override
     void add(Item<?, ?> item) throws SchemaException;
 
-    void add(ShadowAssociation association) throws SchemaException;
+    void add(ShadowReferenceAttribute association) throws SchemaException;
 
     /**
      * Finds a specific attribute in the resource object by name.
@@ -70,9 +70,9 @@ public interface ShadowAssociationsContainer extends ShadowItemsContainer, Prism
      * @param assocName attribute name to find.
      * @return found attribute or null
      */
-    ShadowAssociation findAssociation(QName assocName);
+    ShadowReferenceAttribute findAssociation(QName assocName);
 
-    ShadowAssociation findOrCreateAssociation(QName assocName) throws SchemaException;
+    ShadowReferenceAttribute findOrCreateAssociation(QName assocName) throws SchemaException;
 
     @Override
     ShadowAssociationsContainer clone();

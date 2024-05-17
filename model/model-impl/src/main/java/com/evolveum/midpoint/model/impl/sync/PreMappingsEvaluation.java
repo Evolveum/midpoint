@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -94,7 +94,7 @@ public class PreMappingsEvaluation<T extends Containerable> {
                 task,
                 associationValue.getAssociatedObjectDefinition(),
                 inboundDefinition,
-                (ShadowAssociationDefinition) associationValue.getDefinition());
+                (ShadowReferenceAttributeDefinition) associationValue.getDefinition());
         new PreMappingsEvaluation<>(preInboundsContext)
                 .evaluate(result);
     }

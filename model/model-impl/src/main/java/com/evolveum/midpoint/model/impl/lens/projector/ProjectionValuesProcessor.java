@@ -471,13 +471,13 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         }
         LOGGER.trace("willResetIterationCounter: projectionDelta is\n{}", projectionDelta.debugDumpLazily());
         ResourceObjectDefinition oOcDef = projectionContext.getCompositeObjectDefinitionRequired();
-        for (ResourceAttributeDefinition<?> identifierDef: oOcDef.getPrimaryIdentifiers()) {
+        for (ShadowSimpleAttributeDefinition<?> identifierDef: oOcDef.getPrimaryIdentifiers()) {
             ItemPath identifierPath = ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getItemName());
             if (projectionDelta.findPropertyDelta(identifierPath) != null) {
                 return true;
             }
         }
-        for (ResourceAttributeDefinition<?> identifierDef: oOcDef.getSecondaryIdentifiers()) {
+        for (ShadowSimpleAttributeDefinition<?> identifierDef: oOcDef.getSecondaryIdentifiers()) {
             ItemPath identifierPath = ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getItemName());
             if (projectionDelta.findPropertyDelta(identifierPath) != null) {
                 return true;
@@ -569,11 +569,11 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
 
         if (primaryDelta.isAdd()) {
             PrismObject<ShadowType> accountToAdd = primaryDelta.getObjectToAdd();
-            ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(accountToAdd);
+            ShadowAttributesContainer attributesContainer = ShadowUtil.getAttributesContainer(accountToAdd);
             if (attributesContainer != null) {
-                for (ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
-                    ResourceAttributeDefinition<?> rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attribute.getElementName()));
-                    if (!rAttrDef.isTolerant()) {
+                for (ShadowSimpleAttribute<?> attribute: attributesContainer.getAttributes()) {
+                    var attrDef = requireNonNull(rAccountDef.findAttributeDefinition(attribute.getElementName()));
+                    if (!attrDef.isTolerant()) {
                         throw new PolicyViolationException("Attempt to add object with non-tolerant attribute "+attribute.getElementName()+" in "+
                                 "account "+accountContext.getKey()+" during "+activityDescription);
                     }
@@ -583,8 +583,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             for(ItemDelta<?,?> modification: primaryDelta.getModifications()) {
                 if (modification.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
                     PropertyDelta<?> attrDelta = (PropertyDelta<?>) modification;
-                    ResourceAttributeDefinition<?> rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attrDelta.getElementName()));
-                    if (!rAttrDef.isTolerant()) {
+                    var attrDef = requireNonNull(rAccountDef.findAttributeDefinition(attrDelta.getElementName()));
+                    if (!attrDef.isTolerant()) {
                         throw new PolicyViolationException("Attempt to modify non-tolerant attribute "+attrDelta.getElementName()+" in "+
                                 "account "+accountContext.getKey()+" during "+activityDescription);
                     }

@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.repo.common.activity.run.buckets;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +28,7 @@ public interface ItemDefinitionProvider {
             ResourceObjectDefinition objectDefinition) {
         return itemPath -> {
             if (itemPath.startsWithName(ShadowType.F_ATTRIBUTES)) {
-                return objectDefinition.findAttributeDefinition(itemPath.rest().asSingleName());
+                return (ItemDefinition<?>) objectDefinition.findAttributeDefinition(itemPath.rest().asSingleName());
             } else {
                 return null;
             }

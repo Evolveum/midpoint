@@ -51,6 +51,7 @@ public class SimpleContainerPanel extends Border {
                 onTitlePerformed(target);
             }
         };
+        link.add(new VisibleBehaviour(this::isExpandable));
         addToBorder(link);
 
         WebComponent icon = new WebComponent(ID_ICON);
@@ -73,5 +74,9 @@ public class SimpleContainerPanel extends Border {
 
     protected Component createContent(String id) {
         return new WebMarkupContainer(ID_CONTENT);
+    }
+
+    protected boolean isExpandable() {
+        return true;
     }
 }

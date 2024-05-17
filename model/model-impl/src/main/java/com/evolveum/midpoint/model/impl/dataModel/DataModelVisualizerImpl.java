@@ -112,10 +112,10 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
             Collection<? extends ResourceObjectTypeDefinition> refinedDefinitions = refinedResourceSchema.getObjectTypeDefinitions();
             for (ResourceObjectTypeDefinition refinedDefinition : refinedDefinitions) {
                 LOGGER.debug("Processing refined definition {}", refinedDefinition);
-                Collection<? extends ResourceAttributeDefinition<?>> attributeDefinitions = refinedDefinition.getAttributeDefinitions();
+                Collection<? extends ShadowSimpleAttributeDefinition<?>> attributeDefinitions = refinedDefinition.getSimpleAttributeDefinitions();
                 final ShadowKindType kind = def(refinedDefinition.getKind());
                 final String intent = def(refinedDefinition.getIntent());
-                for (ResourceAttributeDefinition<?> attributeDefinition : attributeDefinitions) {
+                for (ShadowSimpleAttributeDefinition<?> attributeDefinition : attributeDefinitions) {
                     if (attributeDefinition.isIgnored()) {
                         continue;
                     }
@@ -127,7 +127,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
                     }
                     processInboundMappings(model, attrItem, attributeDefinition.getInboundMappingBeans());
                 }
-                for (ShadowAssociationDefinition associationDefinition : refinedDefinition.getAssociationDefinitions()) {
+                for (ShadowReferenceAttributeDefinition associationDefinition : refinedDefinition.getReferenceAttributeDefinitions()) {
                     if (associationDefinition.isIgnored()) {
                         continue;
                     }
@@ -210,11 +210,11 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
             Collection<? extends ResourceObjectTypeDefinition> refinedDefinitions = refinedResourceSchema.getObjectTypeDefinitions();
             for (ResourceObjectTypeDefinition refinedDefinition : refinedDefinitions) {
                 LOGGER.debug("Processing refined definition {} in {}", refinedDefinition, resource);
-                Collection<? extends ResourceAttributeDefinition<?>> attributeDefinitions = refinedDefinition.getAttributeDefinitions();
+                Collection<? extends ShadowSimpleAttributeDefinition<?>> attributeDefinitions = refinedDefinition.getSimpleAttributeDefinitions();
                 //Collection<? extends ResourceAttributeDefinition> rawAttributeDefinitions = refinedDefinition.getObjectClassDefinition().getAttributeDefinitions();
                 final ShadowKindType kind = def(refinedDefinition.getKind());
                 final String intent = def(refinedDefinition.getIntent());
-                for (ResourceAttributeDefinition<?> attributeDefinition : attributeDefinitions) {
+                for (ShadowSimpleAttributeDefinition<?> attributeDefinition : attributeDefinitions) {
                     if (attributeDefinition.isIgnored()) {
                         continue;
                     }
@@ -225,7 +225,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
                     model.registerDataItem(attrItem);
                 }
                 // TODO check attributes not mentioned in schema handling
-                for (ShadowAssociationDefinition associationDefinition : refinedDefinition.getAssociationDefinitions()) {
+                for (ShadowReferenceAttributeDefinition associationDefinition : refinedDefinition.getReferenceAttributeDefinitions()) {
                     if (associationDefinition.isIgnored()) {
                         continue;
                     }

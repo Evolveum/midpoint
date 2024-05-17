@@ -26,7 +26,7 @@ public class ProgressBarColumn<R extends Serializable, S extends Serializable> e
         item.add(new ProgressBarPanel(id, createProgressBarModel(rowModel)) {
 
             @Override
-            protected IModel<String> createTextModel(IModel<List<ProgressBar>> model) {
+            protected IModel<String> createSimpleTextModel(IModel<List<ProgressBar>> model) {
                 return ProgressBarColumn.this.createTextModel(rowModel, model);
             }
         });

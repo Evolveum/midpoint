@@ -38,6 +38,10 @@ interface ConfigurationItemable<T extends Serializable & Cloneable> {
 
     <X extends ConfigurationItem<T>> @NotNull X as(@NotNull Class<X> clazz);
 
+    @Contract("null, _, _ -> null; !null, _, _ -> !null")
+    <X extends Serializable & Cloneable, CI extends ConfigurationItem<X>> CI child(
+            @Nullable X value, @NotNull Class<CI> clazz, Object... pathSegments);
+
     @NotNull String fullDescription();
 
     /**

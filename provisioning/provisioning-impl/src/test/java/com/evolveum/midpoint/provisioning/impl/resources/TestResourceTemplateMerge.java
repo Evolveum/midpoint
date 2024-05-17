@@ -26,7 +26,6 @@ import javax.xml.namespace.QName;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
@@ -98,7 +97,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
     /** Adds a resource to repository, fills-in connector OID externally. */
     private void addResourceObject(TestObject<ResourceType> resource, List<String> connectorTypes, OperationResult result)
-            throws CommonException, EncryptionException {
+            throws CommonException {
         addResource(resource, connectorTypes, false, result);
         resource.reload(result);
     }
@@ -472,16 +471,16 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 findObjectTypeDefinitionRequired(schema, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
 
         and("gossip is added in types-1");
-        ResourceAttributeDefinition<?> gossipDef =
-                accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME);
+        ShadowSimpleAttributeDefinition<?> gossipDef =
+                accountDef.findSimpleAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME);
         PropertyLimitations gossipModelLimitations = gossipDef.getLimitations(LayerType.MODEL);
         assertThat(gossipModelLimitations.canRead()).as("read access to gossip").isFalse();
         assertThat(gossipModelLimitations.canAdd()).as("add access to gossip").isTrue();
         assertThat(gossipModelLimitations.canModify()).as("modify access to gossip").isTrue();
 
         and("drink is updated");
-        ResourceAttributeDefinition<?> drinkDef =
-                accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+        ShadowSimpleAttributeDefinition<?> drinkDef =
+                accountDef.findSimpleAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
         PropertyLimitations drinkModelLimitations = drinkDef.getLimitations(LayerType.MODEL);
         assertThat(drinkModelLimitations.canRead()).as("read access to drink").isTrue();
         assertThat(drinkModelLimitations.canAdd()).as("add access to drink").isTrue(); // overridden in types-1
@@ -489,8 +488,8 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(drinkDef.isTolerant()).as("drink 'tolerant' flag").isFalse(); // overridden in types-1
 
         and("inbound mapping in weapon is updated");
-        ResourceAttributeDefinition<?> weaponDef =
-                accountDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME);
+        ShadowSimpleAttributeDefinition<?> weaponDef =
+                accountDef.findSimpleAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME);
         List<InboundMappingType> weaponInbounds = weaponDef.getInboundMappingBeans();
         assertThat(weaponInbounds).as("weapon inbound mappings").hasSize(1);
         InboundMappingType weaponInbound = weaponInbounds.get(0);
@@ -506,10 +505,10 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 .as("protected objects names")
                 .containsExactlyInAnyOrder("root", "daemon", "extra");
 
-        and("association ri:group is updated");
-        var associationDefinitions = accountDef.getAssociationDefinitions();
-        displayCollection("associations", associationDefinitions);
-        assertThat(associationDefinitions).as("association definitions").hasSize(2);
+        and("legacy association ri:group is updated");
+        var referenceAttributeDefinitions = accountDef.getReferenceAttributeDefinitions();
+        displayCollection("reference attributes", referenceAttributeDefinitions);
+        assertThat(referenceAttributeDefinitions).as("definitions of reference attributes").hasSize(2);
 
         QName groupQName = new QName(NS_RI, "group");
         var groupDef = accountDef.findAssociationDefinitionRequired(groupQName, () -> "");
@@ -521,9 +520,9 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 .isEqualTo(groupQName); // i.e. it's qualified
 
         and("synchronization reactions are correctly merged");
-        Collection<SynchronizationReactionDefinition> reactions = accountDef.getSynchronizationReactions();
+        var reactions = accountDef.getSynchronizationReactions();
         assertThat(reactions).as("sync reactions").hasSize(2);
-        SynchronizationReactionDefinition unnamed =
+        var unnamed =
                 reactions.stream().filter(r -> r.getName() == null).findFirst().orElseThrow();
         assertThat(unnamed.getSituations())
                 .as("situations in unnamed")
@@ -534,7 +533,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(unnamed.getActions().get(0).getNewDefinitionBeanClass())
                 .as("action in unnamed")
                 .isEqualTo(DeleteResourceObjectSynchronizationActionType.class);
-        SynchronizationReactionDefinition reaction1 =
+        var reaction1 =
                 reactions.stream().filter(r -> "reaction1".equals(r.getName())).findFirst().orElseThrow();
         assertThat(reaction1.getSituations())
                 .as("situations in reaction1")
@@ -664,8 +663,8 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 findObjectTypeDefinitionRequired(schema, ShadowKindType.ACCOUNT, "employee");
 
         and("drink is updated");
-        ResourceAttributeDefinition<?> employeeDrinkDef =
-                employeeDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+        ShadowSimpleAttributeDefinition<?> employeeDrinkDef =
+                employeeDef.findSimpleAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
         PropertyLimitations drinkModelLimitations = employeeDrinkDef.getLimitations(LayerType.MODEL);
         assertThat(drinkModelLimitations.canRead()).as("read access to drink").isTrue();
         assertThat(drinkModelLimitations.canAdd()).as("add access to drink").isFalse();
@@ -677,8 +676,8 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
                 findObjectTypeDefinitionRequired(schema, ShadowKindType.ACCOUNT, "admin");
 
         and("drink is updated");
-        ResourceAttributeDefinition<?> adminDrinkDef =
-                adminDef.findAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+        ShadowSimpleAttributeDefinition<?> adminDrinkDef =
+                adminDef.findSimpleAttributeDefinitionRequired(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
         assertThat(adminDrinkDef.isTolerant()).as("drink 'tolerant' flag").isTrue(); // default
         assertThat(adminDrinkDef.isIgnored(LayerType.MODEL)).as("drink 'ignored' flag").isTrue(); // overridden
         assertThat(adminDrinkDef.getDocumentation()).isEqualTo("Administrators do not drink!");

@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.resources.dto;
 
 import com.evolveum.midpoint.gui.impl.page.admin.schema.dto.ItemDefinitionDto;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -25,9 +25,9 @@ public class AttributeDto extends ItemDefinitionDto implements Serializable {
     public static final String F_DISPLAY_NAME = "displayName";
     public static final String F_RETURNED_BY_DEFAULT = "returnedByDefault";
 
-    private final ResourceAttributeDefinition definition;
+    private final ShadowSimpleAttributeDefinition definition;
 
-    public AttributeDto(ResourceAttributeDefinition def) {
+    public AttributeDto(ShadowSimpleAttributeDefinition def) {
         super(def);
         this.definition = def;
     }

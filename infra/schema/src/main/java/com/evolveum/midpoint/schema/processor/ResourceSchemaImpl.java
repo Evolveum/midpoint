@@ -12,8 +12,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.jetbrains.annotations.NotNull;
@@ -49,26 +49,16 @@ public class ResourceSchemaImpl
     @NotNull final NativeResourceSchema nativeSchema;
 
     /**
-     * All known association classes, native or simulated. Indexed by local name.
+     * All known reference types, native or simulated (modern). Legacy simulated associations are not here.
+     *
+     * Indexed by the local name.
      * Note that these are not among the definitions, because they are not "prismified".
      *
      * The values should be immutable.
      *
      * TODO make the collection freezable
      */
-    @Experimental
-    @NotNull private final Map<String, ShadowAssociationClassImplementation> associationClassImplementationsMap = new HashMap<>();
-
-    /**
-     * All known association types, based on native or simulated association classes. Indexed by the local name.
-     * Note that these are not among the definitions, because they are not "prismified".
-     *
-     * The values should be immutable.
-     *
-     * TODO make the collection freezable
-     */
-    @Experimental
-    @NotNull private final Map<String, ShadowAssociationClassDefinition> associationTypeDefinitionsMap = new HashMap<>();
+    @NotNull private final Map<String, AbstractShadowReferenceTypeDefinition> referenceTypeDefinitionMap = new HashMap<>();
 
     private static final LayerType DEFAULT_LAYER = LayerType.MODEL;
 
@@ -117,45 +107,39 @@ public class ResourceSchemaImpl
         return nativeSchema.serializeToXsd();
     }
 
-    void addAssociationClassImplementation(@NotNull ShadowAssociationClassImplementation associationTypeImplementation)
+    void addReferenceTypeDefinition(@NotNull AbstractShadowReferenceTypeDefinition definition)
             throws ConfigurationException {
-        var existing = associationClassImplementationsMap.put(
-                associationTypeImplementation.getName(), associationTypeImplementation);
+        var existing = referenceTypeDefinitionMap.put(definition.getLocalName(), definition);
         configCheck(existing == null,
-                "Duplicate definition of association class %s in %s",
-                associationTypeImplementation.getName(), this);
+                "Duplicate definition of reference type %s in %s",
+                definition.getLocalName(), this);
     }
 
-    @Nullable ShadowAssociationClassImplementation getAssociationClassImplementation(@NotNull String name) {
-        return associationClassImplementationsMap.get(name);
+    private @Nullable AbstractShadowReferenceTypeDefinition getReferenceTypeDefinition(@NotNull String name) {
+        return referenceTypeDefinitionMap.get(name);
     }
 
-    @NotNull Collection<ShadowAssociationClassImplementation> getAssociationClassImplementations() {
-        return associationClassImplementationsMap.values();
+    @Nullable AbstractShadowReferenceTypeDefinition getReferenceTypeDefinition(@NotNull QName name) {
+        return getReferenceTypeDefinition(QNameUtil.getLocalPartCheckingNamespace(name, NS_RI));
     }
 
-    void addAssociationTypeDefinition(@NotNull ShadowAssociationClassDefinition associationTypeDefinition) {
-        associationTypeDefinitionsMap.put(associationTypeDefinition.getName(), associationTypeDefinition);
+    @NotNull AbstractShadowReferenceTypeDefinition getReferenceTypeDefinitionRequired(@NotNull QName name, Object errorCtx)
+            throws ConfigurationException {
+        return MiscUtil.configNonNull(
+                getReferenceTypeDefinition(QNameUtil.getLocalPartCheckingNamespace(name, NS_RI)),
+                "Unknown reference type '%s' in %s %s", name, this, errorCtx);
     }
 
-    @Nullable ShadowAssociationClassDefinition getAssociationTypeDefinitionOld(@NotNull String name) {
-        return associationTypeDefinitionsMap.get(name);
-    }
-
-    @Nullable ShadowAssociationClassDefinition getAssociationTypeDefinitionOld(@NotNull QName name) {
-        return getAssociationTypeDefinitionOld(QNameUtil.getLocalPartCheckingNamespace(name, NS_RI));
-    }
-
-    @NotNull Collection<ShadowAssociationClassDefinition> getAssociationTypes() {
-        return associationTypeDefinitionsMap.values();
+    @NotNull Collection<AbstractShadowReferenceTypeDefinition> getReferenceTypes() {
+        return referenceTypeDefinitionMap.values();
     }
 
     @Override
     protected void extendDebugDump(StringBuilder sb, int indent) {
         super.extendDebugDump(sb, indent);
-        if (!associationTypeDefinitionsMap.isEmpty()) {
+        if (!referenceTypeDefinitionMap.isEmpty()) {
             sb.append("\n");
-            sb.append(DebugUtil.debugDump(associationTypeDefinitionsMap.values(), indent, false));
+            sb.append(DebugUtil.debugDump(referenceTypeDefinitionMap.values(), indent, false));
         }
     }
 
@@ -196,8 +180,7 @@ public class ResourceSchemaImpl
 
     private void copyContent(ResourceSchemaImpl target) {
         super.copyContent(target);
-        target.associationClassImplementationsMap.putAll(associationClassImplementationsMap);
-        target.associationTypeDefinitionsMap.putAll(associationTypeDefinitionsMap);
+        target.referenceTypeDefinitionMap.putAll(referenceTypeDefinitionMap);
     }
 
     /**

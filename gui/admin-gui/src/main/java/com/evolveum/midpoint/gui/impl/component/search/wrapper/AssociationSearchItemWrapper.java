@@ -13,7 +13,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 
@@ -33,7 +33,7 @@ public class AssociationSearchItemWrapper extends ChoicesSearchItemWrapper<ItemN
         if (objectDefinition == null) {
             return List.of();
         }
-        List<ShadowAssociationDefinition> associations = ProvisioningObjectsUtil.getRefinedAssociationDefinition(objectDefinition);
+        List<ShadowReferenceAttributeDefinition> associations = ProvisioningObjectsUtil.getRefinedAssociationDefinition(objectDefinition);
         List<DisplayableValue<ItemName>> values = new ArrayList<>();
         associations.forEach(association -> values.add(
                 new SearchValue<>(

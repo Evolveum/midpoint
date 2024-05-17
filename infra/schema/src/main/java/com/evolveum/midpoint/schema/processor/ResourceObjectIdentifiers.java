@@ -130,7 +130,7 @@ public abstract class ResourceObjectIdentifiers implements Serializable, DebugDu
 
     /** Creates identifiers from a collection of identifying attributes. */
     public static @NotNull ResourceObjectIdentifiers of(
-            @NotNull ResourceObjectDefinition objDef, @NotNull Collection<? extends ResourceAttribute<?>> attributes)
+            @NotNull ResourceObjectDefinition objDef, @NotNull Collection<? extends ShadowSimpleAttribute<?>> attributes)
             throws SchemaException {
         Collection<ResourceObjectIdentifier.Primary<?>> primaryIdentifiers = new ArrayList<>();
         Collection<ResourceObjectIdentifier.Secondary<?>> secondaryIdentifiers = new ArrayList<>();
@@ -151,7 +151,7 @@ public abstract class ResourceObjectIdentifiers implements Serializable, DebugDu
         return of(primaryIdentifiers, secondaryIdentifiers);
     }
 
-    public static @NotNull Collection<? extends ResourceAttribute<?>> asAttributes(
+    public static @NotNull Collection<? extends ShadowSimpleAttribute<?>> asAttributes(
             @NotNull Collection<? extends ResourceObjectIdentifier<?>> identifiers) {
         return identifiers.stream()
                 .map(i -> i.attribute)

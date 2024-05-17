@@ -49,7 +49,7 @@ import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -2037,10 +2037,10 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         PrismObjectDefinition<ShadowType> rOcDef = modelInteractionService.getEditObjectDefinition(shadow, null, task, result);
         shadow.applyDefinition(rOcDef);
 
-        ResourceAttributeContainer resourceAttributeContainer = ShadowUtil.getAttributesContainer(shadow);
-        ResourceObjectDefinition containerDef = resourceAttributeContainer.getDefinition().getResourceObjectDefinition();
+        ShadowAttributesContainer shadowAttributesContainer = ShadowUtil.getAttributesContainer(shadow);
+        ResourceObjectDefinition containerDef = shadowAttributesContainer.getDefinition().getResourceObjectDefinition();
 
-        Item<?, ?> attr = resourceAttributeContainer.findItem(new ItemName("weapon"));
+        Item<?, ?> attr = shadowAttributesContainer.findItem(new ItemName("weapon"));
         ItemDefinition<?> attrDf = attr.getDefinition();
         assertTrue("Expected that attribute can be read", attrDf.canRead());
         assertFalse("Expected that attribute cannot be added", attrDf.canAdd());

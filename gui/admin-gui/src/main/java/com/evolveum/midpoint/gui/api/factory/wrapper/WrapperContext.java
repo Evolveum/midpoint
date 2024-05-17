@@ -8,7 +8,7 @@ package com.evolveum.midpoint.gui.api.factory.wrapper;
 
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -47,7 +47,7 @@ public class WrapperContext {
     private ResourceShadowCoordinates coordinates;
 
     //Association related attributes
-    private Collection<? extends ShadowAssociationDefinition> shadowAssociationDefinitions;
+    private Collection<? extends ShadowReferenceAttributeDefinition> shadowAssociationDefinitions;
 
     //used e.g. for metadata - opertionsla attributes but want to create wrappers for them
     private boolean createOperational;
@@ -124,11 +124,11 @@ public class WrapperContext {
         this.resource = resource;
     }
 
-    public Collection<? extends ShadowAssociationDefinition> getRefinedAssociationDefinitions() {
+    public Collection<? extends ShadowReferenceAttributeDefinition> getRefinedAssociationDefinitions() {
         return shadowAssociationDefinitions;
     }
 
-    public void setRefinedAssociationDefinitions(Collection<? extends ShadowAssociationDefinition> shadowAssociationDefinitions) {
+    public void setRefinedAssociationDefinitions(Collection<? extends ShadowReferenceAttributeDefinition> shadowAssociationDefinitions) {
         this.shadowAssociationDefinitions = shadowAssociationDefinitions;
     }
 

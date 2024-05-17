@@ -461,19 +461,19 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         assertThat(accountDefinition).as("account definition").isInstanceOf(ResourceObjectTypeDefinition.class);
         displayDumpable("Account object class def", accountDefinition);
 
-        ResourceAttributeDefinition<?> cnDef = accountDefinition.findAttributeDefinition("cn");
+        ShadowSimpleAttributeDefinition<?> cnDef = accountDefinition.findSimpleAttributeDefinition("cn");
         PrismAsserts.assertDefinition(cnDef, QNAME_CN, DOMUtil.XSD_STRING, 1, 1);
         assertTrue("cn read", cnDef.canRead());
         assertTrue("cn modify", cnDef.canModify());
         assertTrue("cn add", cnDef.canAdd());
 
-        ResourceAttributeDefinition<?> oDef = accountDefinition.findAttributeDefinition("o");
+        ShadowSimpleAttributeDefinition<?> oDef = accountDefinition.findSimpleAttributeDefinition("o");
         PrismAsserts.assertDefinition(oDef, new QName(MidPointConstants.NS_RI, "o"), DOMUtil.XSD_STRING, 0, -1);
         assertTrue("o read", oDef.canRead());
         assertTrue("o modify", oDef.canModify());
         assertTrue("o add", oDef.canAdd());
 
-        ResourceAttributeDefinition<?> createTimestampDef = accountDefinition.findAttributeDefinition(getCreateTimeStampAttributeName());
+        ShadowSimpleAttributeDefinition<?> createTimestampDef = accountDefinition.findSimpleAttributeDefinition(getCreateTimeStampAttributeName());
         PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, getCreateTimeStampAttributeName()),
                 getTimestampXsdType(), 0, 1);
         assertTrue(getCreateTimeStampAttributeName() + " def read", createTimestampDef.canRead());
@@ -536,7 +536,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     protected <T> ObjectFilter createAttributeFilter(String attrName, T attrVal) {
-        ResourceAttributeDefinition<?> ldapAttrDef = accountDefinition.findAttributeDefinition(attrName);
+        ShadowSimpleAttributeDefinition<?> ldapAttrDef = accountDefinition.findSimpleAttributeDefinition(attrName);
         return prismContext.queryFor(ShadowType.class)
                 .itemWithDef(ldapAttrDef, ShadowType.F_ATTRIBUTES, ldapAttrDef.getItemName()).eq(attrVal)
                 .buildFilter();

@@ -18,7 +18,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
@@ -73,20 +73,20 @@ public class ConnIdNameMapper {
 
     static String ucfAttributeNameToConnId(PropertyDelta<?> attributeDelta, ResourceObjectDefinition ocDef) throws SchemaException {
         PrismPropertyDefinition<?> propDef = attributeDelta.getDefinition();
-        ResourceAttributeDefinition<?> attrDef;
-        if (propDef instanceof ResourceAttributeDefinition<?> rad) {
+        ShadowSimpleAttributeDefinition<?> attrDef;
+        if (propDef instanceof ShadowSimpleAttributeDefinition<?> rad) {
             attrDef = rad;
         } else {
-            attrDef = ocDef.findAttributeDefinitionRequired(attributeDelta.getElementName());
+            attrDef = ocDef.findSimpleAttributeDefinitionRequired(attributeDelta.getElementName());
         }
         return ucfAttributeNameToConnId(attrDef);
     }
 
-    static String ucfAttributeNameToConnId(ResourceAttribute<?> attribute, ResourceObjectDefinition ocDef)
+    static String ucfAttributeNameToConnId(ShadowSimpleAttribute<?> attribute, ResourceObjectDefinition ocDef)
             throws SchemaException {
-        ResourceAttributeDefinition<?> attrDef = attribute.getDefinition();
+        ShadowSimpleAttributeDefinition<?> attrDef = attribute.getDefinition();
         if (attrDef == null) {
-            attrDef = ocDef.findAttributeDefinitionRequired(attribute.getElementName());
+            attrDef = ocDef.findSimpleAttributeDefinitionRequired(attribute.getElementName());
         }
         return ucfAttributeNameToConnId(attrDef);
     }
@@ -94,10 +94,10 @@ public class ConnIdNameMapper {
     public static String ucfAttributeNameToConnId(QName attributeName, ResourceObjectDefinition ocDef, String desc)
             throws SchemaException {
         return ucfAttributeNameToConnId(
-                ocDef.findAttributeDefinitionRequired(attributeName, () -> " " + desc));
+                ocDef.findSimpleAttributeDefinitionRequired(attributeName, () -> " " + desc));
     }
 
-    static String ucfAttributeNameToConnId(ShadowItemDefinition<?, ?> itemDef) throws SchemaException {
+    static String ucfAttributeNameToConnId(ShadowAttributeDefinition<?, ?> itemDef) throws SchemaException {
         if (itemDef.getFrameworkAttributeName() != null) {
             // This is the special name, as registered in the schema.
             return itemDef.getFrameworkAttributeName();

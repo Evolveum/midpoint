@@ -237,7 +237,7 @@ class ShadowDeltaComputerAbsolute {
     private void updateAttributes(Collection<QName> incompleteCacheableAttributes)
             throws SchemaException, ConfigurationException {
 
-        ResourceAttributeContainer resourceObjectAttributesContainer = resourceObject.getAttributesContainer();
+        ShadowAttributesContainer resourceObjectAttributesContainer = resourceObject.getAttributesContainer();
         PrismContainerValue<?> rawRepoShadowAttributesPcv = rawRepoShadow.getAttributesContainerValue();
 
         // TODO the object should have the composite definition by now!
@@ -250,8 +250,8 @@ class ShadowDeltaComputerAbsolute {
 
         Collection<QName> expectedRepoAttributes = new ArrayList<>();
 
-        for (ResourceAttribute<?> resourceObjectAttribute : resourceObjectAttributesContainer.getAttributes()) {
-            ResourceAttributeDefinition<?> attrDef = resourceObjectAttribute.getDefinitionRequired();
+        for (ShadowSimpleAttribute<?> resourceObjectAttribute : resourceObjectAttributesContainer.getAttributes()) {
+            ShadowSimpleAttributeDefinition<?> attrDef = resourceObjectAttribute.getDefinitionRequired();
             ItemName attrName = attrDef.getItemName();
             if (ctx.shouldStoreAttributeInShadow(ocDef, attrDef)) {
                 expectedRepoAttributes.add(attrName);
@@ -293,7 +293,7 @@ class ShadowDeltaComputerAbsolute {
         }
     }
 
-    private void removeAttribute(@NotNull Item<?, ?> oldRepoItem, @Nullable ResourceAttribute<?> correspondingAttribute) {
+    private void removeAttribute(@NotNull Item<?, ?> oldRepoItem, @Nullable ShadowSimpleAttribute<?> correspondingAttribute) {
         LOGGER.trace("Removing old repo shadow attribute {} because it should not be cached", oldRepoItem.getElementName());
         ItemDelta<?, ?> rawEraseDelta = oldRepoItem.createDelta();
         rawEraseDelta.setValuesToReplace();
@@ -308,26 +308,26 @@ class ShadowDeltaComputerAbsolute {
 
     private <T, N> void updateAttributeIfNeeded(
             @NotNull PrismContainerValue<?> rawRepoShadowAttributesPcv,
-            @NotNull ResourceAttribute<T> resourceAttribute)
+            @NotNull ShadowSimpleAttribute<T> simpleAttribute)
             throws SchemaException {
-        ResourceAttributeDefinition<T> attrDef = resourceAttribute.getDefinitionRequired();
+        ShadowSimpleAttributeDefinition<T> attrDef = simpleAttribute.getDefinitionRequired();
         NormalizationAwareResourceAttributeDefinition<N> expectedRepoAttrDef = attrDef.toNormalizationAware();
-        List<N> expectedRepoRealValues = expectedRepoAttrDef.adoptRealValues(resourceAttribute.getRealValues());
+        List<N> expectedRepoRealValues = expectedRepoAttrDef.adoptRealValues(simpleAttribute.getRealValues());
 
         PrismProperty<?> oldRepoAttr = rawRepoShadowAttributesPcv.findProperty(attrDef.getItemName());
         if (oldRepoAttr == null) {
-            replaceRepoAttribute(resourceAttribute, "the attribute in repo is missing");
+            replaceRepoAttribute(simpleAttribute, "the attribute in repo is missing");
             return;
         }
 
         PrismPropertyDefinition<?> oldRepoAttrDef = oldRepoAttr.getDefinition();
         if (oldRepoAttrDef == null) {
-            replaceRepoAttribute(resourceAttribute, "it has no definition in repo");
+            replaceRepoAttribute(simpleAttribute, "it has no definition in repo");
             return;
         }
 
         if (!oldRepoAttrDef.getTypeName().equals(expectedRepoAttrDef.getTypeName())) {
-            replaceRepoAttribute(resourceAttribute, "it has a different definition in repo");
+            replaceRepoAttribute(simpleAttribute, "it has a different definition in repo");
             return;
         }
 
@@ -337,23 +337,23 @@ class ShadowDeltaComputerAbsolute {
         }
 
         if (attrDef.isSingleValue()) {
-            replaceRepoAttribute(resourceAttribute, "the attribute value is outdated");
+            replaceRepoAttribute(simpleAttribute, "the attribute value is outdated");
         } else {
-            updateRepoAttribute(oldRepoAttr, resourceAttribute, expectedRepoAttrDef, expectedRepoRealValues);
+            updateRepoAttribute(oldRepoAttr, simpleAttribute, expectedRepoAttrDef, expectedRepoRealValues);
         }
     }
 
     private <T> void replaceRepoAttribute(
-            @NotNull ResourceAttribute<T> resourceAttribute,
+            @NotNull ShadowSimpleAttribute<T> simpleAttribute,
             @NotNull String reason) throws SchemaException {
-        ResourceAttributeDefinition<T> attrDef = resourceAttribute.getDefinitionRequired();
+        ShadowSimpleAttributeDefinition<T> attrDef = simpleAttribute.getDefinitionRequired();
         LOGGER.trace("Going to set new attribute {} to repo shadow, because {}", attrDef.getItemName(), reason);
-        computedModifications.add(resourceAttribute.createReplaceDelta(), attrDef);
+        computedModifications.add(simpleAttribute.createReplaceDelta(), attrDef);
     }
 
     private <T, N> void updateRepoAttribute(
             @NotNull PrismProperty<?> oldRepoAttr,
-            @NotNull ResourceAttribute<T> resourceAttribute,
+            @NotNull ShadowSimpleAttribute<T> simpleAttribute,
             @NotNull NormalizationAwareResourceAttributeDefinition<N> repoAttrDef,
             @NotNull List<N> expectedRepoRealValues) {
         PrismProperty<N> expectedRepoAttr = repoAttrDef.instantiateFromUniqueRealValues(expectedRepoRealValues);
@@ -364,7 +364,7 @@ class ShadowDeltaComputerAbsolute {
             LOGGER.trace("Going to update the new attribute {} in repo shadow because it's outdated", repoAttrDef.getItemName());
             // The repo is update with a nice, relative delta. We need not bother with computing such delta
             // for the in-memory update, as it is efficient enough also for "replace" version (hopefully)
-            PropertyDelta<T> attrDelta = resourceAttribute.createReplaceDelta();
+            PropertyDelta<T> attrDelta = simpleAttribute.createReplaceDelta();
             computedModifications.add(attrDelta, repoAttrDelta);
         } else {
             throw new IllegalStateException("Different content but non-empty delta?");

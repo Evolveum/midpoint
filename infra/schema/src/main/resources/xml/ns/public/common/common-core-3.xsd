@@ -12203,7 +12203,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
-                <a:merger>ScriptLanguageExpressionProfileType</a:merger>
+                <a:naturalKey>language</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

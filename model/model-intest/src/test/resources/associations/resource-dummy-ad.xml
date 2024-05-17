@@ -114,59 +114,58 @@
                 </reaction>
             </synchronization>
         </objectType>
-        <associationTypeNew>
+        <associationType>
             <name>userGroupMembership</name>
-            <!-- Where the processing starts -->
             <subject>
                 <objectType>
                     <kind>account</kind>
                     <intent>default</intent>
                 </objectType>
-                <item>ri:group</item>
+                <association>
+                    <ref>ri:group</ref>
+                    <focus>
+                        <assignmentSubtype>groupMembership</assignmentSubtype>
+                    </focus>
+                    <objectRef>
+                        <outbound>
+                            <expression>
+                                <associationFromLink/>
+                            </expression>
+                        </outbound>
+                        <inbound>
+                            <expression>
+                                <shadowOwnerReferenceSearch/>
+                            </expression>
+                            <target>
+                                <path>targetRef</path>
+                            </target>
+                        </inbound>
+                    </objectRef>
+                    <correlation>
+                        <correlators>
+                            <items>
+                                <item>
+                                    <ref>targetRef</ref>
+                                </item>
+                            </items>
+                        </correlators>
+                    </correlation>
+                    <synchronization>
+                        <reaction>
+                            <situation>unmatched</situation>
+                            <actions>
+                                <addFocusValue/>
+                            </actions>
+                        </reaction>
+                        <reaction>
+                            <situation>matched</situation>
+                            <actions>
+                                <synchronize/>
+                            </actions>
+                        </reaction>
+                    </synchronization>
+                </association>
             </subject>
-            <focus>
-                <item>assignment</item>
-                <subtype>groupMembership</subtype>
-            </focus>
-            <association>
-                <ref>.</ref>
-                <outbound>
-                    <expression>
-                        <associationFromLink/>
-                    </expression>
-                </outbound>
-                <inbound>
-                    <expression>
-                        <shadowOwnerReferenceSearch/>
-                    </expression>
-                    <target>
-                        <path>targetRef</path>
-                    </target>
-                </inbound>
-            </association>
-            <correlation>
-                <correlators>
-                    <items>
-                        <item>
-                            <ref>targetRef</ref>
-                        </item>
-                    </items>
-                </correlators>
-            </correlation>
-            <synchronization>
-                <reaction>
-                    <situation>unmatched</situation>
-                    <actions>
-                        <addFocus/>
-                    </actions>
-                </reaction>
-                <reaction>
-                    <situation>linked</situation>
-                    <actions>
-                        <synchronize/>
-                    </actions>
-                </reaction>
-            </synchronization>
-        </associationTypeNew>
+        </associationType>
     </schemaHandling>
 </resource>

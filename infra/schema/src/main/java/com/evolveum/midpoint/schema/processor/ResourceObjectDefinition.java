@@ -12,6 +12,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
@@ -74,9 +75,13 @@ public interface ResourceObjectDefinition
     @NotNull NativeObjectClassDefinition getNativeObjectClassDefinition();
 
     /**
-     * Returns the name of the object class.
+     * Returns the name of the object class. Always fully qualified; currently with the {@link SchemaConstants#NS_RI} namespace.
      */
     @NotNull QName getObjectClassName();
+
+    @NotNull default String getObjectClassLocalName() {
+        return QNameUtil.getLocalPartCheckingNamespace(getObjectClassName(), SchemaConstants.NS_RI);
+    }
 
     /**
      * Returns the names of auxiliary object classes that are "statically" defined for this object type
@@ -117,9 +122,9 @@ public interface ResourceObjectDefinition
      *
      * NOTE: Currently seems to be not used. (Neither not set nor used.)
      */
-    default @Nullable ResourceAttributeDefinition<?> getDescriptionAttribute() {
+    default @Nullable ShadowSimpleAttributeDefinition<?> getDescriptionAttribute() {
         QName name = getDescriptionAttributeName();
-        return name != null ? findAttributeDefinitionStrictlyRequired(name) : null;
+        return name != null ? findSimpleAttributeDefinitionStrictlyRequired(name) : null;
     }
 
     /**
@@ -132,9 +137,9 @@ public interface ResourceObjectDefinition
     /**
      * Returns the attribute used as a visible name of the resource object.
      */
-    default @Nullable ResourceAttributeDefinition<?> getNamingAttribute() {
+    default @Nullable ShadowSimpleAttributeDefinition<?> getNamingAttribute() {
         QName name = getNamingAttributeName();
-        return name != null ? findAttributeDefinitionStrictlyRequired(name) : null;
+        return name != null ? findSimpleAttributeDefinitionStrictlyRequired(name) : null;
     }
 
     /**
@@ -161,9 +166,9 @@ public interface ResourceObjectDefinition
      *
      * NOTE: Currently seems to be not used. (Neither not set nor used.)
      */
-    default ResourceAttributeDefinition<?> getDisplayNameAttribute() {
+    default ShadowSimpleAttributeDefinition<?> getDisplayNameAttribute() {
         QName name = getDisplayNameAttributeName();
-        return name != null ? findAttributeDefinitionStrictlyRequired(name) : null;
+        return name != null ? findSimpleAttributeDefinitionStrictlyRequired(name) : null;
     }
 
     /**
@@ -462,6 +467,11 @@ public interface ResourceObjectDefinition
     /** Is this definition bound to a specific resource type? If yes, this method returns its identification. */
     @Nullable ResourceObjectTypeIdentification getTypeIdentification();
 
+    default @NotNull ResourceObjectDefinitionIdentification getIdentification() {
+        return ResourceObjectDefinitionIdentification.create(
+                getObjectClassLocalName(), getTypeIdentification());
+    }
+
     /** Is this definition bound to a specific resource type? If yes, this method returns its definition. */
     @Nullable ResourceObjectTypeDefinition getTypeDefinition();
 
@@ -514,27 +524,8 @@ public interface ResourceObjectDefinition
         }
     }
 
-    /** TODO ... ignoreCase will be part of the schema, soon ... */
-    default ShadowItemDefinition<?, ?> findShadowItemDefinitionRequired(
-            @NotNull ItemName itemName, boolean ignoreCase, Object errorCtx) throws SchemaException {
-
-        var attributeDefinition = findAttributeDefinition(itemName, ignoreCase);
-        var associationDefinition = findAssociationDefinition(itemName);
-
-        stateCheck(attributeDefinition == null || associationDefinition == null,
-                "'%s' is both an attribute and an association in '%s' (should be checked already)",
-                itemName, this);
-        if (attributeDefinition != null) {
-            return attributeDefinition;
-        } else if (associationDefinition != null) {
-            return associationDefinition;
-        } else {
-            throw new SchemaException("Unknown attribute/association '%s' in '%s'; %s".formatted(itemName, this, errorCtx));
-        }
-    }
-
-    /** Returns both attribute and association definitions. */
-    @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions();
+//    /** Returns both attribute and association definitions. */
+//    @NotNull Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions();
 
     default @NotNull ShadowAttributesComplexTypeDefinition getAttributesComplexTypeDefinition() {
         return ShadowAttributesComplexTypeDefinitionImpl.of(this);
@@ -567,5 +558,16 @@ public interface ResourceObjectDefinition
     @Override
     default boolean canRepresent(QName typeName) {
         return QNameUtil.match(typeName, getTypeName());
+    }
+
+    @Override
+    @NotNull
+    default List<? extends ShadowReferenceAttributeDefinition> getReferenceAttributeDefinitions() {
+        return AttributeDefinitionStore.super.getReferenceAttributeDefinitions();
+    }
+
+    @Override
+    default ShadowReferenceAttributeDefinition findReferenceAttributeDefinition(QName name) {
+        return AttributeDefinitionStore.super.findReferenceAttributeDefinition(name);
     }
 }

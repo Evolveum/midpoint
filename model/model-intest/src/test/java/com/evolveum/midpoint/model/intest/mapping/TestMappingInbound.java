@@ -156,7 +156,7 @@ public class TestMappingInbound extends AbstractMappingTest {
                 .assertDummyResourceSchemaSanityExtended(returnedSchema, resourceType, false,
                         DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + 6); // MID-5197
 
-        ResourceAttributeDefinition<?> lockerDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME);
+        ShadowSimpleAttributeDefinition<?> lockerDef = accountDef.findSimpleAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME);
         assertNotNull("No locker attribute definition", lockerDef);
         assertEquals("Wrong locker attribute definition type", ProtectedStringType.COMPLEX_TYPE, lockerDef.getTypeName());
 

@@ -58,7 +58,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -685,7 +685,7 @@ public class BasicExpressionFunctions {
         if (shadow == null) {
             return null;
         }
-        ResourceAttribute<?> primaryIdentifier =
+        ShadowSimpleAttribute<?> primaryIdentifier =
                 MiscUtil.extractSingleton(
                         ShadowUtil.getPrimaryIdentifiers(shadow),
                         () -> new SchemaException("More than one identifier in " + shadow));
@@ -703,7 +703,7 @@ public class BasicExpressionFunctions {
         if (shadow == null) {
             return null;
         }
-        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+        Collection<ShadowSimpleAttribute<?>> identifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
         if (identifiers.isEmpty()) {
             return null;
         }

@@ -97,14 +97,14 @@ public class DotModel {
                 sb1.append(indent(indent + 1)).append("fontname=\"times-bold\";\n\n");
                 String previousNodeName = null;
                 indent++;
-                for (ResourceAttributeDefinition attrDef : def.getAttributeDefinitions()) {
+                for (ShadowSimpleAttributeDefinition attrDef : def.getSimpleAttributeDefinitions()) {
                     if (attrDef.isIgnored()) {
                         continue;
                     }
                     ResourceDataItem item = dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), getObjectClassName(def), attrDef.getItemName());
                     previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName, item);
                 }
-                for (var assocDef : def.getAssociationDefinitions()) {
+                for (var assocDef : def.getReferenceAttributeDefinitions()) {
                     if (assocDef.isIgnored()) {
                         continue;
                     }

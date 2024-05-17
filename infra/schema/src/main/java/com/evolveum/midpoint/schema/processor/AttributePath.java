@@ -23,7 +23,7 @@ import java.util.Optional;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /**
- * Path pointing to a specific {@link ResourceAttribute}.
+ * Path pointing to a specific {@link ShadowSimpleAttribute}.
  * It is always in the form of `attributes/<name>`.
  */
 @Experimental

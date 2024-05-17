@@ -38,10 +38,6 @@ public class ResourceObjectAssociationConfigItem
     }
 
     public @NotNull ItemName getItemName() throws ConfigurationException {
-        return getAssociationName();
-    }
-
-    public @NotNull ItemName getAssociationName() throws ConfigurationException {
         return singleNameRequired(value().getRef(), "association name (ref)");
     }
 

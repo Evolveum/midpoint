@@ -83,7 +83,7 @@ public class InboundProcessor implements ProjectorProcessor {
                         projCtx.getHumanReadableName(), skipReason);
                 continue;
             }
-            for (var associationDefinition : projCtx.getCompositeObjectDefinition().getAssociationDefinitions()) {
+            for (var associationDefinition : projCtx.getCompositeObjectDefinition().getReferenceAttributeDefinitions()) {
                 LOGGER.trace("Processing association {} in {}", associationDefinition, projCtx.getHumanReadableName());
                 /* TODO */
             }
@@ -103,7 +103,7 @@ public class InboundProcessor implements ProjectorProcessor {
         CompositeObjectDefinition definition = projCtx.getCompositeObjectDefinition();
         if (definition == null) {
             return "no object definition";
-        } else if (definition.getAssociationDefinitions().isEmpty()) {
+        } else if (definition.getReferenceAttributeDefinitions().isEmpty()) {
             return "no associated objects";
         } else {
             return null;

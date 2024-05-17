@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
 import com.evolveum.midpoint.provisioning.util.ErrorState;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -160,7 +160,7 @@ public class ExistingResourceObject extends ResourceObject {
     }
 
     private void removeAttributesExcept(Collection<? extends QName> attributesToKeep) {
-        for (ResourceAttribute<?> attribute : List.copyOf(getAttributesContainer().getAttributes())) {
+        for (ShadowSimpleAttribute<?> attribute : List.copyOf(getAttributesContainer().getAttributes())) {
             if (!QNameUtil.matchAny(attribute.getElementName(), attributesToKeep)) {
                 getAttributesContainer().remove(attribute);
             }

@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
@@ -21,11 +20,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
 /**
- * The enhanced definition of `attributes` container ({@link ResourceAttributeContainer}) in a {@link ShadowType} object.
+ * The enhanced definition of `attributes` container ({@link ShadowAttributesContainer}) in a {@link ShadowType} object.
  *
  * Being enhanced (relative to {@link PrismContainerDefinition}) means that it provides additional functionality
  * specific to shadows, like {@link #getAllIdentifiers()} and similar methods. Overall, it works with enhanced variants
- * of prism objects, like {@link ResourceAttribute}, {@link ResourceAttributeDefinition}, and so on.
+ * of prism objects, like {@link ShadowSimpleAttribute}, {@link ShadowSimpleAttributeDefinition}, and so on.
  *
  * @author Radovan Semancik
  */
@@ -50,7 +49,7 @@ public interface ResourceAttributeContainerDefinition extends PrismContainerDefi
      * @throws IllegalStateException
      *             if there is no definition for the referenced attributed
      */
-    Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers();
+    Collection<? extends ShadowSimpleAttributeDefinition<?>> getPrimaryIdentifiers();
 
     /**
      * TODO review docs
@@ -69,23 +68,23 @@ public interface ResourceAttributeContainerDefinition extends PrismContainerDefi
      * @throws IllegalStateException
      *             if there is no definition for the referenced attributed
      */
-    Collection<? extends ResourceAttributeDefinition<?>> getSecondaryIdentifiers();
+    Collection<? extends ShadowSimpleAttributeDefinition<?>> getSecondaryIdentifiers();
 
-    Collection<? extends ResourceAttributeDefinition<?>> getAllIdentifiers();
-
-    @NotNull
-    ResourceAttributeContainer instantiate();
+    Collection<? extends ShadowSimpleAttributeDefinition<?>> getAllIdentifiers();
 
     @NotNull
-    ResourceAttributeContainer instantiate(QName name);
+    ShadowAttributesContainer instantiate();
+
+    @NotNull
+    ShadowAttributesContainer instantiate(QName name);
 
     @NotNull
     ResourceAttributeContainerDefinition clone();
 
-    <T> ResourceAttributeDefinition<T> findAttributeDefinition(ItemPath elementPath);
+    <T> ShadowSimpleAttributeDefinition<T> findAttributeDefinition(ItemPath elementPath);
 
     @Override
-    @NotNull List<? extends ResourceAttributeDefinition<?>> getDefinitions();
+    @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getDefinitions();
 
     @NotNull ResourceObjectDefinition getResourceObjectDefinition();
 }

@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -427,10 +427,10 @@ public class TestReconNullValue extends AbstractStoryTest {
         List<String> valuesList = new ArrayList<>(Arrays.asList(values));
 
         for (Object att : objShadow.asObjectable().getAttributes().asPrismContainerValue().getItems()) {
-            if (att instanceof ResourceAttribute) {
-                Collection propVals = ((ResourceAttribute) att).getRealValues();
+            if (att instanceof ShadowSimpleAttribute) {
+                Collection propVals = ((ShadowSimpleAttribute) att).getRealValues();
 
-                if (attribute.equals(((ResourceAttribute) att).getNativeAttributeName())) {
+                if (attribute.equals(((ShadowSimpleAttribute) att).getNativeAttributeName())) {
 
                     List<String> propValsString = new ArrayList<>(propVals.size());
                     for (Object pval : propVals) {

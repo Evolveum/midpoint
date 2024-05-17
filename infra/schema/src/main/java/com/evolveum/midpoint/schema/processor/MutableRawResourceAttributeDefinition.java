@@ -10,7 +10,7 @@ package com.evolveum.midpoint.schema.processor;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 
 /**
- * Mutable interface to (some of) {@link ResourceAttributeDefinition} implementations.
+ * Mutable interface to (some of) {@link ShadowSimpleAttributeDefinition} implementations.
  *
  * TODO remove this
  */

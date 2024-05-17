@@ -49,7 +49,7 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
 
     @NotNull private final ResourceObjectInboundDefinition inboundDefinition;
 
-    @Nullable private final ShadowAssociationDefinition owningAssociationDefinition;
+    @Nullable private final ShadowReferenceAttributeDefinition owningAssociationDefinition;
 
     public SimplePreInboundsContextImpl(
             @NotNull ShadowType shadowedResourceObject,
@@ -59,7 +59,7 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
             @NotNull Task task,
             @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
-            @Nullable ShadowAssociationDefinition owningAssociationDefinition) {
+            @Nullable ShadowReferenceAttributeDefinition owningAssociationDefinition) {
         this.shadowedResourceObject = shadowedResourceObject;
         this.resource = resource;
         this.preFocus = preFocus;
@@ -109,7 +109,7 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
     }
 
     @Override
-    public @Nullable ShadowAssociationDefinition getOwningAssociationDefinition() {
+    public @Nullable ShadowReferenceAttributeDefinition getOwningAssociationDefinition() {
         return owningAssociationDefinition;
     }
 
