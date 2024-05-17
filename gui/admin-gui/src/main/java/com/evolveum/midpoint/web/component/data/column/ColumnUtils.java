@@ -806,7 +806,7 @@ public class ColumnUtils {
     }
 
     public static List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> getDefaultCertificationItemColumns
-            (PageBase pageBase) {
+            (int stageNumber) {
         List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> columns = new ArrayList<>();
 
         //todo progress column
@@ -837,7 +837,7 @@ public class ColumnUtils {
 
            @Override
            public IModel<List<ObjectReferenceType>> extractDataModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-               return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel));
+               return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel), stageNumber);
            }
        });
        columns.add(new CompositedIconWithLabelColumn<>(createStringResource("PageCertCampaign.statistics.response")) {
@@ -877,7 +877,8 @@ public class ColumnUtils {
            @Override
            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationCaseType>>> cellItem,
                    String componentId, final IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-               List<String> comments = CertCampaignTypeUtil.getComments(unwrapRowModel(rowModel).asPrismContainerValue());
+               List<String> comments = CertCampaignTypeUtil.getComments(unwrapRowModel(rowModel).asPrismContainerValue(),
+                       stageNumber);
                Label label = new Label(componentId, (IModel<String>) () -> StringUtils.join(comments, ", "));
                label.add(AttributeModifier.append("title", StringUtils.join(comments, "\n")));
                label.add(AttributeModifier.append("class", "text-truncate"));

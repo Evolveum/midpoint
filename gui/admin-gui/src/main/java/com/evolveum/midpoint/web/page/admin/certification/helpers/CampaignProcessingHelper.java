@@ -280,7 +280,7 @@ public class CampaignProcessingHelper implements Serializable {
 
     public static void campaignActionPerformed(@NotNull AccessCertificationCampaignType campaign, PageBase pageBase,
             AjaxRequestTarget target) {
-        CampaignStateHelper.CampaignAction action = new CampaignStateHelper(campaign.getState()).getNextAction();
+        CampaignStateHelper.CampaignAction action = new CampaignStateHelper(campaign).getNextAction();
         campaignActionPerformed(Collections.singletonList(campaign), action, pageBase, target);
     }
 
@@ -301,26 +301,20 @@ public class CampaignProcessingHelper implements Serializable {
             try {
                 Task task = pageBase.createSimpleTask(operationName);
                 if (CampaignStateHelper.CampaignAction.START_CAMPAIGN.equals(action)) {
-//                if (campaign.getState() == AccessCertificationCampaignStateType.CREATED) {
                     acs.openNextStage(campaign.getOid(), task, result);
                     processed++;
-//                }
                 } else if (CampaignStateHelper.CampaignAction.CLOSE_CAMPAIGN.equals(action)) {
-//                if (campaign.getState() != AccessCertificationCampaignStateType.CLOSED) {
                     acs.closeCampaign(campaign.getOid(), task, result);
                     processed++;
-//                }
                 } else if (CampaignStateHelper.CampaignAction.CLOSE_STAGE.equals(action)) {
-//                if (campaign.getState() != AccessCertificationCampaignStateType.CLOSED) {
-                    acs.closeCampaign(campaign.getOid(), task, result);
+                    acs.closeCurrentStage(campaign.getOid(), task, result);
                     processed++;
-//                }
                 } else if (CampaignStateHelper.CampaignAction.REITERATE_CAMPAIGN.equals(action)) {
-                    //todo
-//                if (item.isReiterable()) {
                     acs.reiterateCampaign(campaign.getOid(), task, result);
                     processed++;
-//                }
+                } else if (CampaignStateHelper.CampaignAction.OPEN_NEXT_STAGE.equals(action)) {
+                    acs.openNextStage(campaign.getOid(), task, result);
+                    processed++;
                 } else {
                     throw new IllegalStateException("Unknown action: " + operationName);
                 }

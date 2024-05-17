@@ -10,11 +10,9 @@ package com.evolveum.midpoint.web.page.admin.certification.component;
 import java.io.Serial;
 import java.util.*;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.widget.MetricWidgetPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
@@ -31,8 +29,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -81,7 +77,7 @@ public class PageCertCampaign extends PageAdmin {
     private static final String ID_DETAILS = "details";
     private static final String ID_RESPONSES_CONTAINER = "responsesContainer";
     private static final String ID_RESPONSES = "responses";
-    private static final String ID_ITEMS_LIST = "itemsList";
+    private static final String ID_ITEMS_TABBED_PANEL = "itemsTabbedPanel";
     private IModel<AccessCertificationCampaignType> campaignModel;
     private LoadableModel<AccessCertificationCasesStatisticsType> statisticsModel;
 
@@ -264,7 +260,7 @@ public class PageCertCampaign extends PageAdmin {
         responsesContainer.add(responsesPanel);
 
 
-        CertificationItemsPanel items = new CertificationItemsPanel(ID_ITEMS_LIST, campaignModel.getObject().getOid());
+        CertificationItemsTabbedPanel items = new CertificationItemsTabbedPanel(ID_ITEMS_TABBED_PANEL, campaignModel);
         items.setOutputMarkupId(true);
         add(items);
     }

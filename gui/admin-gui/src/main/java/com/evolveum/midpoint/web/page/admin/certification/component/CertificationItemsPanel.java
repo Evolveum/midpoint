@@ -14,9 +14,11 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsQueryUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -32,6 +34,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -55,11 +59,13 @@ public class CertificationItemsPanel extends
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = CertificationItemsPanel.class.getName() + ".";
-    String campaignOid;
+    private String campaignOid;
+    private int stageNumber;
 
-    public CertificationItemsPanel(String id, String campaignOid) {
+    public CertificationItemsPanel(String id, String campaignOid, int stageNumber) {
         super(id, AccessCertificationCaseType.class);
         this.campaignOid = campaignOid;
+        this.stageNumber = stageNumber;
     }
 
     @Override
@@ -69,7 +75,7 @@ public class CertificationItemsPanel extends
 
     private List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> columns =
-                ColumnUtils.getDefaultCertificationItemColumns(getPageBase());
+                ColumnUtils.getDefaultCertificationItemColumns(stageNumber);
         columns.add(createShowDetailsColumn());
         return columns;
     }
@@ -97,7 +103,7 @@ public class CertificationItemsPanel extends
     private void showResponseDetailsPopup(AjaxRequestTarget target,
             PrismContainerValueWrapper<AccessCertificationCaseType> rowModel) {
         CertResponseDetailsPanel panel = new CertResponseDetailsPanel(getPageBase().getMainPopupBodyId(),
-                Model.of(rowModel.getRealValue()));
+                Model.of(rowModel.getRealValue()), stageNumber);
         getPageBase().showMainPopup(panel, target);
     }
 
@@ -108,17 +114,7 @@ public class CertificationItemsPanel extends
 
     @Override
     protected IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String> createIconColumn() {
-        return new IconColumn<>(Model.of("")) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-                return GuiDisplayTypeUtil.createDisplayType(
-                        IconAndStylesUtil.createDefaultBlackIcon(AccessCertificationCaseType.COMPLEX_TYPE));
-            }
-
-        };
+        return null;
     }
 
     @Override

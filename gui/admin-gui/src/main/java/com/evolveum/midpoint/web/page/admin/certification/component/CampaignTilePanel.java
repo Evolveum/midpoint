@@ -76,7 +76,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     protected void onInitialize() {
         super.onInitialize();
 
-        campaignStateHelper = new CampaignStateHelper(getCampaign().getState());
+        campaignStateHelper = new CampaignStateHelper(getCampaign());
 
         initLayout();
     }

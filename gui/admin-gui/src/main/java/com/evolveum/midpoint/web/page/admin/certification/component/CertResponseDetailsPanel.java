@@ -29,7 +29,6 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-// todo not finished
 public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseType> implements Popupable {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -38,8 +37,11 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
     private static final String ID_DETAILS_PANEL = "detailsPanel";
     private static final String ID_ACTIONS_PANEL = "actionsPanel";
 
-    public CertResponseDetailsPanel(String id, IModel<AccessCertificationCaseType> model) {
+    int stageNumber;
+
+    public CertResponseDetailsPanel(String id, IModel<AccessCertificationCaseType> model, int stageNumber) {
         super(id, model);
+        this.stageNumber = stageNumber;
     }
 
     @Override
@@ -110,9 +112,11 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
             AccessCertificationCaseType certCase = getModelObject();
             List<AccessCertificationWorkItemType> workItems = certCase.getWorkItem();
             workItems.forEach(workItem -> {
-                list.add(new ChatMessageItem(
-                        createMessageDisplayTypeModel(workItem),
-                        createMessageTextModel(workItem)));
+                if (workItem.getStageNumber() != null && workItem.getStageNumber() == stageNumber) {
+                    list.add(new ChatMessageItem(
+                            createMessageDisplayTypeModel(workItem),
+                            createMessageTextModel(workItem)));
+                }
             });
             return list;
         };

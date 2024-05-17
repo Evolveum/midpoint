@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.page.admin.certification.helpers;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
@@ -115,9 +116,11 @@ public class CampaignStateHelper implements Serializable {
     }
 
     private final AccessCertificationCampaignStateType campaignState;
+    private final AccessCertificationCampaignType campaign;
 
-    public CampaignStateHelper(AccessCertificationCampaignStateType campaignState) {
-        this.campaignState = campaignState;
+    public CampaignStateHelper(AccessCertificationCampaignType campaign) {
+        this.campaignState = campaign.getState();
+        this.campaign = campaign;
     }
 
     public Badge createBadge() {
