@@ -405,6 +405,8 @@ public class RoleAnalysisReconfigureSessionPopupPanel
         Task task = getPageBase().createSimpleTask("Reconfigure and rebuild role analysis session");
         OperationResult result = task.getResult();
 
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+
         Collection<ObjectDelta<? extends ObjectType>> deltas;
         try {
             deltas = getModelObject().collectDeltas(result);
@@ -413,15 +415,16 @@ public class RoleAnalysisReconfigureSessionPopupPanel
 
             String sessionOid = getModelObject().getObjectType().getOid();
 
-            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-
             PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
                     .getSessionTypeObject(sessionOid, task, result);
 
             if (sessionTypeObject != null) {
+
+                roleAnalysisService.deleteSessionTask(sessionTypeObject.getOid(), task, result);
+
                 ModelInteractionService modelInteractionService = getPageBase().getModelInteractionService();
                 roleAnalysisService.executeClusteringTask(
-                        modelInteractionService, sessionTypeObject, null, null, task, result);
+                        modelInteractionService, sessionTypeObject, null, null, task, result, new TaskType());
             }
         } catch (Throwable e) {
             LoggingUtils.logException(LOGGER, "Couldn't process clustering", e);

@@ -40,6 +40,8 @@ public class ClusteringActionExecutor extends BaseAction {
 
     private Clusterable clusterable;
 
+    private static final String DECOMISSIONED_MARK_OID = "00000000-0000-0000-0000-000000000801";
+
     private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Density Clustering",
             7, this::incrementProgress);
 
@@ -65,6 +67,33 @@ public class ClusteringActionExecutor extends BaseAction {
         if (prismSession != null) {
 
             RoleAnalysisSessionType session = prismSession.asObjectable();
+            List<ObjectReferenceType> effectiveMarkRef = session.getEffectiveMarkRef();
+            boolean isDecomissioned = false;
+            if (effectiveMarkRef != null && !effectiveMarkRef.isEmpty()) {
+                for (ObjectReferenceType ref : effectiveMarkRef) {
+                    if (ref.getOid().equals(DECOMISSIONED_MARK_OID)) {
+                        String description = ref.getDescription();
+                        if (description != null && description.equals("First run")) {
+                            ObjectReferenceType mark = new ObjectReferenceType().oid(DECOMISSIONED_MARK_OID)
+                                    .type(MarkType.COMPLEX_TYPE)
+                                    .description("Second run");
+                            roleAnalysisService.replaceSessionMarkRef(prismSession, mark, result, task);
+                        } else {
+                            isDecomissioned = true;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if (isDecomissioned) {
+                Task task1 = task.createSubtask();
+                roleAnalysisService.stopSessionTask(sessionOid, task1, result);
+                roleAnalysisService.deleteSession(sessionOid, task1, result);
+                task.setName("Role Analysis Decommissioned");
+                return;
+            }
+
             roleAnalysisService.deleteSessionClustersMembers(prismSession.getOid(), task, result);
 
             this.clusterable = new ClusteringBehavioralResolver();

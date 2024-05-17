@@ -131,6 +131,8 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
+        roleAnalysisService.deleteSessionTask(session.getOid(), task, result);
+
         try {
             ModelService modelService = getPageBase().getModelService();
 
@@ -142,7 +144,8 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
             LOGGER.error("Couldn't execute changes on RoleAnalysisSessionType object: {}", session.getOid(), e);
         }
 
-        roleAnalysisService.executeClusteringTask(getModelInteractionService(), session.asPrismObject(), null, null, task, result);
+        roleAnalysisService.executeClusteringTask(getModelInteractionService(), session.asPrismObject(),
+                null, null, task, result, new TaskType());
 
         if (result.isWarning()) {
             warn(result.getMessage());
@@ -293,6 +296,10 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
             @NotNull
             private IModel<List<DetailsTableItem>> loadDetailsModel(@NotNull RoleAnalysisSessionType session) {
                 RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
+
+                if (sessionStatistic == null) {
+                    return Model.ofList(List.of());
+                }
 
                 RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
                 RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();

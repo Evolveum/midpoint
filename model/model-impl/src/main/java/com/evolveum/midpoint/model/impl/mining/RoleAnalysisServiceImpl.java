@@ -979,11 +979,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
     @Override
     public void executeClusteringTask(
-            @NotNull ModelInteractionService modelInteractionService, @NotNull PrismObject<RoleAnalysisSessionType> session,
+            @NotNull ModelInteractionService modelInteractionService,
+            @NotNull PrismObject<RoleAnalysisSessionType> session,
             @Nullable String taskOid,
             @Nullable PolyStringType taskName,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @NotNull TaskType processingTask) {
 
         String state = recomputeAndResolveSessionOpStatus(session, result, task);
 
@@ -992,6 +994,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             LOGGER.warn("Couldn't start clustering. Some process is already in progress.: " + session.getOid());
             return;
         }
+
+        this.updateSessionMarkRef(session, result, task);
 
         try {
             ObjectReferenceType objectReferenceType = new ObjectReferenceType()
@@ -1005,23 +1009,21 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                     .work(new WorkDefinitionsType()
                             .roleAnalysisClustering(rdw));
 
-            TaskType taskObject = new TaskType();
-
-            taskObject.setName(Objects.requireNonNullElseGet(
+            processingTask.setName(Objects.requireNonNullElseGet(
                     taskName, () -> PolyStringType.fromOrig("Session clustering  (" + session + ")")));
 
             if (taskOid != null) {
-                taskObject.setOid(taskOid);
+                processingTask.setOid(taskOid);
             } else {
                 taskOid = UUID.randomUUID().toString();
-                taskObject.setOid(taskOid);
+                processingTask.setOid(taskOid);
             }
 
-            taskObject.setOid(taskOid);
+            processingTask.setOid(taskOid);
             modelInteractionService.submit(
                     activity,
                     ActivitySubmissionOptions.create()
-                            .withTaskTemplate(taskObject)
+                            .withTaskTemplate(processingTask)
                             .withArchetypes(
                                     SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
                     task, result);
@@ -2272,6 +2274,153 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
         }
         return topDetectedPatterns;
+    }
+
+    @Override
+    public void deleteSessionTask(
+            @NotNull String sessionOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        try {
+
+            PrismObject<RoleAnalysisSessionType> sessionTypeObject = this.getSessionTypeObject(sessionOid, task, result);
+            if (sessionTypeObject == null) {
+                return;
+            }
+
+            RoleAnalysisOperationStatus operationStatus = sessionTypeObject.asObjectable().getOperationStatus();
+            if (operationStatus == null) {
+                return;
+            }
+
+            ObjectReferenceType taskRef = operationStatus.getTaskRef();
+            if (taskRef == null) {
+                return;
+            }
+
+            String taskOid = taskRef.getOid();
+            if (taskOid == null) {
+                return;
+            }
+
+            ObjectDelta<TaskType> deleteDelta = PrismContext.get().deltaFactory().object()
+                    .createDeleteDelta(TaskType.class, taskOid);
+
+            modelService.executeChanges(singleton(deleteDelta), null, task, result);
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't delete RoleAnalysisSessionType Task {}", sessionOid, e);
+        }
+    }
+
+    @Override
+    public void replaceSessionMarkRef(
+            @NotNull PrismObject<RoleAnalysisSessionType> session,
+            @NotNull ObjectReferenceType newMarkRef,
+            @NotNull OperationResult result,
+            @NotNull Task task) {
+
+        try {
+            List<ObjectReferenceType> effectiveMarkRef = session.asObjectable().getEffectiveMarkRef();
+
+            if (effectiveMarkRef != null && !effectiveMarkRef.isEmpty()) {
+                ObjectDelta<RoleAnalysisSessionType> clearDelta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
+                        .item(RoleAnalysisSessionType.F_EFFECTIVE_MARK_REF).delete(effectiveMarkRef.get(0).asReferenceValue().clone())
+                        .asObjectDelta(session.getOid());
+                Collection<ObjectDelta<? extends ObjectType>> collection = MiscSchemaUtil.createCollection(clearDelta);
+                modelService.executeChanges(collection, null, task, result);
+            }
+
+            ObjectDelta<RoleAnalysisSessionType> addDelta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
+                    .item(RoleAnalysisSessionType.F_EFFECTIVE_MARK_REF).add(newMarkRef.asReferenceValue().clone())
+                    .asObjectDelta(session.getOid());
+            Collection<ObjectDelta<? extends ObjectType>> collection = MiscSchemaUtil.createCollection(addDelta);
+            modelService.executeChanges(collection, null, task, result);
+
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't modify RoleAnalysisClusterType {}", session.getOid(), e);
+        }
+    }
+
+    @Override
+    public void updateSessionMarkRef(
+            @NotNull PrismObject<RoleAnalysisSessionType> session,
+            @NotNull OperationResult result,
+            @NotNull Task task) {
+
+        try {
+            List<ObjectReferenceType> effectiveMarkRef = session.asObjectable().getEffectiveMarkRef();
+
+            if (effectiveMarkRef != null && !effectiveMarkRef.isEmpty()) {
+                ObjectDelta<RoleAnalysisSessionType> clearDelta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
+                        .item(RoleAnalysisSessionType.F_EFFECTIVE_MARK_REF).delete(effectiveMarkRef.get(0).asReferenceValue().clone())
+                        .asObjectDelta(session.getOid());
+                Collection<ObjectDelta<? extends ObjectType>> collectionClear = MiscSchemaUtil.createCollection(clearDelta);
+                modelService.executeChanges(collectionClear, null, task, result);
+
+                ObjectReferenceType mark = new ObjectReferenceType().oid("00000000-0000-0000-0000-000000000801")
+                        .type(MarkType.COMPLEX_TYPE)
+                        .description("First run");
+
+                ObjectDelta<RoleAnalysisSessionType> addDelta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
+                        .item(RoleAnalysisSessionType.F_EFFECTIVE_MARK_REF).add(mark.asReferenceValue().clone())
+                        .asObjectDelta(session.getOid());
+                Collection<ObjectDelta<? extends ObjectType>> collectionAdd = MiscSchemaUtil.createCollection(addDelta);
+                modelService.executeChanges(collectionAdd, null, task, result);
+            }
+
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't modify RoleAnalysisClusterType {}", session.getOid(), e);
+        }
+    }
+
+    @Override
+    public void stopSessionTask(
+            @NotNull String sessionOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        try {
+
+            PrismObject<RoleAnalysisSessionType> sessionTypeObject = this.getSessionTypeObject(sessionOid, task, result);
+            if (sessionTypeObject == null) {
+                return;
+            }
+
+            RoleAnalysisOperationStatus operationStatus = sessionTypeObject.asObjectable().getOperationStatus();
+            if (operationStatus == null) {
+                return;
+            }
+
+            ObjectReferenceType taskRef = operationStatus.getTaskRef();
+            if (taskRef == null) {
+                return;
+            }
+
+            String taskOid = taskRef.getOid();
+            if (taskOid == null) {
+                return;
+            }
+
+            ScheduleType schedule = new ScheduleType();
+            schedule.setInterval(0);
+
+            List<ItemDelta<?, ?>> modifications = new ArrayList<>();
+
+            modifications.add(PrismContext.get().deltaFor(TaskType.class)
+                    .item(TaskType.F_EXECUTION_STATE).replace(TaskExecutionStateType.SUSPENDED)
+                    .asItemDelta());
+
+            modifications.add(PrismContext.get().deltaFor(TaskType.class)
+                    .item(TaskType.F_SCHEDULE).replace(schedule)
+                    .asItemDelta());
+
+            repositoryService.modifyObject(TaskType.class, taskOid, modifications, result);
+
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException e) {
+            LOGGER.error("Couldn't stop Task for Role analysis session {}", sessionOid, e);
+        }
     }
 
 }

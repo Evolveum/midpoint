@@ -250,6 +250,9 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
     private static String resolveButtonClass(@NotNull RoleAnalysisOperationStatus operationStatus) {
         OperationResultStatusType status = operationStatus.getStatus();
         String message = operationStatus.getMessage();
+        if (status == null) {
+            return "btn-outline-secondary";
+        }
         String buttonClass = "btn-outline-secondary ";
         if (status.equals(OperationResultStatusType.IN_PROGRESS)) {
             buttonClass = "btn-outline-warning ";

@@ -473,6 +473,7 @@ public interface RoleAnalysisService {
      * @param taskName The name of the task.
      * @param task The task associated with this operation.
      * @param result The operation result.
+     * @param processingTask
      */
     void executeClusteringTask(
             @NotNull ModelInteractionService modelInteractionService,
@@ -480,7 +481,8 @@ public interface RoleAnalysisService {
             @Nullable String taskOid,
             @Nullable PolyStringType taskName,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @NotNull TaskType processingTask);
 
     /**
      * This method is used to update the cluster detected patterns.
@@ -861,6 +863,27 @@ public interface RoleAnalysisService {
      * @param result the operation result
      */
     @NotNull List<DetectedPattern> findTopPatters(
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    void replaceSessionMarkRef(
+            @NotNull PrismObject<RoleAnalysisSessionType> session,
+            @NotNull ObjectReferenceType newMarkRef,
+            @NotNull OperationResult result,
+            @NotNull Task task);
+
+    void updateSessionMarkRef(
+            @NotNull PrismObject<RoleAnalysisSessionType> session,
+            @NotNull OperationResult result,
+            @NotNull Task task);
+
+    void deleteSessionTask(
+            @NotNull String sessionOid,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    void stopSessionTask(
+            @NotNull String sessionOid,
             @NotNull Task task,
             @NotNull OperationResult result);
 }
