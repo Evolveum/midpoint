@@ -49,7 +49,7 @@ public class NativeResourceSchemaImpl
     }
 
     @Override
-    public NativeAssociationClassDefinition findAssociationClassDefinition(@NotNull QName name) {
+    public NativeReferenceTypeDefinition findReferenceTypeDefinition(@NotNull QName name) {
         return checkType(findInMap(name), true);
     }
 
@@ -79,7 +79,7 @@ public class NativeResourceSchemaImpl
     }
 
     @Override
-    public @NotNull Collection<? extends NativeAssociationClassDefinition> getAssociationClassDefinitions() {
+    public @NotNull Collection<? extends NativeReferenceTypeDefinition> getReferenceTypeDefinitions() {
         return nativeComplexTypeDefinitionMap.values().stream()
                 .filter(def -> def.isAssociation())
                 .toList();
@@ -107,7 +107,7 @@ public class NativeResourceSchemaImpl
 
     /** Transforms references between object classes into a collection of association classes. */
     @Override
-    public void computeAssociationClasses() throws SchemaException {
+    public void computeReferenceTypes() throws SchemaException {
         new AssociationClassesComputer().compute();
     }
 
@@ -192,7 +192,7 @@ public class NativeResourceSchemaImpl
             // Creating the association class definitions
             nativeComplexTypeDefinitionMap.entrySet().removeIf(entry -> entry.getValue().isAssociation());
             for (var objectClassDefinition : getObjectClassDefinitions()) {
-                for (var associationDefinition : objectClassDefinition.getAssociationDefinitions()) {
+                for (var associationDefinition : objectClassDefinition.getReferenceAttributeDefinitions()) {
                     var associationClassName = associationDefinition.getTypeName();
                     stateCheck(NS_RI.equals(associationClassName.getNamespaceURI()),
                             "Association class name must be in the RI namespace: %s", associationClassName);
@@ -200,12 +200,12 @@ public class NativeResourceSchemaImpl
                             .addParticipant(
                                     objectClassDefinition.getName(),
                                     associationDefinition.getItemName(),
-                                    associationDefinition.getAssociationParticipantRole());
+                                    associationDefinition.getReferenceParticipantRole());
                 }
             }
 
             // Checking the consistency of the association class definitions
-            for (var associationClassDefinition : getAssociationClassDefinitions()) {
+            for (var associationClassDefinition : getReferenceTypeDefinitions()) {
                 MiscUtil.schemaCheck(!associationClassDefinition.getSubjects().isEmpty(),
                         "Association class %s has no subject classes", associationClassDefinition);
                 MiscUtil.schemaCheck(!associationClassDefinition.getObjects().isEmpty(),
@@ -213,8 +213,8 @@ public class NativeResourceSchemaImpl
             }
         }
 
-        private NativeAssociationClassDefinition findOrCreateAssociationClassDefinition(QName typeName) {
-            var existingClass = findAssociationClassDefinition(typeName);
+        private NativeReferenceTypeDefinition findOrCreateAssociationClassDefinition(QName typeName) {
+            var existingClass = findReferenceTypeDefinition(typeName);
             if (existingClass != null) {
                 return existingClass;
             }

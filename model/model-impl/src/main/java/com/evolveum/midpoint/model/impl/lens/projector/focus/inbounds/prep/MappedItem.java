@@ -193,7 +193,7 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
                     .addVariableDefinition(ExpressionConstants.VAR_PROJECTION, shadowVariableValue, shadowVariableDef)
                     .addAliasRegistration(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION)
                     .addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION)
-                    .addVariableDefinition(ExpressionConstants.VAR_ASSOCIATED_SHADOW, getAssociatedShadow(currentProjectionItem), shadowVariableDef)
+                    .addVariableDefinition(ExpressionConstants.VAR_OBJECT, getAssociatedShadow(currentProjectionItem), shadowVariableDef)
                     .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource, resource.asPrismObject().getDefinition())
                     .addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION,
                             context.getSystemConfiguration(), getSystemConfigurationDefinition())

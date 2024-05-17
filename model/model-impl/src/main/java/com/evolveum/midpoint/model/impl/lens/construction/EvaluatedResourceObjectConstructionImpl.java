@@ -16,7 +16,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.config.ConstructionConfigItem;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -73,7 +73,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
     /**
      * Mappings for the resource object associations.
      */
-    @NotNull private final Collection<MappingImpl<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>>
+    @NotNull private final Collection<MappingImpl<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>>
             associationMappings = new ArrayList<>();
 
     /**
@@ -221,12 +221,12 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
         attributeMappings.add(mapping);
     }
 
-    public @NotNull Collection<MappingImpl<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>> getAssociationMappings() {
+    public @NotNull Collection<MappingImpl<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>> getAssociationMappings() {
         return associationMappings;
     }
 
     void addAssociationMapping(
-            MappingImpl<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition> mapping) {
+            MappingImpl<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition> mapping) {
         associationMappings.add(mapping);
     }
     //endregion

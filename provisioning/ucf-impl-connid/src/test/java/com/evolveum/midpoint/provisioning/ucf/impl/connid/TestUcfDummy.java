@@ -9,8 +9,8 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import static com.evolveum.midpoint.schema.processor.ResourceSchemaFactory.*;
-import static com.evolveum.midpoint.schema.processor.ShadowAssociationParticipantRole.OBJECT;
-import static com.evolveum.midpoint.schema.processor.ShadowAssociationParticipantRole.SUBJECT;
+import static com.evolveum.midpoint.schema.processor.ShadowReferenceParticipantRole.OBJECT;
+import static com.evolveum.midpoint.schema.processor.ShadowReferenceParticipantRole.SUBJECT;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -339,7 +339,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         ShadowType bean = object.asObjectable();
         assertNotNull("No objectClass in shadow " + object, bean.getObjectClass());
         assertEquals("Wrong objectClass in shadow " + object, objectClassDefinition.getTypeName(), bean.getObjectClass());
-        Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(object);
+        Collection<ShadowSimpleAttribute<?>> attributes = ShadowUtil.getAttributes(object);
         assertNotNull("No attributes in shadow " + object, attributes);
         assertFalse("Empty attributes in shadow " + object, attributes.isEmpty());
     }
@@ -416,7 +416,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         var resourceObject = change.getResourceObject();
         assertNotNull("null current resource object", resourceObject);
         PrismAsserts.assertParentConsistency(resourceObject.getPrismObject());
-        Collection<ResourceAttribute<?>> identifiers = change.getIdentifiers();
+        Collection<ShadowSimpleAttribute<?>> identifiers = change.getIdentifiers();
         assertNotNull("null identifiers", identifiers);
         assertFalse("empty identifiers", identifiers.isEmpty());
     }
@@ -529,9 +529,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertThat(account).as("account named '" + name + "'").isNotNull();
     }
 
-    /** Checks whether the schema related to associations is fetched, serialized, and parsed correctly. */
+    /** Checks whether the schema with reference attributes is fetched, serialized, and parsed correctly. */
     @Test
-    public void test300AssociationsSchema() throws Exception {
+    public void test300SchemaWithReferenceAttributes() throws Exception {
         initializeHrScenarioIfNeeded();
 
         var completeSchema = hrScenario.getResourceSchemaRequired();
@@ -559,33 +559,30 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         var contractClassDefN = nativeSchema.findObjectClassDefinition(Contract.OBJECT_CLASS_NAME.xsd());
         assertThat(contractClassDefN).as("contract definition").isNotNull();
 
-        and("native 'contract <-> org' and 'contract <-> person' associations definitions are OK");
+        and("native 'contract <-> org' and 'contract <-> person' references definitions are OK");
         // contract-org
-        var orgDefN = contractClassDefN.findAssociationDefinition(Contract.LinkNames.ORG.q());
+        var orgDefN = contractClassDefN.findReferenceAttributeDefinition(Contract.LinkNames.ORG.q());
         assertThat(orgDefN).as("contract.org association definition").isNotNull();
-        assertThat(orgDefN.getTypeName()).as("contract.org association type").isEqualTo(ContractOrgUnit.NAME.xsd());
-        assertThat(orgDefN.getAssociationParticipantRole()).as("role of contract in contract-org association").isEqualTo(SUBJECT);
+        assertThat(orgDefN.getTypeName()).as("contract.org type").isEqualTo(ContractOrgUnit.NAME.xsd());
+        assertThat(orgDefN.getReferenceParticipantRole()).as("role of contract in contract-org reference").isEqualTo(SUBJECT);
         // contract-person; The item on the contract side is invisible, and serves just a information holder
         // for the association participant. This may change in the future, if we find a different way of represent that info.
-        var personItemDefN = contractClassDefN.findAssociationDefinition(Contract.LinkNames.PERSON.q());
+        var personItemDefN = contractClassDefN.findReferenceAttributeDefinition(Contract.LinkNames.PERSON.q());
         assertThat(personItemDefN).as("contract.person definition").isNotNull();
-        assertThat(personItemDefN.getTypeName()).as("contract.person association type").isEqualTo(PersonContract.NAME.xsd());
-        assertThat(personItemDefN.getAssociationParticipantRole()).as("role of contract in contract-org association").isEqualTo(OBJECT);
+        assertThat(personItemDefN.getTypeName()).as("contract.person type").isEqualTo(PersonContract.NAME.xsd());
+        assertThat(personItemDefN.getReferenceParticipantRole()).as("role of contract in contract-org reference").isEqualTo(OBJECT);
         assertThat(personItemDefN.canRead()).isFalse();
         assertThat(personItemDefN.canModify()).isFalse();
         assertThat(personItemDefN.canAdd()).isFalse();
 
         and("complete schema is OK");
         var contractClassDefCS = completeSchema.findDefinitionForObjectClassRequired(Contract.OBJECT_CLASS_NAME.xsd());
-        var orgDefCS = contractClassDefCS.findAssociationDefinitionRequired(Contract.LinkNames.ORG.q());
-        var assocTypeDef = orgDefCS.getAssociationClassDefinition();
-        assertThat(assocTypeDef).as("association type definition").isNotNull();
-        assertThat(assocTypeDef.getClassName()).as("association type name").isEqualTo(ContractOrgUnit.NAME.xsd());
+        contractClassDefCS.findAssociationDefinitionRequired(Contract.LinkNames.ORG.q());
     }
 
-    /** Creates some associations manually, and then queries them via UCF. */
+    /** Creates some references manually, and then queries them via UCF. */
     @Test
-    public void test310QueryAssociations() throws Exception {
+    public void test310QueryReferences() throws Exception {
         initializeHrScenarioIfNeeded();
 
         given("some objects and links are created");
@@ -609,7 +606,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         hrScenario.contractOrgUnit.add(johnContractSciences, sciences);
         hrScenario.contractOrgUnit.add(johnContractLaw, law);
 
-        then("associations on the resource are OK");
+        then("references on the resource are OK");
 
         displayDumpable("dummy resource", hrScenario.getDummyResource());
 
@@ -629,7 +626,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 .as("law's contracts")
                 .containsExactlyInAnyOrder(johnContractLaw);
 
-        when("associations are queried via UCF");
+        when("references are queried via UCF");
 
         OperationResult result = createOperationResult();
         UcfExecutionContext ctx = createExecutionContext(hrScenario.getResourceBean());
@@ -641,7 +638,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 PrismContext.get().queryFor(ShadowType.class)
                         .item(
                                 Person.AttributeNames.FIRST_NAME.path(),
-                                personDefinition.findAttributeDefinitionRequired(Person.AttributeNames.FIRST_NAME.q()))
+                                personDefinition.findSimpleAttributeDefinitionRequired(Person.AttributeNames.FIRST_NAME.q()))
                         .eq("John")
                         .build(),
                 handler,
@@ -684,7 +681,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
             var org = orgs.iterator().next();
             var orgAttrContainer = org.getAttributesContainerRequired();
             assertThat(orgAttrContainer.getAttributes()).as("org attributes in contract").hasSize(1);
-            ResourceAttribute<?> orgAttribute = orgAttrContainer.getAttributes().iterator().next();
+            ShadowSimpleAttribute<?> orgAttribute = orgAttrContainer.getAttributes().iterator().next();
             assertThat(orgAttribute.getElementName()).as("org attribute name").isEqualTo(ICFS_NAME);
             var orgName = (String) orgAttribute.getRealValue();
 

@@ -27,7 +27,7 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -47,13 +47,13 @@ class AssociationTargetSearchExpressionEvaluator
         extends AbstractSearchExpressionEvaluator<
                 PrismContainerValue<ShadowAssociationValueType>,
                 ShadowType,
-                ShadowAssociationDefinition,
+        ShadowReferenceAttributeDefinition,
                 SearchObjectExpressionEvaluatorType> {
 
     AssociationTargetSearchExpressionEvaluator(
             QName elementName,
             SearchObjectExpressionEvaluatorType expressionEvaluatorBean,
-            ShadowAssociationDefinition outputDefinition,
+            ShadowReferenceAttributeDefinition outputDefinition,
             Protector protector,
             ObjectResolver objectResolver,
             LocalizationService localizationService) {
@@ -82,7 +82,7 @@ class AssociationTargetSearchExpressionEvaluator
                     String oid,
                     @NotNull QName objectTypeName,
                     PrismObject<ShadowType> object,
-                    List<ItemDelta<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>> newValueDeltas)
+                    List<ItemDelta<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>> newValueDeltas)
                     throws SchemaException {
 
                 var newAssociation = outputDefinition.instantiate();
@@ -118,7 +118,7 @@ class AssociationTargetSearchExpressionEvaluator
             protected ObjectQuery createRawQuery(SearchFilterType filter) throws SchemaException, ExpressionEvaluationException {
                 var concreteShadowDef =
                         getAssociationDefinition(vtCtx.getExpressionEvaluationContext())
-                                .getTargetObjectDefinition()
+                                .getRepresentativeTargetObjectDefinition()
                                 .getPrismObjectDefinition();
                 var objFilter = prismContext.getQueryConverter().createObjectFilter(concreteShadowDef, filter);
                 return prismContext.queryFactory().createQuery(objFilter);

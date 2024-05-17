@@ -11,8 +11,8 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -110,7 +110,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
             activationConverter.transformOnAdd(workingObject, result);
 
             ucfAddReturnValue = connector.addObject(workingObject.getPrismObject(), ctx.getUcfExecutionContext(), result);
-            Collection<ResourceAttribute<?>> knownCreatedObjectAttributes = ucfAddReturnValue.getKnownCreatedObjectAttributes();
+            Collection<ShadowSimpleAttribute<?>> knownCreatedObjectAttributes = ucfAddReturnValue.getKnownCreatedObjectAttributes();
 
             LOGGER.debug("PROVISIONING ADD successful, returned attributes:\n{}",
                     SchemaDebugUtil.prettyPrintLazily(knownCreatedObjectAttributes));
@@ -202,15 +202,15 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
      * We must apply these on the original shadow, not the cloned one!
      * They need to be propagated outside ADD operation.
      */
-    private void storeIntoOriginalObject(Collection<ResourceAttribute<?>> knownCreatedObjectAttributes)
+    private void storeIntoOriginalObject(Collection<ShadowSimpleAttribute<?>> knownCreatedObjectAttributes)
             throws SchemaException {
-        ResourceAttributeContainer targetAttrContainer = originalObject.getAttributesContainer();
-        for (ResourceAttribute<?> addedAttribute : emptyIfNull(knownCreatedObjectAttributes)) {
+        ShadowAttributesContainer targetAttrContainer = originalObject.getAttributesContainer();
+        for (ShadowSimpleAttribute<?> addedAttribute : emptyIfNull(knownCreatedObjectAttributes)) {
 
             targetAttrContainer.removeProperty(addedAttribute.getElementName());
 
             // must be cloned because the method above does not unset the parent in the PrismValue being removed (should be fixed)
-            ResourceAttribute<?> clone = addedAttribute.clone();
+            ShadowSimpleAttribute<?> clone = addedAttribute.clone();
             clone.applyDefinitionFrom(originalObject.getObjectDefinition());
 
             targetAttrContainer.add(clone);

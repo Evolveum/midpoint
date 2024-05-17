@@ -38,36 +38,36 @@ import javax.xml.namespace.QName;
 public abstract class ResourceObjectIdentifier<T> implements Serializable, ShortDumpable {
 
     /** The identifier attribute. It must have a definition and exactly one value. Immutable. */
-    @NotNull final ResourceAttribute<T> attribute;
+    @NotNull final ShadowSimpleAttribute<T> attribute;
 
-    private ResourceObjectIdentifier(@NotNull ResourceAttribute<T> attribute) {
+    private ResourceObjectIdentifier(@NotNull ShadowSimpleAttribute<T> attribute) {
         Preconditions.checkArgument(
                 attribute.getRealValue() != null,
                 "Expected exactly one non-null value in %s", attribute);
         Preconditions.checkArgument(
                 attribute.getDefinition() != null,
                 "Expected the definition for attribute %s", attribute);
-        ResourceAttribute<T> clone = attribute.clone();
+        ShadowSimpleAttribute<T> clone = attribute.clone();
         clone.freeze();
         this.attribute = clone;
     }
 
     public static @NotNull ResourceObjectIdentifier.Primary<?> primaryFromIdentifiers(
             @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull Collection<ResourceAttribute<?>> identifiers,
+            @NotNull Collection<ShadowSimpleAttribute<?>> identifiers,
             Object errorCtx)
             throws SchemaException {
         var primaryIdentifierAttributes = identifiers.stream()
                 .filter(attr -> objectDefinition.isPrimaryIdentifier(attr.getElementName()))
                 .toList();
-        ResourceAttribute<?> primaryIdentifierAttribute = MiscUtil.extractSingletonRequired(
+        ShadowSimpleAttribute<?> primaryIdentifierAttribute = MiscUtil.extractSingletonRequired(
                 primaryIdentifierAttributes,
                 () -> new SchemaException("Multiple primary identifiers among " + identifiers + " in " + errorCtx),
                 () -> new SchemaException("No primary identifier in " + errorCtx));
         return ResourceObjectIdentifier.Primary.of(primaryIdentifierAttribute);
     }
 
-    public @NotNull ResourceAttribute<T> getAttribute() {
+    public @NotNull ShadowSimpleAttribute<T> getAttribute() {
         return attribute;
     }
 
@@ -97,11 +97,11 @@ public abstract class ResourceObjectIdentifier<T> implements Serializable, Short
                 attribute.getElementName());
     }
 
-    private static <T> @NotNull ResourceAttribute<T> toSingleValuedResourceAttribute(
+    private static <T> @NotNull ShadowSimpleAttribute<T> toSingleValuedResourceAttribute(
             @NotNull ResourceObjectDefinition objDef, @NotNull PrismProperty<T> item) throws SchemaException {
         //noinspection unchecked
-        var primaryIdentifier = ((ResourceAttributeDefinition<T>) objDef
-                .findAttributeDefinitionRequired(item.getElementName()))
+        var primaryIdentifier = ((ShadowSimpleAttributeDefinition<T>) objDef
+                .findSimpleAttributeDefinitionRequired(item.getElementName()))
                 .instantiate();
         primaryIdentifier.setRealValue(
                 MiscUtil.requireNonNull(
@@ -118,7 +118,7 @@ public abstract class ResourceObjectIdentifier<T> implements Serializable, Short
         return ItemPath.create(ShadowType.F_ATTRIBUTES, getName());
     }
 
-    public @NotNull ResourceAttributeDefinition<T> getDefinition() {
+    public @NotNull ShadowSimpleAttributeDefinition<T> getDefinition() {
         return Objects.requireNonNull(
                 attribute.getDefinition());
     }
@@ -152,7 +152,7 @@ public abstract class ResourceObjectIdentifier<T> implements Serializable, Short
         return attribute.getDefinitionRequired().getMatchingRuleQName();
     }
 
-    /** See {@link ResourceAttribute#normalizationAwareEqFilter()}. */
+    /** See {@link ShadowSimpleAttribute#normalizationAwareEqFilter()}. */
     public @NotNull ObjectFilter normalizationAwareEqFilter() throws SchemaException {
         return attribute.normalizationAwareEqFilter();
     }
@@ -164,11 +164,11 @@ public abstract class ResourceObjectIdentifier<T> implements Serializable, Short
     /** Identifier that is a primary one. */
     public static class Primary<T> extends ResourceObjectIdentifier<T> {
 
-        private Primary(@NotNull ResourceAttribute<T> attribute) {
+        private Primary(@NotNull ShadowSimpleAttribute<T> attribute) {
             super(attribute);
         }
 
-        public static <T> @NotNull Primary<T> of(@NotNull ResourceAttribute<T> attribute) {
+        public static <T> @NotNull Primary<T> of(@NotNull ShadowSimpleAttribute<T> attribute) {
             return new Primary<>(attribute);
         }
 
@@ -191,15 +191,15 @@ public abstract class ResourceObjectIdentifier<T> implements Serializable, Short
 
     public static class Secondary<T> extends ResourceObjectIdentifier<T> {
 
-        public Secondary(@NotNull ResourceAttribute<T> attribute) {
+        public Secondary(@NotNull ShadowSimpleAttribute<T> attribute) {
             super(attribute);
         }
 
-        public static <T> @NotNull Secondary<T> of(@NotNull ResourceAttribute<T> attribute) {
+        public static <T> @NotNull Secondary<T> of(@NotNull ShadowSimpleAttribute<T> attribute) {
             return new Secondary<>(attribute);
         }
 
-        public static @NotNull List<? extends Secondary<?>> of (@NotNull Collection<? extends ResourceAttribute<?>> attributes) {
+        public static @NotNull List<? extends Secondary<?>> of (@NotNull Collection<? extends ShadowSimpleAttribute<?>> attributes) {
             return attributes.stream()
                     .map(attr -> Secondary.of(attr))
                     .toList();

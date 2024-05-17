@@ -268,7 +268,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * - Target: ReconciliationProcessor
      */
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes;
-    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>>> squeezedAssociations;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>>> squeezedAssociations;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses;
 
     /** Dependency-defining beans *with the defaults filled-in*. All of resource OID, kind, and intent are not null. */
@@ -897,12 +897,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.squeezedAttributes = squeezedAttributes;
     }
 
-    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>>> getSqueezedAssociations() {
+    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>>> getSqueezedAssociations() {
         return squeezedAssociations;
     }
 
     public void setSqueezedAssociations(
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>>> squeezedAssociations) {
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>>> squeezedAssociations) {
         this.squeezedAssociations = squeezedAssociations;
     }
 
@@ -1042,13 +1042,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
-    public ResourceAttributeDefinition<?> findAttributeDefinition(QName attrName) throws SchemaException, ConfigurationException {
-        ResourceAttributeDefinition<?> attrDef = getStructuralObjectDefinitionRequired().findAttributeDefinition(attrName);
+    public ShadowSimpleAttributeDefinition<?> findAttributeDefinition(QName attrName) throws SchemaException, ConfigurationException {
+        ShadowSimpleAttributeDefinition<?> attrDef = getStructuralObjectDefinitionRequired().findSimpleAttributeDefinition(attrName);
         if (attrDef != null) {
             return attrDef;
         }
         for (ResourceObjectDefinition auxOcDef: getAuxiliaryObjectClassDefinitions()) {
-            ResourceAttributeDefinition<?> auxAttrDef = auxOcDef.findAttributeDefinition(attrName);
+            ShadowSimpleAttributeDefinition<?> auxAttrDef = auxOcDef.findSimpleAttributeDefinition(attrName);
             if (auxAttrDef != null) {
                 return auxAttrDef;
             }
@@ -1267,11 +1267,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     @Override
     void doExtraObjectConsistenceCheck(@NotNull PrismObject<ShadowType> object, String elementDesc, String contextDesc) {
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(object);
+        ShadowAttributesContainer attributesContainer = ShadowUtil.getAttributesContainer(object);
         if (attributesContainer != null) {
             ResourceType resource = getResource();
             if (resource != null) {
-                for (ResourceAttribute<?> attribute : attributesContainer.getAttributes()) {
+                for (ShadowSimpleAttribute<?> attribute : attributesContainer.getAttributes()) {
                     QName attrName = attribute.getElementName();
                     if (SchemaConstants.NS_ICF_SCHEMA.equals(attrName.getNamespaceURI())) {
                         continue;
@@ -1429,14 +1429,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return null;
         }
         if (object.canRepresent(ShadowType.class)) { // probably always the case
-            Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(object);
+            Collection<ShadowSimpleAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(object);
             if (identifiers == null) {
                 return null;
             }
             StringBuilder sb = new StringBuilder();
-            Iterator<ResourceAttribute<?>> iterator = identifiers.iterator();
+            Iterator<ShadowSimpleAttribute<?>> iterator = identifiers.iterator();
             while (iterator.hasNext()) {
-                ResourceAttribute<?> id = iterator.next();
+                ShadowSimpleAttribute<?> id = iterator.next();
                 sb.append(id.toHumanReadableString());
                 if (iterator.hasNext()) {
                     sb.append(",");

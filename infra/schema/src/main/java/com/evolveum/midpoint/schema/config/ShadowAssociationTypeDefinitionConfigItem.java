@@ -7,18 +7,16 @@
 
 package com.evolveum.midpoint.schema.config;
 
-import java.util.Collection;
-import java.util.List;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 
 public class ShadowAssociationTypeDefinitionConfigItem
         extends ConfigurationItem<ShadowAssociationTypeDefinitionType> {
@@ -28,44 +26,57 @@ public class ShadowAssociationTypeDefinitionConfigItem
         super(original);
     }
 
-    public @NotNull QName getAssociationClassName() throws ConfigurationException {
-        return nonNull(value().getAssociationClass(), "association class name");
+    public @NotNull QName getName() throws ConfigurationException {
+        return nonNull(value().getName(), "association class name");
     }
 
-    public @NotNull String getAssociationClassLocalName() throws ConfigurationException {
-        return getLocalPart(getAssociationClassName(), NS_RI);
+    public @NotNull String getNameLocalPart() throws ConfigurationException {
+        return getLocalPart(getName(), NS_RI);
     }
 
-    public @NotNull Collection<? extends ResourceObjectTypeIdentification> getObjectTypeIdentifiers()
+//    public @NotNull Collection<? extends ResourceObjectTypeIdentification> getObjectTypeIdentifiers()
+//            throws ConfigurationException {
+//        var objectSpec = getObject();
+//        return objectSpec != null ? objectSpec.getTypeIdentifiers() : List.of();
+//    }
+//
+//    public @NotNull Collection<? extends ResourceObjectTypeIdentification> getSubjectTypeIdentifiers()
+//            throws ConfigurationException {
+//        var subjectSpec = getSubject();
+//        return subjectSpec != null ? subjectSpec.getTypeIdentifiers() : List.of();
+//    }
+//
+//    public @NotNull List<ShadowAssociationTypeObjectDefinitionConfigItem> getObject()
+//            throws ConfigurationException {
+//        return children(
+//                value().getObject(),
+//                ShadowAssociationTypeObjectDefinitionConfigItem.class,
+//                ShadowAssociationTypeDefinitionType.F_OBJECT);
+//    }
+
+    public @NotNull ShadowAssociationTypeSubjectDefinitionConfigItem getSubject()
             throws ConfigurationException {
-        var objectSpec = getObject();
-        return objectSpec != null ? objectSpec.getTypeIdentifiers() : List.of();
-    }
-
-    public @NotNull Collection<? extends ResourceObjectTypeIdentification> getSubjectTypeIdentifiers()
-            throws ConfigurationException {
-        var subjectSpec = getSubject();
-        return subjectSpec != null ? subjectSpec.getTypeIdentifiers() : List.of();
-    }
-
-    public @Nullable ShadowAssociationTypeObjectDefinitionConfigItem getObject()
-            throws ConfigurationException {
-        return child(
-                value().getObject(),
-                ShadowAssociationTypeObjectDefinitionConfigItem.class,
-                ShadowAssociationTypeDefinitionType.F_OBJECT);
-    }
-
-    public @Nullable ShadowAssociationTypeSubjectDefinitionConfigItem getSubject()
-            throws ConfigurationException {
-        return child(
-                value().getSubject(),
-                ShadowAssociationTypeSubjectDefinitionConfigItem.class,
-                ShadowAssociationTypeDefinitionType.F_SUBJECT);
+        return nonNull(
+                child(
+                        value().getSubject(),
+                        ShadowAssociationTypeSubjectDefinitionConfigItem.class,
+                        ShadowAssociationTypeDefinitionType.F_SUBJECT),
+                "subject");
     }
 
     @Override
     public @NotNull String localDescription() {
-        return "the definition of association type '" + value().getAssociationClass() + "'";
+        return "the definition of association type '" + value().getName() + "'";
+    }
+
+    public @Nullable AssociatedResourceObjectTypeDefinitionConfigItem getAssociationObject() {
+        return child(
+                value().getAssociationObject(),
+                AssociatedResourceObjectTypeDefinitionConfigItem.class,
+                ShadowAssociationTypeDefinitionType.F_ASSOCIATION_OBJECT);
+    }
+
+    public boolean isRelatedToSubjectItem(@NotNull ItemName itemName) {
+        return false;
     }
 }

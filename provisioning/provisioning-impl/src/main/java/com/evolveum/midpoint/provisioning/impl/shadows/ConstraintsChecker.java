@@ -22,7 +22,7 @@ import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -113,9 +113,9 @@ public class ConstraintsChecker {
                 return constraintsCheckingResult;
             }
 
-            Collection<? extends ResourceAttributeDefinition<?>> uniqueAttributeDefs = getUniqueAttributesDefinitions();
+            Collection<? extends ShadowSimpleAttributeDefinition<?>> uniqueAttributeDefs = getUniqueAttributesDefinitions();
             LOGGER.trace("Checking uniqueness of attributes: {}", uniqueAttributeDefs);
-            for (ResourceAttributeDefinition<?> attrDef : uniqueAttributeDefs) {
+            for (ShadowSimpleAttributeDefinition<?> attrDef : uniqueAttributeDefs) {
                 PrismProperty<?> attr = attributesContainer.findProperty(attrDef.getItemName());
                 LOGGER.trace("Attempt to check uniqueness of {} (def {})", attr, attrDef);
                 if (attr == null) {
@@ -140,7 +140,7 @@ public class ConstraintsChecker {
     }
 
     // What attributes should be used for uniqueness checking? Currently: all identifiers.
-    private @NotNull Collection<? extends ResourceAttributeDefinition<?>> getUniqueAttributesDefinitions() {
+    private @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getUniqueAttributesDefinitions() {
         return provisioningContext.getObjectDefinitionRequired().getAllIdentifiers();
     }
 
@@ -307,7 +307,7 @@ public class ConstraintsChecker {
             LOGGER.trace("Uniqueness checking will not be skipped because 'skipWhenNoChange' is not set");
             return false;
         } else {
-            for (ResourceAttributeDefinition<?> definition : getUniqueAttributesDefinitions()) {
+            for (ShadowSimpleAttributeDefinition<?> definition : getUniqueAttributesDefinitions()) {
                 Object oldItem = shadowObjectOld.find(ItemPath.create(ShadowType.F_ATTRIBUTES, definition.getItemName()));
                 Object newItem = shadowObject.find(ItemPath.create(ShadowType.F_ATTRIBUTES, definition.getItemName()));
                 if (!Objects.equals(oldItem, newItem)) {

@@ -18,7 +18,6 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -236,8 +235,8 @@ class ShadowIntegrityCheckItemProcessor {
             return;
         }
 
-        Set<ResourceAttributeDefinition<?>> identifiers = new HashSet<>();
-        Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = context.getObjectTypeDefinition().getPrimaryIdentifiers();
+        Set<ShadowSimpleAttributeDefinition<?>> identifiers = new HashSet<>();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> primaryIdentifiers = context.getObjectTypeDefinition().getPrimaryIdentifiers();
         identifiers.addAll(primaryIdentifiers);
         identifiers.addAll(context.getObjectTypeDefinition().getSecondaryIdentifiers());
 
@@ -248,7 +247,7 @@ class ShadowIntegrityCheckItemProcessor {
             return;
         }
 
-        for (ResourceAttributeDefinition<?> identifier : identifiers) {
+        for (ShadowSimpleAttributeDefinition<?> identifier : identifiers) {
             PrismProperty<String> property = attributesContainer.getValue().findProperty(identifier.getItemName());
             if (property == null || property.size() == 0) {
                 checkResult.recordWarning(ShadowStatistics.OTHER_FAILURE, "No value for identifier " + identifier.getItemName());
@@ -382,7 +381,7 @@ class ShadowIntegrityCheckItemProcessor {
         }
     }
 
-    private void doCheckNormalization(ShadowCheckResult checkResult, ResourceAttributeDefinition<?> identifier, String value) throws SchemaException {
+    private void doCheckNormalization(ShadowCheckResult checkResult, ShadowSimpleAttributeDefinition<?> identifier, String value) throws SchemaException {
         // FIXME implement after resolving attribute normalization
 //        QName matchingRuleQName = identifier.getMatchingRuleQName();
 //        if (matchingRuleQName == null) {

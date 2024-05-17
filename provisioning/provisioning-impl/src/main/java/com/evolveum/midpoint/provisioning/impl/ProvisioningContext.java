@@ -528,7 +528,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
 
     public boolean shouldStoreAttributeInShadow(
             @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull ResourceAttributeDefinition<?> attrDef) {
+            @NotNull ShadowSimpleAttributeDefinition<?> attrDef) {
         ItemName attrName = attrDef.getItemName();
         if (objectDefinition.isIdentifier(attrName)) {
             return true;
@@ -660,45 +660,45 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     /**
      * Returns association definitions, or an empty list if we do not have appropriate definition available.
      */
-    public @NotNull Collection<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
+    public @NotNull Collection<? extends ShadowReferenceAttributeDefinition> getAssociationDefinitions() {
         return resourceObjectDefinition != null ?
-                resourceObjectDefinition.getAssociationDefinitions() : List.of();
+                resourceObjectDefinition.getReferenceAttributeDefinitions() : List.of();
     }
 
     // TODO consider removal
-    public @NotNull Collection<? extends ShadowAssociationDefinition> getVisibleAssociationDefinitions() {
+    public @NotNull Collection<? extends ShadowReferenceAttributeDefinition> getVisibleAssociationDefinitions() {
         return getAssociationDefinitions().stream()
                 .filter(def -> def.isVisible(this))
                 .toList();
     }
 
     // TODO consider removal
-    public @NotNull Collection<? extends ShadowAssociationDefinition> getVisibleSimulatedAssociationDefinitions() {
+    public @NotNull Collection<? extends ShadowReferenceAttributeDefinition> getVisibleSimulatedAssociationDefinitions() {
         return getAssociationDefinitions().stream()
                 .filter(def -> def.isVisible(this))
                 .filter(def -> def.isSimulated())
                 .toList();
     }
 
-    public <T> @Nullable ResourceAttributeDefinition<T> findAttributeDefinition(QName name) throws SchemaException {
-        return resourceObjectDefinition != null ? resourceObjectDefinition.findAttributeDefinition(name) : null;
+    public <T> @Nullable ShadowSimpleAttributeDefinition<T> findAttributeDefinition(QName name) throws SchemaException {
+        return resourceObjectDefinition != null ? resourceObjectDefinition.findSimpleAttributeDefinition(name) : null;
     }
 
-    public <T> @NotNull ResourceAttributeDefinition<T> findAttributeDefinitionRequired(QName name) throws SchemaException {
-        return getObjectDefinitionRequired().findAttributeDefinitionRequired(name);
+    public <T> @NotNull ShadowSimpleAttributeDefinition<T> findAttributeDefinitionRequired(QName name) throws SchemaException {
+        return getObjectDefinitionRequired().findSimpleAttributeDefinitionRequired(name);
     }
 
-    public <T> @NotNull ResourceAttributeDefinition<T> findAttributeDefinitionRequired(QName name, Supplier<String> contextSupplier)
+    public <T> @NotNull ShadowSimpleAttributeDefinition<T> findAttributeDefinitionRequired(QName name, Supplier<String> contextSupplier)
             throws SchemaException {
         return getObjectDefinitionRequired()
-                .findAttributeDefinitionRequired(name, contextSupplier);
+                .findSimpleAttributeDefinitionRequired(name, contextSupplier);
     }
 
-    public @NotNull ShadowAssociationDefinition findAssociationDefinitionRequired(QName name) throws SchemaException {
+    public @NotNull ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName name) throws SchemaException {
         return findAssociationDefinitionRequired(name, () -> " in " + this);
     }
 
-    public @NotNull ShadowAssociationDefinition findAssociationDefinitionRequired(QName name, Supplier<String> contextSupplier)
+    public @NotNull ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName name, Supplier<String> contextSupplier)
             throws SchemaException {
         return getObjectDefinitionRequired()
                 .findAssociationDefinitionRequired(name, contextSupplier);

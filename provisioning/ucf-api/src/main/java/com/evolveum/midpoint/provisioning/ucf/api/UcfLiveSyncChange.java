@@ -7,9 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -34,7 +33,7 @@ public class UcfLiveSyncChange extends UcfChange {
     public UcfLiveSyncChange(
             int localSequenceNumber,
             @NotNull Object primaryIdentifierRealValue,
-            @NotNull Collection<ResourceAttribute<?>> identifiers,
+            @NotNull Collection<ShadowSimpleAttribute<?>> identifiers,
             @Nullable ResourceObjectDefinition objectDefinition,
             @Nullable ObjectDelta<ShadowType> objectDelta,
             @Nullable UcfResourceObject resourceObject,

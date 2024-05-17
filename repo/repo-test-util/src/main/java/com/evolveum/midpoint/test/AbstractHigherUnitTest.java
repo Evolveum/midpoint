@@ -197,7 +197,7 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
         ResourceObjectDefinition ocDef = rSchema.findDefinitionForObjectClass(objectClass);
         if (ocDef.getSecondaryIdentifiers().isEmpty()) {
-            ResourceAttributeDefinition idDef = ocDef.getPrimaryIdentifiers().iterator().next();
+            ShadowSimpleAttributeDefinition idDef = ocDef.getPrimaryIdentifiers().iterator().next();
             PrismProperty<String> idProp = attributesContainer.findProperty(idDef.getItemName());
             assertNotNull("No primary identifier (" + idDef.getItemName() + ") attribute in shadow for " + username, idProp);
             assertEquals("Unexpected primary identifier in shadow for " + username, username, idProp.getRealValue());
@@ -205,7 +205,7 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
             boolean found = false;
             String expected = username;
             List<String> wasValues = new ArrayList<>();
-            for (ResourceAttributeDefinition idSecDef : ocDef.getSecondaryIdentifiers()) {
+            for (ShadowSimpleAttributeDefinition idSecDef : ocDef.getSecondaryIdentifiers()) {
                 PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getItemName());
                 wasValues.addAll(idProp.getRealValues());
                 assertNotNull("No secondary identifier (" + idSecDef.getItemName() + ") attribute in shadow for " + username, idProp);
@@ -227,7 +227,7 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
             MatchingRule<String> nameMatchingRule) throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
         ResourceObjectDefinition ocDef = rSchema.findDefinitionForObjectClass(shadow.asObjectable().getObjectClass());
-        ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
+        ShadowSimpleAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
         PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
         PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getItemName());
         assertNotNull("No secondary identifier (" + idSecDef.getItemName() + ") attribute in shadow for " + expectedIdentifier, idProp);

@@ -578,29 +578,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="associatedObjectType" type="tns:AssociatedResourceObjectTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Types of objects that are associated to traditional resource objects (their owners).
-                        They have kind of "associated".
-                        They must contain associationClass name that binds them to their owner.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="associationType" type="tns:ShadowAssociationTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Definition of types of associations between resource objects.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.9</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="associationTypeNew" type="tns:ShadowAssociationTypeNewDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.9</a:since>
@@ -1092,6 +1073,8 @@
         <xsd:annotation>
             <xsd:documentation>
                 Definition of an associated object.
+
+                TODO remove before 4.9 release, if not needed
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -1101,17 +1084,6 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ResourceObjectTypeDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="associationClass" type="xsd:QName" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Association class through which is this associated object connected to its owner.
-                                TODO specify more precisely
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>AssociatedResourceObjectTypeDefinitionType.associationClass</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1654,10 +1626,27 @@
     <xsd:complexType name="ShadowAssociationTypeDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Definition of a simulated association between resource objects.
-
-                TODO decide about minOccurs for this structure: it is convenient to have strict requirements;
-                 but on the other hand, it makes inheritance (gradual filling in) non-schema-compliant.
+                <p>
+                    Definition of a high-level (logical) association type. Such an association binds together a subject
+                    and 0, 1, or more objects. Some examples:
+                </p>
+                <ul>
+                    <li>Simple group membership: This is an association between objects (users, printers, computers, groups,
+                        org units, and so on) and groups. Each object can belong to 0-N groups, and each group can have 0-N
+                        members. There are no additional attributes related to the membership itself.</li>
+                    <li>Complex group membership: Likewise, this is an association between objects and groups, but each
+                        association value can have some attributes, like the time validity.</li>
+                    <li>Access rights: This is an association between principals (e.g., users) and objects (e.g., documents),
+                        where each association value has an attribute describing the access level (reader, writer, admin, ...).</li>
+                    <li>Employment contracts: An association connecting physical persons and organizational units; optionally
+                        it can also embrace other entities, like cost centers, job positions, and so on, if they are represented
+                        as separate objects on the resource. In its most extreme form, a contract can have no objects, just
+                        a subject (person).</li>
+                </ul>
+                <p>
+                    An association type can be defined over either native or simulated (physical) shadow reference.
+                    Legacy simulated associations are not supported by association types.
+                </p>
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -1667,16 +1656,8 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:QName">
                 <xsd:annotation>
-                    <xsd:documentation>
-                        The name of the association type. The default namespace is "ri". (TODO: this is not enforced yet.)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="associationClass" type="xsd:QName">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The name of the (existing) association class. It must be provided either by the connector,
-                        or be defined in the capabilities.
+                    <xsd:documentation> <!-- TODO what about using xsd:string here? -->
+                        The name of the association type. It must be either unqualified, or in the "ri" namespace.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1684,21 +1665,31 @@
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element ref="tns:lifecycleState" minOccurs="0"/>
-            <!-- TODO abstract, super -->
-            <xsd:element name="subject" type="tns:ShadowAssociationTypeSubjectDefinitionType" minOccurs="0">
+            <xsd:element name="subject" type="tns:ShadowAssociationTypeSubjectDefinitionType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Definition of object type or types on the "subject" side of this type of association.
-                        Typically, this is an account-like kind of objects (e.g., account/default, account/test, ...).
+                        Definition of the "subject" participant of the association. Typically, but not necessarily, here we
+                        have resource objects corresponding to persons or user accounts.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="object" type="tns:ShadowAssociationTypeObjectDefinitionType" minOccurs="0">
+            <xsd:element name="object" type="tns:ShadowAssociationTypeObjectDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Definition of object type or types on the "object" side of this type of association.
-                        Typically, this is an entitlement-like kind of objects (e.g., entitlement/group, generic/org, ...).
+                        Definition of the "object" participant of participants of the association.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="associationObject" type="tns:AssociatedResourceObjectTypeDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If the association contains its own data (as a separate resource object), they can be defined
+                        here. Although formally an object type definition, please use only the type identifier
+                        and delineation here.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -1706,53 +1697,56 @@
     </xsd:complexType>
     <xsd:element name="shadowAssociationTypeDefinition" type="tns:ShadowAssociationTypeDefinitionType"/>
 
-    <xsd:complexType name="ShadowAssociationTypeNewDefinitionType">
+    <xsd:complexType name="ComplexProcessingType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Processing of a complex (structured) values.
+                HIGHLY EXPERIMENTAL. DO NOT USE.
             </xsd:documentation>
             <xsd:appinfo>
+                <a:experimental>true</a:experimental>
                 <a:container/>
                 <a:since>4.9</a:since>
+                <a:naturalKey>identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:QName" minOccurs="0">
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The name of the association type. The namespace must be "ri:" or none.
+                        Unique identifier for this configuration item.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element ref="tns:lifecycleState" minOccurs="0"/>
-            <xsd:element name="subject" type="tns:ShadowAssociationTypeNewSubjectDefinitionType" minOccurs="0">
+            <xsd:element name="focus" type="tns:ComplexProcessingFocusDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        The "focus side" of this mapping, i.e., to which part(s) of the focus object should be the given
+                        resource object item mapped.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="focus" type="tns:ShadowAssociationTypeFocusDefinitionType" minOccurs="0">
+            <xsd:element name="attribute" type="tns:ComplexProcessingResourceItemDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:elaborate>true</a:elaborate> <!-- because of recursion -->
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="attribute" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="association" type="tns:ComplexProcessingResourceItemDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:elaborate>true</a:elaborate> <!-- because of recursion -->
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
@@ -1767,33 +1761,25 @@
                     <xsd:documentation>
                         How objects of this type are correlated to focus objects?
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.6</a:since>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="synchronization" type="tns:SynchronizationReactionsType" minOccurs="0">
+            <xsd:element name="synchronization" type="tns:ItemSynchronizationReactionsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Defines reactions to specific synchronization-related situations (like "unmatched resource object",
-                        or "disputed" (owner), and so on.
-
-                        Before 4.6, this information was part of the "synchronization" section of the resource definition.
+                        TODO
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.6</a:since>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="shadowAssociationTypeNewDefinition" type="tns:ShadowAssociationTypeNewDefinitionType"/>
+    <xsd:element name="complexProcessing" type="tns:ComplexProcessingType"/>
 
-    <xsd:complexType name="ShadowAssociationTypeNewSubjectDefinitionType">
+    <xsd:complexType name="ComplexProcessingFocusDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                What parts of the focus objects are involved in the processing of association (or other) values?
+                We currently support only assignments here.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -1801,71 +1787,45 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="objectType" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0">
+            <xsd:element name="assignmentSubtype" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Object type of the subject of this association type.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="item" type="xsd:QName" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Association item in the subject.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="focus" type="tns:ShadowAssociationTypeFocusDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Focus-side representation of this association type (usually an assignment of give subtype).
+                        If specified, only assignments with this subtype are considered for the processing.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="shadowAssociationTypeNewSubjectDefinition" type="tns:ShadowAssociationTypeNewSubjectDefinitionType"/>
-
-    <xsd:complexType name="ShadowAssociationTypeFocusDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.9</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="item" type="t:ItemPathType" minOccurs="0" default="assignment">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Item that represents the association (the default is "assignment").
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="subtype" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Assignment subtype (if the item is assignment).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="shadowAssociationTypeFocusDefinition" type="tns:ShadowAssociationTypeFocusDefinitionType"/>
+    <xsd:element name="complexProcessingFocusDefinition" type="tns:ComplexProcessingFocusDefinitionType"/>
 
     <xsd:complexType name="ShadowAssociationTypeSubjectDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of the "subject" participant of the association type.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:ShadowAssociationTypeParticipantDefinitionType">
-                <xsd:sequence>
-                </xsd:sequence>
+                <!-- nothing here for now -->
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="ShadowAssociationTypeSubjectDefinition" type="tns:ShadowAssociationTypeSubjectDefinitionType"/>
 
     <xsd:complexType name="ShadowAssociationTypeObjectDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of the "object" participant of the association type.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:ShadowAssociationTypeParticipantDefinitionType">
                 <!-- nothing here for now -->
@@ -1877,7 +1837,7 @@
     <xsd:complexType name="ShadowAssociationTypeParticipantDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Definition of a participant (subject or object) of an association.
+                Definition of a participant (subject or object) of an association type.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -1885,18 +1845,43 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="type" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="objectType" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Resource object type or types that are allowed to participate in this association.
-                        The association type must be (consistently) defined on all of them. TODO clarify this
-
-                        If not specified, this association type applies to all the participants of the association class.
-
-                        For object-side, these should share the same kind. This is currently needed for
-                        "Projection entitlement changed" event mark to work correctly.
-
-                        In the future, we may allow abstract types here.
+                        <p>
+                            Resource object type or types that are allowed to participate in this association.
+                            (Abstract types are not supported here for now.)
+                        </p>
+                        <p>
+                            For subjects: selects object types onto which this association type definition should be applied.
+                            (The behavior for types not covered is to be decided - TODO.)
+                        </p>
+                        <p>
+                            If not specified: it is applied to all subjects.
+                        </p>
+                        <p>
+                            For objects: hides non-matching reference values.
+                        </p>
+                        <p>
+                            If not specified: no reference values are hidden, beyond what is provided by the reference
+                            type definition (native or simulated).
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="association" type="tns:ShadowAssociationDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The definition of the association as seen by this participant.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="source" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If this definition creates a virtual association (i.e., there is no reference attribute with the name
+                        provided in "association/ref"), this property specifies the reference (native or simulated) that
+                        should serve as the basis for this association.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2421,9 +2406,92 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="complexProcessing" type="tns:ComplexProcessingType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Complex mapping between the resource item and a focus item, including correlation
+                                and synchronization actions.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ComplexProcessingResourceItemDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How should be a resource attribute/association handled during the "complex processing".
+                (See ComplexProcessingType.)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ref" type="t:ItemPathType">
+                <xsd:annotation>
+                    <xsd:documentation> <!-- TODO could we change this into QName? -->
+                        Path of the attribute or association that this definition describes.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element ref="tns:lifecycleState" minOccurs="0"/>
+            <xsd:element name="correlator" type="tns:ItemCorrelatorDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Creates a single-item correlator for this item. See ItemRefinedDefinitionType.correlator.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemRefinedDefinitionType.correlator</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines how the attribute/association value is constructed in case of information flow from IDM to the
+                        resource, e.g. in case of provisioning.
+
+                        See ResourceItemDefinitionType.outbound.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourceItemDefinitionType.outbound</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inbound" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines how the attribute/association values are used in case of information flow from resource
+                        to IDM, e.g. in case of synchronization, reconciliation or discovery.
+
+                        See ResourceItemDefinitionType.inbound.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourceItemDefinitionType.inbound</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="complexProcessing" type="tns:ComplexProcessingType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Complex mapping between the resource item and a focus item, including correlation
+                        and synchronization actions.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ResourceAttributeDefinitionType">
@@ -3233,6 +3301,73 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:complexType name="ShadowAssociationDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of an association (for specific participant).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ref" type="t:ItemPathType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the association that this definition describes.
+                        It may be the name of an existing reference attribute, or (in the future) it may be a separate one.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="focus" type="tns:ComplexProcessingFocusDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The "focus side" of this mapping, i.e., to which part(s) of the focus object should be the given
+                        resource object item mapped.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="attribute" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Processing of given association object attribute in the context of this association.
+                        (In the future, even appearance of the attribute can be redefined here - maybe!)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectRef" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Processing of a reference to the object-side of this association.
+                        The object can be specified exactly (via "ref" property), or kept implicit, if there's only one object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of activation handling for this association.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="correlation" type="tns:CorrelationDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How objects of this type are correlated to focus objects?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="synchronization" type="tns:ItemSynchronizationReactionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:simpleType name="ResourceObjectAssociationDirectionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -4004,6 +4139,57 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="UNMATCHED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ItemSynchronizationSituationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Synchronization situation of an association (or similar) item value.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="deleted">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value existed on the resource, but it has been deleted.
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELETED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="matched">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The corresponding value exists in the focus item.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MATCHED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="unmatched">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The corresponding value does not exist in the focus item.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNMATCHED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="notApplicable">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The correlation is not applicable or ended with an error.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NOT_APPLICABLE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -5944,22 +6130,14 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="SynchronizationReactionType">
+    <xsd:complexType name="AbstractSynchronizationReactionType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
-                Reaction to synchronization situation or situations.
-
-                There is a list of situations to which this entry pertains.
-                The list is further optionally qualified by channel(s) and a condition.
-
-                Only if a situation (any of), a channel (any of), and the condition all match, then the action(s) are applied.
-
-                The list of reactions is evaluated in the (optional) order given.
-                Entries without explicit order are evaluated last.
+                Reaction to synchronization situation or situations: a common supertype for object and item-level structures.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.6</a:since>
+                <a:since>4.9</a:since>
                 <a:naturalKey>name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
@@ -5982,43 +6160,70 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="situation" type="tns:SynchronizationSituationType" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defines a particular synchronization situation or situations.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>SynchronizationReactionType.situation</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If present, limits the applicability of this reaction to given synchronization channel or channels.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Expression that is evaluated to check whether this reaction is applicable in a particular
-                        context. It is assumed to return a boolean value. If it returns 'true' then this reaction
-                        will be applied. If it returns 'false' it will be ignored.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="actions" type="tns:SynchronizationActionsType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Action or actions to be executed in the given situation.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>SynchronizationReactionType.actions</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
+            <!-- TODO consider moving channel and condition here (from SynchronizationReactionType) -->
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SynchronizationReactionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Reaction to synchronization situation or situations.
+
+                There is a list of situations to which this entry pertains.
+                The list is further optionally qualified by channel(s) and a condition.
+
+                Only if a situation (any of), a channel (any of), and the condition all match, then the action(s) are applied.
+
+                The list of reactions is evaluated in the (optional) order given.
+                Entries without explicit order are evaluated last.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSynchronizationReactionType">
+                <xsd:sequence>
+                    <xsd:element name="situation" type="tns:SynchronizationSituationType" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines a particular synchronization situation or situations.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SynchronizationReactionType.situation</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If present, limits the applicability of this reaction to given synchronization channel or channels.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that is evaluated to check whether this reaction is applicable in a particular
+                                context. It is assumed to return a boolean value. If it returns 'true' then this reaction
+                                will be applied. If it returns 'false' it will be ignored.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="actions" type="tns:SynchronizationActionsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Action or actions to be executed in the given situation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SynchronizationReactionType.actions</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="SynchronizationActionsType">
@@ -6339,6 +6544,213 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSynchronizationActionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ItemSynchronizationReactionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines reaction(s) to synchronization-related situations, plus other synchronization settings,
+                at the level of focus item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="reaction" type="tns:ItemSynchronizationReactionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reaction(s) to individual synchronization situation(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ItemSynchronizationReactionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Reaction to synchronization situation or situations at the level of focus item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSynchronizationReactionType">
+                <xsd:sequence>
+                    <xsd:element name="situation" type="tns:ItemSynchronizationSituationType" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines a particular synchronization situation or situations.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SynchronizationReactionType.situation</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="actions" type="tns:ItemSynchronizationActionsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Action or actions to be executed in the given situation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SynchronizationReactionType.actions</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ItemSynchronizationActionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Action(s) that have to be executed in specified synchronization situation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="synchronize" type="tns:SynchronizeItemSynchronizationActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemSynchronizationActionsType.synchronize</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="addFocusValue" type="tns:AddFocusValueItemSynchronizationActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemSynchronizationActionsType.addFocusValue</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="deleteFocusValue" type="tns:DeleteFocusValueItemSynchronizationActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemSynchronizationActionsType.deleteFocusValue</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inactivateFocusValue" type="tns:InactivateFocusValueItemSynchronizationActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemSynchronizationActionsType.inactivateFocusValue</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="deleteResourceObjectValue" type="tns:DeleteResourceObjectValueItemSynchronizationActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemSynchronizationActionsType.deleteResourceObjectValue</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inactivateResourceObjectValue" type="tns:InactivateResourceObjectValueItemSynchronizationActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemSynchronizationActionsType.inactivateResourceObjectValue</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SynchronizeItemSynchronizationActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Plain "synchronize" action.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSynchronizationActionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AddFocusValueItemSynchronizationActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Creates an owning focus value for the resource object value.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSynchronizationActionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="DeleteFocusValueItemSynchronizationActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Deletes the owning focus value for the resource object value.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSynchronizationActionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="InactivateFocusValueItemSynchronizationActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Inactivates the owning focus value.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSynchronizationActionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="DeleteResourceObjectValueItemSynchronizationActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Deletes the resource object value.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSynchronizationActionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="InactivateResourceObjectValueItemSynchronizationActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Inactivates the resource object value.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>

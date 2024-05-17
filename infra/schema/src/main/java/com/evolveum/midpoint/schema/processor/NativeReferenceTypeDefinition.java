@@ -18,25 +18,25 @@ import com.evolveum.midpoint.util.DebugDumpable;
 /**
  * Definition of an association class as seen by the connector (or defined in the simulated associations capability).
  */
-public interface NativeAssociationClassDefinition
+public interface NativeReferenceTypeDefinition
         extends Cloneable, Serializable, DebugDumpable {
 
     String getName();
 
     /**
-     * {@link ShadowAssociationParticipantRole#SUBJECT} participants in this association. Never empty.
+     * {@link ShadowReferenceParticipantRole#SUBJECT} participants in this association. Never empty.
      */
     @NotNull Collection<NativeParticipant> getSubjects();
 
     /**
-     * {@link ShadowAssociationParticipantRole#OBJECT} participants in this association. Never empty.
+     * {@link ShadowReferenceParticipantRole#OBJECT} participants in this association. Never empty.
      */
     @NotNull Collection<NativeParticipant> getObjects();
 
     void addParticipant(
             @NotNull String objectClassName,
             @NotNull ItemName associationName,
-            @NotNull ShadowAssociationParticipantRole role);
+            @NotNull ShadowReferenceParticipantRole role);
 
     record NativeParticipant(@NotNull String objectClassName, @NotNull ItemName associationName) implements Serializable {
     }

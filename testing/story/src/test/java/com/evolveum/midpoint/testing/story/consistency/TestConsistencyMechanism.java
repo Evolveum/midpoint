@@ -596,7 +596,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class,
                 accountOid, null, task, parentResult);
 
-        ResourceAttributeContainer attributes = ShadowUtil.getAttributesContainer(account);
+        ShadowAttributesContainer attributes = ShadowUtil.getAttributesContainer(account);
 
         assertEquals("shadow secondary identifier not equal with the account dn. ", dn, attributes
                 .findAttribute(getOpenDjSecondaryIdentifierQName()).getRealValue(String.class));
@@ -2605,7 +2605,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertShadowModel(accountModel, accountOid, "uid=morgan,ou=users,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
-        ResourceAttribute<?> attributes = ShadowUtil.getAttribute(accountModel, QNAME_UID);
+        ShadowSimpleAttribute<?> attributes = ShadowUtil.getAttribute(accountModel, QNAME_UID);
         assertEquals("morgan", attributes.getAnyRealValue());
         // TODO: check OpenDJ Account
     }
@@ -2956,9 +2956,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e", "eeeee", "e", "e", task, result);
         assertAttribute(eAccount, "employeeNumber", "emp4321");
-        ResourceAttributeContainer attributeContainer = ShadowUtil
+        ShadowAttributesContainer attributeContainer = ShadowUtil
                 .getAttributesContainer(eAccount);
-        Collection<ResourceAttribute<?>> identifiers = attributeContainer.getPrimaryIdentifiers();
+        Collection<ShadowSimpleAttribute<?>> identifiers = attributeContainer.getPrimaryIdentifiers();
         assertNotNull(identifiers);
         assertFalse(identifiers.isEmpty());
         assertEquals(1, identifiers.size());
@@ -3046,14 +3046,14 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e123", "eeeee", "e", "e", task, result);
         assertAttribute(eAccount, "employeeNumber", "emp4321");
-        ResourceAttributeContainer attributeContainer = ShadowUtil
+        ShadowAttributesContainer attributeContainer = ShadowUtil
                 .getAttributesContainer(eAccount);
-        Collection<ResourceAttribute<?>> identifiers = attributeContainer.getPrimaryIdentifiers();
+        Collection<ShadowSimpleAttribute<?>> identifiers = attributeContainer.getPrimaryIdentifiers();
         assertNotNull(identifiers);
         assertFalse(identifiers.isEmpty());
         assertEquals(1, identifiers.size());
 
-        ResourceAttribute<?> icfNameAttr = attributeContainer.findAttribute(getOpenDjSecondaryIdentifierQName());
+        ShadowSimpleAttribute<?> icfNameAttr = attributeContainer.findAttribute(getOpenDjSecondaryIdentifierQName());
         assertEquals("Wrong secondary indetifier.", "uid=e123,ou=people,dc=example,dc=com", icfNameAttr.getRealValue());
 
         assertEquals("Wrong shadow name. ", "uid=e123,ou=people,dc=example,dc=com", eAccount.getName().getOrig());
@@ -3062,8 +3062,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         provisioningService.applyDefinition(repoShadow, task, result);
 
-        ResourceAttributeContainer repoAttributeContainer = ShadowUtil.getAttributesContainer(repoShadow);
-        ResourceAttribute<?> repoIcfNameAttr = repoAttributeContainer.findAttribute(getOpenDjSecondaryIdentifierQName());
+        ShadowAttributesContainer repoAttributeContainer = ShadowUtil.getAttributesContainer(repoShadow);
+        ShadowSimpleAttribute<?> repoIcfNameAttr = repoAttributeContainer.findAttribute(getOpenDjSecondaryIdentifierQName());
         assertEquals("Wrong secondary indetifier.", "uid=e123,ou=people,dc=example,dc=com", repoIcfNameAttr.getRealValue());
 
         assertEquals("Wrong shadow name. ", "uid=e123,ou=people,dc=example,dc=com", repoShadow.asObjectable().getName().getOrig());
@@ -3107,7 +3107,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         ResourceObjectClassDefinition accountDefinition = schema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
-        Collection<? extends ResourceAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
         assertFalse("No account identifiers (resource from " + source + ")", identifiers.isEmpty());
         // TODO: check for naming attributes and display names, etc
 
@@ -3116,7 +3116,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         if (capActivation != null && capActivation.getStatus() != null && capActivation.getStatus().getAttribute() != null) {
             // There is simulated activation capability, check if the attribute is in schema.
             QName enableAttrName = capActivation.getStatus().getAttribute();
-            ResourceAttributeDefinition<?> enableAttrDef = accountDefinition.findAttributeDefinition(enableAttrName);
+            ShadowSimpleAttributeDefinition<?> enableAttrDef = accountDefinition.findSimpleAttributeDefinition(enableAttrName);
             displayDumpable("Simulated activation attribute definition", enableAttrDef);
             assertNotNull("No definition for enable attribute " + enableAttrName + " in account (resource from " + source + ")", enableAttrDef);
             assertSame("Enable attribute " + enableAttrName + " is not ignored (resource from " + source + ")",

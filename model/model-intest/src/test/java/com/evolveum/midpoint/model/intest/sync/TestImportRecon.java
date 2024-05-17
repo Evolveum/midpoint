@@ -2803,7 +2803,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS)
                         .and().item(
                                 SchemaConstants.ICFS_NAME_PATH,
-                                ObjectFactory.createResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING))
+                                ObjectFactory.createSimpleAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING))
                         .contains("s")
                         .build();
 

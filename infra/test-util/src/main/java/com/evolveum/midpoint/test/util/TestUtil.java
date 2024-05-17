@@ -29,7 +29,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
@@ -42,7 +42,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -114,8 +114,8 @@ public class TestUtil {
     public static void setAttribute(PrismObject<ShadowType> account, QName attrName, QName typeName, String value)
             throws SchemaException {
         PrismContainer<Containerable> attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-        ResourceAttributeDefinition<String> attrDef = ObjectFactory.createResourceAttributeDefinition(attrName, typeName);
-        ResourceAttribute<String> attribute = attrDef.instantiate();
+        ShadowSimpleAttributeDefinition<String> attrDef = ObjectFactory.createSimpleAttributeDefinition(attrName, typeName);
+        ShadowSimpleAttribute<String> attribute = attrDef.instantiate();
         attribute.setRealValue(value);
         attributesContainer.add(attribute);
     }

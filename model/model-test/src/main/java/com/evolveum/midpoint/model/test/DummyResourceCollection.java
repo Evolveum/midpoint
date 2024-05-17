@@ -61,7 +61,7 @@ public class DummyResourceCollection {
     }
 
     private DummyResourceContoller initDummyResourceInternal(
-            String name, File resourceFile, TestObject<ResourceType> testResource, String resourceOid,
+            String name, File resourceFile, TestObject<ResourceType> testObject, String resourceOid,
             FailableProcessor<DummyResourceContoller> controllerInitLambda,
             Task task, OperationResult result) throws Exception {
         if (map.containsKey(name)) {
@@ -82,14 +82,14 @@ public class DummyResourceCollection {
                 throw new RuntimeException("Error importing " + resourceFile + ": " + importResult.getMessage());
             }
             LOGGER.debug("File {} imported: {}", resourceFile, importResult);
-        } else if (testResource != null) {
-            LOGGER.info("Importing {}", testResource);
-            modelService.importObject(testResource.getFresh(), null, task, result);
+        } else if (testObject != null) {
+            LOGGER.info("Importing {}", testObject);
+            modelService.importObject(testObject.getFresh(), null, task, result);
             OperationResult importResult = result.getLastSubresult();
             if (importResult.isError()) {
-                throw new RuntimeException("Error importing " + testResource + ": " + importResult.getMessage());
+                throw new RuntimeException("Error importing " + testObject + ": " + importResult.getMessage());
             }
-            LOGGER.debug("{} imported: {}", testResource, importResult);
+            LOGGER.debug("{} imported: {}", testObject, importResult);
         }
         if (resourceOid != null) {
             PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);

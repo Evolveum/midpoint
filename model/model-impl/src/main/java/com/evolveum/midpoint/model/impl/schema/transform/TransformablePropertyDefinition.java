@@ -11,10 +11,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.impl.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +38,7 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         if (originalItem instanceof TransformablePropertyDefinition) {
             return originalItem;
         }
-        if (originalItem instanceof ResourceAttributeDefinition) {
+        if (originalItem instanceof ShadowSimpleAttributeDefinition) {
             return new ResourceAttribute<>(originalItem);
         }
 
@@ -113,8 +113,8 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public ResourceAttributeDefinition<T> delegate() {
-            return (ResourceAttributeDefinition<T>) super.delegate();
+        public ShadowSimpleAttributeDefinition<T> delegate() {
+            return (ShadowSimpleAttributeDefinition<T>) super.delegate();
         }
 
         @Override
@@ -123,7 +123,7 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
+        public ShadowSimpleAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
             return copy(); // FIXME
         }
 
@@ -153,12 +153,12 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttribute<T> instantiate() {
+        public @NotNull ShadowSimpleAttribute<T> instantiate() {
             return instantiate(getItemName());
         }
 
         @Override
-        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttribute<T> instantiate(QName name) {
+        public @NotNull ShadowSimpleAttribute<T> instantiate(QName name) {
             var deleg = delegate().instantiate(name);
             deleg.setDefinition(this);
             return deleg;
@@ -183,8 +183,8 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public ResourceAttributeDefinition<T> delegate() {
-            return (ResourceAttributeDefinition<T>) super.delegate();
+        public ShadowSimpleAttributeDefinition<T> delegate() {
+            return (ShadowSimpleAttributeDefinition<T>) super.delegate();
         }
 
         @Override
@@ -198,7 +198,7 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
+        public ShadowSimpleAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
             throw new UnsupportedOperationException();
         }
 
@@ -218,12 +218,12 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttribute<T> instantiate() {
+        public @NotNull ShadowSimpleAttribute<T> instantiate() {
             return instantiate(getItemName());
         }
 
         @Override
-        public @NotNull com.evolveum.midpoint.schema.processor.ResourceAttribute<T>  instantiate(QName name) {
+        public @NotNull ShadowSimpleAttribute<T> instantiate(QName name) {
             var deleg = delegate().instantiate(name);
             deleg.setDefinition(this);
             return deleg;

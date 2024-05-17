@@ -7,22 +7,20 @@
 
 package com.evolveum.midpoint.schema.config;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedAssociationClassParticipantType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedReferenceTypeParticipantType;
 
 public abstract class SimulatedAssociationClassParticipantConfigItem
-        extends ConfigurationItem<SimulatedAssociationClassParticipantType> {
+        extends ConfigurationItem<SimulatedReferenceTypeParticipantType> {
 
     @SuppressWarnings({ "unused", "WeakerAccess" }) // called dynamically
     public SimulatedAssociationClassParticipantConfigItem(
-            @NotNull ConfigurationItem<SimulatedAssociationClassParticipantType> original) {
+            @NotNull ConfigurationItem<SimulatedReferenceTypeParticipantType> original) {
         super(original);
     }
 
@@ -30,34 +28,23 @@ public abstract class SimulatedAssociationClassParticipantConfigItem
         return nonNull(value().getPrimaryBindingAttributeRef(), "primary binding attribute name");
     }
 
-    QName getSecondaryBindingAttributeName() throws ConfigurationException {
+    QName getSecondaryBindingAttributeName() {
         return value().getSecondaryBindingAttributeRef();
     }
 
     /** May be empty. */
-    public @NotNull List<SimulatedAssociationClassParticipantDelineationConfigItem> getDelineations() {
+    public @NotNull List<SimulatedAssociationClassParticipantDelineationConfigItem> getDelineations()
+            throws ConfigurationException {
         return children(
-                value().getDelineation(),
+                nonEmpty(value().getDelineation(), "delineations"),
                 SimulatedAssociationClassParticipantDelineationConfigItem.class,
-                SimulatedAssociationClassParticipantType.F_DELINEATION);
-    }
-
-    /**
-     * Set of object classes relevant for this participant. It may be empty. It may contain qualified/unqualified
-     * duplicate pairs, like `ri:group` and `group`. The client must cater for this.
-     */
-    public @NotNull Set<QName> getObjectClassNames() throws ConfigurationException {
-        Set<QName> objectClassNames = new HashSet<>();
-        for (SimulatedAssociationClassParticipantDelineationConfigItem delineation : getDelineations()) {
-            objectClassNames.add(delineation.getObjectClassName());
-        }
-        return objectClassNames;
+                SimulatedReferenceTypeParticipantType.F_DELINEATION);
     }
 
     public static class Object extends SimulatedAssociationClassParticipantConfigItem {
 
         @SuppressWarnings("unused") // called dynamically
-        public Object(@NotNull ConfigurationItem<SimulatedAssociationClassParticipantType> original) {
+        public Object(@NotNull ConfigurationItem<SimulatedReferenceTypeParticipantType> original) {
             super(original);
         }
 
@@ -70,7 +57,7 @@ public abstract class SimulatedAssociationClassParticipantConfigItem
     public static class Subject extends SimulatedAssociationClassParticipantConfigItem {
 
         @SuppressWarnings("unused") // called dynamically
-        public Subject(@NotNull ConfigurationItem<SimulatedAssociationClassParticipantType> original) {
+        public Subject(@NotNull ConfigurationItem<SimulatedReferenceTypeParticipantType> original) {
             super(original);
         }
 
@@ -79,7 +66,7 @@ public abstract class SimulatedAssociationClassParticipantConfigItem
             return "subject specification";
         }
 
-        public @NotNull QName getLocalItemName() throws ConfigurationException {
+        @NotNull QName getLocalItemName() throws ConfigurationException {
             return nonNull(value().getLocalItemName(), "local item name");
         }
     }

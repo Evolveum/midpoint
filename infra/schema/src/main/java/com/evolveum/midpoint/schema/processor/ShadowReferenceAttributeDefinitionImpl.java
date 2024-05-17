@@ -10,16 +10,14 @@ import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import java.io.Serial;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinition.PrismContainerDefinitionMutator;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AssociationsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReferencesCapabilityType;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,86 +39,90 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Definition of a shadow association item, e.g., `ri:group`.
  *
- * Note that unlike the attributes, here the {@link ShadowItemDefinitionImpl#nativeDefinition} may be generated artificially
- * based on simulated {@link AssociationsCapabilityType} definition.
+ * Note that unlike the attributes, here the {@link ShadowAttributeDefinitionImpl#nativeDefinition} may be generated artificially
+ * based on simulated {@link ReferencesCapabilityType} definition.
  *
  * TODO various options for configuring associations
  *
  * TODO Effectively immutable? (if constituent definitions are immutable), except for the ability of
  *  changing the {@link #maxOccurs} value. - is this still true?
  */
-public class ShadowAssociationDefinitionImpl
-        extends ShadowItemDefinitionImpl<ShadowAssociation, ShadowAssociationValueType, NativeShadowAssociationDefinition, ResourceObjectAssociationType>
-        implements ShadowAssociationDefinition,
+public class ShadowReferenceAttributeDefinitionImpl
+        extends ShadowAttributeDefinitionImpl<ShadowReferenceAttribute, ShadowAssociationValueType, NativeShadowReferenceAttributeDefinition>
+        implements ShadowReferenceAttributeDefinition,
         PrismContainerDefinitionMutator<ShadowAssociationValueType> {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    /** Participant-independent definition of the association. */
-    @NotNull private final ShadowAssociationClassDefinition associationClassDefinition;
+    /** Participant-independent definition of the reference type. */
+    @NotNull private final AbstractShadowReferenceTypeDefinition referenceTypeDefinition;
 
-    /** This is the definition of a "logical association" that is used in the schema. */
-    @NotNull private final ShadowAssociationTypeDefinitionNew associationTypeDefinition;
-
-    /** Refined definition for {@link ShadowAssociationValueType} values that are stored in the {@link ShadowAssociation} item. */
+    /**
+     * Refined definition for {@link ShadowAssociationValueType} values that are stored in the
+     * {@link ShadowReferenceAttribute} item.
+     *
+     * TODO remove after the content is migrated to a pure reference.
+     */
     @NotNull private final ComplexTypeDefinition complexTypeDefinition;
 
     /** TEMPORARY: Mutable because of GUI! */
     private Integer maxOccurs;
 
-    private ShadowAssociationDefinitionImpl(
-            @NotNull ShadowAssociationClassDefinition associationClassDefinition,
-            @NotNull ShadowAssociationTypeDefinitionNew associationTypeDefinition,
-            @NotNull NativeShadowAssociationDefinition nativeDefinition,
-            @NotNull ResourceObjectAssociationType configurationBean) throws SchemaException {
+    /** TODO */
+    private ShadowAssociationDefinitionType associationDefinitionBean;
+
+    private ShadowReferenceAttributeDefinitionImpl(
+            @NotNull AbstractShadowReferenceTypeDefinition typeDefinition,
+            @NotNull NativeShadowReferenceAttributeDefinition nativeDefinition,
+            @NotNull ResourceItemDefinitionType configurationBean) throws SchemaException {
         super(nativeDefinition, configurationBean, false);
-        this.associationClassDefinition = associationClassDefinition;
-        this.associationTypeDefinition = associationTypeDefinition;
+        this.referenceTypeDefinition = typeDefinition;
         this.complexTypeDefinition = createComplexTypeDefinition();
     }
 
-    private ShadowAssociationDefinitionImpl(
+    private ShadowReferenceAttributeDefinitionImpl(
             @NotNull LayerType layer,
-            @NotNull NativeShadowAssociationDefinition nativeDefinition,
-            @NotNull ResourceObjectAssociationType customizationBean,
+            @NotNull NativeShadowReferenceAttributeDefinition nativeDefinition,
+            @NotNull ResourceItemDefinitionType customizationBean,
             @NotNull Map<LayerType, PropertyLimitations> limitationsMap,
             @NotNull PropertyAccessType accessOverride,
-            @NotNull ShadowAssociationClassDefinition associationClassDefinition,
-            @NotNull ShadowAssociationTypeDefinitionNew associationTypeDefinition,
+            @NotNull AbstractShadowReferenceTypeDefinition referenceTypeDefinition,
             Integer maxOccurs) {
         super(layer, nativeDefinition, customizationBean, limitationsMap, accessOverride);
-        this.associationClassDefinition = associationClassDefinition;
-        this.associationTypeDefinition = associationTypeDefinition;
+        this.referenceTypeDefinition = referenceTypeDefinition;
         this.complexTypeDefinition = createComplexTypeDefinition();
         this.maxOccurs = maxOccurs;
     }
 
-    static ShadowAssociationDefinitionImpl parseLegacy(
-            @NotNull ShadowAssociationClassDefinition associationClassDefinition,
-            @NotNull ResourceObjectAssociationConfigItem definitionCI) throws ConfigurationException {
+    static ShadowReferenceAttributeDefinitionImpl parseLegacy(
+            @NotNull ResourceObjectAssociationConfigItem.Legacy definitionCI,
+            @NotNull ResourceSchemaImpl schemaBeingParsed,
+            @NotNull ResourceObjectTypeDefinition referentialSubjectDefinition,
+            @NotNull Collection<ResourceObjectTypeDefinition> objectTypeDefinitions) throws ConfigurationException {
         try {
-            return new ShadowAssociationDefinitionImpl(
-                    associationClassDefinition,
-                    ShadowAssociationTypeDefinitionNew.empty(),
-                    NativeShadowItemDefinitionImpl.forSimulatedAssociation(
-                            definitionCI.getAssociationName(),
-                            associationClassDefinition.getClassName(),
-                            ShadowAssociationParticipantRole.SUBJECT),
+            return new ShadowReferenceAttributeDefinitionImpl(
+                    SimulatedShadowReferenceTypeDefinition.Legacy.parse(
+                            definitionCI,
+                            schemaBeingParsed,
+                            referentialSubjectDefinition,
+                            objectTypeDefinitions),
+                    NativeShadowAttributeDefinitionImpl.forSimulatedAssociation(
+                            definitionCI.getItemName(),
+                            definitionCI.getItemName(),
+                            ShadowReferenceParticipantRole.SUBJECT),
                     definitionCI.value());
         } catch (SchemaException e) {
             throw new ConfigurationException(e);
         }
     }
 
-    static ShadowAssociationDefinitionImpl fromNative(
-            @NotNull NativeShadowAssociationDefinition rawDefinition,
-            @NotNull ShadowAssociationClassDefinition associationClassDefinition,
-            @NotNull ShadowAssociationTypeDefinitionNew associationTypeDefinitionNew,
-            @Nullable ResourceObjectAssociationType customizationBean) {
+    static ShadowReferenceAttributeDefinitionImpl fromNative(
+            @NotNull NativeShadowReferenceAttributeDefinition rawDefinition,
+            @NotNull AbstractShadowReferenceTypeDefinition associationClassDefinition,
+            @Nullable ResourceItemDefinitionType customizationBean) {
         try {
-            return new ShadowAssociationDefinitionImpl(
+            return new ShadowReferenceAttributeDefinitionImpl(
                     associationClassDefinition,
-                    associationTypeDefinitionNew,
                     rawDefinition,
                     toExistingImmutable(customizationBean));
         } catch (SchemaException e) {
@@ -128,57 +130,47 @@ public class ShadowAssociationDefinitionImpl
         }
     }
 
-    static ItemDefinition<?> fromSimulated(
-            @NotNull ShadowAssociationClassSimulationDefinition simulationDefinition,
-            @NotNull ShadowAssociationClassDefinition associationTypeDefinition,
-            @NotNull ShadowAssociationTypeDefinitionNew associationTypeDefinitionNew,
-            @Nullable ResourceObjectAssociationType assocDefBean) {
+    static ShadowReferenceAttributeDefinition fromSimulated(
+            @NotNull SimulatedShadowReferenceTypeDefinition simulationDefinition,
+            @Nullable ResourceItemDefinitionType assocDefBean) {
         try {
-            return new ShadowAssociationDefinitionImpl(
-                    associationTypeDefinition,
-                    associationTypeDefinitionNew,
-                    NativeShadowItemDefinitionImpl.forSimulatedAssociation(
-                            simulationDefinition.getLocalSubjectItemName(), simulationDefinition.getQName(), ShadowAssociationParticipantRole.SUBJECT),
+            return new ShadowReferenceAttributeDefinitionImpl(
+                    simulationDefinition,
+                    NativeShadowAttributeDefinitionImpl.forSimulatedAssociation(
+                            simulationDefinition.getLocalSubjectItemName(),
+                            simulationDefinition.getQName(),
+                            ShadowReferenceParticipantRole.SUBJECT),
                     toExistingImmutable(assocDefBean));
         } catch (SchemaException e) {
             throw SystemException.unexpected(e, "TEMPORARY");
         }
     }
 
-    private static ResourceObjectAssociationType toExistingImmutable(@Nullable ResourceObjectAssociationType customizationBean) {
-        return CloneUtil.toImmutable(Objects.requireNonNullElseGet(customizationBean, ResourceObjectAssociationType::new));
-    }
-
-    public @NotNull ShadowAssociationClassDefinition getAssociationClassDefinition() {
-        return associationClassDefinition;
-    }
-
-    public @NotNull ShadowAssociationTypeDefinitionNew getAssociationTypeDefinition() {
-        return associationTypeDefinition;
+    private static ResourceItemDefinitionType toExistingImmutable(@Nullable ResourceItemDefinitionType customizationBean) {
+        return CloneUtil.toImmutable(Objects.requireNonNullElseGet(customizationBean, ResourceItemDefinitionType::new));
     }
 
     /** TODO inspect calls to this method; take specific embedded shadow into account (if possible)! */
-    public @NotNull ResourceObjectDefinition getTargetObjectDefinition() {
-        return getAssociationClassDefinition().getRepresentativeObjectDefinition();
+    public @NotNull ResourceObjectDefinition getRepresentativeTargetObjectDefinition() {
+        return referenceTypeDefinition.getRepresentativeObjectDefinition();
     }
 
     public boolean isEntitlement() {
-        return getAssociationClassDefinition().isEntitlement();
+        return referenceTypeDefinition.isEntitlement();
     }
 
     @Override
-    public @NotNull ShadowAssociationDefinitionImpl forLayer(@NotNull LayerType layer) {
+    public @NotNull ShadowReferenceAttributeDefinitionImpl forLayer(@NotNull LayerType layer) {
         if (layer == currentLayer) {
             return this;
         } else {
-            return new ShadowAssociationDefinitionImpl(
+            return new ShadowReferenceAttributeDefinitionImpl(
                     layer,
                     nativeDefinition,
                     customizationBean,
                     limitationsMap,
                     accessOverride.clone(), // TODO do we want to preserve also the access override?
-                    associationClassDefinition,
-                    associationTypeDefinition,
+                    referenceTypeDefinition,
                     maxOccurs);
         }
     }
@@ -206,7 +198,7 @@ public class ShadowAssociationDefinitionImpl
         // We apply the prism shadow definition for (representative) target object to the shadowRef definition.
         var shadowRefDef = Objects.requireNonNull(def.findReferenceDefinition(ShadowAssociationValueType.F_SHADOW_REF)).clone();
         shadowRefDef.mutator().setTargetObjectDefinition(
-                getTargetObjectDefinition().getPrismObjectDefinition());
+                getRepresentativeTargetObjectDefinition().getPrismObjectDefinition());
         def.mutator().replaceDefinition(
                 ShadowAssociationValueType.F_SHADOW_REF,
                 shadowRefDef);
@@ -221,7 +213,7 @@ public class ShadowAssociationDefinitionImpl
                     //noinspection unchecked
                     return (PrismContainerValue<C>) ShadowAssociationValue.of(
                             (ShadowAssociationValueType) value.asContainerable(),
-                            ShadowAssociationDefinitionImpl.this);
+                            ShadowReferenceAttributeDefinitionImpl.this);
                 }
             }
         });
@@ -255,6 +247,15 @@ public class ShadowAssociationDefinitionImpl
         maxOccurs = value;
     }
 
+    public ShadowAssociationDefinitionType getAssociationDefinitionBean() {
+        return associationDefinitionBean;
+    }
+
+    public void setAssociationDefinitionBean(ShadowAssociationDefinitionType associationDefinitionBean) {
+        checkMutable();
+        this.associationDefinitionBean = associationDefinitionBean;
+    }
+
     @Override
     public boolean isValidFor(@NotNull QName elementQName, @NotNull Class<? extends ItemDefinition<?>> clazz, boolean caseInsensitive) {
         Preconditions.checkArgument(!caseInsensitive, "Case-insensitive search is not supported");
@@ -265,7 +266,7 @@ public class ShadowAssociationDefinitionImpl
     @Override
     public <ID extends ItemDefinition<?>> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
         if (path.isEmpty()) {
-            if (clazz.isAssignableFrom(ShadowAssociationDefinitionImpl.class)) {
+            if (clazz.isAssignableFrom(ShadowReferenceAttributeDefinitionImpl.class)) {
                 //noinspection unchecked
                 return (ID) this;
             } else {
@@ -276,8 +277,8 @@ public class ShadowAssociationDefinitionImpl
     }
 
     @Override
-    ShadowAssociation instantiateFromQualifiedName(QName name) {
-        return new ShadowAssociation(name, this);
+    ShadowReferenceAttribute instantiateFromQualifiedName(QName name) {
+        return new ShadowReferenceAttribute(name, this);
     }
 
     @Override
@@ -305,16 +306,14 @@ public class ShadowAssociationDefinitionImpl
         return new ContainerDeltaImpl<>(path, this);
     }
 
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    public @NotNull ShadowAssociationDefinitionImpl clone() {
-        return new ShadowAssociationDefinitionImpl(
+    public @NotNull ShadowReferenceAttributeDefinitionImpl clone() {
+        return new ShadowReferenceAttributeDefinitionImpl(
                 currentLayer,
                 nativeDefinition,
                 customizationBean,
                 limitationsMap,
                 accessOverride.clone(), // TODO do we want to preserve also the access override?
-                associationClassDefinition,
-                associationTypeDefinition,
+                referenceTypeDefinition,
                 maxOccurs);
     }
 
@@ -336,7 +335,7 @@ public class ShadowAssociationDefinitionImpl
     @Override
     public ShadowAssociationValue instantiateFromIdentifierRealValue(@NotNull QName identifierName, @NotNull Object realValue)
             throws SchemaException {
-        ResourceObjectDefinition targetObjectDefinition = getTargetObjectDefinition();
+        ResourceObjectDefinition targetObjectDefinition = getRepresentativeTargetObjectDefinition();
         var blankShadow = targetObjectDefinition.createBlankShadow();
         blankShadow.getAttributesContainer().add(
                 targetObjectDefinition.instantiateAttribute(identifierName, realValue));
@@ -360,7 +359,7 @@ public class ShadowAssociationDefinitionImpl
     }
 
     @Override
-    public ShadowAssociationDefinitionImpl deepClone(@NotNull DeepCloneOperation operation) {
+    public ShadowReferenceAttributeDefinitionImpl deepClone(@NotNull DeepCloneOperation operation) {
         return this; // TODO ???
     }
 
@@ -383,12 +382,12 @@ public class ShadowAssociationDefinitionImpl
 
     @Override
     public String getDebugDumpClassName() {
-        return "SAssocD";
+        return "SRefAttrDef";
     }
 
     @Override
     public String debugDump(int indent) {
-        return super.debugDump(indent, null);
+        return super.debugDump(indent, (LayerType) null);
 //        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass() , indent);
 //        DebugUtil.debugDumpWithLabelLn(sb, "item name", getItemName(), indent + 1);
 //        DebugUtil.debugDumpWithLabelLn(sb, "type definition", associationClassDefinition, indent + 1);
@@ -425,14 +424,15 @@ public class ShadowAssociationDefinitionImpl
         return sb.toString();
     }
 
+    // FIXME fix this method
     public @NotNull ObjectFilter createTargetObjectsFilter() {
-        var resourceOid = stateNonNull(getTargetObjectDefinition().getResourceOid(), "No resource OID in %s", this);
-        var objectDefinitions = getAssociationClassDefinition().getObjectObjectDefinitions();
-        assertCheck(!objectDefinitions.isEmpty(), "No object type definitions (already checked)");
-        var firstObjectType = objectDefinitions.iterator().next().getTypeIdentification();
-        if (objectDefinitions.size() > 1 || firstObjectType == null) { // FIXME what if it's "default type def" for given class?
-            var objectClassNames = objectDefinitions.stream()
-                    .map(def -> def.getObjectClassName())
+        var resourceOid = stateNonNull(getRepresentativeTargetObjectDefinition().getResourceOid(), "No resource OID in %s", this);
+        var targetParticipantTypes = getTargetParticipantTypes();
+        assertCheck(!targetParticipantTypes.isEmpty(), "No object type definitions (already checked)");
+        var firstObjectType = targetParticipantTypes.iterator().next().getTypeIdentification();
+        if (targetParticipantTypes.size() > 1 || firstObjectType == null) {
+            var objectClassNames = targetParticipantTypes.stream()
+                    .map(def -> def.getObjectDefinition().getObjectClassName())
                     .collect(Collectors.toSet());
             var objectClassName = MiscUtil.extractSingletonRequired(
                     objectClassNames,
@@ -451,15 +451,15 @@ public class ShadowAssociationDefinitionImpl
         }
     }
 
-    public @Nullable ShadowAssociationClassSimulationDefinition getSimulationDefinition() {
-        return getAssociationClassDefinition().getSimulationDefinition();
+    public @Nullable SimulatedShadowReferenceTypeDefinition getSimulationDefinition() {
+        return referenceTypeDefinition.getSimulationDefinition();
     }
 
     public boolean isSimulated() {
         return getSimulationDefinition() != null;
     }
 
-    public ShadowAssociationClassSimulationDefinition getSimulationDefinitionRequired() {
+    public SimulatedShadowReferenceTypeDefinition getSimulationDefinitionRequired() {
         assert isSimulated();
         return Objects.requireNonNull(getSimulationDefinition());
     }
@@ -495,20 +495,20 @@ public class ShadowAssociationDefinitionImpl
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ShadowAssociationDefinitionImpl that)) {
+        if (!(o instanceof ShadowReferenceAttributeDefinitionImpl that)) {
             return false;
         }
         if (!super.equals(o)) {
             return false;
         }
-        return Objects.equals(associationClassDefinition, that.associationClassDefinition)
+        return Objects.equals(referenceTypeDefinition, that.referenceTypeDefinition)
                 && Objects.equals(complexTypeDefinition, that.complexTypeDefinition)
                 && Objects.equals(maxOccurs, that.maxOccurs);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), associationClassDefinition, complexTypeDefinition, maxOccurs);
+        return Objects.hash(super.hashCode(), referenceTypeDefinition, complexTypeDefinition, maxOccurs);
     }
 
     @Override
@@ -689,5 +689,23 @@ public class ShadowAssociationDefinitionImpl
 
     @Override
     public void setDiagrams(List<ItemDiagramSpecification> value) {
+    }
+
+    @Override
+    public @NotNull Collection<AssociationParticipantType> getTargetParticipantTypes() {
+        // TODO use additional information from the association type definition, if there's any
+        return referenceTypeDefinition.getObjectTypes();
+    }
+
+    @Override
+    public @NotNull Collection<ResourceObjectInboundDefinition> getRelevantInboundDefinitions() {
+        var inboundsFromRegularDefinition = super.getRelevantInboundDefinitions();
+        if (associationDefinitionBean == null) {
+            return inboundsFromRegularDefinition;
+        } else {
+            var rv = new ArrayList<>(inboundsFromRegularDefinition);
+            rv.add(ResourceObjectInboundDefinition.forAssociation(associationDefinitionBean));
+            return rv;
+        }
     }
 }

@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -286,7 +286,7 @@ public class ProgressReporter implements ProgressListener {
                         name = PolyString.getOrig(object.asObjectable().getName());
                     } else {
                         // determine from attributes
-                        ResourceAttribute nameAttribute = ShadowUtil.getNamingAttribute(object);
+                        ShadowSimpleAttribute nameAttribute = ShadowUtil.getNamingAttribute(object);
                         if (nameAttribute != null) {
                             name = String.valueOf(nameAttribute.getAnyRealValue());
                         }

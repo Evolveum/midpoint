@@ -47,7 +47,7 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -312,7 +312,7 @@ class ShadowRefreshOperation {
                     ResourceAttributeContainerDefinition resourceAttrDefinition = shadow.getAttributesContainerDefinition();
 
                     // If naming attribute is present in delta...
-                    ResourceAttributeDefinition<?> namingAttribute =
+                    ShadowSimpleAttributeDefinition<?> namingAttribute =
                             resourceAttrDefinition.getResourceObjectDefinition().getNamingAttribute();
                     if (namingAttribute != null) {
                         ItemPath namingAttributePath =

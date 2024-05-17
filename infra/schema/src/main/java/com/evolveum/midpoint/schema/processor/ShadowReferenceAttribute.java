@@ -28,50 +28,50 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
- * Object representing a specific shadow association (like `ri:group`). Similar to a {@link ResourceAttribute}.
+ * Object representing a specific shadow association (like `ri:group`). Similar to a {@link ShadowSimpleAttribute}.
  * Contained in {@link ShadowAssociationsContainer}.
  */
 @Experimental
-public class ShadowAssociation
+public class ShadowReferenceAttribute
         extends PrismContainerImpl<ShadowAssociationValueType>
-        implements ShadowItem<ShadowAssociationValue, ShadowAssociationValueType> {
+        implements ShadowAttribute<ShadowAssociationValue, ShadowAssociationValueType> {
 
     @Serial private static final long serialVersionUID = 0L;
 
-    public ShadowAssociation(QName name, ShadowAssociationDefinition definition) {
+    public ShadowReferenceAttribute(QName name, ShadowReferenceAttributeDefinition definition) {
         super(name, definition);
     }
 
     /** TODO shouldn't be the definition always required? */
     @Override
-    public ShadowAssociationDefinition getDefinition() {
-        return (ShadowAssociationDefinition) super.getDefinition();
+    public ShadowReferenceAttributeDefinition getDefinition() {
+        return (ShadowReferenceAttributeDefinition) super.getDefinition();
     }
 
-    public @NotNull ShadowAssociationDefinition getDefinitionRequired() {
+    public @NotNull ShadowReferenceAttributeDefinition getDefinitionRequired() {
         return stateNonNull(
                 getDefinition(), "No definition in %s", this);
     }
 
     @Override
-    public ShadowAssociation clone() {
-        return (ShadowAssociation) super.clone();
+    public ShadowReferenceAttribute clone() {
+        return (ShadowReferenceAttribute) super.clone();
     }
 
     @Override
-    public ShadowAssociation cloneComplex(CloneStrategy strategy) {
-        ShadowAssociation clone = new ShadowAssociation(getElementName(), getDefinition());
+    public ShadowReferenceAttribute cloneComplex(CloneStrategy strategy) {
+        ShadowReferenceAttribute clone = new ShadowReferenceAttribute(getElementName(), getDefinition());
         copyValues(strategy, clone);
         return clone;
     }
 
     /**
-     * This method will clone the item and convert it to a {@link ShadowAssociation}.
-     * (A typical use case is that the provided item is not a {@link ShadowAssociation}.)
+     * This method will clone the item and convert it to a {@link ShadowReferenceAttribute}.
+     * (A typical use case is that the provided item is not a {@link ShadowReferenceAttribute}.)
      */
-    static ShadowAssociation convertFromPrismItem(
-            @NotNull Item<?, ?> item, @NotNull ShadowAssociationDefinition associationDef) {
-        var association = new ShadowAssociation(item.getElementName(), associationDef);
+    static ShadowReferenceAttribute convertFromPrismItem(
+            @NotNull Item<?, ?> item, @NotNull ShadowReferenceAttributeDefinition associationDef) {
+        var association = new ShadowReferenceAttribute(item.getElementName(), associationDef);
         for (PrismValue value : item.getValues()) {
             if (value instanceof PrismContainerValue<?> pcv) {
                 try {
@@ -130,9 +130,9 @@ public class ShadowAssociation
         return value;
     }
 
-    public @NotNull ShadowAssociationValue createNewValueWithIdentifier(@NotNull ResourceAttribute<?> identifier) throws SchemaException {
+    public @NotNull ShadowAssociationValue createNewValueWithIdentifier(@NotNull ShadowSimpleAttribute<?> identifier) throws SchemaException {
         var blankShadow = getDefinitionRequired()
-                .getTargetObjectDefinition()
+                .getRepresentativeTargetObjectDefinition()
                 .createBlankShadow();
         blankShadow.getAttributesContainer().add(identifier);
         return createNewValueWithIdentifiers(blankShadow);

@@ -33,7 +33,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Base implementation of {@link ResourceAttributeDefinitionImpl} and {@link ShadowAssociationDefinitionImpl}.
+ * Base implementation of {@link ShadowSimpleAttributeDefinitionImpl} and {@link ShadowReferenceAttributeDefinitionImpl}.
  *
  * The implementation consists of a pair of {@link #nativeDefinition} and {@link #customizationBean},
  * plus some auxiliary information for faster access.
@@ -41,15 +41,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * This class intentionally does NOT inherit from {@link PrismPropertyDefinitionImpl}. Instead, a large part of the required
  * functionality is delegated to {@link #nativeDefinition} which inherits from that class.
  *
- * @see NativeShadowItemDefinition
+ * @see NativeShadowAttributeDefinition
  */
-public abstract class ShadowItemDefinitionImpl<
-        SI extends ShadowItem<?, ?>,
+public abstract class ShadowAttributeDefinitionImpl<
+        SA extends ShadowAttribute<?, ?>,
         R,
-        ND extends NativeShadowItemDefinition,
-        CB extends ResourceItemDefinitionType>
+        ND extends NativeShadowAttributeDefinition>
         extends AbstractFreezable
-        implements ShadowItemDefinition<SI, R>, ShadowItemLifecycleDefinitionDefaults {
+        implements ShadowAttributeDefinition<SA, R>, ShadowItemLifecycleDefinitionDefaults {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -82,12 +81,12 @@ public abstract class ShadowItemDefinitionImpl<
     /**
      * Customization from `schemaHandling`. If no matching value is present there, an empty one
      * is created (to avoid nullity checks throughput the code). This is also the case when
-     * {@link ShadowItemDefinitionImpl} is used to hold a raw attribute definition
+     * {@link ShadowAttributeDefinitionImpl} is used to hold a raw attribute definition
      * in {@link ResourceObjectClassDefinition}.
      *
      * Always immutable.
      */
-    @NotNull final CB customizationBean;
+    @NotNull final ResourceItemDefinitionType customizationBean;
 
     /**
      * Contains attribute limitations (minOccurs, maxOccurs, access, ...) for individual layers.
@@ -114,7 +113,8 @@ public abstract class ShadowItemDefinitionImpl<
      *
      * @throws SchemaException If there's a problem with parsing customization bean.
      */
-    ShadowItemDefinitionImpl(@NotNull ND nativeDefinition, @NotNull CB customizationBean, boolean forcedIgnored)
+    ShadowAttributeDefinitionImpl(
+            @NotNull ND nativeDefinition, @NotNull ResourceItemDefinitionType customizationBean, boolean forcedIgnored)
             throws SchemaException {
         assert nativeDefinition.isImmutable();
 
@@ -128,10 +128,10 @@ public abstract class ShadowItemDefinitionImpl<
     /**
      * Version to be used for cloning and similar operations.
      */
-    ShadowItemDefinitionImpl(
+    ShadowAttributeDefinitionImpl(
             @NotNull LayerType layer,
             @NotNull ND nativeDefinition,
-            @NotNull CB customizationBean,
+            @NotNull ResourceItemDefinitionType customizationBean,
             @NotNull Map<LayerType, PropertyLimitations> limitationsMap,
             @NotNull PropertyAccessType accessOverride) {
         assert nativeDefinition.isImmutable();
@@ -334,18 +334,18 @@ public abstract class ShadowItemDefinitionImpl<
     }
 
     @Override
-    public @NotNull SI instantiate() {
+    public @NotNull SA instantiate() {
         return instantiate(
                 getItemName());
     }
 
     @Override
-    public @NotNull SI instantiate(QName name) {
+    public @NotNull SA instantiate(QName name) {
         return instantiateFromQualifiedName(
                 addNamespaceIfApplicable(name, getItemName()));
     }
 
-    abstract SI instantiateFromQualifiedName(QName name);
+    abstract SA instantiateFromQualifiedName(QName name);
 
     @Override
     public int getMaxOccurs() {
@@ -521,7 +521,7 @@ public abstract class ShadowItemDefinitionImpl<
     public abstract String getDebugDumpClassName();
 
     public String debugDump(int indent) {
-        return debugDump(indent, null);
+        return debugDump(indent, (LayerType) null);
     }
 
     public String debugDump(int indent, LayerType layer) {
@@ -595,11 +595,19 @@ public abstract class ShadowItemDefinitionImpl<
 //    }
 
     @Override
+    public @NotNull Collection<ResourceObjectInboundDefinition> getRelevantInboundDefinitions() {
+        return customizationBean.getComplexProcessing().stream()
+                .map(bean -> ResourceObjectInboundDefinition.forComplexProcessing(bean))
+                .filter(ResourceObjectInboundDefinition::hasAnyInbounds)
+                .toList();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ShadowItemDefinitionImpl<?, ?, ?, ?> that)) {
+        if (!(o instanceof ShadowAttributeDefinitionImpl<?, ?, ?> that)) {
             return false;
         }
         return currentLayer == that.currentLayer
@@ -703,10 +711,6 @@ public abstract class ShadowItemDefinitionImpl<
         return true;
     }
 
-    private String getMutabilityFlag() {
-        return isImmutable() ? "" : "+";
-    }
-
     public @Nullable String getMergerIdentifier() {
         return null;
     }
@@ -722,4 +726,7 @@ public abstract class ShadowItemDefinitionImpl<
     public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
         return null;
     }
+
+    @Override
+    public abstract @NotNull ShadowAttributeDefinitionImpl<SA, R, ND> clone();
 }

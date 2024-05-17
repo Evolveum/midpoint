@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.impl.schema.features.DefinitionFeatures.XsomP
 import com.evolveum.midpoint.prism.schema.DefinitionFeature;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.NativeObjectClassDefinition.NativeObjectClassDefinitionBuilder;
-import com.evolveum.midpoint.schema.processor.NativeShadowItemDefinition.NativeShadowItemDefinitionBuilder;
+import com.evolveum.midpoint.schema.processor.NativeShadowAttributeDefinition.NativeShadowAttributeDefinitionBuilder;
 
 import com.sun.xml.xsom.XSComplexType;
 
@@ -121,44 +121,44 @@ class ResourceDefinitionFeatures {
 
     static class ForItem {
 
-        static final DefinitionFeature<String, NativeShadowItemDefinitionBuilder, Object, ?> DF_NATIVE_ATTRIBUTE_NAME =
+        static final DefinitionFeature<String, NativeShadowAttributeDefinitionBuilder, Object, ?> DF_NATIVE_ATTRIBUTE_NAME =
                 DefinitionFeature.of(
                         String.class,
-                        NativeShadowItemDefinitionBuilder.class,
-                        NativeShadowItemDefinitionBuilder::setNativeAttributeName,
+                        NativeShadowAttributeDefinitionBuilder.class,
+                        NativeShadowAttributeDefinitionBuilder::setNativeAttributeName,
                         XsomParsers.string(MidPointConstants.RA_NATIVE_ATTRIBUTE_NAME),
-                        NativeShadowItemDefinition.class,
-                        NativeShadowItemDefinition::getNativeAttributeName,
+                        NativeShadowAttributeDefinition.class,
+                        NativeShadowAttributeDefinition::getNativeAttributeName,
                         XsdSerializers.string(MidPointConstants.RA_NATIVE_ATTRIBUTE_NAME));
 
-        static final DefinitionFeature<String, NativeShadowItemDefinitionBuilder, Object, ?> DF_FRAMEWORK_ATTRIBUTE_NAME =
+        static final DefinitionFeature<String, NativeShadowAttributeDefinitionBuilder, Object, ?> DF_FRAMEWORK_ATTRIBUTE_NAME =
                 DefinitionFeature.of(
                         String.class,
-                        NativeShadowItemDefinitionBuilder.class,
-                        NativeShadowItemDefinitionBuilder::setFrameworkAttributeName,
+                        NativeShadowAttributeDefinitionBuilder.class,
+                        NativeShadowAttributeDefinitionBuilder::setFrameworkAttributeName,
                         XsomParsers.string(MidPointConstants.RA_FRAMEWORK_ATTRIBUTE_NAME),
-                        NativeShadowItemDefinition.class,
-                        NativeShadowItemDefinition::getFrameworkAttributeName,
+                        NativeShadowAttributeDefinition.class,
+                        NativeShadowAttributeDefinition::getFrameworkAttributeName,
                         XsdSerializers.string(MidPointConstants.RA_FRAMEWORK_ATTRIBUTE_NAME));
 
-        static final DefinitionFeature<Boolean, NativeShadowItemDefinitionBuilder, Object, ?> DF_RETURNED_BY_DEFAULT =
+        static final DefinitionFeature<Boolean, NativeShadowAttributeDefinitionBuilder, Object, ?> DF_RETURNED_BY_DEFAULT =
                 DefinitionFeature.of(
                         Boolean.class,
-                        NativeShadowItemDefinitionBuilder.class,
-                        NativeShadowItemDefinitionBuilder::setReturnedByDefault,
+                        NativeShadowAttributeDefinitionBuilder.class,
+                        NativeShadowAttributeDefinitionBuilder::setReturnedByDefault,
                         XsomParsers.marker(MidPointConstants.RA_RETURNED_BY_DEFAULT_NAME),
-                        NativeShadowItemDefinition.class,
-                        NativeShadowItemDefinition::getReturnedByDefault,
+                        NativeShadowAttributeDefinition.class,
+                        NativeShadowAttributeDefinition::getReturnedByDefault,
                         XsdSerializers.aBoolean(MidPointConstants.RA_RETURNED_BY_DEFAULT_NAME));
 
-        static final DefinitionFeature<ShadowAssociationParticipantRole, NativeShadowItemDefinitionBuilder, Object, ?> DF_ASSOCIATION_PARTICIPANT_ROLE =
+        static final DefinitionFeature<ShadowReferenceParticipantRole, NativeShadowAttributeDefinitionBuilder, Object, ?> DF_ASSOCIATION_PARTICIPANT_ROLE =
                 DefinitionFeature.of(
-                        ShadowAssociationParticipantRole.class,
-                        NativeShadowItemDefinitionBuilder.class,
-                        NativeShadowItemDefinitionBuilder::setAssociationParticipantRole,
-                        XsomParsers.enumBased(ShadowAssociationParticipantRole.class, MidPointConstants.RA_ASSOCIATION_PARTICIPANT_ROLE, ShadowAssociationParticipantRole::getValue),
-                        NativeShadowItemDefinition.class,
-                        NativeShadowItemDefinition::getAssociationParticipantRoleIfPresent,
-                        XsdSerializers.enumBased(ShadowAssociationParticipantRole.class, MidPointConstants.RA_ASSOCIATION_PARTICIPANT_ROLE, ShadowAssociationParticipantRole::getValue));
+                        ShadowReferenceParticipantRole.class,
+                        NativeShadowAttributeDefinitionBuilder.class,
+                        NativeShadowAttributeDefinitionBuilder::setReferenceParticipantRole,
+                        XsomParsers.enumBased(ShadowReferenceParticipantRole.class, MidPointConstants.RA_ASSOCIATION_PARTICIPANT_ROLE, ShadowReferenceParticipantRole::getValue),
+                        NativeShadowAttributeDefinition.class,
+                        NativeShadowAttributeDefinition::getReferenceParticipantRoleIfPresent,
+                        XsdSerializers.enumBased(ShadowReferenceParticipantRole.class, MidPointConstants.RA_ASSOCIATION_PARTICIPANT_ROLE, ShadowReferenceParticipantRole::getValue));
     }
 }

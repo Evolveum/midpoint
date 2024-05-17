@@ -44,16 +44,16 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  *
  * @author Radovan Semancik
  */
-public interface ResourceAttribute<T>
-        extends ShadowItem<PrismPropertyValue<T>, T>, PrismProperty<T> {
+public interface ShadowSimpleAttribute<T>
+        extends ShadowAttribute<PrismPropertyValue<T>, T>, PrismProperty<T> {
 
-    /** Converts the {@link PrismProperty} into {@link ResourceAttribute}, if needed. */
-    static <T> ResourceAttribute<T> of(@NotNull Item<?, ?> item) {
-        if (item instanceof ResourceAttribute<?> resourceAttribute) {
+    /** Converts the {@link PrismProperty} into {@link ShadowSimpleAttribute}, if needed. */
+    static <T> ShadowSimpleAttribute<T> of(@NotNull Item<?, ?> item) {
+        if (item instanceof ShadowSimpleAttribute<?> simpleAttribute) {
             //noinspection unchecked
-            return (ResourceAttribute<T>) resourceAttribute;
+            return (ShadowSimpleAttribute<T>) simpleAttribute;
         } else if (item instanceof PrismProperty<?> property) {
-            ResourceAttributeImpl<T> attr = new ResourceAttributeImpl<>(item.getElementName(), null);
+            ShadowSimpleAttributeImpl<T> attr = new ShadowSimpleAttributeImpl<>(item.getElementName(), null);
             for (PrismPropertyValue<?> value : property.getValues()) {
                 //noinspection unchecked
                 attr.addValue((PrismPropertyValue<T>) value, true);
@@ -78,9 +78,9 @@ public interface ResourceAttribute<T>
 //        }
 //    }
 
-    ResourceAttributeDefinition<T> getDefinition();
+    ShadowSimpleAttributeDefinition<T> getDefinition();
 
-    default @NotNull ResourceAttributeDefinition<T> getDefinitionRequired() {
+    default @NotNull ShadowSimpleAttributeDefinition<T> getDefinitionRequired() {
         return MiscUtil.stateNonNull(
                 getDefinition(),
                 "No definition in %s", this);
@@ -111,16 +111,16 @@ public interface ResourceAttribute<T>
     }
 
     /** Returns self to be usable in chained calls. */
-    default @NotNull ResourceAttribute<T> applyDefinitionFrom(@NotNull ResourceObjectDefinition objectDefinition)
+    default @NotNull ShadowSimpleAttribute<T> applyDefinitionFrom(@NotNull ResourceObjectDefinition objectDefinition)
             throws SchemaException {
-        var attrDef = objectDefinition.findAttributeDefinitionRequired(getElementName());
+        var attrDef = objectDefinition.findSimpleAttributeDefinitionRequired(getElementName());
         //noinspection unchecked
-        applyDefinition((ResourceAttributeDefinition<T>) attrDef);
+        applyDefinition((ShadowSimpleAttributeDefinition<T>) attrDef);
         return this;
     }
 
     @Override
-    ResourceAttribute<T> clone();
+    ShadowSimpleAttribute<T> clone();
 
     /** Returns the original real values. Assumes the definition is present. */
     @NotNull Collection<?> getOrigValues();
@@ -139,7 +139,7 @@ public interface ResourceAttribute<T>
     }
 
     /** There must be no duplicates or nulls among the real values. {@link RawType} values are tried to be converted. */
-    void addNormalizedValues(@NotNull Collection<?> realValues, @NotNull ResourceAttributeDefinition<T> newDefinition)
+    void addNormalizedValues(@NotNull Collection<?> realValues, @NotNull ShadowSimpleAttributeDefinition<T> newDefinition)
             throws SchemaException;
 
     default @NotNull ItemPath getStandardPath() {
@@ -151,7 +151,7 @@ public interface ResourceAttribute<T>
      * Matching rule is not specified. We assume this filter will be evaluated on the resource.
      */
     default @NotNull ObjectFilter plainEqFilter() {
-        ResourceAttributeDefinition<T> def = getDefinitionRequired();
+        ShadowSimpleAttributeDefinition<T> def = getDefinitionRequired();
         var realValue = MiscUtil.argNonNull(getRealValue(), "no value of %s", this);
         return PrismContext.get().queryFor(ShadowType.class)
                 .item(getStandardPath(), def)
@@ -190,9 +190,9 @@ public interface ResourceAttribute<T>
 
     /** TODO decide on this. */
     default void checkDefinitionConsistence(@NotNull ResourceObjectDefinition objectDefinition) {
-        ResourceAttributeDefinition<Object> expectedDefinition;
+        ShadowSimpleAttributeDefinition<Object> expectedDefinition;
         try {
-            expectedDefinition = objectDefinition.findAttributeDefinitionRequired(getElementName());
+            expectedDefinition = objectDefinition.findSimpleAttributeDefinitionRequired(getElementName());
         } catch (SchemaException e) {
             throw new IllegalStateException(e);
         }

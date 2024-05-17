@@ -548,8 +548,8 @@ public class ConnIdUtil {
         }
     }
 
-    public static ResourceAttributeDefinition<?> getUidDefinition(ResourceObjectDefinition def) {
-        Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = def.getPrimaryIdentifiers();
+    public static ShadowSimpleAttributeDefinition<?> getUidDefinition(ResourceObjectDefinition def) {
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> primaryIdentifiers = def.getPrimaryIdentifiers();
         if (primaryIdentifiers.size() > 1) {
             throw new UnsupportedOperationException("Multiple primary identifiers are not supported");
         }
@@ -557,13 +557,13 @@ public class ConnIdUtil {
             return primaryIdentifiers.iterator().next();
         } else {
             // fallback, compatibility
-            return def.findAttributeDefinition(SchemaConstants.ICFS_UID);
+            return def.findSimpleAttributeDefinition(SchemaConstants.ICFS_UID);
         }
     }
 
     // TODO what if there are multiple secondary identifiers? It can be! (Somewhere we have code that deals with this.)
-    public static ResourceAttributeDefinition<?> getNameDefinition(ResourceObjectDefinition def) {
-        Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifiers = def.getSecondaryIdentifiers();
+    public static ShadowSimpleAttributeDefinition<?> getNameDefinition(ResourceObjectDefinition def) {
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> secondaryIdentifiers = def.getSecondaryIdentifiers();
         if (secondaryIdentifiers.size() > 1) {
             throw new UnsupportedOperationException("Multiple secondary identifiers are not supported");
         }
@@ -571,34 +571,34 @@ public class ConnIdUtil {
             return secondaryIdentifiers.iterator().next();
         } else {
             // fallback, compatibility
-            return def.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+            return def.findSimpleAttributeDefinition(SchemaConstants.ICFS_NAME);
         }
     }
 
-    @NotNull public static Collection<ResourceAttribute<?>> convertToIdentifiers(Uid uid,
+    @NotNull public static Collection<ShadowSimpleAttribute<?>> convertToIdentifiers(Uid uid,
             ResourceObjectDefinition ocDef, ResourceSchema resourceSchema) throws SchemaException {
         ResourceObjectDefinition concreteObjectDefinition =
                 getConcreteObjectClassDefinition(ocDef, resourceSchema);
         if (concreteObjectDefinition == null) {
             throw new SchemaException("Concrete object definition for "+uid+" cannot be found");
         }
-        ResourceAttributeDefinition<?> uidDefinition = getUidDefinition(concreteObjectDefinition);
+        ShadowSimpleAttributeDefinition<?> uidDefinition = getUidDefinition(concreteObjectDefinition);
         if (uidDefinition == null) {
             throw new SchemaException("No definition for ConnId UID attribute found in definition " + ocDef);
         }
-        Collection<ResourceAttribute<?>> identifiers = new ArrayList<>(2);
+        Collection<ShadowSimpleAttribute<?>> identifiers = new ArrayList<>(2);
         //noinspection unchecked
-        ResourceAttribute<String> uidRoa = (ResourceAttribute<String>) uidDefinition.instantiate();
+        ShadowSimpleAttribute<String> uidRoa = (ShadowSimpleAttribute<String>) uidDefinition.instantiate();
         uidRoa.setRealValue(uid.getUidValue());
         identifiers.add(uidRoa);
         if (uid.getNameHint() != null) {
             //noinspection unchecked
-            ResourceAttributeDefinition<String> nameDefinition =
-                    (ResourceAttributeDefinition<String>) getNameDefinition(concreteObjectDefinition);
+            ShadowSimpleAttributeDefinition<String> nameDefinition =
+                    (ShadowSimpleAttributeDefinition<String>) getNameDefinition(concreteObjectDefinition);
             if (nameDefinition == null) {
                 throw new SchemaException("No definition for ConnId NAME attribute found in definition " + ocDef);
             }
-            ResourceAttribute<String> nameRoa = nameDefinition.instantiate();
+            ShadowSimpleAttribute<String> nameRoa = nameDefinition.instantiate();
             nameRoa.setRealValue(uid.getNameHintValue());
             identifiers.add(nameRoa);
         }

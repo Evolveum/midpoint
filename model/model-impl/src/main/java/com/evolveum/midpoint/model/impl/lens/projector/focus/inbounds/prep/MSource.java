@@ -75,14 +75,14 @@ abstract class MSource implements DebugDumpable {
     @NotNull final ResourceObjectInboundDefinition inboundDefinition;
 
     // TODO
-    @Nullable private final ShadowAssociationDefinition owningAssociationDefinition;
+    @Nullable private final ShadowReferenceAttributeDefinition owningAssociationDefinition;
 
     MSource(
             @Nullable ShadowType currentShadow,
             @Nullable ObjectDelta<ShadowType> aPrioriDelta,
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
-            @Nullable ShadowAssociationDefinition owningAssociationDefinition) {
+            @Nullable ShadowReferenceAttributeDefinition owningAssociationDefinition) {
         this.currentShadow = asPrismObject(currentShadow);
         this.aPrioriDelta = aPrioriDelta;
         this.resourceObjectDefinition = resourceObjectDefinition;
@@ -223,7 +223,7 @@ abstract class MSource implements DebugDumpable {
      */
     abstract void resolveInputEntitlements(
             ContainerDelta<ShadowAssociationValueType> associationAPrioriDelta,
-            ShadowAssociation currentAssociation);
+            ShadowReferenceAttribute currentAssociation);
 
     /**
      * Provides the `entitlement` variable for mapping evaluation.
@@ -275,7 +275,7 @@ abstract class MSource implements DebugDumpable {
 
     abstract ItemPath determineTargetPathExecutionOverride(ItemPath targetItemPath) throws ConfigurationException, SchemaException;
 
-    public @Nullable ShadowAssociationDefinition getOwningAssociationDefinition() {
+    public @Nullable ShadowReferenceAttributeDefinition getOwningAssociationDefinition() {
         return owningAssociationDefinition;
     }
 }

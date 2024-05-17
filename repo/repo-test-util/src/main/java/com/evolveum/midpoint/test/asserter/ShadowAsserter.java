@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -670,12 +670,12 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
 
     @SafeVarargs
     public final <T> ShadowAsserter<RA> assertOrigValues(QName attrName, T... expectedValues) {
-        return assertAttributeOrigOrNormValues(attrName, ResourceAttribute::getOrigValues, expectedValues);
+        return assertAttributeOrigOrNormValues(attrName, ShadowSimpleAttribute::getOrigValues, expectedValues);
     }
 
     public <T> T getOrigValue(QName attrName) {
         checkAbstractShadowPresent();
-        ResourceAttribute<?> attribute = abstractShadow.findAttribute(attrName);
+        ShadowSimpleAttribute<?> attribute = abstractShadow.findAttribute(attrName);
         if (attribute != null) {
             //noinspection unchecked
             return (T) MiscUtil.extractSingleton(attribute.getOrigValues()); // TODO implement more nicely
@@ -693,14 +693,14 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
 
     @SafeVarargs
     public final <T> ShadowAsserter<RA> assertNormValues(QName attrName, T... expectedValues) {
-        return assertAttributeOrigOrNormValues(attrName, ResourceAttribute::getNormValues, expectedValues);
+        return assertAttributeOrigOrNormValues(attrName, ShadowSimpleAttribute::getNormValues, expectedValues);
     }
 
     @SafeVarargs
     private <T> ShadowAsserter<RA> assertAttributeOrigOrNormValues(
-            QName attrName, CheckedFunction<ResourceAttribute<?>, Collection<?>> extractor, T... expectedValues) {
+            QName attrName, CheckedFunction<ShadowSimpleAttribute<?>, Collection<?>> extractor, T... expectedValues) {
         checkAbstractShadowPresent();
-        ResourceAttribute<?> attribute = abstractShadow.findAttribute(attrName);
+        ShadowSimpleAttribute<?> attribute = abstractShadow.findAttribute(attrName);
         Collection<?> actualValues;
         try {
             actualValues = attribute != null ? extractor.apply(attribute) : List.of();

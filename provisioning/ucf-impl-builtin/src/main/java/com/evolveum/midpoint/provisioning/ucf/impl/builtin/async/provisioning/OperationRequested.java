@@ -17,7 +17,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -66,12 +66,12 @@ public abstract class OperationRequested {
         }
 
         @Override
-        public Collection<ResourceAttribute<?>> getPrimaryIdentifiers() {
+        public Collection<ShadowSimpleAttribute<?>> getPrimaryIdentifiers() {
             return ShadowUtil.getPrimaryIdentifiers(shadow);
         }
 
         @Override
-        public Collection<ResourceAttribute<?>> getSecondaryIdentifiers() {
+        public Collection<ShadowSimpleAttribute<?>> getSecondaryIdentifiers() {
             return ShadowUtil.getSecondaryIdentifiers(shadow);
         }
 
@@ -130,12 +130,12 @@ public abstract class OperationRequested {
         }
 
         @Override
-        public Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers() {
+        public Collection<? extends ShadowSimpleAttribute<?>> getPrimaryIdentifiers() {
             return identification.getPrimaryIdentifiersAsAttributes();
         }
 
         @Override
-        public Collection<? extends ResourceAttribute<?>> getSecondaryIdentifiers() {
+        public Collection<? extends ShadowSimpleAttribute<?>> getSecondaryIdentifiers() {
             return identification.getSecondaryIdentifiersAsAttributes();
         }
 
@@ -167,13 +167,13 @@ public abstract class OperationRequested {
         }
 
         @Override
-        public Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers() {
+        public Collection<? extends ShadowSimpleAttribute<?>> getPrimaryIdentifiers() {
             return ResourceObjectIdentifiers.asAttributes(
                     identification.getPrimaryIdentifiers());
         }
 
         @Override
-        public Collection<? extends ResourceAttribute<?>> getSecondaryIdentifiers() {
+        public Collection<? extends ShadowSimpleAttribute<?>> getSecondaryIdentifiers() {
             return identification.getSecondaryIdentifiersAsAttributes();
         }
 
@@ -203,9 +203,9 @@ public abstract class OperationRequested {
         }
     }
 
-    public abstract Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers();
+    public abstract Collection<? extends ShadowSimpleAttribute<?>> getPrimaryIdentifiers();
 
-    public abstract Collection<? extends ResourceAttribute<?>> getSecondaryIdentifiers();
+    public abstract Collection<? extends ShadowSimpleAttribute<?>> getSecondaryIdentifiers();
 
     @SuppressWarnings("WeakerAccess") // potentially needed by scripts
     public Map<ItemName, Collection<?>> getPrimaryIdentifiersValueMap() {
@@ -226,13 +226,13 @@ public abstract class OperationRequested {
     }
 
     public Object getPrimaryIdentifierValue() {
-        ResourceAttribute<?> identifier = MiscUtil.extractSingleton(getPrimaryIdentifiers());
+        ShadowSimpleAttribute<?> identifier = MiscUtil.extractSingleton(getPrimaryIdentifiers());
         return identifier != null ? identifier.getRealValue() : null;
     }
 
     @SuppressWarnings("unused") // potentially needed by scripts
     public Object getSecondaryIdentifierValue() {
-        ResourceAttribute<?> identifier = MiscUtil.extractSingleton(getSecondaryIdentifiers());
+        ShadowSimpleAttribute<?> identifier = MiscUtil.extractSingleton(getSecondaryIdentifiers());
         return identifier != null ? identifier.getRealValue() : null;
     }
 

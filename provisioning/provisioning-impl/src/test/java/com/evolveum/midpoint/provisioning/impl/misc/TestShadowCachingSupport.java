@@ -31,8 +31,8 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.normalization.Normalizer;
 import com.evolveum.midpoint.prism.polystring.NormalizerRegistry;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -83,9 +83,9 @@ public class TestShadowCachingSupport extends AbstractProvisioningIntegrationTes
         String name = "test100.Add-Modify-Delete-Shadow";
         String weapon = "cn=  Sword,   dc=ExAmPLE,dc=cOm  ";
         String gossip = "don't tell anyone";
-        ResourceAttribute<String> nameAttr = accountDef.instantiateAttribute(ICFS_NAME, name);
-        ResourceAttribute<String> weaponAttr = accountDef.instantiateAttribute(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME, weapon);
-        ResourceAttribute<String> gossipAttr = accountDef.instantiateAttribute(DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME, gossip);
+        ShadowSimpleAttribute<String> nameAttr = accountDef.instantiateAttribute(ICFS_NAME, name);
+        ShadowSimpleAttribute<String> weaponAttr = accountDef.instantiateAttribute(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME, weapon);
+        ShadowSimpleAttribute<String> gossipAttr = accountDef.instantiateAttribute(DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME, gossip);
         var nameRepoAttrDef = nameAttr.getDefinitionRequired().toNormalizationAware();
         var weaponRepoAttrDef = weaponAttr.getDefinitionRequired().toNormalizationAware();
         var gossipRepoAttrDef = gossipAttr.getDefinitionRequired().toNormalizationAware();
@@ -109,7 +109,7 @@ public class TestShadowCachingSupport extends AbstractProvisioningIntegrationTes
                 .resourceRef(RESOURCE_DUMMY.ref())
                 .objectClass(RI_ACCOUNT_OBJECT_CLASS);
 
-        ResourceAttributeContainer attrContainer = ShadowUtil.setupAttributesContainer(shadow, accountDef);
+        ShadowAttributesContainer attrContainer = ShadowUtil.setupAttributesContainer(shadow, accountDef);
         attrContainer.add(nameAttr.clone());
         attrContainer.add(weaponAttr.clone());
         attrContainer.add(gossipAttr.clone());

@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.executor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.path.PathSet;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemChangeApplicationModeType;
@@ -71,7 +71,7 @@ public class ItemChangeApplicationModeConfiguration {
     public static ItemChangeApplicationModeConfiguration of(ResourceObjectDefinition objectDefinition) {
         PathKeyedMap<ItemChangeApplicationModeType> modeMap = new PathKeyedMap<>();
         if (objectDefinition != null) {
-            for (ResourceAttributeDefinition<?> attrDef : objectDefinition.getAttributeDefinitions()) {
+            for (ShadowSimpleAttributeDefinition<?> attrDef : objectDefinition.getSimpleAttributeDefinitions()) {
                 ItemChangeApplicationModeType mode = attrDef.getChangeApplicationMode();
                 if (mode != null) {
                     modeMap.put(ShadowType.F_ATTRIBUTES.append(attrDef.getItemName()), mode);

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationParticipantRole;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceParticipantRole;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
@@ -68,11 +68,11 @@ class ConnIdTypeMapper {
             return new XsdTypeInformation(ProtectedByteArrayType.COMPLEX_TYPE, multivalue, null);
         } else if (ConnectorObjectReference.class.equals(componentType)) {
             schemaCheck(subtype != null, "ConnectorObjectReference has no subtype");
-            ShadowAssociationParticipantRole role;
+            ShadowReferenceParticipantRole role;
             if (subtype.endsWith("#1")) {
-                role = ShadowAssociationParticipantRole.SUBJECT;
+                role = ShadowReferenceParticipantRole.SUBJECT;
             } else if (subtype.endsWith("#2")) {
-                role = ShadowAssociationParticipantRole.OBJECT;
+                role = ShadowReferenceParticipantRole.OBJECT;
             } else {
                 throw new SchemaException("Participant role cannot be determined from subtype: " + subtype);
             }
@@ -94,7 +94,7 @@ class ConnIdTypeMapper {
     record XsdTypeInformation(
             @NotNull QName xsdTypeName,
             boolean multivalued,
-            @Nullable ShadowAssociationParticipantRole associationParticipantRole) {
+            @Nullable ShadowReferenceParticipantRole associationParticipantRole) {
 
         public int getMaxOccurs() {
             return multivalued ? -1 : 1;

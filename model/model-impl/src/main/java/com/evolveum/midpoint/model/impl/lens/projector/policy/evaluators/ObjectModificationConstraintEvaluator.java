@@ -16,7 +16,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -35,7 +35,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -277,7 +277,8 @@ public class ObjectModificationConstraintEvaluator
     }
 
     private boolean isEntitlementChange(QName assocName, ResourceObjectDefinition objectDefinition) {
-        ShadowAssociationDefinition assocDef = objectDefinition.findAssociationDefinition(assocName);
+        // FIXME reconsider this (move to real association definitions)
+        var assocDef = objectDefinition.findReferenceAttributeDefinition(assocName);
         return assocDef != null && assocDef.isEntitlement();
     }
 
@@ -303,7 +304,7 @@ public class ObjectModificationConstraintEvaluator
 
     private Collection<ItemPath> getResourceObjectNamingAttributePath(
             ResourceObjectDefinition objectDefinition, SpecialItemSpecificationType specialItem) {
-        ResourceAttributeDefinition<?> namingAttributeDef = objectDefinition.getNamingAttribute();
+        ShadowSimpleAttributeDefinition<?> namingAttributeDef = objectDefinition.getNamingAttribute();
         if (namingAttributeDef == null) {
             LOGGER.trace("No naming attribute for {} -> no special item {} evaluation", objectDefinition, specialItem);
             return null;

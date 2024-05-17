@@ -19,37 +19,37 @@ public interface ResourceAttributeContainerDefinitionDelegator
     ResourceAttributeContainerDefinition delegate();
 
     @Override
-    default Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers() {
+    default Collection<? extends ShadowSimpleAttributeDefinition<?>> getPrimaryIdentifiers() {
         return delegate().getPrimaryIdentifiers();
     }
 
     @Override
-    default Collection<? extends ResourceAttributeDefinition<?>> getSecondaryIdentifiers() {
+    default Collection<? extends ShadowSimpleAttributeDefinition<?>> getSecondaryIdentifiers() {
         return delegate().getSecondaryIdentifiers();
     }
 
     @Override
-    default Collection<? extends ResourceAttributeDefinition<?>> getAllIdentifiers() {
+    default Collection<? extends ShadowSimpleAttributeDefinition<?>> getAllIdentifiers() {
         return delegate().getAllIdentifiers();
     }
 
     @Override
-    default ResourceAttributeDefinition<?> findAttributeDefinition(ItemPath elementPath) {
+    default ShadowSimpleAttributeDefinition<?> findAttributeDefinition(ItemPath elementPath) {
         return delegate().findAttributeDefinition(elementPath);
     }
 
     @Override
-    default @NotNull ResourceAttributeContainer instantiate() {
+    default @NotNull ShadowAttributesContainer instantiate() {
         return delegate().instantiate();
     }
 
     @Override
-    default @NotNull ResourceAttributeContainer instantiate(QName name) {
+    default @NotNull ShadowAttributesContainer instantiate(QName name) {
         return delegate().instantiate(name);
     }
 
     @Override
-    default @NotNull List<? extends ResourceAttributeDefinition<?>> getDefinitions() {
+    default @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getDefinitions() {
         return delegate().getDefinitions();
     }
 

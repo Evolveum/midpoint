@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -737,7 +736,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertFalse("Account definition in auxiliary",
                 accountDef.getObjectClassDefinition().isAuxiliary());
 
-        ResourceAttributeDefinition<?> uidDef = accountDef.findAttributeDefinitionRequired(SchemaConstants.ICFS_UID);
+        ShadowSimpleAttributeDefinition<?> uidDef = accountDef.findSimpleAttributeDefinitionRequired(SchemaConstants.ICFS_UID);
         assertEquals(1, uidDef.getMaxOccurs());
         assertEquals(0, uidDef.getMinOccurs());
         assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
@@ -746,7 +745,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertTrue("No UID read", uidDef.canRead());
         assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(uidDef));
 
-        ResourceAttributeDefinition<?> nameDef = accountDef.findAttributeDefinitionRequired(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttributeDefinition<?> nameDef = accountDef.findSimpleAttributeDefinitionRequired(SchemaConstants.ICFS_NAME);
         assertEquals(1, nameDef.getMaxOccurs());
         assertEquals(1, nameDef.getMinOccurs());
         assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
@@ -758,7 +757,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertEquals("Wrong NAME displayOrder", (Integer) 110, nameDef.getDisplayOrder());
         assertEquals("Wrong NAME displayName", "Username", nameDef.getDisplayName());
 
-        ResourceAttributeDefinition<?> fullnameDef = accountDef.findAttributeDefinitionRequired("fullname");
+        ShadowSimpleAttributeDefinition<?> fullnameDef = accountDef.findSimpleAttributeDefinitionRequired("fullname");
         assertEquals(1, fullnameDef.getMaxOccurs());
         assertEquals(1, fullnameDef.getMinOccurs());
         assertTrue("No fullname create", fullnameDef.canAdd());
@@ -770,9 +769,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         }
         assertEquals("Wrong fullname displayName", null, fullnameDef.getDisplayName());
 
-        assertNull("The _PASSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(ICFS_PASSWORD));
+        assertNull("The _PASSWORD_ attribute sneaked into schema", accountDef.findSimpleAttributeDefinition(ICFS_PASSWORD));
 
-        ResourceAttributeDefinition<?> weaponDef = accountDef.findAttributeDefinitionRequired("weapon");
+        ShadowSimpleAttributeDefinition<?> weaponDef = accountDef.findSimpleAttributeDefinitionRequired("weapon");
         assertThat(weaponDef.getMatchingRuleQName())
                 .as("weapon matching rule")
                 .isEqualTo(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME);
@@ -1727,7 +1726,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                     }
                 }
 
-                assertProvisioningAccountShadow(shadow.asPrismObject(), ResourceAttributeDefinition.class);
+                assertProvisioningAccountShadow(shadow.asPrismObject(), ShadowSimpleAttributeDefinition.class);
             }
         };
     }
@@ -1773,14 +1772,14 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertNull("Unexpected password value in repo shadow " + shadowRepo, passwordValue);
     }
 
-    protected ResourceAttributeDefinition<?> getAccountAttrDef(String name) throws SchemaException, ConfigurationException {
+    protected ShadowSimpleAttributeDefinition<?> getAccountAttrDef(String name) throws SchemaException, ConfigurationException {
         return requireNonNull(
-                getAccountObjectClassDefinition().findAttributeDefinition(name));
+                getAccountObjectClassDefinition().findSimpleAttributeDefinition(name));
     }
 
-    protected ResourceAttributeDefinition<?> getAccountAttrDef(QName name) throws SchemaException, ConfigurationException {
+    protected ShadowSimpleAttributeDefinition<?> getAccountAttrDef(QName name) throws SchemaException, ConfigurationException {
         return requireNonNull(
-                getAccountObjectClassDefinition().findAttributeDefinition(name));
+                getAccountObjectClassDefinition().findSimpleAttributeDefinition(name));
     }
 
     @NotNull

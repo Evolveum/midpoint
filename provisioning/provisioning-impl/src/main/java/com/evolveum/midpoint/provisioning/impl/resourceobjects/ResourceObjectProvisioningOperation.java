@@ -13,7 +13,7 @@ import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.ResourceObjectOperations;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifiers;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -213,9 +213,9 @@ abstract class ResourceObjectProvisioningOperation {
             OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        List<ResourceAttributeDefinition<?>> neededExtraAttributes = new ArrayList<>();
+        List<ShadowSimpleAttributeDefinition<?>> neededExtraAttributes = new ArrayList<>();
         for (Operation operation : operations) {
-            ResourceAttributeDefinition<?> rad = operation.getAttributeDefinitionIfApplicable(ctx.getObjectDefinitionRequired());
+            ShadowSimpleAttributeDefinition<?> rad = operation.getAttributeDefinitionIfApplicable(ctx.getObjectDefinitionRequired());
             if (rad != null && (!rad.isReturnedByDefault() || rad.getFetchStrategy() == AttributeFetchStrategyType.EXPLICIT)) {
                 neededExtraAttributes.add(rad);
             }

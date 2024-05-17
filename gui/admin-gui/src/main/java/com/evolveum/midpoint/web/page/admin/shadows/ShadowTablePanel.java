@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil;
@@ -490,7 +490,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
                 ShadowType value = dto.getValue();
                 if (value != null) {
-                    for (ResourceAttribute<?> attr : ShadowUtil.getAllIdentifiers(value)) {
+                    for (ShadowSimpleAttribute<?> attr : ShadowUtil.getAllIdentifiers(value)) {
                         repeater.add(new Label(repeater.newChildId(),
                                 attr.getElementName().getLocalPart() + ": " + attr.getRealValue()));
 

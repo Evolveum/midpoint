@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ShadowAssociation;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.NameKeyedMap;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationsContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -43,7 +43,7 @@ import org.jetbrains.annotations.TestOnly;
  *
  * TODO Decide on the fate of this class. Maybe it's not that useful as it originally seemed to be.
  *
- * @see ResourceAttributeContainer
+ * @see ShadowAttributesContainer
  */
 @TestOnly
 @Experimental
@@ -165,7 +165,7 @@ public class ShadowAssociationsMap implements Map<QName, ShadowAssociationsMap.R
                 .sum();
     }
 
-    /** As {@link ShadowAssociation} but potentially raw, i.e. without definitions. */
+    /** As {@link ShadowReferenceAttribute} but potentially raw, i.e. without definitions. */
     public static class RawAssociation {
         @NotNull private final QName name;
         @NotNull private final Collection<ShadowAssociationValueType> values;

@@ -8,16 +8,12 @@
 package com.evolveum.midpoint.schema.config;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDelineationType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.jetbrains.annotations.Nullable;
@@ -25,8 +21,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /** Type or class definition in schema handling. */
 public class AbstractResourceObjectDefinitionConfigItem<B extends ResourceObjectTypeDefinitionType>
@@ -38,9 +32,9 @@ public class AbstractResourceObjectDefinitionConfigItem<B extends ResourceObject
         super(original);
     }
 
-    void checkAttributeNames() throws ConfigurationException {
+    void checkSyntaxOfAttributeNames() throws ConfigurationException {
         for (var attrDefCI : getAttributes()) {
-            attrDefCI.getAttributeName();
+            attrDefCI.getAttributeNameSyntax();
         }
     }
 
@@ -72,11 +66,14 @@ public class AbstractResourceObjectDefinitionConfigItem<B extends ResourceObject
                 ResourceObjectTypeDefinitionType.F_ASSOCIATION);
     }
 
+    /**
+     * Scans only "attribute" elements, for now!
+     */
     public @Nullable ResourceAttributeDefinitionConfigItem getAttributeDefinitionIfPresent(ItemName attrName)
             throws ConfigurationException {
         List<ResourceAttributeDefinitionConfigItem> matching = new ArrayList<>();
         for (var attrDef : getAttributes()) {
-            if (QNameUtil.match(attrDef.getAttributeName(), attrName)) {
+            if (QNameUtil.match(attrDef.getAttributeNameSyntax(), attrName)) {
                 matching.add(attrDef);
             }
         }
@@ -86,9 +83,9 @@ public class AbstractResourceObjectDefinitionConfigItem<B extends ResourceObject
     public @Nullable ResourceObjectAssociationConfigItem getAssociationDefinitionIfPresent(ItemName assocName)
             throws ConfigurationException {
         List<ResourceObjectAssociationConfigItem> matching = new ArrayList<>();
-        for (var attrDef : getAssociations()) {
-            if (QNameUtil.match(attrDef.getAssociationName(), assocName)) {
-                matching.add(attrDef);
+        for (var assocDef : getAssociations()) {
+            if (QNameUtil.match(assocDef.getItemName(), assocName)) {
+                matching.add(assocDef);
             }
         }
         return single(matching, "Duplicate definition of association '%s' in %s", assocName, DESC);

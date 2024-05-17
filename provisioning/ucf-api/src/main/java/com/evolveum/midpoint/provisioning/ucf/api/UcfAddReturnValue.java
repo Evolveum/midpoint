@@ -14,7 +14,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
@@ -26,10 +26,10 @@ import org.jetbrains.annotations.Nullable;
  *
  * (Despite the superclass name, it is currently just a wrapper for returned data.)
  */
-public class UcfAddReturnValue extends AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> {
+public class UcfAddReturnValue extends AsynchronousOperationReturnValue<Collection<ShadowSimpleAttribute<?>>> {
 
     private UcfAddReturnValue(
-            @NotNull Collection<ResourceAttribute<?>> returnValue,
+            @NotNull Collection<ShadowSimpleAttribute<?>> returnValue,
             @NotNull OperationResult operationResult,
             @Nullable PendingOperationTypeType operationType) {
         super(returnValue, operationResult);
@@ -37,14 +37,14 @@ public class UcfAddReturnValue extends AsynchronousOperationReturnValue<Collecti
     }
 
     public static UcfAddReturnValue of(
-            @NotNull Collection<ResourceAttribute<?>> attributes,
+            @NotNull Collection<ShadowSimpleAttribute<?>> attributes,
             @NotNull OperationResult operationResult,
             @NotNull PendingOperationTypeType operationType) {
         return new UcfAddReturnValue(attributes, operationResult, operationType);
     }
 
     public static UcfAddReturnValue of(
-            @NotNull Collection<ResourceAttribute<?>> attributes,
+            @NotNull Collection<ShadowSimpleAttribute<?>> attributes,
             @NotNull OperationResult operationResult) {
         return new UcfAddReturnValue(attributes, operationResult, null);
     }
@@ -58,7 +58,7 @@ public class UcfAddReturnValue extends AsynchronousOperationReturnValue<Collecti
      *
      * @see ConnectorInstance#addObject(PrismObject, UcfExecutionContext, OperationResult)
      */
-    public @Nullable Collection<ResourceAttribute<?>> getKnownCreatedObjectAttributes() {
+    public @Nullable Collection<ShadowSimpleAttribute<?>> getKnownCreatedObjectAttributes() {
         return getReturnValue();
     }
 }

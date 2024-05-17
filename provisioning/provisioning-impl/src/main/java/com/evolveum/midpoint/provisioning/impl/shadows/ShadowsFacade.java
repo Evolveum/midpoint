@@ -30,7 +30,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.Shadow;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -70,7 +70,7 @@ public class ShadowsFacade {
     public @NotNull Shadow getShadow(
             @NotNull String oid,
             @Nullable RawRepoShadow repositoryShadow,
-            @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
+            @Nullable Collection<ShadowSimpleAttribute<?>> identifiersOverride,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull ProvisioningOperationContext context,
             @NotNull Task task,

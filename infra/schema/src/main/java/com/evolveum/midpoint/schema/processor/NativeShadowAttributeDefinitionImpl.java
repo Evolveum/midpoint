@@ -24,18 +24,20 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.processor.NativeShadowItemDefinition.NativeShadowItemDefinitionBuilder;
+import com.evolveum.midpoint.schema.processor.NativeShadowAttributeDefinition.NativeShadowAttributeDefinitionBuilder;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents native attribute or association. They have much in common:
+ * Represents native attribute (simple or reference).
+ *
+ * Why single class?
+ *
+ * Because they have much in common:
  *
  * . in ConnId, both are represented as ConnId attributes;
  * . also in XSD, both are represented as CTD items.
- *
- * So it is quite practical for them to be represented by a single class.
  *
  * The main reason is that the instantiation in schema XSOM parser would require reading custom (higher-level) annotations
  * before instantiating the target class. So, it is much simpler to keep both in a single class. It's no much harm, as this
@@ -43,12 +45,12 @@ import org.jetbrains.annotations.Nullable;
  *
  * TODO should we support processing ("ignored") here?
  */
-public class NativeShadowItemDefinitionImpl<T>
+public class NativeShadowAttributeDefinitionImpl<T>
         extends AbstractFreezable
         implements
-        NativeShadowItemDefinition, NativeShadowItemDefinitionBuilder,
-        NativeShadowAttributeDefinition<T>, NativeShadowAttributeDefinition.NativeShadowAttributeDefinitionBuilder<T>,
-        NativeShadowAssociationDefinition,
+        NativeShadowAttributeDefinition, NativeShadowAttributeDefinitionBuilder,
+        NativeShadowSimpleAttributeDefinition<T>, NativeShadowSimpleAttributeDefinition.NativeShadowAttributeDefinitionBuilder<T>,
+        NativeShadowReferenceAttributeDefinition,
         PrismItemBasicDefinition.Delegable, PrismItemBasicDefinition.Mutable.Delegable,
         PrismItemAccessDefinition.Delegable, PrismItemAccessDefinition.Mutable.Delegable,
         PrismItemMiscDefinition.Delegable, PrismItemMiscDefinition.Mutable.Delegable,
@@ -63,27 +65,25 @@ public class NativeShadowItemDefinitionImpl<T>
     @NotNull private final PrismItemMiscDefinition.Data prismItemMiscData = new PrismItemMiscDefinition.Data();
     @NotNull private final PrismPresentationDefinition.Data prismPresentationData = new PrismPresentationDefinition.Data();
     @NotNull private final ShadowItemUcfDefinition.Data ucfData = new ShadowItemUcfDefinition.Data();
-
-    // for attributes
     @NotNull private final PrismItemValuesDefinition.Data<T> prismItemValues = new PrismItemValuesDefinition.Data<>();
     @NotNull private final PrismItemMatchingDefinition.Data<T> prismItemMatching;
 
-    // for associations
-    private ShadowAssociationParticipantRole associationParticipantRole;
+    // for references
+    private ShadowReferenceParticipantRole referenceParticipantRole;
 
-    NativeShadowItemDefinitionImpl(@NotNull ItemName itemName, @NotNull QName typeName) {
+    NativeShadowAttributeDefinitionImpl(@NotNull ItemName itemName, @NotNull QName typeName) {
         this.prismItemBasicData = new PrismItemBasicDefinition.Data(itemName, typeName);
         this.prismItemMatching = new PrismItemMatchingDefinition.Data<>(typeName);
     }
 
     @SuppressWarnings("SameParameterValue") // The participant role is always SUBJECT for simulated associations (as of today)
-    static NativeShadowItemDefinitionImpl<?> forSimulatedAssociation(
-            @NotNull ItemName itemName, @NotNull QName typeName, @NotNull ShadowAssociationParticipantRole participantRole) {
+    static NativeShadowAttributeDefinitionImpl<?> forSimulatedAssociation(
+            @NotNull ItemName itemName, @NotNull QName typeName, @NotNull ShadowReferenceParticipantRole participantRole) {
         // Simulated associations cannot be connected to raw definitions (for now), so we can create our own definition
-        var simulatedNativeDef = new NativeShadowItemDefinitionImpl<>(itemName, typeName);
+        var simulatedNativeDef = new NativeShadowAttributeDefinitionImpl<>(itemName, typeName);
         simulatedNativeDef.setMinOccurs(0);
         simulatedNativeDef.setMaxOccurs(-1);
-        simulatedNativeDef.setAssociationParticipantRole(participantRole);
+        simulatedNativeDef.setReferenceParticipantRole(participantRole);
         simulatedNativeDef.freeze();
         return simulatedNativeDef;
     }
@@ -386,18 +386,18 @@ public class NativeShadowItemDefinitionImpl<T>
     }
 
     @Override
-    public @NotNull ShadowAssociationParticipantRole getAssociationParticipantRole() {
-        return Objects.requireNonNull(associationParticipantRole, "role");
+    public @NotNull ShadowReferenceParticipantRole getReferenceParticipantRole() {
+        return Objects.requireNonNull(referenceParticipantRole, "role");
     }
 
     @Override
-    public @Nullable ShadowAssociationParticipantRole getAssociationParticipantRoleIfPresent() {
-        return associationParticipantRole;
+    public @Nullable ShadowReferenceParticipantRole getReferenceParticipantRoleIfPresent() {
+        return referenceParticipantRole;
     }
 
     @Override
-    public void setAssociationParticipantRole(ShadowAssociationParticipantRole associationParticipantRole) {
-        this.associationParticipantRole = associationParticipantRole;
+    public void setReferenceParticipantRole(ShadowReferenceParticipantRole value) {
+        this.referenceParticipantRole = value;
     }
 
     @Override
@@ -438,13 +438,13 @@ public class NativeShadowItemDefinitionImpl<T>
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
-    public NativeShadowItemDefinitionImpl<T> clone() {
-        NativeShadowItemDefinitionImpl<T> clone = new NativeShadowItemDefinitionImpl<>(getItemName(), getTypeName());
+    public NativeShadowAttributeDefinitionImpl<T> clone() {
+        NativeShadowAttributeDefinitionImpl<T> clone = new NativeShadowAttributeDefinitionImpl<>(getItemName(), getTypeName());
         clone.copyFrom(this);
         return clone;
     }
 
-    protected void copyFrom(NativeShadowItemDefinitionImpl<T> source) {
+    private void copyFrom(NativeShadowAttributeDefinitionImpl<T> source) {
         prismItemBasicData.copyFrom(source.prismItemBasicData);
         prismItemAccessData.copyFrom(source.prismItemAccessData);
         prismItemMiscData.copyFrom(source.prismItemMiscData);
@@ -452,7 +452,7 @@ public class NativeShadowItemDefinitionImpl<T>
         ucfData.copyFrom(source.ucfData);
         prismItemValues.copyFrom(source.prismItemValues);
         prismItemMatching.copyFrom(source.prismItemMatching);
-        this.associationParticipantRole = source.associationParticipantRole;
+        this.referenceParticipantRole = source.referenceParticipantRole;
     }
 
     @Override
@@ -476,22 +476,46 @@ public class NativeShadowItemDefinitionImpl<T>
         if (matchingRuleQName != null) {
             sb.append(", MR=").append(PrettyPrinter.prettyPrint(matchingRuleQName));
         }
-        if (isAssociation()) {
-            sb.append(", r=").append(associationParticipantRole);
+        if (isReference()) {
+            sb.append(", r=").append(referenceParticipantRole);
         }
         return sb.toString();
     }
 
-    String getDebugDumpClassName() {
-        if (isAssociation()) {
-            return "NativeAssocDef";
+    private String getDebugDumpClassName() {
+        if (isReference()) {
+            return "NativeRefAttrDef";
         } else {
-            return "NativeAttrDef";
+            return "NativeSimpleAttrDef";
         }
     }
 
-    public boolean isAssociation() {
-        return associationParticipantRole != null;
+    @Override
+    public boolean isReference() {
+        return referenceParticipantRole != null;
+    }
+
+    @Override
+    public boolean isSimple() {
+        return !isReference();
+    }
+
+    @Override
+    public @NotNull NativeShadowSimpleAttributeDefinition<?> asSimple() {
+        if (isSimple()) {
+            return this;
+        } else {
+            throw new IllegalStateException("Not a simple attribute definition: " + this);
+        }
+    }
+
+    @Override
+    public @NotNull NativeShadowReferenceAttributeDefinition asReference() {
+        if (isReference()) {
+            return this;
+        } else {
+            throw new IllegalStateException("Not a reference attribute definition: " + this);
+        }
     }
 
     /**
@@ -511,7 +535,7 @@ public class NativeShadowItemDefinitionImpl<T>
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        NativeShadowItemDefinitionImpl<?> that = (NativeShadowItemDefinitionImpl<?>) o;
+        NativeShadowAttributeDefinitionImpl<?> that = (NativeShadowAttributeDefinitionImpl<?>) o;
         return Objects.equals(prismItemBasicData, that.prismItemBasicData)
                 && Objects.equals(prismItemAccessData, that.prismItemAccessData)
                 && Objects.equals(prismItemMiscData, that.prismItemMiscData)
@@ -519,11 +543,11 @@ public class NativeShadowItemDefinitionImpl<T>
                 && Objects.equals(ucfData, that.ucfData)
                 && Objects.equals(prismItemValues, that.prismItemValues)
                 && Objects.equals(prismItemMatching, that.prismItemMatching)
-                && associationParticipantRole == that.associationParticipantRole;
+                && referenceParticipantRole == that.referenceParticipantRole;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(prismItemBasicData, prismItemAccessData, prismItemMiscData, prismPresentationData, ucfData, prismItemValues, prismItemMatching, associationParticipantRole);
+        return Objects.hash(prismItemBasicData, prismItemAccessData, prismItemMiscData, prismPresentationData, ucfData, prismItemValues, prismItemMatching, referenceParticipantRole);
     }
 }

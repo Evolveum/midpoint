@@ -39,7 +39,7 @@ import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTe
 import com.evolveum.midpoint.provisioning.impl.mock.SimulationTransactionMock;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.task.api.SimulationData;
@@ -794,7 +794,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 .beginAttributes()
                 .<ShadowType>end()
                 .asPrismObject();
-        ResourceAttribute<String> nameAttr = resource.controller.createAccountAttribute(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttribute<String> nameAttr = resource.controller.createAccountAttribute(SchemaConstants.ICFS_NAME);
         nameAttr.setRealValue(name);
         shadow.findContainer(ShadowType.F_ATTRIBUTES).getValue().add(nameAttr);
         return shadow;

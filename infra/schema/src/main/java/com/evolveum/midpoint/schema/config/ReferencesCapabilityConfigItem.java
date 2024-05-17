@@ -15,27 +15,27 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AssociationsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReferencesCapabilityType;
 
-public class AssociationsCapabilityConfigItem
-        extends ConfigurationItem<AssociationsCapabilityType> {
+public class ReferencesCapabilityConfigItem
+        extends ConfigurationItem<ReferencesCapabilityType> {
 
     @SuppressWarnings("unused") // called dynamically
-    public AssociationsCapabilityConfigItem(@NotNull ConfigurationItem<AssociationsCapabilityType> original) {
+    public ReferencesCapabilityConfigItem(@NotNull ConfigurationItem<ReferencesCapabilityType> original) {
         super(original);
     }
 
     @SuppressWarnings("WeakerAccess")
-    public @NotNull List<SimulatedAssociationClassConfigItem> getAssociationClasses() {
+    public @NotNull List<SimulatedReferenceTypeConfigItem> getReferenceTypes() {
         return children(
-                value().getAssociationClass(),
-                SimulatedAssociationClassConfigItem.class,
-                AssociationsCapabilityType.F_ASSOCIATION_CLASS);
+                value().getType(),
+                SimulatedReferenceTypeConfigItem.class,
+                ReferencesCapabilityType.F_TYPE);
     }
 
-    public SimulatedAssociationClassConfigItem getAssociationClass(@NotNull QName className) throws ConfigurationException {
-        List<SimulatedAssociationClassConfigItem> matching = new ArrayList<>();
-        for (SimulatedAssociationClassConfigItem ac : getAssociationClasses()) {
+    public SimulatedReferenceTypeConfigItem getAssociationClass(@NotNull QName className) throws ConfigurationException {
+        List<SimulatedReferenceTypeConfigItem> matching = new ArrayList<>();
+        for (SimulatedReferenceTypeConfigItem ac : getReferenceTypes()) {
             if (QNameUtil.match(className, ac.getName())) {
                 matching.add(ac);
             }

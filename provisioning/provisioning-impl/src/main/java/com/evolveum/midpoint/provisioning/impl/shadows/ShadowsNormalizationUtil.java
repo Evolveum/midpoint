@@ -23,7 +23,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.schema.processor.NormalizationAwareResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -85,8 +85,8 @@ public class ShadowsNormalizationUtil {
         }
 
         QName attrName = eqFilter.getElementName();
-        ResourceAttributeDefinition<?> attrDef =
-                objectDef.findAttributeDefinitionRequired(attrName, () -> "in filter " + eqFilter);
+        ShadowSimpleAttributeDefinition<?> attrDef =
+                objectDef.findSimpleAttributeDefinitionRequired(attrName, () -> "in filter " + eqFilter);
 
         if (attrDef.getNormalizer().isIdentity()) {
             return;

@@ -226,7 +226,7 @@ class EntitlementConverter {
                 subjectCtx.setAssociationShadowRef(iterableAssociationValue.value().getShadowRef());
             }
 
-            ShadowAssociationDefinition associationDef = getAssociationDefinition(associationName);
+            ShadowReferenceAttributeDefinition associationDef = getAssociationDefinition(associationName);
             if (!isSimulatedObjectToSubject(associationDef) // The other direction is processed elsewhere (see transformToSubjectOps).
                     || !isVisible(associationDef, subjectCtx)
                     || !doesMatchSubjectDelineation(associationDef, subjectCtx)) {
@@ -401,7 +401,7 @@ class EntitlementConverter {
     //endregion
 
     //region Common
-    private @NotNull ShadowAssociationDefinition getAssociationDefinition(@NotNull ItemName associationValue)
+    private @NotNull ShadowReferenceAttributeDefinition getAssociationDefinition(@NotNull ItemName associationValue)
             throws SchemaException {
         return subjectCtx.findAssociationDefinitionRequired(associationValue);
     }
@@ -433,7 +433,7 @@ class EntitlementConverter {
         }
 
         <T> @NotNull PropertyModificationOperation<T> findOrCreateOperation(
-                ResourceAttributeDefinition<T> assocAttrDef, QName matchingRuleName) {
+                ShadowSimpleAttributeDefinition<T> assocAttrDef, QName matchingRuleName) {
             ItemName assocAttrName = assocAttrDef.getItemName();
             //noinspection unchecked
             PropertyModificationOperation<T> attributeOperation = (PropertyModificationOperation<T>) get(assocAttrName);

@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,10 +30,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelatorDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 
 /**
  * An attribute definition (obtained typically from the connector),
@@ -43,31 +41,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDef
  * This class intentionally does NOT inherit from {@link PrismPropertyDefinitionImpl}. Instead, a large part of the required
  * functionality is delegated to {@link #nativeDefinition} which provides analogous functionality.
  *
- * @see NativeShadowAttributeDefinition
+ * @see NativeShadowSimpleAttributeDefinition
  */
-public class ResourceAttributeDefinitionImpl<T>
-        extends ShadowItemDefinitionImpl<ResourceAttribute<T>, T, NativeShadowAttributeDefinition<T>, ResourceAttributeDefinitionType>
-        implements ResourceAttributeDefinition<T>, ShadowItemDefinitionTemp {
+public class ShadowSimpleAttributeDefinitionImpl<T>
+        extends ShadowAttributeDefinitionImpl<ShadowSimpleAttribute<T>, T, NativeShadowSimpleAttributeDefinition<T>>
+        implements ShadowSimpleAttributeDefinition<T>, ShadowItemDefinitionTemp {
 
-    private ResourceAttributeDefinitionImpl(
-            @NotNull NativeShadowAttributeDefinition<T> nativeDefinition,
+    private ShadowSimpleAttributeDefinitionImpl(
+            @NotNull NativeShadowSimpleAttributeDefinition<T> nativeDefinition,
             @NotNull ResourceAttributeDefinitionType customizationBean,
             boolean ignored) throws SchemaException {
         super(nativeDefinition, customizationBean, ignored);
     }
 
-    private ResourceAttributeDefinitionImpl(
+    private ShadowSimpleAttributeDefinitionImpl(
             @NotNull LayerType layer,
-            @NotNull NativeShadowAttributeDefinition<T> nativeDefinition,
-            @NotNull ResourceAttributeDefinitionType customizationBean,
+            @NotNull NativeShadowSimpleAttributeDefinition<T> nativeDefinition,
+            @NotNull ResourceItemDefinitionType customizationBean,
             @NotNull Map<LayerType, PropertyLimitations> limitationsMap,
             @NotNull PropertyAccessType accessOverride) {
         super(layer, nativeDefinition, customizationBean, limitationsMap, accessOverride);
     }
 
     @Override
-    ResourceAttribute<T> instantiateFromQualifiedName(QName name) {
-        return new ResourceAttributeImpl<>(name, this);
+    ShadowSimpleAttribute<T> instantiateFromQualifiedName(QName name) {
+        return new ShadowSimpleAttributeImpl<>(name, this);
     }
 
     /**
@@ -75,13 +73,13 @@ public class ResourceAttributeDefinitionImpl<T>
      *
      * @throws SchemaException If there's a problem with the customization bean.
      */
-    public static <T> ResourceAttributeDefinition<T> create(
-            @NotNull NativeShadowAttributeDefinition<T> nativeDefinition,
+    public static <T> ShadowSimpleAttributeDefinition<T> create(
+            @NotNull NativeShadowSimpleAttributeDefinition<T> nativeDefinition,
             @Nullable ResourceAttributeDefinitionType customizationBean,
             boolean ignored)
             throws SchemaException {
 
-        return new ResourceAttributeDefinitionImpl<>(
+        return new ShadowSimpleAttributeDefinitionImpl<>(
                 toImmutable(nativeDefinition),
                 toImmutable(customizationBean != null ?
                         customizationBean : new ResourceAttributeDefinitionType()),
@@ -89,16 +87,16 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     /** This is the creation point from native form only. */
-    public static <T> ResourceAttributeDefinition<T> create(
-            @NotNull NativeShadowAttributeDefinition<T> nativeDefinition) throws SchemaException {
+    public static <T> ShadowSimpleAttributeDefinition<T> create(
+            @NotNull NativeShadowSimpleAttributeDefinition<T> nativeDefinition) throws SchemaException {
         return create(nativeDefinition, null, false);
     }
 
-    public @NotNull ResourceAttributeDefinitionImpl<T> forLayer(@NotNull LayerType layer) {
+    public @NotNull ShadowSimpleAttributeDefinitionImpl<T> forLayer(@NotNull LayerType layer) {
         if (layer == currentLayer) {
             return this;
         } else {
-            return new ResourceAttributeDefinitionImpl<>(
+            return new ShadowSimpleAttributeDefinitionImpl<>(
                     layer,
                     nativeDefinition,
                     customizationBean,
@@ -111,8 +109,8 @@ public class ResourceAttributeDefinitionImpl<T>
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @NotNull
     @Override
-    public ResourceAttributeDefinitionImpl<T> clone() {
-        return new ResourceAttributeDefinitionImpl<>(
+    public ShadowSimpleAttributeDefinitionImpl<T> clone() {
+        return new ShadowSimpleAttributeDefinitionImpl<>(
                 currentLayer,
                 nativeDefinition,
                 customizationBean,
@@ -176,7 +174,7 @@ public class ResourceAttributeDefinitionImpl<T>
     }
 
     @Override
-    public ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
+    public ShadowSimpleAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation) {
         // No deep cloning, because the constituents are immutable.
         return clone();
     }
@@ -194,7 +192,7 @@ public class ResourceAttributeDefinitionImpl<T>
 
     @Override
     public String getDebugDumpClassName() {
-        return "RAD";
+        return "SSimpleAttrDef";
     }
 
     @Override
@@ -237,7 +235,7 @@ public class ResourceAttributeDefinitionImpl<T>
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ResourceAttributeDefinitionImpl<?> that)) {
+        if (!(o instanceof ShadowSimpleAttributeDefinitionImpl<?> that)) {
             return false;
         }
         return super.equals(o); // no own fields to compare

@@ -15,7 +15,6 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -26,8 +25,8 @@ import org.identityconnectors.framework.common.objects.ConnectorObject;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -114,23 +113,23 @@ class ConnIdObjectConvertor {
     }
 
     @NotNull Set<Attribute> convertFromResourceObjectToConnIdAttributes(
-            @NotNull ResourceAttributeContainer attributesPrism,
+            @NotNull ShadowAttributesContainer attributesPrism,
             ResourceObjectDefinition ocDef) throws SchemaException {
-        Collection<ResourceAttribute<?>> resourceAttributes = attributesPrism.getAttributes();
-        return convertFromResourceObjectToConnIdAttributes(resourceAttributes, ocDef);
+        Collection<ShadowSimpleAttribute<?>> simpleAttributes = attributesPrism.getAttributes();
+        return convertFromResourceObjectToConnIdAttributes(simpleAttributes, ocDef);
     }
 
     private @NotNull Set<Attribute> convertFromResourceObjectToConnIdAttributes(
-            Collection<ResourceAttribute<?>> mpResourceAttributes, ResourceObjectDefinition ocDef)
+            Collection<ShadowSimpleAttribute<?>> mpSimpleAttributes, ResourceObjectDefinition ocDef)
             throws SchemaException {
         Set<Attribute> attributes = new HashSet<>();
-        for (ResourceAttribute<?> attribute : emptyIfNull(mpResourceAttributes)) {
+        for (ShadowSimpleAttribute<?> attribute : emptyIfNull(mpSimpleAttributes)) {
             attributes.add(convertToConnIdAttribute(attribute, ocDef));
         }
         return attributes;
     }
 
-    private Attribute convertToConnIdAttribute(ResourceAttribute<?> mpAttribute, ResourceObjectDefinition ocDef)
+    private Attribute convertToConnIdAttribute(ShadowSimpleAttribute<?> mpAttribute, ResourceObjectDefinition ocDef)
             throws SchemaException {
         QName midPointAttrQName = mpAttribute.getElementName();
         if (midPointAttrQName.equals(SchemaConstants.ICFS_UID)) {

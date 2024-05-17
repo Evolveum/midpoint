@@ -30,33 +30,33 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 import static org.apache.commons.lang3.ClassUtils.primitiveToWrapper;
 
-public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements ResourceAttribute<T> {
+public class ShadowSimpleAttributeImpl<T> extends PrismPropertyImpl<T> implements ShadowSimpleAttribute<T> {
 
     @Serial private static final long serialVersionUID = -6149194956029296486L;
 
-    ResourceAttributeImpl(QName name, ResourceAttributeDefinition<T> definition) {
+    ShadowSimpleAttributeImpl(QName name, ShadowSimpleAttributeDefinition<T> definition) {
         super(name, definition);
     }
 
     @Override
-    public ResourceAttributeDefinition<T> getDefinition() {
-        return (ResourceAttributeDefinition<T>) super.getDefinition();
+    public ShadowSimpleAttributeDefinition<T> getDefinition() {
+        return (ShadowSimpleAttributeDefinition<T>) super.getDefinition();
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
-    public ResourceAttribute<T> clone() {
+    public ShadowSimpleAttribute<T> clone() {
         return cloneComplex(CloneStrategy.LITERAL);
     }
 
     @Override
-    public ResourceAttribute<T> cloneComplex(CloneStrategy strategy) {
-        ResourceAttributeImpl<T> clone = new ResourceAttributeImpl<>(getElementName(), getDefinition());
+    public ShadowSimpleAttribute<T> cloneComplex(CloneStrategy strategy) {
+        ShadowSimpleAttributeImpl<T> clone = new ShadowSimpleAttributeImpl<>(getElementName(), getDefinition());
         copyValues(strategy, clone);
         return clone;
     }
 
-    protected void copyValues(CloneStrategy strategy, ResourceAttributeImpl<T> clone) {
+    protected void copyValues(CloneStrategy strategy, ShadowSimpleAttributeImpl<T> clone) {
         super.copyValues(strategy, clone);
         // Nothing to copy
     }
@@ -73,9 +73,9 @@ public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements Re
     protected void checkDefinition(@NotNull PrismPropertyDefinition<T> def) {
         super.checkDefinition(def);
         Preconditions.checkArgument(
-                def instanceof ResourceAttributeDefinition,
+                def instanceof ShadowSimpleAttributeDefinition,
                 "Definition should be %s not %s" ,
-                ResourceAttributeDefinition.class.getSimpleName(), definition.getClass().getName());
+                ShadowSimpleAttributeDefinition.class.getSimpleName(), definition.getClass().getName());
     }
 
     @Override
@@ -85,11 +85,11 @@ public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements Re
         List<T> oldRealValues = List.copyOf(getRealValues());
         clear();
 
-        addNormalizedValues(oldRealValues, (ResourceAttributeDefinition<T>) newDefinition);
+        addNormalizedValues(oldRealValues, (ShadowSimpleAttributeDefinition<T>) newDefinition);
     }
 
     @Override
-    public void addNormalizedValues(@NotNull Collection<?> realValues, @NotNull ResourceAttributeDefinition<T> newDefinition)
+    public void addNormalizedValues(@NotNull Collection<?> realValues, @NotNull ShadowSimpleAttributeDefinition<T> newDefinition)
             throws SchemaException {
         Normalizer<T> normalizer = newDefinition.getNormalizer();
         Normalizer<String> polyStringNormalizer =
@@ -211,7 +211,7 @@ public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements Re
             Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope) {
         super.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw, scope);
 
-        ResourceAttributeDefinition<T> definition = getDefinition();
+        ShadowSimpleAttributeDefinition<T> definition = getDefinition();
         if (!scope.isThorough() || definition == null) {
             return;
         }
@@ -228,7 +228,7 @@ public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements Re
     }
 
     @Override
-    public void addValueSkipUniquenessCheck(PrismPropertyValue<T> value) throws SchemaException {
+    public void addValueSkipUniquenessCheck(PrismPropertyValue<T> value) {
         // This also recomputes the value, so e.g. computes the "norm" for polystrings.
         // It may be good or not; nevertheless, it makes TestOpenDjDumber.test478b to pass.
         addValue(value, false);

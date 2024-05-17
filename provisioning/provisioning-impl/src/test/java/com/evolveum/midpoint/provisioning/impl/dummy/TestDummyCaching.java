@@ -13,9 +13,7 @@ import static org.testng.AssertJUnit.*;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -24,8 +22,6 @@ import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
 import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
-
-import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -44,11 +40,10 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -260,7 +255,7 @@ public class TestDummyCaching extends TestDummy {
 
             assertAttribute(shadow, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
             assertAttribute(shadow, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
-            Collection<ResourceAttribute<?>> attributes = shadow.getAttributes();
+            Collection<ShadowSimpleAttribute<?>> attributes = shadow.getAttributes();
             assertEquals("Unexpected number of attributes", 7, attributes.size());
 
             var shadowRepo = assertRepoShadowNew(ACCOUNT_WILL_OID)
@@ -376,7 +371,7 @@ public class TestDummyCaching extends TestDummy {
         account.replaceAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, values);
 
         if (useSearch) {
-            ResourceAttributeDefinition<?> nameDef = getAccountAttrDef(SchemaConstants.ICFS_NAME);
+            ShadowSimpleAttributeDefinition<?> nameDef = getAccountAttrDef(SchemaConstants.ICFS_NAME);
 
             // @formatter:off
             ObjectQuery query = prismContext.queryFor(ShadowType.class)
@@ -424,7 +419,7 @@ public class TestDummyCaching extends TestDummy {
 
     @Override
     protected @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
-        return getAccountDefaultDefinition().getAttributeDefinitions().stream()
+        return getAccountDefaultDefinition().getSimpleAttributeDefinitions().stream()
                 .map(def -> def.getItemName())
                 .toList();
     }
