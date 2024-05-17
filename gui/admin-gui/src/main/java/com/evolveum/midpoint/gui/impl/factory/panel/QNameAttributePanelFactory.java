@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.input.converter.AutoCompleteDisplayableValueConverter;
+import com.evolveum.midpoint.gui.impl.converter.QNameConverter;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -22,6 +23,8 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.prism_schema_3.PrismItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.prism_schema_3.PrismSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
@@ -50,13 +53,26 @@ public class QNameAttributePanelFactory extends DropDownChoicePanelFactory imple
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        return (ResourceObjectAssociationType.F_ASSOCIATION_ATTRIBUTE.equals(wrapper.getItemName())
+        if (!DOMUtil.XSD_QNAME.equals(wrapper.getTypeName())) {
+            return false;
+        }
+
+        if (ResourceObjectAssociationType.F_ASSOCIATION_ATTRIBUTE.equals(wrapper.getItemName())
                 || ResourceObjectAssociationType.F_VALUE_ATTRIBUTE.equals(wrapper.getItemName())
                 || ResourceObjectAssociationType.F_SHORTCUT_ASSOCIATION_ATTRIBUTE.equals(wrapper.getItemName())
                 || ResourceObjectAssociationType.F_SHORTCUT_VALUE_ATTRIBUTE.equals(wrapper.getItemName())
                 || ActivationStatusCapabilityType.F_ATTRIBUTE.equivalent(wrapper.getItemName())
-                || PagedSearchCapabilityType.F_DEFAULT_SORT_FIELD.equivalent(wrapper.getItemName()))
-                && DOMUtil.XSD_QNAME.equals(wrapper.getTypeName());
+                || PagedSearchCapabilityType.F_DEFAULT_SORT_FIELD.equivalent(wrapper.getItemName())) {
+            return true;
+        }
+
+        if (wrapper.getParentContainerValue(PrismSchemaType.class) != null
+                && (PrismItemDefinitionType.F_NAME.equivalent(wrapper.getItemName())
+                || PrismItemDefinitionType.F_TYPE.equivalent(wrapper.getItemName()))) {
+            return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -111,21 +127,7 @@ public class QNameAttributePanelFactory extends DropDownChoicePanelFactory imple
 
                     @Override
                     protected <C> IConverter<C> getAutoCompleteConverter(Class<C> type, IConverter<C> originConverter) {
-                        return (IConverter<C>) new AutoCompleteDisplayableValueConverter<QName>(values, false) {
-                            @Override
-                            protected QName valueToObject(String value) {
-                                if (value.contains(":")) {
-                                    int index = value.indexOf(":");
-                                    return new QName(null, value.substring(index + 1), value.substring(0, index));
-                                }
-                                return new QName(value);
-                            }
-
-                            @Override
-                            protected String keyToString(QName key) {
-                                return StringUtils.isNotEmpty(key.getPrefix()) ? key.getPrefix() + ":" + key.getLocalPart() : key.getLocalPart();
-                            }
-                        };
+                        return (IConverter<C>) new QNameConverter(values);
                     }
                 };
                 panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());

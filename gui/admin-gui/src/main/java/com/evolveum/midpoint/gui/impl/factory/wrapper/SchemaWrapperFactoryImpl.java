@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismSchemaWrapper;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.util.PrismSchemaTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -79,6 +80,11 @@ public class SchemaWrapperFactoryImpl
         }
 
         return createWrapper(parent, childItem, status, context);
+    }
+
+    @Override
+    PrismContainerWrapper<PrismSchemaType> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<PrismSchemaType> childContainer, ItemStatus status) {
+        return new PrismSchemaWrapper(parent, childContainer, status);
     }
 
     //    @Override

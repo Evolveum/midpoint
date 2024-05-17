@@ -3795,13 +3795,29 @@ public final class WebComponentUtil {
             }
         }
 
+        if (panelConfig != null && objectDetailsModels.containsModelForSubmenu(panelConfig.getIdentifier())) {
+            try {
+                Panel panel = ConstructorUtils.invokeConstructor(
+                        panelClass,
+                        markupId,
+                        objectDetailsModels,
+                        objectDetailsModels.getModelForSubmenu(panelConfig.getIdentifier()),
+                        panelConfig);
+                panel.setOutputMarkupId(true);
+                return panel;
+            } catch (Throwable e) {
+                LOGGER.trace("No constructor found for (String, ObjectDetailsModels, IModel, ContainerPanelConfigurationType). Continue with lookup.", e);
+                return null;
+            }
+        }
+
         try {
             Panel panel = ConstructorUtils.invokeConstructor(panelClass, markupId, objectDetailsModels, panelConfig);
             panel.setOutputMarkupId(true);
             return panel;
         } catch (Throwable e) {
             e.printStackTrace();
-            LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
+            LOGGER.trace("No constructor found for (String, ObjectDetailsModels, ContainerPanelConfigurationType). Continue with lookup.", e);
         }
         return null;
     }

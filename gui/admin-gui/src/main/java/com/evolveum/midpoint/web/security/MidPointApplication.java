@@ -16,6 +16,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import javax.xml.datatype.Duration;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.impl.converter.*;
 
 import jakarta.servlet.ServletContext;
 import org.apache.commons.configuration2.Configuration;
@@ -81,10 +84,6 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.converter.CleanupPoliciesTypeConverter;
-import com.evolveum.midpoint.gui.impl.converter.DurationConverter;
-import com.evolveum.midpoint.gui.impl.converter.PolyStringConverter;
-import com.evolveum.midpoint.gui.impl.converter.QueryTypeConverter;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
 import com.evolveum.midpoint.model.api.*;
@@ -421,6 +420,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         locator.set(Duration.class, new DurationConverter());
         locator.set(QueryType.class, new QueryTypeConverter(prismContext));
         locator.set(CleanupPoliciesType.class, new CleanupPoliciesTypeConverter(prismContext));
+        locator.set(QName.class, new QNameConverter());
         return locator;
     }
 

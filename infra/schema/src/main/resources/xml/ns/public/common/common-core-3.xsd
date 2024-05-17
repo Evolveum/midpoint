@@ -21298,6 +21298,7 @@
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
+                    <xsd:element name="namespace" type="xsd:string" minOccurs="1"/>
                     <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>

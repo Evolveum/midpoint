@@ -49,9 +49,9 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 @PanelType(name = "schemaPanel")
-@PanelInstance(identifier = "schemaPanel",
-        applicableForType = SchemaType.class,
-        display = @PanelDisplay(label = "SchemaPanelOld.title", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 25))
+//@PanelInstance(identifier = "schemaPanel",
+//        applicableForType = SchemaType.class,
+//        display = @PanelDisplay(label = "SchemaPanelOld.title", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 25))
 public class SchemaPanelOld<T extends DefinitionDto> extends AbstractObjectMainPanel<SchemaType, SchemaDetailsModel> {
 
     private static final String ID_DEFS = "defs";
@@ -135,7 +135,7 @@ public class SchemaPanelOld<T extends DefinitionDto> extends AbstractObjectMainP
             @Override
             protected void populateItem(ListItem<T> item) {
                 if (item.getModelObject() instanceof ComplexTypeDefinitionDto) {
-                    ComplexTypeDefinitionPanel panel = new ComplexTypeDefinitionPanel("definition", (IModel<ComplexTypeDefinitionDto>) item.getModel());
+                    ComplexTypeDefinitionPanelOld panel = new ComplexTypeDefinitionPanelOld("definition", (IModel<ComplexTypeDefinitionDto>) item.getModel());
                     item.add(panel);
                 } else if (item.getModelObject() instanceof EnumerationTypeDefinitionDto) {
                     EnumerationTypeDefinitionPanel panel = new EnumerationTypeDefinitionPanel("definition", (IModel<EnumerationTypeDefinitionDto>) item.getModel());
