@@ -1075,6 +1075,9 @@
             <xsd:documentation>
                 A scenario for GeneralChangeProcessor.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true">
@@ -1383,6 +1386,9 @@
                 TODO Replace by forms eventually
                 TEMPORARY
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="order" type="xsd:int" minOccurs="0" />

@@ -2762,6 +2762,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
+                        <a:container>true</a:container>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

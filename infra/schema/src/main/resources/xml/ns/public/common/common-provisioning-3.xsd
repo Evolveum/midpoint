@@ -2899,6 +2899,7 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -5812,6 +5813,9 @@
                 Complex description of a synchronization situation. It describes the resulting situation
                 but also when it happened (timestamp) and from where it originated (channel).
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="situation" type="tns:SynchronizationSituationType"/>
