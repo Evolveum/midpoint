@@ -55,12 +55,36 @@ public class ThreeWayMerge<O extends ObjectType> {
         this.strategy = strategy;
     }
 
-    public void initialize() {
+    private void initialize() {
         ObjectDelta<O> baseToLeft = base.diff(left, strategy);
         ObjectDelta<O> baseToRight = base.diff(right, strategy);
 
         leftDelta = ObjectTreeDelta.fromItemDelta(baseToLeft);
         rightDelta = ObjectTreeDelta.fromItemDelta(baseToRight);
+    }
+
+    public PrismObject<O> getBase() {
+        return base;
+    }
+
+    public PrismObject<O> getLeft() {
+        return left;
+    }
+
+    public ObjectTreeDelta<O> getLeftDelta() {
+        return leftDelta;
+    }
+
+    public PrismObject<O> getRight() {
+        return right;
+    }
+
+    public ObjectTreeDelta<O> getRightDelta() {
+        return rightDelta;
+    }
+
+    public ParameterizedEquivalenceStrategy getStrategy() {
+        return strategy;
     }
 
     public Collection<? extends ItemDelta<?, ?>> getNonConflictingModifications(

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.merger;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,11 +15,15 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
 import com.evolveum.midpoint.schema.delta.Conflict;
+import com.evolveum.midpoint.schema.delta.Direction;
 import com.evolveum.midpoint.schema.delta.ObjectTreeDelta;
+import com.evolveum.midpoint.schema.delta.ThreeWayMerge;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -178,6 +183,12 @@ public class TreeDeltaTest extends AbstractSchemaTest {
 
         final String oid = UUID.randomUUID().toString();
 
+        UserType user = new UserType();
+        user.setName(new PolyStringType("user"));
+        ActivationType a = new ActivationType();
+        a.setAdministrativeStatus(ActivationStatusType.DISABLED);
+        user.setActivation(a);
+
         // GIVEN
         ActivationType a1 = new ActivationType()
                 .administrativeStatus(ActivationStatusType.DISABLED)
@@ -189,7 +200,7 @@ public class TreeDeltaTest extends AbstractSchemaTest {
                 .asObjectDelta(oid);
 
         ObjectDelta<UserType> rightToBase = ctx.deltaFor(UserType.class)
-                .item(UserType.F_ACTIVATION, ActivationType.F_DISABLE_REASON).add(List.of("New description"))
+                .item(UserType.F_ACTIVATION, ActivationType.F_DISABLE_REASON).add(List.of("New reason"))
                 .asObjectDelta(oid);
 
         // WHEN
@@ -197,9 +208,22 @@ public class TreeDeltaTest extends AbstractSchemaTest {
         ObjectTreeDelta<UserType> rightTreeDelta = toObjectTreeDelta(rightToBase);
 
         // THEN
-        List<Conflict> conflicts = leftTreeDelta.getConflictsWith(rightTreeDelta);
+        Collection<Conflict> conflicts = leftTreeDelta.getConflictsWith(rightTreeDelta);
         conflicts.forEach(System.out::println);
 
+        ThreeWayMerge<UserType> merge = new ThreeWayMerge<>(
+                leftToBase, rightToBase, user.asPrismObject(), EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS);
+
+        Collection<? extends ItemDelta<?, ?>> leftToRight = merge.getNonConflictingModifications(
+                Direction.LEFT_TO_RIGHT, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS);
+        Collection<? extends ItemDelta<?, ?>> rightToLeft = merge.getNonConflictingModifications(
+                Direction.RIGHT_TO_LEFT, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS);
+        Collection<Conflict> conflicting = merge.getConflictingModifications();
+        if (conflicts.isEmpty()) {
+            // no problem....
+        }
+
         AssertJUnit.assertFalse(conflicts.isEmpty());
+
     }
 }
