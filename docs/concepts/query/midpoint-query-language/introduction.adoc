@@ -427,7 +427,7 @@ a| * value (string) - string value that is compared with queried attribute.
 | Matches objects where queried attribute has similarity *greater than* (or equal - depends on inclusive parameter value) the threshold specified. +
 Similarity of 1 mean exact match, 0 no similarity.
 a| * value (string) - string value that is compared with queried attribute.
-* threshold (integer) - the compared distance value. The result must be greater than (or equal) the threshold.
+* threshold (float) - the compared distance value. The result must be greater than (or equal) the threshold.
 * inclusive (boolean) - whether objects with threshold value would be included in result (true) or not (false).
 |===
 
