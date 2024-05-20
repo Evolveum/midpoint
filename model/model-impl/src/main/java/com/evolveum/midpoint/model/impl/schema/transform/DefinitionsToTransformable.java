@@ -4,7 +4,7 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemDefinitionTransformer;
 import com.evolveum.midpoint.prism.TypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 
 public class DefinitionsToTransformable implements ItemDefinitionTransformer {
@@ -32,8 +32,8 @@ public class DefinitionsToTransformable implements ItemDefinitionTransformer {
         }
         // Parent is transformable
         if (parentDef instanceof TransformableComplexTypeDefinition) {
-            if (currentDef instanceof ResourceAttributeDefinition) {
-                return (I) TransformablePropertyDefinition.of((ResourceAttributeDefinition) currentDef);
+            if (currentDef instanceof ShadowSimpleAttributeDefinition) {
+                return (I) TransformablePropertyDefinition.of((ShadowSimpleAttributeDefinition) currentDef);
             }
             if (currentDef instanceof ResourceAttributeContainerDefinition) {
                 return (I) TransformableContainerDefinition.of((ResourceAttributeContainerDefinition) currentDef);

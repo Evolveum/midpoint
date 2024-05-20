@@ -13,7 +13,7 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.AttributePath;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 
@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.evolveum.midpoint.prism.delta.PropertyDeltaCollectionsUtil.findPropertyDelta;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Modifications to be applied to the repository shadow, either in the repository
@@ -73,7 +72,7 @@ public class RepoShadowModifications implements DebugDumpable {
             Optional<AttributePath> attributePath = AttributePath.optionalOf(modification.getPath());
             if (attributePath.isPresent()) {
                 add(modification,
-                        objectDefinition.findAttributeDefinitionRequired(attributePath.get().getAttributeName()));
+                        objectDefinition.findSimpleAttributeDefinitionRequired(attributePath.get().getAttributeName()));
             } else {
                 add(modification);
             }
@@ -98,7 +97,7 @@ public class RepoShadowModifications implements DebugDumpable {
         }
     }
 
-    public void add(ItemDelta<?, ?> modification, ResourceAttributeDefinition<?> attrDef) throws SchemaException {
+    public void add(ItemDelta<?, ?> modification, ShadowSimpleAttributeDefinition<?> attrDef) throws SchemaException {
         ItemDelta<?, ?> rawModification = modification.clone();
         // We have to suppress the type parameters, because - in fact - we change the type of the values.
         //noinspection rawtypes,unchecked

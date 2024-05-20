@@ -236,7 +236,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         setFromDefaults(changeBean.getObject(), objectClassName);
 
         Holder<Object> primaryIdentifierRealValueHolder = new Holder<>();
-        Collection<ResourceAttribute<?>> identifiers =
+        Collection<ShadowSimpleAttribute<?>> identifiers =
                 getIdentifiers(changeBean, resourceObjectDef, primaryIdentifierRealValueHolder);
         if (identifiers.isEmpty()) {
             throw new SchemaException("No identifiers in async update change bean " + changeBean);
@@ -272,10 +272,10 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         }
     }
 
-    private @NotNull Collection<ResourceAttribute<?>> getIdentifiers(
+    private @NotNull Collection<ShadowSimpleAttribute<?>> getIdentifiers(
             UcfChangeType changeBean, ResourceObjectDefinition objDef, Holder<Object> primaryIdentifierRealValueHolder)
             throws SchemaException {
-        Collection<ResourceAttribute<?>> rv = new ArrayList<>();
+        Collection<ShadowSimpleAttribute<?>> rv = new ArrayList<>();
         PrismContainerValue<ShadowAttributesType> attributesPcv;
         boolean mayContainNonIdentifiers;
         if (changeBean.getIdentifiers() != null) {
@@ -299,21 +299,21 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         Set<Object> primaryIdentifierRealValues = new HashSet<>();
         for (Item<?,?> attribute : attributesPcv.getItems()) {
             if (QNameUtil.matchAny(attribute.getElementName(), identifierNames)) {
-                ResourceAttribute<Object> resourceAttribute;
-                if (attribute instanceof ResourceAttribute) {
+                ShadowSimpleAttribute<Object> simpleAttribute;
+                if (attribute instanceof ShadowSimpleAttribute) {
                     //noinspection unchecked
-                    resourceAttribute = ((ResourceAttribute<Object>) attribute).clone();
+                    simpleAttribute = ((ShadowSimpleAttribute<Object>) attribute).clone();
                 } else {
-                    resourceAttribute = objDef
-                            .findAttributeDefinitionRequired(attribute.getElementName())
+                    simpleAttribute = objDef
+                            .findSimpleAttributeDefinitionRequired(attribute.getElementName())
                             .instantiate();
                     for (Object realValue : attribute.getRealValues()) {
-                        resourceAttribute.addRealValue(realValue);
+                        simpleAttribute.addRealValue(realValue);
                     }
                 }
-                rv.add(resourceAttribute);
+                rv.add(simpleAttribute);
                 if (QNameUtil.matchAny(attribute.getElementName(), primaryIdentifierNames)) {
-                    primaryIdentifierRealValues.addAll(resourceAttribute.getRealValues());
+                    primaryIdentifierRealValues.addAll(simpleAttribute.getRealValues());
                 }
             } else {
                 if (!mayContainNonIdentifiers) {

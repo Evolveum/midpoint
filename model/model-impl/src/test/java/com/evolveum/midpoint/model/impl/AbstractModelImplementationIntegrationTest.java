@@ -20,7 +20,7 @@ import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
@@ -277,7 +277,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         QName attrQName = new QName(MidPointConstants.NS_RI, attributeLocalName);
         ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName);
         ResourceObjectDefinition refinedAccountDefinition = accCtx.getCompositeObjectDefinitionRequired();
-        ResourceAttributeDefinition<T> attrDef = refinedAccountDefinition.findAttributeDefinition(attrQName);
+        ShadowSimpleAttributeDefinition<T> attrDef = refinedAccountDefinition.findSimpleAttributeDefinition(attrQName);
         assertNotNull("No definition of attribute " + attrQName + " in account def " + refinedAccountDefinition, attrDef);
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountOid);

@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -59,7 +59,7 @@ public abstract class UcfChange implements DebugDumpable {
      * 2. Must contain at least the primary identifier - if {@link #resourceObjectDefinition} is known,
      * unless there is a serious error, like the definition of UID attribute not present in the schema.
      */
-    @NotNull private final Collection<ResourceAttribute<?>> identifiers;
+    @NotNull private final Collection<ShadowSimpleAttribute<?>> identifiers;
 
     /**
      * Delta from the resource - if known.
@@ -91,7 +91,7 @@ public abstract class UcfChange implements DebugDumpable {
             int localSequenceNumber,
             @NotNull Object primaryIdentifierValue,
             ResourceObjectDefinition objectDefinition,
-            @NotNull Collection<ResourceAttribute<?>> identifiers,
+            @NotNull Collection<ShadowSimpleAttribute<?>> identifiers,
             @Nullable ObjectDelta<ShadowType> objectDelta,
             @Nullable UcfResourceObject resourceObject,
             @NotNull UcfErrorState errorState) {
@@ -119,7 +119,7 @@ public abstract class UcfChange implements DebugDumpable {
         return resourceObjectDefinition;
     }
 
-    public @NotNull Collection<ResourceAttribute<?>> getIdentifiers() {
+    public @NotNull Collection<ShadowSimpleAttribute<?>> getIdentifiers() {
         return identifiers;
     }
 

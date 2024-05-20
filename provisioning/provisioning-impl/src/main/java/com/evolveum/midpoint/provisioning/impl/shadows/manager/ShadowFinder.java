@@ -35,7 +35,7 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification.WithPrimary;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifier;
@@ -241,7 +241,7 @@ public class ShadowFinder {
      * They must have proper definitions applied.
      */
     public @Nullable RepoShadow lookupLiveShadowByAllAttributes(
-            ProvisioningContext ctx, Collection<? extends ResourceAttribute<?>> attributes, OperationResult result)
+            ProvisioningContext ctx, Collection<? extends ShadowSimpleAttribute<?>> attributes, OperationResult result)
             throws SchemaException, ConfigurationException {
 
         ObjectQuery query = createQueryBySelectedAttributes(ctx, attributes);
@@ -351,7 +351,7 @@ public class ShadowFinder {
      * Each of the attributes must either have exactly one value, or must be single-valued.
      */
     private ObjectQuery createQueryBySelectedAttributes(
-            ProvisioningContext ctx, Collection<? extends ResourceAttribute<?>> attributes) throws SchemaException {
+            ProvisioningContext ctx, Collection<? extends ShadowSimpleAttribute<?>> attributes) throws SchemaException {
 
         Preconditions.checkArgument(
                 !attributes.isEmpty(), "Attributes to search by must not be empty for %s", ctx);
@@ -362,7 +362,7 @@ public class ShadowFinder {
         if (objectDefinition != null) {
             q = q.item(ShadowType.F_OBJECT_CLASS).eq(objectDefinition.getTypeName()).and();
         }
-        for (ResourceAttribute<?> attribute : attributes) {
+        for (ShadowSimpleAttribute<?> attribute : attributes) {
             q = q.filter(attribute.normalizationAwareEqFilter()).and();
         }
         return q.item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid()).build();

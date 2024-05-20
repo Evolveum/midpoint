@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.normalization.Normalizer;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.processor.deleg.ResourceAttributeDefinitionDelegator;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -38,7 +37,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
- * An alternative representation of a {@link ResourceAttributeDefinition} that describes a normalization-aware resource attribute:
+ * An alternative representation of a {@link ShadowSimpleAttributeDefinition} that describes a normalization-aware resource attribute:
  * one that has both original and normalized values. Such attributes are to be stored in the repository, to facilitate
  * searching by normalized values.
  *
@@ -47,14 +46,14 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  *
  * [NOTE]
  * ====
- * This class intentionally does not implement {@link ResourceAttributeDefinition} interface. It should not be used
+ * This class intentionally does not implement {@link ShadowSimpleAttributeDefinition} interface. It should not be used
  * in place of attribute definition.
  * ====
  */
 public class NormalizationAwareResourceAttributeDefinition<T>
         implements PrismPropertyDefinition<T> {
 
-    @NotNull private final ResourceAttributeDefinition<?> originalDefinition;
+    @NotNull private final ShadowSimpleAttributeDefinition<?> originalDefinition;
 
     /**
      * Parts of the definition related to normalized {@link String} values held in {@link PolyString} instances
@@ -62,7 +61,7 @@ public class NormalizationAwareResourceAttributeDefinition<T>
      */
     @NotNull private final DefinitionOverrides<T> definitionOverrides;
 
-    NormalizationAwareResourceAttributeDefinition(@NotNull ResourceAttributeDefinition<?> originalDefinition) {
+    NormalizationAwareResourceAttributeDefinition(@NotNull ShadowSimpleAttributeDefinition<?> originalDefinition) {
         this.originalDefinition = originalDefinition;
         this.definitionOverrides = determineDefinitionOverrides();
     }

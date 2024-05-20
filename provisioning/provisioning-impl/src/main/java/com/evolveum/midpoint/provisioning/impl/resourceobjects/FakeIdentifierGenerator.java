@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 @Component
 class FakeIdentifierGenerator {
 
-    void addFakePrimaryIdentifierIfNeeded(Collection<ResourceAttribute<?>> identifiers, Object primaryIdentifierRealValue,
+    void addFakePrimaryIdentifierIfNeeded(Collection<ShadowSimpleAttribute<?>> identifiers, Object primaryIdentifierRealValue,
             ResourceObjectDefinition definition) throws SchemaException {
         if (primaryIdentifierRealValue != null && definition != null &&
                 selectPrimaryIdentifiers(identifiers, definition).isEmpty()) {
@@ -39,7 +39,7 @@ class FakeIdentifierGenerator {
     }
 
     void addFakePrimaryIdentifierIfNeeded(
-            ResourceAttributeContainer attrContainer, Object primaryIdentifierRealValue,
+            ShadowAttributesContainer attrContainer, Object primaryIdentifierRealValue,
             @NotNull ResourceObjectDefinition objectClassDef) throws SchemaException {
         // TODO or should we use simply attrContainer.getPrimaryIdentifiers() ?
         //  It refers to the definition attached to the attrContainer.
@@ -50,8 +50,8 @@ class FakeIdentifierGenerator {
         }
     }
 
-    private static Collection<ResourceAttribute<?>> selectPrimaryIdentifiers(
-            Collection<ResourceAttribute<?>> identifiers, ResourceObjectDefinition def) {
+    private static Collection<ShadowSimpleAttribute<?>> selectPrimaryIdentifiers(
+            Collection<ShadowSimpleAttribute<?>> identifiers, ResourceObjectDefinition def) {
 
         Collection<ItemName> primaryIdentifiers = def.getPrimaryIdentifiers().stream()
                 .map(ItemDefinition::getItemName)
@@ -62,15 +62,15 @@ class FakeIdentifierGenerator {
                 .collect(Collectors.toList());
     }
 
-    private ResourceAttribute<?> createFakePrimaryIdentifier(Object primaryIdentifierRealValue,
+    private ShadowSimpleAttribute<?> createFakePrimaryIdentifier(Object primaryIdentifierRealValue,
             ResourceObjectDefinition definition) throws SchemaException {
-        Collection<? extends ResourceAttributeDefinition<?>> primaryIdDefs = definition.getPrimaryIdentifiers();
-        ResourceAttributeDefinition<?> primaryIdDef = MiscUtil.extractSingletonRequired(primaryIdDefs,
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> primaryIdDefs = definition.getPrimaryIdentifiers();
+        ShadowSimpleAttributeDefinition<?> primaryIdDef = MiscUtil.extractSingletonRequired(primaryIdDefs,
                 () -> new SchemaException("Multiple primary identifier definitions in " + definition),
                 () -> new SchemaException("No primary identifier definition in " + definition));
-        ResourceAttribute<?> primaryId = primaryIdDef.instantiate();
+        ShadowSimpleAttribute<?> primaryId = primaryIdDef.instantiate();
         //noinspection unchecked
-        ((ResourceAttribute<Object>) primaryId).setRealValue(primaryIdentifierRealValue);
+        ((ShadowSimpleAttribute<Object>) primaryId).setRealValue(primaryIdentifierRealValue);
         return primaryId;
     }
 }

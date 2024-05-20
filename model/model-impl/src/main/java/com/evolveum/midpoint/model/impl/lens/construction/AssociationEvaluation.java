@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
@@ -20,12 +20,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Evaluation of an association mapping in resource object construction (assigned/plain).
  */
 class AssociationEvaluation<AH extends AssignmentHolderType>
-        extends ItemEvaluation<AH, PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition> {
+        extends ItemEvaluation<AH, PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition> {
 
     // [EP:M:OM] DONE 2/2
     AssociationEvaluation(
             ConstructionEvaluation<AH, ?> constructionEvaluation,
-            ShadowAssociationDefinition associationDefinition,
+            ShadowReferenceAttributeDefinition associationDefinition,
             MappingConfigItem mappingConfigItem,
             OriginType originType,
             MappingKindType mappingKind) {
@@ -50,7 +50,7 @@ class AssociationEvaluation<AH extends AssignmentHolderType>
     }
 
     @Override
-    ShadowAssociationDefinition getAssociationDefinition() {
+    ShadowReferenceAttributeDefinition getAssociationDefinition() {
         return itemDefinition;
     }
 }

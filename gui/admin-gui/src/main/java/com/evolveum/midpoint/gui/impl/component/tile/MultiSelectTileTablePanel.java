@@ -106,7 +106,7 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
     @Override
     protected Component createTile(String id, IModel<TemplateTile<SelectableBean<O>>> model) {
 
-        return new SelectableFocusTilePanel<>(id, model) {
+        return new SelectableObjectTilePanel<>(id, model) {
             @Override
             protected void onClick(AjaxRequestTarget target) {
                 super.onClick(target);

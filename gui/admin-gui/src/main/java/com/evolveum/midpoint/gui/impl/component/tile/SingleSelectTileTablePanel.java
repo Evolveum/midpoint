@@ -14,7 +14,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.Item;
@@ -122,7 +121,7 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
     @Override
     protected Component createTile(String id, IModel<TemplateTile<SelectableBean<O>>> model) {
 
-        return new SelectableFocusTilePanel<>(id, model) {
+        return new SelectableObjectTilePanel<>(id, model) {
             @Override
             protected void onClick(AjaxRequestTarget target) {
                 boolean oldState = getModelObject().getValue().isSelected();

@@ -154,7 +154,7 @@ public enum EndPointsUrlMapping {
                     "PageReport.auth.report.label", "PageReport.auth.report.description"),
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageCaseWorkItems.authUri.guiAll.label", "PageAdminRoles.authUri.guiAll.description")),
-    CAMPAIGN_DETAILS("/admin/certification/campaigns/**",
+    CAMPAIGN_DETAILS("/admin/certification/campaign/**",
             new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_ALL_URL,
                     "PageAdminCertification.auth.certificationAll.label",
                     "PageAdminCertification.auth.certificationAll.description"),

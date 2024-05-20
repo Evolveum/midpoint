@@ -2,6 +2,7 @@ package com.evolveum.midpoint.schema.processor.deleg;
 
 import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ObjectSynchronizationReactionDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
@@ -92,7 +93,7 @@ public interface ResourceObjectTypeDefinitionDelegator extends ResourceObjectDef
     }
 
     @Override
-    default @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+    default @NotNull Collection<? extends ObjectSynchronizationReactionDefinition> getSynchronizationReactions() {
         return delegate().getSynchronizationReactions();
     }
 

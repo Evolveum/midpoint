@@ -6,7 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.component.menu;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+
+import com.evolveum.midpoint.prism.Containerable;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -17,6 +23,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -90,11 +97,11 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         WebMarkupContainer navigationDetails = new WebMarkupContainer(ID_NAVIGATION_DETAILS);
         navigationDetails.add(AttributeAppender.append(
                 "aria-haspopup",
-                () -> hasSubmenu(item.getModelObject()) ? true : null));
+                () -> isSubMenuVisible(item.getModelObject()) ? true : null));
         navigationDetails.add(AttributeAppender.append(
                 "aria-expanded",
                 () -> {
-                    if (hasSubmenu(item.getModelObject())) {
+                    if (isSubMenuVisible(item.getModelObject())) {
                         ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
                         ContainerPanelConfigurationType itemModelObject = item.getModelObject();
                         return isMenuActive(storageConfig, itemModelObject) | hasActiveSubmenu(storageConfig, itemModelObject);
@@ -218,16 +225,8 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
     private void addSubmenuLink(org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
         WebMarkupContainer submenuLink = new WebMarkupContainer(ID_SUBMENU_LINK);
-        submenuLink.add(new VisibleBehaviour(() -> hasSubmenu(item.getModelObject())));
+        submenuLink.add(new VisibleBehaviour(() -> isSubMenuVisible(item.getModelObject())));
         link.add(submenuLink);
-    }
-
-    private boolean hasSubmenu(ContainerPanelConfigurationType config) {
-        if (config == null) {
-            return false;
-        }
-
-        return !config.getPanel().isEmpty();
     }
 
     private DetailsNavigationPanel<O> createDetailsSubNavigationPanel(ListItem<ContainerPanelConfigurationType> item) {
@@ -242,8 +241,29 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 DetailsNavigationPanel.this.onClickPerformed(config, target);
             }
         };
-        subPanel.add(new VisibleBehaviour(() -> !item.getModelObject().getPanel().isEmpty()));
+        subPanel.add(new VisibleBehaviour(() -> isSubMenuVisible(item.getModelObject())));
         return subPanel;
+    }
+
+    private boolean isSubMenuVisible(ContainerPanelConfigurationType panelConfig) {
+        if (panelConfig == null) {
+            return false;
+        }
+
+        if (panelConfig.getPanel().isEmpty()) {
+            return false;
+        }
+
+        Class<? extends Panel > panelClass = getPageBase().findObjectPanel(panelConfig.getIdentifier());
+        if (panelClass == null) {
+            return true;
+        }
+
+        if (MultivalueDetailsPanel.class.isAssignableFrom(panelClass)) {
+            return panelConfig.getPanel().stream()
+                    .anyMatch(subPanelConfig ->objectDetailsModel.containsModelForSubmenu(subPanelConfig.getIdentifier()));
+        }
+        return true;
     }
 
     private IModel<String> createCountModel(IModel<ContainerPanelConfigurationType> panelModel) {

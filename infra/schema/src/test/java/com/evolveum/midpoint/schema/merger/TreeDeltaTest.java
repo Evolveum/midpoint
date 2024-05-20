@@ -7,19 +7,13 @@
 
 package com.evolveum.midpoint.schema.merger;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
-import org.apache.commons.io.FileUtils;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
@@ -30,38 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class TreeDeltaTest extends AbstractSchemaTest {
-
-    @Test(enabled = false)
-    public void testInitialObjectsConflicts() {
-        File objects44Dir = new File("../_mess/_init-objects-diff/initial-objects/4.4.8");
-        File objectsCurrentDir = new File("../repo/system-init/src/main/resources/initial-objects");
-
-        Map<String, PrismObject<?>> objects44 = loadObjects(objects44Dir);
-        Map<String, PrismObject<?>> objectsCurrent = loadObjects(objectsCurrentDir);
-
-        objects44.forEach((oid, object44) -> {
-            PrismObject<?> objectCurrent = objectsCurrent.get(oid);
-            if (objectCurrent == null) {
-                return;
-            }
-
-        });
-    }
-
-    private Map<String, PrismObject<?>> loadObjects(File dir) {
-        Map<String, PrismObject<?>> map = new HashMap<>();
-
-        FileUtils.listFiles(dir, new String[] { "xml" }, true).forEach(file -> {
-            try {
-                PrismObject<?> object = PrismTestUtil.parseObject(file);
-                map.put(object.getOid(), object);
-            } catch (SchemaException | IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        return map;
-    }
 
     @Test
     public void testSingleValuePropertyNoConflict() throws SchemaException {
@@ -79,13 +41,18 @@ public class TreeDeltaTest extends AbstractSchemaTest {
 
         // WHEN
 
-        ObjectTreeDelta<UserType> leftTreeDelta = ObjectTreeDelta.fromItemDelta(leftToBase);
-        ObjectTreeDelta<UserType> rightTreeDelta = ObjectTreeDelta.fromItemDelta(rightToBase);
-
-        AssertJUnit.assertTrue(leftToBase.equivalent(leftTreeDelta.toObjectDelta()));
-        AssertJUnit.assertTrue(rightToBase.equivalent(rightTreeDelta.toObjectDelta()));
+        ObjectTreeDelta<UserType> leftTreeDelta = toObjectTreeDelta(leftToBase);
+        ObjectTreeDelta<UserType> rightTreeDelta = toObjectTreeDelta(rightToBase);
 
         AssertJUnit.assertFalse(leftTreeDelta.hasConflictWith(rightTreeDelta));
+    }
+
+    private <O extends ObjectType> ObjectTreeDelta<O> toObjectTreeDelta(ObjectDelta<O> delta) throws SchemaException {
+        ObjectTreeDelta<O> treeDelta = ObjectTreeDelta.fromItemDelta(delta);
+
+        AssertJUnit.assertTrue(delta.equivalent(treeDelta.toObjectDelta()));
+
+        return treeDelta;
     }
 
     @Test
@@ -104,8 +71,8 @@ public class TreeDeltaTest extends AbstractSchemaTest {
 
         // WHEN
 
-        ObjectTreeDelta<UserType> leftTreeDelta = ObjectTreeDelta.fromItemDelta(leftToBase);
-        ObjectTreeDelta<UserType> rightTreeDelta = ObjectTreeDelta.fromItemDelta(rightToBase);
+        ObjectTreeDelta<UserType> leftTreeDelta = toObjectTreeDelta(leftToBase);
+        ObjectTreeDelta<UserType> rightTreeDelta = toObjectTreeDelta(rightToBase);
 
         AssertJUnit.assertFalse(leftTreeDelta.hasConflictWith(rightTreeDelta));
     }
@@ -126,13 +93,8 @@ public class TreeDeltaTest extends AbstractSchemaTest {
 
         // WHEN
 
-        ObjectTreeDelta<UserType> leftTreeDelta = ObjectTreeDelta.fromItemDelta(leftToBase);
-        ObjectTreeDelta<UserType> rightTreeDelta = ObjectTreeDelta.fromItemDelta(rightToBase);
-
-//        System.out.println("Left tree delta:\n" + leftTreeDelta.debugDump());
-//        System.out.println("Right tree delta:\n" + rightTreeDelta.debugDump());
-
-        System.out.println(leftTreeDelta.hasConflictWith(rightTreeDelta));
+        ObjectTreeDelta<UserType> leftTreeDelta = toObjectTreeDelta(leftToBase);
+        ObjectTreeDelta<UserType> rightTreeDelta = toObjectTreeDelta(rightToBase);
 
         AssertJUnit.assertTrue(leftTreeDelta.hasConflictWith(rightTreeDelta));
     }
@@ -166,14 +128,9 @@ public class TreeDeltaTest extends AbstractSchemaTest {
 
         // WHEN
 
-        ObjectTreeDelta<UserType> leftTreeDelta = ObjectTreeDelta.fromItemDelta(leftToBase);
-        ObjectTreeDelta<UserType> rightTreeDelta = ObjectTreeDelta.fromItemDelta(rightToBase);
+        ObjectTreeDelta<UserType> leftTreeDelta = toObjectTreeDelta(leftToBase);
+        ObjectTreeDelta<UserType> rightTreeDelta = toObjectTreeDelta(rightToBase);
 
-        System.out.println("Left tree delta:\n" + leftToBase.debugDump());
-        System.out.println("Right tree delta:\n" + rightToBase.debugDump());
-
-        System.out.println("Left tree delta:\n" + leftTreeDelta.debugDump());
-        System.out.println("Right tree delta:\n" + rightTreeDelta.debugDump());
     }
 
     // todo this fails because we would have to use base object to figure out whether these two deltas will do the same thing
@@ -185,10 +142,12 @@ public class TreeDeltaTest extends AbstractSchemaTest {
         // GIVEN
         AssignmentType a1 = new AssignmentType()
                 .id(1L)
+                .identifier("my-assignment")
                 .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE);
 
         AssignmentType a1new = new AssignmentType()
-                .id(1L)
+                .id(null)
+                .identifier("my-assignment")
                 .targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE)
                 .description("New description");
 
@@ -203,8 +162,8 @@ public class TreeDeltaTest extends AbstractSchemaTest {
                 .asObjectDelta(oid);
 
         // WHEN
-        ObjectTreeDelta<UserType> leftTreeDelta = ObjectTreeDelta.fromItemDelta(leftToBase);
-        ObjectTreeDelta<UserType> rightTreeDelta = ObjectTreeDelta.fromItemDelta(rightToBase);
+        ObjectTreeDelta<UserType> leftTreeDelta = toObjectTreeDelta(leftToBase);
+        ObjectTreeDelta<UserType> rightTreeDelta = toObjectTreeDelta(rightToBase);
 
         // THEN
         AssertJUnit.assertTrue(leftTreeDelta.hasConflictWith(rightTreeDelta));
@@ -234,8 +193,8 @@ public class TreeDeltaTest extends AbstractSchemaTest {
                 .asObjectDelta(oid);
 
         // WHEN
-        ObjectTreeDelta<UserType> leftTreeDelta = ObjectTreeDelta.fromItemDelta(leftToBase);
-        ObjectTreeDelta<UserType> rightTreeDelta = ObjectTreeDelta.fromItemDelta(rightToBase);
+        ObjectTreeDelta<UserType> leftTreeDelta = toObjectTreeDelta(leftToBase);
+        ObjectTreeDelta<UserType> rightTreeDelta = toObjectTreeDelta(rightToBase);
 
         // THEN
         List<Conflict> conflicts = leftTreeDelta.getConflictsWith(rightTreeDelta);

@@ -17,7 +17,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
@@ -112,7 +112,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
     }
 
     private boolean nonExistAssociations() {
-        List<ShadowAssociationDefinition> associations = ProvisioningObjectsUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
+        List<ShadowReferenceAttributeDefinition> associations = ProvisioningObjectsUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
         return associations.isEmpty();
     }
 

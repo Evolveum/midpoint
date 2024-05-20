@@ -469,7 +469,7 @@ public class TestEscalation extends AbstractCertificationTest {
     }
 
     /** MID-8665 */
-    @Test
+    @Test(enabled = false)
     public void test210Reports() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();

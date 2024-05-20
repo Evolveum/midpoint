@@ -64,7 +64,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     private static final String ID_ASSOCIATION = "association";
 
     private LoadableModel<List<String>> intentValues;
-    private LoadableModel<List<ShadowAssociationDefinition>> associationValuesModel;
+    private LoadableModel<List<ShadowReferenceAttributeDefinition>> associationValuesModel;
 
     private static final String DOT_CLASS = ResourceTypeAssignmentPopupTabPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeAssignmentPopupTabPanel.class);
@@ -137,22 +137,22 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         associationContainer.add(new VisibleBehaviour(() -> isEntitlementAssignment()));
         parametersPanel.add(associationContainer);
 
-        DropDownChoicePanel<ShadowAssociationDefinition> associationSelector = new DropDownChoicePanel<>(ID_ASSOCIATION,
-                Model.of(), associationValuesModel, new IChoiceRenderer<ShadowAssociationDefinition>() {
+        DropDownChoicePanel<ShadowReferenceAttributeDefinition> associationSelector = new DropDownChoicePanel<>(ID_ASSOCIATION,
+                Model.of(), associationValuesModel, new IChoiceRenderer<ShadowReferenceAttributeDefinition>() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public Object getDisplayValue(ShadowAssociationDefinition refinedAssociationDefinition) {
+            public Object getDisplayValue(ShadowReferenceAttributeDefinition refinedAssociationDefinition) {
                 return ProvisioningObjectsUtil.getAssociationDisplayName(refinedAssociationDefinition);
             }
 
             @Override
-            public String getIdValue(ShadowAssociationDefinition refinedAssociationDefinition, int index) {
+            public String getIdValue(ShadowReferenceAttributeDefinition refinedAssociationDefinition, int index) {
                 return Integer.toString(index);
             }
 
             @Override
-            public ShadowAssociationDefinition getObject(String id, IModel<? extends List<? extends ShadowAssociationDefinition>> choices) {
+            public ShadowReferenceAttributeDefinition getObject(String id, IModel<? extends List<? extends ShadowReferenceAttributeDefinition>> choices) {
                 return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
             }
         }, true);
@@ -203,9 +203,9 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
                 return availableIntentValues;
             }
         };
-        associationValuesModel = new LoadableModel<List<ShadowAssociationDefinition>>() {
+        associationValuesModel = new LoadableModel<List<ShadowReferenceAttributeDefinition>>() {
             @Override
-            protected List<ShadowAssociationDefinition> load() {
+            protected List<ShadowReferenceAttributeDefinition> load() {
                 ResourceType resource = getSelectedObjectsList() != null && getSelectedObjectsList().size() > 0 ?
                         getSelectedObjectsList().get(0) : null;
                 if (resource == null) {
@@ -259,8 +259,8 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         return intentDropDown.getModel() != null ? intentDropDown.getModel().getObject() : null;
     }
 
-    private ShadowAssociationDefinition getAssociationValue() {
-        DropDownChoicePanel<ShadowAssociationDefinition> associationDropDown = getAssociationDropDown();
+    private ShadowReferenceAttributeDefinition getAssociationValue() {
+        DropDownChoicePanel<ShadowReferenceAttributeDefinition> associationDropDown = getAssociationDropDown();
         return associationDropDown != null ? associationDropDown.getModel().getObject() : null;
     }
 
@@ -272,8 +272,8 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         return (DropDownChoicePanel<ShadowKindType>) get(getPageBase().createComponentPath(ID_PARAMETERS_PANEL, ID_KIND_CONTAINER, ID_KIND));
     }
 
-    private DropDownChoicePanel<ShadowAssociationDefinition> getAssociationDropDown() {
-        return (DropDownChoicePanel<ShadowAssociationDefinition>) get(getPageBase().createComponentPath(ID_PARAMETERS_PANEL, ID_ASSOCIATION_CONTAINER, ID_ASSOCIATION));
+    private DropDownChoicePanel<ShadowReferenceAttributeDefinition> getAssociationDropDown() {
+        return (DropDownChoicePanel<ShadowReferenceAttributeDefinition>) get(getPageBase().createComponentPath(ID_PARAMETERS_PANEL, ID_ASSOCIATION_CONTAINER, ID_ASSOCIATION));
     }
 
     @Override

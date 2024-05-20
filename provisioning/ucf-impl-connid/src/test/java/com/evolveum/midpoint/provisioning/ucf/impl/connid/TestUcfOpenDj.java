@@ -41,7 +41,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -196,13 +195,13 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         QName objectClassQname = OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME;
         ResourceObjectClassDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
         assertNotNull("No object class definition " + objectClassQname, accountDefinition);
-        assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.getAttributeDefinitions().isEmpty());
+        assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.getSimpleAttributeDefinitions().isEmpty());
 
-        Collection<? extends ResourceAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
         assertNotNull("Null identifiers for " + objectClassQname, identifiers);
         assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
 
-        ResourceAttributeDefinition<?> idPrimaryDef = accountDefinition.findAttributeDefinition(
+        ShadowSimpleAttributeDefinition<?> idPrimaryDef = accountDefinition.findSimpleAttributeDefinition(
                 new QName(MidPointConstants.NS_RI, OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME));
         assertNotNull("No definition for attribute " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME, idPrimaryDef);
         assertTrue("Attribute " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " in not an identifier",
@@ -213,8 +212,8 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         assertEquals("Attribute " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " has wrong framework name", Uid.NAME, idPrimaryDef.getFrameworkAttributeName());
         assertEquals("Attribute " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " has wrong type", DOMUtil.XSD_STRING, idPrimaryDef.getTypeName());
 
-        ResourceAttributeDefinition<?> idSecondaryDef =
-                accountDefinition.findAttributeDefinition(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
+        ShadowSimpleAttributeDefinition<?> idSecondaryDef =
+                accountDefinition.findSimpleAttributeDefinition(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
         assertNotNull("No definition for attribute " + SchemaConstants.ICFS_NAME, idSecondaryDef);
         assertTrue("Attribute " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " in not secondary identifier",
                 accountDefinition.isSecondaryIdentifier(
@@ -229,39 +228,39 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         assertEquals("Unexpected secondary identifiers: " + accountDefinition.getSecondaryIdentifiers(), 1, accountDefinition.getSecondaryIdentifiers().size());
     }
 
-    private Collection<ResourceAttribute<?>> addSampleResourceObject(String name, String givenName, String familyName)
+    private Collection<ShadowSimpleAttribute<?>> addSampleResourceObject(String name, String givenName, String familyName)
             throws Exception {
         OperationResult result = new OperationResult(this.getClass().getName() + ".testAdd");
 
         QName objectClassQname = OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME;
         ResourceObjectClassDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
         assertNotNull("No object class definition " + objectClassQname, accountDefinition);
-        ResourceAttributeContainer resourceObject = accountDefinition.toResourceAttributeContainerDefinition().instantiate();
+        ShadowAttributesContainer resourceObject = accountDefinition.toResourceAttributeContainerDefinition().instantiate();
 
-        ResourceAttributeDefinition<String> attributeDefinition =
-                        accountDefinition.findAttributeDefinitionRequired(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
-        ResourceAttribute<String> attribute = attributeDefinition.instantiate();
+        ShadowSimpleAttributeDefinition<String> attributeDefinition =
+                        accountDefinition.findSimpleAttributeDefinitionRequired(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
+        ShadowSimpleAttribute<String> attribute = attributeDefinition.instantiate();
         attribute.setRealValue("uid=" + name + ",ou=people,dc=example,dc=com");
         resourceObject.add(attribute);
 
-        attributeDefinition = accountDefinition.findAttributeDefinitionRequired(QNAME_SN);
+        attributeDefinition = accountDefinition.findSimpleAttributeDefinitionRequired(QNAME_SN);
         attribute = attributeDefinition.instantiate();
         attribute.setRealValue(familyName);
         resourceObject.add(attribute);
 
-        attributeDefinition = accountDefinition.findAttributeDefinitionRequired(QNAME_CN);
+        attributeDefinition = accountDefinition.findSimpleAttributeDefinitionRequired(QNAME_CN);
         attribute = attributeDefinition.instantiate();
         attribute.setRealValue(givenName + " " + familyName);
         resourceObject.add(attribute);
 
-        attributeDefinition = accountDefinition.findAttributeDefinitionRequired(QNAME_GIVEN_NAME);
+        attributeDefinition = accountDefinition.findSimpleAttributeDefinitionRequired(QNAME_GIVEN_NAME);
         attribute = attributeDefinition.instantiate();
         attribute.setRealValue(givenName);
         resourceObject.add(attribute);
 
         PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 
-        AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> ret = cc.addObject(shadow, null, result);
+        AsynchronousOperationReturnValue<Collection<ShadowSimpleAttribute<?>>> ret = cc.addObject(shadow, null, result);
         return ret.getReturnValue();
     }
 
@@ -269,12 +268,12 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
     public void test100AddDeleteObject() throws Exception {
         OperationResult result = createOperationResult();
 
-        Collection<ResourceAttribute<?>> identifiers = addSampleResourceObject("john", "John", "Smith");
+        Collection<ShadowSimpleAttribute<?>> identifiers = addSampleResourceObject("john", "John", "Smith");
 
         String uid;
-        for (ResourceAttribute<?> resourceAttribute : identifiers) {
-            if (SchemaConstants.ICFS_UID.equals(resourceAttribute.getElementName())) {
-                uid = resourceAttribute.getValue(String.class).getValue();
+        for (ShadowSimpleAttribute<?> simpleAttribute : identifiers) {
+            if (SchemaConstants.ICFS_UID.equals(simpleAttribute.getElementName())) {
+                uid = simpleAttribute.getValue(String.class).getValue();
                 System.out.println("uuid:" + uid);
                 assertNotNull(uid);
             }
@@ -302,7 +301,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
     public void test110ChangeModifyObject() throws Exception {
         OperationResult result = createOperationResult();
 
-        Collection<ResourceAttribute<?>> identifiers = addSampleResourceObject("john", "John", "Smith");
+        Collection<ShadowSimpleAttribute<?>> identifiers = addSampleResourceObject("john", "John", "Smith");
 
         Set<Operation> changes = new HashSet<>();
 
@@ -320,7 +319,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         cc.modifyObject(identification, null, changes, null, null, result);
 
         var resourceObject = cc.fetchObject(identification, null, null, result);
-        ResourceAttributeContainer resObj = ShadowUtil.getAttributesContainer(resourceObject.getBean());
+        ShadowAttributesContainer resObj = ShadowUtil.getAttributesContainer(resourceObject.getBean());
 
         AssertJUnit.assertNull(resObj.findAttribute(QNAME_GIVEN_NAME));
 
@@ -367,7 +366,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
     private PrismProperty<String> createProperty(String propertyName, String propertyValue) throws SchemaException {
         return resourceSchema.findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME)
-                .<String>findAttributeDefinitionRequired(new QName(MidPointConstants.NS_RI, propertyName))
+                .<String>findSimpleAttributeDefinitionRequired(new QName(MidPointConstants.NS_RI, propertyName))
                 .instantiateFromRealValue(propertyValue);
     }
 
@@ -488,7 +487,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         AssertJUnit.assertFalse("No identifiers for account object class ", accountDefinition
                 .getPrimaryIdentifiers().isEmpty());
 
-        PrismPropertyDefinition<?> uidDefinition = accountDefinition.findAttributeDefinition(
+        PrismPropertyDefinition<?> uidDefinition = accountDefinition.findSimpleAttributeDefinition(
                 new QName(MidPointConstants.NS_RI,
                         OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME));
         AssertJUnit.assertNotNull(uidDefinition);
@@ -527,7 +526,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
     @Test
     public void test500FetchObject() throws Exception {
         // GIVEN
-        ResourceAttributeContainer resourceObject = createResourceObject(
+        ShadowAttributesContainer resourceObject = createResourceObject(
                 "uid=Teell,ou=People,dc=example,dc=com", "Teell William", "Teell");
 
         OperationResult addResult = createOperationResult("addObject");
@@ -589,7 +588,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
     @Test
     public void test600CreateAccountWithPassword() throws Exception {
         // GIVEN
-        ResourceAttributeContainer resourceObject = createResourceObject(
+        ShadowAttributesContainer resourceObject = createResourceObject(
                 "uid=lechuck,ou=people,dc=example,dc=com", "Ghost Pirate LeChuck", "LeChuck");
 
         ProtectedStringType ps = protector.encryptString("t4k30v3rTh3W0rld");
@@ -623,7 +622,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
     @Test
     public void test610ChangePassword() throws Exception {
         // GIVEN
-        ResourceAttributeContainer resourceObject = createResourceObject(
+        ShadowAttributesContainer resourceObject = createResourceObject(
                 "uid=drake,ou=People,dc=example,dc=com", "Sir Francis Drake", "Drake");
         PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 
@@ -642,7 +641,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
 
         ResourceObjectDefinition accountDefinition = resourceObject.getDefinition().getResourceObjectDefinition();
 
-        Collection<ResourceAttribute<?>> identifiers = resourceObject.getPrimaryIdentifiers();
+        Collection<ShadowSimpleAttribute<?>> identifiers = resourceObject.getPrimaryIdentifiers();
         // Determine object class from the schema
 
         OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchObject");
@@ -687,23 +686,23 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         System.out.println("Account password: " + passwordAfter);
     }
 
-    private ResourceAttributeContainer createResourceObject(String dn, String sn, String cn) throws SchemaException {
+    private ShadowAttributesContainer createResourceObject(String dn, String sn, String cn) throws SchemaException {
         // Account type is hardcoded now
         var accountOcDef = resourceSchema.findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
         // Determine identifier from the schema
         var attributeContainer = accountOcDef.toResourceAttributeContainerDefinition().instantiate();
 
-        ResourceAttributeDefinition<String> road = accountOcDef.findAttributeDefinitionRequired(QNAME_SN);
-        ResourceAttribute<String> roa = road.instantiate();
+        ShadowSimpleAttributeDefinition<String> road = accountOcDef.findSimpleAttributeDefinitionRequired(QNAME_SN);
+        ShadowSimpleAttribute<String> roa = road.instantiate();
         roa.setRealValue(sn);
         attributeContainer.add(roa);
 
-        road = accountOcDef.findAttributeDefinitionRequired(QNAME_CN);
+        road = accountOcDef.findSimpleAttributeDefinitionRequired(QNAME_CN);
         roa = road.instantiate();
         roa.setRealValue(cn);
         attributeContainer.add(roa);
 
-        road = accountOcDef.findAttributeDefinitionRequired(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
+        road = accountOcDef.findSimpleAttributeDefinitionRequired(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
         roa = road.instantiate();
         roa.setRealValue(dn);
         attributeContainer.add(roa);
@@ -712,7 +711,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
     }
 
     private <T extends ShadowType> PrismObject<T> wrapInShadow(
-            Class<T> type, ResourceAttributeContainer resourceObject) throws SchemaException {
+            Class<T> type, ShadowAttributesContainer resourceObject) throws SchemaException {
         PrismObjectDefinition<T> shadowDefinition = getShadowDefinition(type);
         PrismObject<T> shadow = shadowDefinition.instantiate();
         resourceObject.setElementName(ShadowType.F_ATTRIBUTES);

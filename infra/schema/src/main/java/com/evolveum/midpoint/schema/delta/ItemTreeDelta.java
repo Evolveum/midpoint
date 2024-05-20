@@ -222,10 +222,19 @@ public abstract class ItemTreeDelta
     }
 
     public Collection<? extends ItemDelta<?, ?>> getModifications() {
-        ItemDelta<PV, ID> delta = (ItemDelta<PV, ID>) getDefinition().createEmptyDelta(getPath());
+        ItemDelta<?, ?> delta = getDefinition().createEmptyDelta(getPath());
 
-        getValues().forEach(v -> TreeDeltaUtils.addItemTreeDeltaValue(delta, v));
+        Collection modifications = new ArrayList<>();
+        // process itself + it's values
+        getValues().forEach(v -> v.addValueToDelta(delta));
 
-        return new ArrayList<>(List.of(delta));
+
+        getValues().forEach(v -> modifications.addAll(v.getModifications(true)));
+
+        if (!delta.isEmpty()) {
+            modifications.add(delta);
+        }
+
+        return modifications;
     }
 }

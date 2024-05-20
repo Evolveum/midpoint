@@ -15,8 +15,8 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.xml.namespace.QName;
 
@@ -26,30 +26,26 @@ import javax.xml.namespace.QName;
 @Experimental
 public class ObjectFactory {
 
-    public static <T> ResourceAttribute<T> createResourceAttribute(QName name, ResourceAttributeDefinition<T> definition) {
-        return new ResourceAttributeImpl<>(name, definition);
+    @TestOnly
+    public static <T> ShadowSimpleAttribute<T> createSimpleAttribute(QName name) {
+        return new ShadowSimpleAttributeImpl<>(name, null);
     }
 
     /**
-     * Creates {@link ResourceAttributeDefinition} with given parameters.
+     * Creates {@link ShadowSimpleAttributeDefinition} with given parameters.
      *
      * The created definition is effectively immutable.
      */
-    @VisibleForTesting
-    public static <T> ResourceAttributeDefinition<T> createResourceAttributeDefinition(
+    @TestOnly
+    public static <T> ShadowSimpleAttributeDefinition<T> createSimpleAttributeDefinition(
             @NotNull QName name, @NotNull QName typeName) throws SchemaException {
-        return ResourceAttributeDefinitionImpl.create(
-                createNativeItemDefinition(name, typeName));
+        return ShadowSimpleAttributeDefinitionImpl.create(
+                createNativeAttributeDefinition(name, typeName));
     }
 
-    public static <T> NativeShadowItemDefinitionImpl<T> createNativeItemDefinition(
+    public static <T> NativeShadowAttributeDefinitionImpl<T> createNativeAttributeDefinition(
             @NotNull QName name, @NotNull QName typeName) {
-        return new NativeShadowItemDefinitionImpl<>(ItemName.fromQName(name), typeName);
-    }
-
-    public static ResourceAttributeContainer createResourceAttributeContainer(
-            QName name, ResourceAttributeContainerDefinition definition) {
-        return new ResourceAttributeContainerImpl(name, definition);
+        return new NativeShadowAttributeDefinitionImpl<>(ItemName.fromQName(name), typeName);
     }
 
     public static NativeResourceSchemaBuilder createNativeResourceSchemaBuilder() {

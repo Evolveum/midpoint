@@ -16,7 +16,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.processor.NativeShadowAttributeDefinition.NativeShadowAttributeDefinitionBuilder;
+import com.evolveum.midpoint.schema.processor.NativeShadowSimpleAttributeDefinition.NativeShadowAttributeDefinitionBuilder;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 
@@ -27,6 +27,8 @@ import com.evolveum.midpoint.prism.DisplayHint;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.SchemaMigration;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Object class definition as seen by the connector (or manually configured via XSD).
@@ -39,11 +41,12 @@ public interface NativeObjectClassDefinition extends NativeObjectClassUcfDefinit
 
     @NotNull QName getQName();
 
-    @NotNull Collection<? extends NativeShadowItemDefinition> getItemDefinitions();
+    @NotNull Collection<? extends NativeShadowAttributeDefinition> getAttributeDefinitions();
 
-    @NotNull Collection<? extends NativeShadowAttributeDefinition<?>> getAttributeDefinitions();
+    @TestOnly
+    @NotNull Collection<? extends NativeShadowSimpleAttributeDefinition<?>> getSimpleAttributeDefinitions();
 
-    @NotNull Collection<? extends NativeShadowAssociationDefinition> getAssociationDefinitions();
+    @NotNull Collection<? extends NativeShadowReferenceAttributeDefinition> getReferenceAttributeDefinitions();
 
     NativeObjectClassDefinition clone();
 
@@ -55,9 +58,9 @@ public interface NativeObjectClassDefinition extends NativeObjectClassUcfDefinit
         return attrName.matches(getSecondaryIdentifierName()); // TODO case sensitiveness?
     }
 
-    NativeShadowAttributeDefinition<?> findAttributeDefinition(@NotNull QName attrName);
+    NativeShadowSimpleAttributeDefinition<?> findSimpleAttributeDefinition(@NotNull QName attrName);
 
-    NativeShadowAssociationDefinition findAssociationDefinition(@NotNull QName assocName);
+    NativeShadowReferenceAttributeDefinition findReferenceAttributeDefinition(@NotNull QName attrName);
 
     interface NativeObjectClassDefinitionBuilder
             extends NativeObjectClassUcfDefinition.Mutable.Delegable, ComplexTypeDefinitionLikeBuilder {

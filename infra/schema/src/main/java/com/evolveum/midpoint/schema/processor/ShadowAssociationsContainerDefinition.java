@@ -33,7 +33,7 @@ public interface ShadowAssociationsContainerDefinition extends PrismContainerDef
     ShadowAssociationsContainerDefinition clone();
 
     @Override
-    @NotNull List<? extends ShadowAssociationDefinition> getDefinitions();
+    @NotNull List<? extends ShadowReferenceAttributeDefinition> getDefinitions();
 
-    @NotNull List<? extends ShadowAssociationDefinition> getAssociationsDefinitions();
+    @NotNull List<? extends ShadowReferenceAttributeDefinition> getAssociationsDefinitions();
 }

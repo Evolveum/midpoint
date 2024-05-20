@@ -8,13 +8,13 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.util.QNameUtil;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +26,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * Provides information about resource object attributes.
+ * Provides information about resource object attributes: both simple and reference ones.
  */
 public interface AttributeDefinitionStore
     extends LocalItemDefinitionStore {
@@ -37,13 +37,29 @@ public interface AttributeDefinitionStore
      *
      * The returned value is a {@link List} because of the contract of {@link ComplexTypeDefinition#getDefinitions()}.
      */
-    @NotNull List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions();
+    @NotNull List<? extends ShadowAttributeDefinition<?, ?>> getAttributeDefinitions();
+
+    default @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getSimpleAttributeDefinitions() {
+        //noinspection unchecked
+        return (List<? extends ShadowSimpleAttributeDefinition<?>>)
+                getAttributeDefinitions(ShadowSimpleAttributeDefinition.class);
+    }
+
+    /**
+     * Returns definitions of all associations as an unmodifiable collection.
+     *
+     * Note: these items are _not_ included in getDefinitions.
+     * (BTW, ResourceAssociationDefinition is not a subtype of ItemDefinition, not even of Definition.)
+     */
+    default @NotNull List<? extends ShadowReferenceAttributeDefinition> getReferenceAttributeDefinitions() {
+        return getAttributeDefinitions(ShadowReferenceAttributeDefinition.class);
+    }
 
     /**
      * Returns all attribute definitions of given type as an unmodifiable collection.
      *
      */
-    default @NotNull <AD extends ResourceAttributeDefinition<?>> Collection<AD> getAttributeDefinitions(Class<AD> type) {
+    default @NotNull <AD extends ShadowAttributeDefinition<?, ?>> List<? extends AD> getAttributeDefinitions(Class<AD> type) {
         //noinspection unchecked
         return getAttributeDefinitions().stream()
                 .filter(def -> type.isAssignableFrom(def.getClass()))
@@ -52,50 +68,69 @@ public interface AttributeDefinitionStore
     }
 
     /**
-     * Finds a definition of an attribute with a given name. Returns null if nothing is found.
+     * Finds a definition of a simple attribute with a given name. Returns null if nothing is found.
      */
-    default @Nullable <T> ResourceAttributeDefinition<T> findAttributeDefinition(QName name) {
+    default @Nullable <T> ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinition(QName name) {
+        return findSimpleAttributeDefinition(name, false);
+    }
+
+    /**
+     * Finds a definition of a simple attribute with a given name. Returns null if nothing is found.
+     */
+    default @Nullable <SA extends ShadowAttribute<?, ?>, R> ShadowAttributeDefinition<SA, R> findAttributeDefinition(QName name) {
         return findAttributeDefinition(name, false);
+    }
+
+    /** TODO ... ignoreCase will be part of the schema, soon ... */
+    default ShadowAttributeDefinition<?, ?> findShadowAttributeDefinitionRequired(
+            @NotNull ItemName itemName, boolean ignoreCase, Object errorCtx) throws SchemaException {
+
+        var attributeDefinition = findAttributeDefinition(itemName, ignoreCase);
+        if (attributeDefinition != null) {
+            return attributeDefinition;
+        } else {
+            throw new SchemaException("Unknown attribute '%s' in '%s'; %s".formatted(itemName, this, errorCtx));
+        }
     }
 
     /**
      * Finds a definition of an attribute with a given name. Throws {@link SchemaException} if it's not there.
      */
-    default @NotNull <T> ResourceAttributeDefinition<T> findAttributeDefinitionRequired(@NotNull QName name)
+    default @NotNull <T> ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinitionRequired(@NotNull QName name)
             throws SchemaException {
-        return findAttributeDefinitionRequired(name, () -> "");
+        return findSimpleAttributeDefinitionRequired(name, () -> "");
     }
 
     /**
      * Finds a definition of an attribute with a given name. Throws {@link IllegalStateException} if it's not there.
      */
-    default @NotNull ResourceAttributeDefinition<?> findAttributeDefinitionStrictlyRequired(@NotNull QName name) {
-        return findAttributeDefinitionStrictlyRequired(name, () -> "");
+    default @NotNull ShadowSimpleAttributeDefinition<?> findSimpleAttributeDefinitionStrictlyRequired(@NotNull QName name) {
+        return findSimpleAttributeDefinitionStrictlyRequired(name, () -> "");
     }
 
     /**
      * Finds a definition of an attribute with a given name. Throws {@link SchemaException} if it's not there.
      */
-    default @NotNull <T> ResourceAttributeDefinition<T> findAttributeDefinitionRequired(
+    default @NotNull <T> ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinitionRequired(
             @NotNull QName name, @NotNull Supplier<String> contextSupplier)
             throws SchemaException {
         return MiscUtil.requireNonNull(
-                findAttributeDefinition(name),
+                findSimpleAttributeDefinition(name),
                 () -> new SchemaException("No definition of attribute " + name + " in " + this + contextSupplier.get()));
     }
 
     /**
      * Finds a definition of an attribute with a given name. Throws {@link IllegalStateException} if it's not there.
      */
-    default @NotNull ResourceAttributeDefinition<?> findAttributeDefinitionStrictlyRequired(
+    default @NotNull ShadowSimpleAttributeDefinition<?> findSimpleAttributeDefinitionStrictlyRequired(
             @NotNull QName name, @NotNull Supplier<String> contextSupplier) {
         return MiscUtil.requireNonNull(
-                findAttributeDefinition(name),
+                findSimpleAttributeDefinition(name),
                 () -> new IllegalStateException("No definition of attribute " + name + " in " + this + contextSupplier.get()));
     }
 
     /**
-     * Finds a attribute definition by looking at the property name.
+     * Finds a simple attribute definition by looking at the property name.
      *
      * Returns null if nothing is found.
      *
@@ -103,10 +138,26 @@ public interface AttributeDefinitionStore
      * @param caseInsensitive if true, ignoring the case
      * @return found property definition or null
      */
-    default <T> @Nullable ResourceAttributeDefinition<T> findAttributeDefinition(QName name, boolean caseInsensitive) {
+    default <T> @Nullable ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinition(QName name, boolean caseInsensitive) {
         //noinspection unchecked
         return findLocalItemDefinition(
-                ItemName.fromQName(name), ResourceAttributeDefinition.class, caseInsensitive);
+                ItemName.fromQName(name), ShadowSimpleAttributeDefinition.class, caseInsensitive);
+    }
+
+    /**
+     * Finds an attribute definition by looking at the property name.
+     *
+     * Returns null if nothing is found.
+     *
+     * @param name property definition name
+     * @param caseInsensitive if true, ignoring the case
+     * @return found property definition or null
+     */
+    default <SA extends ShadowAttribute<?, ?>, R> @Nullable ShadowAttributeDefinition<SA, R> findAttributeDefinition(
+            QName name, boolean caseInsensitive) {
+        //noinspection unchecked
+        return (ShadowAttributeDefinition<SA, R>) findLocalItemDefinition(
+                ItemName.fromQName(name), ItemDefinition.class, caseInsensitive);
     }
 
     /**
@@ -115,15 +166,15 @@ public interface AttributeDefinitionStore
      * BEWARE: Ignores attributes in namespaces other than "ri:" (e.g. icfs:uid and icfs:name).
      */
     @VisibleForTesting
-    default <T> ResourceAttributeDefinition<T> findAttributeDefinition(String name) {
-        return findAttributeDefinition(
+    default <T> ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinition(String name) {
+        return findSimpleAttributeDefinition(
                 new QName(MidPointConstants.NS_RI, name));
     }
 
-    /** A convenience variant of {@link #findAttributeDefinition(String)}. */
+    /** A convenience variant of {@link #findSimpleAttributeDefinition(String)}. */
     @VisibleForTesting
-    default <T> @NotNull ResourceAttributeDefinition<T> findAttributeDefinitionRequired(String name) throws SchemaException {
-        return findAttributeDefinitionRequired(
+    default <T> @NotNull ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinitionRequired(String name) throws SchemaException {
+        return findSimpleAttributeDefinitionRequired(
                 new QName(MidPointConstants.NS_RI, name));
     }
 
@@ -131,7 +182,7 @@ public interface AttributeDefinitionStore
      * Returns true if the object class has any index-only attributes.
      */
     default boolean hasIndexOnlyAttributes() {
-        return getAttributeDefinitions().stream()
+        return getSimpleAttributeDefinitions().stream()
                 .anyMatch(ItemDefinition::isIndexOnly);
     }
 
@@ -144,16 +195,23 @@ public interface AttributeDefinitionStore
 
     /** Real values should have no duplicates. */
     @SuppressWarnings("unchecked")
-    default <T> @NotNull ResourceAttribute<T> instantiateAttribute(@NotNull QName attrName, @NotNull T... realValues)
+    default <T> @NotNull ShadowSimpleAttribute<T> instantiateAttribute(@NotNull QName attrName, @NotNull T... realValues)
             throws SchemaException {
         //noinspection unchecked
-        return ((ResourceAttributeDefinition<T>) findAttributeDefinitionRequired(attrName))
+        return ((ShadowSimpleAttributeDefinition<T>) findSimpleAttributeDefinitionRequired(attrName))
                 .instantiateFromRealValues(List.of(realValues));
     }
 
-    default @NotNull Collection<ItemName> getAllAttributesNames() {
-        return getAttributeDefinitions(ResourceAttributeDefinition.class).stream()
+    default @NotNull Collection<ItemName> getAllSimpleAttributesNames() {
+        return getAttributeDefinitions(ShadowSimpleAttributeDefinition.class).stream()
                 .map(ItemDefinition::getItemName)
                 .toList();
     }
+
+    default ShadowReferenceAttributeDefinition findReferenceAttributeDefinition(QName name) {
+        return getReferenceAttributeDefinitions().stream()
+                .filter(a -> QNameUtil.match(a.getItemName(), name))
+                .findFirst().orElse(null);
+    }
+
 }

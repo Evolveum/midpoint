@@ -148,6 +148,7 @@
             <class name="com.evolveum.midpoint.schema.validator.processor.TestUpgradeProcessors"/>
             <class name="com.evolveum.midpoint.schema.merger.TestMerger"/>
             <class name="com.evolveum.midpoint.schema.merger.ThreeWayMergerTest"/>
+            <class name="com.evolveum.midpoint.schema.merger.TreeDeltaTest"/>
         </classes>
     </test>
 </suite>

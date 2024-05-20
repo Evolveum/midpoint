@@ -252,12 +252,12 @@
                     </target>
                 </inbound>
             </attribute>
-            <association>
+            <attribute>
                 <ref>ri:group</ref>
                 <tolerant>false</tolerant>
                 <tolerantValuePattern>LaNdLuBeRs</tolerantValuePattern>
                 <tolerantValuePattern>mapmakers</tolerantValuePattern>
-            </association>
+            </attribute>
 
             <iteration>
                 <maxIterations>5</maxIterations>
@@ -408,7 +408,7 @@
                     </condition>
                 </inbound>
             </attribute>
-            <association>
+            <attribute>
                 <ref>ri:group</ref>
                 <outbound>
                     <expression>
@@ -417,7 +417,7 @@
                         </value>
                     </expression>
                 </outbound>
-            </association>
+            </attribute>
 
             <iteration>
                 <maxIterations>5</maxIterations>
@@ -490,10 +490,10 @@
                 <ref>ri:members</ref>
                 <fetchStrategy>minimal</fetchStrategy>
             </attribute>
-            <association>
+            <attribute>
                 <ref>ri:group</ref>
                 <!-- nothing to configure here -->
-            </association>
+            </attribute>
         </objectType>
 
         <objectType>
@@ -508,8 +508,8 @@
 
     <capabilities>
         <c:configured xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-            <associations>
-                <associationClass>
+            <references>
+                <type>
                     <name>ri:groupMembership</name>
                     <subject>
                         <delineation>
@@ -528,8 +528,8 @@
                         <primaryBindingAttributeRef>ri:members</primaryBindingAttributeRef>
                     </object>
                     <direction>objectToSubject</direction>
-                </associationClass>
-                <associationClass>
+                </type>
+                <type>
                     <name>ri:accountPrivilege</name>
                     <subject>
                         <delineation>
@@ -545,8 +545,8 @@
                         <primaryBindingAttributeRef>icfs:name</primaryBindingAttributeRef>
                     </object>
                     <direction>subjectToObject</direction>
-                </associationClass>
-            </associations>
+                </type>
+            </references>
         </c:configured>
     </capabilities>
 

@@ -26,7 +26,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
@@ -2635,7 +2635,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         PrismObject<ResourceType> resource = dummyResourceCtl.getResource();
         ResourceObjectClassDefinition groupDef = ResourceSchemaFactory.getCompleteSchema(resource)
                 .findObjectClassDefinitionRequired(RI_GROUP_OBJECT_CLASS);
-        ResourceAttributeDefinition<?> nameDef = groupDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttributeDefinition<?> nameDef = groupDef.findSimpleAttributeDefinition(SchemaConstants.ICFS_NAME);
         assertNotNull("No icfs:name definition", nameDef);
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(resource.getOid(), objectClass)
                 .and().item(SchemaConstants.ICFS_NAME_PATH, nameDef).eq(name)

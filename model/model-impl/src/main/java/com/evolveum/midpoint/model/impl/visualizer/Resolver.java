@@ -16,12 +16,11 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -210,7 +209,7 @@ public class Resolver {
         }
 
         if (ShadowType.class.equals(object.getCompileTimeClass())) {
-            ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute((ShadowType) object.asObjectable());
+            ShadowSimpleAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute((ShadowType) object.asObjectable());
             Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
             if (realName != null) {
                 return realName.toString();

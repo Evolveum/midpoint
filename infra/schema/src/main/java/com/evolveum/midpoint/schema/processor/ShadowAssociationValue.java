@@ -18,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -34,7 +33,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
- * Represents a specific shadow association value - i.e. something that is put into {@link ShadowAssociation}.
+ * Represents a specific shadow association value - i.e. something that is put into {@link ShadowReferenceAttribute}.
  * For example, a single group membership for a given account: `joe` is a member of `admins`.
  *
  * NOTE: As an experiment, we try to keep instances as consistent as possible. E.g., we require correct `shadowRef` etc.
@@ -77,7 +76,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
      */
     public static @NotNull ShadowAssociationValue of(
             @NotNull ShadowAssociationValueType bean,
-            @NotNull ShadowAssociationDefinition definition) {
+            @NotNull ShadowReferenceAttributeDefinition definition) {
         PrismContainerValue<?> pcv = bean.asPrismContainerValue();
         if (pcv instanceof ShadowAssociationValue shadowAssociationValue) {
             return shadowAssociationValue;
@@ -92,7 +91,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
                     var shadowRef = sourceItemClone.getRealValue(ObjectReferenceType.class);
                     var shadow = (ShadowType) shadowRef.getObjectable();
                     if (shadow != null && ShadowUtil.isRaw(shadow)) {
-                        new ShadowDefinitionApplicator(definition.getTargetObjectDefinition())
+                        new ShadowDefinitionApplicator(definition.getRepresentativeTargetObjectDefinition())
                                 .applyTo(shadow);
                     }
                 }
@@ -158,7 +157,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         return clone;
     }
 
-    public @NotNull ResourceAttributeContainer getAttributesContainerRequired() {
+    public @NotNull ShadowAttributesContainer getAttributesContainerRequired() {
         return ShadowUtil.getAttributesContainerRequired(getShadowBean());
     }
 
@@ -180,9 +179,8 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         return getAttributesContainerRequired().getDefinitionRequired().getTypeName();
     }
 
-    public @NotNull ShadowAssociationClassDefinition getAssociationClassDefinition() {
-        return stateNonNull((ShadowAssociationDefinition) getDefinition(), "No definition in %s", this)
-                .getAssociationClassDefinition();
+    public @NotNull ShadowReferenceAttributeDefinition getDefinitionRequired() {
+        return stateNonNull((ShadowReferenceAttributeDefinition) getDefinition(), "No definition in %s", this);
     }
 
     public @NotNull ResourceObjectIdentification<?> getIdentification() {
@@ -219,7 +217,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         return getShadowRequired().getObjectDefinition();
     }
 
-    public ResourceAttributeContainer getAttributesContainerIfPresent() {
+    public ShadowAttributesContainer getAttributesContainerIfPresent() {
         var shadow = getShadowIfPresent();
         return shadow != null ? shadow.getAttributesContainer() : null;
     }

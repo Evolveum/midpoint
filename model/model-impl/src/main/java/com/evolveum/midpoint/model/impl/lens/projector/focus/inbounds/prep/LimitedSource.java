@@ -14,7 +14,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInbound
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
-import com.evolveum.midpoint.schema.processor.ShadowAssociation;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -120,7 +120,7 @@ class LimitedSource extends MSource {
     @Override
     void resolveInputEntitlements(
             ContainerDelta<ShadowAssociationValueType> associationAPrioriDelta,
-            ShadowAssociation currentAssociation) {
+            ShadowReferenceAttribute currentAssociation) {
         // Associations are not yet supported in pre-mappings
     }
 

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.init;
 
 import java.util.*;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -69,6 +70,10 @@ public class SchemaCache implements Cache {
         ResultHandler<SchemaType> handler = (object, parentResult) -> {
             SchemaType schemaType = object.asObjectable();
             String description = schemaType.getName() + " (" + schemaType.getOid() + ")";
+            if (SchemaConstants.LIFECYCLE_PROPOSED.equals(schemaType.getLifecycleState())) {
+                LOGGER.debug("Skip processing schema object from database, because SchemaType " + description + " is in proposed lifecycle state.");
+                return true;
+            }
 
             SchemaDefinitionType def = schemaType.getDefinition();
             Element schemaElement = def.getSchema();

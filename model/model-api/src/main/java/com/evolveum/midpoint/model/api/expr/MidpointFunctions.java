@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaUtil;
 import com.evolveum.midpoint.schema.query.PreparedQuery;
 import com.evolveum.midpoint.schema.query.TypedQuery;
@@ -1472,12 +1472,12 @@ public interface MidpointFunctions {
     OptimizingTriggerCreator getOptimizingTriggerCreator(long fireAfter, long safetyMargin);
 
     @NotNull
-    <T> ResourceAttributeDefinition<T> getAttributeDefinition(
+    <T> ShadowSimpleAttributeDefinition<T> getAttributeDefinition(
             PrismObject<ResourceType> resource, QName objectClassName, QName attributeName)
             throws SchemaException, ConfigurationException;
 
     @NotNull
-    <T> ResourceAttributeDefinition<T> getAttributeDefinition(
+    <T> ShadowSimpleAttributeDefinition<T> getAttributeDefinition(
             PrismObject<ResourceType> resource, String objectClassName, String attributeName)
             throws SchemaException, ConfigurationException;
 

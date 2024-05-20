@@ -188,10 +188,10 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         }
         ShadowType fakeResourceObject = new ShadowType();
         fakeResourceObject.setObjectClass(objectDefinition.getTypeName());
-        ResourceAttributeContainer attributeContainer = objectDefinition.toResourceAttributeContainerDefinition().instantiate();
+        ShadowAttributesContainer attributeContainer = objectDefinition.toResourceAttributeContainerDefinition().instantiate();
         try {
             fakeResourceObject.asPrismObject().add(attributeContainer);
-            for (ResourceAttribute<?> identifier : resourceObjectChange.getIdentifiers()) {
+            for (ShadowSimpleAttribute<?> identifier : resourceObjectChange.getIdentifiers()) {
                 attributeContainer.add(identifier.clone());
             }
         } catch (SchemaException e) {
@@ -276,7 +276,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
             throws SchemaException, ConfigurationException {
         // TODO the object should have the composite definition by now!
         ResourceObjectDefinition ocDef = effectiveCtx.computeCompositeObjectDefinition(resourceObject);
-        for (ResourceAttributeDefinition<?> attrDef : ocDef.getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition<?> attrDef : ocDef.getSimpleAttributeDefinitions()) {
             if (attrDef.isIndexOnly()) {
                 ItemPath path = ItemPath.create(ShadowType.F_ATTRIBUTES, attrDef.getItemName());
                 LOGGER.trace("Marking item {} as incomplete because it's index-only", path);
@@ -298,7 +298,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
      */
     protected abstract String getDefaultChannel();
 
-    public @NotNull Collection<ResourceAttribute<?>> getIdentifiers() {
+    public @NotNull Collection<ShadowSimpleAttribute<?>> getIdentifiers() {
         return resourceObjectChange.getIdentifiers();
     }
 

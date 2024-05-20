@@ -727,4 +727,5 @@ public abstract class SchemaConstants {
      * The ID is not really used for anything serious, except that each profile should have one.
      */
     public static final String BUILTIN_GROOVY_EXPRESSION_PROFILE_ID = "##groovyBuiltIn";
+    public static final String CONNECTOR_CONFIGURATION_PREFIX = "cfg";
 }

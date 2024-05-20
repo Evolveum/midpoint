@@ -19,7 +19,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManualConne
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstance;
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -109,7 +109,7 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
 
     @Override
     protected String createTicketModify(ResourceObjectDefinition objectDefinition,
-            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers,
+            PrismObject<ShadowType> shadow, Collection<? extends ShadowSimpleAttribute<?>> identifiers,
             String resourceOid, Collection<Operation> changes, Task task, OperationResult result)
             throws CommunicationException, GenericFrameworkException,
             SchemaException, ObjectAlreadyExistsException, ConfigurationException {
@@ -130,7 +130,7 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
 
     @Override
     protected String createTicketDelete(ResourceObjectDefinition objectDefinition,
-            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers,
+            PrismObject<ShadowType> shadow, Collection<? extends ShadowSimpleAttribute<?>> identifiers,
             String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException,
             CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
         DummyItsm itsm = DummyItsm.getInstance();

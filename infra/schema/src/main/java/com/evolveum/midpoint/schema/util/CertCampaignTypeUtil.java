@@ -350,17 +350,21 @@ public class CertCampaignTypeUtil {
 
     // TODO use this also from GUI and maybe notifications
     @SuppressWarnings("unused")  // used by certification cases report
-    public static List<ObjectReferenceType> getCurrentlyAssignedReviewers(PrismContainerValue<AccessCertificationCaseType> pcv) {
-        return getCurrentlyAssignedReviewers(pcv.asContainerable());
+    public static List<ObjectReferenceType> getCurrentlyAssignedReviewers(PrismContainerValue<AccessCertificationCaseType> pcv,
+            int stageNumber) {
+        return getCurrentlyAssignedReviewers(pcv.asContainerable(), stageNumber);
     }
 
-    public @NotNull static List<ObjectReferenceType> getCurrentlyAssignedReviewers(@NotNull AccessCertificationCaseType aCase) {
+    public @NotNull static List<ObjectReferenceType> getCurrentlyAssignedReviewers(@NotNull AccessCertificationCaseType aCase,
+            int stageNumber) {
         List<ObjectReferenceType> rv = new ArrayList<>();
         for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
-            for (ObjectReferenceType assigneeRef : workItem.getAssigneeRef()) {
-                if (workItem.getCloseTimestamp() == null
-                        && Objects.equals(workItem.getStageNumber(), aCase.getStageNumber())) {
-                    rv.add(assigneeRef);
+            if (workItem.getStageNumber() == stageNumber) {
+                for (ObjectReferenceType assigneeRef : workItem.getAssigneeRef()) {
+                    if (workItem.getCloseTimestamp() == null
+                            && Objects.equals(workItem.getStageNumber(), aCase.getStageNumber())) {
+                        rv.add(assigneeRef);
+                    }
                 }
             }
         }
@@ -413,11 +417,13 @@ public class CertCampaignTypeUtil {
     }
 
     @SuppressWarnings("unused")         // used by certification cases report
-    public static List<String> getComments(PrismContainerValue<AccessCertificationCaseType> pcv) {
+    public static List<String> getComments(PrismContainerValue<AccessCertificationCaseType> pcv, int stageNumber) {
         List<String> rv = new ArrayList<>();
         for (AccessCertificationWorkItemType workItem : pcv.asContainerable().getWorkItem()) {
-            if (!StringUtils.isEmpty(WorkItemTypeUtil.getComment(workItem))) {
-                rv.add(WorkItemTypeUtil.getComment(workItem));
+            if (workItem.getStageNumber() == stageNumber) {
+                if (!StringUtils.isEmpty(WorkItemTypeUtil.getComment(workItem))) {
+                    rv.add(WorkItemTypeUtil.getComment(workItem));
+                }
             }
         }
         return rv;

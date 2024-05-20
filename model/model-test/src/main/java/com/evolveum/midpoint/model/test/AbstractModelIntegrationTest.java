@@ -2858,9 +2858,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         shadowType.setObjectClass(objectClassDefinition.getTypeName());
         shadowType.setKind(ShadowKindType.ACCOUNT);
         shadowType.setIntent(INTENT_DEFAULT);
-        ResourceAttributeContainer attrCont = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-        ResourceAttributeDefinition<?> idSecondaryDef = objectClassDefinition.getSecondaryIdentifiers().iterator().next();
-        ResourceAttribute icfsNameAttr = idSecondaryDef.instantiate();
+        ShadowAttributesContainer attrCont = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
+        ShadowSimpleAttributeDefinition<?> idSecondaryDef = objectClassDefinition.getSecondaryIdentifiers().iterator().next();
+        ShadowSimpleAttribute icfsNameAttr = idSecondaryDef.instantiate();
         icfsNameAttr.setRealValue(name);
         attrCont.add(icfsNameAttr);
         ActivationType activation = new ActivationType();
@@ -2874,8 +2874,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <T> void addAttributeToShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, String attrName, T attrValue) throws SchemaException {
-        ResourceAttributeContainer attrs = ShadowUtil.getAttributesContainer(shadow);
-        ResourceAttribute<T> attr = attrs.getDefinition()
+        ShadowAttributesContainer attrs = ShadowUtil.getAttributesContainer(shadow);
+        ShadowSimpleAttribute<T> attr = attrs.getDefinition()
                 .<T>findAttributeDefinition(new ItemName(MidPointConstants.NS_RI, attrName))
                 .instantiate();
         attr.setRealValue(attrValue);
@@ -3134,7 +3134,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             QName objectClass,
             MatchingRule<String> nameMatchingRule) throws SchemaException, ConfigurationException {
         assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
-        IntegrationTestTools.assertProvisioningShadow(accountShadow, ResourceAttributeDefinition.class, objectClass);
+        IntegrationTestTools.assertProvisioningShadow(accountShadow, ShadowSimpleAttributeDefinition.class, objectClass);
     }
 
     protected ObjectDelta<UserType> createModifyUserAddDummyAccount(String userOid, String dummyResourceName)

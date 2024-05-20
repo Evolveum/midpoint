@@ -13,10 +13,9 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.util.EqualsChecker;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -37,7 +36,7 @@ public class PropertyValueMatcher<T> implements EqualsChecker<PrismPropertyValue
         this.matchingRule = matchingRule;
     }
 
-    static @NotNull <T> PropertyValueMatcher<T> createMatcher(ResourceAttributeDefinition<?> rAttrDef, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+    static @NotNull <T> PropertyValueMatcher<T> createMatcher(ShadowSimpleAttributeDefinition<?> rAttrDef, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         QName matchingRuleQName = rAttrDef.getMatchingRuleQName();
         MatchingRule<T> matchingRule;
         try {

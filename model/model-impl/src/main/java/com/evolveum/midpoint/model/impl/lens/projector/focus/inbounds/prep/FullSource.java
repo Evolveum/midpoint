@@ -67,7 +67,7 @@ class FullSource extends MSource {
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
             @NotNull LensProjectionContext projectionContext,
             @NotNull Context context,
-            @Nullable ShadowAssociationDefinition owningAssociationDefinition) throws ConfigurationException {
+            @Nullable ShadowReferenceAttributeDefinition owningAssociationDefinition) throws ConfigurationException {
         super(
                 asObjectable(currentShadow),
                 aPrioriDelta,
@@ -278,7 +278,7 @@ class FullSource extends MSource {
     @Override
     void resolveInputEntitlements(
             ContainerDelta<ShadowAssociationValueType> associationAPrioriDelta,
-            ShadowAssociation currentAssociation) {
+            ShadowReferenceAttribute currentAssociation) {
 
         // FIXME rework this!
 
@@ -386,7 +386,7 @@ class FullSource extends MSource {
         // The new way
         var entitlementRefValue = entitlementRef != null ? entitlementRef.getValue() : null;
         var entitlementNew = entitlementRefValue != null ? entitlementRefValue.getObject() : null;
-        variables.put(ExpressionConstants.VAR_ASSOCIATED_SHADOW, entitlementNew, entitlementDef);
+        variables.put(ExpressionConstants.VAR_OBJECT, entitlementNew, entitlementDef);
     }
 
     @Override

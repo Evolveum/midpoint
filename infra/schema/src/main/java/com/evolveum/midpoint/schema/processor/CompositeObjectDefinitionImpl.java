@@ -57,10 +57,7 @@ public class CompositeObjectDefinitionImpl
     @NotNull private final Collection<? extends ResourceObjectDefinition> auxiliaryDefinitions;
 
     /** Lazily computed, but only when this instance is immutable. */
-    private volatile List<ResourceAttributeDefinition<?>> allAttributeDefinitions;
-
-    /** Same as {@link #allAttributeDefinitions} but also for associations. */
-    private volatile List<ShadowItemDefinition<?, ?>> allShadowItemDefinitions;
+    private volatile List<? extends ShadowAttributeDefinition<?, ?>> allAttributeDefinitions;
 
     private PrismObjectDefinition<ShadowType> prismObjectDefinition;
 
@@ -227,7 +224,7 @@ public class CompositeObjectDefinitionImpl
 
     @NotNull
     @Override
-    public Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers() {
+    public Collection<? extends ShadowSimpleAttributeDefinition<?>> getPrimaryIdentifiers() {
         return structuralDefinition.getPrimaryIdentifiers();
     }
 
@@ -238,20 +235,13 @@ public class CompositeObjectDefinitionImpl
 
     @NotNull
     @Override
-    public Collection<? extends ResourceAttributeDefinition<?>> getSecondaryIdentifiers() {
+    public Collection<? extends ShadowSimpleAttributeDefinition<?>> getSecondaryIdentifiers() {
         return structuralDefinition.getSecondaryIdentifiers();
     }
 
     @Override
     public @NotNull Collection<QName> getSecondaryIdentifiersNames() {
         return structuralDefinition.getSecondaryIdentifiersNames();
-    }
-
-    // TODO - ok???
-    @NotNull
-    @Override
-    public List<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
-        return structuralDefinition.getAssociationDefinitions();
     }
 
     @Override
@@ -310,7 +300,7 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+    public @NotNull Collection<? extends SynchronizationReactionDefinition> getSynchronizationReactions() {
         return structuralDefinition.getSynchronizationReactions();
     }
 
@@ -358,7 +348,7 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull synchronized List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
+    public synchronized @NotNull List<? extends ShadowAttributeDefinition<?, ?>> getAttributeDefinitions() {
         if (auxiliaryDefinitions.isEmpty()) {
             return structuralDefinition.getAttributeDefinitions();
         }
@@ -367,7 +357,7 @@ public class CompositeObjectDefinitionImpl
             return allAttributeDefinitions;
         }
 
-        List<ResourceAttributeDefinition<?>> collectedDefinitions = collectAttributeDefinitions();
+        List<? extends ShadowAttributeDefinition<?, ?>> collectedDefinitions = collectAttributeDefinitions();
         if (isImmutable()) {
             allAttributeDefinitions = collectedDefinitions;
         } else {
@@ -377,71 +367,71 @@ public class CompositeObjectDefinitionImpl
         return collectedDefinitions;
     }
 
-    private @NotNull List<ResourceAttributeDefinition<?>> collectAttributeDefinitions() {
+    private @NotNull List<? extends ShadowAttributeDefinition<?, ?>> collectAttributeDefinitions() {
         // Adds all attribute definitions from aux OCs that are not already known.
-        ArrayList<ResourceAttributeDefinition<?>> collectedDefinitions =
+        ArrayList<ShadowAttributeDefinition<?, ?>> collectedDefinitions =
                 new ArrayList<>(structuralDefinition.getAttributeDefinitions());
         for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
-            for (ResourceAttributeDefinition<?> auxRAttrDef : auxiliaryObjectClassDefinition.getAttributeDefinitions()) {
-                boolean shouldAdd = true;
-                for (ResourceAttributeDefinition<?> def : collectedDefinitions) {
-                    if (def.getItemName().equals(auxRAttrDef.getItemName())) { // FIXME what about case in-sensitiveness?
-                        shouldAdd = false;
-                        break;
-                    }
-                }
-                if (shouldAdd) {
-                    collectedDefinitions.add(auxRAttrDef);
-                }
-            }
-        }
-        return collectedDefinitions;
-    }
-
-    @Override
-    public @NotNull synchronized Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions() {
-        if (auxiliaryDefinitions.isEmpty()) {
-            return structuralDefinition.getShadowItemDefinitions();
-        }
-
-        if (allShadowItemDefinitions != null) {
-            return allShadowItemDefinitions;
-        }
-
-        List<ShadowItemDefinition<?, ?>> collectedDefinitions = collectShadowItemDefinitions();
-        if (isImmutable()) {
-            allShadowItemDefinitions = collectedDefinitions;
-        } else {
-            // it's not safe to cache the definitions if this instance is mutable
-        }
-
-        return collectedDefinitions;
-    }
-
-    private @NotNull List<ShadowItemDefinition<?, ?>> collectShadowItemDefinitions() {
-        // Adds all definitions from aux OCs that are not already known.
-        ArrayList<ShadowItemDefinition<?, ?>> collectedDefinitions =
-                new ArrayList<>(structuralDefinition.getShadowItemDefinitions());
-        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
-            for (ShadowItemDefinition<?, ?> auxDef : auxiliaryObjectClassDefinition.getShadowItemDefinitions()) {
+            for (var auxAttrDef : auxiliaryObjectClassDefinition.getSimpleAttributeDefinitions()) {
                 boolean shouldAdd = true;
                 for (var def : collectedDefinitions) {
-                    if (def.getItemName().equals(auxDef.getItemName())) { // FIXME what about case in-sensitiveness?
+                    if (def.getItemName().equals(auxAttrDef.getItemName())) { // FIXME what about case in-sensitiveness?
                         shouldAdd = false;
                         break;
                     }
                 }
                 if (shouldAdd) {
-                    collectedDefinitions.add(auxDef);
+                    collectedDefinitions.add(auxAttrDef);
                 }
             }
         }
         return collectedDefinitions;
     }
+
+//    @Override
+//    public @NotNull synchronized Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions() {
+//        if (auxiliaryDefinitions.isEmpty()) {
+//            return structuralDefinition.getShadowItemDefinitions();
+//        }
+//
+//        if (allShadowAttributeDefinitions != null) {
+//            return allShadowAttributeDefinitions;
+//        }
+//
+//        List<ShadowAttributeDefinition<?, ?>> collectedDefinitions = collectShadowItemDefinitions();
+//        if (isImmutable()) {
+//            allShadowAttributeDefinitions = collectedDefinitions;
+//        } else {
+//            // it's not safe to cache the definitions if this instance is mutable
+//        }
+//
+//        return collectedDefinitions;
+//    }
+//
+//    private @NotNull List<ShadowAttributeDefinition<?, ?>> collectShadowItemDefinitions() {
+//        // Adds all definitions from aux OCs that are not already known.
+//        ArrayList<ShadowAttributeDefinition<?, ?>> collectedDefinitions =
+//                new ArrayList<>(structuralDefinition.getShadowItemDefinitions());
+//        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
+//            for (ShadowAttributeDefinition<?, ?> auxDef : auxiliaryObjectClassDefinition.getShadowItemDefinitions()) {
+//                boolean shouldAdd = true;
+//                for (var def : collectedDefinitions) {
+//                    if (def.getItemName().equals(auxDef.getItemName())) { // FIXME what about case in-sensitiveness?
+//                        shouldAdd = false;
+//                        break;
+//                    }
+//                }
+//                if (shouldAdd) {
+//                    collectedDefinitions.add(auxDef);
+//                }
+//            }
+//        }
+//        return collectedDefinitions;
+//    }
 
     @Override
     public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
-        return getAttributeDefinitions();
+        return getSimpleAttributeDefinitions();
     }
 
     @Override

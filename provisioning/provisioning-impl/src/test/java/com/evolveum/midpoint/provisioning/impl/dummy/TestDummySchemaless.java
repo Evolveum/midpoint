@@ -539,13 +539,13 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 
         assertNotNull("No object class definition " + RI_ACCOUNT_OBJECT_CLASS, accountDefinition);
         assertTrue("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is not default account", accountDefinition.isDefaultAccountDefinition());
-        assertFalse("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is empty", accountDefinition.getAttributeDefinitions().isEmpty());
+        assertFalse("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is empty", accountDefinition.getSimpleAttributeDefinitions().isEmpty());
 
-        Collection<? extends ResourceAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
         assertNotNull("Null identifiers for " + RI_ACCOUNT_OBJECT_CLASS, identifiers);
         assertFalse("Empty identifiers for " + RI_ACCOUNT_OBJECT_CLASS, identifiers.isEmpty());
 
-        ResourceAttributeDefinition<?> uidAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaConstants.ICFS_UID);
+        ShadowSimpleAttributeDefinition<?> uidAttributeDefinition = accountDefinition.findSimpleAttributeDefinition(SchemaConstants.ICFS_UID);
         assertNotNull("No definition for attribute " + SchemaConstants.ICFS_UID, uidAttributeDefinition);
         assertTrue("Attribute " + SchemaConstants.ICFS_UID + " in not an identifier",
                 accountDefinition.isPrimaryIdentifier(
@@ -558,7 +558,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertNotNull("Null secondary identifiers for " + RI_ACCOUNT_OBJECT_CLASS, secondaryIdentifiers);
         assertFalse("Empty secondary identifiers for " + RI_ACCOUNT_OBJECT_CLASS, secondaryIdentifiers.isEmpty());
 
-        ResourceAttributeDefinition<?> nameAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttributeDefinition<?> nameAttributeDefinition = accountDefinition.findSimpleAttributeDefinition(SchemaConstants.ICFS_NAME);
         assertNotNull("No definition for attribute " + SchemaConstants.ICFS_NAME, nameAttributeDefinition);
         assertTrue("Attribute " + SchemaConstants.ICFS_NAME + " in not an identifier",
                 accountDefinition.isSecondaryIdentifier(
@@ -574,7 +574,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertNotNull("No naming attribute in account", accountDef1.getNamingAttribute());
         assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef1.getNativeObjectClassName()));
 
-        ResourceAttributeDefinition<?> uidDef = accountDef1.findAttributeDefinitionRequired(SchemaConstants.ICFS_UID);
+        ShadowSimpleAttributeDefinition<?> uidDef = accountDef1.findSimpleAttributeDefinitionRequired(SchemaConstants.ICFS_UID);
         assertEquals(1, uidDef.getMaxOccurs());
         assertEquals(0, uidDef.getMinOccurs());
         assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
@@ -585,7 +585,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertEquals("Wrong refined displayName for attribute " + SchemaConstants.ICFS_UID, "Modified ConnId UID", uidDef.getDisplayName());
         assertEquals("Wrong refined displayOrder for attribute " + SchemaConstants.ICFS_UID, (Integer) 100, uidDef.getDisplayOrder());
 
-        ResourceAttributeDefinition<?> nameDef = accountDef1.findAttributeDefinitionRequired(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttributeDefinition<?> nameDef = accountDef1.findSimpleAttributeDefinitionRequired(SchemaConstants.ICFS_NAME);
         assertEquals(1, nameDef.getMaxOccurs());
         assertEquals(1, nameDef.getMinOccurs());
         assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
@@ -596,14 +596,14 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertEquals("Wrong refined displayName for attribute " + SchemaConstants.ICFS_NAME, "Modified ConnId Name", nameDef.getDisplayName());
         assertEquals("Wrong refined displayOrder for attribute " + SchemaConstants.ICFS_NAME, (Integer) 110, nameDef.getDisplayOrder());
 
-        assertNull("The _PASSWORD_ attribute sneaked into schema", accountDef1.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS, "password")));
+        assertNull("The _PASSWORD_ attribute sneaked into schema", accountDef1.findSimpleAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS, "password")));
 
         // ACCOUNT
         ResourceObjectClassDefinition accountDef =
                 resourceSchema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
         assertNotNull("No ACCOUNT kind definition", accountDef);
 
-        ResourceAttributeDefinition<?> fullnameDef = accountDef.findAttributeDefinition("fullname");
+        ShadowSimpleAttributeDefinition<?> fullnameDef = accountDef.findSimpleAttributeDefinition("fullname");
         assertNotNull("No definition for fullname", fullnameDef);
         assertEquals(1, fullnameDef.getMaxOccurs());
         assertEquals(1, fullnameDef.getMinOccurs());
@@ -618,7 +618,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
                 resourceSchema.findObjectClassDefinition(RI_GROUP_OBJECT_CLASS);
         assertNotNull("No group objectClass", groupObjectClass);
 
-        var membersDef = groupObjectClass.findAttributeDefinition(DummyResourceContoller.DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME);
+        var membersDef = groupObjectClass.findSimpleAttributeDefinition(DummyResourceContoller.DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME);
         assertNotNull("No definition for members", membersDef);
         assertEquals("Wrong maxOccurs", -1, membersDef.getMaxOccurs());
         assertEquals("Wrong minOccurs", 0, membersDef.getMinOccurs());

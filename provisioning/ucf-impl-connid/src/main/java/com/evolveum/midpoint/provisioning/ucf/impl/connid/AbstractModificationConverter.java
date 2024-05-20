@@ -10,7 +10,7 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
@@ -154,9 +154,9 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                 PropertyDelta<?> delta = change.getPropertyDelta();
 
                 if (delta.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
-                    if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ResourceAttributeDefinition)) {
-                        ResourceAttributeDefinition def = objectDefinition
-                                .findAttributeDefinition(delta.getElementName());
+                    if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ShadowSimpleAttributeDefinition)) {
+                        ShadowSimpleAttributeDefinition def = objectDefinition
+                                .findSimpleAttributeDefinition(delta.getElementName());
                         if (def == null) {
                             String message = "No definition for attribute " + delta.getElementName() + " used in modification delta";
                             throw new SchemaException(message);
@@ -168,7 +168,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                         }
                     }
                     PlusMinusZero isInModifiedAuxilaryClass = null;
-                    ResourceAttributeDefinition<?> structAttrDef = structuralObjectClassDefinition.findAttributeDefinition(delta.getElementName());
+                    ShadowSimpleAttributeDefinition<?> structAttrDef = structuralObjectClassDefinition.findSimpleAttributeDefinition(delta.getElementName());
                     // if this attribute is also in the structural object class. It does not matter if it is in
                     // aux object class, we cannot add/remove it with the object class unless it is normally requested
                     if (structAttrDef == null) {
@@ -180,7 +180,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                             // is removed, the attributes must be removed as well.
                             for (PrismPropertyValue<QName> auxPval : auxiliaryObjectClassDelta.getValuesToDelete()) {
                                 ResourceObjectDefinition auxDef = auxiliaryObjectClassMap.get(auxPval.getValue());
-                                ResourceAttributeDefinition<?> attrDef = auxDef.findAttributeDefinition(delta.getElementName());
+                                ShadowSimpleAttributeDefinition<?> attrDef = auxDef.findSimpleAttributeDefinition(delta.getElementName());
                                 if (attrDef != null) {
                                     // means: is in removed auxiliary class
                                     isInModifiedAuxilaryClass = PlusMinusZero.MINUS;
@@ -196,7 +196,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                             // is added, the attributes must be added as well.
                             for (PrismPropertyValue<QName> auxPval : auxiliaryObjectClassDelta.getValuesToAdd()) {
                                 ResourceObjectDefinition auxOcDef = auxiliaryObjectClassMap.get(auxPval.getValue());
-                                ResourceAttributeDefinition<?> auxAttrDef = auxOcDef.findAttributeDefinition(delta.getElementName());
+                                ShadowSimpleAttributeDefinition<?> auxAttrDef = auxOcDef.findSimpleAttributeDefinition(delta.getElementName());
                                 if (auxAttrDef != null) {
                                     // means: is in added auxiliary class
                                     isInModifiedAuxilaryClass = PlusMinusZero.PLUS;

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Target in the "full mode". It is always the focal object, e.g., a user.
@@ -26,7 +27,7 @@ class FullTarget<F extends FocusType> extends Target<F> {
 
     FullTarget(
             @NotNull LensContext<F> lensContext,
-            @NotNull PrismObject<F> focus,
+            @Nullable PrismObject<F> focus,
             @NotNull PrismObjectDefinition<F> focusDefinition,
             @NotNull PathKeyedMap<ItemDefinition<?>> itemDefinitionMap,
             @NotNull ItemPath targetPathPrefix) {

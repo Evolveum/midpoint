@@ -39,7 +39,7 @@ class EntitlementUtils {
      * @param referencedAttrValue Value of the referenced ("value") attribute. E.g. uid=jack,ou=People,dc=example,dc=org.
      */
     static <TV, TA> ObjectQuery createEntitlementQuery(
-            ResourceAttributeDefinition<TA> referencingAttrDef, PrismPropertyValue<TV> referencedAttrValue) {
+            ShadowSimpleAttributeDefinition<TA> referencingAttrDef, PrismPropertyValue<TV> referencedAttrValue) {
 
         // The "referencedAttrValue" is what we look for in the entitlements (e.g. specific DN that should be their member).
         // We don't need the normalization, as the value is used for search on the resource.
@@ -67,7 +67,7 @@ class EntitlementUtils {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    static boolean isVisible(ShadowAssociationDefinition def, ProvisioningContext subjectCtx) {
+    static boolean isVisible(ShadowReferenceAttributeDefinition def, ProvisioningContext subjectCtx) {
         if (def.isVisible(subjectCtx)) {
             return true;
         } else {
@@ -77,7 +77,7 @@ class EntitlementUtils {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    static boolean isSimulated(ShadowAssociationDefinition def) {
+    static boolean isSimulated(ShadowReferenceAttributeDefinition def) {
         if (def.isSimulated()) {
             return true;
         } else {
@@ -87,7 +87,7 @@ class EntitlementUtils {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    static boolean isSimulatedSubjectToObject(ShadowAssociationDefinition def) {
+    static boolean isSimulatedSubjectToObject(ShadowReferenceAttributeDefinition def) {
         var simulationDef = def.getSimulationDefinition();
         if (simulationDef != null && simulationDef.isSubjectToObject()) {
             return true;
@@ -98,7 +98,7 @@ class EntitlementUtils {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    static boolean isSimulatedObjectToSubject(ShadowAssociationDefinition def) {
+    static boolean isSimulatedObjectToSubject(ShadowReferenceAttributeDefinition def) {
         var simulationDef = def.getSimulationDefinition();
         if (simulationDef != null && simulationDef.isObjectToSubject()) {
             return true;
@@ -109,7 +109,7 @@ class EntitlementUtils {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    static boolean requiresExplicitReferentialIntegrity(ShadowAssociationDefinition def) {
+    static boolean requiresExplicitReferentialIntegrity(ShadowReferenceAttributeDefinition def) {
         var simulationDef = def.getSimulationDefinition();
         if (simulationDef != null && simulationDef.requiresExplicitReferentialIntegrity()) {
             return true;
@@ -120,13 +120,13 @@ class EntitlementUtils {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    static boolean doesMatchSubjectDelineation(ShadowAssociationDefinition associationDef, ProvisioningContext subjectCtx) {
+    static boolean doesMatchSubjectDelineation(ShadowReferenceAttributeDefinition associationDef, ProvisioningContext subjectCtx) {
         return doesMatchSubjectDelineation(associationDef.getSimulationDefinitionRequired(), subjectCtx);
     }
 
     /** FIXME very imprecise implementation - deals only with aux OC specification! */
     private static boolean doesMatchSubjectDelineation(
-            ShadowAssociationClassSimulationDefinition simulationDef, ProvisioningContext subjectCtx) {
+            SimulatedShadowReferenceTypeDefinition simulationDef, ProvisioningContext subjectCtx) {
         // We assume the subjectDef reflects the actual aux classes possessed by the subject shadow.
         ResourceObjectDefinition subjectDef = subjectCtx.getObjectDefinitionRequired();
         for (SimulatedAssociationClassParticipantDefinition subjectDelineation : simulationDef.getSubjects()) {

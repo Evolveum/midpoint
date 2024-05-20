@@ -169,33 +169,39 @@
             <objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
         <associationType>
-            <associationClass>ri:groupMembership</associationClass>
+            <name>ri:groupMembership</name>
             <subject>
-                <type>
+                <objectType>
                     <kind>account</kind>
                     <intent>default</intent>
-                </type>
+                </objectType>
+                <association>
+                    <ref>ri:group</ref>
+                </association>
             </subject>
             <object>
-                <type>
+                <objectType>
                     <kind>entitlement</kind>
                     <intent>group</intent>
-                </type>
+                </objectType>
             </object>
         </associationType>
         <associationType>
-            <associationClass>ri:accountPrivilege</associationClass>
+            <name>ri:accountPrivilege</name>
             <subject>
-                <type>
+                <objectType>
                     <kind>account</kind>
                     <intent>default</intent>
-                </type>
+                </objectType>
+                <association>
+                    <ref>ri:priv</ref>
+                </association>
             </subject>
             <object>
-                <type>
+                <objectType>
                     <kind>entitlement</kind>
                     <intent>privilege</intent>
-                </type>
+                </objectType>
             </object>
         </associationType>
     </schemaHandling>

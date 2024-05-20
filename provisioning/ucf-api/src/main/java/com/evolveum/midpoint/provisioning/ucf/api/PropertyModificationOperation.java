@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -65,9 +65,9 @@ public final class PropertyModificationOperation<T> extends Operation {
     }
 
     @Override
-    public @Nullable ResourceAttributeDefinition<?> getAttributeDefinitionIfApplicable(@NotNull ResourceObjectDefinition objDef) {
+    public @Nullable ShadowSimpleAttributeDefinition<?> getAttributeDefinitionIfApplicable(@NotNull ResourceObjectDefinition objDef) {
         if (isAttributeDelta()) {
-            return objDef.findAttributeDefinition(propertyDelta.getElementName());
+            return objDef.findSimpleAttributeDefinition(propertyDelta.getElementName());
         } else {
             return null;
         }

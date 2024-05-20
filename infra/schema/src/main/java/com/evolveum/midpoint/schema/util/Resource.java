@@ -162,7 +162,7 @@ public class Resource {
             if (attrName == null) {
                 return null;
             } else {
-                return definition.findAttributeDefinition(attrName);
+                return definition.findSimpleAttributeDefinition(attrName);
             }
         }
     }

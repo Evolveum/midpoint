@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.util.ErrorState;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,7 +33,7 @@ public class ExternalResourceObjectChange extends ResourceObjectChange {
             int localSequenceNumber,
             @NotNull Object primaryIdentifierRealValue,
             @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull Collection<ResourceAttribute<?>> identifiers,
+            @NotNull Collection<ShadowSimpleAttribute<?>> identifiers,
             UcfResourceObject rawResourceObject,
             ObjectDelta<ShadowType> objectDelta,
             ProvisioningContext ctx) {

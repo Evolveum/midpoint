@@ -12203,7 +12203,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
-                <a:merger>ScriptLanguageExpressionProfileType</a:merger>
+                <a:naturalKey>language</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -21298,6 +21298,7 @@
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
+                    <xsd:element name="namespace" type="xsd:string" minOccurs="1"/>
                     <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>

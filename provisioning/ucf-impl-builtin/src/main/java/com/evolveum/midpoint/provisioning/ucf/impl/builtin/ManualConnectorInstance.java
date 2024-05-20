@@ -37,7 +37,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -153,8 +153,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
     @Override
     protected String createTicketModify(ResourceObjectDefinition objectDefinition,
-            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
-            Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
+                                        PrismObject<ShadowType> shadow, Collection<? extends ShadowSimpleAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
+                                        Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
         LOGGER.debug("Creating case to modify account {}:\n{}", identifiers, DebugUtil.debugDumpLazily(changes, 1));
         if (InternalsConfig.isSanityChecks()) {
             if (MiscUtil.hasDuplicates(changes)) {
@@ -177,7 +177,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
     @Override
     protected String createTicketDelete(ResourceObjectDefinition objectDefinition, PrismObject<ShadowType> shadow,
-            Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Task task, OperationResult result)
+                                        Collection<? extends ShadowSimpleAttribute<?>> identifiers, String resourceOid, Task task, OperationResult result)
             throws SchemaException {
         LOGGER.debug("Creating case to delete account {}", identifiers);
         String shadowName = shadow.getName().toString();
@@ -366,13 +366,13 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         // Nothing else to do
     }
 
-    private String getShadowIdentifier(Collection<? extends ResourceAttribute<?>> identifiers) {
+    private String getShadowIdentifier(Collection<? extends ShadowSimpleAttribute<?>> identifiers) {
         if (identifiers == null || identifiers.isEmpty()) {
             return "";
         }
         try {
             // FIXME treat somehow this magic
-            return ((ResourceAttribute<?>) identifiers.iterator().next()).getValue().getValue().toString();
+            return ((ShadowSimpleAttribute<?>) identifiers.iterator().next()).getValue().getValue().toString();
         } catch (NullPointerException e) {
             return "";
         }

@@ -30,8 +30,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -183,14 +183,14 @@ class ActivationConverter {
 
     @Nullable
     private Collection<Object> getSimulatingAttributeValues(ResourceObject resourceObject, QName attributeName) {
-        ResourceAttributeContainer attributesContainer = resourceObject.getAttributesContainer();
-        ResourceAttribute<?> simulatingAttribute = attributesContainer.findAttribute(attributeName);
+        ShadowAttributesContainer attributesContainer = resourceObject.getAttributesContainer();
+        ShadowSimpleAttribute<?> simulatingAttribute = attributesContainer.findAttribute(attributeName);
         return simulatingAttribute != null ?
                 simulatingAttribute.getRealValues(Object.class) : null;
     }
 
     private void removeSimulatingAttribute(ResourceObject resourceObject, QName attributeName) {
-        ResourceAttributeContainer attributesContainer = resourceObject.getAttributesContainer();
+        ShadowAttributesContainer attributesContainer = resourceObject.getAttributesContainer();
         attributesContainer.removeProperty(ItemPath.create(attributeName));
     }
     //endregion

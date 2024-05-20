@@ -69,7 +69,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/certification/campaign", matchUrlForSecurity = "/admin/certification/campaign")
+                @Url(mountUrl = "/admin/certification/campaignOld", matchUrlForSecurity = "/admin/certification/campaignOld")
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,

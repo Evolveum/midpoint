@@ -34,7 +34,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -101,7 +101,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertFalse("Account definition is deprecated", accountDef.isDeprecated());
         assertFalse("Account definition in auxiliary", accountDef.getObjectClassDefinition().isAuxiliary());
 
-        ResourceAttributeDefinition<?> uidDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_UID);
+        ShadowSimpleAttributeDefinition<?> uidDef = accountDef.findSimpleAttributeDefinition(SchemaConstants.ICFS_UID);
         assertNotNull(uidDef);
         assertEquals(1, uidDef.getMaxOccurs());
         assertEquals(0, uidDef.getMinOccurs());
@@ -111,7 +111,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertTrue("No UID read", uidDef.canRead());
         assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(uidDef));
 
-        ResourceAttributeDefinition<?> nameDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttributeDefinition<?> nameDef = accountDef.findSimpleAttributeDefinition(SchemaConstants.ICFS_NAME);
         assertNotNull(nameDef);
         assertEquals(1, nameDef.getMaxOccurs());
         assertEquals(1, nameDef.getMinOccurs());
@@ -121,7 +121,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertTrue("No NAME read", nameDef.canRead());
         assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
 
-        ResourceAttributeDefinition<?> fullnameDef = accountDef.findAttributeDefinition("fullname");
+        ShadowSimpleAttributeDefinition<?> fullnameDef = accountDef.findSimpleAttributeDefinition("fullname");
         assertNotNull("No definition for fullname", fullnameDef);
         assertEquals(1, fullnameDef.getMaxOccurs());
         assertEquals(1, fullnameDef.getMinOccurs());
@@ -130,7 +130,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assertTrue("No fullname read", fullnameDef.canRead());
 
         assertNull("The _PASSWORD_ attribute sneaked into schema",
-                accountDef.findAttributeDefinition(ICFS_PASSWORD));
+                accountDef.findSimpleAttributeDefinition(ICFS_PASSWORD));
     }
 
     /**

@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-/** Supertype for {@link ResourceAttributeContainer} and {@link ShadowAssociationsContainer}. */
+/** Supertype for {@link ShadowAttributesContainer} and {@link ShadowAssociationsContainer}. */
 public interface ShadowItemsContainer {
 
     ShadowItemsContainer clone();

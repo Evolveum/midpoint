@@ -17,7 +17,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
 
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +57,7 @@ public interface PreInboundsContext<T extends Containerable>
     @NotNull ResourceObjectInboundDefinition getInboundDefinition() throws SchemaException, ConfigurationException;
 
     // TODO
-    default @Nullable ShadowAssociationDefinition getOwningAssociationDefinition() {
+    default @Nullable ShadowReferenceAttributeDefinition getOwningAssociationDefinition() {
         return null;
     }
 

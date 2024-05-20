@@ -121,7 +121,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -132,7 +131,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -1154,7 +1153,7 @@ public final class WebComponentUtil {
                 return nameModel.getString();
             }
         }
-        if (def instanceof ResourceAttributeDefinition && StringUtils.isNotEmpty(def.getDisplayName())) {
+        if (def instanceof ShadowSimpleAttributeDefinition && StringUtils.isNotEmpty(def.getDisplayName())) {
             return def.getDisplayName();
         }
         return null;
@@ -3795,13 +3794,29 @@ public final class WebComponentUtil {
             }
         }
 
+        if (panelConfig != null && objectDetailsModels.containsModelForSubmenu(panelConfig.getIdentifier())) {
+            try {
+                Panel panel = ConstructorUtils.invokeConstructor(
+                        panelClass,
+                        markupId,
+                        objectDetailsModels,
+                        objectDetailsModels.getModelForSubmenu(panelConfig.getIdentifier()),
+                        panelConfig);
+                panel.setOutputMarkupId(true);
+                return panel;
+            } catch (Throwable e) {
+                LOGGER.trace("No constructor found for (String, ObjectDetailsModels, IModel, ContainerPanelConfigurationType). Continue with lookup.", e);
+                return null;
+            }
+        }
+
         try {
             Panel panel = ConstructorUtils.invokeConstructor(panelClass, markupId, objectDetailsModels, panelConfig);
             panel.setOutputMarkupId(true);
             return panel;
         } catch (Throwable e) {
             e.printStackTrace();
-            LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
+            LOGGER.trace("No constructor found for (String, ObjectDetailsModels, ContainerPanelConfigurationType). Continue with lookup.", e);
         }
         return null;
     }

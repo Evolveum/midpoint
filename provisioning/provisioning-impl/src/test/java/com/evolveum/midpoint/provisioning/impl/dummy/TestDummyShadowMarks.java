@@ -128,8 +128,8 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
         ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         ResourceObjectClassDefinition defaultAccountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
-        ResourceAttributeDefinition<String> fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
-        ResourceAttribute<String> fullnameAttr = fullnameAttrDef.instantiate();
+        ShadowSimpleAttributeDefinition<String> fullnameAttrDef = defaultAccountDefinition.findSimpleAttributeDefinition("fullname");
+        ShadowSimpleAttribute<String> fullnameAttr = fullnameAttrDef.instantiate();
         PropertyDelta<String> fullnameDelta = fullnameAttr.createDelta(ItemPath.create(ShadowType.F_ATTRIBUTES,
                 fullnameAttrDef.getItemName()));
         fullnameDelta.setRealValuesToReplace("Good Daemon");

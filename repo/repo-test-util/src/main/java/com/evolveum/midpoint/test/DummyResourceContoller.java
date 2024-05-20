@@ -301,7 +301,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         var accountDef = resourceSchema.findDefinitionForObjectClass(RI_ACCOUNT_OBJECT_CLASS);
         assertNotNull("No ACCOUNT kind definition", accountDef);
 
-        var fullnameDef = accountDef.findAttributeDefinition("fullname");
+        var fullnameDef = accountDef.findSimpleAttributeDefinition("fullname");
         assertNotNull("No definition for fullname", fullnameDef);
         assertEquals(1, fullnameDef.getMaxOccurs());
         assertEquals(1, fullnameDef.getMinOccurs());
@@ -321,7 +321,7 @@ public class DummyResourceContoller extends AbstractResourceController {
                 resourceSchema.findDefinitionForObjectClass(RI_GROUP_OBJECT_CLASS);
         assertNotNull("No group objectClass", groupObjectClass);
 
-        var membersDef = groupObjectClass.findAttributeDefinition(DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME);
+        var membersDef = groupObjectClass.findSimpleAttributeDefinition(DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME);
         assertNotNull("No definition for members", membersDef);
         assertEquals("Wrong maxOccurs", -1, membersDef.getMaxOccurs());
         assertEquals("Wrong minOccurs", 0, membersDef.getMinOccurs());
@@ -360,11 +360,11 @@ public class DummyResourceContoller extends AbstractResourceController {
         assertSame("Default account definition is not same as AccountObjectClass", accountDef, accountObjectClassDef);
         assertEquals("Unexpected number of definitions", numberOfAccountDefinitions, accountDef.getDefinitions().size());
 
-        ResourceAttributeDefinition<?> treasureDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
+        ShadowSimpleAttributeDefinition<?> treasureDef = accountDef.findSimpleAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
         assertFalse("Treasure IS returned by default and should not be", treasureDef.isReturnedByDefault());
 
         // MID-4751
-        ResourceAttributeDefinition<?> enlistTimestampDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME);
+        ShadowSimpleAttributeDefinition<?> enlistTimestampDef = accountDef.findSimpleAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME);
         PrismAsserts.assertDefinition(enlistTimestampDef,
                 new QName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME),
                 DOMUtil.XSD_DATETIME, 0, 1);
@@ -389,7 +389,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         assertFalse("No nativeObjectClass in account",
                 StringUtils.isEmpty(accountDef.getObjectClassDefinition().getNativeObjectClassName()));
 
-        ResourceAttributeDefinition<?> uidDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_UID);
+        ShadowSimpleAttributeDefinition<?> uidDef = accountDef.findSimpleAttributeDefinition(SchemaConstants.ICFS_UID);
         assertEquals(1, uidDef.getMaxOccurs());
         assertEquals(0, uidDef.getMinOccurs());
         assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
@@ -398,7 +398,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         assertTrue("No UID read",uidDef.canRead());
         assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(uidDef));
 
-        ResourceAttributeDefinition<?> nameDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttributeDefinition<?> nameDef = accountDef.findSimpleAttributeDefinition(SchemaConstants.ICFS_NAME);
         assertEquals(1, nameDef.getMaxOccurs());
         assertEquals(1, nameDef.getMinOccurs());
         assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
@@ -407,7 +407,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         assertTrue("No NAME read",nameDef.canRead());
         assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
 
-        ResourceAttributeDefinition<?> fullnameDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);
+        ShadowSimpleAttributeDefinition<?> fullnameDef = accountDef.findSimpleAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);
         assertNotNull("No definition for fullname", fullnameDef);
         assertEquals(1, fullnameDef.getMaxOccurs());
         assertEquals(1, fullnameDef.getMinOccurs());
@@ -415,7 +415,7 @@ public class DummyResourceContoller extends AbstractResourceController {
         assertTrue("No fullname update", fullnameDef.canModify());
         assertTrue("No fullname read", fullnameDef.canRead());
 
-        assertNull("The _PASSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
+        assertNull("The _PASSWORD_ attribute sneaked into schema", accountDef.findSimpleAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
 
     }
 
@@ -550,10 +550,10 @@ public class DummyResourceContoller extends AbstractResourceController {
         dummyResource.setSyncStyle(syncStyle);
     }
 
-    public <T> ResourceAttribute<T> createAccountAttribute(ItemName attrName) throws SchemaException, ConfigurationException {
+    public <T> ShadowSimpleAttribute<T> createAccountAttribute(ItemName attrName) throws SchemaException, ConfigurationException {
         ResourceObjectDefinition accountDef = getRefinedAccountDefinition();
         //noinspection unchecked
-        return (ResourceAttribute<T>) requireNonNull(accountDef.findAttributeDefinition(attrName),
+        return (ShadowSimpleAttribute<T>) requireNonNull(accountDef.findSimpleAttributeDefinition(attrName),
                 () -> "No attribute " + attrName + " found in " + accountDef)
                 .instantiate();
     }

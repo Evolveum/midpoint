@@ -93,7 +93,7 @@ import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -401,9 +401,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 attributesReadDecision, attributesAddDecision, attributesModifyDecision);
 
         // Let's work on the copied list, as we modify (replace = delete+add) the definitions in the object definition.
-        List<? extends ResourceAttributeDefinition<?>> definitionsCopy =
-                new ArrayList<>(objectDefinition.getAttributeDefinitions());
-        for (ResourceAttributeDefinition<?> rAttrDef : definitionsCopy) {
+        List<? extends ShadowSimpleAttributeDefinition<?>> definitionsCopy =
+                new ArrayList<>(objectDefinition.getSimpleAttributeDefinitions());
+        for (ShadowSimpleAttributeDefinition<?> rAttrDef : definitionsCopy) {
             ItemPath attributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, rAttrDef.getItemName());
             AuthorizationDecisionType attributeReadDecision =
                     securityConstraints.computeItemDecision(
@@ -422,7 +422,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                     || attributeModifyDecision != AuthorizationDecisionType.ALLOW) {
 
                 // This opens up flag overriding
-                ResourceAttributeDefinition<?> attrDefClone = rAttrDef.clone();
+                ShadowSimpleAttributeDefinition<?> attrDefClone = rAttrDef.clone();
                 if (attributeReadDecision != AuthorizationDecisionType.ALLOW) {
                     attrDefClone.setOverrideCanRead(false);
                 }

@@ -273,7 +273,7 @@ public class ResourceObjectClassDefinitionImpl
         return getClass().getSimpleName() + "{" +
                 "native=" + nativeObjectClassDefinition +
                 ", attributeDefinitions: " + attributeDefinitions.size() +
-                ", associationDefinitions: " + associationDefinitions.size() +
+//                ", associationDefinitions: " + associationDefinitions.size() +
                 ", primaryIdentifiersNames: " + primaryIdentifiersNames.size() +
                 ", secondaryIdentifiersNames: " + secondaryIdentifiersNames.size() +
                 "}";
@@ -314,7 +314,7 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+    public @NotNull Collection<? extends SynchronizationReactionDefinition> getSynchronizationReactions() {
         return List.of();
     }
 

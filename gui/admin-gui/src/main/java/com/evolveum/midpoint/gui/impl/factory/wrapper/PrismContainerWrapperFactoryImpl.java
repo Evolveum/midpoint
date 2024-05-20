@@ -179,7 +179,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
         status = recomputeStatus(childContainer, status, ctx);
 
-        PrismContainerWrapper<C> containerWrapper = new PrismContainerWrapperImpl<>(parent, childContainer, status);
+        PrismContainerWrapper<C> containerWrapper = createWrapper(parent, childContainer, status);
         VirtualContainersSpecificationType virtualContainerSpec = ctx.findVirtualContainerConfiguration(containerWrapper.getPath());
         if (virtualContainerSpec != null) {
             containerWrapper.setVirtual(true);
@@ -187,6 +187,10 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
         }
 
         return containerWrapper;
+    }
+
+    PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer, ItemStatus status) {
+        return new PrismContainerWrapperImpl<>(parent, childContainer, status);
     }
 
     ItemStatus recomputeStatus(PrismContainer<C> containerWrapper, ItemStatus defaultStatus, WrapperContext ctx) {

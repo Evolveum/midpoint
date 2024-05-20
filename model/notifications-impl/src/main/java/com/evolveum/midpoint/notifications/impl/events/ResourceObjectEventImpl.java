@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -122,11 +122,11 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
         } else if (shadow.asObjectable().getName() != null) {
             return shadow.asObjectable().getName().getOrig();
         } else {
-            Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+            Collection<ShadowSimpleAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
             LOGGER.trace("secondary identifiers: {}", secondaryIdentifiers);
             if (secondaryIdentifiers != null) {
                 // first phase = looking for "name" identifier
-                for (ResourceAttribute<?> ra : secondaryIdentifiers) {
+                for (ShadowSimpleAttribute<?> ra : secondaryIdentifiers) {
                     if (ra.getElementName() != null && ra.getElementName().getLocalPart().contains("name")) {
                         LOGGER.trace("Considering {} as a name", ra);
                         return String.valueOf(ra.getAnyRealValue());

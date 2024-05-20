@@ -42,13 +42,13 @@ public interface NativeResourceSchema
 
     @Nullable NativeObjectClassDefinition findObjectClassDefinition(@NotNull QName objectClassName);
 
-    @Nullable NativeAssociationClassDefinition findAssociationClassDefinition(@NotNull QName className);
+    @Nullable NativeReferenceTypeDefinition findReferenceTypeDefinition(@NotNull QName className);
 
     // Not very performant; should not be called often
     @NotNull Collection<? extends NativeObjectClassDefinition> getObjectClassDefinitions();
 
     // Not very performant; should not be called often
-    @NotNull Collection<? extends NativeAssociationClassDefinition> getAssociationClassDefinitions();
+    @NotNull Collection<? extends NativeReferenceTypeDefinition> getReferenceTypeDefinitions();
 
     int size();
 
@@ -66,6 +66,6 @@ public interface NativeResourceSchema
 
         @NotNull NativeResourceSchema getObjectBuilt();
 
-        void computeAssociationClasses() throws SchemaException;
+        void computeReferenceTypes() throws SchemaException;
     }
 }

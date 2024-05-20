@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.Shadow;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.Resource;
@@ -126,7 +126,7 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable, A
     }
 
     public @Nullable PrismProperty<?> getSingleValuedPrimaryIdentifier() {
-        ResourceAttributeContainer attributesContainer = getAttributesContainer();
+        ShadowAttributesContainer attributesContainer = getAttributesContainer();
         PrismProperty<?> identifier = attributesContainer.getPrimaryIdentifier();
         if (identifier == null) {
             return null;
