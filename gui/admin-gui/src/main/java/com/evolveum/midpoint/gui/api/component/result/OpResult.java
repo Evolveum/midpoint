@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.model.IModel;
@@ -155,22 +157,29 @@ public class OpResult implements Serializable, Visitable {
         return opResult;
     }
 
-    private static IModel<String> createXmlModel(OperationResult result, PageBase page) {
-        try {
-            OperationResultType resultType = result.createOperationResultType();
-            return new ReadOnlyModel<String>(() -> {
+    private static LoadableModel<String> createXmlModel(OperationResult result, PageBase page) {
+        return new LoadableModel<>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
                 try {
-                    return page.getPrismContext().xmlSerializer().serializeAnyData(resultType, SchemaConstants.C_RESULT);
-                } catch (SchemaException e) {
-                    throw new TunnelException(e);
-                }
-            });
-        } catch (RuntimeException ex) {
-            String m = "Can't create xml: " + ex;
+                    OperationResultType resultType = result.createOperationResultType();
+                    try {
+                        return page.getPrismContext().xmlSerializer().serializeAnyData(resultType, SchemaConstants.C_RESULT);
+                    } catch (SchemaException e) {
+                        throw new TunnelException(e);
+                    }
+                } catch (RuntimeException ex) {
+                    String m = "Can't create xml: " + ex;
 //            error(m);
-            return Model.of("<?xml version='1.0'?><message>" + StringEscapeUtils.escapeXml(m) + "</message>");
+                    return "<?xml version='1.0'?><message>" + StringEscapeUtils.escapeXml(m) + "</message>";
 //            throw ex;
-        }
+                }
+
+            }
+        };
     }
 
     // This method should be called along with getOpResult for root operationResult. However, it might take some time,
