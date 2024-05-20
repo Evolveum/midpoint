@@ -882,6 +882,15 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
+    void deleteSessionTask(
+            @NotNull TaskType taskToDelete,
+            @NotNull OperationResult result);
+
+    @Nullable PrismObject<TaskType> getSessionTask(
+            @NotNull String sessionOid,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
     void stopSessionTask(
             @NotNull String sessionOid,
             @NotNull Task task,

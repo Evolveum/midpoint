@@ -2314,6 +2314,52 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     @Override
+    public @Nullable PrismObject<TaskType> getSessionTask(
+            @NotNull String sessionOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        try {
+
+            PrismObject<RoleAnalysisSessionType> sessionTypeObject = this.getSessionTypeObject(sessionOid, task, result);
+            if (sessionTypeObject == null) {
+                return null;
+            }
+
+            RoleAnalysisOperationStatus operationStatus = sessionTypeObject.asObjectable().getOperationStatus();
+            if (operationStatus == null) {
+                return null;
+            }
+
+            ObjectReferenceType taskRef = operationStatus.getTaskRef();
+            if (taskRef == null) {
+                return null;
+            }
+
+            String taskOid = taskRef.getOid();
+            if (taskOid == null) {
+                return null;
+            }
+
+
+            return repositoryService.getObject(TaskType.class,taskOid, null, result);
+        } catch (SchemaException | ObjectNotFoundException e) {
+            LOGGER.error("Couldn't delete RoleAnalysisSessionType Task {}", sessionOid, e);
+        }
+        return null;
+    }
+
+    @Override
+    public void deleteSessionTask(
+            @NotNull TaskType taskToDelete,
+            @NotNull OperationResult result) {
+        try {
+            repositoryService.deleteObject(TaskType.class, taskToDelete.getOid(), result);
+        } catch (ObjectNotFoundException e) {
+            LOGGER.error("Couldn't delete RoleAnalysisSessionType Task {}", taskToDelete.getOid(), e);
+        }
+    }
+
+    @Override
     public void replaceSessionMarkRef(
             @NotNull PrismObject<RoleAnalysisSessionType> session,
             @NotNull ObjectReferenceType newMarkRef,

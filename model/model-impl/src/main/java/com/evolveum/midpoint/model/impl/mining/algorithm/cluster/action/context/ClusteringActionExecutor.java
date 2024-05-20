@@ -10,8 +10,6 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.context
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering.Clusterable;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
@@ -19,8 +17,10 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.mining.algorithm.BaseAction;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering.Clusterable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -45,7 +45,7 @@ public class ClusteringActionExecutor extends BaseAction {
     private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Density Clustering",
             7, this::incrementProgress);
 
-    public ClusteringActionExecutor(@NotNull AbstractActivityRun<?, ?, ?> activityRun) {
+    public ClusteringActionExecutor(@NotNull AbstractActivityRun<?, ?, ?> activityRun, @NotNull CurrentActivityState<AbstractActivityWorkStateType> activityState) {
         super(activityRun);
     }
 
@@ -87,10 +87,18 @@ public class ClusteringActionExecutor extends BaseAction {
             }
 
             if (isDecomissioned) {
-                Task task1 = task.createSubtask();
-                roleAnalysisService.stopSessionTask(sessionOid, task1, result);
-                roleAnalysisService.deleteSession(sessionOid, task1, result);
+                Task subTask = task.createSubtask();
+                PrismObject<TaskType> sessionTask = roleAnalysisService.getSessionTask(sessionOid, subTask, result);
+//                roleAnalysisService.stopSessionTask(sessionOid, task1, result);
+//                roleAnalysisService.deleteSessionTask(sessionOid, result);
+//                sessionTask.asObjectable().cleanupAfterCompletion(XmlTypeConverter.createDuration("PT0S"));
+
+                roleAnalysisService.deleteSession(sessionOid, subTask, result);
                 task.setName("Role Analysis Decommissioned");
+                if (sessionTask != null) {
+                    roleAnalysisService.deleteSessionTask(sessionTask.asObjectable(), result);
+                }
+                handler.finish();
                 return;
             }
 
