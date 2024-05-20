@@ -7,20 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
+
 import java.io.Serial;
 import java.util.List;
-
-import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisInfoItem;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
-
-import com.evolveum.midpoint.task.api.Task;
-
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -28,22 +19,26 @@ import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisInfoPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisInfoItem;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisSessionTileTable;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-
-import org.apache.wicket.util.string.StringValue;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 @PageDescriptor(
         urls = {
@@ -94,7 +89,8 @@ public class PageRoleAnalysis extends PageAdmin {
                 Task task = pageBase.createSimpleTask("loadRoleAnalysisInfo");
                 OperationResult result = task.getResult();
                 List<DetectedPattern> topPatters = roleAnalysisService.findTopPatters(task, result);
-                for (DetectedPattern pattern : topPatters) {
+                for (int i = 0; i < topPatters.size(); i++) {
+                    DetectedPattern pattern = topPatters.get(i);
                     double reductionFactorConfidence = pattern.getMetric();
                     String formattedReductionFactorConfidence = String.format("%.0f", reductionFactorConfidence);
                     double itemsConfidence = pattern.getItemsConfidence();
@@ -103,9 +99,26 @@ public class PageRoleAnalysis extends PageAdmin {
                             formattedReductionFactorConfidence +
                             "x relationships with a confidence of  " +
                             formattedItemConfidence + "%";
+                    int finalI = i;
                     repeatingView.add(new RoleAnalysisInfoItem(repeatingView.newChildId(), Model.of(label)) {
+
                         @Override
-                        protected void onClickPerform(AjaxRequestTarget target) {
+                        protected String getIconBoxText() {
+                            return "#" + (finalI + 1);
+                        }
+
+                        @Override
+                        protected void addDescriptionComponents() {
+                            appendText("Detected a potential reduction from ");
+                            appendIcon("fe fe-assignment");
+                            appendText(" " + formattedReductionFactorConfidence + " assignments, ");
+                            appendText("with a attributes confidence of");
+                            appendIcon("fa fa-leaf");
+                            appendText(" " + formattedItemConfidence + "%.");
+                        }
+
+                        @Override
+                        protected void onClickLinkPerform(AjaxRequestTarget target) {
                             PageParameters parameters = new PageParameters();
                             String clusterOid = pattern.getClusterRef().getOid();
                             parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);

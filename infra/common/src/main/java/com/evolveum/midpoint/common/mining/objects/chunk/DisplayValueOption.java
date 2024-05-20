@@ -20,6 +20,8 @@ public class DisplayValueOption implements Serializable {
     RoleAnalysisSortMode sortMode;
     RoleAnalysisProcessModeType processMode;
     RoleAnalysisChunkMode chunkMode;
+    boolean isPatternToolsPanelMode = true;
+    boolean isToolsPanelExpanded = false;
     boolean isFullPage = false;
 
     public DisplayValueOption() {
@@ -80,6 +82,22 @@ public class DisplayValueOption implements Serializable {
 
     public void setFullPage(boolean fullPage) {
         isFullPage = fullPage;
+    }
+
+    public boolean isPatternToolsPanelMode() {
+        return isPatternToolsPanelMode;
+    }
+
+    public void setPatternToolsPanelMode(boolean patternToolsPanelMode) {
+        isPatternToolsPanelMode = patternToolsPanelMode;
+    }
+
+    public boolean isToolsPanelExpanded() {
+        return isToolsPanelExpanded;
+    }
+
+    public void setToolsPanelExpanded(boolean toolsPanelExpanded) {
+        isToolsPanelExpanded = toolsPanelExpanded;
     }
 
 }

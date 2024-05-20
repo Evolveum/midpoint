@@ -30,6 +30,7 @@ public class RoleAnalysisClusterOccupationPanel extends BasePanel<String> {
     private void initLayout() {
         this.add(AttributeAppender.append("class", getComponentCssClass()));
         Component firstPanel = createFirstPanel(ID_FIRST_PANEL);
+        firstPanel.add(AttributeAppender.append("style", getStyleForFirstPanel()));
         firstPanel.setOutputMarkupId(true);
         add(firstPanel);
 
@@ -38,10 +39,18 @@ public class RoleAnalysisClusterOccupationPanel extends BasePanel<String> {
         add(separatorPanel);
 
         Component secondPanel = createSecondPanel(ID_SECOND_PANEL);
+        secondPanel.add(AttributeAppender.append("style", getStyleForSecondPanel()));
         secondPanel.setOutputMarkupId(true);
         add(secondPanel);
     }
 
+    protected String getStyleForFirstPanel() {
+        return "";
+    }
+
+    protected String getStyleForSecondPanel() {
+        return "";
+    }
     public Component createFirstPanel(String idFirstPanel) {
         return new WebMarkupContainer(idFirstPanel);
     }

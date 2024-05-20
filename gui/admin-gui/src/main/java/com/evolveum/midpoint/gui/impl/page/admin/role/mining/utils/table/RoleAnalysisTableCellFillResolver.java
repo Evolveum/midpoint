@@ -61,14 +61,14 @@ public class RoleAnalysisTableCellFillResolver {
             double maxFrequency,
             boolean isOutlier) {
 
-        if(isOutlier){
+        if (isOutlier) {
             MiningBaseTypeChunk object = rowModel.getObject();
             FrequencyItem frequencyItem = object.getFrequencyItem();
             FrequencyItem.Status status = frequencyItem.getStatus();
 
-            if(status.equals(FrequencyItem.Status.NEGATIVE_EXCLUDE)){
+            if (status.equals(FrequencyItem.Status.NEGATIVE_EXCLUDE)) {
                 object.setStatus(RoleAnalysisOperationMode.NEGATIVE_EXCLUDE);
-            }else if(status.equals(FrequencyItem.Status.POSITIVE_EXCLUDE)){
+            } else if (status.equals(FrequencyItem.Status.POSITIVE_EXCLUDE)) {
                 object.setStatus(RoleAnalysisOperationMode.POSITIVE_EXCLUDE);
             }
 
@@ -121,7 +121,7 @@ public class RoleAnalysisTableCellFillResolver {
         RoleAnalysisOperationMode rowStatus = rowObjectStatus.getRoleAnalysisOperationMode();
         RoleAnalysisOperationMode colStatus = colObjectStatus.getRoleAnalysisOperationMode();
 
-        if(rowStatus.isNegativeExclude() || colStatus.isNegativeExclude()){
+        if (rowStatus.isNegativeExclude() || colStatus.isNegativeExclude()) {
             if (isCandidate) {
                 negativeDisabledCell(componentId, cellItem);
                 return false;
@@ -130,7 +130,7 @@ public class RoleAnalysisTableCellFillResolver {
             return false;
         }
 
-        if(rowStatus.isPositiveExclude() || colStatus.isPositiveExclude()){
+        if (rowStatus.isPositiveExclude() || colStatus.isPositiveExclude()) {
             if (isCandidate) {
                 positiveDisabledCell(componentId, cellItem);
                 return false;
@@ -208,7 +208,7 @@ public class RoleAnalysisTableCellFillResolver {
         RoleAnalysisOperationMode rowStatus = rowObjectStatus.getRoleAnalysisOperationMode();
         RoleAnalysisOperationMode colStatus = colObjectStatus.getRoleAnalysisOperationMode();
 
-        if(rowStatus.isNegativeExclude() || colStatus.isNegativeExclude()){
+        if (rowStatus.isNegativeExclude() || colStatus.isNegativeExclude()) {
             if (isCandidate) {
                 negativeDisabledCell(componentId, cellItem);
                 return false;
@@ -217,7 +217,7 @@ public class RoleAnalysisTableCellFillResolver {
             return false;
         }
 
-        if(rowStatus.isPositiveExclude() || colStatus.isPositiveExclude()){
+        if (rowStatus.isPositiveExclude() || colStatus.isPositiveExclude()) {
             if (isCandidate) {
                 positiveDisabledCell(componentId, cellItem);
                 return false;
@@ -346,6 +346,45 @@ public class RoleAnalysisTableCellFillResolver {
                     task,
                     result);
         });
+    }
+
+    public static void refreshCells(
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull List<MiningUserTypeChunk> users,
+            @NotNull List<MiningRoleTypeChunk> roles,
+            double minFrequency,
+            double maxFrequency) {
+
+        if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+
+            for (MiningUserTypeChunk user : users) {
+                user.setStatus(RoleAnalysisOperationMode.EXCLUDE);
+            }
+
+            for (MiningRoleTypeChunk role : roles) {
+                FrequencyItem frequencyItem = role.getFrequencyItem();
+                double frequency = frequencyItem.getFrequency();
+                if (minFrequency > frequency && frequency < maxFrequency && !role.getStatus().isInclude()) {
+                    role.setStatus(RoleAnalysisOperationMode.DISABLE);
+                } else {
+                    role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
+                }
+            }
+        } else {
+            for (MiningUserTypeChunk user : users) {
+                FrequencyItem frequencyItem = user.getFrequencyItem();
+                double frequency = frequencyItem.getFrequency();
+                if (minFrequency > frequency && frequency < maxFrequency && !user.getStatus().isInclude()) {
+                    user.setStatus(RoleAnalysisOperationMode.DISABLE);
+                } else {
+                    user.setStatus(RoleAnalysisOperationMode.EXCLUDE);
+                }
+            }
+
+            for (MiningRoleTypeChunk role : roles) {
+                role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
+            }
+        }
     }
 
     /**
@@ -502,7 +541,7 @@ public class RoleAnalysisTableCellFillResolver {
             return Collections.emptyMap();
         }
 
-        Collections.sort(containerIds);
+//        Collections.sort(containerIds);
 
         int numberOfObjects = containerIds.size();
 

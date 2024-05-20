@@ -10,34 +10,46 @@
 
 
 <wicket:panel>
-    <div class="card-footer" wicket:id="headerFooter">
+    <div class="card-footer" wicket:id="headerFooter"></div>
+    <div class="card-header" wicket:id="header"></div>
+
+    <div wicket:id="tableContainer" class="card-body p-0 table-responsive">
+        <div class="row">
+            <div wicket:id="tools-panel" class=" p-0 bg-light col-auto overflow-auto" style="max-height:900px">
+            </div>
+
+            <div id="tableScaleContainer" class="col table-responsive">
+                <table class="table table-hover" wicket:id="table"></table>
+            </div>
+        </div>
     </div>
-    <div class="card-header" wicket:id="header"/>
-    <div wicket:id="tableContainer" id="tableScaleContainer" class="card-body p-0 table-responsive">
-        <table class="table table-hover" wicket:id="table"/>
-    </div>
-    <div class="card-footer" wicket:id="footer"/>
+    <div class="card-footer" wicket:id="footer"></div>
 </wicket:panel>
 
 
 <wicket:fragment wicket:id="pagingFooterHeader">
 
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2" wicket:id="footerContainer">
+
         <div class="d-flex">
             <form class="mr-3" wicket:id="form_bs_process">
+
                 <button wicket:id="expandButton" type="button" class="btn btn-default btn-sm" data-card-widget="maximize">
                     <i class="fas fa-expand"></i>
                 </button>
-                <div
-                        wicket:id="process_selections_id" style="width: 150px"></div>
-            </form>
 
+                <div wicket:id="toolsButton" type="button"></div>
+
+                <div wicket:id="toolsButtonMode" type="button"></div>
+
+                <div wicket:id="process_selections_id" style="width: 150px"></div>
+            </form>
         </div>
 
         <div class="d-flex align-items-center flex-wrap gap-2">
 
             <div class="text-nowrap mr-2">
-                <span class="align-middle" wicket:id="label_dropdown"/>
+                <span class="align-middle" wicket:id="label_dropdown"></span>
             </div>
             <form class="mr-3" wicket:id="form">
                 <select class="form-control form-control-sm" wicket:id="colCountOnPage"></select>
@@ -59,18 +71,19 @@
 <wicket:fragment wicket:id="pagingFooter">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div class="d-flex">
-            <div class="d-flex" wicket:id="buttonToolbar"/>
+            <div class="d-flex" wicket:id="buttonToolbar"></div>
         </div>
         <div class="d-flex align-items-center flex-wrap gap-2" wicket:id="footerContainer">
             <form class="mr-3" wicket:id="form">
-                <div wicket:id="pageSize"/>
+                <div wicket:id="pageSize"></div>
             </form>
             <div class="mr-3">
-                <span class="align-middle" wicket:id="count"/>
+                <span class="align-middle" wicket:id="count"></span>
             </div>
-            <div wicket:id="paging"/>
+            <div wicket:id="paging"></div>
 
         </div>
     </div>
 </wicket:fragment>
+
 </html>

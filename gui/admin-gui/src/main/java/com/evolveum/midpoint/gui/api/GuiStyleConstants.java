@@ -222,6 +222,7 @@ public class GuiStyleConstants {
     public static final String CLASS_PAUSE = "fa fa-pause";
 
     public static final String ARROW_LEFT = "fa fa-arrow-left";
+    public static final String ARROW_LONG_DOWN = "fa fa-long-arrow-down";
 
     public static final String EVO_CROW_ICON = "fe fe-crown-object";
     public static final String EVO_RIGHT_TOP_ARROW_ICON = "fe fe-arrow";

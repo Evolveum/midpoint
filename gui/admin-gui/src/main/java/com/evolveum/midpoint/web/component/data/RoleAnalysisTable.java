@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisItemsCardPanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 
 import org.apache.wicket.AttributeModifier;
@@ -34,9 +36,12 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -62,6 +67,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
     @Serial private static final long serialVersionUID = 1L;
 
+    private static final String ID_TOOLS_PANEL = "tools-panel";
     private static final String ID_HEADER_FOOTER = "headerFooter";
     private static final String ID_HEADER_PAGING = "pagingFooterHeader";
     private static final String ID_HEADER = "header";
@@ -82,6 +88,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     private String additionalBoxCssClasses = null;
     int columnCount;
     static boolean isRoleMining = false;
+
     LoadableDetachableModel<DisplayValueOption> displayValueOptionModel;
 
     public RoleAnalysisTable(String id, ISortableDataProvider<T, ?> provider, List<IColumn<T, String>> columns,
@@ -120,6 +127,9 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
         WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
         tableContainer.setOutputMarkupId(true);
+
+        RoleAnalysisItemsCardPanel itemsCardPanel = buildTableToolsComponent();
+        tableContainer.add(itemsCardPanel);
 
         int pageSize = getItemsPerPage(tableId);
         DataTable<T, String> table = new SelectableDataTable<>(ID_TABLE, columns, provider, pageSize) {
@@ -171,6 +181,22 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
         add(footer);
     }
 
+    @NotNull
+    private RoleAnalysisItemsCardPanel buildTableToolsComponent() {
+        RoleAnalysisItemsCardPanel itemsCardPanel = new RoleAnalysisItemsCardPanel(ID_TOOLS_PANEL, Model.of("")) {
+
+            @Override
+            protected void appendItems(RepeatingView items) {
+                boolean isToolsPanelExpanded = displayValueOptionModel.getObject().isToolsPanelExpanded();
+                boolean isPatternMode = displayValueOptionModel.getObject().isPatternToolsPanelMode();
+                initToolsPanelItems(items, isToolsPanelExpanded, isPatternMode);
+            }
+        };
+
+        itemsCardPanel.setOutputMarkupId(true);
+        return itemsCardPanel;
+    }
+
     public String getAdditionalBoxCssClasses() {
         return additionalBoxCssClasses;
     }
@@ -190,6 +216,10 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     @Override
     public DataTable<?, ?> getDataTable() {
         return (DataTable<?, ?>) get(ID_TABLE_CONTAINER).get(ID_TABLE);
+    }
+
+    public Component getToolsPanel() {
+        return get(ID_TABLE_CONTAINER).get(ID_TOOLS_PANEL);
     }
 
     @Override
@@ -415,6 +445,85 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
             Form<?> formBsProcess = new MidpointForm<>("form_bs_process");
             footerContainer.add(formBsProcess);
 
+            CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
+                    .setBasicIcon(GuiStyleConstants.CLASS_ICON_RESOURCE_MAINTENANCE, LayeredIconCssStyle.IN_ROW_STYLE);
+            AjaxCompositedIconSubmitButton toolsButton = new AjaxCompositedIconSubmitButton("toolsButton", iconBuilder.build(),
+                    Model.of("Toolbox")) {
+                @Serial private static final long serialVersionUID = 1L;
+
+                @Override
+                protected void onSubmit(AjaxRequestTarget target) {
+                    performOnToolBoxClick(target);
+                }
+
+                @Override
+                protected void onError(@NotNull AjaxRequestTarget target) {
+                    target.add(((PageBase) getPage()).getFeedbackPanel());
+                }
+            };
+            toolsButton.titleAsLabel(true);
+            toolsButton.setOutputMarkupId(true);
+            toolsButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+            formBsProcess.add(toolsButton);
+
+            CompositedIconBuilder iconBuilderMode = new CompositedIconBuilder()
+                    .setBasicIcon(GuiStyleConstants.ARROW_LONG_DOWN, LayeredIconCssStyle.IN_ROW_STYLE);
+
+            LoadableDetachableModel<String> model = new LoadableDetachableModel<>() {
+                @Contract(pure = true)
+                @Override
+                protected @NotNull String load() {
+                    boolean isPatternMode = displayValueOptionModel.getObject().isPatternToolsPanelMode();
+                    return isPatternMode ? "Pattern" : "Candidates";
+                }
+            };
+            AjaxCompositedIconSubmitButton toolsButtonMode = new AjaxCompositedIconSubmitButton("toolsButtonMode", iconBuilderMode.build(),
+                    model) {
+                @Serial private static final long serialVersionUID = 1L;
+
+                @Override
+                public CompositedIcon getIcon() {
+                    boolean isPatternMode = displayValueOptionModel.getObject().isPatternToolsPanelMode();
+                    if (isPatternMode) {
+                        return new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.ARROW_LONG_DOWN,
+                                LayeredIconCssStyle.IN_ROW_STYLE).build();
+                    } else {
+                        return new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON,
+                                LayeredIconCssStyle.IN_ROW_STYLE).build();
+                    }
+                }
+
+                @Override
+                protected void onSubmit(@NotNull AjaxRequestTarget target) {
+                    boolean isPatternMode = displayValueOptionModel.getObject().isPatternToolsPanelMode();
+                    displayValueOptionModel.getObject().setPatternToolsPanelMode(!isPatternMode);
+
+                    boolean isToolsPanelExpanded = displayValueOptionModel.getObject().isToolsPanelExpanded();
+                    RoleAnalysisItemsCardPanel components = buildTableToolsComponent();
+                    components.add(AttributeAppender.replace("class", "card p-0 bg-light "));
+                    components.add(AttributeAppender.append("class", isToolsPanelExpanded
+                            ? "col-3 overflow-auto"
+                            : "col-auto overflow-auto"));
+                    components.setOutputMarkupId(true);
+
+                    getToolsPanel().replaceWith(components);
+                    target.add(getToolsPanel());
+                    target.add(getToolsPanel().getParent());
+                    target.add(this);
+
+                    performOnToolModeClick(target, isPatternMode);
+                }
+
+                @Override
+                protected void onError(@NotNull AjaxRequestTarget target) {
+                    target.add(((PageBase) getPage()).getFeedbackPanel());
+                }
+            };
+            toolsButtonMode.titleAsLabel(true);
+            toolsButtonMode.setOutputMarkupId(true);
+            toolsButtonMode.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+            formBsProcess.add(toolsButtonMode);
+
             AjaxButton ajaxButton = new AjaxButton("expandButton") {
                 @Override
                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -430,7 +539,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
             formBsProcess.add(ajaxButton);
 
-            CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE,
+            iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE,
                     LayeredIconCssStyle.IN_ROW_STYLE);
 
             AjaxCompositedIconSubmitButton editButton = new AjaxCompositedIconSubmitButton("process_selections_id",
@@ -456,9 +565,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
                 @Override
                 protected void onSubmit(AjaxRequestTarget target) {
-
                     onSubmitEditButton(target);
-
                 }
 
                 @Override
@@ -561,6 +668,27 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
         }
     }
 
+    protected void performOnToolBoxClick(@NotNull AjaxRequestTarget target) {
+        boolean isToolsPanelExpanded = displayValueOptionModel.getObject().isToolsPanelExpanded();
+        displayValueOptionModel.getObject().setToolsPanelExpanded(!isToolsPanelExpanded);
+        isToolsPanelExpanded = !isToolsPanelExpanded;
+        RoleAnalysisItemsCardPanel components = buildTableToolsComponent();
+        components.add(AttributeAppender.replace("class", "card p-0 bg-light "));
+        components.add(AttributeAppender.append("class", isToolsPanelExpanded
+                ? "col-3 overflow-auto"
+                : "col-auto overflow-auto"));
+        components.setOutputMarkupId(true);
+
+        getToolsPanel().replaceWith(components);
+        target.add(getToolsPanel());
+        target.add(getToolsPanel().getParent());
+
+    }
+
+    protected void performOnToolModeClick(@NotNull AjaxRequestTarget target, boolean isPatternMode) {
+
+    }
+
     public void onChange(String value, AjaxRequestTarget target, int currentPage) {
     }
 
@@ -600,6 +728,10 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
     public void setShowAsExpandCard(boolean showAsExpandCard) {
         this.showAsExpandCard = showAsExpandCard;
+    }
+
+    public void initToolsPanelItems(RepeatingView toolsPanelItems, boolean isExpanded, boolean isPatternMode) {
+
     }
 
 }

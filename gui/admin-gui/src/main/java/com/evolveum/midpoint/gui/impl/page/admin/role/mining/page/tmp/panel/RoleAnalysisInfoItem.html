@@ -8,12 +8,17 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-
-    <span class="info-box-icon elevation-1" style="background-color:#343a40"><i class="fa fa-long-arrow-down"></i></span>
-
-    <div class="info-box-content">
-        <span wicket:id="action"></span>
-        <span wicket:id="description" style="font-size:15px; line-height: 1.1;"> </span>
+    <div wicket:id="icon-container" class="info-box-icon elevation-1 btn btn-outline-dark bg-light" style="background-color:#343a40">
+        <div wicket:id="icon"></div>
+        <div wicket:id="iconText"></div>
     </div>
+
+    <div class="info-box-content" wicket:id="box">
+        <div wicket:id="action"></div>
+        <div class="d-flex flex-wrap gap-1">
+            <span wicket:id="description" style="font-size:15px; line-height: 1.1;"> </span>
+        </div>
+    </div>
+
 </wicket:panel>
 </html>
