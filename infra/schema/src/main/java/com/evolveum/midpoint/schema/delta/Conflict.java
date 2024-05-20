@@ -20,15 +20,15 @@ public record Conflict<
         V extends ItemTreeDeltaValue<PV, ITD>,
         ITD extends ItemTreeDelta<PV, ID, I, V>,
         ITDV extends ItemTreeDeltaValue<PV, ITD>>
-        (ITDV first, ITDV second) implements DebugDumpable {
+        (ITDV left, ITDV right) implements DebugDumpable {
 
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
 
         DebugUtil.debugDumpLabelLn(sb, "Conflict", indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "first", first, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "second", second, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "left", left, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "right", right, indent + 1);
 
         return sb.toString();
     }

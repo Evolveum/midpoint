@@ -171,7 +171,7 @@ public class ContainerTreeDeltaValue<C extends Containerable> extends ItemTreeDe
                 continue;
             }
 
-            List<Conflict> deltaConflicts = delta.getConflictsWith(otherDelta, strategy);
+            Collection<Conflict> deltaConflicts = delta.getConflictsWith(otherDelta, strategy);
             result.addAll(deltaConflicts);
         }
 

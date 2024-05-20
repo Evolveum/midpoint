@@ -183,6 +183,14 @@ public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends Item
         return modificationType != null;
     }
 
+    public <V extends ItemTreeDeltaValue> Collection<? extends ItemDelta<?, ?>> getNonConflictingModifications(
+            V otherValue, EquivalenceStrategy strategy) {
+
+        // todo implement
+
+        return null;
+    }
+
     public Collection<? extends ItemDelta<?, ?>> getModifications() {
         return getModifications(false);
     }
