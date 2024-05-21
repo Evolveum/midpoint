@@ -33,6 +33,8 @@ import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
@@ -542,33 +544,23 @@ public class TestUtil {
         assertEquals(message + "; expected " + expected + " but was " + actual, 0, expected.compare(actual));
     }
 
-    public static void assertCreateTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
-            XMLGregorianCalendar end) {
-        MetadataType metadata = object.asObjectable().getMetadata();
-        assertNotNull("No metadata in " + object, metadata);
-        assertBetween("createTimestamp in " + object, start, end, metadata.getCreateTimestamp());
+    public static void assertCreateTimestamp(
+            PrismObject<? extends ObjectType> object, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+        assertBetween(
+                "createTimestamp in " + object, start, end,
+                ValueMetadataTypeUtil.getCreateTimestamp(object.asObjectable()));
     }
 
-    public static void assertCreateTimestamp(RawRepoShadow object, XMLGregorianCalendar start,
-            XMLGregorianCalendar end) {
-        MetadataType metadata = object.getBean().getMetadata();
-        assertNotNull("No metadata in " + object, metadata);
-        assertBetween("createTimestamp in " + object, start, end, metadata.getCreateTimestamp());
-    }
-
-    public static void assertModifyTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
-            XMLGregorianCalendar end) {
-        assertModifyTimestamp(object, start, end, null);
+    public static void assertCreateTimestamp(
+            RawRepoShadow object, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+        assertCreateTimestamp(object.getPrismObject(), start, end);
     }
 
     public static void assertModifyTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
-            XMLGregorianCalendar end, String channel) {
-        MetadataType metadata = object.asObjectable().getMetadata();
-        assertNotNull("No metadata in " + object, metadata);
-        assertBetween("modifyTimestamp in " + object, start, end, metadata.getModifyTimestamp());
-        if (channel != null) {
-            assertEquals("Wrong channel", channel, metadata.getModifyChannel());
-        }
+            XMLGregorianCalendar end) {
+        assertBetween(
+                "modifyTimestamp in " + object, start, end,
+                ValueMetadataTypeUtil.getModifyTimestamp(object.asObjectable()));
     }
 
     public static XMLGregorianCalendar currentTime() {

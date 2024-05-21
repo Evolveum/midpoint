@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -418,7 +419,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                         .delta()
                             .assertModifiedExclusive(
                                     UserType.F_LINK_REF,
-                                    UserType.F_METADATA)
+                                    InfraItemName.METADATA)
                         .end()
                     .end()
                     .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()

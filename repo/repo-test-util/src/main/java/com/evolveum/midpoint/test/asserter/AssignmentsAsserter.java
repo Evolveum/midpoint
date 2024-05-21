@@ -166,4 +166,9 @@ public class AssignmentsAsserter<AH extends AssignmentHolderType, AHA extends As
         by().assignmentRelationHolder(holderType).find();
         return this;
     }
+
+    public AssignmentsAsserter<AH, AHA, RA> assertAccount(String resourceOid) throws ObjectNotFoundException, SchemaException {
+        by().accountOn(resourceOid).find();
+        return this;
+    }
 }

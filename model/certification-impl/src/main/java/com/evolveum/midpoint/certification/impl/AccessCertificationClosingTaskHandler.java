@@ -136,7 +136,8 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
         }
     }
 
-    private void prepareMetadataDeltas(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
+    private void prepareMetadataDeltas(
+            AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
             RunContext runContext, OperationResult result) {
 
         try {
@@ -167,8 +168,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
         }
 
         ItemPath pathPrefix;
-        if (aCase instanceof AccessCertificationAssignmentCaseType) {
-            AccessCertificationAssignmentCaseType assignmentCase = (AccessCertificationAssignmentCaseType) aCase;
+        if (aCase instanceof AccessCertificationAssignmentCaseType assignmentCase) {
             AssignmentType assignment = assignmentCase.getAssignment();
             if (assignment == null) {
                 LOGGER.error("No assignment/inducement in assignment-related certification case {}: skipping metadata recording", aCase);

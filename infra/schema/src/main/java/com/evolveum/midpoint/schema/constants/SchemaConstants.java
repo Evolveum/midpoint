@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.constants;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -166,8 +167,8 @@ public abstract class SchemaConstants {
             PasswordType.F_VALUE);
     public static final ItemPath PATH_PASSWORD_FORCE_CHANGE = ItemPath.create(C_CREDENTIALS, CredentialsType.F_PASSWORD,
             PasswordType.F_FORCE_CHANGE);
-    public static final ItemPath PATH_PASSWORD_METADATA = ItemPath.create(C_CREDENTIALS, CredentialsType.F_PASSWORD,
-            PasswordType.F_METADATA);
+    public static final ItemPath PATH_PASSWORD_METADATA =
+            ItemPath.create(C_CREDENTIALS, CredentialsType.F_PASSWORD, InfraItemName.METADATA);
     public static final ItemPath PATH_NONCE = ItemPath.create(C_CREDENTIALS, CredentialsType.F_NONCE);
     public static final ItemPath PATH_NONCE_VALUE = ItemPath.create(C_CREDENTIALS, CredentialsType.F_NONCE,
             NonceType.F_VALUE);
@@ -212,13 +213,9 @@ public abstract class SchemaConstants {
     public static final ItemPath PATH_AUTOASSIGN_ENABLED = ItemPath
             .create(AbstractRoleType.F_AUTOASSIGN, AutoassignSpecificationType.F_ENABLED);
     public static final ItemPath PATH_PARENT_ORG_REF = ItemPath.create(ObjectType.F_PARENT_ORG_REF);
-    public static final ItemPath PATH_METADATA_LAST_PROVISIONING_TIMESTAMP = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_LAST_PROVISIONING_TIMESTAMP);
-    public static final ItemPath PATH_METADATA_MODIFY_TIMESTAMP = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP);
-    public static final ItemPath PATH_METADATA_MODIFY_CHANNEL = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL);
-    public static final ItemPath PATH_METADATA_MODIFIER_REF = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFIER_REF);
-    public static final ItemPath PATH_METADATA_MODIFY_TASK_REF = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_TASK_REF);
-    public static final ItemPath PATH_METADATA_MODIFY_APPROVER_REF = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF);
-    public static final ItemPath PATH_METADATA_MODIFY_APPROVAL_COMMENT = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVAL_COMMENT);
+
+    public static final ItemPath PATH_METADATA_LAST_PROVISIONING_TIMESTAMP_NAMES_ONLY =
+            ItemPath.create(InfraItemName.METADATA, ValueMetadataType.F_PROVISIONING, ProvisioningMetadataType.F_LAST_PROVISIONING_TIMESTAMP);
 
     public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
     public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";

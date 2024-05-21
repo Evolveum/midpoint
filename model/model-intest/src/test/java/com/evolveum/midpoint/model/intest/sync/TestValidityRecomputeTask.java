@@ -1815,14 +1815,14 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
     private void assertNotRecomputed(UserType u1) throws CommonException {
         assertUserAfter(u1.getOid())
-                .objectMetadata()
-                .assertNone();
+                .valueMetadata()
+                .assertSize(0);
     }
 
     private void assertRecomputed(UserType user) throws CommonException {
         assertUserAfter(user.getOid())
-                .objectMetadata()
-                .assertPresent();
+                .valueMetadata()
+                .assertSize(1);
     }
 
     private void setFuneralTimestamp(UserType user, String durationSpec) throws SchemaException {

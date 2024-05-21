@@ -124,19 +124,25 @@ public class FocusTypeUtil {
         return false;
     }
 
-    public static ProtectedStringType getPasswordValue(UserType user) {
-        if (user == null) {
+    public static ProtectedStringType getPasswordValue(FocusType focus) {
+        PasswordType passwd = getPassword(focus);
+        return passwd != null ? passwd.getValue() : null;
+    }
+
+    private static @Nullable PasswordType getPassword(FocusType focus) {
+        if (focus == null) {
             return null;
         }
-        CredentialsType creds = user.getCredentials();
+        CredentialsType creds = focus.getCredentials();
         if (creds == null) {
             return null;
         }
-        PasswordType passwd = creds.getPassword();
-        if (passwd == null) {
-            return null;
-        }
-        return passwd.getValue();
+        return creds.getPassword();
+    }
+
+    public static @Nullable ValueMetadataType getPasswordMetadata(@NotNull FocusType focus) {
+        var password = getPassword(focus);
+        return password != null ? ValueMetadataTypeUtil.getMetadata(password) : null;
     }
 
     public static @NotNull List<String> determineSubTypes(ObjectType object) {

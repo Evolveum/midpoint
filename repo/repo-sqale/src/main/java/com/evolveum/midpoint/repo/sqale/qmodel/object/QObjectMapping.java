@@ -293,11 +293,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         if (metadata != null) {
             legacyMetadataToRowObject(row, metadata);
         }
-        // Value metadata are prefered
+        // Value metadata are preferred
         var valueMetadataPcv = schemaObject.asPrismContainerValue().getValueMetadata().getAnyValue();
         if (valueMetadataPcv != null) {
             valueMetadataToRowObject(row, (ValueMetadataType) valueMetadataPcv.asContainerable());
-
         }
 
         return row;

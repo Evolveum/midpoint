@@ -17,6 +17,7 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -1103,7 +1104,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
                         .assertModifiedExclusive(
                                 UserType.F_NAME,
                                 UserType.F_FULL_NAME,
-                                UserType.F_METADATA)
+                                InfraItemName.METADATA)
                         .assertPolyStringModification(UserType.F_NAME, "jack", toName)
                         .assertPolyStringModification(UserType.F_FULL_NAME, "Jack Sparrow", toFullName)
                     .end()

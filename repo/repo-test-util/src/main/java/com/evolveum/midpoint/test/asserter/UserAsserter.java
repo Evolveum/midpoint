@@ -8,6 +8,7 @@ package com.evolveum.midpoint.test.asserter;
 
 import static org.testng.AssertJUnit.*;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -490,5 +491,30 @@ public class UserAsserter<RA> extends FocusAsserter<UserType, RA> {
     @Override
     public UserAsserter<RA> withObjectResolver(SimpleObjectResolver objectResolver) {
         return (UserAsserter<RA>) super.withObjectResolver(objectResolver);
+    }
+
+    /** Convenience method. */
+    public UserAsserter<RA> assertCreateMetadataComplex(XMLGregorianCalendar startTime, XMLGregorianCalendar endTime)
+            throws SchemaException {
+        valueMetadata()
+                .singleValue()
+                .assertCreateMetadataComplex(startTime, endTime);
+        return this;
+    }
+
+    /** Convenience method. */
+    public UserAsserter<RA> assertModifyMetadataComplex(XMLGregorianCalendar startTime, XMLGregorianCalendar endTime)
+            throws SchemaException {
+        valueMetadataSingle()
+                .assertModifyMetadataComplex(startTime, endTime);
+        return this;
+    }
+
+    /** Convenience method. */
+    public UserAsserter<RA> assertLastProvisioningTimestamp(XMLGregorianCalendar startTime, XMLGregorianCalendar endTime)
+            throws SchemaException {
+        valueMetadataSingle()
+                .assertLastProvisioningTimestamp(startTime, endTime);
+        return this;
     }
 }

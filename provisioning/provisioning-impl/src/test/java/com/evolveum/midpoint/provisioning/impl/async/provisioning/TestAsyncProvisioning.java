@@ -183,8 +183,9 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         }
 
         assertRepoShadow(jackAccountOid)
-                .assertHasMetadataCreateTimestamp()
-                .assertHasMetadataModifyTimestamp();
+                .valueMetadataSingle()
+                .assertCreateTimestampPresent()
+                .assertModifyTimestampPresent();
         assertShadowFuture(jackAccountOid)
                 .attributes()
                     .assertValue(ICFS_NAME, "jack")

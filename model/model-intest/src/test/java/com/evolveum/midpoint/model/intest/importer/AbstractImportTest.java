@@ -21,6 +21,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -930,7 +932,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
     }
 
     private <O extends ObjectType> void assertMetadata(O objectType, XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
-        MetadataType metadata = objectType.getMetadata();
+        var metadata = ValueMetadataTypeUtil.getStorageMetadata(objectType);
         assertNotNull("No metadata in " + objectType, metadata);
         XMLGregorianCalendar createTimestamp = metadata.getCreateTimestamp();
         assertNotNull("No createTimestamp in metadata of " + objectType, createTimestamp);

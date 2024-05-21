@@ -15,6 +15,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.util.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -329,16 +330,14 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
             Supplier<String> originMappingNameSupplier) throws SchemaException {
         //noinspection unchecked
         V cloned = (V) value.clone();
-        if (isAssignment && cloned instanceof PrismContainerValue) {
-            ((PrismContainerValue<?>) cloned).setId(null);
+        if (isAssignment && cloned instanceof PrismContainerValue<?> clonedPcv) {
+            clonedPcv.setId(null);
             String originMappingName = originMappingNameSupplier.get();
             LOGGER.trace("cloneAndApplyMetadata: originMappingName = {}", originMappingName);
             if (originMappingName != null) {
-                ((PrismContainerValue<?>) cloned)
-                        .<MetadataType>findOrCreateContainer(AssignmentType.F_METADATA)
-                        .getValue()
-                        .asContainerable()
-                        .setOriginMappingName(originMappingName);
+                var metadata = ValueMetadataTypeUtil.getOrCreateMetadata((AssignmentType) clonedPcv.asContainerable());
+                var provenance = ValueMetadataTypeUtil.getOrCreateProvenanceMetadata(metadata);
+                ValueMetadataTypeUtil.getOrCreateMappingSpecification(provenance).setMappingName(originMappingName);
             }
         }
         return cloned;

@@ -23,6 +23,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.context.ProjectionContextFilter;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 
+import com.evolveum.midpoint.prism.path.InfraItemName;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -1154,7 +1156,7 @@ public class TestProjector extends AbstractLensTest {
                 PrismAsserts.assertOrigin(modification, OriginType.USER_POLICY);
                 iterator.remove();
             }
-            if (modification.getPath().containsNameExactly(ObjectType.F_METADATA)) {
+            if (modification.getPath().containsNameExactly(InfraItemName.METADATA)) {
                 iterator.remove();
             }
         }

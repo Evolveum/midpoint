@@ -29,6 +29,7 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAut
 import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
@@ -132,7 +133,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     public abstract String getModuleIdentifier();
     public abstract String getSequenceIdentifier();
-    public abstract QName getCredentialType();
+    public abstract ItemName getCredentialType();
 
     public abstract void modifyUserCredential(Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,

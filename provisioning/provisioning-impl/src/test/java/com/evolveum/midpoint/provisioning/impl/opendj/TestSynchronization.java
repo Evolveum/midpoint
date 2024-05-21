@@ -16,6 +16,7 @@ import com.evolveum.midpoint.provisioning.impl.MockLiveSyncTaskHandler;
 
 import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
 
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.opends.server.core.AddOperation;
@@ -163,8 +164,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
                 currentShadow.asObjectable().getName().getOrig());
 
         ShadowType shadow = currentShadow.asObjectable();
-        MetadataType metadata = shadow.getMetadata();
-        assertTrue("Shadow doesn't have metadata", metadata != null && metadata.getCreateTimestamp() != null);
+        assertNotNull("Shadow doesn't have metadata", ValueMetadataTypeUtil.getCreateTimestamp(shadow));
 
         tokenStorage.assertToken(1);
     }

@@ -43,6 +43,7 @@ public abstract class AbstractAsserter<RA> {
     private RepositoryService repositoryService;
     private Protector protector;
     private Clock clock;
+    protected ObjectType expectedActor;
 
     public AbstractAsserter() {
         this(null);
@@ -100,6 +101,14 @@ public abstract class AbstractAsserter<RA> {
 
     public void setClock(Clock clock) {
         this.clock = clock;
+    }
+
+    public ObjectType getExpectedActor() {
+        return expectedActor;
+    }
+
+    public void setExpectedActor(ObjectType expectedActor) {
+        this.expectedActor = expectedActor;
     }
 
     protected String getDetails() {

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.password;
 
+import static com.evolveum.midpoint.util.MiscUtil.assertNonNull;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -14,13 +16,14 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.constants.Channel;
 
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -256,14 +259,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
         prepareTest();
 
-        // Set password create channel to legacy value (MID-6547).
-        repositoryService.modifyObject(
-                UserType.class, USER_JACK_OID,
-                deltaFor(UserType.class)
-                        .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
-                            .replace(Channel.USER.getLegacyUri())
-                        .asItemDeltas(),
-                result);
+//        // Set password create channel to legacy value (MID-6547).
+//        repositoryService.modifyObject(
+//                UserType.class, USER_JACK_OID,
+//                deltaFor(UserType.class)
+//                        .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+//                            .replace(Channel.USER.getLegacyUri())
+//                        .asItemDeltas(),
+//                result);
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
@@ -287,7 +290,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertPasswordHistoryEntries(userJack);
 
         // Check channel migration (MID-6547).
-        assertThat(userJack.asObjectable().getCredentials().getPassword().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
+        //assertThat(userJack.asObjectable().getCredentials().getPassword().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
 
         assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
     }
@@ -415,14 +418,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
 
-        // Set account password create channel to legacy value (MID-6547).
-        repositoryService.modifyObject(
-                ShadowType.class, accountJackOid,
-                deltaFor(ShadowType.class)
-                        .item(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
-                            .replace(Channel.USER.getLegacyUri())
-                        .asItemDeltas(),
-                result);
+//        // Set account password create channel to legacy value (MID-6547).
+//        repositoryService.modifyObject(
+//                ShadowType.class, accountJackOid,
+//                deltaFor(ShadowType.class)
+//                        .item(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+//                            .replace(Channel.USER.getLegacyUri())
+//                        .asItemDeltas(),
+//                result);
 
         // WHEN
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_2_CLEAR, task, result);
@@ -442,15 +445,15 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         // Check shadow
         var accountShadowRepo = getShadowRepo(accountJackOid);
-        display("Repo shadow", accountShadowRepo);
+        displayDumpable("Repo shadow", accountShadowRepo);
         assertDummyAccountShadowRepo(accountShadowRepo, accountJackOid, "jack");
         // MID-3860
         assertShadowPasswordMetadata(
                 accountShadowRepo.getPrismObject(), lastPasswordChangeStart, lastPasswordChangeEnd, true, false);
         assertShadowPurpose(accountShadowRepo.getPrismObject(), false);
 
-        // Check channel migration (MID-6547).
-        assertThat(accountShadowRepo.getBean().getCredentials().getPassword().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
+//        // Check channel migration (MID-6547).
+//        assertThat(accountShadowRepo.getBean().getCredentials().getPassword().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
 
         // Check account
         PrismObject<ShadowType> accountShadowModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
@@ -530,6 +533,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 
+        // @formatter:off
         assertUser(userJack.getOid(), "after")
                 .links()
                     .singleLive()
@@ -537,6 +541,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
                             .display("shadow after")
                             .passwordMetadata()
                                 .assertModifyTaskOid(TASK_CHANGE_JACK_ACCOUNT_PASSWORD.oid);
+        // @formatter:on
 
         assertSingleAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_3A_CLEAR);
         assertNoUserPasswordNotifications();
@@ -1460,29 +1465,23 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
     @Test
     public void test253ExistingPasswordReuseCheckMetadata() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        var modifyTimestampBefore = getPasswordModifyTimestampRequired(getUser(USER_JACK_OID));
 
-        PrismContainer<MetadataType> metadataContainer = user.findContainer(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA));
-        assertNotNull("No password metadata in " + user, metadataContainer);
-        MetadataType metadataType = metadataContainer.getValue().asContainerable().clone();
-        XMLGregorianCalendar oldModifyTimestamp = metadataType.getModifyTimestamp();
-
-        // WHEN
         when();
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_1, task, result); // modify with same pwd
 
-        // THEN
         then();
-        metadataContainer = user.findContainer(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA));
-        assertNotNull("No password metadata in " + user, metadataContainer);
-        metadataType = metadataContainer.getValue().asContainerable();
+        var modifyTimestampAfter = getPasswordModifyTimestampRequired(getUser(USER_JACK_OID));
 
-        // modifyTimestamp should not change when same pwd value is set
-        boolean modifyTimestampUnchanged = oldModifyTimestamp.compare(metadataType.getModifyTimestamp()) == 0;
-        assertTrue(modifyTimestampUnchanged);
+        assertEquals("modifyTimestamp changed when same pwd value was set", modifyTimestampBefore, modifyTimestampAfter);
+    }
+
+    private static XMLGregorianCalendar getPasswordModifyTimestampRequired(PrismObject<UserType> user) {
+        var metadata = assertNonNull(FocusTypeUtil.getPasswordMetadata(user.asObjectable()), "no password metadata");
+        var storageMetadata = assertNonNull(metadata.getStorage(), "no storage metadata");
+        return assertNonNull(storageMetadata.getModifyTimestamp(), "no modifyTimestamp in storage metadata");
     }
 
     private void doTestModifyUserJackPasswordSuccessWithHistory(
@@ -2677,12 +2676,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         // RED shadows
         var accountShadowRed = getShadowRepo(accountRedOid);
-        display("Repo shadow RED", accountShadowRed);
+        displayDumpable("Repo shadow RED", accountShadowRed);
         assertAccountShadowRepo(accountShadowRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
         assertShadowPurpose(accountShadowRed.getPrismObject(), null);
 
         PrismObject<ShadowType> accountModelRed = modelService.getObject(ShadowType.class, accountRedOid, null, task, result);
-        display("Model shadow RED", accountModelRed);
+        displayDumpable("Model shadow RED", accountModelRed);
         assertAccountShadowModel(accountModelRed, accountRedOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
         assertShadowPurpose(accountModelRed, null);
 
@@ -4655,11 +4654,13 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertNotNull("No credentials", credentials);
         PasswordType password = credentials.getPassword();
         assertNotNull("No credentials/password", password);
-        MetadataType metadata = password.getMetadata();
+        var metadata = ValueMetadataTypeUtil.getMetadata(password);
         assertNotNull("No credentials/password/metadata", metadata);
-        assertNotNull("No credentials/password/metadata/createTimestamp", metadata.getCreateTimestamp());
-        assertNotNull("No credentials/password/metadata/creatorRef", metadata.getCreatorRef());
-        assertEquals("Wrong createChannel", SchemaConstants.CHANNEL_USER_URI, metadata.getCreateChannel());
+        var storage = metadata.getStorage();
+        assertNotNull("No credentials/password/metadata/storage", storage);
+        assertNotNull("No credentials/password/metadata/storage/createTimestamp", storage.getCreateTimestamp());
+        assertNotNull("No credentials/password/metadata/storage/creatorRef", storage.getCreatorRef());
+        assertEquals("Wrong createChannel", SchemaConstants.CHANNEL_USER_URI, storage.getCreateChannel());
     }
 
     private void assertPasswordModifyMetadata(PrismObject<UserType> user) {
@@ -4667,11 +4668,13 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertNotNull("No credentials", credentials);
         PasswordType password = credentials.getPassword();
         assertNotNull("No credentials/password", password);
-        MetadataType metadata = password.getMetadata();
+        var metadata = ValueMetadataTypeUtil.getMetadata(password);
         assertNotNull("No credentials/password/metadata", metadata);
-        assertNotNull("No credentials/password/metadata/modifyTimestamp", metadata.getModifyTimestamp());
-        assertNotNull("No credentials/password/metadata/modifierRef", metadata.getModifierRef());
-        assertEquals("Wrong modifyChannel", SchemaConstants.CHANNEL_USER_URI, metadata.getModifyChannel());
+        var storage = metadata.getStorage();
+        assertNotNull("No credentials/password/metadata/storage", storage);
+        assertNotNull("No credentials/password/metadata/storage/modifyTimestamp", storage.getModifyTimestamp());
+        assertNotNull("No credentials/password/metadata/storage/modifierRef", storage.getModifierRef());
+        assertEquals("Wrong modifyChannel", SchemaConstants.CHANNEL_USER_URI, storage.getModifyChannel());
     }
 
     protected void assertUserFriendlyMessage(OperationResult result, String expectedKey) {

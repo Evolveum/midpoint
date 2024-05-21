@@ -17,6 +17,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.api.ActivityCustomization;
 
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -241,8 +243,8 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
 
         user = getUser(USER_JACK_OID);
         display("user after password change", user);
-        PasswordType passwordType = assertUserPassword(user, "nbusr123");
-        MetadataType metadata = passwordType.getMetadata();
+        PasswordType password = assertUserPassword(user, "nbusr123");
+        var metadata = ValueMetadataTypeUtil.getMetadata(password);
         assertNotNull("No password metadata", metadata);
         assertMetadata("password metadata", metadata, true, false, startTs, endTs, USER_JACK_OID, SchemaConstants.CHANNEL_USER_URI);
 
@@ -3310,7 +3312,17 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
 
         and("account is OK");
         display("account", account);
-        assertThat(account.getValue().getItems()).as("items in account object").hasSize(8);
+        assertThat(account.getValue().getItemNames())
+                .as("items in account object")
+                .containsExactlyInAnyOrder(
+                        ShadowType.F_NAME,
+                        ShadowType.F_RESOURCE_REF,
+                        ShadowType.F_OBJECT_CLASS,
+                        ShadowType.F_KIND,
+                        ShadowType.F_INTENT,
+                        ShadowType.F_ATTRIBUTES,
+                        ShadowType.F_ACTIVATION,
+                        ShadowType.F_CREDENTIALS);
     }
 
     /**
