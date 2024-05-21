@@ -8,9 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
 import java.io.Serial;
 
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -19,11 +16,12 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-
-import org.apache.wicket.model.Model;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 
 public class RoleAnalysisInfoItem extends BasePanel<String> {
 
@@ -36,6 +34,7 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
     private static final String ID_BOX = "box";
 
     RepeatingView description;
+    WebMarkupContainer iconContainer;
 
     public RoleAnalysisInfoItem(String id, IModel<String> model) {
         super(id, model);
@@ -44,12 +43,14 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
 
     private void initLayout() {
 
-        WebMarkupContainer iconContainer = new WebMarkupContainer(ID_ICON_CONTAINER);
+        iconContainer = new WebMarkupContainer(ID_ICON_CONTAINER);
         if (getIconContainerStyle() != null) {
             iconContainer.add(AttributeModifier.replace("style", getIconContainerStyle()));
         }
         iconContainer.add(AttributeModifier.replace("class", getIconContainerCssClass()));
         iconContainer.setOutputMarkupId(true);
+//        iconContainer.add(AttributeModifier.replace("title", getModel()));
+//        iconContainer.add(new TooltipBehavior());
 
         iconContainer.add(new AjaxEventBehavior("click") {
             @Override
@@ -81,8 +82,6 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
         description = new RepeatingView(ID_DESCRIPTION);
         description.add(AttributeModifier.replace("style", getDescriptionStyle()));
         description.add(AttributeModifier.replace("class", getDescriptionCssClass()));
-        description.add(AttributeModifier.replace("title", getModel()));
-        description.add(new TooltipBehavior());
         description.setOutputMarkupId(true);
         box.add(description);
 
@@ -121,16 +120,19 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
     }
 
     protected void appendText(String text) {
-        getRepeatedView().add(new Label(getRepeatedView().newChildId(), text));
+        Label label = new Label(getRepeatedView().newChildId(), text);
+        label.add(AttributeModifier.replace("style", getDescriptionStyle()));
+        getRepeatedView().add(label);
     }
 
     protected void appendComponent(Component component) {
         getRepeatedView().add(component);
     }
 
-    protected void appendIcon(String iconCssClass) {
+    protected void appendIcon(String iconCssClass, String iconStyle) {
         Label label = new Label(getRepeatedView().newChildId(), "");
         label.add(AttributeModifier.replace("class", iconCssClass));
+        label.add(AttributeModifier.replace("style", iconStyle));
         getRepeatedView().add(label);
     }
 
@@ -165,6 +167,14 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
         return null;
     }
 
+    protected String getIconDefaultContainerCssClass() {
+        return "info-box-icon elevation-1 btn btn-outline-dark bg-light gap-1";
+    }
+
+    protected String getIconDefaultContainerStyle() {
+        return null;
+    }
+
     protected String getDescriptionCssClass() {
         return "";
     }
@@ -186,15 +196,15 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
     }
 
     public Component getIconContainer() {
-        return get(getPageBase().createComponentPath(ID_ICON_CONTAINER));
+        return iconContainer;
     }
 
-    protected void switchToDefaultStyleView(){
-        getIconContainer().add(AttributeModifier.replace("class", getIconContainerCssClass()));
-        getIconContainer().add(AttributeModifier.replace("style", getIconContainerStyle()));
+    protected void switchToDefaultStyleView() {
+        getIconContainer().add(AttributeModifier.replace("class", getIconDefaultContainerCssClass()));
+        getIconContainer().add(AttributeModifier.replace("style", getIconDefaultContainerStyle()));
     }
 
-    protected void switchToSelectedStyleView(String color){
+    protected void switchToSelectedStyleView(String color) {
         getIconContainer().add(AttributeModifier.replace("class", "info-box-icon elevation-1 btn btn-outline-dark gap-1"));
         getIconContainer().add(AttributeModifier.replace("style", "background-color: " + color + ";"));
     }

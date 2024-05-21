@@ -110,10 +110,10 @@ public class PageRoleAnalysis extends PageAdmin {
                         @Override
                         protected void addDescriptionComponents() {
                             appendText("Detected a potential reduction from ");
-                            appendIcon("fe fe-assignment");
+                            appendIcon("fe fe-assignment", "color: red;");
                             appendText(" " + formattedReductionFactorConfidence + " assignments, ");
                             appendText("with a attributes confidence of");
-                            appendIcon("fa fa-leaf");
+                            appendIcon("fa fa-leaf", "color: green");
                             appendText(" " + formattedItemConfidence + "%.");
                         }
 

@@ -344,6 +344,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
                         return initNavigation();
                     }
                 };
+                details.setOutputMarkupId(true);
                 form.add(details);
 
                 ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration();

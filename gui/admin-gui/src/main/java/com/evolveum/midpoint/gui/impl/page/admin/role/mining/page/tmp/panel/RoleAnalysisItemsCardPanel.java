@@ -21,6 +21,7 @@ public class RoleAnalysisItemsCardPanel extends BasePanel<String> {
     @Serial private static final long serialVersionUID = 1L;
     private static final String ID_CONTAINER = "container";
     private static final String ID_ITEMS = "items";
+    private static final String ID_HEADER_ITEMS = "headerItems";
 
     public RoleAnalysisItemsCardPanel(String id, IModel<String> model) {
         super(id, model);
@@ -34,6 +35,14 @@ public class RoleAnalysisItemsCardPanel extends BasePanel<String> {
         container.add(AttributeModifier.replace("class", getContainerCssClass()));
         add(container);
 
+        RepeatingView headerItems = new RepeatingView(ID_HEADER_ITEMS);
+        headerItems.add(AttributeModifier.replace("style", getHeaderItemsStyle()));
+        headerItems.add(AttributeModifier.replace("class", getHeaderItemsCssClass()));
+        headerItems.add(AttributeModifier.replace("title", getModel()));
+        headerItems.add(new TooltipBehavior());
+        headerItems.setOutputMarkupId(true);
+        container.add(headerItems);
+        appendHeaderItems(headerItems);
 
         RepeatingView items = new RepeatingView(ID_ITEMS);
         items.add(AttributeModifier.replace("style", getItemsStyle()));
@@ -45,9 +54,13 @@ public class RoleAnalysisItemsCardPanel extends BasePanel<String> {
         appendItems(items);
     }
 
+    protected void appendHeaderItems(RepeatingView items) {
+
+    }
     protected void appendItems(RepeatingView items) {
 
     }
+
     private String getContainerCssClass() {
         return "";
     }
@@ -64,4 +77,10 @@ public class RoleAnalysisItemsCardPanel extends BasePanel<String> {
         return "margin-bottom:0.55rem";
     }
 
+    protected String getHeaderItemsStyle() {
+        return "";
+    }
+    protected String getHeaderItemsCssClass() {
+        return "";
+    }
 }
