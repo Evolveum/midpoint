@@ -536,28 +536,13 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
             toolsButtonMode.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
             formBsProcess.add(toolsButtonMode);
 
-            String iconClass = "";
-            if (showAsExpandCard) {
-                iconClass = "fa fa-compress";
-            } else {
-                iconClass = "fas fa-expand";
-            }
+
 
             CompositedIcon expandCollapseCardButtonIcon = new CompositedIconBuilder().setBasicIcon(
-                    iconClass,
+                    "fas fa-bars",
                     LayeredIconCssStyle.IN_ROW_STYLE).build();
             AjaxCompositedIconSubmitButton expandCollapseCardButton = new AjaxCompositedIconSubmitButton("expandButton",
                     expandCollapseCardButtonIcon, Model.of()) {
-                @Override
-                public CompositedIcon getIcon() {
-                    if (showAsExpandCard) {
-                        return new CompositedIconBuilder().setBasicIcon("fa fa-compress",
-                                LayeredIconCssStyle.IN_ROW_STYLE).build();
-                    } else {
-                        return new CompositedIconBuilder().setBasicIcon("fas fa-expand",
-                                LayeredIconCssStyle.IN_ROW_STYLE).build();
-                    }
-                }
 
                 @Override
                 protected void onSubmit(AjaxRequestTarget target) {
