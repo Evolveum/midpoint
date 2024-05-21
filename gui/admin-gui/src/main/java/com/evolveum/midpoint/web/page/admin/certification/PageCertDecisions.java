@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.certification.component.CertificationItemsPanel;
 import com.evolveum.midpoint.web.page.admin.certification.dto.*;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
@@ -113,51 +114,44 @@ public class PageCertDecisions extends PageAdminCertification {
     }
 
     //region Data
-    private CertWorkItemDtoProvider createProvider() {
-        CertWorkItemDtoProvider provider = new CertWorkItemDtoProvider(PageCertDecisions.this);
-        provider.setQuery(createCaseQuery());
-        provider.setCampaignQuery(createCampaignQuery());
-        provider.setReviewerOid(getCurrentUserOid());
-        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly());
-        provider.setAllItems(isDisplayingAllItems());
-        provider.setSort(SearchingUtils.CURRENT_REVIEW_DEADLINE, SortOrder.ASCENDING);        // default sorting
-        return provider;
-    }
+//    private CertWorkItemDtoProvider createProvider() {
+//        CertWorkItemDtoProvider provider = new CertWorkItemDtoProvider(PageCertDecisions.this);
+//        provider.setQuery(createCaseQuery());
+//        provider.setCampaignQuery(createCampaignQuery());
+//        provider.setReviewerOid(getCurrentUserOid());
+//        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly());
+//        provider.setAllItems(isDisplayingAllItems());
+//        provider.setSort(SearchingUtils.CURRENT_REVIEW_DEADLINE, SortOrder.ASCENDING);        // default sorting
+//        return provider;
+//    }
 
-    private ObjectQuery createCaseQuery() {
-        return getPrismContext().queryFactory().createQuery();
-    }
-
-    private ObjectQuery createCampaignQuery() {
-        return getPrismContext().queryFactory().createQuery();
-    }
-
-    private String getCurrentUserOid() {
-        try {
-            return getSecurityContextManager().getPrincipal().getOid();
-        } catch (SecurityViolationException e) {
-            // TODO handle more cleanly
-            throw new SystemException("Couldn't get currently logged user OID", e);
-        }
-    }
-    //endregion
+//    private ObjectQuery createCaseQuery() {
+//        return getPrismContext().queryFactory().createQuery();
+//    }
+//
+//    private ObjectQuery createCampaignQuery() {
+//        return getPrismContext().queryFactory().createQuery();
+//    }
+//
+//    private String getCurrentUserOid() {
+//        try {
+//            return getSecurityContextManager().getPrincipal().getOid();
+//        } catch (SecurityViolationException e) {
+//            // TODO handle more cleanly
+//            throw new SystemException("Couldn't get currently logged user OID", e);
+//        }
+//    }
+//    //endregion
 
     //region Layout
     private void initLayout() {
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
-        CertWorkItemDtoProvider provider = createProvider();
-        BoxedTablePanel<CertWorkItemDto> table = new BoxedTablePanel<CertWorkItemDto>(ID_DECISIONS_TABLE, provider, initColumns(),
-                UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL) {
+        CertificationItemsPanel table = new CertificationItemsPanel(ID_DECISIONS_TABLE) {
             private static final long serialVersionUID = 1L;
 
-            @Override
-            protected WebMarkupContainer createHeader(String headerId) {
-                return new SearchFragment(headerId, ID_TABLE_HEADER, PageCertDecisions.this,
-                        Model.of(getCertDecisionsStorage().getShowNotDecidedOnly()));
-            }
+
         };
-        table.setShowPaging(true);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
@@ -524,58 +518,58 @@ public class PageCertDecisions extends PageAdminCertification {
         }
     }
 
-    private void searchFilterPerformed(AjaxRequestTarget target) {
-        ObjectQuery query = createCaseQuery();
-
-        Table panel = getDecisionsTable();
-        DataTable table = panel.getDataTable();
-        CertWorkItemDtoProvider provider = (CertWorkItemDtoProvider) table.getDataProvider();
-        provider.setQuery(query);
-        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly());
-        provider.setAllItems(isDisplayingAllItems());
-        table.setCurrentPage(0);
-
-        target.add(getFeedbackPanel());
-        target.add((Component) getDecisionsTable());
-    }
+//    private void searchFilterPerformed(AjaxRequestTarget target) {
+//        ObjectQuery query = createCaseQuery();
+//
+//        Table panel = getDecisionsTable();
+//        DataTable table = panel.getDataTable();
+//        CertWorkItemDtoProvider provider = (CertWorkItemDtoProvider) table.getDataProvider();
+//        provider.setQuery(query);
+//        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly());
+//        provider.setAllItems(isDisplayingAllItems());
+//        table.setCurrentPage(0);
+//
+//        target.add(getFeedbackPanel());
+//        target.add((Component) getDecisionsTable());
+//    }
 
     private CertDecisionsStorage getCertDecisionsStorage() {
         return getSessionStorage().getCertDecisions();
     }
 
-    private static class SearchFragment extends Fragment {
-
-        public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
-                IModel<Boolean> model) {
-            super(id, markupId, markupProvider, model);
-
-            initLayout();
-        }
-
-        private void initLayout() {
-            final Form searchForm = new MidpointForm(ID_SEARCH_FORM);
-            add(searchForm);
-            searchForm.setOutputMarkupId(true);
-
-            final IModel<Boolean> model = (IModel<Boolean>) getDefaultModel();
-
-            CheckBox showNotDecidedOnlyBox = new CheckBox(ID_SHOW_NOT_DECIDED_ONLY, model);
-            showNotDecidedOnlyBox.add(createFilterAjaxBehaviour());
-            searchForm.add(showNotDecidedOnlyBox);
-        }
-
-        private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour() {
-            return new AjaxFormComponentUpdatingBehavior("change") {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
-                    PageCertDecisions page = (PageCertDecisions) getPage();
-                    page.getCertDecisionsStorage().setShowNotDecidedOnly((Boolean) getDefaultModelObject());
-                    page.searchFilterPerformed(target);
-
-                }
-            };
-        }
-    }
+//    private static class SearchFragment extends Fragment {
+//
+//        public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
+//                IModel<Boolean> model) {
+//            super(id, markupId, markupProvider, model);
+//
+//            initLayout();
+//        }
+//
+//        private void initLayout() {
+//            final Form searchForm = new MidpointForm(ID_SEARCH_FORM);
+//            add(searchForm);
+//            searchForm.setOutputMarkupId(true);
+//
+//            final IModel<Boolean> model = (IModel<Boolean>) getDefaultModel();
+//
+//            CheckBox showNotDecidedOnlyBox = new CheckBox(ID_SHOW_NOT_DECIDED_ONLY, model);
+//            showNotDecidedOnlyBox.add(createFilterAjaxBehaviour());
+//            searchForm.add(showNotDecidedOnlyBox);
+//        }
+//
+//        private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour() {
+//            return new AjaxFormComponentUpdatingBehavior("change") {
+//                private static final long serialVersionUID = 1L;
+//
+//                @Override
+//                protected void onUpdate(AjaxRequestTarget target) {
+//                    PageCertDecisions page = (PageCertDecisions) getPage();
+//                    page.getCertDecisionsStorage().setShowNotDecidedOnly((Boolean) getDefaultModelObject());
+//                    page.searchFilterPerformed(target);
+//
+//                }
+//            };
+//        }
+//    }
 }
