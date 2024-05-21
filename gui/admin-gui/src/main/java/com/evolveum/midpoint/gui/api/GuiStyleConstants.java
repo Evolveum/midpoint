@@ -254,7 +254,6 @@ public class GuiStyleConstants {
     public static final String CLASS_LINE_CHART_ICON = "fa fa-line-chart";
     public static final String CLASS_ROLE_ANALYSIS_CLUSTER_ICON = "fa fa-cubes";
 
-
     public static final String GREEN_COLOR = "color-green";
     public static final String YELLOW_COLOR = "color-yellow";
     public static final String RED_COLOR = "color-red";

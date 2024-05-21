@@ -459,7 +459,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
             footerContainer.add(formBsProcess);
 
             CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
-                    .setBasicIcon(GuiStyleConstants.CLASS_ICON_RESOURCE_MAINTENANCE, LayeredIconCssStyle.IN_ROW_STYLE);
+                    .setBasicIcon("fas fa-bars", LayeredIconCssStyle.IN_ROW_STYLE);
 
             LoadableDetachableModel<String> model = new LoadableDetachableModel<>() {
                 @Contract(pure = true)
@@ -505,18 +505,6 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
                 @Serial private static final long serialVersionUID = 1L;
 
                 @Override
-                public CompositedIcon getIcon() {
-                    boolean isPatternMode = displayValueOptionModel.getObject().isPatternToolsPanelMode();
-                    if (isPatternMode) {
-                        return new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.ARROW_LONG_DOWN,
-                                LayeredIconCssStyle.IN_ROW_STYLE).build();
-                    } else {
-                        return new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON,
-                                LayeredIconCssStyle.IN_ROW_STYLE).build();
-                    }
-                }
-
-                @Override
                 protected void onSubmit(@NotNull AjaxRequestTarget target) {
                     boolean isPatternMode = displayValueOptionModel.getObject().isPatternToolsPanelMode();
                     displayValueOptionModel.getObject().setPatternToolsPanelMode(!isPatternMode);
@@ -536,13 +524,28 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
             toolsButtonMode.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
             formBsProcess.add(toolsButtonMode);
 
-
+            String iconClass;
+            if (showAsExpandCard) {
+                iconClass = "fa fa-compress";
+            } else {
+                iconClass = "fas fa-expand";
+            }
 
             CompositedIcon expandCollapseCardButtonIcon = new CompositedIconBuilder().setBasicIcon(
-                    "fas fa-bars",
+                    iconClass,
                     LayeredIconCssStyle.IN_ROW_STYLE).build();
             AjaxCompositedIconSubmitButton expandCollapseCardButton = new AjaxCompositedIconSubmitButton("expandButton",
                     expandCollapseCardButtonIcon, Model.of()) {
+                @Override
+                public CompositedIcon getIcon() {
+                    if (showAsExpandCard) {
+                        return new CompositedIconBuilder().setBasicIcon("fa fa-compress",
+                                LayeredIconCssStyle.IN_ROW_STYLE).build();
+                    } else {
+                        return new CompositedIconBuilder().setBasicIcon("fas fa-expand",
+                                LayeredIconCssStyle.IN_ROW_STYLE).build();
+                    }
+                }
 
                 @Override
                 protected void onSubmit(AjaxRequestTarget target) {
