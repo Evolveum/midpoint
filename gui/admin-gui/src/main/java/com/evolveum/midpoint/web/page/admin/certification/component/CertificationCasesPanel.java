@@ -10,42 +10,27 @@ package com.evolveum.midpoint.web.page.admin.certification.component;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsQueryUtil;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.certification.dto.SearchingUtils;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
@@ -53,16 +38,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CertificationItemsPanel extends
+public class CertificationCasesPanel extends
         ContainerableListPanel<AccessCertificationCaseType, PrismContainerValueWrapper<AccessCertificationCaseType>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final String DOT_CLASS = CertificationItemsPanel.class.getName() + ".";
+    private static final String DOT_CLASS = CertificationCasesPanel.class.getName() + ".";
     private String campaignOid;
     private int stageNumber;
 
-    public CertificationItemsPanel(String id, String campaignOid, int stageNumber) {
+    public CertificationCasesPanel(String id, String campaignOid, int stageNumber) {
         super(id, AccessCertificationCaseType.class);
         this.campaignOid = campaignOid;
         this.stageNumber = stageNumber;
@@ -124,12 +109,12 @@ public class CertificationItemsPanel extends
 
     @Override
     protected ISelectableDataProvider<PrismContainerValueWrapper<AccessCertificationCaseType>> createProvider() {
-        return CertificationItemsPanel.this.createProvider(getSearchModel());
+        return CertificationCasesPanel.this.createProvider(getSearchModel());
     }
 
     private ContainerListDataProvider<AccessCertificationCaseType> createProvider(
             IModel<Search<AccessCertificationCaseType>> searchModel) {
-        Collection<SelectorOptions<GetOperationOptions>> options = CertificationItemsPanel.this.getPageBase()
+        Collection<SelectorOptions<GetOperationOptions>> options = CertificationCasesPanel.this.getPageBase()
                 .getOperationOptionsBuilder()
                 .resolveNames()
                 .build();

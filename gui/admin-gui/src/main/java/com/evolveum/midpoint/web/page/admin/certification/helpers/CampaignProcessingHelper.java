@@ -315,6 +315,9 @@ public class CampaignProcessingHelper implements Serializable {
                 } else if (CampaignStateHelper.CampaignAction.OPEN_NEXT_STAGE.equals(action)) {
                     acs.openNextStage(campaign.getOid(), task, result);
                     processed++;
+                } else if (CampaignStateHelper.CampaignAction.REMOVE_CAMPAIGN.equals(action)) {
+                    deleteCampaignConfirmation(target, campaign, pageBase);
+                    processed++;
                 } else {
                     throw new IllegalStateException("Unknown action: " + operationName);
                 }
