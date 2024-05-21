@@ -29,8 +29,8 @@ public class ThreeWayMergeOperation<O extends ObjectType> {
 
     private ObjectTreeDelta<O> rightDelta;
 
-    public ThreeWayMergeOperation(PrismObject<O> right, PrismObject<O> left, PrismObject<O> base) {
-        this(right, left, base, ParameterizedEquivalenceStrategy.FOR_DELTA_ADD_APPLICATION);
+    public ThreeWayMergeOperation(PrismObject<O> left, PrismObject<O> right, PrismObject<O> base) {
+        this(left, right, base, ParameterizedEquivalenceStrategy.FOR_DELTA_ADD_APPLICATION);
     }
 
     public ThreeWayMergeOperation(

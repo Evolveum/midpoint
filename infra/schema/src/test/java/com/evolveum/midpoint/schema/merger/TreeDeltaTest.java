@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.schema.merger;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +32,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class TreeDeltaTest extends AbstractSchemaTest {
+
+    private static final File TEST_DIRECTORY = new File("./src/test/resources/delta");
+
+    @Test(enabled = false)
+    public void test10RoleChanges() throws Exception {
+        ThreeWayMergeOperation<RoleType> operation = createMergeOperation("role");
+        AssertJUnit.assertTrue(operation.hasConflicts());
+
+        AssertJUnit.assertEquals(3, operation.getConflictingModifications().size());
+    }
 
     @Test
     public void testSingleValuePropertyNoConflict() throws SchemaException {
@@ -197,7 +209,7 @@ public class TreeDeltaTest extends AbstractSchemaTest {
                 .asObjectDelta(oid);
 
         // WHEN
-        ThreeWayMergeOperation<UserType> operation = new ThreeWayMergeOperation<>(
+        ThreeWayMergeOperation<UserType> operation = createMergeOperation(
                 leftToBase, rightToBase, user.asPrismObject(), EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS);
 
         // THEN
@@ -205,18 +217,52 @@ public class TreeDeltaTest extends AbstractSchemaTest {
 
     }
 
-    private <O extends ObjectType> ThreeWayMergeOperation<O> createThreeWayMerge(ObjectDelta<O> left, ObjectDelta<O> right, PrismObject<O> base, ParameterizedEquivalenceStrategy strategy) throws SchemaException {
-        ThreeWayMergeOperation<O> merge = new ThreeWayMergeOperation<>(left, right, base, strategy);
+    private <O extends ObjectType> void assertOperationState(
+            ThreeWayMergeOperation<O> operation, ObjectDelta<O> left, ObjectDelta<O> right) throws SchemaException {
 
-        AssertJUnit.assertTrue(left.equivalent(merge.getLeftDelta().toObjectDelta()));
-        AssertJUnit.assertTrue(right.equivalent(merge.getRightDelta().toObjectDelta()));
+        AssertJUnit.assertTrue(left.equivalent(operation.getLeftDelta().toObjectDelta()));
+        AssertJUnit.assertTrue(right.equivalent(operation.getRightDelta().toObjectDelta()));
 
-        Collection<? extends ItemDelta<?, ?>> leftToRight = merge.getNonConflictingModifications(Direction.LEFT_TO_RIGHT);
-        Collection<? extends ItemDelta<?, ?>> rightToLeft = merge.getNonConflictingModifications(Direction.RIGHT_TO_LEFT);
-        Collection<Conflict> conflicting = merge.getConflictingModifications();
+        Collection<? extends ItemDelta<?, ?>> leftToRight = operation.getNonConflictingModifications(Direction.LEFT_TO_RIGHT);
+        Collection<? extends ItemDelta<?, ?>> rightToLeft = operation.getNonConflictingModifications(Direction.RIGHT_TO_LEFT);
+        Collection<Conflict> conflicting = operation.getConflictingModifications();
 
         // todo assert that these are not overlapping
+    }
 
-        return merge;
+    private <O extends ObjectType> ThreeWayMergeOperation<O> createMergeOperation(
+            ObjectDelta<O> left, ObjectDelta<O> right, PrismObject<O> base, ParameterizedEquivalenceStrategy strategy)
+            throws SchemaException {
+
+        ThreeWayMergeOperation<O> operation = new ThreeWayMergeOperation<>(left, right, base, strategy);
+        assertOperationState(operation, left, right);
+
+        return operation;
+    }
+
+    private <O extends ObjectType> ThreeWayMergeOperation<O> createMergeOperation(String filename)
+            throws SchemaException, IOException {
+
+        File baseFile = new File(TEST_DIRECTORY, filename + "-base.xml");
+        File leftFile = new File(TEST_DIRECTORY, filename + "-left.xml");
+        File rightFile = new File(TEST_DIRECTORY, filename + "-right.xml");
+
+        PrismContext ctx = PrismTestUtil.getPrismContext();
+
+        PrismObject<O> base = ctx.parseObject(baseFile);
+        PrismObject<O> left = ctx.parseObject(leftFile);
+        PrismObject<O> right = ctx.parseObject(rightFile);
+
+        ParameterizedEquivalenceStrategy strategy = EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS;
+
+        ThreeWayMergeOperation<O> operation = new ThreeWayMergeOperation<>(
+                left, right, base, strategy);
+
+        ObjectDelta<O> leftToBase = base.diff(left, strategy);
+        ObjectDelta<O> rightToBase = base.diff(right, strategy);
+
+        assertOperationState(operation, leftToBase, rightToBase);
+
+        return operation;
     }
 }

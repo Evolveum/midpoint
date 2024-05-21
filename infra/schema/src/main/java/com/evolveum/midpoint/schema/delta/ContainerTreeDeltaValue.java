@@ -44,6 +44,21 @@ public class ContainerTreeDeltaValue<C extends Containerable> extends ItemTreeDe
         this.id = id;
     }
 
+    @Override
+    public List<Object> getNaturalKey() {
+        PrismContainerValue<C> pcv = getValue();
+        if (pcv != null && pcv.getParent() != null) {
+            ItemDefinition def = pcv.getParent().getDefinition();
+            if (def != null && def.getNaturalKeyInstance() != null) {
+                // todo not very nice/clean, but it should work for now
+                Collection<Item<?, ?>> constituents = def.getNaturalKeyInstance().getConstituents(pcv);
+                return new ArrayList<>(constituents);
+            }
+        }
+
+        return super.getNaturalKey();
+    }
+
     public Long getId() {
         PrismContainerValue<C> value = getValue();
 
