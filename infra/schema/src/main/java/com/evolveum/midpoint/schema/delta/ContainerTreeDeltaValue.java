@@ -15,6 +15,7 @@ import java.util.Objects;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -191,18 +192,19 @@ public class ContainerTreeDeltaValue<C extends Containerable> extends ItemTreeDe
 
     @Override
     public <V extends ItemTreeDeltaValue> boolean match(V other, EquivalenceStrategy strategy) {
-        if (other == null) {
+        if (!(other instanceof ContainerTreeDeltaValue<?> otherValue)) {
             return false;
         }
 
-        PrismContainerValue<C> pcv = (PrismContainerValue<C>) other.getValue();
-        if (pcv == null) {
-            return false;
+        if (Objects.equals(getId(), otherValue.getId())) {
+            return true;
         }
 
-        // todo natural keys
+        if (strategy instanceof ParameterizedEquivalenceStrategy pes && pes.isConsideringNaturalKeys()) {
+            Objects.equals(getNaturalKey(), otherValue.getNaturalKey());
+        }
 
-        return Objects.equals(getId(), pcv.getId());
+        return false;
     }
 
     @Override

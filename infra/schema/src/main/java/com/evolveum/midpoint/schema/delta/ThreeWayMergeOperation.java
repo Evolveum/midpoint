@@ -15,7 +15,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class ThreeWayMerge<O extends ObjectType> {
+public class ThreeWayMergeOperation<O extends ObjectType> {
 
     private PrismObject<O> left;
 
@@ -29,11 +29,11 @@ public class ThreeWayMerge<O extends ObjectType> {
 
     private ObjectTreeDelta<O> rightDelta;
 
-    public ThreeWayMerge(PrismObject<O> right, PrismObject<O> left, PrismObject<O> base) {
+    public ThreeWayMergeOperation(PrismObject<O> right, PrismObject<O> left, PrismObject<O> base) {
         this(right, left, base, ParameterizedEquivalenceStrategy.FOR_DELTA_ADD_APPLICATION);
     }
 
-    public ThreeWayMerge(
+    public ThreeWayMergeOperation(
             PrismObject<O> left, PrismObject<O> right, PrismObject<O> base, ParameterizedEquivalenceStrategy strategy) {
 
         this.base = base;
@@ -44,7 +44,7 @@ public class ThreeWayMerge<O extends ObjectType> {
         initialize();
     }
 
-    public ThreeWayMerge(
+    public ThreeWayMergeOperation(
             ObjectDelta<O> left, ObjectDelta<O> right, PrismObject<O> base, ParameterizedEquivalenceStrategy strategy) {
 
         this.base = base;
@@ -87,9 +87,7 @@ public class ThreeWayMerge<O extends ObjectType> {
         return strategy;
     }
 
-    public Collection<? extends ItemDelta<?, ?>> getNonConflictingModifications(
-            Direction direction, ParameterizedEquivalenceStrategy strategy) {
-
+    public Collection<? extends ItemDelta<?, ?>> getNonConflictingModifications(Direction direction) {
         ObjectTreeDelta<O> delta = direction == Direction.LEFT_TO_RIGHT ? leftDelta : rightDelta;
         ObjectTreeDelta<O> other = direction == Direction.LEFT_TO_RIGHT ? rightDelta : leftDelta;
 
@@ -98,5 +96,9 @@ public class ThreeWayMerge<O extends ObjectType> {
 
     public Collection<Conflict> getConflictingModifications() {
         return leftDelta.getConflictsWith(rightDelta, strategy);
+    }
+
+    public boolean hasConflicts() {
+        return !getConflictingModifications().isEmpty();
     }
 }
