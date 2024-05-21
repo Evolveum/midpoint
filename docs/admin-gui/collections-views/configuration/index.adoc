@@ -13,6 +13,9 @@ doc-type: config
 :page-wiki-metadata-modify-date: 2021-02-26T14:25:04.587+01:00
 :page-since: "4.0"
 :page-toc: top
+:page-upkeep-status: yellow
+:page-upkeep-note: Collection domain is no longer experimental. The page is probably old, we need to review this page.
+
 
 
 == Introduction

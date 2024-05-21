@@ -12892,6 +12892,10 @@
                                     The domain may also be important for policy rules. E.g. policy rules that trigger a notification when percentage of
                                     active employees gets too low.
                                 </p>
+                                <p>
+                                    No domain definition means that this collection does not have any domain.
+                                    On the other hand, empty domain definition means that all objects of applicable type are part of the domain, e.g. all users or all roles.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
