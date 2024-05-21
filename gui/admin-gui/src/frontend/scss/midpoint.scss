@@ -1956,11 +1956,6 @@ th.debug-list-buttons {
   }
 }
 
-.campaign-tile-panel {
-  width: 400px !important;
-  height: 340px !important;
-}
-
 @each $breakpoint in map-keys($grid-breakpoints) {
   $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
   @include media-breakpoint-up($breakpoint, $grid-breakpoints) {

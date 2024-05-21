@@ -152,7 +152,46 @@ public abstract class ItemTreeDelta
     }
 
     @NotNull
-    public List<Conflict> getConflictsWith(ItemTreeDelta<PV, ID, I, V> other, EquivalenceStrategy strategy) {
+    public Collection<? extends ItemDelta<?, ?>> getNonConflictingModifications(ItemTreeDelta<PV, ID, I, V> other, EquivalenceStrategy strategy) {
+        if (other == null) {
+            return getModifications();
+        }
+
+        if (!ItemPathComparatorUtil.equivalent(getPath(), other.getPath())) {
+            return getModifications();
+        }
+
+        if (definition.isSingleValue()) {
+            V value = getSingleValue();
+
+            V otherValue = other.getSingleValue();
+            if (value == null && otherValue == null) {
+                return getModifications();
+            }
+
+            if (value == null || otherValue == null) {
+                return List.of();
+            }
+
+            return value.getNonConflictingModifications(otherValue, strategy);
+        }
+
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
+        for (V value : getValues()) {
+            V otherValue = other.findMatchingValue(value, strategy);
+            if (otherValue == null) {
+                continue;
+            }
+
+            Collection<? extends ItemDelta<?, ?>> valueConflicts = value.getNonConflictingModifications(otherValue, strategy);
+            modifications.addAll(valueConflicts);
+        }
+
+        return modifications;
+    }
+
+    @NotNull
+    public Collection<Conflict> getConflictsWith(ItemTreeDelta<PV, ID, I, V> other, EquivalenceStrategy strategy) {
         if (other == null) {
             return List.of();
         }
@@ -191,7 +230,7 @@ public abstract class ItemTreeDelta
     }
 
     @NotNull
-    public List<Conflict> getConflictsWith(ItemTreeDelta<PV, ID, I, V> other) {
+    public Collection<Conflict> getConflictsWith(ItemTreeDelta<PV, ID, I, V> other) {
         return getConflictsWith(other, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
     }
 
@@ -227,7 +266,6 @@ public abstract class ItemTreeDelta
         Collection modifications = new ArrayList<>();
         // process itself + it's values
         getValues().forEach(v -> v.addValueToDelta(delta));
-
 
         getValues().forEach(v -> modifications.addAll(v.getModifications(true)));
 

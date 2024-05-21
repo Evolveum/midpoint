@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.merger;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,11 +15,16 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
 import com.evolveum.midpoint.schema.delta.Conflict;
-import com.evolveum.midpoint.schema.delta.ObjectTreeDelta;
+import com.evolveum.midpoint.schema.delta.Direction;
+import com.evolveum.midpoint.schema.delta.ThreeWayMergeOperation;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -40,19 +46,11 @@ public class TreeDeltaTest extends AbstractSchemaTest {
                 .asObjectDelta(oid);
 
         // WHEN
+        ThreeWayMergeOperation<UserType> operation = new ThreeWayMergeOperation<>(
+                leftToBase, rightToBase, null, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS);
 
-        ObjectTreeDelta<UserType> leftTreeDelta = toObjectTreeDelta(leftToBase);
-        ObjectTreeDelta<UserType> rightTreeDelta = toObjectTreeDelta(rightToBase);
-
-        AssertJUnit.assertFalse(leftTreeDelta.hasConflictWith(rightTreeDelta));
-    }
-
-    private <O extends ObjectType> ObjectTreeDelta<O> toObjectTreeDelta(ObjectDelta<O> delta) throws SchemaException {
-        ObjectTreeDelta<O> treeDelta = ObjectTreeDelta.fromItemDelta(delta);
-
-        AssertJUnit.assertTrue(delta.equivalent(treeDelta.toObjectDelta()));
-
-        return treeDelta;
+        // THEN
+        AssertJUnit.assertFalse(operation.hasConflicts());
     }
 
     @Test
@@ -70,11 +68,11 @@ public class TreeDeltaTest extends AbstractSchemaTest {
                 .asObjectDelta(oid);
 
         // WHEN
+        ThreeWayMergeOperation<UserType> operation = new ThreeWayMergeOperation<>(
+                leftToBase, rightToBase, null, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS);
 
-        ObjectTreeDelta<UserType> leftTreeDelta = toObjectTreeDelta(leftToBase);
-        ObjectTreeDelta<UserType> rightTreeDelta = toObjectTreeDelta(rightToBase);
-
-        AssertJUnit.assertFalse(leftTreeDelta.hasConflictWith(rightTreeDelta));
+        // THEN
+        AssertJUnit.assertFalse(operation.hasConflicts());
     }
 
     @Test
@@ -92,11 +90,11 @@ public class TreeDeltaTest extends AbstractSchemaTest {
                 .asObjectDelta(oid);
 
         // WHEN
+        ThreeWayMergeOperation<UserType> operation = new ThreeWayMergeOperation<>(
+                leftToBase, rightToBase, null, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS);
 
-        ObjectTreeDelta<UserType> leftTreeDelta = toObjectTreeDelta(leftToBase);
-        ObjectTreeDelta<UserType> rightTreeDelta = toObjectTreeDelta(rightToBase);
-
-        AssertJUnit.assertTrue(leftTreeDelta.hasConflictWith(rightTreeDelta));
+        // THEN
+        AssertJUnit.assertTrue(operation.hasConflicts());
     }
 
     @Test
@@ -105,7 +103,6 @@ public class TreeDeltaTest extends AbstractSchemaTest {
         PrismContext ctx = PrismTestUtil.getPrismContext();
 
         // GIVEN
-
         ObjectDelta<UserType> leftToBase = ctx.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_DESCRIPTION).addRealValues(List.of("new assignment 1 description"))
                 .asObjectDelta(oid);
@@ -127,10 +124,11 @@ public class TreeDeltaTest extends AbstractSchemaTest {
         System.out.println("User:\n" + u1.asPrismObject().debugDump());
 
         // WHEN
+        ThreeWayMergeOperation<UserType> operation = new ThreeWayMergeOperation<>(
+                leftToBase, rightToBase, u1.asPrismObject(), EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS);
 
-        ObjectTreeDelta<UserType> leftTreeDelta = toObjectTreeDelta(leftToBase);
-        ObjectTreeDelta<UserType> rightTreeDelta = toObjectTreeDelta(rightToBase);
-
+        // THEN
+        AssertJUnit.assertTrue(operation.hasConflicts());
     }
 
     // todo this fails because we would have to use base object to figure out whether these two deltas will do the same thing
@@ -162,11 +160,11 @@ public class TreeDeltaTest extends AbstractSchemaTest {
                 .asObjectDelta(oid);
 
         // WHEN
-        ObjectTreeDelta<UserType> leftTreeDelta = toObjectTreeDelta(leftToBase);
-        ObjectTreeDelta<UserType> rightTreeDelta = toObjectTreeDelta(rightToBase);
+        ThreeWayMergeOperation<UserType> operation = new ThreeWayMergeOperation<>(
+                leftToBase, rightToBase, null, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS);
 
         // THEN
-        AssertJUnit.assertTrue(leftTreeDelta.hasConflictWith(rightTreeDelta));
+        AssertJUnit.assertTrue(operation.hasConflicts());
     }
 
     // todo this doesn't fail only by accident, because current algorithm
@@ -177,6 +175,12 @@ public class TreeDeltaTest extends AbstractSchemaTest {
         PrismContext ctx = PrismTestUtil.getPrismContext();
 
         final String oid = UUID.randomUUID().toString();
+
+        UserType user = new UserType();
+        user.setName(new PolyStringType("user"));
+        ActivationType a = new ActivationType();
+        a.setAdministrativeStatus(ActivationStatusType.DISABLED);
+        user.setActivation(a);
 
         // GIVEN
         ActivationType a1 = new ActivationType()
@@ -189,17 +193,30 @@ public class TreeDeltaTest extends AbstractSchemaTest {
                 .asObjectDelta(oid);
 
         ObjectDelta<UserType> rightToBase = ctx.deltaFor(UserType.class)
-                .item(UserType.F_ACTIVATION, ActivationType.F_DISABLE_REASON).add(List.of("New description"))
+                .item(UserType.F_ACTIVATION, ActivationType.F_DISABLE_REASON).add(List.of("New reason"))
                 .asObjectDelta(oid);
 
         // WHEN
-        ObjectTreeDelta<UserType> leftTreeDelta = toObjectTreeDelta(leftToBase);
-        ObjectTreeDelta<UserType> rightTreeDelta = toObjectTreeDelta(rightToBase);
+        ThreeWayMergeOperation<UserType> operation = new ThreeWayMergeOperation<>(
+                leftToBase, rightToBase, user.asPrismObject(), EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS);
 
         // THEN
-        List<Conflict> conflicts = leftTreeDelta.getConflictsWith(rightTreeDelta);
-        conflicts.forEach(System.out::println);
+        AssertJUnit.assertTrue(operation.hasConflicts());
 
-        AssertJUnit.assertFalse(conflicts.isEmpty());
+    }
+
+    private <O extends ObjectType> ThreeWayMergeOperation<O> createThreeWayMerge(ObjectDelta<O> left, ObjectDelta<O> right, PrismObject<O> base, ParameterizedEquivalenceStrategy strategy) throws SchemaException {
+        ThreeWayMergeOperation<O> merge = new ThreeWayMergeOperation<>(left, right, base, strategy);
+
+        AssertJUnit.assertTrue(left.equivalent(merge.getLeftDelta().toObjectDelta()));
+        AssertJUnit.assertTrue(right.equivalent(merge.getRightDelta().toObjectDelta()));
+
+        Collection<? extends ItemDelta<?, ?>> leftToRight = merge.getNonConflictingModifications(Direction.LEFT_TO_RIGHT);
+        Collection<? extends ItemDelta<?, ?>> rightToLeft = merge.getNonConflictingModifications(Direction.RIGHT_TO_LEFT);
+        Collection<Conflict> conflicting = merge.getConflictingModifications();
+
+        // todo assert that these are not overlapping
+
+        return merge;
     }
 }

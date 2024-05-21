@@ -9,7 +9,8 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <name>SystemConfiguration</name>
     <indestructible>true</indestructible>
@@ -934,6 +935,34 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView id="100"> <!-- TODO: change id as needed -->
+                <identifier>classification-view</identifier>
+                <display>
+                    <label>Classifications</label>
+                    <singularLabel>Classification</singularLabel>
+                    <tooltip>Information classifications (labels)</tooltip>
+                </display>
+                <displayOrder>200</displayOrder>
+                <type>RoleType</type> <!-- TODO: Change to PolicyType later -->
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000330" relation="org:default" type="c:ArchetypeType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView id="101"> <!-- TODO: change id as needed -->
+                <identifier>clearance-view</identifier>
+                <display>
+                    <label>Clearances</label>
+                    <singularLabel>Clearance</singularLabel>
+                    <tooltip>Security clearances</tooltip>
+                </display>
+                <displayOrder>210</displayOrder>
+                <type>RoleType</type> <!-- TODO: Change to PolicyType later -->
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000331" relation="org:default" type="c:ArchetypeType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
             <objectCollectionView id="254">
                 <identifier>shadow-reclassification-tasks-view</identifier>
                 <refreshInterval>30</refreshInterval>
@@ -1097,6 +1126,35 @@
                                 <visibility>hidden</visibility>
                                 <defaultValue>ServiceType</defaultValue>
                                 <supportedTypes>ServiceType</supportedTypes>
+                            </objectTypeConfiguration>
+                        </searchBoxConfiguration>
+                    </listView>
+                </panel>
+                <panel id="123">
+                    <identifier>clearances</identifier>
+                    <display>
+                        <label>Clearances</label>
+                        <icon>
+                            <cssClass>fa fa-award</cssClass>
+                        </icon>
+                    </display>
+                    <panelType>roleAssignments</panelType>
+                    <listView>
+                        <identifier>clearances-view</identifier>
+                        <type>c:AssignmentType</type>
+                        <dataProvider xsi:type="c:RepositoryAssignmentDataProviderType"/>
+                        <collection>
+                            <filter>
+                                <q:text>targetRef/@/archetypeRef matches ( oid = "00000000-0000-0000-0000-000000000331" )</q:text>
+                            </filter>
+                            <!--                            <collectionRef oid="00000000-0000-0000-0000-000000000331" type="c:ArchetypeType">
+                                                        </collectionRef> -->
+                        </collection>
+                        <searchBoxConfiguration>
+                            <objectTypeConfiguration>
+                                <visibility>hidden</visibility>
+                                <defaultValue>RoleType</defaultValue>
+                                <supportedTypes>RoleType</supportedTypes>
                             </objectTypeConfiguration>
                         </searchBoxConfiguration>
                     </listView>

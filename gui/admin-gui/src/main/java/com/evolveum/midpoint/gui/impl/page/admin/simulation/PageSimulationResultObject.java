@@ -379,7 +379,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
         DisplayType displayType = new DisplayType()
                 .label(createStringResource("PageSimulationResultObject.details").getString())
-                .icon(new IconType().cssClass("fa-solid fa-circle-question"));
+                .icon(new IconType().cssClass("nav-icon fa-solid fa-flask"));
         DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
                 Model.of(displayType),
                 detailsModel);

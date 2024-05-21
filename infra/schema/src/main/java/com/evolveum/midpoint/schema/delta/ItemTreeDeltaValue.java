@@ -183,6 +183,37 @@ public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends Item
         return modificationType != null;
     }
 
+    public Collection<? extends ItemDelta<?, ?>> getNonConflictingModifications(
+            ItemTreeDeltaValue other, EquivalenceStrategy strategy) {
+
+        if (other == null) {
+            return getModifications();
+        }
+
+        // todo check parent path?
+
+        if (modificationType == null && other.modificationType == null) {
+            return getModifications();
+        }
+
+        if (modificationType != other.modificationType) {
+            if (!getParent().getDefinition().isSingleValue()) {
+                return List.of();
+            }
+
+            List<ModificationType> list = Arrays.asList(modificationType, other.modificationType);
+            if (!list.contains(ModificationType.ADD) || !list.contains(ModificationType.REPLACE)) {
+                return List.of();
+            }
+        }
+
+        if (value.equals(other.getValue(), strategy)) {
+            return getModifications();
+        }
+
+        return List.of();
+    }
+
     public Collection<? extends ItemDelta<?, ?>> getModifications() {
         return getModifications(false);
     }
