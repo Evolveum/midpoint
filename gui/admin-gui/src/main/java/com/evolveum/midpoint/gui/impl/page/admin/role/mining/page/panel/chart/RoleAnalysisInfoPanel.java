@@ -99,7 +99,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
     private static final String OP_LOAD_STATISTICS = DOT_CLASS + "loadRoleAnalysisStatistics";
 
     private boolean isSortByGroup = false;
-    ChartType chartType = ChartType.LINE;
+    ChartType chartType = ChartType.BAR;
     private boolean isScalable = false;
     private boolean isUserMode = false;
 
