@@ -36,12 +36,13 @@ public class AttributeSettingPopupPanel extends BasePanel<String> implements Pop
 
     ListModel<ClusteringAttributeRuleType> clusteringAttributeRuleModel;
     IModel<PrismPropertyValueWrapper<ClusteringAttributeSettingType>> model;
+
     public AttributeSettingPopupPanel(
             @NotNull String id,
             @NotNull IModel<String> messageModel,
             IModel<PrismPropertyValueWrapper<ClusteringAttributeSettingType>> selectedObject) {
         super(id, messageModel);
-        this.model=selectedObject;
+        this.model = selectedObject;
 
         List<ClusteringAttributeRuleType> clusteringAttributeRule = new ArrayList<>(
                 model.getObject().getRealValue().getClusteringAttributeRule());
@@ -94,7 +95,7 @@ public class AttributeSettingPopupPanel extends BasePanel<String> implements Pop
         add(bodyContainer);
 
         RoleAnalysisClusteringAttributeTable clusteringAttributeTable = new RoleAnalysisClusteringAttributeTable(
-                ID_TABLE_CLUSTERING_ATTRIBUTES, clusteringAttributeRuleModel);
+                ID_TABLE_CLUSTERING_ATTRIBUTES, clusteringAttributeRuleModel, false);
         clusteringAttributeTable.setOutputMarkupId(true);
         bodyContainer.add(clusteringAttributeTable);
 

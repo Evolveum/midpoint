@@ -47,17 +47,26 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
 
     private static final String ID_DATATABLE = "datatable";
 
+    boolean isSimplePanel;
+
     public RoleAnalysisClusteringAttributeTable(
             @NotNull String id,
-            ListModel<ClusteringAttributeRuleType> selectedObject) {
+            ListModel<ClusteringAttributeRuleType> selectedObject,
+            boolean isSimplePanel) {
         super(id);
+
+        this.isSimplePanel = isSimplePanel;
 
         RoleMiningProvider<ClusteringAttributeRuleType> provider = new RoleMiningProvider<>(
                 this, selectedObject, false);
 
-
         BoxedTablePanel<ClusteringAttributeRuleType> table = new BoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumns()) {
+
+            @Override
+            protected boolean isPagingVisible() {
+                return !isSimplePanel;
+            }
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
@@ -113,7 +122,7 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
             public Component getHeader(String componentId) {
                 return new Label(
                         componentId,
-                        createStringResource("Property identifier"));
+                        createStringResource("Identifier"));
             }
 
         });
@@ -138,6 +147,11 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
                             iconType.setCssClass("fa fa-cube");
                             displayType.setIcon(iconType);
                             return displayType;
+                        }
+
+                        @Override
+                        protected boolean isPreGroupVisible() {
+                            return true;
                         }
 
                         @Override
@@ -189,6 +203,11 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
                         }
 
                         @Override
+                        protected boolean isPreGroupVisible() {
+                            return true;
+                        }
+
+                        @Override
                         public void onChangePerform(Double newValue) {
                             rowModel.getObject().setWeight(newValue);
                         }
@@ -227,4 +246,5 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
     protected void onRefresh(AjaxRequestTarget target) {
 
     }
+
 }

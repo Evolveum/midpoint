@@ -11,19 +11,21 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.component.AttributeSettingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.component.AttributeSettingPopupPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisClusteringAttributeTable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.util.ListModel;
 import org.jetbrains.annotations.NotNull;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
@@ -63,7 +65,10 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
     }
 
     public boolean isPopupAllowed() {
-        return !((PageBase) getPage()).getPreviousBreadcrumb().getPageClass().equals(PageRoleAnalysis.class);
+        if (getPage().getPage() instanceof PageRoleAnalysisSession sessionPage) {
+            return sessionPage.isShowByWizard();
+        }
+        return false;
     }
 
     private void initLayout() {
@@ -76,12 +81,22 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+
                 if (isPopupAllowed()) {
                     AttributeSettingPopupPanel detailsPanel = new AttributeSettingPopupPanel(((PageBase) getPage()).getMainPopupBodyId(),
                             Model.of("Configure attributes"), model);
                     getPageBase().showMainPopup(detailsPanel, target);
                 } else {
                     Component attributeSettingPanel = getAttributeSettingPanel();
+                    if (attributeSettingPanel.isVisible()) {
+                        List<ClusteringAttributeRuleType> clusteringAttributeRule = model.getObject().getRealValue().getClusteringAttributeRule();
+                        ClusteringAttributeSettingType realValue = model.getObject().getRealValue();
+                        realValue.getClusteringAttributeRule().clear();
+                        for (ClusteringAttributeRuleType clusteringAttributeRuleType : clusteringAttributeRule) {
+                            realValue.getClusteringAttributeRule().add(clusteringAttributeRuleType.clone());
+                        }
+                    }
+
                     getAttributeSettingPanel().setVisible(!attributeSettingPanel.isVisible());
                     target.add(getAttributeSettingPanel().getParent());
                 }
@@ -97,7 +112,28 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
             container = new WebMarkupContainer(ID_CONTAINER);
             container.setOutputMarkupId(true);
         } else {
-            container = new AttributeSettingPanel(ID_CONTAINER, Model.of("Configure attributes"), model);
+            List<ClusteringAttributeRuleType> clusteringAttributeRule = new ArrayList<>(
+                    model.getObject().getRealValue().getClusteringAttributeRule());
+            ListModel<ClusteringAttributeRuleType> clusteringAttributeRuleModel = new ListModel<>(clusteringAttributeRule) {
+                @Override
+                public List<ClusteringAttributeRuleType> getObject() {
+                    return super.getObject();
+                }
+
+                @Override
+                public void setObject(List<ClusteringAttributeRuleType> object) {
+                    super.setObject(object);
+                }
+            };
+
+            RoleAnalysisClusteringAttributeTable clusteringAttributeTable = new RoleAnalysisClusteringAttributeTable(
+                    ID_CONTAINER, clusteringAttributeRuleModel, true) {
+
+            };
+            clusteringAttributeTable.setOutputMarkupId(true);
+            clusteringAttributeTable.add(AttributeAppender.replace("class", "col-12 p-0"));
+            container = clusteringAttributeTable;
+
             container.setOutputMarkupId(true);
             container.setVisible(false);
         }

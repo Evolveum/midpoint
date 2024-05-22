@@ -19,6 +19,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,6 +83,14 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> {
             @Override
             public @NotNull List<RoleAnalysisSimpleModel> prepareRoleAnalysisData() {
                 return chartModel.getObject();
+            }
+
+            @Override
+            protected String getChartContainerStyle() {
+                if(RoleAnalysisAttributePanel.this.getChartContainerStyle() != null){
+                    return RoleAnalysisAttributePanel.this.getChartContainerStyle();
+                }
+                return super.getChartContainerStyle();
             }
         };
         roleAnalysisChartPanel.setOutputMarkupId(true);
@@ -215,5 +224,10 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> {
 
     public String getButtonCssClass() {
         return "d-flex align-items-center gap-2 btn btn-sm btn-outline-primary rounded-pill";
+    }
+
+    @Contract(pure = true)
+    protected @Nullable String getChartContainerStyle(){
+        return null;
     }
 }

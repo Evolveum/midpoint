@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +42,7 @@ public class RoleAnalysisAttributeResultChartPanel extends BasePanel<String> {
     private void initChartPart() {
 
         WebMarkupContainer chartContainer = new WebMarkupContainer(ID_CONTAINER_CHART);
+        chartContainer.add(AttributeAppender.replace("style", getChartContainerStyle()));
         chartContainer.setOutputMarkupId(true);
         add(chartContainer);
 
@@ -83,6 +85,9 @@ public class RoleAnalysisAttributeResultChartPanel extends BasePanel<String> {
         };
     }
 
+    protected String getChartContainerStyle(){
+        return "height:20vh;";
+    }
     public @NotNull List<RoleAnalysisSimpleModel> prepareRoleAnalysisData() {
         return new ArrayList<>();
     }

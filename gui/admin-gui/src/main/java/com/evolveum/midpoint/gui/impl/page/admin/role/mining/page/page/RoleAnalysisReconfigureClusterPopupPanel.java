@@ -136,7 +136,7 @@ public class RoleAnalysisReconfigureClusterPopupPanel
 
     @Override
     public int getWidth() {
-        return 20;
+        return 30;
     }
 
     @Override
