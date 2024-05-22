@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.c
 import java.io.Serial;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetailsPopup;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
@@ -67,6 +69,7 @@ public class PageRoleAnalysis extends PageAdmin {
         super.onInitialize();
         initLayout();
     }
+
 
     protected void initLayout() {
         Form<?> infoForm = new MidpointForm<>(ID_INFO_FORM);
@@ -132,6 +135,14 @@ public class PageRoleAnalysis extends PageAdmin {
                             Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                                     .getObjectDetailsPage(RoleAnalysisClusterType.class);
                             getPageBase().navigateToNext(detailsPageClass, parameters);
+                        }
+
+                        @Override
+                        protected void onClickIconPerform(AjaxRequestTarget target) {
+                            RoleAnalysisDetectedPatternDetailsPopup component = new RoleAnalysisDetectedPatternDetailsPopup(
+                                    ((PageBase) getPage()).getMainPopupBodyId(),
+                                    Model.of(pattern));
+                            ((PageBase) getPage()).showMainPopup(component, target);
                         }
                     });
                 }
