@@ -445,4 +445,31 @@ public class ValueMetadataTypeUtil {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
+
+    public static Collection<String> getCertificationOutcomes(AssignmentType assignment) {
+        return getMetadataBeans(assignment).stream()
+                .map(ValueMetadataType::getProcess)
+                .filter(Objects::nonNull)
+                .map(ProcessMetadataType::getCertificationOutcome)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
+
+    public static @NotNull Collection<ObjectReferenceType> getCertifierRefs(AssignmentType assignment) {
+        return getMetadataBeans(assignment).stream()
+                .map(ValueMetadataType::getProcess)
+                .filter(Objects::nonNull)
+                .map(ProcessMetadataType::getCertifierRef)
+                .flatMap(strings -> strings.stream())
+                .collect(Collectors.toSet());
+    }
+
+    public static @NotNull Collection<String> getCertifierComments(AssignmentType assignment) {
+        return getMetadataBeans(assignment).stream()
+                .map(ValueMetadataType::getProcess)
+                .filter(Objects::nonNull)
+                .map(ProcessMetadataType::getCertifierComment)
+                .flatMap(strings -> strings.stream())
+                .collect(Collectors.toSet());
+    }
 }

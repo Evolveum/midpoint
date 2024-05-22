@@ -187,10 +187,30 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
     }
     //endregion
 
+    //region Objects - other operations
+    public Collection<? extends ItemDelta<?, ?>> createObjectCertificationMetadataDeltas(
+            @NotNull ObjectType object,
+            CertificationProcessMetadata certificationProcessMetadata)
+            throws SchemaException {
+        var metadata = ValueMetadataTypeUtil.getMetadata(object);
+        if (metadata == null) {
+            return prismContext.deltaFor(object.getClass())
+                    .item(InfraItemName.METADATA)
+                    .add(new ValueMetadataType().process(certificationProcessMetadata.toBean()))
+                    .asItemDeltas();
+        } else {
+            return certificationProcessMetadata.toItemDeltas(
+                    ValueMetadataTypeUtil.getPathOf(metadata).append(ValueMetadataType.F_PROCESS),
+                    object.getClass());
+        }
+    }
+
+    //endregion
+
     //region Assignments
     /**
      * Adds provenance metadata to assignments being explicitly added (via primary delta). This is necessary so that they
-     * can be distinguished from assignments provided by mappings.
+     * can be distinguished from assignments provided by mappings. Typically used on operation start.
      */
     public void addExternalAssignmentProvenance(LensContext<?> context, Task task)
             throws SchemaException {
@@ -406,6 +426,32 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
         }
         return rv;
     }
+
+    public Collection<? extends ItemDelta<?, ?>> createAssignmentCertificationMetadataDeltas(
+            Class<? extends ObjectType> objectClass,
+            ItemPath assignmentPcvPath,
+            PrismContainerValue<?> assignmentPcv,
+            CertificationProcessMetadata certificationProcessMetadata)
+            throws SchemaException {
+        var metadata = assignmentPcv.getValueMetadata();
+        if (metadata.hasNoValues()) {
+            return PrismContext.get().deltaFor(objectClass)
+                    .item(assignmentPcvPath, InfraItemName.METADATA)
+                    .add(minimalAssignmentMetadata()
+                            .process(certificationProcessMetadata.toBean()))
+                    .asItemDeltas();
+        }
+        List<ItemDelta<?, ?>> rv = new ArrayList<>();
+        for (var metadataBean : metadata.getRealValues(ValueMetadataType.class)) {
+            long mdId = MiscUtil.stateNonNull(metadataBean.getId(),
+                    "No metadata PCV ID in %s in %s", metadataBean, assignmentPcvPath);
+            rv.addAll(
+                    certificationProcessMetadata.toItemDeltas(
+                            assignmentPcvPath.append(InfraItemName.METADATA, mdId, ValueMetadataType.F_PROCESS),
+                            objectClass));
+        }
+        return rv;
+    }
     //endregion
 
     //region Support
@@ -570,6 +616,39 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
                     .replaceRealValues(modifyApproverRefCollection)
                     .item(processMetadataPath.append(MetadataType.F_MODIFY_APPROVAL_COMMENT))
                     .replaceRealValues(approvalComments)
+                    .asItemDeltas();
+        }
+    }
+
+    /** All values are parent-less here, to be directly insertable into beans and deltas. */
+    public record CertificationProcessMetadata(
+            XMLGregorianCalendar certificationFinishedTimestamp,
+            String outcome,
+            @NotNull Collection<ObjectReferenceType> certifierRefs,
+            @NotNull Collection<String> comments) {
+
+
+        ProcessMetadataType toBean() {
+            var processMetadata = new ProcessMetadataType()
+                    .certificationFinishedTimestamp(certificationFinishedTimestamp)
+                    .certificationOutcome(outcome);
+            processMetadata.getCertifierRef().addAll(CloneUtil.cloneCollectionMembers(certifierRefs));
+            processMetadata.getCertifierComment().addAll(comments);
+            return processMetadata;
+        }
+
+        private Collection<ItemDelta<?, ?>> toItemDeltas(
+                ItemPath processMetadataPath, Class<? extends ObjectType> objectTypeClass)
+                throws SchemaException {
+            return PrismContext.get().deltaFor(objectTypeClass)
+                    .item(processMetadataPath.append(ProcessMetadataType.F_CERTIFICATION_FINISHED_TIMESTAMP))
+                    .replace(certificationFinishedTimestamp)
+                    .item(processMetadataPath.append(ProcessMetadataType.F_CERTIFICATION_OUTCOME))
+                    .replace(outcome)
+                    .item(processMetadataPath.append(ProcessMetadataType.F_CERTIFIER_REF))
+                    .replaceRealValues(certifierRefs)
+                    .item(processMetadataPath.append(ProcessMetadataType.F_CERTIFIER_COMMENT))
+                    .replaceRealValues(comments)
                     .asItemDeltas();
         }
     }
