@@ -436,10 +436,12 @@ public class TestCsvSimulationReport extends TestCsvReport {
                 .execute(result);
 
         then("CSV is OK");
+        // In addition to previous report, this one contains "activation/disableTimestamp" and "activation/effectiveStatus".
+        // Note that unlike tradition metadata, the new value metadata changes are not present in this report (now).
         assertCsv(itemsLines2, "after")
                 .parse()
                 .display()
-                .assertRecords((a) -> a.hasSizeGreaterThan(40)); // too many
+                .assertRecords(25);
 
         when("item-level report is created - 'name' only");
         var itemsLines3 = REPORT_SIMULATION_ITEMS_CHANGED.export()
@@ -505,7 +507,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
         assertCsv(valuesLines2, "after")
                 .parse()
                 .display()
-                .assertRecords((a) -> a.hasSizeGreaterThan(50)); // too many
+                .assertRecords(40);
     }
 
     /** Checks whether account add ("link") operation is reported correctly. */
