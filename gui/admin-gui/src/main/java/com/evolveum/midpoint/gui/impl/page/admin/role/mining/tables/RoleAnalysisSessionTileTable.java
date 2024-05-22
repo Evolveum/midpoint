@@ -281,6 +281,11 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
             }
 
             @Override
+            protected String getTilesContainerAdditionalClass() {
+                return " ";
+            }
+
+            @Override
             protected ISortableDataProvider<?, ?> createProvider() {
                 return provider;
             }
@@ -611,6 +616,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
                 String buttonClass = resolveButtonClass(operationStatus);
 
                 ajaxLinkPanel.add(AttributeModifier.replace("class", "btn btn-sm " + buttonClass));
+                ajaxLinkPanel.add(AttributeModifier.replace("style", "width: 80%"));
                 ajaxLinkPanel.setEnabled(taskRef != null);
                 ajaxLinkPanel.setOutputMarkupId(true);
                 cellItem.add(ajaxLinkPanel);
