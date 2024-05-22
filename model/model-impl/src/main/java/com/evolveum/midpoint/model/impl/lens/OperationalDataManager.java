@@ -264,7 +264,7 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
         ValueMetadataType metadata = new ValueMetadataType()
                 .provenance(new ProvenanceMetadataType()
                         .acquisition(new ProvenanceAcquisitionType()
-                                .originRef(SystemObjectsType.ORIGIN_USER_ENTRY.value(), ServiceType.COMPLEX_TYPE)
+                                //.originRef(SystemObjectsType.ORIGIN_USER_ENTRY.value(), ServiceType.COMPLEX_TYPE)
                                 .actorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()))
                                 .channel(LensUtil.getChannel(context, task))
                                 .timestamp(clock.currentTimeXMLGregorianCalendar()))
@@ -387,10 +387,10 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
 
     /** This is the minimal information. Later, we can add more (actor, channel, timestamp). */
     private static ValueMetadataType minimalAssignmentMetadata() {
-        return new ValueMetadataType()
-                .provenance(new ProvenanceMetadataType()
-                        .acquisition(new ProvenanceAcquisitionType()
-                                .originRef(SystemObjectsType.ORIGIN_USER_ENTRY.value(), ServiceType.COMPLEX_TYPE)));
+        return new ValueMetadataType();
+//                .provenance(new ProvenanceMetadataType()
+//                        .acquisition(new ProvenanceAcquisitionType()
+//                                .originRef(SystemObjectsType.ORIGIN_USER_ENTRY.value(), ServiceType.COMPLEX_TYPE)));
     }
 
     public Collection<ItemDelta<?, ?>> createAssignmentModificationApprovalMetadata(
