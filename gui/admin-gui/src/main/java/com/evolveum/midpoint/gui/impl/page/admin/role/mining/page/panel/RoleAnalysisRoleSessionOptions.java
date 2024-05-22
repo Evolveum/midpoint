@@ -6,26 +6,24 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
-
-import org.apache.wicket.markup.html.WebMarkupContainer;
-
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
-@PanelInstance(identifier = "settings",
+import org.apache.wicket.markup.html.WebMarkupContainer;
+
+@PanelInstance(identifier = "roleModeSettings",
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(label = "PageRoleAnalysisSession.settings.panel", icon = GuiStyleConstants.CLASS_OPTIONS_COGS, order = 60))
-public class RoleAnalysisSessionOptions<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {
+public class RoleAnalysisRoleSessionOptions extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
     private static final String ID_CONTAINER = "container";
 
-    public RoleAnalysisSessionOptions(String id, ObjectDetailsModels<AH> model, ContainerPanelConfigurationType config) {
+    public RoleAnalysisRoleSessionOptions(String id, ObjectDetailsModels<RoleAnalysisSessionType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 

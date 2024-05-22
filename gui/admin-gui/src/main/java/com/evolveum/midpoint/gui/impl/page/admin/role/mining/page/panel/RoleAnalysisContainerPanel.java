@@ -47,6 +47,7 @@ import org.jetbrains.annotations.NotNull;
                 icon = GuiStyleConstants.CLASS_OPTIONS_COGS,
                 order = 40
         ),
+        childOf = RoleAnalysisRoleSessionOptions.class,
         containerPath = "roleModeOptions",
         type = "RoleAnalysisSessionOptionType",
         expanded = true)
@@ -59,7 +60,7 @@ import org.jetbrains.annotations.NotNull;
                 icon = GuiStyleConstants.CLASS_OPTIONS_COG,
                 order = 40
         ),
-        childOf = RoleAnalysisSessionOptions.class,
+        childOf = RoleAnalysisUserSessionOptions.class,
         containerPath = "userModeOptions",
         type = "UserAnalysisSessionOptionType",
         expanded = true
@@ -73,7 +74,21 @@ import org.jetbrains.annotations.NotNull;
                 icon = GuiStyleConstants.CLASS_OPTIONS_COG,
                 order = 30
         ),
-        childOf = RoleAnalysisSessionOptions.class,
+        childOf = RoleAnalysisUserSessionOptions.class,
+        containerPath = "defaultDetectionOption",
+        type = "RoleAnalysisDetectionOptionType",
+        expanded = true
+)
+
+@PanelInstance(
+        identifier = "sessionDefaultDetectionOption",
+        applicableForType = RoleAnalysisSessionType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysisDetectionOptionType.defaultDetectionOption",
+                icon = GuiStyleConstants.CLASS_OPTIONS_COG,
+                order = 30
+        ),
+        childOf = RoleAnalysisRoleSessionOptions.class,
         containerPath = "defaultDetectionOption",
         type = "RoleAnalysisDetectionOptionType",
         expanded = true
@@ -91,20 +106,21 @@ public class RoleAnalysisContainerPanel<AH extends AssignmentHolderType> extends
     @Override
     protected void initLayout() {
 
+
+        @SuppressWarnings({ "rawtypes", "unchecked" })
         SingleContainerPanel components = new SingleContainerPanel(ID_PANEL,
                 getObjectWrapperModel(),
                 getPanelConfiguration()) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
+            protected ItemVisibility getVisibility(@SuppressWarnings("rawtypes") ItemWrapper itemWrapper) {
                 return getBasicTabVisibility(itemWrapper.getPath());
             }
 
             @Override
             protected ItemEditabilityHandler getEditabilityHandler() {
-                ContainerPanelConfigurationType config = getPanelConfiguration();
-                return setItemEditabilityHandler(config);
+                return wrapper -> false;
             }
         };
         add(components);
@@ -146,16 +162,6 @@ public class RoleAnalysisContainerPanel<AH extends AssignmentHolderType> extends
             }
             return ItemVisibility.AUTO;
         }
-    }
-
-    private static @NotNull ItemEditabilityHandler setItemEditabilityHandler(@NotNull ContainerPanelConfigurationType config) {
-        for (VirtualContainersSpecificationType container : config.getContainer()) {
-            if (container.getPath() != null
-                    && (container.getPath().getItemPath().equivalent(RoleAnalysisClusterType.F_DETECTION_OPTION))) {
-                return wrapper -> true;
-            }
-        }
-        return wrapper -> true;
     }
 
 }

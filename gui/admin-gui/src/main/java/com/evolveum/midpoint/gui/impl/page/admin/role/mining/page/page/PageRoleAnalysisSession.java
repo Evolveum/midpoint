@@ -455,25 +455,17 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                 }
             }
 
-            if (containerPanelConfigurationType.getIdentifier().equals("sessionOptions")) {
-                List<VirtualContainersSpecificationType> container = containerPanelConfigurationType.getContainer();
-
-                for (VirtualContainersSpecificationType virtualContainersSpecificationType : container) {
-                    if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-                        if (virtualContainersSpecificationType.getPath().getItemPath()
-                                .equivalent(RoleAnalysisSessionType.F_USER_MODE_OPTIONS)) {
-                            containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                        }
-                    } else {
-                        if (virtualContainersSpecificationType.getPath().getItemPath()
-                                .equivalent(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS)) {
-                            containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                        }
-                    }
-
+            if (containerPanelConfigurationType.getIdentifier().equals("userModeSettings")) {
+                if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
                 }
 
+            } else if (containerPanelConfigurationType.getIdentifier().equals("roleModeSettings")) {
+                if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                }
             }
+
         }
         return panelConfigurations;
     }
