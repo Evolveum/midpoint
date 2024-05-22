@@ -260,7 +260,7 @@ public class PageCertCampaign extends PageAdmin {
         responsesContainer.add(responsesPanel);
 
 
-        CertificationCasesTabbedPanel items = new CertificationCasesTabbedPanel(ID_ITEMS_TABBED_PANEL, campaignModel);
+        CertificationItemsTabbedPanel items = new CertificationItemsTabbedPanel(ID_ITEMS_TABBED_PANEL, campaignModel);
         items.setOutputMarkupId(true);
         add(items);
     }
