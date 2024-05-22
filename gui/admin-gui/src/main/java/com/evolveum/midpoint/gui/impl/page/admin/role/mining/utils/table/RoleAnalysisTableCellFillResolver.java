@@ -185,7 +185,8 @@ public class RoleAnalysisTableCellFillResolver {
             Item<ICellPopulator<MiningUserTypeChunk>> cellItem,
             @NotNull T rowModel,
             @NotNull T colModel,
-            Map<String, String> colorMap) {
+            @NotNull LoadableDetachableModel<Map<String, String>> colorLoadableMap) {
+        Map<String, String> colorMap = colorLoadableMap.getObject();
         RoleAnalysisObjectStatus rowObjectStatus = rowModel.getObjectStatus();
         RoleAnalysisObjectStatus colObjectStatus = colModel.getObjectStatus();
         Set<String> rowContainerId = rowObjectStatus.getContainerId();

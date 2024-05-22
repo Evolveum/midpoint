@@ -541,6 +541,18 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 displayValueOptionModel, getObjectWrapperObject()) {
 
             @Override
+            public List<DetectedPattern> getDisplayedPatterns() {
+                RoleAnalysisClusterType cluster = RoleAnalysisClusterOperationPanel.this.getObjectDetailsModels().getObjectType();
+                return transformDefaultPattern(cluster);
+            }
+
+            @Override
+            public List<DetectedPattern> getCandidateRoles() {
+                RoleAnalysisClusterType cluster = RoleAnalysisClusterOperationPanel.this.getObjectDetailsModels().getObjectType();
+                return loadAllCandidateRoles(cluster);
+            }
+
+            @Override
             public boolean isOutlierDetection() {
                 return isOutlierDetection;
             }

@@ -102,6 +102,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
     double maxFrequency;
     List<DetectedPattern> displayedPatterns;
 
+    boolean isRelationSelected = false;
     boolean isCandidateRoleSelector = false;
 
     LoadableDetachableModel<Map<String, String>> patternColorPalette = new LoadableDetachableModel<>() {
@@ -112,7 +113,6 @@ public class RoleAnalysisUserBasedTable extends Panel {
     };
 
     LoadableDetachableModel<DisplayValueOption> displayValueOptionModel;
-    boolean isRelationSelected = false;
 
     public RoleAnalysisUserBasedTable(
             @NotNull String id,
@@ -123,13 +123,13 @@ public class RoleAnalysisUserBasedTable extends Panel {
         super(id);
 
         this.displayValueOptionModel = displayValueOptionModel;
+        this.miningOperationChunk = miningOperationChunk;
+
         if (displayedPatterns != null) {
             this.displayedPatterns = new ArrayList<>(displayedPatterns);
         } else {
             this.displayedPatterns = new ArrayList<>();
         }
-
-        this.miningOperationChunk = miningOperationChunk;
 
         RoleAnalysisClusterType clusterObject = cluster.asObjectable();
         RoleAnalysisDetectionOptionType detectionOption = clusterObject.getDetectionOption();
@@ -503,33 +503,55 @@ public class RoleAnalysisUserBasedTable extends Panel {
                         RoleAnalysisInfoItem candidatePanel = new RoleAnalysisInfoItem(toolsPanelItems.newChildId(), Model.of(label)) {
 
                             @Override
-                            protected String getIconClass() {
-                                return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
-                            }
-
-                            @Override
                             protected String getIconBoxText() {
                                 return "#" + (finalI + 1);
                             }
 
                             protected String getIconBoxTextStyle() {
-                                return "null";
+                                return null;
+                            }
+
+                            @Override
+                            protected String getIconClass() {
+                                return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
+                            }
+
+                            @Override
+                            protected String getIconContainerCssClass() {
+                                Map<String, String> pallet = patternColorPalette.getObject();
+
+                                switchToDefaultStyleView();
+
+                                if (pallet != null) {
+                                    String color = pallet.get(pattern.getIdentifier());
+
+                                    if (color != null) {
+                                        return "info-box-icon elevation-1 btn btn-outline-dark gap-1";
+                                    }
+                                }
+                                return null;
+                            }
+
+                            @Override
+                            protected String getIconContainerStyle() {
+                                Map<String, String> pallet = patternColorPalette.getObject();
+
+                                switchToDefaultStyleView();
+
+                                if (pallet != null) {
+                                    String color = pallet.get(pattern.getIdentifier());
+
+                                    if (color != null) {
+                                        return "background-color:" + color + ";";
+                                    }
+                                }
+                                return null;
                             }
 
                             @Override
                             protected IModel<String> getLinkModel() {
                                 String identifier = pattern.getIdentifier();
                                 return Model.of("Role: " + Objects.requireNonNullElse(identifier, finalI));
-                            }
-
-                            @Override
-                            protected String getIconContainerCssClass() {
-                                return "info-box-icon elevation-1 btn btn-outline-dark bg-light gap-1";
-                            }
-
-                            @Override
-                            protected String getIconContainerStyle() {
-                                return null;
                             }
 
                             @Override
@@ -549,7 +571,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
                             @Override
                             protected String getDescriptionStyle() {
-                                return "font-size:15px; line-height: 1.1;";
+                                return "font-size:14px; line-height: 1.1;";
                             }
 
                             @Override
@@ -778,6 +800,10 @@ public class RoleAnalysisUserBasedTable extends Panel {
         return table;
     }
 
+    private boolean isObjectIconHeaderActive = true;
+    private boolean isObjectLinkHeaderActive = true;
+    private boolean isActionIconHeaderActive = true;
+
     public List<IColumn<MiningRoleTypeChunk, String>> initColumns(List<MiningUserTypeChunk> users,
             List<ObjectReferenceType> reductionObjects) {
 
@@ -789,7 +815,11 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
             @Override
             public String getCssClass() {
-                return " role-mining-static-header role-mining-no-border";
+                if (isObjectIconHeaderActive) {
+                    isObjectIconHeaderActive = false;
+                    return " role-mining-static-header role-mining-no-border ";
+                }
+                return " role-mining-static-header ";
             }
 
             @Override
@@ -956,7 +986,12 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
             @Override
             public String getCssClass() {
-                return "overflow-auto role-mining-static-row-header role-mining-static-header-name role-mining-no-border";
+                if (isObjectLinkHeaderActive) {
+                    isObjectLinkHeaderActive = false;
+                    return "overflow-auto role-mining-static-row-header role-mining-static-header-name "
+                            + "role-mining-no-border align-self-center ";
+                }
+                return "overflow-auto role-mining-static-row-header role-mining-static-header-name align-self-center";
             }
         });
 
@@ -1016,7 +1051,12 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
             @Override
             public String getCssClass() {
-                return " role-mining-static-header role-mining-no-border";
+                if (isActionIconHeaderActive) {
+                    isActionIconHeaderActive = false;
+                    return "role-mining-static-header role-mining-no-border ";
+                }
+
+                return " role-mining-static-header";
             }
         });
 

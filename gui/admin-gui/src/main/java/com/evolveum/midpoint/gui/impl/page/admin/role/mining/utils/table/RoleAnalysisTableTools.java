@@ -90,7 +90,8 @@ public class RoleAnalysisTableTools {
         parentContainer.add(AttributeAppender.replace("class", "d-flex"));
         parentContainer.add(AttributeAppender.replace("style", "height:40px"));
 
-        cellItem.add(AttributeAppender.append("style", "width:40px; height:40px; border: 1px solid #f4f4f4;"));
+        cellItem.add(AttributeAppender.append("style", "width:40px; height:40px; "
+                + "border: 1px solid rgb(222, 226, 230)"));
         cellItem.add(AttributeAppender.remove("class"));
     }
 

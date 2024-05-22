@@ -15,6 +15,9 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 import java.io.Serial;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetailsPopup;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisInfoItem;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -93,21 +96,35 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
     private final MiningOperationChunk miningOperationChunk;
     double minFrequency;
     double maxFrequency;
-    List<DetectedPattern> detectedPattern;
-    LoadableDetachableModel<DisplayValueOption> displayValueOptionModel;
+    List<DetectedPattern> displayedPatterns;
     boolean isRelationSelected = false;
+    boolean isCandidateRoleSelector = false;
+
+    LoadableDetachableModel<Map<String, String>> patternColorPalette = new LoadableDetachableModel<>() {
+        @Override
+        protected @NotNull Map<String, String> load() {
+            return generateObjectColors(getPatternIdentifiers());
+        }
+    };
+
+    LoadableDetachableModel<DisplayValueOption> displayValueOptionModel;
 
     public RoleAnalysisRoleBasedTable(
             @NotNull String id,
             @NotNull MiningOperationChunk miningOperationChunk,
-            @Nullable List<DetectedPattern> detectedPattern,
+            @Nullable List<DetectedPattern> displayedPatterns,
             @NotNull LoadableDetachableModel<DisplayValueOption> displayValueOptionModel,
             @NotNull PrismObject<RoleAnalysisClusterType> cluster) {
         super(id);
 
         this.displayValueOptionModel = displayValueOptionModel;
-        this.detectedPattern = detectedPattern;
         this.miningOperationChunk = miningOperationChunk;
+
+        if (displayedPatterns != null) {
+            this.displayedPatterns = new ArrayList<>(displayedPatterns);
+        } else {
+            this.displayedPatterns = new ArrayList<>();
+        }
 
         RoleAnalysisClusterType clusterObject = cluster.asObjectable();
         RoleAnalysisDetectionOptionType detectionOption = clusterObject.getDetectionOption();
@@ -167,13 +184,26 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                 null, true, specialColumnCount, displayValueOptionModel) {
 
             @Override
-            protected @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRoleContainer() {
-                return getCandidateRole();
+            public String getAdditionalBoxCssClasses() {
+                return " m-0";
             }
 
             @Override
-            public String getAdditionalBoxCssClasses() {
-                return " m-0";
+            protected @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRoleContainer() {
+                if (displayedPatterns != null && displayedPatterns.size() > 1) {
+                    return null;
+                } else if (displayedPatterns != null && displayedPatterns.size() == 1) {
+                    DetectedPattern detectedPattern = displayedPatterns.get(0);
+                    Long id = detectedPattern.getId();
+                    List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.asObjectable().getCandidateRoles();
+                    for (RoleAnalysisCandidateRoleType candidateRole : candidateRoles) {
+                        if (candidateRole.getId().equals(id)) {
+                            return Collections.singleton(candidateRole);
+                        }
+                    }
+                }
+
+                return getCandidateRole();
             }
 
             @Override
@@ -184,7 +214,500 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                         return false;
                     }
                 }
+                if (displayedPatterns != null && displayedPatterns.size() > 1) {
+                    return false;
+                }
+
                 return isRelationSelected;
+            }
+
+
+            @Override
+            public void initHeaderToolsPanelItems(RepeatingView toolsPanelItems, boolean isExpanded, boolean isPatternMode) {
+
+//                RoleAnalysisInfoItem collapseHeader = new RoleAnalysisInfoItem(toolsPanelItems.newChildId(), Model.of()) {
+//
+//                    @Override
+//                    protected String getIconClass() {
+//                        return "fas fa-bars text-primary";
+//                    }
+//
+//                    @Override
+//                    protected String getIconBoxIconStyle() {
+//                        return "font-size:25px;";
+//                    }
+//
+//                    protected String getIconBoxTextStyle() {
+//                        return null;
+//                    }
+//
+//                    @Override
+//                    protected boolean isBoxVisible() {
+//                        return isExpanded;
+//                    }
+//
+//                    @Override
+//                    protected void addDescriptionComponents() {
+//                        boolean toolsPanelExpanded = displayValueOptionModel.getObject().isToolsPanelExpanded();
+//                        if(toolsPanelExpanded) {
+//                            appendText("Expanded view");
+//                        } else {
+//                            appendText("Collapsed view");
+//                        }
+//                    }
+//
+//                    @Override
+//                    protected String getDescriptionStyle() {
+//                        return "font-size:20px; line-height: 1.1;";
+//                    }
+//
+//                    @Override
+//                    protected IModel<String> getLinkModel() {
+//                        return Model.of("");
+//                    }
+//
+//                    @Override
+//                    protected void onClickIconPerform(AjaxRequestTarget target) {
+//                        //TODO
+//                        boolean toolsPanelExpanded = displayValueOptionModel.getObject().isToolsPanelExpanded();
+//                        displayValueOptionModel.getObject().setToolsPanelExpanded(!toolsPanelExpanded);
+//                        refreshItemPanel(target);
+//                        target.add(getTable());
+//                    }
+//
+//                    @Override
+//                    protected void onClickLinkPerform(AjaxRequestTarget target) {
+//
+//                    }
+//                };
+//                collapseHeader.setOutputMarkupId(true);
+//                toolsPanelItems.add(collapseHeader);
+//
+//                if (isPatternMode) {
+//                    RoleAnalysisInfoItem patternPanelHeader = new RoleAnalysisInfoItem(toolsPanelItems.newChildId(), Model.of()) {
+//
+//                        @Override
+//                        protected String getIconClass() {
+//                            return super.getIconClass() + " text-primary";
+//                        }
+//
+//                        @Override
+//                        protected String getIconBoxIconStyle() {
+//                            return "font-size:25px;";
+//                        }
+//
+//                        protected String getIconBoxTextStyle() {
+//                            return null;
+//                        }
+//
+//                        @Override
+//                        protected boolean isBoxVisible() {
+//                            return isExpanded;
+//                        }
+//
+//                        @Override
+//                        protected void addDescriptionComponents() {
+//                            appendText("Detected patterns");
+//                        }
+//
+//                        @Override
+//                        protected String getDescriptionStyle() {
+//                            return "font-size:20px; line-height: 1.1;";
+//                        }
+//
+//                        @Override
+//                        protected IModel<String> getLinkModel() {
+//                            return Model.of("");
+//                        }
+//
+//                        @Override
+//                        protected void onClickIconPerform(AjaxRequestTarget target) {
+//                            //TODO
+//                            displayValueOptionModel.getObject().setPatternToolsPanelMode(false);
+//                            displayedPatterns.clear();
+//                            refreshItemPanel(target);
+//                            target.add(getTable());
+//                        }
+//
+//                        @Override
+//                        protected void onClickLinkPerform(AjaxRequestTarget target) {
+//
+//                        }
+//                    };
+//                    patternPanelHeader.setOutputMarkupId(true);
+//                    toolsPanelItems.add(patternPanelHeader);
+//                } else {
+//                    RoleAnalysisInfoItem candidatePanelHeader = new RoleAnalysisInfoItem(toolsPanelItems.newChildId(), Model.of()) {
+//
+//                        @Override
+//                        protected String getIconClass() {
+//                            return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON + " text-primary";
+//                        }
+//
+//                        @Override
+//                        protected String getIconBoxIconStyle() {
+//                            return "font-size:25px;color: #008099;";
+//                        }
+//
+//                        protected String getIconBoxTextStyle() {
+//                            return null;
+//                        }
+//
+//                        @Override
+//                        protected boolean isBoxVisible() {
+//                            return isExpanded;
+//                        }
+//
+//                        @Override
+//                        protected void addDescriptionComponents() {
+//                                appendText("Candidate roles");
+//                        }
+//
+//                        @Override
+//                        protected String getDescriptionStyle() {
+//                            return "font-size:20px; line-height: 1.1;";
+//                        }
+//
+//                        @Override
+//                        protected IModel<String> getLinkModel() {
+//                            return Model.of("");
+//                        }
+//
+//                        @Override
+//                        protected void onClickIconPerform(AjaxRequestTarget target) {
+//                            displayValueOptionModel.getObject().setPatternToolsPanelMode(true);
+//                            displayedPatterns.clear();
+//                            refreshItemPanel(target);
+//                            target.add(getTable());
+//                        }
+//
+//                        @Override
+//                        protected void onClickLinkPerform(AjaxRequestTarget target) {
+//                        }
+//                    };
+//                    candidatePanelHeader.setOutputMarkupId(true);
+//                    toolsPanelItems.add(candidatePanelHeader);
+//                }
+            }
+
+            @Override
+            public void initToolsPanelItems(RepeatingView toolsPanelItems, boolean isExpanded, boolean isPatternMode) {
+                if (isPatternMode) {
+                    List<DetectedPattern> patterns = getDisplayedPatterns();
+                    for (int i = 0; i < patterns.size(); i++) {
+                        DetectedPattern pattern = patterns.get(i);
+                        double reductionFactorConfidence = pattern.getMetric();
+                        String formattedReductionFactorConfidence = String.format("%.0f", reductionFactorConfidence);
+                        double itemsConfidence = pattern.getItemsConfidence();
+                        String formattedItemConfidence = String.format("%.1f", itemsConfidence);
+                        String label = "Detected a potential reduction of " +
+                                formattedReductionFactorConfidence +
+                                "x relationships with a confidence of  " +
+                                formattedItemConfidence + "%";
+                        int finalI = i;
+                        RoleAnalysisInfoItem patternPanel = new RoleAnalysisInfoItem(toolsPanelItems.newChildId(), Model.of(label)) {
+
+                            @Override
+                            protected String getIconBoxText() {
+                                return "#" + (finalI + 1);
+                            }
+
+                            protected String getIconBoxTextStyle() {
+                                return null;
+                            }
+
+                            @Override
+                            protected String getIconClass() {
+                                return null;
+                            }
+
+                            @Override
+                            protected String getIconContainerCssClass() {
+                                Map<String, String> pallet = patternColorPalette.getObject();
+
+                                switchToDefaultStyleView();
+
+                                if (pallet != null) {
+                                    String color = pallet.get(pattern.getIdentifier());
+
+                                    if (color != null) {
+                                        return "info-box-icon elevation-1 btn btn-outline-dark gap-1";
+                                    }
+                                }
+                                return null;
+                            }
+
+                            @Override
+                            protected String getIconContainerStyle() {
+                                Map<String, String> pallet = patternColorPalette.getObject();
+
+                                switchToDefaultStyleView();
+
+                                if (pallet != null) {
+                                    String color = pallet.get(pattern.getIdentifier());
+
+                                    if (color != null) {
+                                        return "background-color:" + color + ";";
+                                    }
+                                }
+                                return null;
+                            }
+
+                            @Override
+                            protected boolean isBoxVisible() {
+                                return isExpanded;
+                            }
+
+                            @Override
+                            protected void addDescriptionComponents() {
+                                appendText("Reduction for");
+                                appendIcon("fe fe-assignment", null);
+                                appendText(" " + formattedReductionFactorConfidence + " assignments");
+                                appendText("with confidence of");
+                                appendIcon("fa fa-leaf", null);
+                                appendText(" " + formattedItemConfidence + "%.");
+                            }
+
+                            @Override
+                            protected String getDescriptionStyle() {
+                                return "font-size:14px; line-height: 1.1;";
+                            }
+
+                            @Override
+                            protected IModel<String> getLinkModel() {
+                                String identifier = pattern.getIdentifier();
+                                return Model.of("Pattern: " + Objects.requireNonNullElse(identifier, finalI));
+                            }
+
+                            @Override
+                            protected void onClickIconPerform(AjaxRequestTarget target) {
+                                if (displayedPatterns == null) {
+                                    displayedPatterns = new ArrayList<>();
+                                }
+
+                                boolean alreadySelected = false;
+                                for (DetectedPattern displayedPattern : displayedPatterns) {
+                                    if (displayedPattern.getId().equals(pattern.getId())) {
+                                        displayedPatterns.remove(displayedPattern);
+                                        alreadySelected = true;
+                                        break;
+                                    }
+                                }
+
+                                if (isCandidateRoleSelector) {
+                                    isCandidateRoleSelector = false;
+                                    displayedPatterns.clear();
+                                }
+
+                                if (!alreadySelected) {
+                                    displayedPatterns.add(pattern);
+                                }
+
+                                if (displayedPatterns.isEmpty()) {
+                                    isRelationSelected = false;
+                                }
+
+                                patternColorPalette = new LoadableDetachableModel<>() {
+                                    @Override
+                                    protected @NotNull Map<String, String> load() {
+                                        return generateObjectColors(getPatternIdentifiers());
+                                    }
+                                };
+
+                                loadDetectedPattern(target, displayedPatterns);
+
+                                Map<String, String> pallet = patternColorPalette.getObject();
+
+                                switchToDefaultStyleView();
+
+                                if (pallet != null) {
+                                    String color = pallet.get(pattern.getIdentifier());
+
+                                    if (color != null) {
+                                        switchToSelectedStyleView(color);
+                                        target.add(this);
+                                    }
+                                }
+
+                                refreshItemPanel(target);
+                                target.add(getTable().getDataTable());
+                                target.add(getTable());
+                            }
+
+                            @Override
+                            protected void onClickLinkPerform(AjaxRequestTarget target) {
+                                RoleAnalysisDetectedPatternDetailsPopup component = new RoleAnalysisDetectedPatternDetailsPopup(
+                                        ((PageBase) getPage()).getMainPopupBodyId(),
+                                        Model.of(pattern));
+                                ((PageBase) getPage()).showMainPopup(component, target);
+                            }
+                        };
+                        patternPanel.setOutputMarkupId(true);
+                        toolsPanelItems.add(patternPanel);
+                    }
+                } else {
+                    List<DetectedPattern> candidateRoles = getCandidateRoles();
+                    for (int i = 0; i < candidateRoles.size(); i++) {
+                        DetectedPattern pattern = candidateRoles.get(i);
+                        double reductionFactorConfidence = pattern.getMetric();
+                        String formattedReductionFactorConfidence = String.format("%.0f", reductionFactorConfidence);
+                        double itemsConfidence = pattern.getItemsConfidence();
+                        String formattedItemConfidence = String.format("%.1f", itemsConfidence);
+                        String label = "Potential reduction of " +
+                                formattedReductionFactorConfidence +
+                                "x relationships with a confidence of  " +
+                                formattedItemConfidence + "%";
+                        int finalI = i;
+
+                        RoleAnalysisInfoItem candidatePanel = new RoleAnalysisInfoItem(toolsPanelItems.newChildId(), Model.of(label)) {
+
+                            @Override
+                            protected String getIconBoxText() {
+                                return "#" + (finalI + 1);
+                            }
+
+                            protected String getIconBoxTextStyle() {
+                                return null;
+                            }
+
+                            @Override
+                            protected String getIconClass() {
+                                return null;
+                            }
+
+                            @Override
+                            protected String getIconContainerCssClass() {
+                                Map<String, String> pallet = patternColorPalette.getObject();
+
+                                switchToDefaultStyleView();
+
+                                if (pallet != null) {
+                                    String color = pallet.get(pattern.getIdentifier());
+
+                                    if (color != null) {
+                                        return "info-box-icon elevation-1 btn btn-outline-dark gap-1";
+                                    }
+                                }
+                                return null;
+                            }
+
+                            @Override
+                            protected String getIconContainerStyle() {
+                                Map<String, String> pallet = patternColorPalette.getObject();
+
+                                switchToDefaultStyleView();
+
+                                if (pallet != null) {
+                                    String color = pallet.get(pattern.getIdentifier());
+
+                                    if (color != null) {
+                                        return "background-color:" + color + ";";
+                                    }
+                                }
+                                return null;
+                            }
+
+                            @Override
+                            protected IModel<String> getLinkModel() {
+                                String identifier = pattern.getIdentifier();
+                                return Model.of("Role: " + Objects.requireNonNullElse(identifier, finalI));
+                            }
+
+                            @Override
+                            protected boolean isBoxVisible() {
+                                return isExpanded;
+                            }
+
+                            @Override
+                            protected void addDescriptionComponents() {
+                                appendText("Reduction for");
+                                appendIcon("fe fe-assignment", null);
+                                appendText(" " + formattedReductionFactorConfidence + " assignments");
+                                appendText("with confidence of");
+                                appendIcon("fa fa-leaf", null);
+                                appendText(" " + formattedItemConfidence + "%.");
+                            }
+
+                            @Override
+                            protected String getDescriptionStyle() {
+                                return "font-size:14px; line-height: 1.1;";
+                            }
+
+                            @Override
+                            protected void onClickIconPerform(AjaxRequestTarget target) {
+                                if (displayedPatterns == null) {
+                                    displayedPatterns = new ArrayList<>();
+                                }
+
+                                boolean alreadySelected = false;
+                                for (DetectedPattern displayedPattern : displayedPatterns) {
+                                    if (displayedPattern.getId().equals(pattern.getId())) {
+                                        displayedPatterns.remove(displayedPattern);
+                                        alreadySelected = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!isCandidateRoleSelector) {
+                                    isCandidateRoleSelector = true;
+                                    displayedPatterns.clear();
+                                }
+
+                                if (!alreadySelected) {
+                                    displayedPatterns.add(pattern);
+                                }
+
+                                if (displayedPatterns.isEmpty()) {
+                                    isRelationSelected = false;
+                                }
+                                patternColorPalette = new LoadableDetachableModel<>() {
+                                    @Override
+                                    protected @NotNull Map<String, String> load() {
+                                        return generateObjectColors(getPatternIdentifiers());
+                                    }
+                                };
+
+                                loadDetectedPattern(target, displayedPatterns);
+
+                                Map<String, String> pallet = patternColorPalette.getObject();
+
+                                switchToDefaultStyleView();
+
+                                if (pallet != null) {
+                                    String color = pallet.get(pattern.getIdentifier());
+
+                                    if (color != null) {
+                                        switchToSelectedStyleView(color);
+                                        target.add(this);
+                                    }
+                                }
+
+                                refreshItemPanel(target);
+                                target.add(getTable().getDataTable());
+                                target.add(getTable());
+                            }
+
+                            @Override
+                            protected void onClickLinkPerform(AjaxRequestTarget target) {
+                                RoleAnalysisCandidateRoleType candidateRole = findCandidateRole(
+                                        cluster.asObjectable(),
+                                        pattern.getId().toString());
+                                if (candidateRole != null) {
+                                    String roleOid = candidateRole.getCandidateRoleRef().getOid();
+                                    PageParameters parameters = new PageParameters();
+                                    parameters.add(OnePageParameterEncoder.PARAMETER, roleOid);
+                                    Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                                            .getObjectDetailsPage(RoleType.class);
+                                    getPageBase().navigateToNext(detailsPageClass, parameters);
+                                }
+                            }
+                        };
+                        candidatePanel.setOutputMarkupId(true);
+                        toolsPanelItems.add(candidatePanel);
+                    }
+
+                }
+
             }
 
             @Override
@@ -205,12 +728,10 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                         repeatingView.newChildId(), iconBuilder.build(),
                         createStringResource("RoleAnalysis.explore.patterns")) {
 
-                    @Serial
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-
                         showDetectedPatternPanel(target);
                     }
 
@@ -337,12 +858,16 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
         return table;
     }
 
+    private boolean isObjectIconHeaderActive = true;
+    private boolean isObjectLinkHeaderActive = true;
+    private boolean isActionIconHeaderActive = true;
+
     public List<IColumn<MiningUserTypeChunk, String>> initColumns(List<MiningRoleTypeChunk> roles,
             List<ObjectReferenceType> reductionObjects) {
 
         int detectedPatternCount;
-        if (detectedPattern != null) {
-            detectedPatternCount = detectedPattern.size();
+        if (displayedPatterns != null) {
+            detectedPatternCount = displayedPatterns.size();
         } else {
             detectedPatternCount = 0;
         }
@@ -355,7 +880,11 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
             @Override
             public String getCssClass() {
-                return " role-mining-static-header role-mining-no-border";
+                if (isObjectIconHeaderActive) {
+                    isObjectIconHeaderActive = false;
+                    return " role-mining-static-header role-mining-no-border ";
+                }
+                return " role-mining-static-header ";
             }
 
             @Override
@@ -501,7 +1030,12 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
             @Override
             public String getCssClass() {
-                return "overflow-auto role-mining-static-row-header role-mining-static-header-name role-mining-no-border";
+                if (isObjectLinkHeaderActive) {
+                    isObjectLinkHeaderActive = false;
+                    return "overflow-auto role-mining-static-row-header role-mining-static-header-name "
+                            + "role-mining-no-border align-self-center ";
+                }
+                return "overflow-auto role-mining-static-row-header role-mining-static-header-name align-self-center";
             }
         });
 
@@ -534,7 +1068,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                 LinkIconPanelStatus linkIconPanel = new LinkIconPanelStatus(componentId, new LoadableDetachableModel<>() {
                     @Override
                     protected RoleAnalysisOperationMode load() {
-                        if (detectedPatternCount > 1) {
+                        if (displayedPatterns != null && displayedPatterns.size() > 1) {
                             return RoleAnalysisOperationMode.DISABLE;
                         }
                         return rowModel.getObject().getStatus();
@@ -560,11 +1094,15 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
             @Override
             public String getCssClass() {
-                return " role-mining-static-header role-mining-no-border";
+                if (isActionIconHeaderActive) {
+                    isActionIconHeaderActive = false;
+                    return "role-mining-static-header role-mining-no-border ";
+                }
+
+                return " role-mining-static-header";
             }
         });
 
-        Map<String, String> map = generateObjectColors(getPatternIdentifiers());
 
         IColumn<MiningUserTypeChunk, String> column;
         for (int i = fromCol - 1; i < toCol; i++) {
@@ -586,7 +1124,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
                     applySquareTableCell(cellItem, styleWidth, styleHeight);
 
-                    boolean isInclude = resolveCellTypeRoleTable(componentId, cellItem, object, roleChunk, map);
+                    boolean isInclude = resolveCellTypeRoleTable(componentId, cellItem, object, roleChunk, patternColorPalette);
                     if (isInclude) {
                         isRelationSelected = true;
                     }
@@ -633,7 +1171,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                             new LoadableDetachableModel<>() {
                                 @Override
                                 protected RoleAnalysisOperationMode load() {
-                                    if (detectedPatternCount > 1) {
+                                    if (displayedPatterns != null && displayedPatterns.size() > 1) {
                                         return RoleAnalysisOperationMode.DISABLE;
                                     }
                                     return roleChunk.getStatus();
@@ -716,17 +1254,19 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
     }
 
     public void loadDetectedPattern(AjaxRequestTarget target, List<DetectedPattern> detectedPattern) {
-        this.detectedPattern = detectedPattern;
+        this.displayedPatterns = detectedPattern;
         List<MiningUserTypeChunk> users = miningOperationChunk.getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
         List<MiningRoleTypeChunk> roles = miningOperationChunk.getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
+
+        refreshCells(RoleAnalysisProcessModeType.ROLE, users, roles, minFrequency, maxFrequency);
 
         if (isPatternDetected()) {
             Task task = getPageBase().createSimpleTask("InitPattern");
             OperationResult result = task.getResult();
-            initRoleBasedDetectionPattern(
-                    getPageBase(), users,
+            initRoleBasedDetectionPattern(getPageBase(),
+                    users,
                     roles,
-                    this.detectedPattern,
+                    this.displayedPatterns,
                     minFrequency,
                     maxFrequency,
                     task,
@@ -756,7 +1296,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
     }
 
     private boolean isPatternDetected() {
-        return detectedPattern != null && !detectedPattern.isEmpty();
+        return displayedPatterns != null && !displayedPatterns.isEmpty();
     }
 
     public RoleAnalysisSortMode getRoleAnalysisSortMode() {
@@ -852,8 +1392,8 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
         BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
                 cluster, businessRole, roleApplicationDtos, candidateInducements);
 
-        if (detectedPattern != null && detectedPattern.get(0).getId() != null) {
-            operationData.setPatternId(detectedPattern.get(0).getId());
+        if (displayedPatterns != null && displayedPatterns.get(0).getId() != null) {
+            operationData.setPatternId(displayedPatterns.get(0).getId());
         }
 
         List<BusinessRoleDto> businessRoleDtos = operationData.getBusinessRoleDtos();
@@ -869,13 +1409,25 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
     public List<String> getPatternIdentifiers() {
         List<String> patternIds = new ArrayList<>();
-        if (detectedPattern != null) {
-            for (DetectedPattern pattern : detectedPattern) {
+        if (displayedPatterns != null) {
+            for (DetectedPattern pattern : displayedPatterns) {
                 String identifier = pattern.getIdentifier();
                 patternIds.add(identifier);
             }
         }
         return patternIds;
+    }
+
+    private @Nullable RoleAnalysisCandidateRoleType findCandidateRole(
+            @NotNull RoleAnalysisClusterType cluster,
+            @NotNull String identifier) {
+        List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
+        for (RoleAnalysisCandidateRoleType candidateRole : candidateRoles) {
+            if (String.valueOf(candidateRole.getId()).equals(identifier)) {
+                return candidateRole;
+            }
+        }
+        return null;
     }
 
     public LoadableDetachableModel<DisplayValueOption> getDisplayValueOptionModel() {
@@ -884,6 +1436,14 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
 
     public boolean isOutlierDetection() {
         return false;
+    }
+
+    public List<DetectedPattern> getDisplayedPatterns() {
+        return new ArrayList<>();
+    }
+
+    public List<DetectedPattern> getCandidateRoles() {
+        return new ArrayList<>();
     }
 
 }
