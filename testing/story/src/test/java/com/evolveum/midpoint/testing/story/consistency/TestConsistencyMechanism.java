@@ -2730,7 +2730,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         String userOid = userBefore.getOid();
         String userName = userBefore.getName().getOrig();
         AssignmentType assignment = userBefore.getAssignment().get(0).clone();
-        AssignmentType assignmentNoId = userBefore.getAssignment().get(0).cloneWithoutId();
+        AssignmentType assignmentNoIdNoMetadata = userBefore.getAssignment().get(0).cloneWithoutIdAndMetadata();
 
         openDJController.stop();
 
@@ -2745,7 +2745,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         when("re-creating the account by re-assigning the construction");
         openDJController.start();
         modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, result);
-        recreateAssignment(userOid, assignmentNoId, task, result);
+        recreateAssignment(userOid, assignmentNoIdNoMetadata, task, result);
 
         then("re-creating the account by re-assigning the construction");
         assertStateAfterRecreatingTheAssignment(userOid, userName, originalShadow, task, result);
@@ -2773,7 +2773,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         String userOid = userBefore.getOid();
         String userName = userBefore.getName().getOrig();
         AssignmentType assignment = userBefore.getAssignment().get(0).clone();
-        AssignmentType assignmentNoId = userBefore.getAssignment().get(0).cloneWithoutId();
+        AssignmentType assignmentNoIdNoMetadata = userBefore.getAssignment().get(0).cloneWithoutIdAndMetadata();
 
         turnMaintenanceModeOn(RESOURCE_OPENDJ_OID, result);
 
@@ -2787,7 +2787,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // --- re-creating the assignment ---
         when("re-creating the account by re-assigning the construction");
         turnMaintenanceModeOff(RESOURCE_OPENDJ_OID, result);
-        recreateAssignment(userOid, assignmentNoId, task, result);
+        recreateAssignment(userOid, assignmentNoIdNoMetadata, task, result);
 
         then("re-creating the account by re-assigning the construction");
         assertStateAfterRecreatingTheAssignment(userOid, userName, originalShadow, task, result);
