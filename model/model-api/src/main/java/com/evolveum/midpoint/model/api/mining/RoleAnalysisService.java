@@ -895,4 +895,10 @@ public interface RoleAnalysisService {
             @NotNull String sessionOid,
             @NotNull Task task,
             @NotNull OperationResult result);
+
+    List<DetectedPattern> getTopSessionPattern(
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            boolean single);
 }
