@@ -6,24 +6,18 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-import static com.evolveum.midpoint.test.DummyResourceContoller.*;
-import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
-
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
+import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.api.context.ProjectionContextFilter;
-import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
-
-import com.evolveum.midpoint.prism.path.InfraItemName;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -31,6 +25,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.model.api.context.ProjectionContextFilter;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.OriginType;
@@ -38,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -48,6 +45,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -1069,7 +1067,17 @@ public class TestProjector extends AbstractLensTest {
         // There is an inbound mapping for password that generates it if not present. it is triggered in this case.
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertSame(userSecondaryDelta.getChangeType(), ChangeType.MODIFY);
-        assertEquals("Unexpected number of modifications in user secondary delta", 9, userSecondaryDelta.getModifications().size());
+        assertTrue("Modifications in user secondary delta do not match expected ones",
+                MiscUtil.unorderedCollectionEquals(
+                        userSecondaryDelta.getModifiedItems(),
+                        List.of(
+                                PATH_PASSWORD_VALUE,
+                                PATH_ACTIVATION_EFFECTIVE_STATUS,
+                                PATH_ACTIVATION_ENABLE_TIMESTAMP,
+                                PATH_PASSWORD_METADATA,
+                                UserType.F_ITERATION,
+                                UserType.F_ITERATION_TOKEN),
+                        (a, b) -> a.equivalent(b)));
         ItemDelta<?, ?> modification = userSecondaryDelta.getModifications().iterator().next();
         assertEquals("Unexpected modification", PasswordType.F_VALUE, modification.getElementName());
         assertOriginWithSideEffectChanges(userSecondaryDelta, OriginType.INBOUND);
