@@ -2340,8 +2340,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 return null;
             }
 
-
-            return repositoryService.getObject(TaskType.class,taskOid, null, result);
+            return repositoryService.getObject(TaskType.class, taskOid, null, result);
         } catch (SchemaException | ObjectNotFoundException e) {
             LOGGER.error("Couldn't delete RoleAnalysisSessionType Task {}", sessionOid, e);
         }
@@ -2469,5 +2468,60 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
     }
 
+    @Override
+    public List<DetectedPattern> getTopSessionPattern(
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            boolean single) {
+        List<PrismObject<RoleAnalysisClusterType>> sessionClusters = this.searchSessionClusters(session, task, result);
+        if (sessionClusters == null || sessionClusters.isEmpty()) {
+            return null;
+        }
+
+        List<DetectedPattern> topDetectedPatterns = new ArrayList<>();
+        for (PrismObject<RoleAnalysisClusterType> prismObject : sessionClusters) {
+            List<DetectedPattern> detectedPatterns = transformDefaultPattern(prismObject.asObjectable());
+
+            double maxOverallConfidence = 0;
+            DetectedPattern topDetectedPattern = null;
+            for (DetectedPattern detectedPattern : detectedPatterns) {
+                double itemsConfidence = detectedPattern.getItemsConfidence();
+                double reductionFactorConfidence = detectedPattern.getReductionFactorConfidence();
+                double overallConfidence = itemsConfidence + reductionFactorConfidence;
+                if (overallConfidence > maxOverallConfidence) {
+                    maxOverallConfidence = overallConfidence;
+                    topDetectedPattern = detectedPattern;
+                }
+            }
+            if (topDetectedPattern != null) {
+                topDetectedPatterns.add(topDetectedPattern);
+            }
+        }
+
+        if (!single) {
+            return topDetectedPatterns;
+        } else {
+            DetectedPattern detectedPattern = null;
+            for (DetectedPattern topDetectedPattern : topDetectedPatterns) {
+                if (detectedPattern == null) {
+                    detectedPattern = topDetectedPattern;
+                    continue;
+                }
+                double itemsConfidence = detectedPattern.getItemsConfidence();
+                double reductionFactorConfidence = detectedPattern.getReductionFactorConfidence();
+                double overallConfidence = itemsConfidence + reductionFactorConfidence;
+
+                double itemsConfidenceTop = topDetectedPattern.getItemsConfidence();
+                double reductionFactorConfidenceTop = topDetectedPattern.getReductionFactorConfidence();
+                double overallConfidenceTop = itemsConfidenceTop + reductionFactorConfidenceTop;
+
+                if (overallConfidenceTop > overallConfidence) {
+                    detectedPattern = topDetectedPattern;
+                }
+            }
+            return Collections.singletonList(detectedPattern);
+        }
+    }
 }
 

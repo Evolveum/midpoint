@@ -9,13 +9,21 @@
 <wicket:panel>
     <div class="card m-0">
 
-        <div class="card-header row gap-2">
-            <h3 class="card-title" wicket:id="cardHeaderTitle">Attribute analysis</h3>
-        </div>
-        <div class="card-header row gap-2">
-            <div wicket:id="analysisAttributesButtons">
+        <div class="card-header d-flex flex-column col-12 p-0">
+            <div class="col pl-2">
+                <div class="row p-3 gap-1">
+                    <h3 class="card-title" wicket:id="cardHeaderTitle">Attribute analysis</h3>
+                </div>
             </div>
+
+            <div class="col pl-2 border-top ">
+                <div class="row p-3 gap-1">
+                    <div wicket:id="analysisAttributesButtons"></div>
+                </div>
+            </div>
+
         </div>
+
         <div class="card-body" wicket:id="cardBody">
             <div wicket:id="cardBodyComponent"></div>
         </div>
