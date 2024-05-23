@@ -71,7 +71,11 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
     @Override
     protected List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createDefaultColumns() {
-        return new ArrayList<>(); // TODO
+        return createColumns();
+    }
+
+    private List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createColumns() {
+        return ColumnUtils.getDefaultCertWorkItemColumns();
     }
 
     @Override

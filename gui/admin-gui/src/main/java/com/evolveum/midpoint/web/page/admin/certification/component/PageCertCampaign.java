@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
 import com.evolveum.midpoint.web.page.admin.certification.PageAdminCertification;
 
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
@@ -109,6 +110,21 @@ public class PageCertCampaign extends PageAdmin {
             @Override
             protected List<DetailsTableItem> load() {
                 List<DetailsTableItem> list = new ArrayList<>();
+                list.add(new DetailsTableItem(createStringResource("PageCertCampaign.owner"),
+                        () -> "" ) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Component createValueComponent(String id) {
+                        return new LinkedReferencePanel<>(id, Model.of(campaignModel.getObject().getOwnerRef())) {
+
+                            @Override
+                            protected String getAdditionalCssStyle() {
+                                return "";
+                            }
+                        };
+                    }
+                });
                 list.add(new DetailsTableItem(createStringResource("PageCertCampaign.iteration"),
                         () -> "" + CertCampaignTypeUtil.norm(campaignModel.getObject().getIteration())));
                 list.add(new DetailsTableItem(createStringResource("PageCertCampaign.progress"),
@@ -120,11 +136,9 @@ public class PageCertCampaign extends PageAdmin {
                         return new ProgressBarPanel(id, createCampaignProgressModel());
                     }
                 }); //todo calculate progress
-                list.add(new DetailsTableItem(createStringResource("PageCertCampaigns.table.stage"),
-                        () -> "" + campaignModel.getObject().getStageNumber()));
+                list.add(new DetailsTableItem(createStringResource("PageCertDefinition.numberOfStages"),
+                        () -> "" + campaignModel.getObject().getStage().size()));
                 AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaignModel.getObject());
-                list.add(new DetailsTableItem(createStringResource("PageCertCampaign.table.deadline"),
-                        () -> stage != null ? "" + stage.getDeadline() : ""));
                 list.add(new DetailsTableItem(createStringResource("PageCertCampaign.currentState"),
                         null) {
                     @Serial private static final long serialVersionUID = 1L;
@@ -140,6 +154,8 @@ public class PageCertCampaign extends PageAdmin {
                         return Model.of(badge);
                     }
                 });
+                list.add(new DetailsTableItem(createStringResource("PageCertCampaign.table.deadline"),
+                        () -> stage != null ? "" + stage.getDeadline() : ""));
 
                 return list;
             }
@@ -230,9 +246,7 @@ public class PageCertCampaign extends PageAdmin {
                 .help(campaignModel.getObject().getDescription())
                 .icon(new IconType()
                         .cssClass(getDetailsTablePanelIconCssClass()));
-        DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
-                Model.of(displayType),
-                detailsModel);
+        DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS, Model.of(displayType), detailsModel);
         details.setOutputMarkupId(true);
         add(details);
 

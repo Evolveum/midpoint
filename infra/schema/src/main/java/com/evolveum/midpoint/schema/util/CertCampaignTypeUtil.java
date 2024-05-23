@@ -352,12 +352,18 @@ public class CertCampaignTypeUtil {
     @SuppressWarnings("unused")  // used by certification cases report
     public @NotNull static List<ObjectReferenceType> getCurrentlyAssignedReviewers(@NotNull AccessCertificationCaseType aCase) {
         List<ObjectReferenceType> rv = new ArrayList<>();
-        for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
-            for (ObjectReferenceType assigneeRef : workItem.getAssigneeRef()) {
-                if (workItem.getCloseTimestamp() == null
-                        && Objects.equals(workItem.getStageNumber(), aCase.getStageNumber())) {
-                    rv.add(assigneeRef);
-                }
+        aCase.getWorkItem().forEach(workItem -> rv.addAll(getCurrentlyAssignedReviewers(workItem, aCase.getStageNumber())));
+        return rv;
+    }
+
+    public @NotNull
+    static List<ObjectReferenceType> getCurrentlyAssignedReviewers(
+            @NotNull AccessCertificationWorkItemType certItem, int certCaseStageNumber) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        for (ObjectReferenceType assigneeRef : certItem.getAssigneeRef()) {
+            if (certItem.getCloseTimestamp() == null
+                    && Objects.equals(certItem.getStageNumber(), certCaseStageNumber)) {
+                rv.add(assigneeRef);
             }
         }
         return rv;
