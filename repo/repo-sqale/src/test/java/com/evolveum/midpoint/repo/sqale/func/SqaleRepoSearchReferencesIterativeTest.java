@@ -17,6 +17,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqale.UriCache;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MUri;
+
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -76,7 +79,7 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
 
     @BeforeClass
     public void initObjects() throws Exception {
-        OperationResult result = createOperationResult();
+                OperationResult result = createOperationResult();
         // Role for some membership refs
         String role1Oid = repositoryService.addObject(new RoleType()
                 .name("role1")
@@ -213,6 +216,7 @@ public class SqaleRepoSearchReferencesIterativeTest extends SqaleRepoBaseTest {
         assertThat(metadata).isNotNull();
         assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
         assertThat(metadata.isPartialResults()).isFalse();
+        assertThat(sqlRepoContext.processCacheableUri(relation1)).isLessThan(sqlRepoContext.processCacheableRelation(relation2));
         assertThat(metadata.getPagingCookie())
                 // OID are assumed at the beginning and end, but I don't want to complicate the regex.
                 .matches(".{8}-.{4}-.{4}-.{4}-.{12}\\|\\{https://random.org/ns}rel-2\\|.{8}-.{4}-.{4}-.{4}-.{12}");

@@ -48,6 +48,8 @@ public class GetUserTest extends SqaleRepoBaseTest
 
     private final List<String> memInfo = new ArrayList<>();
 
+    boolean skipOriginal = true;
+
 
     public static int USERS = 10;
     public static int GETS_TO_MEASURE = 1000;
@@ -311,7 +313,9 @@ public class GetUserTest extends SqaleRepoBaseTest
 
     @Test
     public void test100_Original_PureOverhead() throws Exception {
-        original(0, 0, 0, 0);
+        if (!skipOriginal) {
+            original(0, 0, 0, 0);
+        }
     }
 
     @Test
@@ -321,7 +325,9 @@ public class GetUserTest extends SqaleRepoBaseTest
 
     @Test
     public void test200_Original_10a_10r_5l_10o() throws Exception {
-        original(10, 10, 5, 10);
+        if (!skipOriginal) {
+            original(10, 10, 5, 10);
+        }
     }
 
     @Test
@@ -331,7 +337,9 @@ public class GetUserTest extends SqaleRepoBaseTest
 
     @Test
     public void test300_Original_100a_100r_5l_10o() throws Exception {
-        original(100, 100, 5, 10);
+        if (!skipOriginal) {
+            original(100, 100, 5, 10);
+        }
     }
 
     @Test
@@ -341,7 +349,9 @@ public class GetUserTest extends SqaleRepoBaseTest
 
     @Test
     public void test400_Original_1000a_1000r_5l_10o() throws Exception {
-        original(1000, 1000, 5, 10);
+        if (!skipOriginal) {
+            original(1000, 1000, 5, 10);
+        }
     }
 
     @Test
