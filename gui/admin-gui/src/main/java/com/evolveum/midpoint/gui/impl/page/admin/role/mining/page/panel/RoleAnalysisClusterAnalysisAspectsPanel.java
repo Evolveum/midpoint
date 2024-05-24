@@ -101,7 +101,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         InfoBoxModel infoBoxResolvedPatterns = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-dark",
                 "Optimized roles",
                 resolvedPatternCount,
-                Integer.parseInt(resolvedPatternCount),
+                100,
                 "Number of optimized roles for cluster");
 
         RoleAnalysisInfoBox resolvedPatternLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxResolvedPatterns)) {
@@ -118,7 +118,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-dark",
                 "Candidate roles",
                 candidateRolesCount,
-                Integer.parseInt(candidateRolesCount),
+                100,
                 "Number of candidate roles for cluster");
 
         RoleAnalysisInfoBox candidateRolesLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxCandidateRoles)) {

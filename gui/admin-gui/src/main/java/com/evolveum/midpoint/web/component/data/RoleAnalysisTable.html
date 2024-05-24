@@ -10,20 +10,17 @@
 
 
 <wicket:panel>
-    <div class="card-footer" wicket:id="headerFooter"></div>
+    <div class="card-footer bg-white border-bottom" wicket:id="headerFooter"></div>
     <div class="card-header" wicket:id="header"></div>
 
     <div wicket:id="tableContainer" class="card-body p-0 table-responsive overflow-hidden">
         <div class="row">
-            <div wicket:id="tools-panel" class=" p-0 pl-2 bg-light col-auto overflow-auto " style="max-height:100%">
-            </div>
-
             <div id="tableScaleContainer" class="col table-responsive p-0" style="max-height:100%">
                 <table class="table table-hover" wicket:id="table"></table>
             </div>
         </div>
     </div>
-    <div class="card-footer" wicket:id="footer"></div>
+    <div class="card-footer bg-white border-top" wicket:id="footer"></div>
 </wicket:panel>
 
 
@@ -33,14 +30,6 @@
 
         <div class="d-flex">
             <form class="mr-3" wicket:id="form_bs_process">
-
-                <div wicket:id="expandButton" type="button" class="btn btn-default btn-sm">
-                </div>
-
-                <div wicket:id="toolsButton" type="button"></div>
-
-                <div wicket:id="toolsButtonMode" type="button"></div>
-
                 <div wicket:id="process_selections_id" style="width: 150px"></div>
             </form>
         </div>

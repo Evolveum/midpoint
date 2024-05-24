@@ -43,4 +43,5 @@ public class DetectedPattern extends BasePattern implements Serializable {
     public void setClusterRef(ObjectReferenceType clusterRef) {
         this.clusterRef = clusterRef;
     }
+
 }

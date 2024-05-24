@@ -114,7 +114,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
     }
 
     private void initChartPart() {
-        RoleAnalysisItemPanel roleAnalysisInfoPanel = new RoleAnalysisItemPanel(ID_PATERN_PANEL, Model.of("Recent detected")) {
+        RoleAnalysisItemPanel roleAnalysisInfoPanel = new RoleAnalysisItemPanel(ID_PATERN_PANEL, Model.of("Suggestions")) {
             @Override
             protected void addItem(RepeatingView repeatingView) {
                 addItems(repeatingView);

@@ -19,6 +19,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -70,7 +71,6 @@ public class PageRoleAnalysis extends PageAdmin {
         initLayout();
     }
 
-
     protected void initLayout() {
         Form<?> infoForm = new MidpointForm<>(ID_INFO_FORM);
         add(infoForm);
@@ -107,7 +107,23 @@ public class PageRoleAnalysis extends PageAdmin {
 
                         @Override
                         protected String getIconBoxText() {
-                            return "#" + (finalI + 1);
+//                            return "#" + (finalI + 1);
+                            return null;
+                        }
+
+                        @Override
+                        protected String getIconBoxIconStyle() {
+                            return super.getIconBoxIconStyle();
+                        }
+
+                        @Override
+                        protected String getIconContainerCssClass() {
+                            return "info-box-icon elevation-1 btn btn btn-outline-light text-dark gap-1";
+                        }
+
+                        @Override
+                        protected String getIconContainerStyle() {
+                            return null;
                         }
 
                         @Override
@@ -118,6 +134,12 @@ public class PageRoleAnalysis extends PageAdmin {
                             appendText("with a attributes confidence of");
                             appendIcon("fa fa-leaf", "color: green");
                             appendText(" " + formattedItemConfidence + "%.");
+                        }
+
+                        @Override
+                        protected IModel<String> getLinkModel() {
+                            IModel<String> linkModel = super.getLinkModel();
+                            return Model.of(linkModel.getObject() + " pattern #" + (finalI + 1));
                         }
 
                         @Override

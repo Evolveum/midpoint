@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
-import static com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure.extractAttributeAnalysis;
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformPattern;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getObjectNameDef;
@@ -445,13 +444,13 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 getObjectWrapperObject()) {
 
             @Override
-            public List<DetectedPattern> getDisplayedPatterns() {
+            public List<DetectedPattern> getClusterPatterns() {
                 RoleAnalysisClusterType cluster = RoleAnalysisClusterOperationPanel.this.getObjectDetailsModels().getObjectType();
                 return transformDefaultPattern(cluster);
             }
 
             @Override
-            public List<DetectedPattern> getCandidateRoles() {
+            public List<DetectedPattern> getClusterCandidateRoles() {
                 RoleAnalysisClusterType cluster = RoleAnalysisClusterOperationPanel.this.getObjectDetailsModels().getObjectType();
                 return loadAllCandidateRoles(cluster);
             }
@@ -541,13 +540,13 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 displayValueOptionModel, getObjectWrapperObject()) {
 
             @Override
-            public List<DetectedPattern> getDisplayedPatterns() {
+            public List<DetectedPattern> getClusterPatterns() {
                 RoleAnalysisClusterType cluster = RoleAnalysisClusterOperationPanel.this.getObjectDetailsModels().getObjectType();
                 return transformDefaultPattern(cluster);
             }
 
             @Override
-            public List<DetectedPattern> getCandidateRoles() {
+            public List<DetectedPattern> getClusterCandidateRoles() {
                 RoleAnalysisClusterType cluster = RoleAnalysisClusterOperationPanel.this.getObjectDetailsModels().getObjectType();
                 return loadAllCandidateRoles(cluster);
             }
