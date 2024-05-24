@@ -16,13 +16,14 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.LoadableDetachableModel;
-
-import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.OperationPanelModel;
-
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconTextPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.OperationPanelModel;
 
 public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelModel> {
 
@@ -218,6 +219,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
             String formattedItemConfidence = String.format("%.1f", pattern.getItemsConfidence());
             int patternIndex = i;
 
+            int finalI = i;
             RoleAnalysisTableOpPanelItem bodyItem = new RoleAnalysisTableOpPanelItem(bodyItems.newChildId(), isExpanded()) {
                 @Override
                 protected void onConfigure() {
@@ -260,8 +262,19 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
                 }
 
                 @Override
+                public Component generateIconComponent(String idIcon) {
+                    String iconClass = modelObject.isCandidateRoleView()
+                            ? GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON
+                            : GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
+                    return new CompositedIconTextPanel(idIcon,
+                            "fa-2x " + iconClass + " text-secondary",
+                            finalI + 1 + "",
+                            "text-secondary bg-danger border border-danger rounded-circle");
+                }
+
+                @Override
                 public String replaceIconCssClass() {
-                    return modelObject.isCandidateRoleView() ? modelObject.getCandidateRoleIconClass() : modelObject.getPatternIconClass();
+                    return null;
                 }
 
                 @Override

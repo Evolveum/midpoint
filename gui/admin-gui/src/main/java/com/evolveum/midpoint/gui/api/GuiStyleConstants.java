@@ -223,6 +223,8 @@ public class GuiStyleConstants {
 
     public static final String ARROW_LEFT = "fa fa-arrow-left";
     public static final String ARROW_LONG_DOWN = "fa fa-long-arrow-down";
+    public static final String CLASS_DETECTED_PATTERN_ICON = "fa fa-cube";
+    public static final String CLASS_CANDIDATE_ROLE_ICON ="fe fe-role";
     public static final String THUMBS_UP = "fa fa-thumbs-up";
     public static final String EVO_CROW_ICON = "fe fe-crown-object";
     public static final String EVO_RIGHT_TOP_ARROW_ICON = "fe fe-arrow";

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model;
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
@@ -17,8 +19,8 @@ public class OperationPanelModel implements Serializable {
 
     @NotNull List<DetectedPattern> selectedPatterns = new ArrayList<>();
     Map<String, String> palletColors = new HashMap<>();
-    String patternIconClass = "fa-2x fa fa-cube text-primary";
-    String candidateRoleIconClass = "fa-2x fe fe-role text-success";
+    String patternIconClass = GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " fa-2x text-primary";
+    String candidateRoleIconClass = GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " fa-2x text-success";
 
     String bgIconClass;
     List<DetectedPattern> patterns = new ArrayList<>();
@@ -110,7 +112,7 @@ public class OperationPanelModel implements Serializable {
                 return;
             }
         }
-        if(!this.selectedPatterns.isEmpty()) {
+        if (!this.selectedPatterns.isEmpty()) {
             this.selectedPatterns.clear();
         }
 

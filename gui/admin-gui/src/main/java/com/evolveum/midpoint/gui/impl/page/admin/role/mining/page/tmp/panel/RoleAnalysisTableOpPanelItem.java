@@ -76,7 +76,7 @@ public class RoleAnalysisTableOpPanelItem extends BasePanel<String> {
         iconPanel.add(AttributeAppender.append("style", appendIconPanelStyle()));
         container.add(iconPanel);
 
-        WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
+        Component icon = generateIconComponent(ID_ICON);
         icon.setOutputMarkupId(true);
 
         icon.add(new Behavior() {
@@ -108,6 +108,10 @@ public class RoleAnalysisTableOpPanelItem extends BasePanel<String> {
         addDescriptionComponents();
         descriptionPanel.add(descriptionText);
 
+    }
+
+    public Component generateIconComponent(String idIcon) {
+        return new WebMarkupContainer(idIcon);
     }
 
     protected void addDescriptionComponents() {

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -148,7 +150,7 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
     }
 
     protected String getIconClass() {
-        return "fa fa-long-arrow-down";
+        return "fa-2x text-secondary " + GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON;
     }
 
     protected String getIconBoxTextClass() {
