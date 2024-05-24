@@ -52,6 +52,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/certification/campaign",
@@ -142,6 +144,7 @@ public class PageCertCampaign extends PageAdmin {
                 list.add(new DetailsTableItem(createStringResource("PageCertCampaign.currentState"),
                         null) {
                     @Serial private static final long serialVersionUID = 1L;
+
                     @Override
                     public Component createValueComponent(String id) {
                         BadgePanel status = new BadgePanel(id, createBadgeModel());
@@ -155,7 +158,19 @@ public class PageCertCampaign extends PageAdmin {
                     }
                 });
                 list.add(new DetailsTableItem(createStringResource("PageCertCampaign.table.deadline"),
-                        () -> stage != null ? "" + stage.getDeadline() : ""));
+                        null) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Component createValueComponent(String id) {
+                        return new DeadlinePanel(id, getDeadlineModel());
+                    }
+
+                    private IModel<XMLGregorianCalendar> getDeadlineModel() {
+                        return () -> stage != null ? stage.getDeadline() : null;
+                    }
+                });
 
                 return list;
             }
