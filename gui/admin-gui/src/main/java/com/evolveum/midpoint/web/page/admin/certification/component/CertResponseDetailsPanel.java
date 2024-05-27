@@ -7,16 +7,20 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.component;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTablePanel;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumnPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
@@ -36,6 +40,7 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
     private static final String ID_TITLE = "title";
     private static final String ID_DETAILS_PANEL = "detailsPanel";
     private static final String ID_ACTIONS_PANEL = "actionsPanel";
+    private static final String ID_NO_ACTIONS_LABEL = "noActionsLabel";
 
     int stageNumber;
 
@@ -72,9 +77,7 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
     private IModel<DisplayType> createDetailsPanelDisplayModel() {
         return () -> {
             //todo
-            DisplayType display = new DisplayType()
-                    .label("John Doe")
-                    .help("Reviewer");
+            DisplayType display = new DisplayType().label("John Doe").help("Reviewer");
             return display;
         };
     }
@@ -90,14 +93,40 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
                     return new ObjectReferenceColumnPanel(id, Model.of(getModelObject().getObjectRef()));
                 }
             });
+            list.add(new DetailsTableItem(createStringResource("WorkItemsPanel.target")) {
+                @Serial private static final long serialVersionUID = 1L;
+
+                @Override
+                public Component createValueComponent(String id) {
+                    return new ObjectReferenceColumnPanel(id, Model.of(getModelObject().getTargetRef()));
+                }
+            });
+            list.add(new DetailsTableItem(createStringResource("PageCertCampaign.statistics.response")) {
+                @Serial private static final long serialVersionUID = 1L;
+
+                @Override
+                public Component createValueComponent(String id) {
+                    AccessCertificationResponseType response = OutcomeUtils.fromUri(getModelObject().getOutcome());
+                    DisplayType responseDisplayType = new CertificationItemResponseHelper(response).getResponseDisplayType();
+                    return new ImagePanel(id, Model.of(responseDisplayType));
+                }
+            });
+            //todo the date of the outcome?
+//            list.add(new DetailsTableItem(createStringResource("ResponseViewPopup.respondedAt")) {
+//                @Serial private static final long serialVersionUID = 1L;
+//
+//                @Override
+//                public Component createValueComponent(String id) {
+//                    getModelObject().getReviewFinishedTimestamp()
+//                }
+//            });
             return list;
 
         };
     }
 
     private void addActionsPanel() {
-        DisplayType titleDisplay = new DisplayType()
-                .label("CertResponseDetailsPanel.activity");
+        DisplayType titleDisplay = new DisplayType().label("CertResponseDetailsPanel.activity");
 
         IModel<List<ChatMessageItem>> actionsModel = createActionsModel();
         ChatPanel actionsPanel = new ChatPanel(ID_ACTIONS_PANEL, Model.of(titleDisplay), actionsModel);
@@ -113,23 +142,18 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
             List<AccessCertificationWorkItemType> workItems = certCase.getWorkItem();
             workItems.forEach(workItem -> {
                 if (workItem.getStageNumber() != null && workItem.getStageNumber() == stageNumber) {
-                    list.add(new ChatMessageItem(
-                            createMessageDisplayTypeModel(workItem),
-                            createMessageTextModel(workItem)));
+                    list.add(new ChatMessageItem(createMessageDisplayTypeModel(workItem), createMessageTextModel(workItem)));
                 }
             });
+            if (list.isEmpty()) {
+                list.add(new ChatMessageItem(Model.of(new DisplayType().label("CertResponseDetailsPanel.noActionsLabel")), Model.of("")));
+            }
             return list;
         };
     }
 
     private IModel<DisplayType> createMessageDisplayTypeModel(AccessCertificationWorkItemType workItem) {
-        return () -> {
-            DisplayType display = new DisplayType()
-                    .label(WebModelServiceUtils.resolveReferenceName(workItem.getPerformerRef(), getPageBase()))
-                    .help(WebComponentUtil.getLocalizedDate(workItem.getOutputChangeTimestamp(),
-                            DateLabelComponent.SHORT_SHORT_STYLE));
-            return display;
-        };
+        return () -> new DisplayType().label(WebModelServiceUtils.resolveReferenceName(workItem.getPerformerRef(), getPageBase())).help(WebComponentUtil.getLocalizedDate(workItem.getOutputChangeTimestamp(), DateLabelComponent.SHORT_SHORT_STYLE));
     }
 
     private IModel<String> createMessageTextModel(AccessCertificationWorkItemType workItem) {

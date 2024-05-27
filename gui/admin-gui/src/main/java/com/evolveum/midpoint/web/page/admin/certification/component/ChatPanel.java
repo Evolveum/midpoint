@@ -88,9 +88,11 @@ public class ChatPanel extends BasePanel<List<ChatMessageItem>> {
                 item.add(messageTitle);
 
                 Label messageText = new Label(ID_MESSAGE_TEXT, message.getMessageText());
+                messageText.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(message.getMessageText())));
                 item.add(messageText);
 
                 Label messageDescription = new Label(ID_MESSAGE_DESCRIPTION, message.getMessageDescription());
+                messageDescription.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(message.getMessageDescription())));
                 item.add(messageDescription);
 
                 Component messageImage = initMessageImageComponent(message);

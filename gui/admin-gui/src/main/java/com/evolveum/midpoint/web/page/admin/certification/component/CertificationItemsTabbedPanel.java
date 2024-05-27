@@ -23,14 +23,14 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CertificationCasesTabbedPanel extends BasePanel<AccessCertificationCampaignType> {
+public class CertificationItemsTabbedPanel extends BasePanel<AccessCertificationCampaignType> {
 
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABBED_PANEL = "tabbedPanel";
 
-    public CertificationCasesTabbedPanel(String id, IModel<AccessCertificationCampaignType> model) {
+    public CertificationItemsTabbedPanel(String id, IModel<AccessCertificationCampaignType> model) {
         super(id, model);
     }
 

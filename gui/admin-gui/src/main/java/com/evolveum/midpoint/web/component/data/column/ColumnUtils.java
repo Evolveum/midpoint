@@ -16,13 +16,18 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelColumn;
+import com.evolveum.midpoint.gui.impl.component.input.IconColorInputPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -805,8 +810,7 @@ public class ColumnUtils {
         return columns;
     }
 
-    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> getDefaultCertificationItemColumns
-            (int stageNumber) {
+    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> getDefaultCertCaseColumns(int stageNumber) {
         List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> columns = new ArrayList<>();
 
         //todo progress column
@@ -837,7 +841,7 @@ public class ColumnUtils {
 
            @Override
            public IModel<List<ObjectReferenceType>> extractDataModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-               return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel), stageNumber);
+               return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel));
            }
        });
        columns.add(new CompositedIconWithLabelColumn<>(createStringResource("PageCertCampaign.statistics.response")) {
@@ -870,17 +874,82 @@ public class ColumnUtils {
            }
        });
 
-       columns.add(new AbstractColumn<>(createStringResource("PageCertCampaign.table.comments")) {
+       columns.add(new IconColumn<>(createStringResource("PageCertCampaign.table.comments")) {
 
            @Serial private static final long serialVersionUID = 1L;
 
            @Override
            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationCaseType>>> cellItem,
-                   String componentId, final IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-               List<String> comments = CertCampaignTypeUtil.getComments(unwrapRowModel(rowModel).asPrismContainerValue(),
-                       stageNumber);
-               Label label = new Label(componentId, (IModel<String>) () -> StringUtils.join(comments, ", "));
-               label.add(AttributeModifier.append("title", StringUtils.join(comments, "\n")));
+                   String componentId, IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+               ImagePanel imagePanel = new ImagePanel(componentId, new ReadOnlyModel<>(() -> getIconDisplayType(rowModel)));
+               imagePanel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(
+                       LocalizationUtil.translatePolyString(getIconDisplayType(rowModel).getTooltip()))));
+               cellItem.add(imagePanel);
+           }
+
+           @Override
+           public DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+               List<String> comments = CertCampaignTypeUtil.getComments(unwrapRowModel(rowModel).asPrismContainerValue());
+               return new DisplayType()
+                       .tooltip(StringUtils.join(comments, "\n"))
+                       .icon(new IconType()
+                               .cssClass("fa fa-comment")
+                               .color("blue"));
+           }
+       });
+        return columns;
+    }
+
+    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> getDefaultCertWorkItemColumns() {
+        List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> columns = new ArrayList<>();
+
+
+        columns.add(new ObjectReferenceColumn<>(createStringResource("WorkItemsPanel.object"),
+                "") {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<List<ObjectReferenceType>> extractDataModel(
+                    IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
+                return () -> Collections.singletonList(certCase.getObjectRef());
+            }
+        });
+        columns.add(new ObjectReferenceColumn<>(createStringResource("WorkItemsPanel.target"),
+                "") {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<List<ObjectReferenceType>> extractDataModel(
+                    IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
+                return () -> Collections.singletonList(certCase.getTargetRef());
+            }
+        });
+       columns.add(new ObjectReferenceColumn<>(createStringResource("PageCertCampaign.table.reviewers"),
+               "") {
+
+           @Serial private static final long serialVersionUID = 1L;
+
+           @Override
+           public IModel<List<ObjectReferenceType>> extractDataModel(
+                   IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+               AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
+               return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel), certCase.getStageNumber());
+           }
+       });
+       columns.add(new AbstractColumn<>(createStringResource("PageCertCampaign.table.comments")) {
+
+           @Serial private static final long serialVersionUID = 1L;
+
+           @Override
+           public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationWorkItemType>>> cellItem,
+                   String componentId, final IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+               String comment = WorkItemTypeUtil.getComment(unwrapRowModel(rowModel));
+               Label label = new Label(componentId, (IModel<String>) () -> comment);
+               label.add(AttributeModifier.append("title", comment));
                label.add(AttributeModifier.append("class", "text-truncate"));
                cellItem.add(label);
            }

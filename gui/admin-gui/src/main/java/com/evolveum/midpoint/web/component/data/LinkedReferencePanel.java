@@ -87,7 +87,7 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
 
     private void initLayout() {
         setOutputMarkupId(true);
-        add(AttributeAppender.append("class", "d-flex flex-wrap gap-2 align-items-center"));
+        add(AttributeAppender.append("class", getAdditionalCssStyle()));
 
         IModel<DisplayType> displayModel = () -> {
 
@@ -138,5 +138,9 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
         });
         nameLinkText.setRenderBodyOnly(true);
         nameLink.add(nameLinkText);
+    }
+
+    protected String getAdditionalCssStyle() {
+        return "d-flex flex-wrap gap-2 align-items-center";
     }
 }

@@ -1863,7 +1863,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             for (int j = 0; j < i; j++) {
                 var parentPath = paths.get(j);
                 var id = containerIds.get(j);
-                conditions.add(queryFactory.createEqual(parentPath, null, null, PrismContext.get(), id));
+                conditions.add(queryFactory.createEqual(parentPath, null, null, id));
             }
 
             ObjectFilter lastFilter;

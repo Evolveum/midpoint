@@ -10,18 +10,18 @@ import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.axiom.concepts.CheckedFunction;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
-import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.querydsl.core.types.Order;
@@ -32,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
@@ -64,6 +63,9 @@ public class QAssignmentMapping<OR extends MObject>
 
     /** Inducement mapping instance, this must be used for inserting inducements. */
     private static QAssignmentMapping<?> instanceInducement;
+    private final SchemaRegistryState.DerivationKey<ItemDefinition<?>> derivationKey;
+
+    private final CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> derivationMapping;
 
     private boolean storeFullObject = true;
 
@@ -111,6 +113,17 @@ public class QAssignmentMapping<OR extends MObject>
         super(QAssignment.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AssignmentType.class, (Class) QAssignment.class, repositoryContext);
         this.containerType = containerType;
+        this.derivationKey = SchemaRegistryState.derivationKeyFrom(getClass(), containerType.toString());
+        this.derivationMapping = (registry) -> {
+            if (MContainerType.INDUCEMENT.equals(containerType)) {
+                var roleDef = registry.findObjectDefinitionByCompileTimeClass(AbstractRoleType.class);
+                return roleDef.findItemDefinition(AbstractRoleType.F_INDUCEMENT);
+            }
+
+            return registry.findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
+                    .findItemDefinition(AssignmentHolderType.F_ASSIGNMENT);
+
+        };
         this.path = MContainerType.INDUCEMENT == containerType ? AbstractRoleType.F_INDUCEMENT : AbstractRoleType.F_ASSIGNMENT;
 
         addRelationResolver(PrismConstants.T_PARENT,
@@ -392,5 +405,16 @@ public class QAssignmentMapping<OR extends MObject>
     @VisibleForTesting
     public void setStoreFullObject(boolean value) {
         storeFullObject = value;
+    }
+
+    @Override
+    protected SchemaRegistryState.DerivationKey<ItemDefinition<?>> definitionDerivationKey() {
+        return derivationKey;
+    }
+
+
+    @Override
+    protected CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> definitionDerivation() {
+        return derivationMapping;
     }
 }
