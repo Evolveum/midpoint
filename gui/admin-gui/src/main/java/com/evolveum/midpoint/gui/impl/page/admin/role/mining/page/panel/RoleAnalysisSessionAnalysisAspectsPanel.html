@@ -10,30 +10,27 @@
         xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="row">
-        <div class="col-md-12">
-            <div wicket:id="container">
-                <div class="row col-12 p-2">
-                    <div wicket:id="header-items"></div>
-                </div>
-                <div class="row col-12 p-2">
-                    <div class="col-12">
-                        <div class="card bg-light">
-                            <div class="card-header">
-                                <h3 class="card-title" wicket:id="card-title"></h3>
-                            </div>
-                            <div class="card-body">
-                                <div wicket:id="panelId"></div>
-                            </div>
+    <div class="col p-0 elevation-1">
+        <div wicket:id="container">
+            <div class="row col-12 p-0 pl-2 pr-2 pt-2">
+                <div wicket:id="header-items"></div>
+            </div>
+            <div class="row col-12 p-2">
+                <div class="col-12">
+                    <div class="card bg-light">
+                        <div class="card-header">
+                            <h3 class="card-title" wicket:id="card-title"></h3>
+                        </div>
+                        <div class="card-body">
+                            <div wicket:id="panelId"></div>
                         </div>
                     </div>
                 </div>
-
-                <div class="row col-12 p-2">
-                    <div class="col-12 p-2" wicket:id="patterns"></div>
-                </div>
             </div>
 
+            <div class="row col-12 p-2">
+                <div class="col-12 p-2" wicket:id="patterns"></div>
+            </div>
         </div>
     </div>
 

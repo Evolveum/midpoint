@@ -32,10 +32,11 @@ import java.util.List;
 @PanelType(name = "clusterOverview", defaultContainerPath = "empty")
 @PanelInstance(identifier = "clusterOverview",
         applicableForType = RoleAnalysisClusterType.class,
+        defaultPanel = true,
         display = @PanelDisplay(
-                label = "PageRoleAnalysis.analysis.aspects.panel",
+                label = "RoleAnalysis.overview.panel",
                 icon = GuiStyleConstants.CLASS_LINE_CHART_ICON,
-                order = 50))
+                order = 10))
 public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
 
     private static final String ID_CONTAINER = "container";
@@ -98,7 +99,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
             candidateRolesCount = String.valueOf(candidateRoles.size());
         }
 
-        InfoBoxModel infoBoxResolvedPatterns = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-dark",
+        InfoBoxModel infoBoxResolvedPatterns = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-white",
                 "Optimized roles",
                 resolvedPatternCount,
                 100,
@@ -107,7 +108,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         RoleAnalysisInfoBox resolvedPatternLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxResolvedPatterns)) {
             @Override
             protected String getInfoBoxCssClass() {
-                return "bg-light";
+                return "bg-primary";
             }
 
         };
@@ -115,7 +116,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         resolvedPatternLabel.setOutputMarkupId(true);
         headerItems.add(resolvedPatternLabel);
 
-        InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-dark",
+        InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-white",
                 "Candidate roles",
                 candidateRolesCount,
                 100,
@@ -124,14 +125,14 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         RoleAnalysisInfoBox candidateRolesLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxCandidateRoles)) {
             @Override
             protected String getInfoBoxCssClass() {
-                return "bg-light";
+                return "bg-primary";
             }
         };
         candidateRolesLabel.add(AttributeModifier.replace("class", "col-md-6"));
         candidateRolesLabel.setOutputMarkupId(true);
         headerItems.add(candidateRolesLabel);
 
-        InfoBoxModel infoBoxRoles = new InfoBoxModel(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON + " text-dark",
+        InfoBoxModel infoBoxRoles = new InfoBoxModel(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON + " text-white",
                 "Roles",
                 String.valueOf(clusterStatistics.getRolesCount()),
                 100,
@@ -140,14 +141,14 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         RoleAnalysisInfoBox rolesLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxRoles)) {
             @Override
             protected String getInfoBoxCssClass() {
-                return "bg-light";
+                return "bg-primary";
             }
         };
         rolesLabel.add(AttributeModifier.replace("class", "col-md-6"));
         rolesLabel.setOutputMarkupId(true);
         headerItems.add(rolesLabel);
 
-        InfoBoxModel infoBoxUsers = new InfoBoxModel(GuiStyleConstants.CLASS_OBJECT_USER_ICON + " text-dark",
+        InfoBoxModel infoBoxUsers = new InfoBoxModel(GuiStyleConstants.CLASS_OBJECT_USER_ICON + " text-white",
                 "Users",
                 String.valueOf(clusterStatistics.getUsersCount()),
                 100,
@@ -156,7 +157,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         RoleAnalysisInfoBox usersLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxUsers)) {
             @Override
             protected String getInfoBoxCssClass() {
-                return "bg-light";
+                return "bg-primary";
             }
         };
         usersLabel.add(AttributeModifier.replace("class", "col-md-6"));

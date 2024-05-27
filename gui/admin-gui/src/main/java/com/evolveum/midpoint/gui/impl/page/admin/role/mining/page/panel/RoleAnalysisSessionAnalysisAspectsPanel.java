@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.c
 import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -42,9 +43,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelInstance(identifier = "sessionOverView",
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
-                label = "PageRoleAnalysis.analysis.aspects.panel",
+                label = "RoleAnalysis.overview.panel",
                 icon = GuiStyleConstants.CLASS_LINE_CHART_ICON,
-                order = 50))
+                order = 10))
 public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
     private static final String ID_CONTAINER = "container";
@@ -114,12 +115,11 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                 formattedReductionFactorConfidence +
                                 "x relationships with a confidence of  " +
                                 formattedItemConfidence + "%";
-                        int finalI = i;
                         repeatingView.add(new RoleAnalysisInfoItem(repeatingView.newChildId(), Model.of(label)) {
 
                             @Override
-                            protected String getIconBoxText() {
-                                return "#" + (finalI + 1);
+                            protected String getIconContainerCssClass() {
+                                return "btn btn-outline-dark";
                             }
 
                             @Override
@@ -232,7 +232,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
         }
 
-        InfoBoxModel infoBoxReduction = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-dark",
+        InfoBoxModel infoBoxReduction = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-white",
                 "Reduction",
                 String.valueOf(totalReduction),
                 100,
@@ -241,14 +241,14 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         RoleAnalysisInfoBox infoBoxReductionLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxReduction)) {
             @Override
             protected String getInfoBoxCssClass() {
-                return "bg-light";
+                return "bg-primary";
             }
         };
         infoBoxReductionLabel.add(AttributeModifier.replace("class", "col-md-6"));
         infoBoxReductionLabel.setOutputMarkupId(true);
         headerItems.add(infoBoxReductionLabel);
 
-        InfoBoxModel infoBoxOutliers = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-dark",
+        InfoBoxModel infoBoxOutliers = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-white",
                 "Outliers",
                 String.valueOf(outliers),
                 100,
@@ -257,14 +257,14 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         RoleAnalysisInfoBox outliersLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxOutliers)) {
             @Override
             protected String getInfoBoxCssClass() {
-                return "bg-light";
+                return "bg-primary";
             }
         };
         outliersLabel.add(AttributeModifier.replace("class", "col-md-6"));
         outliersLabel.setOutputMarkupId(true);
         headerItems.add(outliersLabel);
 
-        InfoBoxModel infoBoxResolvedPattern = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-dark",
+        InfoBoxModel infoBoxResolvedPattern = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-white",
                 "Resolved pattern",
                 String.valueOf(resolvedPatternCount),
                 100,
@@ -273,14 +273,14 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         RoleAnalysisInfoBox resolvedPatternLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxResolvedPattern)) {
             @Override
             protected String getInfoBoxCssClass() {
-                return "bg-light";
+                return "bg-primary";
             }
         };
         resolvedPatternLabel.add(AttributeModifier.replace("class", "col-md-6"));
         resolvedPatternLabel.setOutputMarkupId(true);
         headerItems.add(resolvedPatternLabel);
 
-        InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-dark",
+        InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-white",
                 "Candidate roles",
                 String.valueOf(candidateRolesCount),
                 100,
@@ -289,7 +289,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         RoleAnalysisInfoBox candidateRolesLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxCandidateRoles)) {
             @Override
             protected String getInfoBoxCssClass() {
-                return "bg-light";
+                return "bg-primary";
             }
         };
         candidateRolesLabel.add(AttributeModifier.replace("class", "col-md-6"));

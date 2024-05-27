@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.object.RoleAnalysisObjectUtils.executeChangesOnCandidateRole;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.*;
@@ -198,21 +198,19 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
                     @Override
                     public @NotNull Component getDescriptionTitleComponent(String id) {
-                        Label label = new Label(id, "View");
+                        Label label = new Label(id, "Table view");
                         label.setOutputMarkupId(true);
                         return label;
                     }
 
                     @Override
                     protected void addDescriptionComponents() {
-                        if (showAsExpandCard) {
-                            appendText("Expanded table");
-                        } else {
-                            appendText("Collapsed table");
-                        }
+                       appendText("Switch table view");
                     }
                 };
-                refreshIcon.add(AttributeAppender.replace("class", "btn btn-outline-dark border-0 d-flex  align-self-stretch"));
+                refreshIcon.add(AttributeAppender.replace("class", "btn btn-outline-dark border-0 d-flex"
+                        + " align-self-stretch mt-1"));
+//                refreshIcon.add(AttributeAppender.replace("style", "height: 60px;"));
                 headerItems.add(refreshIcon);
             }
 

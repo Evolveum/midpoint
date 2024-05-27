@@ -32,7 +32,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisInfoPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisInfoItem;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisSessionTileTable;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisSessionTileTable;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -118,12 +118,7 @@ public class PageRoleAnalysis extends PageAdmin {
 
                         @Override
                         protected String getIconContainerCssClass() {
-                            return "info-box-icon elevation-1 btn btn btn-outline-light text-dark gap-1";
-                        }
-
-                        @Override
-                        protected String getIconContainerStyle() {
-                            return null;
+                            return "btn btn-outline-dark";
                         }
 
                         @Override

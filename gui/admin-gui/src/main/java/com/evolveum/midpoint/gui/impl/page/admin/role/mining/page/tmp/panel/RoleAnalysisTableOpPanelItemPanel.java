@@ -112,8 +112,9 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
     private void initFooterItem(RepeatingView footerItems) {
         RoleAnalysisTableOpPanelItem footerComponent = addFooterButtonItem(footerItems);
         footerComponent.setOutputMarkupId(true);
-        footerComponent.add(AttributeAppender.replace(
-                "class", "btn btn-outline-dark border-0 d-flex align-self-stretch"));
+        footerComponent.add(AttributeAppender.replace("class", "btn btn-outline-dark border-0 d-flex"
+                + " align-self-stretch "));
+//        footerComponent.add(AttributeAppender.append("style", "height: 60px;"));
         footerItems.add(footerComponent);
     }
 
@@ -141,18 +142,14 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
             @Override
             public @NotNull Component getDescriptionTitleComponent(String id) {
-                Label label = new Label(id, "View");
+                Label label = new Label(id, "Exploration view");
                 label.setOutputMarkupId(true);
                 return label;
             }
 
             @Override
             protected void addDescriptionComponents() {
-                OperationPanelModel modelObject = RoleAnalysisTableOpPanelItemPanel.this.getModelObject();
-                if (modelObject.isCompareMode()) {
-                    appendText("Switch to view mode");
-                }
-                appendText("Switch to compare mode");
+                appendText("Switch explore mode");
             }
         };
 
@@ -185,18 +182,14 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
             @Override
             public @NotNull Component getDescriptionTitleComponent(String id) {
-                Label label = new Label(id, "View");
+                Label label = new Label(id, "Object view");
                 label.setOutputMarkupId(true);
                 return label;
             }
 
             @Override
             protected void addDescriptionComponents() {
-                OperationPanelModel modelObject = RoleAnalysisTableOpPanelItemPanel.this.getModelObject();
-                if (modelObject.isCandidateRoleView()) {
-                    appendText("Switch to roles view");
-                }
-                appendText("Switch to patterns view");
+                appendText("Switch object view");
             }
         };
 
@@ -208,7 +201,6 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
     private void addPatternButtonItems(
             @NotNull RepeatingView bodyItems) {
         OperationPanelModel modelObject = RoleAnalysisTableOpPanelItemPanel.this.getModelObject();
-        String bgIconClass = modelObject.getBgIconClass();
         boolean candidateRoleView = modelObject.isCandidateRoleView();
         List<DetectedPattern> patterns = candidateRoleView ? modelObject.getCandidatesRoles() : modelObject.getPatterns();
 
@@ -265,7 +257,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
                 public Component generateIconComponent(String idIcon) {
                     String iconClass = modelObject.isCandidateRoleView()
                             ? GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON
-                            : GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
+                            : GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON;
                     return new CompositedIconTextPanel(idIcon,
                             "fa-2x " + iconClass + " text-secondary",
                             finalI + 1 + "",
@@ -332,11 +324,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
             @Override
             protected void addDescriptionComponents() {
-                if (isExpanded().getObject()) {
-                    appendText("Switch to collapse view.");
-                } else {
-                    appendText("Switch to expand view.");
-                }
+                appendText("Switch panel view.");
             }
 
             @Serial

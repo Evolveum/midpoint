@@ -18,6 +18,12 @@ import java.util.Set;
 
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 
+import com.evolveum.midpoint.web.component.data.column.LinkPanel;
+import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
+
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -155,6 +161,42 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
             }
 
             @Override
+            protected IColumn<SelectableBean<RoleAnalysisClusterType>, String> createNameColumn(IModel<String> displayModel,
+                    GuiObjectColumnType customColumn, ExpressionType expression) {
+                return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
+                        customColumn, expression, getPageBase()) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onClick(IModel<SelectableBean<RoleAnalysisClusterType>> rowModel) {
+                        super.onClick(rowModel);
+                    }
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> rowModel) {
+
+                        RoleAnalysisClusterType cluster = rowModel.getObject().getValue();
+                        PolyStringType clusterName = cluster.getName();
+                        LinkPanel linkPanel = new LinkPanel(componentId, Model.of(clusterName)) {
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick() {
+                                objectDetailsPerformed(cluster);
+                            }
+                        };
+
+                        linkPanel.setOutputMarkupId(true);
+                        linkPanel.add(AttributeAppender.append("class", "text-truncate"));
+                        linkPanel.add(AttributeAppender.append("title", clusterName.getOrig()));
+                        linkPanel.add(new TooltipBehavior());
+                        cellItem.add(linkPanel);
+                    }
+                };
+            }
+
+            @Override
             protected IColumn<SelectableBean<RoleAnalysisClusterType>, String> createIconColumn() {
                 return new CompositedIconColumn<>(Model.of("")) {
 
@@ -250,7 +292,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                                 status = "Rebuild recommended";
                                 labelClass = "badge badge-warning text-center";
                             } else if (candidateExist) {
-                                status = "In process";
+                                status = "In progress";
                                 labelClass = "badge badge-info text-center";
                             } else {
                                 status = "New";

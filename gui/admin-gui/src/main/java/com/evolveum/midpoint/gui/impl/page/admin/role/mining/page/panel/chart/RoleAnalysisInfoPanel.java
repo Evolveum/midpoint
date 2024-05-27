@@ -85,7 +85,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisInfoPanel.class);
 
-    private static final String ID_PATERN_PANEL = "patternPanel";
+    private static final String ID_PATTERN_PANEL = "patternPanel";
     private static final String ID_TOOL_FORM = "toolForm";
     private static final String ID_MODE_BUTTON = "modeButton";
     private static final String ID_SCALE_BUTTON = "scaleButton";
@@ -114,7 +114,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
     }
 
     private void initChartPart() {
-        RoleAnalysisItemPanel roleAnalysisInfoPanel = new RoleAnalysisItemPanel(ID_PATERN_PANEL, Model.of("Suggestions")) {
+        RoleAnalysisItemPanel roleAnalysisInfoPanel = new RoleAnalysisItemPanel(ID_PATTERN_PANEL, Model.of("Suggestions")) {
             @Override
             protected void addItem(RepeatingView repeatingView) {
                 addItems(repeatingView);
@@ -122,7 +122,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
 
             @Override
             public String getCardBodyCssClass() {
-                return " overflow-auto";
+                return " overflow-auto ";
             }
 
             @Override

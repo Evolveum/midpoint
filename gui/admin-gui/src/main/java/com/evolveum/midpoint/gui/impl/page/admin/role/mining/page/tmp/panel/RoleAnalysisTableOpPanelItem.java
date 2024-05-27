@@ -51,7 +51,7 @@ public class RoleAnalysisTableOpPanelItem extends BasePanel<String> {
                     @Override
                     protected String load() {
                         if (getBackgroundColorStyle() == null) {
-                            return "";
+                            return null;
                         }
                         return getBackgroundColorStyle().getObject();
                     }

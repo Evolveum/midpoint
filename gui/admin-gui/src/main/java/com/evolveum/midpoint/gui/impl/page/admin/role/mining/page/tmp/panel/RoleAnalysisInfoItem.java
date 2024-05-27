@@ -36,7 +36,7 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
     private static final String ID_BOX = "box";
 
     RepeatingView description;
-    WebMarkupContainer iconContainer;
+
 
     public RoleAnalysisInfoItem(String id, IModel<String> model) {
         super(id, model);
@@ -45,14 +45,9 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
 
     private void initLayout() {
 
-        iconContainer = new WebMarkupContainer(ID_ICON_CONTAINER);
-        if (getIconContainerStyle() != null) {
-            iconContainer.add(AttributeModifier.replace("style", getIconContainerStyle()));
-        }
-        iconContainer.add(AttributeModifier.replace("class", getIconContainerCssClass()));
+        WebMarkupContainer iconContainer = new WebMarkupContainer(ID_ICON_CONTAINER);
+        iconContainer.add(AttributeModifier.append("class", getIconContainerCssClass()));
         iconContainer.setOutputMarkupId(true);
-//        iconContainer.add(AttributeModifier.replace("title", getModel()));
-//        iconContainer.add(new TooltipBehavior());
 
         iconContainer.add(new AjaxEventBehavior("click") {
             @Override
@@ -150,7 +145,7 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
     }
 
     protected String getIconClass() {
-        return "fa-2x text-secondary " + GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON;
+        return "fa-2x " + GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON;
     }
 
     protected String getIconBoxTextClass() {
@@ -162,18 +157,6 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
     }
 
     protected String getIconContainerCssClass() {
-        return "info-box-icon elevation-1 btn btn-outline-dark bg-light gap-1";
-    }
-
-    protected String getIconContainerStyle() {
-        return null;
-    }
-
-    protected String getIconDefaultContainerCssClass() {
-        return "info-box-icon elevation-1 btn btn-outline-dark bg-light gap-1";
-    }
-
-    protected String getIconDefaultContainerStyle() {
         return null;
     }
 
@@ -197,17 +180,4 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
         return "";
     }
 
-    public Component getIconContainer() {
-        return iconContainer;
-    }
-
-    protected void switchToDefaultStyleView() {
-        getIconContainer().add(AttributeModifier.replace("class", getIconDefaultContainerCssClass()));
-        getIconContainer().add(AttributeModifier.replace("style", getIconDefaultContainerStyle()));
-    }
-
-    protected void switchToSelectedStyleView(String color) {
-        getIconContainer().add(AttributeModifier.replace("class", "info-box-icon elevation-1 btn btn-outline-dark gap-1"));
-        getIconContainer().add(AttributeModifier.replace("style", "background-color: " + color + ";"));
-    }
 }

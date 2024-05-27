@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
                 icon = GuiStyleConstants.CLASS_OPTIONS_COGS,
                 order = 30
         ),
+        childOf = RoleAnalysisClusterOptionsPanel.class,
         containerPath = "detectionOption",
         type = "RoleAnalysisDetectionOptionType",
         expanded = true

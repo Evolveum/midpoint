@@ -35,16 +35,25 @@ import java.util.List;
 @PanelType(name = "miningBasic", defaultContainerPath = "empty")
 @PanelInstance(identifier = "sessionBasic",
         applicableForType = RoleAnalysisSessionType.class,
+        childOf = RoleAnalysisUserSessionOptions.class,
         display = @PanelDisplay(
-                label = "RoleAnalysis.overview.panel",
+                label = "RoleAnalysis.basic.panel",
+                icon = GuiStyleConstants.CLASS_INFO_CIRCLE,
+                order = 10))
+
+@PanelInstance(identifier = "sessionBasic",
+        applicableForType = RoleAnalysisSessionType.class,
+        childOf = RoleAnalysisRoleSessionOptions.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysis.basic.panel",
                 icon = GuiStyleConstants.CLASS_INFO_CIRCLE,
                 order = 10))
 
 @PanelInstance(identifier = "clusterBasic",
         applicableForType = RoleAnalysisClusterType.class,
-        defaultPanel = true,
+        childOf = RoleAnalysisClusterOptionsPanel.class,
         display = @PanelDisplay(
-                label = "RoleAnalysis.overview.panel",
+                label = "RoleAnalysis.basic.panel",
                 icon = GuiStyleConstants.CLASS_INFO_CIRCLE,
                 order = 10))
 public class RoleAnalysisBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {
