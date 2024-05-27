@@ -340,6 +340,7 @@ public class CampaignProcessingHelper implements Serializable {
         }
         WebComponentUtil.safeResultCleanup(result, LOGGER);
         pageBase.showResult(result);
+        target.add(pageBase);
     }
 
     public static IModel<String> createCloseStageConfirmString(AccessCertificationCampaignType campaign, PageBase pageBase) {
