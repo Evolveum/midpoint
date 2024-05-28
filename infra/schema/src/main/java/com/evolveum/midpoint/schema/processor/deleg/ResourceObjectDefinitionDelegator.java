@@ -308,13 +308,13 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
-    default ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException {
-        return delegate().getAttributeInboundDefinition(itemName);
+    default ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+        return delegate().getSimpleAttributeInboundDefinition(itemName);
     }
 
     @Override
-    default ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) throws SchemaException {
-        return delegate().getAssociationInboundDefinition(itemName);
+    default ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+        return delegate().getReferenceAttributeInboundDefinition(itemName);
     }
 
     @Override

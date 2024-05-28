@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
+import static com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil.mergeCorrelationDefinition;
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
@@ -354,8 +355,10 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
             for (var associationValue : association.getAssociationValues()) {
                 for (var inboundProcessingDefinition : relevantInboundDefinitions) {
                     LOGGER.trace("Processing association value: {} ({})", associationValue, relevantInboundDefinitions);
-                    new ValueProcessing(associationValue, associationDefinition, inboundProcessingDefinition)
-                            .process(result);
+                    var processing = new ValueProcessing(
+                            associationValue, associationDefinition, inboundProcessingDefinition,
+                            projectionContext.getResourceRequired());
+                    processing.process(result);
                 }
             }
         }
@@ -375,17 +378,20 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
         @NotNull private final ResourceObjectInboundDefinition inboundDefinition;
         @Deprecated // provide more abstract characterization (~ "assigned")
         @NotNull private final ItemPath focusItemPath;
+        @NotNull private final ResourceType resource;
 
         ValueProcessing(
                 @NotNull ShadowAssociationValue associationValue,
                 @NotNull ShadowReferenceAttributeDefinition associationDefinition,
-                @NotNull ResourceObjectInboundDefinition inboundDefinition) throws ConfigurationException {
+                @NotNull ResourceObjectInboundDefinition inboundDefinition,
+                @NotNull ResourceType resource) throws ConfigurationException {
             this.associationValue = associationValue;
             this.associationDefinition = associationDefinition;
             this.inboundDefinition = inboundDefinition;
             this.focusItemPath = configNonNull(
                     inboundDefinition.getFocusSpecification().getFocusItemPath(),
                     "No focus item path in %s", inboundDefinition);
+            this.resource = resource;
         }
 
         void process(OperationResult parentResult)
@@ -437,9 +443,11 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                 return SimplifiedCorrelationResult.noOwner();
             }
 
+            var correlationDefinitionBean = mergeCorrelationDefinition(inboundDefinition, null, resource);
+
             var correlationResult = beans.correlationServiceImpl.correlateLimited(
                     CorrelatorContextCreator.createRootContext(
-                            inboundDefinition.getCorrelation(),
+                            correlationDefinitionBean,
                             CorrelatorDiscriminator.forSynchronization(),
                             null,
                             context.getSystemConfigurationBean()),

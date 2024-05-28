@@ -7,24 +7,34 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static com.evolveum.midpoint.util.MiscUtil.configCheck;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import org.jetbrains.annotations.Nullable;
 
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition.ItemInboundDefinition;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Utilities for manipulating correlators definitions.
  */
 public class CorrelatorsDefinitionUtil {
+
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelatorsDefinitionUtil.class);
 
     /**
      * Returns the name under which we will reference this item definition (using "ref" elements).
@@ -49,10 +59,6 @@ public class CorrelatorsDefinitionUtil {
             return lastName.getLocalPart();
         }
         return null;
-    }
-
-    public static Object identifyLazily(@Nullable AbstractCorrelatorType configBean) {
-        return DebugUtil.lazy(() -> identify(configBean));
     }
 
     /**
@@ -127,7 +133,7 @@ public class CorrelatorsDefinitionUtil {
         }
     }
 
-    public static void addSingleItemCorrelator(
+    private static void addSingleItemCorrelator(
             @NotNull CorrelationDefinitionType overallCorrelationDefBean,
             @NotNull ItemPath focusItemPath,
             @NotNull ItemCorrelatorDefinitionType attributeCorrelatorDefBean) {
@@ -143,5 +149,126 @@ public class CorrelatorsDefinitionUtil {
                                         new ItemPathType(focusItemPath))
                                 .search(
                                         CloneUtil.clone(attributeCorrelatorDefBean.getSearch()))));
+    }
+
+    /**
+     * "Compiles" the correlation definition from all available information:
+     *
+     * . attribute-level "correlation" configuration snippets
+     * . legacy correlation/confirmation expressions/filters
+     */
+    public static CorrelationDefinitionType mergeCorrelationDefinition(
+            @NotNull ResourceObjectInboundDefinition typeDef,
+            @Nullable ObjectSynchronizationType synchronizationBean,
+            @NotNull ResourceType resource) throws ConfigurationException {
+
+        return addCorrelationDefinitionsFromItems(
+                typeDef,
+                MiscUtil.first(
+                        typeDef.getCorrelation(),
+                        () -> getCorrelationDefinitionBean(synchronizationBean)),
+                resource);
+    }
+
+    private static CorrelationDefinitionType addCorrelationDefinitionsFromItems(
+            @NotNull ResourceObjectInboundDefinition objectInboundDef,
+            @NotNull CorrelationDefinitionType explicitDefinition,
+            @NotNull ResourceType resource) throws ConfigurationException {
+        CorrelationDefinitionType cloned = null;
+        for (var attributeInboundDef : objectInboundDef.getAttributeDefinitions()) {
+            ItemCorrelatorDefinitionType correlatorDefBean = attributeInboundDef.getCorrelatorDefinition();
+            if (correlatorDefBean != null) {
+                if (cloned == null) {
+                    cloned = explicitDefinition.clone();
+                }
+                addCorrelatorFromAttribute(cloned, attributeInboundDef, correlatorDefBean, objectInboundDef, resource);
+            }
+        }
+        return cloned != null ? cloned : explicitDefinition;
+    }
+
+    private static void addCorrelatorFromAttribute(
+            @NotNull CorrelationDefinitionType overallCorrelationDefBean,
+            @NotNull ItemInboundDefinition attributeInboundDefinition,
+            @NotNull ItemCorrelatorDefinitionType attributeCorrelatorDefBean,
+            @NotNull ResourceObjectInboundDefinition objectInboundDefinition,
+            @NotNull ResourceType resource) throws ConfigurationException {
+        List<InboundMappingType> inboundMappingBeans = attributeInboundDefinition.getInboundMappingBeans();
+        configCheck(!inboundMappingBeans.isEmpty(),
+                "Attribute-level correlation requires an inbound mapping; for %s in %s (%s)",
+                attributeInboundDefinition, objectInboundDefinition, resource);
+        ItemPath focusItemPath = determineFocusItemPath(attributeInboundDefinition, attributeCorrelatorDefBean);
+        configCheck(focusItemPath != null,
+                "Item corresponding to correlation attribute %s couldn't be determined in %s (%s). You must specify"
+                        + " it either explicitly, or provide exactly one inbound mapping with a proper target",
+                attributeInboundDefinition, objectInboundDefinition, resource);
+        addSingleItemCorrelator(overallCorrelationDefBean, focusItemPath, attributeCorrelatorDefBean);
+    }
+
+    private static ItemPath determineFocusItemPath(
+            ItemInboundDefinition attributeDefinition, @NotNull ItemCorrelatorDefinitionType attributeCorrelatorDefBean) {
+        ItemPathType explicitItemPath = attributeCorrelatorDefBean.getFocusItem();
+        if (explicitItemPath != null) {
+            return explicitItemPath.getItemPath();
+        } else {
+            return guessFocusItemPath(attributeDefinition);
+        }
+    }
+
+    /** Tries to determine correlation (focus) item path from the inbound mapping target. */
+    private static ItemPath guessFocusItemPath(ItemInboundDefinition attributeDefinition) {
+        List<InboundMappingType> inboundMappingBeans = attributeDefinition.getInboundMappingBeans();
+        if (inboundMappingBeans.size() != 1) {
+            return null;
+        }
+        VariableBindingDefinitionType target = inboundMappingBeans.get(0).getTarget();
+        ItemPathType itemPathType = target != null ? target.getPath() : null;
+        if (itemPathType == null) {
+            return null;
+        }
+        ItemPath itemPath = itemPathType.getItemPath();
+        QName variableName = itemPath.firstToVariableNameOrNull();
+        if (variableName == null) {
+            return itemPath;
+        }
+        String localPart = variableName.getLocalPart();
+        if (ExpressionConstants.VAR_FOCUS.equals(localPart)
+                || ExpressionConstants.VAR_USER.equals(localPart)) {
+            return itemPath.rest();
+        } else {
+            LOGGER.warn("Mapping target variable name '{}' is not supported for determination of correlation item path in {}",
+                    variableName, attributeDefinition);
+            return null;
+        }
+    }
+
+    private static @NotNull CorrelationDefinitionType getCorrelationDefinitionBean(
+            @Nullable ObjectSynchronizationType synchronizationBean) {
+        if (synchronizationBean == null) {
+            return new CorrelationDefinitionType();
+        }
+        if (synchronizationBean.getCorrelationDefinition() != null) {
+            return synchronizationBean.getCorrelationDefinition();
+        }
+        List<ConditionalSearchFilterType> correlationFilters = synchronizationBean.getCorrelation();
+        if (correlationFilters.isEmpty()) {
+            return new CorrelationDefinitionType();
+        } else {
+            return new CorrelationDefinitionType()
+                    .correlators(new CompositeCorrelatorType()
+                            .filter(
+                                    createFilterCorrelator(correlationFilters, synchronizationBean.getConfirmation())));
+        }
+    }
+
+    private static @NotNull FilterSubCorrelatorType createFilterCorrelator(
+            List<ConditionalSearchFilterType> correlationFilters, ExpressionType confirmation) {
+        FilterSubCorrelatorType filterCorrelator =
+                new FilterSubCorrelatorType()
+                        .confirmation(
+                                CloneUtil.clone(confirmation));
+        filterCorrelator.getOwnerFilter().addAll(
+                CloneUtil.cloneCollectionMembers(correlationFilters));
+        return filterCorrelator;
     }
 }
