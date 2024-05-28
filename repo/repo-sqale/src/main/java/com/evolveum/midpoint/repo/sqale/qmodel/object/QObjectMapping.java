@@ -13,6 +13,7 @@ import java.util.function.BiFunction;
 
 import com.evolveum.axiom.concepts.CheckedFunction;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
 import com.evolveum.midpoint.repo.sqlbase.SqlBaseOperationTracker;
@@ -523,12 +524,22 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             if (container.isEmpty() || container.isIncomplete()) {
                 // If container is not empty and or not incomplete - it contained data from previous versions (not splitted)
                 // so we should not populate it with splitted
-                container.setIncomplete(false);
-                for (var val : values) {
-                    var containerable = mapping.toSchemaObjectEmbedded(val, alias);
-                    // FIXME: Some better addition method should be necessary.
-                    // Check if value is present...
-                    ((Item) container).addIgnoringEquivalents(containerable);
+
+                try {
+                    if (container instanceof PrismContainerImpl<?> impl) {
+                        impl.startStrictModifications();
+                    }
+                    container.setIncomplete(false);
+                    for (var val : values) {
+                        var containerable = mapping.toSchemaObjectEmbedded(val, alias);
+                        // FIXME: Some better addition method should be necessary.
+                        // Check if value is present...
+                        ((Item) container).addIgnoringEquivalents(containerable);
+                    }
+                } finally {
+                    if (container instanceof PrismContainerImpl<?> impl) {
+                        impl.stopStrictModifications();
+                    }
                 }
             }
         }
