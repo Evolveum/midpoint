@@ -158,7 +158,7 @@ public class PrismContainerWrapperImpl<C extends Containerable>
         return null;
     }
 
-    private PrismContainerValueWrapper<C> findValue(Long id) {
+    PrismContainerValueWrapper<C> findValue(Long id) {
         if (isSingleValue()) {
             List<PrismContainerValueWrapper<C>> values = getValues();
             if (values != null && !values.isEmpty()) {

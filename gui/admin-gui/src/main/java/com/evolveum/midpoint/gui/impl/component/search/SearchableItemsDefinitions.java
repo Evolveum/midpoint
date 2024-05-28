@@ -208,6 +208,17 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(AccessCertificationCaseType.F_OUTCOME),
                 ItemPath.create(AccessCertificationCaseType.F_TARGET_REF)
         ));
+
+        SEARCHABLE_OBJECTS.put(AccessCertificationWorkItemType.class, Arrays.asList(
+                ItemPath.create(AccessCertificationWorkItemType.F_NAME),
+                ItemPath.create(AccessCertificationWorkItemType.F_ASSIGNEE_REF),
+                ItemPath.create(AccessCertificationWorkItemType.F_ORIGINAL_ASSIGNEE_REF),
+                ItemPath.create(AccessCertificationWorkItemType.F_CANDIDATE_REF),
+                ItemPath.create(AccessCertificationWorkItemType.F_PERFORMER_REF),
+                ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT),
+                ItemPath.create(AccessCertificationWorkItemType.F_CREATE_TIMESTAMP),
+                ItemPath.create(AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
+        ));
     }
 
     static {

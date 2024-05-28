@@ -43,7 +43,7 @@ public interface AssociationDefinitionStore {
         return def;
     }
 
-    default @NotNull Collection<QName> getNamesOfAssociations() {
+    default @NotNull Collection<QName> getNamesOfReferenceAttributes() {
         return getReferenceAttributeDefinitions().stream()
                 .map(ShadowReferenceAttributeDefinition::getItemName)
                 .collect(Collectors.toCollection(HashSet::new));

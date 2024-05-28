@@ -11,8 +11,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHol
 import java.util.*;
 import java.util.function.BiFunction;
 
+import com.evolveum.axiom.concepts.CheckedFunction;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
 import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
 import com.evolveum.midpoint.repo.sqlbase.SqlBaseOperationTracker;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleMappingMixin;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.*;
@@ -72,6 +75,8 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     private static QObjectMapping<?, ?, ?> instance;
     private PathSet fullObjectSkips;
 
+    private final SchemaRegistryState.DerivationKey<ItemDefinition<?>> derivationKey;
+
     // Explanation in class Javadoc for SqaleTableMapping
     public static QObjectMapping<?, ?, ?> initObjectMapping(@NotNull SqaleRepoContext repositoryContext) {
         instance = new QObjectMapping<>(
@@ -99,6 +104,8 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             @NotNull Class<Q> queryType,
             @NotNull SqaleRepoContext repositoryContext) {
         super(tableName, defaultAliasName, schemaType, queryType, repositoryContext);
+
+        derivationKey = SchemaRegistryState.derivationKeyFrom(getClass(), "Definition");
 
         addItemMapping(PrismConstants.T_ID, uuidMapper(q -> q.oid));
         addItemMapping(F_NAME, polyStringMapper(
@@ -517,12 +524,22 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             if (container.isEmpty() || container.isIncomplete()) {
                 // If container is not empty and or not incomplete - it contained data from previous versions (not splitted)
                 // so we should not populate it with splitted
-                container.setIncomplete(false);
-                for (var val : values) {
-                    var containerable = mapping.toSchemaObjectEmbedded(val, alias);
-                    // FIXME: Some better addition method should be necessary.
-                    // Check if value is present...
-                    ((Item) container).addIgnoringEquivalents(containerable);
+
+                try {
+                    if (container instanceof PrismContainerImpl<?> impl) {
+                        impl.startStrictModifications();
+                    }
+                    container.setIncomplete(false);
+                    for (var val : values) {
+                        var containerable = mapping.toSchemaObjectEmbedded(val, alias);
+                        // FIXME: Some better addition method should be necessary.
+                        // Check if value is present...
+                        ((Item) container).addIgnoringEquivalents(containerable);
+                    }
+                } finally {
+                    if (container instanceof PrismContainerImpl<?> impl) {
+                        impl.stopStrictModifications();
+                    }
                 }
             }
         }
@@ -643,4 +660,17 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         return true;
     }
     // endregion
+
+    @Override
+    protected SchemaRegistryState.DerivationKey<ItemDefinition<?>> definitionDerivationKey() {
+        return derivationKey;
+    }
+
+    private CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> definitionDerivation = (registry) ->
+        registry.findObjectDefinitionByCompileTimeClass(schemaType());
+
+    @Override
+    protected CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> definitionDerivation() {
+        return definitionDerivation;
+    }
 }

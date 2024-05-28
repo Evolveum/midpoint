@@ -107,7 +107,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PAGE_CASE_WORKITEMS_TAB,
         PAGE_CASE_CHILD_CASES_TAB,
         PAGE_CASE_EVENTS_TAB,
-        TABLE_SCHEMA_HANDLING,
+        PANEL_RESOURCE_OBJECT_TYPES,
         PANEL_OBJECT_COLLECTION_VIEWS,
         PANEL_OBJECT_POLICY_CONTENT,
         PANEL_RELATIONS_CONTENT,
@@ -145,9 +145,10 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PANEL_PROPERTIES_SECRET_PROVIDERS,
         PANEL_ENVIRONMENT_VARIABLES_SECRET_PROVIDERS,
         PANEL_CUSTOM_SECRET_PROVIDERS,
+        PANEL_ASSOCIATION_TYPES,
         PANEL_DETECTED_PATTERN,
         PANEL_MIGRATED_ROLES,
-        PANEL_CANDIDATE_ROLES,
+        PANEL_CANDIDATE_ROLES
     }
 
     private final Map<String, Integer> tables = new HashMap<>();

@@ -1,13 +1,16 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.common;
 
+import com.evolveum.axiom.concepts.CheckedFunction;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QSeparatelySerializedItem;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 import com.querydsl.core.Tuple;
@@ -109,4 +112,10 @@ public abstract class QContainerWithFullObjectMapping<S extends Containerable, Q
     public Q createAlias() {
         return defaultAlias();
     }
+
+    @Override
+    protected abstract SchemaRegistryState.DerivationKey<ItemDefinition<?>> definitionDerivationKey();
+
+    @Override
+    protected abstract CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> definitionDerivation();
 }

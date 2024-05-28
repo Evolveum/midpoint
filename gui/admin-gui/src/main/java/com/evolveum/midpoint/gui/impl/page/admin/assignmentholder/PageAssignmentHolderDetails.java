@@ -54,7 +54,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
-import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
@@ -476,7 +476,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
             @Override
             public IModel<PrismContainerValueWrapper<AH>> getValueModel() {
-                return new ContainerValueWrapperFromObjectWrapperModel<>(
+                return PrismContainerValueWrapperModel.fromContainerWrapper(
                         getDetailsModel().getObjectWrapperModel(), ItemPath.EMPTY_PATH);
             }
 

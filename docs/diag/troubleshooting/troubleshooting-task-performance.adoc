@@ -48,6 +48,6 @@ One of the tools on midPoint side is xref:/midpoint/reference/diag/troubleshooti
 
 == Task Execution Reports
 
-You can configure xref:/midpoint/reference/support-4.8/tasks/activities/reporting/execution-reports/[task execution report] in order to monitor selected performance indicators of the task.
+You can configure xref:/midpoint/reference/tasks/activities/reporting/execution-reports/[task execution report] in order to monitor selected performance indicators of the task.
 This is typically useful in long term monitoring or in automated tests, but it can be used even for other debugging of you know, what you are looking for.
 Task execution reports are also very useful for debugging distribution to buckets for parallel tasks.

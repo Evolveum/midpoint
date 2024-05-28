@@ -27,7 +27,8 @@ public abstract class ResourceWizardPreviewPanel extends ResourceWizardChoicePan
     enum PreviewTileType implements TileEnum {
 
         PREVIEW_DATA("fa fa-magnifying-glass"),
-        CONFIGURE_OBJECT_TYPES("fa fa-object-group");
+        CONFIGURE_OBJECT_TYPES("fa fa-object-group"),
+        CONFIGURE_ASSOCIATION_TYPES("fa fa-code-compare");
 
         private final String icon;
 

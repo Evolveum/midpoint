@@ -41,11 +41,7 @@ public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends Item
         this.modificationType = modificationType;
     }
 
-    @NotNull
     public List<Object> getNaturalKey() {
-        if (naturalKey == null) {
-            naturalKey = new ArrayList<>();
-        }
         return naturalKey;
     }
 

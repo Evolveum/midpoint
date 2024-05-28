@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
+import static com.evolveum.midpoint.gui.api.page.PageAdminLTE.createStringResourceStatic;
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
 
 import java.io.Serial;
@@ -16,13 +17,21 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelColumn;
+import com.evolveum.midpoint.gui.impl.component.input.IconColorInputPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.certification.component.DeadlinePanel;
+import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -805,8 +814,162 @@ public class ColumnUtils {
         return columns;
     }
 
-    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> getDefaultCertificationItemColumns
-            (int stageNumber) {
+    public static List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> getDefaultCertCampaignColumns(
+            PageBase pageBase) {
+        List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> columns = new ArrayList<>();
+
+        IColumn<SelectableBean<AccessCertificationCampaignType>, String> column;
+
+        column = new CheckBoxHeaderColumn<>();
+        columns.add(column);
+
+        column = new AjaxLinkColumn<>(createStringResource("PageCertCampaigns.table.name"),
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_NAME.getLocalPart()) {
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                CampaignProcessingHelper.campaignDetailsPerformed(rowModel.getObject().getValue().getOid(), pageBase);
+            }
+        };
+        columns.add(column);
+
+        column = new PropertyColumn<>(createStringResource("PageCertCampaigns.table.description"),
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_DESCRIPTION.getLocalPart());
+        columns.add(column);
+
+        column = new PropertyColumn<>(createStringResource("PageCertCampaigns.table.iteration"),
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_ITERATION.getLocalPart());
+        columns.add(column);
+
+        column = new EnumPropertyColumn<>(createStringResource("PageCertCampaigns.table.state"),
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_STATE.getLocalPart()) {
+            @Override
+            protected String translate(Enum<?> en) {
+                return createStringResourceStatic(pageBase, en).getString();
+            }
+        };
+        columns.add(column);
+
+        column = new PropertyColumn<>(createStringResource("PageCertCampaigns.table.stage"),
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_STAGE_NUMBER.getLocalPart()) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                super.populateItem(item, componentId, rowModel);
+                item.add(new VisibleBehaviour(() -> isStageVisible(rowModel.getObject())));
+            }
+
+            private boolean isStageVisible(SelectableBean<AccessCertificationCampaignType> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getValue();
+                return campaign.getState() == AccessCertificationCampaignStateType.IN_REVIEW_STAGE ||
+                        campaign.getState() == AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
+            }
+
+        };
+        columns.add(column);
+
+        column = new AbstractColumn<>(createStringResource("PageCertCampaigns.table.escalationLevel")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+                int escalationLevelNumber = CertCampaignTypeUtil.getCurrentStageEscalationLevelNumberSafe(campaign);
+                Label label = new Label(componentId, escalationLevelNumber);
+                label.add(new VisibleBehaviour(() -> isEscalationLevelNumber(escalationLevelNumber)));
+                item.add(label);
+            }
+
+            private boolean isEscalationLevelNumber(int escalationLevelNumber) {
+                return escalationLevelNumber != 0;
+            }
+        };
+        columns.add(column);
+
+        column = new AbstractColumn<>(createStringResource("PageCertCampaigns.table.stages")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+                item.add(new Label(componentId, CertCampaignTypeUtil.getNumberOfStages(campaign)));
+            }
+        };
+        columns.add(column);
+
+        column = new AbstractColumn<>(createStringResource("PageCertCampaigns.table.deadline")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+                item.add(new DeadlinePanel(componentId, getDeadlineModel(campaign)));
+            }
+
+
+            private IModel<XMLGregorianCalendar> getDeadlineModel(AccessCertificationCampaignType campaign) {
+                return () -> CampaignProcessingHelper.computeDeadline(campaign, pageBase);
+            }
+        };
+        columns.add(column);
+
+//        column = new SingleButtonColumn<>(new Model<>(), null) {
+//
+//            @Override
+//            public boolean isButtonEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> model) {
+//                //todo fix
+////                final AccessCertificationCampaignType campaign = model.getObject().getValue();
+////                String button = determineAction(campaign);
+////                return button != null;
+//                return true;
+//            }
+//
+//            @Override
+//            public boolean isButtonVisible(IModel<SelectableBean<AccessCertificationCampaignType>> model) {
+//                final AccessCertificationCampaignType campaign = model.getObject().getValue();
+//
+//                return campaign.getState() != AccessCertificationCampaignStateType.IN_REMEDIATION
+//                        && campaign.getState() != AccessCertificationCampaignStateType.CLOSED;
+//            }
+//
+//            @Override
+//            public String getCaption() {
+//                //todo fix
+////                AccessCertificationCampaignType campaign = getRowModel().getObject().getValue();
+////                String button = determineAction(campaign);
+////                if (button != null) {
+////                    return CampaignsPanel.this.createStringResource(button).getString();
+////                } else {
+//                return "";
+////                }
+//            }
+//
+//            @Override
+//            public String getButtonCssColorClass() {
+//                return DoubleButtonColumn.ButtonColorClass.PRIMARY.toString();
+//            }
+//
+//            @Override
+//            public String getButtonCssSizeClass() {
+//                return DoubleButtonColumn.ButtonSizeClass.SMALL.toString();
+//            }
+//
+//            @Override
+//            public void clickPerformed(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> model) {
+//                AccessCertificationCampaignType campaign = model.getObject().getValue();
+//                CampaignProcessingHelper.campaignActionPerformed(campaign, pageBase, target);
+//            }
+//        };
+//        columns.add(column);
+
+        return columns;
+    }
+
+    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> getDefaultCertCaseColumns(int stageNumber) {
         List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> columns = new ArrayList<>();
 
         //todo progress column
@@ -837,7 +1000,7 @@ public class ColumnUtils {
 
            @Override
            public IModel<List<ObjectReferenceType>> extractDataModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-               return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel), stageNumber);
+               return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel));
            }
        });
        columns.add(new CompositedIconWithLabelColumn<>(createStringResource("PageCertCampaign.statistics.response")) {
@@ -870,17 +1033,82 @@ public class ColumnUtils {
            }
        });
 
-       columns.add(new AbstractColumn<>(createStringResource("PageCertCampaign.table.comments")) {
+       columns.add(new IconColumn<>(createStringResource("PageCertCampaign.table.comments")) {
 
            @Serial private static final long serialVersionUID = 1L;
 
            @Override
            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationCaseType>>> cellItem,
-                   String componentId, final IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-               List<String> comments = CertCampaignTypeUtil.getComments(unwrapRowModel(rowModel).asPrismContainerValue(),
-                       stageNumber);
-               Label label = new Label(componentId, (IModel<String>) () -> StringUtils.join(comments, ", "));
-               label.add(AttributeModifier.append("title", StringUtils.join(comments, "\n")));
+                   String componentId, IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+               ImagePanel imagePanel = new ImagePanel(componentId, new ReadOnlyModel<>(() -> getIconDisplayType(rowModel)));
+               imagePanel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(
+                       LocalizationUtil.translatePolyString(getIconDisplayType(rowModel).getTooltip()))));
+               cellItem.add(imagePanel);
+           }
+
+           @Override
+           public DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+               List<String> comments = CertCampaignTypeUtil.getComments(unwrapRowModel(rowModel).asPrismContainerValue());
+               return new DisplayType()
+                       .tooltip(StringUtils.join(comments, "\n"))
+                       .icon(new IconType()
+                               .cssClass("fa fa-comment")
+                               .color("blue"));
+           }
+       });
+        return columns;
+    }
+
+    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> getDefaultCertWorkItemColumns() {
+        List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> columns = new ArrayList<>();
+
+
+        columns.add(new ObjectReferenceColumn<>(createStringResource("WorkItemsPanel.object"),
+                "") {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<List<ObjectReferenceType>> extractDataModel(
+                    IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
+                return () -> Collections.singletonList(certCase.getObjectRef());
+            }
+        });
+        columns.add(new ObjectReferenceColumn<>(createStringResource("WorkItemsPanel.target"),
+                "") {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<List<ObjectReferenceType>> extractDataModel(
+                    IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
+                return () -> Collections.singletonList(certCase.getTargetRef());
+            }
+        });
+       columns.add(new ObjectReferenceColumn<>(createStringResource("PageCertCampaign.table.reviewers"),
+               "") {
+
+           @Serial private static final long serialVersionUID = 1L;
+
+           @Override
+           public IModel<List<ObjectReferenceType>> extractDataModel(
+                   IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+               AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
+               return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel), certCase.getStageNumber());
+           }
+       });
+       columns.add(new AbstractColumn<>(createStringResource("PageCertCampaign.table.comments")) {
+
+           @Serial private static final long serialVersionUID = 1L;
+
+           @Override
+           public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationWorkItemType>>> cellItem,
+                   String componentId, final IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+               String comment = WorkItemTypeUtil.getComment(unwrapRowModel(rowModel));
+               Label label = new Label(componentId, (IModel<String>) () -> comment);
+               label.add(AttributeModifier.append("title", comment));
                label.add(AttributeModifier.append("class", "text-truncate"));
                cellItem.add(label);
            }

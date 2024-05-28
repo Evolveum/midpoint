@@ -43,6 +43,24 @@ The schema is used by midPoint to configure connector instances.
 
 Please see xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation] for the details.
 
+Connector configuration properties are different for each connector.
+However, there are also configuration items that are common for all ConnId connectors.
+These are configuration of connector pool and operation timeouts.
+
+ConnId framework provides xref:/connectors/connid/#connector-pooling[connector pooling] functionality.
+Connector pool parameters can be configured for each connector using `connectorPoolConfiguration` container:
+
+[source,xml]
+----
+    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:connectorPoolConfiguration>
+            <icfc:maxObjects>100</icfc:maxObjects>
+        </icfc:connectorPoolConfiguration>
+          ...
+    </connectorConfiguration>
+----
+
+Similarly, operation timeouts can be configured using `timeouts` container.
 
 == Connectors and Resource Schema
 

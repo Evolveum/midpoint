@@ -12,7 +12,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
+import com.evolveum.midpoint.gui.impl.component.table.ChartedHeaderDto;
+import com.evolveum.midpoint.gui.impl.component.table.WidgetTableChartedHeader;
 import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel;
+
+import com.evolveum.wicket.chartjs.ChartConfiguration;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -274,8 +278,17 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return initSearch(headerId);
     }
 
-    private WidgetTableHeader createWidgetHeader(String headerId) {
-        return new WidgetTableHeader(headerId, new PropertyModel<>(config, "display"));
+    private <T extends ChartConfiguration> WidgetTableHeader createWidgetHeader(String headerId) {
+        IModel<ChartedHeaderDto<T>> chartModel = getChartedHeaderDtoModel();
+        if (chartModel != null) {
+            return new WidgetTableChartedHeader<>(headerId, new PropertyModel<>(config, "display"), chartModel);
+        } else {
+            return new WidgetTableHeader(headerId, new PropertyModel<>(config, "display"));
+        }
+    }
+
+    protected <T extends ChartConfiguration> IModel<ChartedHeaderDto<T>> getChartedHeaderDtoModel() {
+        return null;
     }
 
     private void setUseCounting(ISelectableDataProvider provider) {

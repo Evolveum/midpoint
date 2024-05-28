@@ -1328,6 +1328,52 @@
                     </container>
                     <panelType>rw-synchronization-reaction-optional</panelType>
                 </panel>
+                <panel id="261">
+                    <identifier>rw-association-synchronization-reaction-main</identifier>
+                    <container id="262">
+                        <identifier>associationReactionMainSetting</identifier>
+                        <display>
+                            <label>PageResource.wizard.step.synchronization.reaction.mainSettings</label>
+                        </display>
+                        <item id="263">
+                            <path>schemaHandling/associationType/subject/association/synchronization/reaction/name</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="264">
+                            <path>schemaHandling/associationType/subject/association/synchronization/reaction/description</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="265">
+                            <path>schemaHandling/associationType/subject/association/synchronization/reaction/situation</path>
+                            <visibility>visible</visibility>
+                        </item>
+                    </container>
+                    <container id="266">
+                        <identifier>associationReaction</identifier>
+                        <visibility>hidden</visibility>
+                        <path>schemaHandling/associationType/subject/association/synchronization/reaction</path>
+                    </container>
+                    <panelType>rw-synchronization-reaction-main</panelType>
+                </panel>
+                <panel id="255">
+                    <identifier>rw-association-synchronization-reaction-optional</identifier>
+                    <container id="256">
+                        <identifier>associationReactionOptionalSetting</identifier>
+                        <display>
+                            <label>PageResource.wizard.step.synchronization.reaction.optionalSettings</label>
+                        </display>
+                        <item id="257">
+                            <path>schemaHandling/associationType/subject/association/synchronization/reaction/order</path>
+                            <visibility>visible</visibility>
+                        </item>
+                    </container>
+                    <container id="258">
+                        <identifier>associationReaction</identifier>
+                        <visibility>hidden</visibility>
+                        <path>schemaHandling/associationType/subject/association/synchronization/reaction</path>
+                    </container>
+                    <panelType>rw-synchronization-reaction-optional</panelType>
+                </panel>
                 <panel id="128">
                     <identifier>rw-attribute</identifier>
                     <container id="163">
