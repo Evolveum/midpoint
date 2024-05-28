@@ -96,22 +96,13 @@ public class RoleAnalysisUserBasedTable extends Panel {
     private int fromCol = 1;
     private int toCol = 100;
     private int specialColumnCount;
-    private final MiningOperationChunk miningOperationChunk;
     double minFrequency;
     double maxFrequency;
     boolean isRelationSelected = false;
     boolean showAsExpandCard = false;
-
+    private final MiningOperationChunk miningOperationChunk;
     LoadableDetachableModel<DisplayValueOption> displayValueOptionModel;
     LoadableDetachableModel<OperationPanelModel> operationPanelModel;
-
-    public List<DetectedPattern> getSelectedPatterns() {
-        return operationPanelModel.getObject().getSelectedPatterns();
-    }
-
-    public Map<String, String> getPatternColorPalette() {
-        return operationPanelModel.getObject().getPalletColors();
-    }
 
     public RoleAnalysisUserBasedTable(
             @NotNull String id,
@@ -205,12 +196,11 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
                     @Override
                     protected void addDescriptionComponents() {
-                       appendText("Switch table view");
+                        appendText("Switch table view", null);
                     }
                 };
                 refreshIcon.add(AttributeAppender.replace("class", "btn btn-outline-dark border-0 d-flex"
                         + " align-self-stretch mt-1"));
-//                refreshIcon.add(AttributeAppender.replace("style", "height: 60px;"));
                 headerItems.add(refreshIcon);
             }
 
@@ -272,20 +262,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
             @Override
             protected @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRoleContainer() {
-                if (getSelectedPatterns().size() > 1) {
-                    return null;
-                } else if (getSelectedPatterns() != null && getSelectedPatterns().size() == 1) {
-                    DetectedPattern detectedPattern = getSelectedPatterns().get(0);
-                    Long id = detectedPattern.getId();
-                    List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.asObjectable().getCandidateRoles();
-                    for (RoleAnalysisCandidateRoleType candidateRole : candidateRoles) {
-                        if (candidateRole.getId().equals(id)) {
-                            return Collections.singleton(candidateRole);
-                        }
-                    }
-                }
-
-                return getCandidateRole();
+                return getCandidateRoleToPerform(cluster.asObjectable());
             }
 
             @Override
@@ -314,48 +291,6 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 RepeatingView repeatingView = new RepeatingView(id);
                 repeatingView.setOutputMarkupId(true);
 
-                CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                        "fa fa-search", LayeredIconCssStyle.IN_ROW_STYLE);
-
-                AjaxCompositedIconButton createNewObjectButton = new AjaxCompositedIconButton(
-                        repeatingView.newChildId(), iconBuilder.build(),
-                        createStringResource("RoleAnalysis.explore.patterns")) {
-
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        showDetectedPatternPanel(target);
-                    }
-
-                };
-                createNewObjectButton.add(
-                        AttributeAppender.replace("class", "btn btn-default btn-sm mr-1"));
-                createNewObjectButton.titleAsLabel(true);
-
-                repeatingView.add(createNewObjectButton);
-
-                iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                        "fa fa-users", LayeredIconCssStyle.IN_ROW_STYLE);
-
-                AjaxCompositedIconButton createCandidateRolePanelButton = new AjaxCompositedIconButton(
-                        repeatingView.newChildId(), iconBuilder.build(),
-                        createStringResource("RoleAnalysis.explore.candidate.roles")) {
-
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        showCandidateRolesPanel(target);
-                    }
-
-                };
-                createCandidateRolePanelButton.titleAsLabel(true);
-                createCandidateRolePanelButton.add(
-                        AttributeAppender.replace("class", "btn btn-default btn-sm mr-1"));
-
-                repeatingView.add(createCandidateRolePanelButton);
-
                 AjaxIconButton refreshIcon = new AjaxIconButton(
                         repeatingView.newChildId(),
                         new Model<>(GuiStyleConstants.CLASS_RECONCILE),
@@ -372,7 +307,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
                 repeatingView.add(refreshIcon);
 
-                iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
                         "fa fa-cog", LayeredIconCssStyle.IN_ROW_STYLE);
                 AjaxCompositedIconButton tableSetting = new AjaxCompositedIconButton(
                         repeatingView.newChildId(), iconBuilder.build(), createStringResource("")) {
@@ -421,8 +356,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 toCol = Math.min(value, specialColumnCount);
                 valueTitle = "0 - " + toCol;
 
-                getTable().replaceWith(generateTable(provider, users,
-                        reductionObjects, cluster));
+                getTable().replaceWith(generateTable(provider, users, reductionObjects, cluster));
                 target.add(getTable().setOutputMarkupId(true));
                 target.appendJavaScript(applyTableScaleScript());
             }
@@ -548,12 +482,26 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
                 updateFrequencyBased(rowModel, minFrequency, maxFrequency, isOutlierDetection());
 
+                AjaxLinkPanel analyzedMembersDetailsPanel = buildDetailPanel(componentId, rowModel, elements);
+                analyzedMembersDetailsPanel.add(
+                        AttributeAppender.replace("class", "d-inline-block text-truncate"));
+                analyzedMembersDetailsPanel.add(AttributeAppender.replace("style", "width:145px"));
+                analyzedMembersDetailsPanel.setOutputMarkupId(true);
+                item.add(analyzedMembersDetailsPanel);
+            }
+
+            @NotNull
+            private AjaxLinkPanel buildDetailPanel(
+                    @NotNull String componentId,
+                    @NotNull IModel<MiningRoleTypeChunk> rowModel,
+                    List<String> elements) {
+
                 String title = rowModel.getObject().getChunkName();
                 if (isOutlierDetection()) {
                     double confidence = rowModel.getObject().getFrequencyItem().getzScore();
                     title = " (" + confidence + ")" + title;
                 }
-                AjaxLinkPanel analyzedMembersDetailsPanel = new AjaxLinkPanel(componentId,
+                return new AjaxLinkPanel(componentId,
                         createStringResource(title)) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -576,11 +524,6 @@ public class RoleAnalysisUserBasedTable extends Panel {
                     }
 
                 };
-                analyzedMembersDetailsPanel.add(
-                        AttributeAppender.replace("class", "d-inline-block text-truncate"));
-                analyzedMembersDetailsPanel.add(AttributeAppender.replace("style", "width:145px"));
-                analyzedMembersDetailsPanel.setOutputMarkupId(true);
-                item.add(analyzedMembersDetailsPanel);
             }
 
             @Override
@@ -732,12 +675,13 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
                     applySquareTableCell(cellItem, styleWidth, styleHeight);
 
-                    boolean isInclude = resolveCellTypeUserTable(componentId, cellItem, object, userChunk, new LoadableDetachableModel<>() {
-                        @Override
-                        protected Map<String, String> load() {
-                            return getPatternColorPalette();
-                        }
-                    });
+                    boolean isInclude = resolveCellTypeUserTable(componentId, cellItem, object, userChunk,
+                            new LoadableDetachableModel<>() {
+                                @Override
+                                protected Map<String, String> load() {
+                                    return getPatternColorPalette();
+                                }
+                            });
 
                     if (isInclude) {
                         isRelationSelected = true;
@@ -843,14 +787,6 @@ public class RoleAnalysisUserBasedTable extends Panel {
     protected void onPerform(AjaxRequestTarget ajaxRequestTarget) {
     }
 
-    protected void showDetectedPatternPanel(AjaxRequestTarget target) {
-
-    }
-
-    protected void showCandidateRolesPanel(AjaxRequestTarget target) {
-
-    }
-
     public void loadDetectedPattern(AjaxRequestTarget target) {
 
         List<MiningUserTypeChunk> users = miningOperationChunk.getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
@@ -947,8 +883,9 @@ public class RoleAnalysisUserBasedTable extends Panel {
             }
         }
 
-        if (getCandidateRole() != null) {
-            @Nullable List<RoleAnalysisCandidateRoleType> candidateRole = new ArrayList<>(getCandidateRole());
+        Set<RoleAnalysisCandidateRoleType> candidateRoleToPerform = getCandidateRoleToPerform(cluster.asObjectable());
+        if (candidateRoleToPerform != null) {
+            @Nullable List<RoleAnalysisCandidateRoleType> candidateRole = new ArrayList<>(candidateRoleToPerform);
             if (candidateRole.size() == 1) {
                 PageBase pageBase = getPageBase();
                 RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
@@ -988,8 +925,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
         BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
                 cluster, businessRole, roleApplicationDtos, candidateInducements);
 
-        if (!getSelectedPatterns().isEmpty()
-                && getSelectedPatterns().get(0).getId() != null) {
+        if (!getSelectedPatterns().isEmpty() && getSelectedPatterns().get(0).getId() != null) {
             operationData.setPatternId(getSelectedPatterns().get(0).getId());
         }
 
@@ -1015,10 +951,6 @@ public class RoleAnalysisUserBasedTable extends Panel {
         return patternIds;
     }
 
-    public LoadableDetachableModel<DisplayValueOption> getDisplayValueOptionModel() {
-        return displayValueOptionModel;
-    }
-
     public boolean isOutlierDetection() {
         return false;
     }
@@ -1033,5 +965,30 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
     protected Component getNavigationComponent() {
         return getPageBase().get(getPageBase().createComponentPath("detailsView", "mainForm", "navigationHeader"));
+    }
+
+    public List<DetectedPattern> getSelectedPatterns() {
+        return operationPanelModel.getObject().getSelectedPatterns();
+    }
+
+    public Map<String, String> getPatternColorPalette() {
+        return operationPanelModel.getObject().getPalletColors();
+    }
+
+    private @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRoleToPerform(RoleAnalysisClusterType cluster) {
+        if (getSelectedPatterns().size() > 1) {
+            return null;
+        } else if (getSelectedPatterns().size() == 1) {
+            DetectedPattern detectedPattern = getSelectedPatterns().get(0);
+            Long id = detectedPattern.getId();
+            List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
+            for (RoleAnalysisCandidateRoleType candidateRole : candidateRoles) {
+                if (candidateRole.getId().equals(id)) {
+                    return Collections.singleton(candidateRole);
+                }
+            }
+        }
+
+        return getCandidateRole();
     }
 }

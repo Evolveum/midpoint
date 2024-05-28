@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2022 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
-package com.evolveum.midpoint.gui.impl.component.tile;
+package com.evolveum.midpoint.gui.impl.component.tile.mining.session;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
@@ -17,25 +16,20 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.InlineButtonPanel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisSessionTileTable;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -75,30 +69,79 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
     }
 
     protected void initLayout() {
-        setOutputMarkupId(true);
+        initDefaultCssStyle();
 
-        add(AttributeAppender.append("class", "catalog-tile-panel d-flex flex-column align-items-center bordered w-100 h-100 p-3"));
+        initStatusBar();
 
-        add(AttributeAppender.append("style", "width:25%"));
+        initToolBarPanel();
 
-        DropdownButtonPanel barMenu = new DropdownButtonPanel(ID_BUTTON_BAR, new DropdownButtonDto(
-                null, "fa fa-ellipsis-v", null, createMenuItems())) {
+        initNamePanel();
+
+        initDescriptionPanel();
+
+        initDensityProgressPanel(getModelObject().getDensity());
+
+        initProcessModePanel();
+
+        initFirstCountPanel();
+
+        initSecondCountPanel();
+
+    }
+
+    private void initSecondCountPanel() {
+        IconWithLabel processedObjectCount = new IconWithLabel(ID_PROCESSED_OBJECTS_COUNT, () -> getModelObject().getProcessedObjectCount()) {
             @Override
-            protected boolean hasToggleIcon() {
-                return false;
+            public String getIconCssClass() {
+                RoleAnalysisProcessModeType processMode = RoleAnalysisTilePanel.this.getModelObject().getProcessMode();
+                if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+                    return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
+                }
+                return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
             }
-
-            @Override
-            protected String getSpecialButtonClass() {
-                return " p-0 ";
-            }
-
         };
-        barMenu.setOutputMarkupId(true);
-        barMenu.add(AttributeModifier.replace("title", createStringResource("abstractRoleMemberPanel.menu.moreOptions")));
-        barMenu.add(new TooltipBehavior());
-        add(barMenu);
+        processedObjectCount.setOutputMarkupId(true);
+        processedObjectCount.add(AttributeAppender.replace("title", () -> "Processed objects: " + getModelObject().getProcessedObjectCount()));
+        processedObjectCount.add(new TooltipBehavior());
+        add(processedObjectCount);
+    }
 
+    private void initFirstCountPanel() {
+        IconWithLabel clusterCount = new IconWithLabel(ID_CLUSTER_COUNT, () -> getModelObject().getClusterCount()) {
+            @Override
+            public String getIconCssClass() {
+                return GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON;
+            }
+        };
+
+        clusterCount.setOutputMarkupId(true);
+        clusterCount.add(AttributeAppender.replace("title", () -> "Cluster count: " + getModelObject().getClusterCount()));
+        clusterCount.add(new TooltipBehavior());
+        add(clusterCount);
+    }
+
+    private void initProcessModePanel() {
+        String processModeTitle = getModelObject().getProcessMode().value() + "/" + getModelObject().getCategory().value();
+        IconWithLabel mode = new IconWithLabel(ID_PROCESS_MODE, () -> processModeTitle) {
+            @Override
+            public String getIconCssClass() {
+                return "fa fa-cogs";
+            }
+        };
+        mode.add(AttributeAppender.replace("title", () -> "Process mode: " + processModeTitle));
+        mode.add(new TooltipBehavior());
+        mode.setOutputMarkupId(true);
+        add(mode);
+    }
+
+    private void initDescriptionPanel() {
+        Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
+        description.add(AttributeAppender.replace("title", () -> getModelObject().getDescription()));
+        description.add(new TooltipBehavior());
+        add(description);
+    }
+
+    private void initNamePanel() {
         IconWithLabel objectTitle = new IconWithLabel(ID_OBJECT_TITLE, () -> getModelObject().getName()) {
             @Override
             public String getIconCssClass() {
@@ -121,54 +164,34 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
         objectTitle.add(AttributeAppender.replace("title", () -> getModelObject().getName()));
         objectTitle.add(new TooltipBehavior());
         add(objectTitle);
+    }
 
-        Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
-        description.add(AttributeAppender.replace("title", () -> getModelObject().getDescription()));
-        description.add(new TooltipBehavior());
-        add(description);
-
-        initDensityProgressPanel(getModelObject().getDensity());
-
-        String processModeTitle = getModelObject().getProcessMode().value() + "/" + getModelObject().getCategory().value();
-        IconWithLabel mode = new IconWithLabel(ID_PROCESS_MODE, () -> processModeTitle) {
+    private void initToolBarPanel() {
+        DropdownButtonPanel barMenu = new DropdownButtonPanel(ID_BUTTON_BAR, new DropdownButtonDto(
+                null, "fa fa-ellipsis-v", null, createMenuItems())) {
             @Override
-            public String getIconCssClass() {
-                return "fa fa-cogs";
+            protected boolean hasToggleIcon() {
+                return false;
             }
-        };
-        mode.add(AttributeAppender.replace("title", () -> "Process mode: " + processModeTitle));
-        mode.add(new TooltipBehavior());
-        mode.setOutputMarkupId(true);
-        add(mode);
 
-        IconWithLabel clusterCount = new IconWithLabel(ID_CLUSTER_COUNT, () -> getModelObject().getClusterCount()) {
             @Override
-            public String getIconCssClass() {
-                return GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON;
+            protected String getSpecialButtonClass() {
+                return " p-0 ";
             }
+
         };
+        barMenu.setOutputMarkupId(true);
+        barMenu.add(AttributeModifier.replace("title", createStringResource("RoleAnalysis.menu.moreOptions")));
+        barMenu.add(new TooltipBehavior());
+        add(barMenu);
+    }
 
-        clusterCount.setOutputMarkupId(true);
-        clusterCount.add(AttributeAppender.replace("title", () -> "Cluster count: " + getModelObject().getClusterCount()));
-        clusterCount.add(new TooltipBehavior());
-        add(clusterCount);
+    private void initDefaultCssStyle() {
+        setOutputMarkupId(true);
 
-        IconWithLabel processedObjectCount = new IconWithLabel(ID_PROCESSED_OBJECTS_COUNT, () -> getModelObject().getProcessedObjectCount()) {
-            @Override
-            public String getIconCssClass() {
-                RoleAnalysisProcessModeType processMode = RoleAnalysisTilePanel.this.getModelObject().getProcessMode();
-                if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-                    return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
-                }
-                return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
-            }
-        };
-        processedObjectCount.setOutputMarkupId(true);
-        processedObjectCount.add(AttributeAppender.replace("title", () -> "Processed objects: " + getModelObject().getProcessedObjectCount()));
-        processedObjectCount.add(new TooltipBehavior());
-        add(processedObjectCount);
+        add(AttributeAppender.append("class", "catalog-tile-panel d-flex flex-column align-items-center bordered w-100 h-100 p-3"));
 
-        initStatusBar();
+        add(AttributeAppender.append("style", "width:25%"));
     }
 
     protected void onDetails() {
@@ -194,11 +217,6 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
         String colorClass = densityBasedColor(Double.parseDouble(meanDensity));
 
         ProgressBar progressBar = new ProgressBar(RoleAnalysisTilePanel.ID_DENSITY) {
-
-            @Override
-            public boolean isInline() {
-                return false;
-            }
 
             @Override
             public double getActualValue() {

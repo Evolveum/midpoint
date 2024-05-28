@@ -135,8 +135,10 @@ public class RoleAnalysisTableOpPanelItem extends BasePanel<String> {
         return descriptionTitle;
     }
 
-    protected void appendText(String text) {
+    protected void appendText(String text, String additionalCssClass) {
         Label label = new Label(descriptionText.newChildId(), text);
+        label.add(AttributeModifier.append("class", additionalCssClass));
+        label.setOutputMarkupId(true);
         descriptionText.add(label);
     }
 
@@ -146,7 +148,8 @@ public class RoleAnalysisTableOpPanelItem extends BasePanel<String> {
 
     protected void appendIcon(String iconCssClass, String iconStyle) {
         Label label = new Label(descriptionText.newChildId(), "");
-        label.add(AttributeModifier.replace("class", iconCssClass));
+        label.add(AttributeModifier.append("class", "align-self-center "));
+        label.add(AttributeModifier.append("class", iconCssClass));
         label.add(AttributeModifier.replace("style", iconStyle));
         descriptionText.add(label);
     }

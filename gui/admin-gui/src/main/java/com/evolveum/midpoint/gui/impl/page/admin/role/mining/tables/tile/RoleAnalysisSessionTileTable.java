@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
@@ -15,6 +15,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 
 import org.apache.wicket.AttributeModifier;
@@ -46,8 +47,8 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectDataProvider
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.gui.impl.component.tile.RoleAnalysisSessionTile;
-import com.evolveum.midpoint.gui.impl.component.tile.RoleAnalysisTilePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisSessionTile;
+import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisTilePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
@@ -132,6 +133,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
 
     protected IColumn<SelectableBean<RoleAnalysisSessionType>, String> createCheckboxColumn() {
         return new CheckBoxHeaderColumn<>() {
+            @SuppressWarnings("rawtypes")
             @Override
             protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
                 super.onUpdateHeader(target, selected, table);
@@ -139,6 +141,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
                 updateSelectableProvider(target, selected, table, null);
             }
 
+            @SuppressWarnings("rawtypes")
             @Override
             protected void onUpdateRow(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem, AjaxRequestTarget target, DataTable table, IModel<SelectableBean<RoleAnalysisSessionType>> rowModel, IModel<Boolean> selected) {
                 super.onUpdateRow(cellItem, target, table, rowModel, selected);
@@ -148,6 +151,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
         };
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private void updateSelectableProvider(AjaxRequestTarget target, boolean selected, DataTable table, String oid) {
         ISortableDataProvider<SelectableBean<RoleAnalysisSessionType>, String> tableProvider = getTable().getProvider();
         if (tableProvider instanceof ObjectDataProvider) {
@@ -157,11 +161,10 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
 
             objectDataProvider.getAvailableData().forEach(s -> {
                 if (s instanceof SelectableBean) {
+                    SelectableBean<RoleAnalysisSessionType> selectable = (SelectableBean<RoleAnalysisSessionType>) s;
                     if (oid == null) {
-                        SelectableBean<RoleAnalysisSessionType> selectable = (SelectableBean<RoleAnalysisSessionType>) s;
                         selectable.setSelected(selected);
                     } else {
-                        SelectableBean<RoleAnalysisSessionType> selectable = (SelectableBean<RoleAnalysisSessionType>) s;
                         String candidateOid = selectable.getValue().getOid();
                         if (oid.equals(candidateOid)) {
                             selectable.setSelected(selected);
@@ -174,6 +177,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
         }
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public TileTablePanel<RoleAnalysisSessionTile<SelectableBean<RoleAnalysisSessionType>>, SelectableBean<RoleAnalysisSessionType>> initTable() {
 
         searchModel = new LoadableDetachableModel<>() {
@@ -202,7 +206,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
         return new TileTablePanel<>(
                 ID_DATATABLE,
                 Model.of(ViewToggle.TILE),
-                UserProfileStorage.TableId.PANEL_GOVERNANCE_CARDS) {
+                UserProfileStorage.TableId.TABLE_SESSION) {
 
             @Override
             protected List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> createColumns() {
@@ -213,10 +217,23 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
             protected WebMarkupContainer createTableButtonToolbar(String id) {
                 Fragment fragment = new Fragment(id, "tableFooterFragment", RoleAnalysisSessionTileTable.this);
 
+                AjaxIconButton newObjectButton = new AjaxIconButton("newObject", Model.of("fa fa-plus"), Model.of()) {
+                    @Override
+                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                        getPageBase().navigateToNext(PageRoleAnalysisSession.class);
+                    }
+                };
+                newObjectButton.add(AttributeModifier.replace("title", createStringResource("Create new session")));
+                newObjectButton.add(new TooltipBehavior());
+                newObjectButton.setOutputMarkupId(true);
+                fragment.add(newObjectButton);
+
                 AjaxIconButton refreshTable = new AjaxIconButton("refreshTable", Model.of("fa fa-refresh"), Model.of()) {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        getPageBase().navigateToNext(PageRoleAnalysis.class);
+                        RoleAnalysisSessionTileTable.this.getTable().refresh(ajaxRequestTarget);
+//
+//                        getPageBase().navigateToNext(PageRoleAnalysis.class);
                     }
                 };
 
@@ -245,13 +262,26 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
             protected WebMarkupContainer createTilesButtonToolbar(String id) {
                 Fragment fragment = new Fragment(id, "tableFooterFragment", RoleAnalysisSessionTileTable.this);
 
+                AjaxIconButton newObjectButton = new AjaxIconButton("newObject", Model.of("fa fa-plus"), Model.of()) {
+                    @Override
+                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                        getPageBase().navigateToNext(PageRoleAnalysisSession.class);
+                    }
+                };
+                newObjectButton.add(AttributeModifier.replace("title", createStringResource("Create new session")));
+                newObjectButton.add(new TooltipBehavior());
+                newObjectButton.setOutputMarkupId(true);
+                fragment.add(newObjectButton);
+
                 AjaxIconButton refreshTable = new AjaxIconButton("refreshTable", Model.of("fa fa-refresh"), Model.of()) {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        getPageBase().navigateToNext(PageRoleAnalysis.class);
+                        RoleAnalysisSessionTileTable.this.getTable().refresh(ajaxRequestTarget);
                     }
                 };
 
+                refreshTable.add(AttributeModifier.replace("title", createStringResource("Refresh table")));
+                refreshTable.add(new TooltipBehavior());
                 refreshTable.setOutputMarkupId(true);
                 fragment.add(refreshTable);
 
@@ -266,6 +296,9 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
                 };
 
                 fragment.add(viewToggle);
+                fragment.add(AttributeModifier.replace("title", createStringResource("Change view")));
+                fragment.add(new TooltipBehavior());
+                fragment.setOutputMarkupId(true);
 
                 return fragment;
             }
@@ -602,24 +635,31 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
                     }
                 }
 
-                ObjectReferenceType finalTaskRef = taskRef;
-                AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(componentId, Model.of(stateString)) {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        super.onClick(target);
-                        if (finalTaskRef != null && finalTaskRef.getOid() != null) {
-                            DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, finalTaskRef.getOid(),
-                                    this, true);
-                        }
-                    }
-                };
-                String buttonClass = resolveButtonClass(operationStatus);
+                AjaxLinkPanel ajaxLinkPanel = buildTaskPanel(componentId, taskRef, stateString);
+                String buttonClass = null;
+                if (operationStatus != null) {
+                    buttonClass = resolveButtonClass(operationStatus);
+                }
 
                 ajaxLinkPanel.add(AttributeModifier.replace("class", "btn btn-sm " + buttonClass));
                 ajaxLinkPanel.add(AttributeModifier.replace("style", "width: 80%"));
                 ajaxLinkPanel.setEnabled(taskRef != null);
                 ajaxLinkPanel.setOutputMarkupId(true);
                 cellItem.add(ajaxLinkPanel);
+            }
+
+            @NotNull
+            private AjaxLinkPanel buildTaskPanel(String componentId, ObjectReferenceType taskRef, String stateString) {
+                return new AjaxLinkPanel(componentId, Model.of(stateString)) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        super.onClick(target);
+                        if (taskRef != null && taskRef.getOid() != null) {
+                            DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, taskRef.getOid(),
+                                    this, true);
+                        }
+                    }
+                };
             }
 
             @NotNull
@@ -777,6 +817,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
                 return "inline-menu-column ";
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             public void populateItem(Item cellItem, String componentId, IModel rowModel) {
                 super.populateItem(cellItem, componentId, rowModel);
@@ -784,6 +825,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
         };
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private @NotNull InlineMenuItem createDeleteInlineMenu() {
         return new ButtonInlineMenuItem(createStringResource("MainObjectListPanel.menu.delete")) {
             @Override
@@ -807,7 +849,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
                         }
 
                         OperationResult result = new OperationResult(OP_DELETE_SESSION);
-                        if (selectedData.size() == 1 && getRowModel() == null) {
+                        if (selectedData != null && selectedData.size() == 1 && getRowModel() == null) {
                             try {
                                 RoleAnalysisSessionType sessionType = selectedData.get(0);
                                 roleAnalysisService
@@ -827,7 +869,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
-                        } else {
+                        } else if (selectedData != null) {
                             for (RoleAnalysisSessionType selectedObject : selectedData) {
                                 try {
                                     String parentOid = selectedObject.getOid();

@@ -105,8 +105,8 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
                 RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
                 if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)
-                        || analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)
-                        || analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)) {
+                        || analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+//                    || analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)
                     showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
                     super.onSubmitPerformed(target);
                 }
@@ -118,9 +118,8 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
         RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
         if (!analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)
-                && !analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)
-                && !analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)) {
-
+                && !analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+//                    || analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)
             return steps;
         }
 

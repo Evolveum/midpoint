@@ -182,16 +182,16 @@ public class RoleAnalysisReconfigureSessionPopupPanel
                         return ItemVisibility.HIDDEN;
                     }
 
-                    if (itemName.equals(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING)
-                            || itemName.equals(AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING)) {
-                        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getObjectWrapperModel();
-                        RoleAnalysisSessionType session = objectWrapperModel.getObject().getObject().asObjectable();
-                        RoleAnalysisOptionType processModeObject = session.getAnalysisOption();
-                        RoleAnalysisCategoryType analysisCategory = processModeObject.getAnalysisCategory();
-                        if (analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)) {
-                            return ItemVisibility.HIDDEN;
-                        }
-                    }
+//                    if (itemName.equals(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING)
+//                            || itemName.equals(AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING)) {
+//                        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getObjectWrapperModel();
+//                        RoleAnalysisSessionType session = objectWrapperModel.getObject().getObject().asObjectable();
+//                        RoleAnalysisOptionType processModeObject = session.getAnalysisOption();
+//                        RoleAnalysisCategoryType analysisCategory = processModeObject.getAnalysisCategory();
+//                        if (analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)) {
+//                            return ItemVisibility.HIDDEN;
+//                        }
+//                    }
                     return ItemVisibility.AUTO;
                 };
             }

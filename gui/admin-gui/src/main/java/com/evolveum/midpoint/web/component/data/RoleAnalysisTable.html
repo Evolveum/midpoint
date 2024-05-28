@@ -14,8 +14,8 @@
     <div class="card-header" wicket:id="header"></div>
 
     <div wicket:id="tableContainer" class="card-body p-0 table-responsive overflow-hidden">
-        <div class="row">
-            <div id="tableScaleContainer" class="col table-responsive p-0" style="max-height:100%">
+        <div class="row w-100 h-100">
+            <div id="tableScaleContainer" class="col table-responsive p-0 w-100 h-100" style="max-height:100%">
                 <table class="table table-hover" wicket:id="table"></table>
             </div>
         </div>
@@ -58,7 +58,7 @@
 
 <wicket:fragment wicket:id="pagingFooter">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div class="d-flex">
+        <div class="d-flex gap-1">
             <div class="d-flex" wicket:id="buttonToolbar"></div>
         </div>
         <div class="d-flex align-items-center flex-wrap gap-2" wicket:id="footerContainer">

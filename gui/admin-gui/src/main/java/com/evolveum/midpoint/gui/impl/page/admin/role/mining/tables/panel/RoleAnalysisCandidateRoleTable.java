@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.panel;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.resolveDateAndTime;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_CANDIDATE_ROLE_ID;
@@ -106,12 +106,14 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
                         super.populateItem(cellItem, componentId, rowModel);
                     }
 
+                    @SuppressWarnings("rawtypes")
                     @Override
                     protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
                         super.onUpdateHeader(target, selected, table);
                         prepareColorsPalete(cacheCandidate, getSelectedObjects());
                     }
 
+                    @SuppressWarnings("rawtypes")
                     @Override
                     protected void onUpdateRow(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem, AjaxRequestTarget target,
                             DataTable table, IModel<SelectableBean<RoleType>> rowModel, IModel<Boolean> selected) {
@@ -667,6 +669,7 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
         return new SelectableBeanObjectDataProvider<>(
                 RoleAnalysisCandidateRoleTable.this, Set.of()) {
 
+            @SuppressWarnings("rawtypes")
             @Override
             protected List<RoleType> searchObjects(Class type,
                     ObjectQuery query,
@@ -816,6 +819,7 @@ public class RoleAnalysisCandidateRoleTable extends BasePanel<String> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private MainObjectListPanel<RoleType> getTable() {
         return (MainObjectListPanel<RoleType>) get(ID_DATATABLE);
     }

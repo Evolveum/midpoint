@@ -99,7 +99,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
             candidateRolesCount = String.valueOf(candidateRoles.size());
         }
 
-        InfoBoxModel infoBoxResolvedPatterns = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-white",
+        InfoBoxModel infoBoxResolvedPatterns = new InfoBoxModel(GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " text-white",
                 "Optimized roles",
                 resolvedPatternCount,
                 100,
@@ -116,7 +116,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         resolvedPatternLabel.setOutputMarkupId(true);
         headerItems.add(resolvedPatternLabel);
 
-        InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-white",
+        InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " text-white",
                 "Candidate roles",
                 candidateRolesCount,
                 100,

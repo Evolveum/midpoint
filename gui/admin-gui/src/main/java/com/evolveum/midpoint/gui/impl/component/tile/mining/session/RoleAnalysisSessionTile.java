@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2022 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.component.tile;
+package com.evolveum.midpoint.gui.impl.component.tile.mining.session;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -20,34 +21,28 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 
-public class RoleAnalysisSessionTile<T extends Serializable> extends Tile {
+public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
 
     String icon;
-
     String oid;
     private String name;
-
     private String description;
-
     private String density;
-
     private String processedObjectCount;
     private String clusterCount;
-
     RoleAnalysisProcessModeType processMode;
-
     RoleAnalysisCategoryType category;
     private RoleAnalysisOperationStatus status;
-
     ObjectReferenceType taskRef;
-
     String stateString;
 
     public RoleAnalysisSessionTile(String icon, String title) {
         super(icon, title);
     }
 
-    public RoleAnalysisSessionTile(@NotNull RoleAnalysisSessionType session, PageBase pageBase) {
+    public RoleAnalysisSessionTile(
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull PageBase pageBase) {
 
         this.icon = IconAndStylesUtil.createDefaultColoredIcon(session.asPrismObject().getValue().getTypeName());
         this.name = String.valueOf(session.getName());
@@ -65,7 +60,7 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile {
             if (meanDensity != null) {
                 this.density = new DecimalFormat("#.###")
                         .format(Math.round(meanDensity * 1000.0) / 1000.0);
-            }else {
+            } else {
                 this.density = "0.00";
             }
 
@@ -78,13 +73,13 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile {
             if (clusterCount != null) {
                 this.clusterCount = clusterCount.toString();
             }
-        }else {
+        } else {
             this.density = "0.00";
             this.processedObjectCount = "0";
             this.clusterCount = "0";
         }
         this.description = session.getDescription();
-        if(this.description == null) {
+        if (this.description == null) {
             this.description = "...";
         }
         this.status = session.getOperationStatus();
@@ -101,7 +96,9 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile {
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
         PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(oid, task, result);
 
-        this.status = sessionTypeObject.asObjectable().getOperationStatus();
+        if (sessionTypeObject == null) {
+            return;
+        }
 
         this.stateString = roleAnalysisService.recomputeAndResolveSessionOpStatus(
                 sessionTypeObject,
@@ -161,16 +158,8 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile {
         return processedObjectCount;
     }
 
-    public void setProcessedObjectCount(String processedObjectCount) {
-        this.processedObjectCount = processedObjectCount;
-    }
-
     public String getClusterCount() {
         return clusterCount;
-    }
-
-    public void setClusterCount(String clusterCount) {
-        this.clusterCount = clusterCount;
     }
 
     public RoleAnalysisOperationStatus getStatus() {

@@ -12,17 +12,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisClusterAction;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisCandidateRoleTable;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisClusterAction;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisCandidateRoleTileTable;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -83,8 +83,13 @@ public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClu
             }
         }
 
-        RoleAnalysisCandidateRoleTable components = new RoleAnalysisCandidateRoleTable(ID_PANEL,
-                getObjectDetailsModels().getObjectType(), cacheCandidate, roles, null) {
+        RoleAnalysisCandidateRoleTileTable components = new RoleAnalysisCandidateRoleTileTable(ID_PANEL, getPageBase(),
+                new LoadableDetachableModel<>() {
+                    @Override
+                    protected List<RoleType> load() {
+                        return roles;
+                    }
+                }, cacheCandidate, cluster.getOid()) {
 
             @Override
             protected void onRefresh(AjaxRequestTarget target) {

@@ -47,7 +47,8 @@ public class ClusteringBehavioralResolver implements Clusterable {
         validateNotNull(processMode, "process mode");
 
         List<PrismObject<RoleAnalysisClusterType>> clusteringResult = switch (analysisCategory) {
-            case STANDARD, BALANCED, EXACT, EXPLORATION ->
+//            case STANDARD, BALANCED, EXACT, EXPLORATION ->
+            case BALANCED, EXACT, EXPLORATION ->
                     executeStandardClustering(roleAnalysisService, modelService, session, handler, task, result);
             case ADVANCED, DEPARTMENT ->
                     executeAdvancedClustering(roleAnalysisService, modelService, session, handler, task, result);

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
+import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
+
 import java.io.Serial;
 import java.util.List;
 
@@ -16,14 +18,18 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconTextPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.OperationPanelModel;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelModel> {
 
@@ -149,7 +155,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
             @Override
             protected void addDescriptionComponents() {
-                appendText("Switch explore mode");
+                appendText("Switch explore mode", null);
             }
         };
 
@@ -189,7 +195,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
             @Override
             protected void addDescriptionComponents() {
-                appendText("Switch object view");
+                appendText("Switch object view", null);
             }
         };
 
@@ -271,18 +277,52 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
                 @Override
                 public @NotNull Component getDescriptionTitleComponent(String id) {
-                    Label label = new Label(id, "Pattern details #" + (patternIndex + 1));
+                    LoadableDetachableModel<String> model = new LoadableDetachableModel<>() {
+                        @Override
+                        protected String load() {
+                            if (modelObject.isCandidateRoleView()) {
+                                return "Candidate role" + (pattern.getIdentifier());
+                            }
+
+                            return "Pattern details #" + (patternIndex + 1);
+                        }
+                    };
+
+                    RepeatingView repeatingView = new RepeatingView(id);
+                    repeatingView.setOutputMarkupId(true);
+
+                    Label label = new Label(repeatingView.newChildId(), model);
                     label.setOutputMarkupId(true);
-                    return label;
+
+                    AjaxIconButton iconButton = new AjaxIconButton(repeatingView.newChildId(),
+                            Model.of("fa fa-list"), Model.of("")) {
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            if (modelObject.isCandidateRoleView()) {
+                                String roleOid = pattern.getRoleOid();
+                                dispatchToObjectDetailsPage(RoleType.class, roleOid, getPageBase(), true);
+                            }
+
+                            RoleAnalysisDetectedPatternDetailsPopup component = new RoleAnalysisDetectedPatternDetailsPopup(
+                                    ((PageBase) getPage()).getMainPopupBodyId(),
+                                    Model.of(pattern));
+                            ((PageBase) getPage()).showMainPopup(component, target);
+                        }
+                    };
+                    iconButton.setOutputMarkupId(true);
+                    iconButton.add(AttributeAppender.replace("class", "p-0"));
+                    repeatingView.add(label);
+                    repeatingView.add(iconButton);
+                    return repeatingView;
                 }
 
                 @Override
                 protected void addDescriptionComponents() {
                     appendIcon("fe fe-assignment", "color: red;");
-                    appendText(" " + formattedReductionFactorConfidence);
-                    appendText(" - ");
+                    appendText(" " + formattedReductionFactorConfidence, null);
+                    appendText(" - ", null);
                     appendIcon("fa fa-leaf", "color: green");
-                    appendText(" " + formattedItemConfidence + "% stats.");
+                    appendText(" " + formattedItemConfidence + "% stats.", null);
                 }
 
                 @Serial
@@ -324,7 +364,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
             @Override
             protected void addDescriptionComponents() {
-                appendText("Switch panel view.");
+                appendText("Switch panel view.", null);
             }
 
             @Serial

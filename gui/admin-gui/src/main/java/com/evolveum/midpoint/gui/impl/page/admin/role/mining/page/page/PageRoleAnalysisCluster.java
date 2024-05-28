@@ -58,6 +58,8 @@ import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
 
 //TODO correct authorizations
@@ -610,19 +612,19 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         repeatingView.add(editConfigurationButton);
     }
 
-    private String getLastRebuildTimeStamp(@NotNull RoleAnalysisClusterType objectType) {
-//        String lastRebuild = "Last rebuild: ";
-//        List<RoleAnalysisOperationStatus> operationStatus = objectType.getOperationStatus();
-//        if (operationStatus != null) {
-//            XMLGregorianCalendar createTimestamp = operationStatus.getCreateTimestamp();
-//            if (createTimestamp != null) {
-//                int eonAndYear = createTimestamp.getYear();
-//                int month = createTimestamp.getMonth();
-//                int day = createTimestamp.getDay();
-//                String time = day + "/" + month + "/" + eonAndYear;
-//                lastRebuild = lastRebuild + time;
-//            }
-//        }
+    private @NotNull String getLastRebuildTimeStamp(@NotNull RoleAnalysisClusterType objectType) {
+        MetadataType metadata = objectType.getMetadata();
+        if(metadata == null) {
+            return "unknown";
+        }
+        XMLGregorianCalendar createTimestamp = metadata.getCreateTimestamp();
+        if (createTimestamp != null) {
+            int eonAndYear = createTimestamp.getYear();
+            int month = createTimestamp.getMonth();
+            int day = createTimestamp.getDay();
+            String time = day + "/" + month + "/" + eonAndYear;
+            return "Last rebuild: " + time;
+        }
         return "unknown";
     }
 

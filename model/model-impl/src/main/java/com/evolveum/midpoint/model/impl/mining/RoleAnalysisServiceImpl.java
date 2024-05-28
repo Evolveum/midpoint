@@ -7,13 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.mining;
 
-import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.createAttributeMap;
-
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
-
 import static java.util.Collections.singleton;
 
+import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.createAttributeMap;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.model.impl.mining.analysis.AttributeAnalysisUtil.*;
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisUtils.*;
@@ -27,10 +25,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.mining.objects.chunk.*;
-import com.evolveum.midpoint.common.mining.utils.values.*;
-import com.evolveum.midpoint.schema.SearchResultList;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.math3.distribution.NormalDistribution;
@@ -42,9 +36,11 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+import com.evolveum.midpoint.common.mining.objects.chunk.*;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
+import com.evolveum.midpoint.common.mining.utils.values.*;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -62,6 +58,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -86,6 +83,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
     @Autowired ModelService modelService;
     @Autowired RepositoryService repositoryService;
+    @Autowired ModelInteractionService modelInteractionService;
 
     @Override
     public @Nullable PrismObject<UserType> getUserTypeObject(
@@ -869,6 +867,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull String clusterRefOid,
             @NotNull Task task,
             @NotNull OperationResult result) {
+        //TODO not necessary after candidate role functionality implementation
         PrismObject<RoleAnalysisClusterType> cluster = getClusterTypeObject(clusterRefOid,
                 task, result);
         if (cluster == null) {
@@ -1112,7 +1111,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
     @Override
     public void executeMigrationTask(
-            @NotNull ModelInteractionService modelInteractionService, @NotNull PrismObject<RoleAnalysisClusterType> cluster,
+            @NotNull ModelInteractionService modelInteractionService,
+            @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull ActivityDefinitionType activityDefinition,
             @NotNull PrismObject<RoleType> roleObject,
             @Nullable String taskOid,
@@ -1175,6 +1175,18 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 LOGGER.error("Couldn't update lifecycle state of object RoleType {}", cluster.getOid(), e);
             }
 
+            try {
+                List<ItemDelta<?, ?>> modifications = new ArrayList<>();
+
+                modifications.add(PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                        .item(RoleAnalysisClusterType.F_DETECTED_PATTERN).replace(Collections.emptyList())
+                        .asItemDelta());
+
+                repositoryService.modifyObject(RoleAnalysisClusterType.class, cluster.getOid(), modifications, result);
+            } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+                LOGGER.error("Couldn't execute migration recompute RoleAnalysisClusterDetectionOptions {}", cluster.getOid(), e);
+            }
+
         } catch (CommonException e) {
             LOGGER.error("Failed to execute role {} migration activity: ", roleObject.getOid(), e);
         }
@@ -1209,7 +1221,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             );
 
             if (newStatus != null) {
-                collection.add(newStatus.clone().asPrismContainerValue());
+                collection.add(newStatus.clone().asPrismContainerValue().clone());
                 requestUpdateOp = true;
                 OperationResultStatusType progresStatus = newStatus.getStatus();
                 if (progresStatus != null && progresStatus.equals(OperationResultStatusType.IN_PROGRESS)) {
@@ -1219,14 +1231,14 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 }
 
             } else {
-                collection.add(roleAnalysisOperationStatus.clone().asPrismContainerValue());
+//                collection.add(roleAnalysisOperationStatus.clone().asPrismContainerValue().clone());
                 OperationResultStatusType progresStatus = roleAnalysisOperationStatus.getStatus();
                 if (progresStatus != null && progresStatus.equals(OperationResultStatusType.IN_PROGRESS)) {
                     stateString = RoleAnalysisObjectState.PROCESSING.getDisplayString();
                 }
             }
 
-            if (requestUpdateOp) {
+            if (requestUpdateOp && !collection.isEmpty()) {
                 try {
                     ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
                             .item(RoleAnalysisClusterType.F_OPERATION_STATUS).replace(collection)
@@ -1240,12 +1252,14 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                         ExpressionEvaluationException |
                         CommunicationException | ConfigurationException | PolicyViolationException |
                         SecurityViolationException e) {
-                    LOGGER.error("Couldn't modify RoleAnalysisClusterType {}", cluster.getOid(), e);
+                    LOGGER.warn("Couldn't modify RoleAnalysisClusterType {}", cluster.getOid(), e);
                 }
             }
 
             if (requestUpdatePattern) {
-                updateClusterPatterns(cluster.getOid(), task, result);
+//                updateClusterPatterns(cluster.getOid(), task, result);
+                this.executeDetectionTask(modelInteractionService, cluster.asPrismObject(), null,
+                        null, task, result);
             }
 
         }
@@ -1540,6 +1554,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             ResultHandler<RoleType> resultHandler = (role, lResult) -> {
                 try {
                     if (!existingOidSet.contains(role.getOid())) {
+                        //noinspection unchecked
                         modifyList.add((T) role.asObjectable());
                     }
                 } catch (Exception e) {
@@ -1856,7 +1871,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
         for (RoleAnalysisAttributeAnalysis clusterAnalysis : attributeAnalysis) {
             String clusterItemPath = clusterAnalysis.getItemPath();
-            Double clusterDensity = clusterAnalysis.getDensity();
             Set<String> outlierValues = extractCorrespondingOutlierValues(compared, clusterItemPath);
             if (outlierValues == null) {
                 continue;

@@ -7,13 +7,15 @@
 
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
+
 <wicket:panel>
+    <div class="bg-light" wicket:id="datatable"></div>
 
-    <div class="col m-0 p-0 elevation-1">
-        <div wicket:id="container">
-            <div wicket:id="panelId"></div>
+    <wicket:fragment wicket:id="tableFooterFragment">
+        <div class="d-flex flex-wrap gap-2">
+            <div class="btn btn-default" wicket:id="refreshTable"></div>
+            <div wicket:id="viewToggle"></div>
         </div>
-    </div>
-
+    </wicket:fragment>
 </wicket:panel>
 </html>

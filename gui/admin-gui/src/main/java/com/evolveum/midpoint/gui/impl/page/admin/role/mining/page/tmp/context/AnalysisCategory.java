@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 public enum AnalysisCategory implements TileEnum {
 
-    STANDARD("fa fa-cogs"),
+//    STANDARD("fa fa-cogs"),
     BALANCED_COVERAGE("fa fa-balance-scale"),
     EXACT_ACCESS_SIMILARITY("fa fa-key"),
     DEPARTMENT("fa fa-building"),
@@ -45,7 +45,7 @@ public enum AnalysisCategory implements TileEnum {
             @NotNull Task task,
             @NotNull OperationResult result) {
         switch (this) {
-            case STANDARD -> new StandardModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+//            case STANDARD -> new StandardModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
             case BALANCED_COVERAGE -> new BalancedCoverageModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
             case EXACT_ACCESS_SIMILARITY -> new ExactSimilarityModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
             case DEPARTMENT -> new DepartmentModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
@@ -56,7 +56,7 @@ public enum AnalysisCategory implements TileEnum {
 
     public RoleAnalysisCategoryType resolveCategoryMode() {
         return switch (this) {
-            case STANDARD -> RoleAnalysisCategoryType.STANDARD;
+//            case STANDARD -> RoleAnalysisCategoryType.STANDARD;
             case BALANCED_COVERAGE -> RoleAnalysisCategoryType.BALANCED;
             case EXACT_ACCESS_SIMILARITY -> RoleAnalysisCategoryType.EXACT;
             case DEPARTMENT -> RoleAnalysisCategoryType.DEPARTMENT;

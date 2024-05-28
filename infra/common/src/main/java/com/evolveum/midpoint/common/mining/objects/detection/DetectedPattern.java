@@ -36,6 +36,10 @@ public class DetectedPattern extends BasePattern implements Serializable {
         super(roles, users, clusterMetric, patternId);
     }
 
+    public DetectedPattern(Set<String> roles, Set<String> users, double clusterMetric, Long patternId, String roleOid) {
+        super(roles, users, clusterMetric, patternId, roleOid);
+    }
+
     public ObjectReferenceType getClusterRef() {
         return clusterRef;
     }

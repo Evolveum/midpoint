@@ -84,9 +84,9 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
                 LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
                 RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
                 RoleAnalysisCategoryType analysisCategory = processModeObject.getAnalysisCategory();
-                if (analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)) {
-                    return ItemVisibility.HIDDEN;
-                }
+//                if (analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)) {
+//                    return ItemVisibility.HIDDEN;
+//                }
             }
             return ItemVisibility.AUTO;
         };

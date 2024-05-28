@@ -193,7 +193,20 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
             protected String getPaginationCssClass() {
                 return null;
             }
+
+            @Override
+            public String getAdditionalBoxCssClasses() {
+                String additionalBoxCssClasses = TileTablePanel.this.getAdditionalBoxCssClasses();
+                if (additionalBoxCssClasses != null) {
+                    return additionalBoxCssClasses;
+                }
+                return super.getAdditionalBoxCssClasses();
+            }
         };
+    }
+
+    protected String getAdditionalBoxCssClasses() {
+        return null;
     }
 
     private TogglePanel createTogglePanel(String id) {

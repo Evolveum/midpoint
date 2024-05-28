@@ -13,8 +13,6 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.component.NumberFormatSelectorPanel;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -27,7 +25,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.validation.validator.RangeValidator;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.component.NumberFormatSelectorPanel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -69,7 +67,7 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
             }
 
             @Override
-            protected WebMarkupContainer createButtonToolbar(String id) {
+            protected @NotNull WebMarkupContainer createButtonToolbar(String id) {
                 AjaxIconButton refreshIcon = new AjaxIconButton(id, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
                         createStringResource("MainObjectListPanel.refresh")) {
 
@@ -104,7 +102,7 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
             }
         });
 
-        columns.add(new AbstractColumn<>(getHeaderTitle("")) {
+        columns.add(new AbstractColumn<>(createStringResource("")) {
 
             @Override
             public boolean isSortable() {
@@ -127,7 +125,7 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
 
         });
 
-        columns.add(new AbstractColumn<>(getHeaderTitle("")) {
+        columns.add(new AbstractColumn<>(createStringResource("")) {
 
             @Override
             public boolean isSortable() {
@@ -147,11 +145,6 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
                             iconType.setCssClass("fa fa-cube");
                             displayType.setIcon(iconType);
                             return displayType;
-                        }
-
-                        @Override
-                        protected boolean isPreGroupVisible() {
-                            return true;
                         }
 
                         @Override
@@ -203,11 +196,6 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
                         }
 
                         @Override
-                        protected boolean isPreGroupVisible() {
-                            return true;
-                        }
-
-                        @Override
                         public void onChangePerform(Double newValue) {
                             rowModel.getObject().setWeight(newValue);
                         }
@@ -237,10 +225,6 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
 
     protected BoxedTablePanel<?> getTable() {
         return ((BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE)));
-    }
-
-    protected StringResourceModel getHeaderTitle(String identifier) {
-        return createStringResource("RoleMining.cluster.table.column.header." + identifier);
     }
 
     protected void onRefresh(AjaxRequestTarget target) {

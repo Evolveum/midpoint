@@ -140,7 +140,7 @@ public class RoleAnalysisTableCellFillResolver {
         }
 
         if (rowStatus.isDisable() || colStatus.isDisable()) {
-            if (isCandidate) {
+            if (firstStage) {
                 disabledCell(componentId, cellItem);
                 return false;
             }
@@ -228,7 +228,7 @@ public class RoleAnalysisTableCellFillResolver {
         }
 
         if (rowStatus.isDisable() || colStatus.isDisable()) {
-            if (isCandidate) {
+            if (firstStage) {
                 disabledCell(componentId, cellItem);
                 return false;
             }

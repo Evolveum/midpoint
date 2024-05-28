@@ -11,7 +11,8 @@ import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.tran
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisClusterAction;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -24,12 +25,12 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisDetectedPatternTable;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisClusterAction;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.panel.RoleAnalysisDetectedPatternTable;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisDetectedPatternTileTable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
@@ -61,27 +62,23 @@ public class DetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysisCl
         container.setOutputMarkupId(true);
         add(container);
 
-        RoleAnalysisDetectedPatternTable components = loadTable();
+        RoleAnalysisDetectedPatternTileTable components = loadTable();
         container.add(components);
     }
 
     @NotNull
-    private RoleAnalysisDetectedPatternTable loadTable() {
-        RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL, getPageBase(),
+    private RoleAnalysisDetectedPatternTileTable loadTable() {
+        RoleAnalysisDetectedPatternTileTable components = new RoleAnalysisDetectedPatternTileTable(ID_PANEL, getPageBase(),
                 new LoadableDetachableModel<>() {
                     @Override
                     protected List<DetectedPattern> load() {
                         return transformDefaultPattern(getObjectDetailsModels().getObjectType());
                     }
                 }) {
+
             @Override
             protected void onRefresh(AjaxRequestTarget target) {
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, getObjectDetailsModels().getObjectType().getOid());
-                parameters.add(ID_PANEL, getPanelConfiguration().getIdentifier());
-                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                        .getObjectDetailsPage(RoleAnalysisClusterType.class);
-                getPageBase().navigateToNext(detailsPageClass, parameters);
+                performOnRefresh();
             }
         };
         components.setOutputMarkupId(true);
@@ -94,6 +91,15 @@ public class DetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysisCl
 
     protected RoleAnalysisDetectedPatternTable getTable() {
         return (RoleAnalysisDetectedPatternTable) get(((PageBase) getPage()).createComponentPath(ID_CONTAINER, ID_PANEL));
+    }
+
+    private void performOnRefresh() {
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, getObjectDetailsModels().getObjectType().getOid());
+        parameters.add(ID_PANEL, getPanelConfiguration().getIdentifier());
+        Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                .getObjectDetailsPage(RoleAnalysisClusterType.class);
+        getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
 }

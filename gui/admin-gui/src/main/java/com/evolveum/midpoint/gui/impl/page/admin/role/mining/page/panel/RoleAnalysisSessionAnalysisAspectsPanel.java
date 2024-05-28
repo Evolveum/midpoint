@@ -12,7 +12,6 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.c
 import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -105,8 +104,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     Task task = pageBase.createSimpleTask("loadRoleAnalysisInfo");
                     OperationResult result = task.getResult();
                     List<DetectedPattern> topPatters = roleAnalysisService.getTopSessionPattern(session, task, result, false);
-                    for (int i = 0; i < topPatters.size(); i++) {
-                        DetectedPattern pattern = topPatters.get(i);
+                    for (DetectedPattern pattern : topPatters) {
                         double reductionFactorConfidence = pattern.getMetric();
                         String formattedReductionFactorConfidence = String.format("%.0f", reductionFactorConfidence);
                         double itemsConfidence = pattern.getItemsConfidence();
@@ -248,7 +246,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         infoBoxReductionLabel.setOutputMarkupId(true);
         headerItems.add(infoBoxReductionLabel);
 
-        InfoBoxModel infoBoxOutliers = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-white",
+        InfoBoxModel infoBoxOutliers = new InfoBoxModel(" fa fa-user-times text-white",
                 "Outliers",
                 String.valueOf(outliers),
                 100,
@@ -264,7 +262,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         outliersLabel.setOutputMarkupId(true);
         headerItems.add(outliersLabel);
 
-        InfoBoxModel infoBoxResolvedPattern = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-white",
+        InfoBoxModel infoBoxResolvedPattern = new InfoBoxModel(GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " text-white",
                 "Resolved pattern",
                 String.valueOf(resolvedPatternCount),
                 100,
@@ -280,7 +278,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         resolvedPatternLabel.setOutputMarkupId(true);
         headerItems.add(resolvedPatternLabel);
 
-        InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-white",
+        InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " text-white",
                 "Candidate roles",
                 String.valueOf(candidateRolesCount),
                 100,
