@@ -90,8 +90,15 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
 
         boolean isVisible = true;
+        AnalysisCategory category = tileModel.getObject().getValue();
+
+        //TEMPORARY DISABLE OUTLIER ANALYSIS UNTIL IT IS IMPLEMENTED TODO
+        if (category.equals(AnalysisCategory.OUTLIER)) {
+            isVisible = false;
+        }
+
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            if (tileModel.getObject().getValue().equals(AnalysisCategory.DEPARTMENT)) {
+            if (category.equals(AnalysisCategory.DEPARTMENT)) {
                 isVisible = false;
             }
         }
