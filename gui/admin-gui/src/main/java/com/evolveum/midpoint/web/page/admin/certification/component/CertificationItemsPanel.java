@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -66,6 +67,14 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
     public CertificationItemsPanel(String id) {
         super(id, AccessCertificationWorkItemType.class);
+    }
+
+    public CertificationItemsPanel(String id, ContainerPanelConfigurationType configurationType) {
+        super(id, AccessCertificationWorkItemType.class, configurationType);
+    }
+
+    public CertificationItemsPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
+        super(id, AccessCertificationWorkItemType.class, configurationType);
     }
 
     @Override
@@ -142,7 +151,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
-                return getCertWorkItemsQuery();
+                return getOpenCertWorkItemsQuery(true);
             }
 
         };
@@ -312,7 +321,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         });
     }
 
-    private ObjectQuery getCertWorkItemsQuery() {
+    protected ObjectQuery getOpenCertWorkItemsQuery(boolean notDecidedOnly) {
         String campaignOid = getCampaignOid();
         ObjectQuery query;
         if (StringUtils.isNotEmpty(campaignOid)) {
@@ -328,7 +337,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         if (isMyCertItems()) {
             principal = getPageBase().getPrincipal();
         }
-        return  QueryUtils.createQueryForOpenWorkItems(query, principal, true); //todo notDecidedOnly
+        return QueryUtils.createQueryForOpenWorkItems(query, principal, notDecidedOnly);
     }
 
     protected String getCampaignOid() {
