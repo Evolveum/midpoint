@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.component.CertificationItemsPanel;
+import com.evolveum.midpoint.web.page.admin.certification.component.MyCertificationItemsPanel;
 import com.evolveum.midpoint.web.page.admin.certification.dto.*;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
@@ -50,6 +51,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -60,7 +62,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/certification/decisionsOld", matchUrlForSecurity = "/admin/certification/decisions")
+                @Url(mountUrl = "/admin/certification/decisions", matchUrlForSecurity = "/admin/certification/decisions")
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
@@ -134,8 +136,9 @@ public class PageCertDecisions extends PageAdminCertification {
     private void initLayout() {
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
-        CertificationItemsPanel table = new CertificationItemsPanel(ID_DECISIONS_TABLE) {
-            private static final long serialVersionUID = 1L;
+        MyCertificationItemsPanel table = new MyCertificationItemsPanel(ID_DECISIONS_TABLE) {
+
+            @Serial private static final long serialVersionUID = 1L;
 
 
         };
