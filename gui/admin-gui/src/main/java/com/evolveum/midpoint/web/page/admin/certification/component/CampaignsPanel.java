@@ -86,9 +86,9 @@ public class CampaignsPanel extends BasePanel {
         setOutputMarkupId(true);
 
         provider = createProvider();
-        MultiSelectTileTablePanel<AccessCertificationCampaignType,
-                AccessCertificationCampaignType> tilesTable =
-                new MultiSelectTileTablePanel<>(ID_CAMPAIGNS_PANEL, createViewToggleModel(), UserProfileStorage.TableId.PAGE_CAMPAIGNS) {
+        MultiSelectObjectTileTablePanel<AccessCertificationCampaignType,
+                        AccessCertificationCampaignType> tilesTable =
+                new MultiSelectObjectTileTablePanel<>(ID_CAMPAIGNS_PANEL, createViewToggleModel(), UserProfileStorage.TableId.PAGE_CAMPAIGNS) {
 
                     @Serial private static final long serialVersionUID = 1L;
                     @Override
@@ -113,7 +113,7 @@ public class CampaignsPanel extends BasePanel {
                     }
 
                     @Override
-                    protected Component createTile(String id,
+                    public Component createTile(String id,
                             IModel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> model) {
                         return new CampaignTilePanel(id, model);
                     }
@@ -124,7 +124,7 @@ public class CampaignsPanel extends BasePanel {
                     }
 
                     @Override
-                    protected SelectableBeanObjectDataProvider<AccessCertificationCampaignType> createProvider() {
+                    public SelectableBeanObjectDataProvider<AccessCertificationCampaignType> createProvider() {
                         return provider;
                     }
 

@@ -527,8 +527,8 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         var squeezedAssociations = projCtx.getSqueezedAssociations();
         Collection<QName> associationNames =
                 squeezedAssociations != null ?
-                        MiscUtil.union(squeezedAssociations.keySet(), accountDefinition.getNamesOfAssociations()) :
-                        accountDefinition.getNamesOfAssociations();
+                        MiscUtil.union(squeezedAssociations.keySet(), accountDefinition.getNamesOfReferenceAttributes()) :
+                        accountDefinition.getNamesOfReferenceAttributes();
 
         for (QName assocName : associationNames) {
             LOGGER.trace("Association reconciliation processing association {}", assocName);

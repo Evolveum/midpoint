@@ -2479,6 +2479,22 @@ public final class WebComponentUtil {
         }
     }
 
+    public static String createIconForResourceObjectType(ResourceObjectTypeDefinitionType objectType) {
+        if (objectType == null || objectType.getKind() == null) {
+            return GuiStyleConstants.CLASS_CIRCLE_FULL;
+        }
+        if (objectType.getKind() == ShadowKindType.ACCOUNT){
+            return GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT;
+        }
+        if (objectType.getKind() == ShadowKindType.ENTITLEMENT){
+            return GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT;
+        }
+        if (objectType.getKind() == ShadowKindType.GENERIC){
+            return GuiStyleConstants.CLASS_SHADOW_ICON_GENERIC;
+        }
+        return GuiStyleConstants.CLASS_CIRCLE_FULL;
+    }
+
     public static CompositedIcon createAccountIcon(ShadowType shadow, PageBase pageBase, boolean isColumn) {
         String iconCssClass = IconAndStylesUtil.createShadowIcon(shadow.asPrismObject());
         CompositedIconBuilder builder = new CompositedIconBuilder();
@@ -3863,7 +3879,7 @@ public final class WebComponentUtil {
         Optional<ContainerPanelConfigurationType> config = pageConfig
                 .getPanel()
                 .stream()
-                .filter(containerConfig -> panelType.equals(containerConfig.getPanelType()))
+                .filter(containerConfig -> panelType.equals(containerConfig.getIdentifier()))
                 .findFirst();
         return config.orElse(null);
     }

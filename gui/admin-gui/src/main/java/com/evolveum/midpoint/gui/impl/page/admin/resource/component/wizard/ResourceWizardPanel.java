@@ -11,8 +11,8 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.*;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeTableWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeTableWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeWizardPanel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
@@ -56,7 +56,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
 
             @Override
             public void onExitPerformed(AjaxRequestTarget target) {
-                showChoiceFragment(target, createTablePanel());
+                showChoiceFragment(target, createObjectTypesTablePanel());
             }
 
             @Override
@@ -69,12 +69,12 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
         return wizard;
     }
 
-    protected ResourceObjectTypeTableWizardPanel createTablePanel() {
+    protected ResourceObjectTypeTableWizardPanel createObjectTypesTablePanel() {
         return new ResourceObjectTypeTableWizardPanel(getIdOfChoicePanel(), getAssignmentHolderModel()) {
             @Override
             protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
                 ResourceObjectTypeWizardPanel wizard = createObjectTypeWizard(valueModel);
-                wizard.setShowObjectTypePreview(true);
+                wizard.setShowTypePreview(true);
                 showChoiceFragment(target, wizard);
             }
 
@@ -117,8 +117,12 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
                         showChoiceFragment(target, createPreviewResourceDataWizardPanel());
                         break;
                     case CONFIGURE_OBJECT_TYPES:
-                        showChoiceFragment(target, createTablePanel());
+                        showChoiceFragment(target, createObjectTypesTablePanel());
                         break;
+                    case CONFIGURE_ASSOCIATION_TYPES:
+                        showChoiceFragment(target, createObjectTypesTablePanel());
+                        break;
+
                 }
             }
 

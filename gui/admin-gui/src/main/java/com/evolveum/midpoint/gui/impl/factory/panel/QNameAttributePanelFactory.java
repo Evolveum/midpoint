@@ -10,11 +10,10 @@ import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPane
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.component.input.converter.AutoCompleteDisplayableValueConverter;
 import com.evolveum.midpoint.gui.impl.converter.QNameConverter;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -23,8 +22,6 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.prism_schema_3.PrismItemDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.prism_schema_3.PrismSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
@@ -41,6 +38,7 @@ import org.springframework.stereotype.Component;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,12 +61,6 @@ public class QNameAttributePanelFactory extends DropDownChoicePanelFactory imple
                 || ResourceObjectAssociationType.F_SHORTCUT_VALUE_ATTRIBUTE.equals(wrapper.getItemName())
                 || ActivationStatusCapabilityType.F_ATTRIBUTE.equivalent(wrapper.getItemName())
                 || PagedSearchCapabilityType.F_DEFAULT_SORT_FIELD.equivalent(wrapper.getItemName())) {
-            return true;
-        }
-
-        if (wrapper.getParentContainerValue(PrismSchemaType.class) != null
-                && (PrismItemDefinitionType.F_NAME.equivalent(wrapper.getItemName())
-                || PrismItemDefinitionType.F_TYPE.equivalent(wrapper.getItemName()))) {
             return true;
         }
 
@@ -144,17 +136,22 @@ public class QNameAttributePanelFactory extends DropDownChoicePanelFactory imple
 
         PrismValueWrapper<QName> propertyWrapper = propertyWrapperModel.getObject();
 
+        getShadowAttributeDefinitions(propertyWrapper, pageBase)
+                .forEach(attr -> allAttributes.add(new AssociationDisplayableValue(attr)));
+        return allAttributes;
+    }
+
+    protected List<? extends ShadowAttributeDefinition> getShadowAttributeDefinitions(
+            PrismValueWrapper<QName> propertyWrapper, PageBase pageBase) {
         ResourceSchema schema = ResourceDetailsModel.getResourceSchema(
                 propertyWrapper.getParent().findObjectWrapper(), pageBase);
 
         if (schema == null) {
-            return allAttributes;
+            return Collections.emptyList();
         }
 
         ResourceObjectTypeDefinitionType objectType = getResourceObjectType(propertyWrapper);
-        WebPrismUtil.searchAttributeDefinitions(schema, objectType)
-                .forEach(attr -> allAttributes.add(new AssociationDisplayableValue(attr)));
-        return allAttributes;
+        return WebPrismUtil.searchAttributeDefinitions(schema, objectType);
     }
 
     private ResourceObjectTypeDefinitionType getResourceObjectType(PrismValueWrapper<QName> propertyWrapper) {
@@ -233,7 +230,7 @@ public class QNameAttributePanelFactory extends DropDownChoicePanelFactory imple
         private final String help;
         private final QName value;
 
-        private AssociationDisplayableValue(ShadowSimpleAttributeDefinition attributeDefinition) {
+        private AssociationDisplayableValue(ShadowAttributeDefinition attributeDefinition) {
             this.displayName = attributeDefinition.getDisplayName() == null ?
                     attributeDefinition.getItemName().getLocalPart() : attributeDefinition.getDisplayName();
             this.help = attributeDefinition.getHelp();

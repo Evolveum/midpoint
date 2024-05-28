@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.input.SourceMappingProvider;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
@@ -33,7 +34,7 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
 
     private static final Trace LOGGER = TraceManager.getTrace(SourceOrTargetOfMappingPanelFactory.class);
 
-    private static final List<ItemPath> MATCHED_PATHS = List.of(
+    protected static final List<ItemPath> MATCHED_PATHS = List.of(
             ResourceObjectTypeDefinitionType.F_ATTRIBUTE,
 
             ItemPath.create(
@@ -78,7 +79,7 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
         return match;
     }
 
-    private ItemPath createTargetPath(ItemPath containerPath) {
+    protected ItemPath createTargetPath(ItemPath containerPath) {
         return ItemPath.create(
                 ResourceType.F_SCHEMA_HANDLING,
                 SchemaHandlingType.F_OBJECT_TYPE,
@@ -87,7 +88,7 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
                 InboundMappingType.F_TARGET);
     }
 
-    private ItemPath createSourcePath(ItemPath containerPath) {
+    protected ItemPath createSourcePath(ItemPath containerPath) {
         return ItemPath.create(
                 ResourceType.F_SCHEMA_HANDLING,
                 SchemaHandlingType.F_OBJECT_TYPE,
@@ -122,12 +123,16 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
                 panelCtx.getComponentId(), valueModel, String.class, true) {
             @Override
             public Iterator<String> getIterator(String input) {
-                SourceMappingProvider provider = new SourceMappingProvider(panelCtx.getItemWrapperModel());
+                SourceMappingProvider provider = createProvider(panelCtx.getItemWrapperModel());
                 return provider.collectAvailableDefinitions(input).iterator();
             }
         };
         panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         return panel;
+    }
+
+    protected SourceMappingProvider createProvider(IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel) {
+        return new SourceMappingProvider(itemWrapperModel);
     }
 
     @Override

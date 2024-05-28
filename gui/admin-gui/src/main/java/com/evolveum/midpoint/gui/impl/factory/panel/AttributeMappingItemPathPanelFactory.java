@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPane
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.input.converter.AutoCompleteDisplayableValueConverter;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -263,12 +264,26 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
             return allAttributes;
         }
 
-        ResourceObjectTypeDefinitionType objectType = getResourceObjectType(propertyWrapper);
-        WebPrismUtil.searchAttributeDefinitions(schema, objectType)
-                .forEach(attr -> allAttributes.add(new AttributeDisplayableValue(attr)));
-
+        allAttributes = getAttributes(schema, propertyWrapper);
         allAttributes.sort(Comparator.comparing(DisplayableValue::getLabel));
         return allAttributes;
+    }
+
+    protected List<DisplayableValue<ItemPathType>> getAttributes(ResourceSchema schema, PrismValueWrapper<ItemPathType> propertyWrapper) {
+        ResourceObjectTypeDefinitionType objectType = getResourceObjectType(propertyWrapper);
+        return WebPrismUtil.searchAttributeDefinitions(schema, objectType).stream()
+                .map(attr -> createDisplayValue(attr))
+                .toList();
+    }
+
+    protected DisplayableValue<ItemPathType> createDisplayValue(ShadowAttributeDefinition attr) {
+        return new AttributeDisplayableValue(attr);
+    }
+
+    protected DisplayableValue<ItemPathType> createDisplayValueForReference(ShadowAttributeDefinition attr) {
+        return new AttributeDisplayableValue(
+                attr,
+                "AttributeMappingItemPathPanelFactory.reference");
     }
 
     private ResourceObjectTypeDefinitionType getResourceObjectType(PrismValueWrapper<ItemPathType> propertyWrapper) {
@@ -310,9 +325,14 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
         private final String help;
         private final ItemPathType value;
 
-        private AttributeDisplayableValue(ShadowSimpleAttributeDefinition attributeDefinition) {
-//            this.displayName = attributeDefinition.getDisplayName() == null ?
-//                    attributeDefinition.getItemName().getLocalPart() : attributeDefinition.getDisplayName();
+        private AttributeDisplayableValue(ShadowAttributeDefinition attributeDefinition, String labelPrefixKey) {
+            this.displayName = LocalizationUtil.translate(
+                    labelPrefixKey, new Object[] {attributeDefinition.getItemName().getLocalPart()});
+            this.help = attributeDefinition.getHelp();
+            this.value = new ItemPathType(ItemPath.create(attributeDefinition.getItemName()));
+        }
+
+        private AttributeDisplayableValue(ShadowAttributeDefinition attributeDefinition) {
             this.displayName = attributeDefinition.getItemName().getLocalPart();
             this.help = attributeDefinition.getHelp();
             this.value = new ItemPathType(ItemPath.create(attributeDefinition.getItemName()));

@@ -108,7 +108,7 @@ public class ResourceAttributeRefPanelFactory
                 ResourceAttributeDefinitionType.F_OUTBOUND));
     }
 
-    private List<ItemName> getChoicesList(PrismPropertyPanelContext<ItemPathType> ctx) {
+    protected List<ItemName> getChoicesList(PrismPropertyPanelContext<ItemPathType> ctx) {
 
         PrismPropertyWrapper<?> wrapper = ctx.unwrapWrapperModel();
         //attribute/ref
