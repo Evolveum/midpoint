@@ -603,7 +603,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 .name("test350")
                 .subtype(SUBTYPE_MID_5953)
                 .beginAssignment()
-                    .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                    .targetRef(ROLE_SUPERUSER.oid, RoleType.COMPLEX_TYPE)
                 .end();
         repoAddObject(user.asPrismObject(), result);
 

@@ -134,6 +134,14 @@ public class ValueMetadataValueAsserter<RA extends AbstractAsserter<?>>
         return this;
     }
 
+    public ValueMetadataValueAsserter<RA> assertModifyTimestampNotPresent() {
+        var storage = getBean().getStorage();
+        if (storage != null) {
+            assertThat(storage.getModifyTimestamp()).as("modify timestamp").isNull();
+        }
+        return this;
+    }
+
     public ValueMetadataValueAsserter<RA> assertModifyTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
         TestUtil.assertBetween("modify timestamp", start, end, getStorageRequired().getModifyTimestamp());
         return this;

@@ -195,7 +195,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         UserType user = new UserType()
                 .name("test200")
                 .beginAssignment()
-                    .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                    .targetRef(ROLE_SUPERUSER.oid, RoleType.COMPLEX_TYPE)
                     .subtype("fragile")
                     .beginActivation()
                         .effectiveStatus(ActivationStatusType.ENABLED)

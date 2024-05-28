@@ -2990,7 +2990,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         UserType user = new UserType()
                 .name("test800")
                 .beginAssignment()
-                .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                .targetRef(ROLE_SUPERUSER.oid, RoleType.COMPLEX_TYPE)
                 .beginActivation()
                 .effectiveStatus(ActivationStatusType.ENABLED)
                 .validFrom(dayBeforeYesterday)

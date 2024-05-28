@@ -3178,7 +3178,7 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 
-        assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID);
+        assignRole(USER_JACK_OID, ROLE_SUPERUSER.oid);
         assignRole(USER_JACK_OID, ROLE_READ_ORG_EXEC_OID);
 
         // preconditions

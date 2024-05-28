@@ -23,7 +23,6 @@ import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -3547,7 +3546,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         prepareTest();
 
-        assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID);
+        assignRole(USER_JACK_OID, ROLE_SUPERUSER.oid);
 
         // preconditions
         assertUserBefore(USER_JACK_OID)
