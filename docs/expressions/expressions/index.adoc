@@ -404,12 +404,7 @@ functionality:
                     <assignmentTargetSearch>
                         <targetType>c:OrgType</targetType>
                         <filter>
-                            <q:equal>
-                                <q:path>c:name</q:path>
-                                <expression>
-                                    <value>TOP</value>
-                                </expression>
-                            </q:equal>
+                            <q:text>name="TOP"</q:text>
                         </filter>
                     </assignmentTargetSearch>
                 </expression>
@@ -451,10 +446,7 @@ Possible values are `inRepository`, `onResource`, and `onResourceIfNeeded`.
                     <expression>
                          <associationTargetSearch>
                             <filter>
-                                <q:equal>
-                                    <q:path>attributes/ri:dn</q:path>
-                                    <q:value>cn=library,ou=groups,dc=example,dc=com</q:value>
-                                </q:equal>
+                                <q:text>attributes/ri:dn="cn=library,ou=groups,dc=example,dc=com"</q:text>
                             </filter>
                             <searchStrategy>onResourceIfNeeded</searchStrategy>
                         </associationTargetSearch>
