@@ -232,10 +232,7 @@ The default end user role is a good example for this:
         <target>
             <type>RoleType</type>
             <filter>
-                <q:equal>
-                    <q:path>requestable</q:path>
-                    <q:value>true</q:value>
-                </q:equal>
+                <q:text>requestable=true</q:text>
             </filter>
         </target>
     </authorization>

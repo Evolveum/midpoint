@@ -165,10 +165,7 @@ In 3.6, this behavior is configurable using `outcomeIfNoApprovers` property; wit
                      <name>Security</name>
                      <approverRef type="OrgType">
                         <filter>
-                           <q:equal>
-                              <q:path>name</q:path>
-                              <q:value>Security Approvers</q:value>
-                           </q:equal>
+                            <q:text>name="Security Approvers"</q:text>
                         </filter>
                         <resolutionTime>run</resolutionTime>
                      </approverRef>
