@@ -24,6 +24,7 @@ compliance:
 :page-toc: top
 :page-nav-title: Classification
 :page-since: "4.8"
+:page-experimental: true
 :page-upkeep-status: green
 
 NOTE: For midPoint 4.8, information classification is considered an experimental functionality.
