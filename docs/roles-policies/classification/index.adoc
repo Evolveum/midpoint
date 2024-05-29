@@ -92,8 +92,16 @@ No special security measures are applied.
 The policy is additive in such a way, that systems of Category II have to satisfy all requirements for both Category II and Category I.
 Systems of Category III have to satisfy requirements for all three categories.
 
+[TIP]
 .Configuration files
-TIP: Full configuration files for this example can be found in xref:/midpoint/reference/samples/distribution-samples/[midPoint samples] in `classification/classification-nis1-sk` directory.
+====
+Full configuration files for this example can be found in xref:/midpoint/reference/samples/distribution-samples/[midPoint samples] in `classification/classification-nis1-sk` directory.
+
+Code snippets in this page are simplified for clarity.
+The snippets do not contain all the configuration necessary for full functionality in midPoint 4.8.
+Full configuration can be found in the samples (make sure to check out latest version in 4.8.x family).
+There are some workarounds for features of latest midPoint versions, features that are missing in midPoint 4.8.
+====
 
 === Classification Scheme
 
