@@ -45,6 +45,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serial;
 import java.util.ArrayList;
@@ -341,6 +342,10 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     }
 
     protected String getCampaignOid() {
+        PageParameters pageParameters = getPageBase().getPageParameters();
+        if (pageParameters != null && pageParameters.get("campaignOid") != null) {
+            return pageParameters.get("campaignOid").toString();
+        }
         return null;
     }
 

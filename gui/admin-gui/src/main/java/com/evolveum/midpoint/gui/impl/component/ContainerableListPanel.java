@@ -324,7 +324,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 if (isPreview()) {
-                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, (PreviewContainerPanelConfigurationType) config);
+                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this,
+                            (PreviewContainerPanelConfigurationType) config, getNavigationParameters());
                 }
                 return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
             }
@@ -451,7 +452,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 if (isPreview()) {
-                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, (PreviewContainerPanelConfigurationType) config);
+                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this,
+                            (PreviewContainerPanelConfigurationType) config, getNavigationParameters());
                 }
                 return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
             }
@@ -1379,5 +1381,9 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     public boolean isValidFormComponents() {
         return isValidFormComponents(null);
+    }
+
+    protected PageParameters getNavigationParameters() {
+        return null;
     }
 }
