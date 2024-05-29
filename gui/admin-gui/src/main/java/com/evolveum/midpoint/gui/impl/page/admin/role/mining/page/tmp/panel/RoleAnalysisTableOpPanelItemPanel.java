@@ -267,7 +267,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
                     return new CompositedIconTextPanel(idIcon,
                             "fa-2x " + iconClass + " text-secondary",
                             finalI + 1 + "",
-                            "text-secondary bg-danger border border-danger rounded-circle");
+                            "text-secondary bg-white border border-white rounded-circle");
                 }
 
                 @Override
