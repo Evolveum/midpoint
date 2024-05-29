@@ -21,12 +21,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.wicket.chartjs.ChartData;
 import com.evolveum.wicket.chartjs.ChartDataset;
 import com.evolveum.wicket.chartjs.DoughnutChartConfiguration;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -115,13 +118,6 @@ public class DashboardCertCampaignsPanel extends ObjectListPanel<AccessCertifica
     }
 
     @Override
-    protected PageParameters getNavigationParameters() {
-        PageParameters pageParameters = new PageParameters();
-        //todo
-        return pageParameters;
-    }
-
-    @Override
     protected UserProfileStorage.TableId getTableId() {
         return null;
     }
@@ -158,5 +154,23 @@ public class DashboardCertCampaignsPanel extends ObjectListPanel<AccessCertifica
     @Override
     protected List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> createDefaultColumns() {
         return ColumnUtils.getPreviewCampaignColumns(getPageBase());
+    }
+
+    @Override
+    protected LoadableModel<PageParameters> getNavigationParametersModel() {
+        return new LoadableModel<>() {
+            @Override
+            protected PageParameters load() {
+                SelectableBeanObjectDataProvider<AccessCertificationCampaignType> provider =
+                        (SelectableBeanObjectDataProvider) getDataProvider();
+                if (provider != null && provider.getAvailableData().size() == 1) {
+                    PageParameters parameters = new PageParameters();
+                    parameters.add(PageCertDecisions.CAMPAIGN_OID_PARAMETER, provider.getAvailableData().get(0).getValue().getOid());
+                    return parameters;
+                }
+                return null;
+            }
+        };
+
     }
 }

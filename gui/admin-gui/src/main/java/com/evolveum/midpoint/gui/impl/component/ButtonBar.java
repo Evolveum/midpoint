@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
 import org.apache.wicket.Component;
@@ -50,10 +51,11 @@ public class ButtonBar<C extends Containerable, PO extends SelectableRow> extend
     private static final String ID_BUTTON = "button";
 
     public ButtonBar(String id, String markupId, Panel markupProvider,
-            PreviewContainerPanelConfigurationType previewContainerPanelConfigurationType, PageParameters pageParameters) {
+            PreviewContainerPanelConfigurationType previewContainerPanelConfigurationType,
+            LoadableModel<PageParameters> pageParametersModel) {
         super(id, markupId, markupProvider);
 
-        List<Component> buttonsList = createNavigationButtons(ID_BUTTON, previewContainerPanelConfigurationType, pageParameters);
+        List<Component> buttonsList = createNavigationButtons(ID_BUTTON, previewContainerPanelConfigurationType, pageParametersModel);
         initLayout(buttonsList);
     }
 
@@ -74,23 +76,25 @@ public class ButtonBar<C extends Containerable, PO extends SelectableRow> extend
     }
 
     private List<Component> createNavigationButtons(String idButton, PreviewContainerPanelConfigurationType previewConfig,
-            PageParameters pageParameters) {
+            LoadableModel<PageParameters> pageParametersModel) {
         List<Component> buttonsList = new ArrayList<>();
         for (GuiActionType action : previewConfig.getAction()) {
-            AjaxIconButton button = createViewAllButton(idButton, action, pageParameters);
+            AjaxIconButton button = createViewAllButton(idButton, action, pageParametersModel);
             buttonsList.add(button);
         }
 
         return buttonsList;
     }
 
-    private AjaxIconButton createViewAllButton(String buttonId, GuiActionType action, PageParameters pageParameters) {
+    private AjaxIconButton createViewAllButton(String buttonId, GuiActionType action,
+            LoadableModel<PageParameters> pageParametersModel) {
         DisplayType displayType = action.getDisplay();
         AjaxIconButton viewAll = new AjaxIconButton(buttonId, new Model<>(GuiDisplayTypeUtil.getIconCssClass(displayType)),
                 createButtonLabel(displayType)) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                PageParameters pageParameters = pageParametersModel != null ? pageParametersModel.getObject() : null;
                 viewAllActionPerformed(target, action, pageParameters);
             }
         };

@@ -8,11 +8,10 @@
 package com.evolveum.midpoint.web.page.admin.certification.component;
 
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serial;
 
@@ -22,12 +21,9 @@ public class MyCertificationItemsPanel extends CertificationItemsPanel {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = MyCertificationItemsPanel.class.getName() + ".";
-    private static final Trace LOGGER = TraceManager.getTrace(MyCertificationItemsPanel.class);
-    private static final String OPERATION_COUNT_ALL_CERTIFICATION_ITEMS = DOT_CLASS + "loadCertItems";
-    private static final String OPERATION_COUNT_NOT_DECIDED_CERTIFICATION_ITEMS = DOT_CLASS + "loadNotDecidedCertItems";
 
-    public MyCertificationItemsPanel(String id) {
-        super(id);
+    public MyCertificationItemsPanel(String id, String campaignOid) {
+        super(id, campaignOid);
     }
 
     public MyCertificationItemsPanel(String id, ContainerPanelConfigurationType configurationType) {
@@ -43,6 +39,5 @@ public class MyCertificationItemsPanel extends CertificationItemsPanel {
     protected boolean isMyCertItems() {
         return true;
     }
-
 
 }

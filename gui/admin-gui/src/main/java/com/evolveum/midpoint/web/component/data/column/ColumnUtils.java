@@ -30,6 +30,8 @@ import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
+import com.evolveum.midpoint.web.page.admin.certification.component.CertificationItemsPanel;
 import com.evolveum.midpoint.web.page.admin.certification.component.DeadlinePanel;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
@@ -980,7 +982,9 @@ public class ColumnUtils {
                 SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_NAME.getLocalPart()) {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
-                //todo redirect to cert work items with campaign oid param
+                PageParameters parameters = new PageParameters();
+                parameters.set(PageCertDecisions.CAMPAIGN_OID_PARAMETER, rowModel.getObject().getValue().getOid());
+                pageBase.navigateToNext(PageCertDecisions.class, parameters);
             }
         };
         columns.add(column);
