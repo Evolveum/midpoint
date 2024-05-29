@@ -340,6 +340,7 @@ public class CampaignProcessingHelper implements Serializable {
         }
         WebComponentUtil.safeResultCleanup(result, LOGGER);
         pageBase.showResult(result);
+        target.add(pageBase);
     }
 
     public static IModel<String> createCloseStageConfirmString(AccessCertificationCampaignType campaign, PageBase pageBase) {
@@ -536,6 +537,20 @@ public class CampaignProcessingHelper implements Serializable {
                 return page.getString(key);
             }
         }
+    }
+
+    public static XMLGregorianCalendar computeDeadline(AccessCertificationCampaignType campaign, PageBase page) {
+        AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
+        XMLGregorianCalendar end;
+        if (campaign.getStageNumber() == 0) {
+            end = campaign.getEndTimestamp();            // quite useless, as "end" denotes real campaign end
+        } else if (currentStage != null) {
+            end = currentStage.getDeadline();
+        } else {
+            end = null;
+        }
+
+        return end;
     }
 
 }

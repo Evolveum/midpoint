@@ -148,8 +148,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         actionButton.setOutputMarkupId(true);
         add(actionButton);
 
-        Label actionButtonLabel = new Label(ID_ACTION_BUTTON_LABEL,
-                createStringResource(campaignStateHelper.getNextAction().getActionLabelKey()));
+        Label actionButtonLabel = new Label(ID_ACTION_BUTTON_LABEL, getActionButtonModel());
         actionButtonLabel.setOutputMarkupId(true);
         actionButton.add(actionButtonLabel);
 
@@ -168,6 +167,17 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         };
         details.setOutputMarkupId(true);
         add(details);
+    }
+
+    private LoadableModel<String> getActionButtonModel() {
+        return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
+                return createStringResource(campaignStateHelper.getNextAction().getActionLabelKey()).getString();
+            }
+        };
     }
 
     private IModel<Boolean> getSelectedModel() {

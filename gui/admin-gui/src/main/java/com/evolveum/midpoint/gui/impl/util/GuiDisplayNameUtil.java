@@ -154,6 +154,17 @@ public class GuiDisplayNameUtil {
         return sb.toString();
     }
 
+    public static String getDisplayName(ShadowAssociationTypeDefinitionType associationType) {
+        if (StringUtils.isNotEmpty(associationType.getDisplayName())) {
+            return associationType.getDisplayName();
+        }
+
+        if (associationType.getName() == null || StringUtils.isEmpty(associationType.getName().getLocalPart())) {
+            return PageBase.createStringResourceStatic("SchemaHandlingType.associationType").getString();
+        }
+        return associationType.getName().getLocalPart();
+    }
+
     public static String getDisplayName(ExclusionPolicyConstraintType exclusionConstraint) {
         String exclusionConstraintName = getExclusionConstraintName(exclusionConstraint);
         return exclusionConstraintNameExists(exclusionConstraintName, exclusionConstraint) ? exclusionConstraintName : "ExclusionPolicyConstraintType.details";
@@ -254,7 +265,14 @@ public class GuiDisplayNameUtil {
                 ItemPath.create(
                         ResourceType.F_SCHEMA_HANDLING,
                         SchemaHandlingType.F_OBJECT_TYPE,
-                        ResourceObjectTypeDefinitionType.F_CREDENTIALS)) ) {
+                        ResourceObjectTypeDefinitionType.F_CREDENTIALS))
+                || mapping.asPrismContainerValue().getPath().namedSegmentsOnly().isSuperPath(
+                ItemPath.create(
+                        ResourceType.F_SCHEMA_HANDLING,
+                        SchemaHandlingType.F_ASSOCIATION_TYPE,
+                        ShadowAssociationTypeDefinitionType.F_SUBJECT,
+                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+                        ShadowAssociationDefinitionType.F_ACTIVATION))) {
             if (StringUtils.isNotEmpty(mapping.getName())) {
                 return mapping.getName();
             }

@@ -775,13 +775,13 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException {
-        return structuralDefinition.getAttributeInboundDefinition(itemName);
+    public ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+        return structuralDefinition.getSimpleAttributeInboundDefinition(itemName);
     }
 
     @Override
-    public ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) throws SchemaException {
-        return structuralDefinition.getAssociationInboundDefinition(itemName);
+    public ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+        return structuralDefinition.getReferenceAttributeInboundDefinition(itemName);
     }
 
     @Override

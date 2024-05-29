@@ -10,11 +10,9 @@ package com.evolveum.midpoint.gui.impl.component.input;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.factory.panel.SourceOrTargetOfMappingPanelFactory;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -60,35 +58,12 @@ public class SourceMappingProvider extends ChoiceProvider<VariableBindingDefinit
     public Collection<VariableBindingDefinitionType> toChoices(Collection<String> values) {
         return values.stream()
                 .map(value -> new VariableBindingDefinitionType()
-                        .path(PrismContext.get().itemPathParser().asItemPathType(
-                                "$" + ExpressionConstants.VAR_FOCUS + "/" + value
-                        )))
+                        .path(PrismContext.get().itemPathParser().asItemPathType(value)))
                 .collect(Collectors.toList());
     }
 
     public List<String> collectAvailableDefinitions(String input, ResourceObjectTypeDefinitionType resourceObjectType) {
-        ComplexTypeDefinition resourceDef =
-                PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByType(ResourceType.COMPLEX_TYPE);
-
-        PrismPropertyDefinition<QName> typeDef = resourceDef.findPropertyDefinition(ItemPath.create(
-                ResourceType.F_SCHEMA_HANDLING,
-                SchemaHandlingType.F_OBJECT_TYPE,
-                ResourceObjectTypeDefinitionType.F_FOCUS,
-                ResourceObjectFocusSpecificationType.F_TYPE));
-
-        QName type = typeDef.defaultValue();
-
-        if (resourceObjectType != null
-                && resourceObjectType.getFocus() != null
-                && resourceObjectType.getFocus().getType() != null) {
-            type = resourceObjectType.getFocus().getType();
-        }
-
-        if (type == null) {
-            type = UserType.COMPLEX_TYPE;
-        }
-
-        PrismObjectDefinition<Objectable> focusDef = PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(type);
+        PrismContainerDefinition<? extends Containerable> focusDef = getFocusTypeDefinition(resourceObjectType);
 
         List<String> toSelect = new ArrayList<>();
         if (StringUtils.isNotBlank(input) && input.lastIndexOf("/") == (input.length() - 1)) {
@@ -111,6 +86,30 @@ public class SourceMappingProvider extends ChoiceProvider<VariableBindingDefinit
             collectItems(focusDef.getDefinitions(), input, toSelect, true);
         }
         return toSelect.stream().sorted().toList();
+    }
+
+    protected PrismContainerDefinition<? extends Containerable> getFocusTypeDefinition(ResourceObjectTypeDefinitionType resourceObjectType) {
+        ComplexTypeDefinition resourceDef =
+                PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByType(ResourceType.COMPLEX_TYPE);
+
+        PrismPropertyDefinition<QName> typeDef = resourceDef.findPropertyDefinition(ItemPath.create(
+                ResourceType.F_SCHEMA_HANDLING,
+                SchemaHandlingType.F_OBJECT_TYPE,
+                ResourceObjectTypeDefinitionType.F_FOCUS,
+                ResourceObjectFocusSpecificationType.F_TYPE));
+
+        QName type = typeDef.defaultValue();
+
+        if (resourceObjectType != null
+                && resourceObjectType.getFocus() != null
+                && resourceObjectType.getFocus().getType() != null) {
+            type = resourceObjectType.getFocus().getType();
+        }
+
+        if (type == null) {
+            type = UserType.COMPLEX_TYPE;
+        }
+        return PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(type);
     }
 
     public List<String> collectAvailableDefinitions(String input) {

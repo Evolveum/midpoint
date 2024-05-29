@@ -9,10 +9,7 @@ package com.evolveum.midpoint.model.impl.correlation;
 
 import static com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil.identify;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
@@ -68,9 +65,7 @@ public class CorrelatorContextCreator {
         this.systemConfiguration = systemConfiguration;
     }
 
-
     //TODO change signature to composite correlator + thresholds
-    //TODO at least correlation defintiion nullable
     public static CorrelatorContext<?> createRootContext(
             @Nullable CorrelationDefinitionType correlationDefinitionBean,
             @NotNull CorrelatorDiscriminator correlatorDiscriminator,
@@ -86,7 +81,7 @@ public class CorrelatorContextCreator {
         }
         return new CorrelatorContextCreator(
                 getConfiguration(correlators),
-                correlationDefinitionBean,
+                Objects.requireNonNullElseGet(correlationDefinitionBean, () -> new CorrelationDefinitionType()),
                 TemplateCorrelationConfigurationImpl.of(objectTemplate),
                 systemConfiguration)
                 .create();

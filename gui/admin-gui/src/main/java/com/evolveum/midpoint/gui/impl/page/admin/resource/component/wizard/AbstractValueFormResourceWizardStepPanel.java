@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -19,7 +20,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.*;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -65,7 +66,7 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
     }
 
     protected <Con extends Containerable, T extends Containerable> IModel<PrismContainerValueWrapper<Con>> createNewValueModel(
-            IModel<PrismContainerValueWrapper<T>> parentValue, ItemName itemName) {
+            IModel<PrismContainerValueWrapper<T>> parentValue, ItemPath itempath) {
         return new LoadableDetachableModel<>() {
 
             @Override
@@ -73,7 +74,7 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
                 PrismContainerWrapperModel<T, Con> model
                         = PrismContainerWrapperModel.fromContainerValueWrapper(
                         parentValue,
-                        itemName);
+                        itempath);
                 if (model.getObject().getValues().isEmpty()) {
                     try {
                         PrismContainerValue<Con> newItem = model.getObject().getItem().createNewValue();
@@ -121,8 +122,17 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
             protected String getIcon() {
                 return AbstractValueFormResourceWizardStepPanel.this.getIcon();
             }
+
+            @Override
+            protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
+                return AbstractValueFormResourceWizardStepPanel.this.isVisibleSubContainer(c);
+            }
         };
         add(panel);
+    }
+
+    protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
+        return false;
     }
 
     protected LoadableDetachableModel<String> createLabelModel() {

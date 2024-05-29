@@ -388,9 +388,9 @@ public class WebPrismUtil {
         return false;
     }
 
-    public static List<ShadowSimpleAttributeDefinition> searchAttributeDefinitions(
+    public static List<ShadowAttributeDefinition> searchAttributeDefinitions(
             ResourceSchema schema, ResourceObjectTypeDefinitionType objectType) {
-        List<ShadowSimpleAttributeDefinition> allAttributes = new ArrayList<>();
+        List<ShadowAttributeDefinition> allAttributes = new ArrayList<>();
         if (objectType != null) {
             @Nullable ResourceObjectTypeDefinition objectTypeDef = null;
             if (objectType.getKind() != null && objectType.getIntent() != null) {

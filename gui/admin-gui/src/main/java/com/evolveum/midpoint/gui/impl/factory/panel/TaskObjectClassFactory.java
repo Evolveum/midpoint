@@ -40,7 +40,7 @@ public class TaskObjectClassFactory extends AbstractObjectClassFactory {
         TaskType task = (TaskType) object;
         if (WebComponentUtil.isResourceRelatedTask(task)
                 && wrapper.getPath().startsWith(ItemPath.create(TaskType.F_ACTIVITY, ActivityDefinitionType.F_WORK))
-                && wrapper.getPath().lastName().equivalent(ResourceObjectSetType.F_OBJECTCLASS)) {
+                && ResourceObjectSetType.F_OBJECTCLASS.equivalent(wrapper.getPath().lastName())) {
             return true;
         }
 
