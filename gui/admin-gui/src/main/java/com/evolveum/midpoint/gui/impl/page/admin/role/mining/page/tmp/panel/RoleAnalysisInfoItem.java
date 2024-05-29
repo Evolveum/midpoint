@@ -30,6 +30,7 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_LINK = "action";
+    private static final String ID_DESCRIPTION_CONTAINER = "description-container";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_ICON = "icon";
     private static final String ID_ICON_CONTAINER = "icon-container";
@@ -76,11 +77,16 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
         icon.setOutputMarkupId(true);
         iconContainer.add(icon);
 
+        WebMarkupContainer descriptionContainer = new WebMarkupContainer(ID_DESCRIPTION_CONTAINER);
+        descriptionContainer.setOutputMarkupId(true);
+        descriptionContainer.add(AttributeModifier.replace("title", getDescriptionModel()));
+        descriptionContainer.add(new TooltipBehavior());
+        box.add(descriptionContainer);
         description = new RepeatingView(ID_DESCRIPTION);
         description.add(AttributeModifier.replace("style", getDescriptionStyle()));
         description.add(AttributeModifier.replace("class", getDescriptionCssClass()));
         description.setOutputMarkupId(true);
-        box.add(description);
+        descriptionContainer.add(description);
 
         addDescriptionComponents();
 
@@ -92,12 +98,14 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
             }
         };
         link.setOutputMarkupId(true);
-        link.add(AttributeModifier.replace("title", getLinkModel()));
         link.add(AttributeModifier.replace("style", getLinkStyle()));
         link.add(AttributeModifier.replace("class", getLinkCssClass()));
-        link.add(new TooltipBehavior());
         box.add(link);
 
+    }
+
+    protected IModel<String> getDescriptionModel() {
+        return Model.of("");
     }
 
     protected String getIconBoxTextStyle() {

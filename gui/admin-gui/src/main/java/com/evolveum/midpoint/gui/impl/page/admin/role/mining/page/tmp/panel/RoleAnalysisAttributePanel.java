@@ -35,6 +35,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> {
 
     @Serial private static final long serialVersionUID = 1L;
 
+    private static final String ID_CARD_CONTAINER = "card-container";
     private static final String ID_CARD_HEADER_TITLE = "cardHeaderTitle";
     private static final String ID_CARD_HEADER_REPEATING_BUTTONS = "analysisAttributesButtons";
     private static final String ID_CARD_BODY_COMPONENT = "cardBodyComponent";
@@ -59,22 +60,30 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> {
         this.roleAttributeAnalysisResult = roleAttributeAnalysisResult;
         this.userAttributeAnalysisResult = userAttributeAnalysisResult;
 
-
         chartModel.setObject(RoleAnalysisSimpleModel
                 .getRoleAnalysisSimpleModel(roleAttributeAnalysisResult, userAttributeAnalysisResult));
         initLayout();
     }
 
     private void initLayout() {
-        initCardHeaderTitle();
+        WebMarkupContainer cardContainer = new WebMarkupContainer(ID_CARD_CONTAINER);
+        cardContainer.setOutputMarkupId(true);
+        cardContainer.add(AttributeAppender.replace("class", getCssClassForCardContainer()));
+        add(cardContainer);
 
-        initCardHeaderButtons();
+        initCardHeaderTitle(cardContainer);
+
+        initCardHeaderButtons(cardContainer);
 
         WebMarkupContainer cardBody = new WebMarkupContainer(ID_CARD_BODY);
         cardBody.setOutputMarkupId(true);
-        add(cardBody);
+        cardContainer.add(cardBody);
 
         cardBody.add(initCardBodyComponentChart());
+    }
+
+    protected String getCssClassForCardContainer() {
+        return "card m-0";
     }
 
     private @NotNull RoleAnalysisAttributeResultChartPanel initCardBodyComponentChart() {
@@ -87,7 +96,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> {
 
             @Override
             protected String getChartContainerStyle() {
-                if(RoleAnalysisAttributePanel.this.getChartContainerStyle() != null){
+                if (RoleAnalysisAttributePanel.this.getChartContainerStyle() != null) {
                     return RoleAnalysisAttributePanel.this.getChartContainerStyle();
                 }
                 return super.getChartContainerStyle();
@@ -121,7 +130,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> {
         return component;
     }
 
-    private void initCardHeaderButtons() {
+    private void initCardHeaderButtons(WebMarkupContainer cardContainer) {
         RepeatingView repeatingView = new RepeatingView(ID_CARD_HEADER_REPEATING_BUTTONS);
         List<RoleAnalysisAttributeAnalysis> attributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
         for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
@@ -147,7 +156,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> {
         }
 
         repeatingView.setOutputMarkupId(true);
-        add(repeatingView);
+        cardContainer.add(repeatingView);
     }
 
     private void initRepeatingChildButtons(String classObjectIcon, RepeatingView repeatingView,
@@ -202,20 +211,20 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> {
             @NotNull AjaxRequestTarget target,
             @NotNull List<String> userPath,
             @NotNull List<String> rolePath) {
-        Component component = RoleAnalysisAttributePanel.this.get(createComponentPath(ID_CARD_BODY, ID_CARD_BODY_COMPONENT));
+        Component component = RoleAnalysisAttributePanel.this.get(createComponentPath(ID_CARD_CONTAINER, ID_CARD_BODY, ID_CARD_BODY_COMPONENT));
         if (!userPath.isEmpty() || !rolePath.isEmpty()) {
             component.replaceWith(initCardBodyComponentRp(userPath, rolePath));
             component.setOutputMarkupId(true);
         } else {
             component.replaceWith(initCardBodyComponentChart());
         }
-        target.add(RoleAnalysisAttributePanel.this.get(createComponentPath(ID_CARD_BODY, ID_CARD_BODY_COMPONENT)).getParent());
+        target.add(RoleAnalysisAttributePanel.this.get(createComponentPath(ID_CARD_CONTAINER, ID_CARD_BODY, ID_CARD_BODY_COMPONENT)).getParent());
     }
 
-    private void initCardHeaderTitle() {
+    private void initCardHeaderTitle(WebMarkupContainer cardContainer) {
         Label label = new Label(ID_CARD_HEADER_TITLE, getModel());
         label.setOutputMarkupId(true);
-        add(label);
+        cardContainer.add(label);
     }
 
     public String getIconCssClass() {
@@ -227,7 +236,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> {
     }
 
     @Contract(pure = true)
-    protected @Nullable String getChartContainerStyle(){
+    protected @Nullable String getChartContainerStyle() {
         return null;
     }
 }

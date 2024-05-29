@@ -28,7 +28,9 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_CONTAINER = "container";
+    private static final String ID_HEADER_ITEMS_CONTAINER = "header-items-container";
     private static final String ID_HEADER_ITEMS = "header-items";
+    private static final String ID_STATISTICS_PANEL_CONTAINER = "statistics-panel-container";
     private static final String ID_STATISTICS_PANEL = "statistics-panel";
 
     public RoleAnalysisDetectedPatternDetails(String id, IModel<DetectedPattern> model) {
@@ -41,13 +43,31 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
         container.setOutputMarkupId(true);
         add(container);
 
+        WebMarkupContainer headerItemsContainer = new WebMarkupContainer(ID_HEADER_ITEMS_CONTAINER);
+        headerItemsContainer.setOutputMarkupId(true);
+        headerItemsContainer.add(AttributeModifier.replace("class", getCssClassForHeaderItemsContainer()));
+        container.add(headerItemsContainer);
+
         RepeatingView headerItems = new RepeatingView(ID_HEADER_ITEMS);
         headerItems.setOutputMarkupId(true);
-        container.add(headerItems);
+        headerItemsContainer.add(headerItems);
 
         initHeaderPanel(headerItems);
 
-        initStatisticsPanel(container);
+        WebMarkupContainer statisticsPanelContainer = new WebMarkupContainer(ID_STATISTICS_PANEL_CONTAINER);
+        statisticsPanelContainer.setOutputMarkupId(true);
+        statisticsPanelContainer.add(AttributeModifier.replace("class", getCssClassForStatisticsPanelContainer()));
+        container.add(statisticsPanelContainer);
+
+        initStatisticsPanel(statisticsPanelContainer);
+    }
+
+    protected String getCssClassForHeaderItemsContainer() {
+        return "row";
+    }
+
+    protected String getCssClassForStatisticsPanelContainer() {
+        return "col-12 p-0";
     }
 
     private void initHeaderPanel(RepeatingView headerItems) {
@@ -137,13 +157,24 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
 
         if (userAttributeAnalysisResult != null || roleAttributeAnalysisResult != null) {
             RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_STATISTICS_PANEL,
-                    Model.of("Role analysis attribute panel"), roleAttributeAnalysisResult, userAttributeAnalysisResult) {
+                    getCardTitleModel(), roleAttributeAnalysisResult, userAttributeAnalysisResult) {
+                @Override
+                protected String getCssClassForCardContainer() {
+                    String cssClassForCardContainer = RoleAnalysisDetectedPatternDetails.this.getCssClassForCardContainer();
+                    if (cssClassForCardContainer != null) {
+                        return cssClassForCardContainer;
+                    }
+
+                    return super.getCssClassForCardContainer();
+                }
+
                 @Override
                 protected @NotNull String getChartContainerStyle() {
                     return "height:30vh;";
                 }
             };
             roleAnalysisAttributePanel.setOutputMarkupId(true);
+            roleAnalysisAttributePanel.add(AttributeModifier.replace("class", getCssClassForStatisticsPanel()));
             container.add(roleAnalysisAttributePanel);
         } else {
             Label label = new Label(ID_STATISTICS_PANEL, "No data available");
@@ -152,8 +183,20 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
         }
     }
 
+    protected String getCssClassForCardContainer() {
+        return null;
+    }
+
     protected String getInfoBoxClass() {
         return "col-md-3";
+    }
+
+    protected IModel<String> getCardTitleModel() {
+        return Model.of("Pattern attributes analysis result");
+    }
+
+    protected String getCssClassForStatisticsPanel() {
+        return null;
     }
 
 }

@@ -127,7 +127,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
 
             @Override
             public String getCardBodyStyle() {
-                return " height:41vh;";
+                return " height:34vh;";
             }
         };
         roleAnalysisInfoPanel.setOutputMarkupId(true);

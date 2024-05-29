@@ -123,12 +123,22 @@ public class PageRoleAnalysis extends PageAdmin {
 
                         @Override
                         protected void addDescriptionComponents() {
-                            appendText("Detected a potential reduction from ");
+                            appendText("A potential reduction has been detected. ");
+                            appendText(" The reduction involves ");
                             appendIcon("fe fe-assignment", "color: red;");
-                            appendText(" " + formattedReductionFactorConfidence + " assignments, ");
-                            appendText("with a attributes confidence of");
+                            appendText(" " + formattedReductionFactorConfidence + " assignments ");
+                            appendText("and is associated with an attribute confidence of ");
                             appendIcon("fa fa-leaf", "color: green");
-                            appendText(" " + formattedItemConfidence + "%.");
+                            appendText(" " + formattedItemConfidence + "%. ");
+                        }
+
+                        @Override
+                        protected IModel<String> getDescriptionModel() {
+                            String description = "A potential reduction has been detected. The reduction involves " +
+                                    formattedReductionFactorConfidence + " assignments and is associated with "
+                                    + "an attribute confidence of " +
+                                    formattedItemConfidence + "%.";
+                            return Model.of(description);
                         }
 
                         @Override

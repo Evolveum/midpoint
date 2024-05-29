@@ -9,10 +9,16 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
 
+import java.io.Serial;
 import java.util.List;
+
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -38,6 +44,9 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 @PanelType(name = "sessionOverView", defaultContainerPath = "empty")
 @PanelInstance(identifier = "sessionOverView",
         applicableForType = RoleAnalysisSessionType.class,
@@ -51,6 +60,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
     private static final String ID_HEADER_ITEMS = "header-items";
     private static final String ID_PANEL = "panelId";
     private static final String ID_CARD_TITLE = "card-title";
+    private static final String ID_EXPLORE_PATTERN_BUTTON = "explore-pattern-button";
     private static final String ID_PATTERNS = "patterns";
 
     public RoleAnalysisSessionAnalysisAspectsPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model, ContainerPanelConfigurationType config) {
@@ -74,7 +84,8 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
         List<DetectedPattern> topSessionPattern = roleAnalysisService.getTopSessionPattern(session, task, result, true);
 
-        if (topSessionPattern != null && sessionStatistic != null) {
+        if (topSessionPattern != null && sessionStatistic != null && !topSessionPattern.isEmpty()) {
+            DetectedPattern pattern = topSessionPattern.get(0);
             RepeatingView headerItems = new RepeatingView(ID_HEADER_ITEMS);
             headerItems.setOutputMarkupId(true);
             container.add(headerItems);
@@ -86,8 +97,36 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             cardTitle.setOutputMarkupId(true);
             container.add(cardTitle);
 
+            AjaxCompositedIconSubmitButton components = buildExploreButton(pattern);
+            container.add(components);
+
             RoleAnalysisDetectedPatternDetails statisticsPanel = new RoleAnalysisDetectedPatternDetails(ID_PANEL,
-                    Model.of(topSessionPattern.get(0))) {
+                    Model.of(pattern)) {
+
+                @Contract(pure = true)
+                @Override
+                protected @NotNull String getCssClassForCardContainer() {
+                    return "m-0 border-0";
+                }
+
+                @Contract(pure = true)
+                @Override
+                protected @NotNull String getCssClassForHeaderItemsContainer() {
+                    return "row pl-4 pr-4 pt-4";
+                }
+
+                @Contract(pure = true)
+                @Override
+                protected @NotNull String getCssClassForStatisticsPanelContainer() {
+                    return "col-12 p-0 border-top";
+                }
+
+                @Contract(pure = true)
+                @Override
+                protected @NotNull String getCssClassForStatisticsPanel() {
+                    return "col-12 p-0";
+                }
+
                 @Override
                 protected String getInfoBoxClass() {
                     return super.getInfoBoxClass();
@@ -185,6 +224,10 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             Label cardTitle = new Label(ID_CARD_TITLE, "No data available");
             cardTitle.setOutputMarkupId(true);
             headerItems.add(cardTitle);
+
+            WebMarkupContainer exploreButton = new WebMarkupContainer(ID_EXPLORE_PATTERN_BUTTON);
+            exploreButton.setOutputMarkupId(true);
+            container.add(exploreButton);
 
             WebMarkupContainer panel = new WebMarkupContainer(ID_PATTERNS);
             panel.setOutputMarkupId(true);
@@ -295,5 +338,46 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         headerItems.add(candidateRolesLabel);
     }
 
+    private @NotNull AjaxCompositedIconSubmitButton buildExploreButton(DetectedPattern pattern) {
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton explorePatternButton = new AjaxCompositedIconSubmitButton(
+                ID_EXPLORE_PATTERN_BUTTON,
+                iconBuilder.build(),
+                createStringResource("RoleAnalysis.explore.button.title")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                explorePatternPerform(pattern);
+            }
+
+            @Override
+            protected void onError(@NotNull AjaxRequestTarget target) {
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+        explorePatternButton.titleAsLabel(true);
+        explorePatternButton.setOutputMarkupId(true);
+        explorePatternButton.add(AttributeAppender.append("class", "ml-auto btn btn-primary btn-sm"));
+        explorePatternButton.setOutputMarkupId(true);
+        return explorePatternButton;
+    }
+
+    private void explorePatternPerform(@NotNull DetectedPattern pattern) {
+        PageParameters parameters = new PageParameters();
+        String clusterOid = pattern.getClusterRef().getOid();
+        parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
+        parameters.add("panelId", "clusterDetails");
+        parameters.add(PARAM_DETECTED_PATER_ID, pattern.getId());
+        StringValue fullTableSetting = getPageBase().getPageParameters().get(PARAM_TABLE_SETTING);
+        if (fullTableSetting != null && fullTableSetting.toString() != null) {
+            parameters.add(PARAM_TABLE_SETTING, fullTableSetting.toString());
+        }
+
+        Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                .getObjectDetailsPage(RoleAnalysisClusterType.class);
+        getPageBase().navigateToNext(detailsPageClass, parameters);
+    }
 }
 
