@@ -8,6 +8,7 @@ package com.evolveum.midpoint.testing.story.associations;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import static com.evolveum.midpoint.test.asserter.predicates.ReferenceAssertionPredicates.references;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.GENERIC;
@@ -23,7 +24,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyObject;
-import com.evolveum.midpoint.model.test.ObjectsCounter;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.TestSimulationResult;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -82,7 +83,7 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
     private static final DummyTestResource RESOURCE_DMS_120 = createDmsResource("resource-dms-120.xml");
     private static final DummyTestResource RESOURCE_DMS_130 = createDmsResource("resource-dms-130.xml");
 
-    private final ObjectsCounter focusCounter = new ObjectsCounter(FocusType.class);
+    private String guideOid;
 
     @BeforeMethod
     public void onNativeOnly() {
@@ -184,8 +185,9 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
 
         then("the documents are there");
         assertServices(INITIAL_DMS_DOCUMENTS);
-        assertServiceAfterByName(GUIDE)
-                .assertHasArchetype(ARCHETYPE_DOCUMENT.oid);
+        guideOid = assertServiceAfterByName(GUIDE)
+                .assertHasArchetype(ARCHETYPE_DOCUMENT.oid)
+                .getOid();
                 // TODO more assertions
     }
 
@@ -236,10 +238,30 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
         when("account is reimported (simulation)");
         var simResult = importJackSimulated(task, result);
 
-        then("the result is '...'");
-        assertProcessedObjectsAfter(simResult);
-//                .by().objectType(UserType.class).find().assertState(ObjectProcessingStateType.UNMODIFIED).end()
-//                .by().objectType(ShadowType.class).find().assertState(ObjectProcessingStateType.UNMODIFIED).end();
+        then("the assignment is added to the user (simulation)");
+        // @formatter:off
+        assertProcessedObjectsAfter(simResult)
+                .by().objectType(UserType.class).find()
+                    .assertState(ObjectProcessingStateType.MODIFIED)
+                    .assertEventMarks(
+                            CommonInitialObjects.MARK_FOCUS_ASSIGNMENT_CHANGED,
+                            CommonInitialObjects.MARK_FOCUS_ROLE_MEMBERSHIP_CHANGED)
+                    .delta()
+                        .assertModify()
+                        .container(UserType.F_ASSIGNMENT)
+                            .valuesToAdd()
+                                .single()
+                                    .assertItemValueSatisfies(
+                                            AssignmentType.F_TARGET_REF, references(guideOid, ServiceType.COMPLEX_TYPE))
+                                .end()
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).find()
+                    .assertState(ObjectProcessingStateType.UNMODIFIED)
+                .end();
+        // @formatter:on
     }
 
 //    @Test
