@@ -324,7 +324,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Override
     public DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result)
             throws Exception {
-        resource.controller = dummyResourceCollection.initDummyResource(resource, task, result);
+        resource.controller = dummyResourceCollection.initDummyResourceRepeatable(resource, task, result);
         resource.reload(result); // To have schema, etc
         return resource.controller;
     }
@@ -332,7 +332,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Override
     public void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result)
             throws Exception {
-        resource.controller = dummyResourceCollection.initDummyResource(resource, task, result);
+        resource.controller = dummyResourceCollection.initDummyResourceRepeatable(resource, task, result);
         assertSuccess(
                 modelService.testResource(resource.controller.getResource().getOid(), task, result));
         resource.reload(result); // To have schema, etc

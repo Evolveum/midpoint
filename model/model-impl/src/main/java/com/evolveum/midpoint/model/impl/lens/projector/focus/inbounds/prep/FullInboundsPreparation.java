@@ -487,8 +487,12 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
 
         private AssignmentType instantiateTargetObject() {
             // FIXME temporary
-            return new AssignmentType()
-                    .subtype(inboundDefinition.getFocusSpecification().getAssignmentSubtype());
+            var assignment = new AssignmentType();
+            var subtype = inboundDefinition.getFocusSpecification().getAssignmentSubtype();
+            if (subtype != null) {
+                assignment.subtype(subtype);
+            }
+            return assignment;
         }
 
         // FIXME temporary
@@ -539,9 +543,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
             focusContext.swallowToSecondaryDelta(
                     PrismContext.get().deltaFor(FocusType.class)
                             .item(focusItemPath)
-                            .add(instantiateTargetObject()
-                                    .id(id)
-                                    .identifier(String.valueOf(id))) // TEMPORARY FIXME (needed to make them different! fix the swallower instead!)
+                            .add(instantiateTargetObject().id(id))
                             .asItemDelta());
             LOGGER.trace("Going to ADD a new focus-side value ({}/{}) for associated object: {}",
                     focusItemPath, id, associationDefinition);
