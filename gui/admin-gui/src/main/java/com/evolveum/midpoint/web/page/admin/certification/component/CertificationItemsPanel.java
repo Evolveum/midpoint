@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -45,6 +46,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serial;
 import java.util.ArrayList;
@@ -65,8 +67,11 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     private static final String OPERATION_RECORD_ACTION = DOT_CLASS + "recordAction";
     private static final String OPERATION_RECORD_ACTION_SELECTED = DOT_CLASS + "recordActionSelected";
 
-    public CertificationItemsPanel(String id) {
+    private String campaignOid;
+
+    public CertificationItemsPanel(String id, String campaignOid) {
         super(id, AccessCertificationWorkItemType.class);
+        this.campaignOid = campaignOid;
     }
 
     public CertificationItemsPanel(String id, ContainerPanelConfigurationType configurationType) {
@@ -322,13 +327,10 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     }
 
     protected ObjectQuery getOpenCertWorkItemsQuery(boolean notDecidedOnly) {
-        String campaignOid = getCampaignOid();
         ObjectQuery query;
         if (StringUtils.isNotEmpty(campaignOid)) {
-            query = PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
-                    .ownedBy(AccessCertificationCaseType.class, AccessCertificationCaseType.F_WORK_ITEM)
-                    .id(campaignOid)
-                    .build();
+            query = QueryUtils.createQueryForOpenWorkItemsForCampaigns(Collections.singletonList(campaignOid),
+                    getPageBase().getPrincipal(), notDecidedOnly);
         } else {
             query = PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
                     .build();
@@ -338,10 +340,6 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
             principal = getPageBase().getPrincipal();
         }
         return QueryUtils.createQueryForOpenWorkItems(query, principal, notDecidedOnly);
-    }
-
-    protected String getCampaignOid() {
-        return null;
     }
 
     protected boolean isMyCertItems() {

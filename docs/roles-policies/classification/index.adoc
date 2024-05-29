@@ -24,7 +24,7 @@ compliance:
 :page-toc: top
 :page-nav-title: Classification
 :page-since: "4.9"
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 
 .Work in progress
 NOTE: This is still work in progress.

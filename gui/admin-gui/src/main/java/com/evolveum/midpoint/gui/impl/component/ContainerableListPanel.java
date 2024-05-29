@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
 import com.evolveum.midpoint.gui.impl.component.table.ChartedHeaderDto;
@@ -324,7 +325,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 if (isPreview()) {
-                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, (PreviewContainerPanelConfigurationType) config);
+                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this,
+                            (PreviewContainerPanelConfigurationType) config, getNavigationParametersModel());
                 }
                 return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
             }
@@ -451,7 +453,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 if (isPreview()) {
-                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, (PreviewContainerPanelConfigurationType) config);
+                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this,
+                            (PreviewContainerPanelConfigurationType) config, getNavigationParametersModel());
                 }
                 return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
             }
@@ -1379,5 +1382,9 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     public boolean isValidFormComponents() {
         return isValidFormComponents(null);
+    }
+
+    protected LoadableModel<PageParameters> getNavigationParametersModel() {
+        return null;
     }
 }
