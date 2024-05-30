@@ -465,13 +465,14 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             }
 
             @Override
-            protected String getCompressStatus() {
-                return displayValueOptionModel.getObject().getChunkMode().getValue();
+            protected String getCompressStatus(@NotNull LoadableDetachableModel<DisplayValueOption> displayValueOptionModel) {
+                return RoleAnalysisClusterOperationPanel.this.displayValueOptionModel.getObject().getChunkMode().getValue();
             }
 
             @Override
             protected void onPerform(AjaxRequestTarget ajaxRequestTarget) {
-                RoleAnalysisSortMode roleAnalysisSortMode = getMiningUserBasedTable().getRoleAnalysisSortMode();
+                RoleAnalysisSortMode roleAnalysisSortMode = getMiningUserBasedTable()
+                        .getRoleAnalysisSortMode(displayValueOptionModel);
                 displayValueOptionModel.getObject().setSortMode(roleAnalysisSortMode);
 
                 RoleAnalysisChunkMode chunkMode = displayValueOptionModel.getObject().getChunkMode();
@@ -524,13 +525,14 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             }
 
             @Override
-            protected String getCompressStatus() {
-                return displayValueOptionModel.getObject().getChunkMode().getValue();
+            protected String getCompressStatus(@NotNull LoadableDetachableModel<DisplayValueOption> displayValueOptionModel) {
+                return RoleAnalysisClusterOperationPanel.this.displayValueOptionModel.getObject().getChunkMode().getValue();
             }
 
             @Override
             protected void onPerform(AjaxRequestTarget ajaxRequestTarget) {
-                RoleAnalysisSortMode roleAnalysisSortMode = getMiningRoleBasedTable().getRoleAnalysisSortMode();
+                RoleAnalysisSortMode roleAnalysisSortMode = getMiningRoleBasedTable()
+                        .getRoleAnalysisSortMode(displayValueOptionModel);
                 displayValueOptionModel.getObject().setSortMode(roleAnalysisSortMode);
 
                 RoleAnalysisChunkMode chunkMode = displayValueOptionModel.getObject().getChunkMode();

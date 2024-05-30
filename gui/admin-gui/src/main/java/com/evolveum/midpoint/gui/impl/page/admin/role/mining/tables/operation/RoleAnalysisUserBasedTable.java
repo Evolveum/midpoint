@@ -101,7 +101,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
     boolean isRelationSelected = false;
     boolean showAsExpandCard = false;
     private final MiningOperationChunk miningOperationChunk;
-    LoadableDetachableModel<DisplayValueOption> displayValueOptionModel;
+
     LoadableDetachableModel<OperationPanelModel> operationPanelModel;
 
     public RoleAnalysisUserBasedTable(
@@ -123,7 +123,6 @@ public class RoleAnalysisUserBasedTable extends Panel {
             }
         };
 
-        this.displayValueOptionModel = displayValueOptionModel;
         this.miningOperationChunk = miningOperationChunk;
 
         RoleAnalysisClusterType clusterObject = cluster.asObjectable();
@@ -135,7 +134,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
             this.maxFrequency = frequencyRange.getMax() / 100;
         }
 
-        initLayout(cluster);
+        initLayout(cluster, displayValueOptionModel);
         initOperationPanel();
     }
 
@@ -209,7 +208,8 @@ public class RoleAnalysisUserBasedTable extends Panel {
         add(itemPanel);
     }
 
-    private void initLayout(@NotNull PrismObject<RoleAnalysisClusterType> cluster) {
+    private void initLayout(@NotNull PrismObject<RoleAnalysisClusterType> cluster,
+            @NotNull LoadableDetachableModel<DisplayValueOption> displayValueOptionModel) {
         List<ObjectReferenceType> resolvedPattern = cluster.asObjectable().getResolvedPattern();
 
         DisplayValueOption object = displayValueOptionModel.getObject();
@@ -225,7 +225,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
         toCol = Math.min(toCol, specialColumnCount);
 
         RoleMiningProvider<MiningRoleTypeChunk> provider = createRoleMiningProvider(roles);
-        RoleAnalysisTable<MiningRoleTypeChunk> table = generateTable(provider, users, resolvedPattern, cluster);
+        RoleAnalysisTable<MiningRoleTypeChunk> table = generateTable(provider, users, resolvedPattern, cluster, displayValueOptionModel);
         table.add(AttributeAppender.append("class", "border border-light"));
         add(table);
     }
@@ -249,10 +249,10 @@ public class RoleAnalysisUserBasedTable extends Panel {
             RoleMiningProvider<MiningRoleTypeChunk> provider,
             List<MiningUserTypeChunk> users,
             List<ObjectReferenceType> reductionObjects,
-            PrismObject<RoleAnalysisClusterType> cluster) {
+            PrismObject<RoleAnalysisClusterType> cluster, @NotNull LoadableDetachableModel<DisplayValueOption> displayValueOptionModel) {
 
         RoleAnalysisTable<MiningRoleTypeChunk> table = new RoleAnalysisTable<>(
-                ID_DATATABLE, provider, initColumns(users, reductionObjects),
+                ID_DATATABLE, provider, initColumns(users, reductionObjects, displayValueOptionModel),
                 null, true, specialColumnCount, displayValueOptionModel) {
 
             @Override
@@ -343,7 +343,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 valueTitle = value;
                 fromCol = Integer.parseInt(rangeParts[0]);
                 toCol = Integer.parseInt(rangeParts[1]);
-                getTable().replaceWith(generateTable(provider, users, reductionObjects, cluster));
+                getTable().replaceWith(generateTable(provider, users, reductionObjects, cluster, displayValueOptionModel));
                 target.add(getTable().setOutputMarkupId(true));
                 target.appendJavaScript(applyTableScaleScript());
             }
@@ -356,7 +356,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 toCol = Math.min(value, specialColumnCount);
                 valueTitle = "0 - " + toCol;
 
-                getTable().replaceWith(generateTable(provider, users, reductionObjects, cluster));
+                getTable().replaceWith(generateTable(provider, users, reductionObjects, cluster, displayValueOptionModel));
                 target.add(getTable().setOutputMarkupId(true));
                 target.appendJavaScript(applyTableScaleScript());
             }
@@ -391,7 +391,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
     private boolean isActionIconHeaderActive = true;
 
     public List<IColumn<MiningRoleTypeChunk, String>> initColumns(List<MiningUserTypeChunk> users,
-            List<ObjectReferenceType> reductionObjects) {
+            List<ObjectReferenceType> reductionObjects, @NotNull LoadableDetachableModel<DisplayValueOption> displayValueOptionModel) {
 
         List<IColumn<MiningRoleTypeChunk, String>> columns = new ArrayList<>();
 
@@ -536,7 +536,8 @@ public class RoleAnalysisUserBasedTable extends Panel {
                         new LoadableDetachableModel<>() {
                             @Override
                             protected String load() {
-                                if (RoleAnalysisChunkMode.valueOf(getCompressStatus()).equals(RoleAnalysisChunkMode.COMPRESS)) {
+                                if (RoleAnalysisChunkMode.valueOf(getCompressStatus(displayValueOptionModel))
+                                        .equals(RoleAnalysisChunkMode.COMPRESS)) {
                                     return getString("RoleMining.operation.panel.expand.button.title");
                                 } else {
                                     return getString("RoleMining.operation.panel.compress.button.title");
@@ -549,7 +550,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                     public CompositedIcon getIcon() {
 
                         CompositedIconBuilder iconBuilder;
-                        if (RoleAnalysisChunkMode.valueOf(getCompressStatus()).equals(RoleAnalysisChunkMode.COMPRESS)) {
+                        if (RoleAnalysisChunkMode.valueOf(getCompressStatus(displayValueOptionModel)).equals(RoleAnalysisChunkMode.COMPRESS)) {
                             iconBuilder = new CompositedIconBuilder().setBasicIcon("fa fa-expand",
                                     LayeredIconCssStyle.IN_ROW_STYLE);
                         } else {
@@ -780,7 +781,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
     }
 
-    protected String getCompressStatus() {
+    protected String getCompressStatus(@NotNull LoadableDetachableModel<DisplayValueOption> displayValueOptionModel) {
         return displayValueOptionModel.getObject().getChunkMode().getValue();
     }
 
@@ -832,7 +833,8 @@ public class RoleAnalysisUserBasedTable extends Panel {
         return !getSelectedPatterns().isEmpty();
     }
 
-    public RoleAnalysisSortMode getRoleAnalysisSortMode() {
+    public RoleAnalysisSortMode getRoleAnalysisSortMode(
+            @NotNull LoadableDetachableModel<DisplayValueOption> displayValueOptionModel) {
         if (displayValueOptionModel.getObject() != null) {
             return displayValueOptionModel.getObject().getSortMode();
         }
