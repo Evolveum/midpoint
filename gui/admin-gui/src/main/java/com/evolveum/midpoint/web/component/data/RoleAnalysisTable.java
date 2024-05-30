@@ -388,8 +388,6 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
         private void initLayout(final RoleAnalysisTable<?> boxedTablePanel) {
 
-            WebMarkupContainer buttonToolbar = boxedTablePanel.createButtonToolbar(ID_BUTTON_TOOLBAR);
-            add(buttonToolbar);
 
             WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
             footerContainer.setOutputMarkupId(true);
@@ -443,8 +441,6 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
             formBsProcess.add(editButton);
 
-            Form<?> formCurrentPage = new MidpointForm<>("form_current_page");
-            footerContainer.add(formCurrentPage);
             List<Integer> integers = List.of(new Integer[] { 100, 200, 400 });
             DropDownChoice<Integer> colPerPage = new DropDownChoice<>("colCountOnPage",
                     new Model<>(getColumnPageCount()), integers);
