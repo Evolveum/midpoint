@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.testing.story.associations;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_DEFAULT;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.test.asserter.predicates.ReferenceAssertionPredicates.references;
@@ -82,6 +84,9 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
     private static final DummyTestResource RESOURCE_DMS_100 = createDmsResource("resource-dms-100.xml");
     private static final DummyTestResource RESOURCE_DMS_120 = createDmsResource("resource-dms-120.xml");
     private static final DummyTestResource RESOURCE_DMS_130 = createDmsResource("resource-dms-130.xml");
+    private static final DummyTestResource RESOURCE_DMS_140 = createDmsResource("resource-dms-140.xml");
+    private static final DummyTestResource RESOURCE_DMS_150 = createDmsResource("resource-dms-150.xml");
+    private static final DummyTestResource RESOURCE_DMS_170 = createDmsResource("resource-dms-170.xml");
 
     private String guideOid;
 
@@ -102,14 +107,9 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
             DummyObject guide = dmsScenario.document.add(GUIDE);
             DummyObject jackCanReadGuide = dmsScenario.access.add("jack-can-read-guide");
             jackCanReadGuide.addAttributeValues(DummyDmsScenario.Access.AttributeNames.LEVEL.local(), LEVEL_READ);
-//            DummyObject jackCanWriteGuide = dmsScenario.access.add("jack-can-write-guide");
-//            jackCanWriteGuide.addAttributeValues(DummyDmsScenario.Access.AttributeNames.LEVEL.local(), LEVEL_WRITE);
 
             dmsScenario.accountAccess.add(jack, jackCanReadGuide);
             dmsScenario.accessDocument.add(jackCanReadGuide, guide);
-
-//            dmsScenario.accountAccess.add(jack, jackCanWriteGuide);
-//            dmsScenario.accessDocument.add(jackCanWriteGuide, guide);
         } catch (Exception e) {
             throw new SystemException(e);
         }
@@ -151,6 +151,8 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
         then("there are all accounts");
         displayCollection("accounts", accounts);
         assertThat(accounts).as("accounts").hasSize(INITIAL_DMS_ACCOUNTS);
+
+        // check that reference attributes are there
     }
 
     /**
@@ -213,15 +215,6 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
                 .by().objectType(ShadowType.class).find().assertState(ObjectProcessingStateType.UNMODIFIED).end();
     }
 
-    private TestSimulationResult importJackSimulated(Task task, OperationResult result) throws Exception {
-        return importAccountsRequest()
-                .withResourceOid(RESOURCE_DMS_OID)
-                .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_DEFAULT))
-                .withNameValue(JACK)
-                .simulatedDevelopment()
-                .executeOnForegroundSimulated(null, task, result);
-    }
-
     /**
      * Resource definition: added synchronization reaction for unmatched value.
      *
@@ -264,6 +257,126 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
         // @formatter:on
     }
 
+    /**
+     * Resource definition: same as above, with lifecycle state set to default.
+     *
+     * Importing an account in real mode.
+     */
+    @Test
+    public void test140SimpleInboundImport() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("resource is reimported");
+        reimportDmsResource(RESOURCE_DMS_140, task, result);
+
+        when("account is reimported (real)");
+        importJackReal(result);
+
+        then("the assignment is added to the user (real)");
+        assertUserAfterByUsername(JACK)
+                .assignments()
+                .single()
+                .assertTargetOid(guideOid)
+                .assertTargetType(ServiceType.COMPLEX_TYPE)
+                .assertTargetRelationMatches(ORG_DEFAULT);
+    }
+
+    /**
+     * Resource definition: Added correlation on `targetRef` and `matched` synchronization reaction.
+     *
+     * Importing an account in real mode.
+     */
+    @Test
+    public void test150AddingSynchronizationReactionAndReimporting() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("resource is reimported");
+        reimportDmsResource(RESOURCE_DMS_150, task, result);
+
+        when("account is reimported (real)");
+        importJackReal(result);
+
+        then("there is still a single assignment");
+        assertUserAfterByUsername(JACK)
+                .assignments()
+                .single()
+                .assertTargetOid(guideOid)
+                .assertTargetType(ServiceType.COMPLEX_TYPE)
+                .assertTargetRelationMatches(ORG_DEFAULT);
+    }
+
+    /**
+     * Resource definition: same as above.
+     *
+     * Adding second access right to the same document and re-importing the account.
+     */
+    @Test
+    public void test160AddingAccessRightAndReimporting() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("reusing resource definition from previous test");
+
+        given("added second access right to the same document");
+        var jack = dmsScenario.account.getByNameRequired(JACK);
+        var guide = dmsScenario.document.getByNameRequired(GUIDE);
+        var jackCanWriteGuide = dmsScenario.access.add("jack-can-write-guide");
+        jackCanWriteGuide.addAttributeValues(DummyDmsScenario.Access.AttributeNames.LEVEL.local(), LEVEL_WRITE);
+        dmsScenario.accountAccess.add(jack, jackCanWriteGuide);
+        dmsScenario.accessDocument.add(jackCanWriteGuide, guide);
+
+        when("account is reimported (real)");
+        importJackReal(result);
+
+        then("there is still only one assignment (shared by both accesses)");
+        assertUserAfterByUsername(JACK)
+                .assignments()
+                .single()
+                .assertTargetOid(guideOid)
+                .assertTargetType(ServiceType.COMPLEX_TYPE)
+                .assertTargetRelationMatches(ORG_DEFAULT);
+    }
+
+    /**
+     * Resource definition: added `level` to `relation` mapping.
+     *
+     * Reimporting the jack (simulated).
+     */
+    @Test
+    public void test170AddingLevelMappingAndReimportingSimulated() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("resource is reimported");
+        reimportDmsResource(RESOURCE_DMS_170, task, result);
+
+        when("account is reimported (simulation)");
+        var simResult = importJackSimulated(task, result);
+
+        then("two assignments are added, the original one removed (simulation)");
+        // @formatter:off
+        assertProcessedObjectsAfter(simResult)
+                .by().objectType(UserType.class).find()
+                    .assertState(ObjectProcessingStateType.MODIFIED)
+                    .assertEventMarks(
+                            CommonInitialObjects.MARK_FOCUS_ASSIGNMENT_CHANGED,
+                            CommonInitialObjects.MARK_FOCUS_ROLE_MEMBERSHIP_CHANGED)
+                    .delta()
+                        .assertModify()
+                        .container(UserType.F_ASSIGNMENT)
+                            .valuesToAdd().assertSize(2).end() // relation: read, write
+                            .valuesToDelete().assertSize(1).end() // relation: default
+                        .end()
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).find()
+                    .assertState(ObjectProcessingStateType.UNMODIFIED)
+                .end();
+        // @formatter:on
+    }
+
 //    @Test
 //    public void test150Temp() throws Exception {
 //        Task task = getTestTask();
@@ -284,5 +397,23 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
     private void reimportDmsResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
         deleteObject(ResourceType.class, RESOURCE_DMS_OID, task, result);
         initTestObjects(task, result, resource);
+    }
+
+    private TestSimulationResult importJackSimulated(Task task, OperationResult result) throws Exception {
+        return importAccountsRequest()
+                .withResourceOid(RESOURCE_DMS_OID)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_DEFAULT))
+                .withNameValue(JACK)
+                .simulatedDevelopment()
+                .withTracing()
+                .executeOnForegroundSimulated(null, task, result);
+    }
+
+    private void importJackReal(OperationResult result) throws Exception {
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DMS_OID)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_DEFAULT))
+                .withNameValue(JACK)
+                .executeOnForeground(result);
     }
 }

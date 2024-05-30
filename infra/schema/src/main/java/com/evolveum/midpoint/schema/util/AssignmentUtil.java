@@ -15,11 +15,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 public class AssignmentUtil {
 
@@ -143,5 +147,18 @@ public class AssignmentUtil {
             sb.append("!").append(constraint.getResetOrder());
         }
         return sb.toString();
+    }
+
+    public static @Nullable AssignmentType getAssignment(@NotNull AssignmentHolderType object, long id) {
+        return object.getAssignment().stream()
+                .filter(a -> id == a.getId())
+                .findFirst()
+                .orElse(null);
+    }
+
+    public static @NotNull AssignmentType getAssignmentRequired(@NotNull AssignmentHolderType object, long id) {
+        return stateNonNull(
+                getAssignment(object, id),
+                "No assignment with ID %d in %s", id, object);
     }
 }

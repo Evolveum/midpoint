@@ -222,7 +222,7 @@ public class CorrelationServiceImpl implements CorrelationService {
         } else if (eligibleCandidates.isEmpty()) {
             return SimplifiedCorrelationResult.noOwner();
         } else {
-            return SimplifiedCorrelationResult.uncertain();
+            return SimplifiedCorrelationResult.uncertain(eligibleCandidates);
         }
     }
 
