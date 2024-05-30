@@ -25,7 +25,9 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -69,6 +71,12 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                 @Override
                 protected @NotNull String getChartContainerStyle() {
                     return "height:25vh;";
+                }
+
+                @Contract(pure = true)
+                @Override
+                protected @NotNull String getCssClassForCardContainer() {
+                    return "";
                 }
             };
             roleAnalysisAttributePanel.setOutputMarkupId(true);
