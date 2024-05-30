@@ -91,6 +91,10 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> {
         RoleAnalysisAttributeResultChartPanel roleAnalysisChartPanel = new RoleAnalysisAttributeResultChartPanel(ID_CARD_BODY_COMPONENT) {
             @Override
             public @NotNull List<RoleAnalysisSimpleModel> prepareRoleAnalysisData() {
+                if (chartModel == null || chartModel.getObject() == null) {
+                    return new ArrayList<>();
+                }
+
                 return chartModel.getObject();
             }
 

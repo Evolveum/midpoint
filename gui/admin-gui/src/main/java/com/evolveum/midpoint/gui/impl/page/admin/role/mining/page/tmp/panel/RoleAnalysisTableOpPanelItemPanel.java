@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObje
 
 import java.io.Serial;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -318,11 +319,25 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
                 @Override
                 protected void addDescriptionComponents() {
-                    appendIcon("fe fe-assignment", "color: red;");
-                    appendText(" " + formattedReductionFactorConfidence, null);
-                    appendText(" - ", null);
-                    appendIcon("fa fa-leaf", "color: green");
-                    appendText(" " + formattedItemConfidence + "% stats.", null);
+                    if(modelObject.isCandidateRoleView()){
+                        Set<String> users = pattern.getUsers();
+                        Set<String> roles = pattern.getRoles();
+                        if(users != null && !users.isEmpty() && roles != null && !roles.isEmpty()){
+                            appendIcon(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED,null);
+                            appendText(" " + pattern.getUsers().size(), null);
+                            appendText("users - ", null);
+                            appendIcon(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED,null);
+                            appendText(" " + pattern.getRoles().size(), null);
+                            appendText(" roles", null);
+                        }
+                    }else{
+                        appendIcon("fe fe-assignment", "color: red;");
+                        appendText(" " + formattedReductionFactorConfidence, null);
+                        appendText("reduction - ", null);
+                        appendIcon("fa fa-leaf", "color: green");
+                        appendText(" " + formattedItemConfidence + "% ", null);
+                        appendText(" confidence", null);
+                    }
                 }
 
                 @Serial
