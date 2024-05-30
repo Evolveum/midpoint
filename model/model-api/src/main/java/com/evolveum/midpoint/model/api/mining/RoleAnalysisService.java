@@ -454,6 +454,7 @@ public interface RoleAnalysisService {
      * @param taskName The name of the task.
      * @param task The task associated with this operation.
      * @param result The operation result.
+     * @param state Cluster operation state
      */
     void executeDetectionTask(
             @NotNull ModelInteractionService modelInteractionService,
@@ -461,7 +462,8 @@ public interface RoleAnalysisService {
             @Nullable String taskOid,
             @Nullable PolyStringType taskName,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            String state);
 
     /**
      * This method is used to execute a clustering task.
@@ -505,12 +507,14 @@ public interface RoleAnalysisService {
      * @param clusterOid The cluster for recompute and resolve.
      * @param result The operation result.
      * @param task The task associated with this operation.
+     * @param onlyStatusUpdate If set true pattern detection does not perform
+     * @param modelInteractionService Model interactive service provider
      * @return The cluster operation status.
      */
     @NotNull String recomputeAndResolveClusterOpStatus(
             @NotNull String clusterOid,
             @NotNull OperationResult result,
-            @NotNull Task task);
+            @NotNull Task task, boolean onlyStatusUpdate, @Nullable ModelInteractionService modelInteractionService);
 
     /**
      * Recompute and resolve the cluster operation status.

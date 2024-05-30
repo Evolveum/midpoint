@@ -113,11 +113,16 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
     @Override
     protected void initLayout() {
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        Task task = ((PageBase) getPage()).createSimpleTask(OP_PREPARE_OBJECTS);
+        PageBase pageBase = getPageBase();
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECTS);
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
         PrismObject<RoleAnalysisSessionType> getParent = roleAnalysisService.
                 getSessionTypeObject(cluster.getRoleAnalysisSessionRef().getOid(), task, result);
+
+        @NotNull String status = roleAnalysisService
+                .recomputeAndResolveClusterOpStatus(cluster.getOid(), result, task, false,
+                        pageBase.getModelInteractionService());
 
         if (getCandidateRoleContainerId() != null) {
             loadSelectedCandidateRole(cluster, roleAnalysisService, task);
@@ -198,6 +203,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     private void loadSelectedCandidateRole(@NotNull RoleAnalysisClusterType cluster,
             RoleAnalysisService roleAnalysisService,
             Task task) {
+
         List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
 
         analysePattern = new ArrayList<>();

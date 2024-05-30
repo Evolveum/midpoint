@@ -228,7 +228,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
                                 @NotNull String stateString = roleAnalysisService.recomputeAndResolveClusterOpStatus(
                                         value.asPrismObject().getOid(),
-                                        result, task);
+                                        result, task, true, getPageBase().getModelInteractionService());
 
                                 IconType icon = new IconType();
                                 if (stateString.equals(RoleAnalysisObjectState.PROCESSING.getDisplayString())) {
@@ -734,6 +734,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
         cellItem.add(progressBar);
     }
 
+    @SuppressWarnings("unchecked")
     private MainObjectListPanel<RoleAnalysisClusterType> getTable() {
         return (MainObjectListPanel<RoleAnalysisClusterType>) get(ID_FORM + ":" + ID_DATATABLE);
     }

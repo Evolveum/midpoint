@@ -141,7 +141,8 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         DetectionOption detectionOption = new DetectionOption(cluster);
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
-        @NotNull String status = roleAnalysisService.recomputeAndResolveClusterOpStatus(clusterPrismObject.getOid(), result, task);
+        @NotNull String status = roleAnalysisService.recomputeAndResolveClusterOpStatus(clusterPrismObject.getOid(), result, task,
+                true, pageBase.getModelInteractionService());
 
         if (status.equals("processing")) {
             warn("Couldn't start detection. Some process is already in progress.");
@@ -153,7 +154,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
                 task, result);
 
         roleAnalysisService.executeDetectionTask(getModelInteractionService(), cluster.asPrismObject(), null,
-                null, task, result);
+                null, task, result, status);
 
         if (result.isWarning()) {
             warn(result.getMessage());
@@ -614,7 +615,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
 
     private @NotNull String getLastRebuildTimeStamp(@NotNull RoleAnalysisClusterType objectType) {
         MetadataType metadata = objectType.getMetadata();
-        if(metadata == null) {
+        if (metadata == null) {
             return "unknown";
         }
         XMLGregorianCalendar createTimestamp = metadata.getCreateTimestamp();

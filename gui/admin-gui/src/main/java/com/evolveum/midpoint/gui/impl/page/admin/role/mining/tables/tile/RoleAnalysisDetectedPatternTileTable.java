@@ -611,7 +611,7 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
                 DetectedPattern object = rowModel.getObject();
                 ObjectReferenceType clusterRef = object.getClusterRef();
                 @NotNull String status = roleAnalysisService
-                        .recomputeAndResolveClusterOpStatus(clusterRef.getOid(), result, task);
+                        .recomputeAndResolveClusterOpStatus(clusterRef.getOid(), result, task, true, null);
 
                 if (status.equals("processing")) {
                     warn("Couldn't start detection. Some process is already in progress.");

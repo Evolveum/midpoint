@@ -118,7 +118,7 @@ public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClu
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
         roleAnalysisService.recomputeAndResolveClusterOpStatus(
                 getObjectWrapperObject().getOid(),
-                result, task);
+                result, task, false, getPageBase().getModelInteractionService());
     }
 
     public PageBase getPageBase() {

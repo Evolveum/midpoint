@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.math3.distribution.NormalDistribution;
@@ -81,9 +83,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
     private static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisServiceImpl.class);
 
-    @Autowired ModelService modelService;
-    @Autowired RepositoryService repositoryService;
-    @Autowired ModelInteractionService modelInteractionService;
+    transient @Autowired ModelService modelService;
+    transient @Autowired RepositoryService repositoryService;
 
     @Override
     public @Nullable PrismObject<UserType> getUserTypeObject(
@@ -1046,9 +1047,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @Nullable String taskOid,
             @Nullable PolyStringType taskName,
             @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        String state = recomputeAndResolveClusterOpStatus(cluster.getOid(), result, task);
+            @NotNull OperationResult result,
+            String state) {
 
         if (!RoleAnalysisObjectState.isStable(state)) {
             result.recordWarning("Couldn't start detection. Some process is already in progress.");
@@ -1120,7 +1120,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        String state = recomputeAndResolveClusterOpStatus(cluster.getOid(), result, task);
+        String state = recomputeAndResolveClusterOpStatus(cluster.getOid(), result, task, true, modelInteractionService);
 
         if (!RoleAnalysisObjectState.isStable(state)) {
             result.recordWarning("Couldn't start migration. Some process is already in progress.");
@@ -1195,7 +1195,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     public @NotNull String recomputeAndResolveClusterOpStatus(
             @NotNull String clusterOid,
             @NotNull OperationResult result,
-            @NotNull Task task) {
+            @NotNull Task task,
+            boolean onlyStatusUpdate,
+            @Nullable ModelInteractionService modelInteractionService) {
 
         PrismObject<RoleAnalysisClusterType> clusterPrism = getClusterTypeObject(clusterOid, task, result);
 
@@ -1214,8 +1216,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         boolean requestUpdatePattern = false;
         boolean requestUpdateOp = false;
 
-        Collection<PrismContainerValue<?>> collection = new ArrayList<>();
         for (RoleAnalysisOperationStatus roleAnalysisOperationStatus : operationStatus) {
+            Collection<PrismContainerValue<?>> collection = new ArrayList<>();
+
             RoleAnalysisOperationStatus newStatus = updateRoleAnalysisOperationStatus(
                     repositoryService, roleAnalysisOperationStatus, false, LOGGER, result
             );
@@ -1223,17 +1226,19 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             if (newStatus != null) {
                 collection.add(newStatus.clone().asPrismContainerValue().clone());
                 requestUpdateOp = true;
-                OperationResultStatusType progresStatus = newStatus.getStatus();
-                if (progresStatus != null && progresStatus.equals(OperationResultStatusType.IN_PROGRESS)) {
+                OperationResultStatusType progressStatus = newStatus.getStatus();
+                if (progressStatus != null && progressStatus.equals(OperationResultStatusType.IN_PROGRESS)) {
                     stateString = RoleAnalysisObjectState.PROCESSING.getDisplayString();
-                } else if (progresStatus != null && progresStatus.equals(OperationResultStatusType.SUCCESS)) {
-                    requestUpdatePattern = true;
+                } else if (progressStatus != null && progressStatus.equals(OperationResultStatusType.SUCCESS)) {
+                    if (newStatus.getOperationChannel().equals(RoleAnalysisOperation.MIGRATION)) {
+                        requestUpdatePattern = true;
+                    }
                 }
 
             } else {
-//                collection.add(roleAnalysisOperationStatus.clone().asPrismContainerValue().clone());
-                OperationResultStatusType progresStatus = roleAnalysisOperationStatus.getStatus();
-                if (progresStatus != null && progresStatus.equals(OperationResultStatusType.IN_PROGRESS)) {
+                collection.add(roleAnalysisOperationStatus.clone().asPrismContainerValue().clone());
+                OperationResultStatusType progressStatus = roleAnalysisOperationStatus.getStatus();
+                if (progressStatus != null && progressStatus.equals(OperationResultStatusType.IN_PROGRESS)) {
                     stateString = RoleAnalysisObjectState.PROCESSING.getDisplayString();
                 }
             }
@@ -1241,20 +1246,17 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             if (requestUpdateOp && !collection.isEmpty()) {
                 try {
 
-                    List<RoleAnalysisOperationStatus> operationStatusToDelete = new ArrayList<>(cluster.getOperationStatus());
-                    for (RoleAnalysisOperationStatus operationStatus1 : operationStatusToDelete) {
-                        //TODO change status handling (temporary - there might be just one container but this is not correct solution)
-                        //USING replace in one executeChange cause reset container error (500)
-                        var candidateRoleToDelete = new RoleAnalysisCandidateRoleType().id(operationStatus1.getId());
-                        ObjectDelta<RoleAnalysisClusterType> deltaClear = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
-                                .item(RoleAnalysisClusterType.F_OPERATION_STATUS).delete(candidateRoleToDelete)
-                                .asObjectDelta(clusterOid);
-                        Collection<ObjectDelta<? extends ObjectType>> deltasClear = MiscSchemaUtil.createCollection(deltaClear);
-                        modelService.executeChanges(deltasClear, null, task, result);
-                    }
+                    //TODO change status handling (temporary - there might be just one container but this is not correct solution)
+                    //USING replace in one executeChange cause reset container error (500)
+                    var candidateRoleToDelete = new RoleAnalysisCandidateRoleType().id(roleAnalysisOperationStatus.getId());
+                    ObjectDelta<RoleAnalysisClusterType> deltaClear = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                            .item(RoleAnalysisClusterType.F_OPERATION_STATUS).delete(candidateRoleToDelete)
+                            .asObjectDelta(clusterOid);
+                    Collection<ObjectDelta<? extends ObjectType>> deltasClear = MiscSchemaUtil.createCollection(deltaClear);
+                    modelService.executeChanges(deltasClear, null, task, result);
 
                     ObjectDelta<RoleAnalysisClusterType> deltaAdd = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
-                            .item(RoleAnalysisClusterType.F_OPERATION_STATUS).add(collection)
+                            .item(RoleAnalysisClusterType.F_OPERATION_STATUS).add(CloneUtil.cloneCollectionMembers(collection))
                             .asObjectDelta(clusterOid);
 
                     Collection<ObjectDelta<? extends ObjectType>> deltasAdd = MiscSchemaUtil.createCollection(deltaAdd);
@@ -1269,12 +1271,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 }
             }
 
-            if (requestUpdatePattern) {
-//                updateClusterPatterns(cluster.getOid(), task, result);
-                this.executeDetectionTask(modelInteractionService, cluster.asPrismObject(), null,
-                        null, task, result);
-            }
+        }
 
+        if (requestUpdatePattern && !onlyStatusUpdate && modelInteractionService != null) {
+//                updateClusterPatterns(cluster.getOid(), task, result);
+            this.executeDetectionTask(modelInteractionService, cluster.asPrismObject(), null,
+                    null, task, result, stateString);
         }
 
         return stateString;
