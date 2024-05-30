@@ -110,20 +110,10 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
                 "GuiObjectDetailsPageType",
                 GuiObjectDetailsPageType.class,
                 m -> new GenericItemMerger(m, DefaultNaturalKeyDefinitionImpl.of(GuiObjectDetailsPageType.F_TYPE)));
-//        factory.registerMergerSupplier(
-//                "GuiResourceDetailsPageType",
-//                GuiResourceDetailsPageType.class,
-//                m -> new GenericItemMerger(m, DefaultNaturalKeyImpl.of(
-//                        GuiResourceDetailsPageType.F_TYPE,
-//                        GuiResourceDetailsPageType.F_CONNECTOR_REF)));
         factory.registerMergerSupplier(
                 "ExpressionEvaluatorProfileType",
                 ExpressionEvaluatorProfileType.class,
                 m -> new GenericItemMerger(m, DefaultNaturalKeyDefinitionImpl.of(ExpressionEvaluatorProfileType.F_TYPE)));
-//        factory.registerMergerSupplier(
-//                "ClassLoggerLevelOverrideType",
-//                ClassLoggerLevelOverrideType.class,
-//                m -> new GenericItemMerger(m, DefaultNaturalKeyImpl.of(ClassLoggerLevelOverrideType.F_LOGGER)));
         factory.registerMergerSupplier(
                 "ObjectSelectorType",
                 ObjectSelectorType.class,
