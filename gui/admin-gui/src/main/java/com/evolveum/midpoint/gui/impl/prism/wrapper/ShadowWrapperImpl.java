@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -15,6 +16,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
@@ -84,5 +87,10 @@ public class ShadowWrapperImpl extends PrismObjectWrapperImpl<ShadowType> implem
     @Override
     public QName getRelation() {
         return relation;
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return null;
     }
 }
