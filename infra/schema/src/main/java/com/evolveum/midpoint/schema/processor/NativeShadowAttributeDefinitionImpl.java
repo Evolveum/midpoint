@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.schema.*;
 
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 
 import org.jetbrains.annotations.NotNull;
@@ -200,6 +201,11 @@ public class NativeShadowAttributeDefinitionImpl<T>
     @Override
     public <A> void setAnnotation(QName qname, A value) {
         unsupported("annotation", qname);
+    }
+
+    @Override
+    public void setSchemaContextDefinition(SchemaContextDefinition schemaContextDefinition) {
+        unsupported("schemaContextAnnotation", schemaContextDefinition);
     }
 
     @Override

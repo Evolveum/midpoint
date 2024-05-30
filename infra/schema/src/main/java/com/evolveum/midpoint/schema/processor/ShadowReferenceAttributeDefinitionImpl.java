@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinition.PrismContainerDefinitionMutator;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReferencesCapabilityType;
 import com.google.common.base.Preconditions;
@@ -481,6 +482,11 @@ public class ShadowReferenceAttributeDefinitionImpl
     }
 
     @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return null;
+    }
+
+    @Override
     public @NotNull ItemDefinition<PrismContainer<ShadowAssociationValueType>> cloneWithNewName(@NotNull ItemName itemName) {
         throw new UnsupportedOperationException();
     }
@@ -649,6 +655,10 @@ public class ShadowReferenceAttributeDefinitionImpl
 
     @Override
     public void setNaturalKeyConstituents(List<QName> naturalKeyConstituents) {
+    }
+
+    @Override
+    public void setSchemaContextDefinition(SchemaContextDefinition schemaContextDefinition) {
     }
 
     @Override
