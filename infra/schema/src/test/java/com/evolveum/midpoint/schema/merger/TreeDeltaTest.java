@@ -44,6 +44,29 @@ public class TreeDeltaTest extends AbstractSchemaTest {
     }
 
     @Test
+    public void testRoleChangesDifferentPcvIds() throws Exception {
+        TestData<RoleType> data = loadTestData("role");
+
+        data.base.asObjectable().getAuthorization().get(0).setId(123L);
+        data.left.asObjectable().getAuthorization().get(0).setId(456L);
+        data.right.asObjectable().getAuthorization().get(0).setId(789L);
+
+        ThreeWayMergeOperation<RoleType> operation = createMergeOperation(data);
+        AssertJUnit.assertTrue(operation.hasConflicts());
+
+        PrismObject<RoleType> base = data.base.clone();
+
+        ObjectDelta<RoleType> fullLeft = operation.getLeftDelta().toObjectDelta();
+        ObjectDelta<RoleType> fullRight = operation.getRightDelta().toObjectDelta();
+
+        ObjectDelta<RoleType> left = operation.getNonConflictingDelta(Direction.FROM_LEFT);
+        ObjectDelta<RoleType> right = operation.getNonConflictingDelta(Direction.FROM_RIGHT);
+
+        // todo non-conflicting modifications are not computed correctly
+        System.out.println();
+    }
+
+    @Test
     public void testSingleValuePropertyNoConflict() throws SchemaException {
         final String oid = UUID.randomUUID().toString();
         PrismContext ctx = PrismTestUtil.getPrismContext();
@@ -223,8 +246,8 @@ public class TreeDeltaTest extends AbstractSchemaTest {
         AssertJUnit.assertTrue(left.equivalent(operation.getLeftDelta().toObjectDelta()));
         AssertJUnit.assertTrue(right.equivalent(operation.getRightDelta().toObjectDelta()));
 
-        Collection<? extends ItemDelta<?, ?>> leftToRight = operation.getNonConflictingModifications(Direction.LEFT_TO_RIGHT);
-        Collection<? extends ItemDelta<?, ?>> rightToLeft = operation.getNonConflictingModifications(Direction.RIGHT_TO_LEFT);
+        Collection<? extends ItemDelta<?, ?>> leftToRight = operation.getNonConflictingModifications(Direction.FROM_LEFT);
+        Collection<? extends ItemDelta<?, ?>> rightToLeft = operation.getNonConflictingModifications(Direction.FROM_RIGHT);
         Collection<Conflict> conflicting = operation.getConflictingModifications();
 
         // todo assert that these are not overlapping
@@ -243,6 +266,26 @@ public class TreeDeltaTest extends AbstractSchemaTest {
     private <O extends ObjectType> ThreeWayMergeOperation<O> createMergeOperation(String filename)
             throws SchemaException, IOException {
 
+        TestData<O> data = loadTestData(filename);
+
+        return createMergeOperation(data);
+    }
+
+    private <O extends ObjectType> ThreeWayMergeOperation<O> createMergeOperation(TestData<O> data)
+            throws SchemaException, IOException {
+        ParameterizedEquivalenceStrategy strategy = EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS;
+
+        ThreeWayMergeOperation<O> operation = new ThreeWayMergeOperation<>(data.left, data.right, data.base, strategy);
+
+        ObjectDelta<O> leftToBase = data.base.diff(data.left, strategy);
+        ObjectDelta<O> rightToBase = data.base.diff(data.right, strategy);
+
+        assertOperationState(operation, leftToBase, rightToBase);
+
+        return operation;
+    }
+
+    private <O extends ObjectType> TestData<O> loadTestData(String filename) throws SchemaException, IOException {
         File baseFile = new File(TEST_DIRECTORY, filename + "-base.xml");
         File leftFile = new File(TEST_DIRECTORY, filename + "-left.xml");
         File rightFile = new File(TEST_DIRECTORY, filename + "-right.xml");
@@ -253,16 +296,10 @@ public class TreeDeltaTest extends AbstractSchemaTest {
         PrismObject<O> left = ctx.parseObject(leftFile);
         PrismObject<O> right = ctx.parseObject(rightFile);
 
-        ParameterizedEquivalenceStrategy strategy = EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS;
+        return new TestData<>(baseFile, leftFile, rightFile, base, left, right);
+    }
 
-        ThreeWayMergeOperation<O> operation = new ThreeWayMergeOperation<>(
-                left, right, base, strategy);
-
-        ObjectDelta<O> leftToBase = base.diff(left, strategy);
-        ObjectDelta<O> rightToBase = base.diff(right, strategy);
-
-        assertOperationState(operation, leftToBase, rightToBase);
-
-        return operation;
+    private record TestData<O extends ObjectType>(
+            File baseFile, File leftFile, File rightFile, PrismObject<O> base, PrismObject<O> left, PrismObject<O> right) {
     }
 }

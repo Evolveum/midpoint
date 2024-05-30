@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
@@ -22,6 +23,8 @@ import com.evolveum.midpoint.schema.processor.deleg.ResourceAttributeDefinitionD
 import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
 import com.evolveum.midpoint.schema.processor.MutableRawResourceAttributeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
 
@@ -99,8 +102,17 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
     }
 
     @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return null;
+    }
+
+    @Override
     protected PrismPropertyDefinition<T> publicView() {
         return this;
+    }
+
+    @Override
+    public void setSchemaContextDefinition(SchemaContextDefinition schemaContextDefinition) {
     }
 
     public static class ResourceAttribute<T>

@@ -22,6 +22,9 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
@@ -211,6 +214,16 @@ public class TestObjectValidator extends AbstractSchemaTest {
         return null;
     }
 
+    private void assertValidationItem(ValidationResult result, ValidationItemType type, ItemPath itemPath) {
+        long count = result.getItems().stream()
+                .filter(i -> i.type() == type)
+                .filter(i -> itemPath.equivalent(i.path()))
+                .count();
+
+        AssertJUnit.assertEquals(
+                "Count for validation items of type=" + type + " and path=" + itemPath + " doesn't match", 1L, count);
+    }
+
     @Test
     public void testNewValidations() throws Exception {
         ObjectValidator validator = new ObjectValidator();
@@ -222,7 +235,19 @@ public class TestObjectValidator extends AbstractSchemaTest {
         ValidationResult result = validator.validate(object);
 
         AssertJUnit.assertNotNull(result);
-        AssertJUnit.assertEquals(5, result.size());
+        AssertJUnit.assertEquals(6, result.size());
+        assertValidationItem(result, ValidationItemType.INCORRECT_OID_FORMAT, ItemPath.EMPTY_PATH);
+        assertValidationItem(
+                result,
+                ValidationItemType.INCORRECT_OID_FORMAT,
+                ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_TARGET_REF));
+        assertValidationItem(
+                result,
+                ValidationItemType.PROTECTED_DATA_NOT_EXTERNAL,
+                ItemPath.create(RoleType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE));
+        assertValidationItem(result, ValidationItemType.DEPRECATED_ITEM, RoleType.F_SUBTYPE);
+        assertValidationItem(result, ValidationItemType.MULTIVALUE_REF_WITHOUT_OID, RoleType.F_PARENT_ORG_REF);
+        assertValidationItem(result, ValidationItemType.MISSING_NATURAL_KEY, RoleType.F_INDUCEMENT);
 
         Map<ValidationItemType, Long> countPerType = result.getItems().stream()
                 .collect(Collectors.groupingBy(

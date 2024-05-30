@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemMerger;
 import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -300,6 +302,11 @@ public class NormalizationAwareResourceAttributeDefinition<T>
     @Override
     public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
         return originalDefinition.getNaturalKeyInstance();
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return originalDefinition.getSchemaContextDefinition();
     }
 
     @Override

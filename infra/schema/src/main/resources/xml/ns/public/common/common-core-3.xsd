@@ -2898,6 +2898,7 @@
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
                 <a:merger>AssignmentType</a:merger>
+                <a:naturalKey>identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

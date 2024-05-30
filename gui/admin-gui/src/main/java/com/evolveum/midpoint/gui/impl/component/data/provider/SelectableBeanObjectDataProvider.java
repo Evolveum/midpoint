@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.provider;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author semancik
  */
 public class SelectableBeanObjectDataProvider<O extends ObjectType> extends SelectableBeanDataProvider<O> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SelectableBeanObjectDataProvider.class);
 

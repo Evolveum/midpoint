@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import com.evolveum.midpoint.prism.delta.ItemMerger;
@@ -775,13 +776,13 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException {
-        return structuralDefinition.getAttributeInboundDefinition(itemName);
+    public ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+        return structuralDefinition.getSimpleAttributeInboundDefinition(itemName);
     }
 
     @Override
-    public ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) throws SchemaException {
-        return structuralDefinition.getAssociationInboundDefinition(itemName);
+    public ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+        return structuralDefinition.getReferenceAttributeInboundDefinition(itemName);
     }
 
     @Override
@@ -797,5 +798,10 @@ public class CompositeObjectDefinitionImpl
     @Override
     public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
         return structuralDefinition.getNaturalKeyInstance();
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return structuralDefinition.getSchemaContextDefinition();
     }
 }

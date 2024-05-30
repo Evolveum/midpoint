@@ -17,19 +17,21 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelColumn;
-import com.evolveum.midpoint.gui.impl.component.input.IconColorInputPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
+import com.evolveum.midpoint.web.page.admin.certification.component.CertificationItemsPanel;
 import com.evolveum.midpoint.web.page.admin.certification.component.DeadlinePanel;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
@@ -53,6 +55,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -78,7 +81,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -965,6 +967,87 @@ public class ColumnUtils {
 //            }
 //        };
 //        columns.add(column);
+
+        return columns;
+    }
+
+    public static List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> getPreviewCampaignColumns(
+            PageBase pageBase) {
+        List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> columns = new ArrayList<>();
+        FocusType principal = pageBase.getPrincipalFocus();
+
+        IColumn<SelectableBean<AccessCertificationCampaignType>, String> column;
+
+        column = new AjaxLinkColumn<>(createStringResource("PageCertCampaigns.table.name"),
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_NAME.getLocalPart()) {
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                PageParameters parameters = new PageParameters();
+                parameters.set(PageCertDecisions.CAMPAIGN_OID_PARAMETER, rowModel.getObject().getValue().getOid());
+                pageBase.navigateToNext(PageCertDecisions.class, parameters);
+            }
+        };
+        columns.add(column);
+
+        column = new ProgressBarColumn<>(createStringResource("PageCertCampaign.progress")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            protected @NotNull IModel<List<ProgressBar>> createProgressBarModel(
+                    IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                List<ProgressBar> progressBars = new ArrayList<>();
+
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+
+                try {
+                    ObjectQuery query = CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid());
+                    Task task = pageBase.createSimpleTask("countWorkItems");
+                    int openNotDecidedItems = pageBase.getCertificationService().countOpenWorkItems(query, true,
+                            false, null, task, task.getResult());
+
+                    int allOpenItems = pageBase.getCertificationService().countOpenWorkItems(query, false,
+                            false, null, task, task.getResult());
+                    int decidedItems = allOpenItems - openNotDecidedItems;
+                    int decidedPercent = allOpenItems != 0 ? (decidedItems * 100) / allOpenItems : 0;
+
+                    progressBars.add(new ProgressBar(openNotDecidedItems,
+                            ProgressBar.State.SECONDARY, new SingleLocalizableMessage(String.valueOf(decidedPercent))));
+                    progressBars.add(new ProgressBar(decidedItems,
+                            ProgressBar.State.PRIMARY));
+                } catch (Exception e) {
+                    LOGGER.error("Couldn't count certification work items for certification campaign {}", campaign.getName());
+                }
+
+                return Model.ofList(progressBars);
+            }
+
+            protected @NotNull IModel<String> createTextModel(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel,
+                    IModel<List<ProgressBar>> model) {
+                for (ProgressBar p : model.getObject()) {
+                    if (p.getText() != null && !p.getText().isEmpty()) {
+                        return () -> LocalizationUtil.translateMessage(p.getText()) + "%";
+                    }
+                }
+                return Model.of();
+            }
+        };
+        columns.add(column);
+
+        column = new AbstractColumn<>(createStringResource("PageCertCampaign.table.deadline")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+                item.add(new DeadlinePanel(componentId, getDeadlineModel(campaign)));
+            }
+
+
+            private IModel<XMLGregorianCalendar> getDeadlineModel(AccessCertificationCampaignType campaign) {
+                return () -> CampaignProcessingHelper.computeDeadline(campaign, pageBase);
+            }
+        };
+        columns.add(column);
 
         return columns;
     }

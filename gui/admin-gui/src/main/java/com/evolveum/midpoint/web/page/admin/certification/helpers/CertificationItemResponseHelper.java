@@ -14,11 +14,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationR
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CertificationItemResponseHelper {
+public class CertificationItemResponseHelper implements Serializable {
 
     enum CertificationItemResponse {
         ACCEPT(GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED, "-success"),

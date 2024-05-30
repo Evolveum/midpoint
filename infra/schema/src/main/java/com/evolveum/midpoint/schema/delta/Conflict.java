@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.delta;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -22,11 +23,18 @@ public record Conflict<
         ITDV extends ItemTreeDeltaValue<PV, ITD>>
         (ITDV left, ITDV right) implements DebugDumpable {
 
+    public ItemPath getPath() {
+        return left != null ? left.getPath() : right.getPath();
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
 
+        ItemPath path = getPath();
+
         DebugUtil.debugDumpLabelLn(sb, "Conflict", indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "path", path != null ? path.toString() : null, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "left", left, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "right", right, indent + 1);
 

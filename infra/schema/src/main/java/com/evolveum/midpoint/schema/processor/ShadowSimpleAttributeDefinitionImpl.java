@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -145,6 +146,11 @@ public class ShadowSimpleAttributeDefinitionImpl<T>
     public @NotNull Class<T> getTypeClass() {
         // TODO cache this somehow
         return PrismContext.get().getSchemaRegistry().determineClassForType(getTypeName());
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return null;
     }
 
     @Override

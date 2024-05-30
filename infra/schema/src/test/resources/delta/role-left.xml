@@ -6,9 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="00000000-0000-0000-0000-000000000008"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>End user</name>
     <description>Role authorizing end users to log in, change their passwords and review assigned accounts.</description>
     <authorization id="1">
@@ -19,50 +17,4 @@
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#servicesAll</action>
     </authorization>
-    <!--<authorization id="2">
-        <name>self-read</name>
-        <description>
-            Unchanged
-        </description>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <object id="16">
-            <special>self</special>
-        </object>
-    </authorization>
-    <authorization id="4">
-        <name>added-by-devs</name>
-        <description>
-            Allow to read all the personas of currently logged-in user.
-        </description>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <object id="18">
-            <type>UserType</type>
-            <owner>
-                <special>self</special>
-            </owner>
-        </object>
-    </authorization>
-    <adminGuiConfiguration>
-        <feedbackMessagesHook>
-            <stackTraceVisibility>hidden</stackTraceVisibility>
-        </feedbackMessagesHook>
-        <homePage id="34">
-            <type>UserType</type>
-            <widget id="35">
-                <identifier>myWorkItems</identifier>
-                <visibility>hidden</visibility>
-            </widget>
-            <widget id="36">
-                <identifier>myHistory</identifier>
-                <visibility>hidden</visibility>
-            </widget>
-        </homePage>
-        <selfProfilePage>
-            <type>UserType</type>
-            <panel id="41">
-                <identifier>history</identifier>
-                <visibility>hidden</visibility>
-            </panel>
-        </selfProfilePage>
-    </adminGuiConfiguration>-->
 </role>

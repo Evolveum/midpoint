@@ -53,9 +53,11 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         return bean != null ? new AssociationProcessingImplementation(bean) : empty();
     }
 
-    ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException;
+    Collection<? extends ItemInboundDefinition> getAttributeDefinitions();
 
-    ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) throws SchemaException;
+    ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) throws SchemaException;
+
+    ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) throws SchemaException;
 
     ResourceBidirectionalMappingType getActivationBidirectionalMappingType(ItemName itemName);
 
@@ -69,7 +71,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
 
     @NotNull Collection<? extends SynchronizationReactionDefinition> getSynchronizationReactions();
 
-    CorrelationDefinitionType getCorrelation();
+    @Nullable CorrelationDefinitionType getCorrelation();
 
     // TEMPORARY FIXME define the semantics
     boolean hasAnyInbounds();
@@ -88,12 +90,17 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
     class EmptyImplementation implements ResourceObjectInboundDefinition {
 
         @Override
-        public ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) {
+        public Collection<? extends ItemInboundDefinition> getAttributeDefinitions() {
+            return List.of();
+        }
+
+        @Override
+        public ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) {
             return null;
         }
 
         @Override
-        public ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) {
+        public ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) {
             return null;
         }
 
@@ -178,12 +185,17 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         }
 
         @Override
-        public ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) {
+        public Collection<? extends ItemInboundDefinition> getAttributeDefinitions() {
+            return itemDefinitionsMap.values();
+        }
+
+        @Override
+        public ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) {
             return itemDefinitionsMap.get(itemName);
         }
 
         @Override
-        public ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) {
+        public ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) {
             return itemDefinitionsMap.get(itemName);
         }
 
@@ -311,12 +323,23 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         }
 
         @Override
-        public ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) {
+        public Collection<? extends ItemInboundDefinition> getAttributeDefinitions() {
+            if (defaultObjectRefDefinition == null) {
+                return itemDefinitionsMap.values();
+            } else {
+                var rv = new ArrayList<>(itemDefinitionsMap.values());
+                rv.add(defaultObjectRefDefinition);
+                return rv;
+            }
+        }
+
+        @Override
+        public ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) {
             return itemDefinitionsMap.get(itemName);
         }
 
         @Override
-        public ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) {
+        public ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) {
             return itemDefinitionsMap.get(itemName);
         }
 

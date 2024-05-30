@@ -770,12 +770,12 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+    public ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) throws SchemaException {
         return findSimpleAttributeDefinition(itemName);
     }
 
     @Override
-    public ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) throws SchemaException {
+    public ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) throws SchemaException {
         return findReferenceAttributeDefinition(itemName);
     }
 

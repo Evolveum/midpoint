@@ -87,6 +87,8 @@ public class PageCertDecisions extends PageAdminCertification {
     private static final String ID_SHOW_NOT_DECIDED_ONLY = "showNotDecidedOnly";
     private static final String ID_TABLE_HEADER = "tableHeader";
 
+    public static final String CAMPAIGN_OID_PARAMETER = "campaignOid";
+
     private CertDecisionHelper helper = new CertDecisionHelper();
 
     boolean isDisplayingAllItems() {
@@ -136,12 +138,7 @@ public class PageCertDecisions extends PageAdminCertification {
     private void initLayout() {
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
-        MyCertificationItemsPanel table = new MyCertificationItemsPanel(ID_DECISIONS_TABLE) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-
-        };
+        CertificationItemsPanel table = new CertificationItemsPanel(ID_DECISIONS_TABLE, getCampaignOid());
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
@@ -158,6 +155,15 @@ public class PageCertDecisions extends PageAdminCertification {
 //            }
 //        });
 //    }
+
+    protected String getCampaignOid() {
+        PageParameters pageParameters = getPageParameters();
+        if (pageParameters != null && pageParameters.get(CAMPAIGN_OID_PARAMETER) != null) {
+            return pageParameters.get(CAMPAIGN_OID_PARAMETER).toString();
+        }
+        return null;
+    }
+
 
     private List<IColumn<CertWorkItemDto, String>> initColumns() {
         List<IColumn<CertWorkItemDto, String>> columns = new ArrayList<>();

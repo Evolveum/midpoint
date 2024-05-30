@@ -14,6 +14,7 @@ import java.util.Optional;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.DeepCloneOperation;
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -175,6 +176,11 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     @Override
     public boolean isVolatilityTrigger() {
         return getRefinedAttributeDefinition().isVolatilityTrigger();
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return getRefinedAttributeDefinition().getSchemaContextDefinition();
     }
 
     @NotNull

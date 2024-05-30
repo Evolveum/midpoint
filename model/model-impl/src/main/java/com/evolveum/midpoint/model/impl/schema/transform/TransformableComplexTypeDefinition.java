@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -173,6 +175,11 @@ public class TransformableComplexTypeDefinition
     }
 
     @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return null;
+    }
+
+    @Override
     public @NotNull ComplexTypeDefinition clone() {
         throw new UnsupportedOperationException();
     }
@@ -253,6 +260,10 @@ public class TransformableComplexTypeDefinition
                 }
             }
         }
+    }
+
+    @Override
+    public void setSchemaContextDefinition(SchemaContextDefinition schemaContextDefinition) {
     }
 
 //    public abstract static class TrResourceObjectDefinition extends TransformableComplexTypeDefinition
@@ -386,6 +397,15 @@ public class TransformableComplexTypeDefinition
         @Override
         protected TransformableItemDefinition copy() {
             return this;
+        }
+
+        @Override
+        public void setSchemaContextDefinition(SchemaContextDefinition schemaContextDefinition) {
+        }
+
+        @Override
+        public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+            return null;
         }
     }
 }
