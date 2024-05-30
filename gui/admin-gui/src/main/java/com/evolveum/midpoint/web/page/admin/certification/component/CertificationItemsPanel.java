@@ -343,7 +343,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     }
 
     protected boolean isMyCertItems() {
-        return false;
+        return true;
     }
 
 }

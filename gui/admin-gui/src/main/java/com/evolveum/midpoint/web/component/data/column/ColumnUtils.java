@@ -858,8 +858,9 @@ public class ColumnUtils {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
                     String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
-                super.populateItem(item, componentId, rowModel);
-                item.add(new VisibleBehaviour(() -> isStageVisible(rowModel.getObject())));
+                Label label = new Label(componentId, this.getDataModel(rowModel));
+                label.add(new VisibleBehaviour(() -> isStageVisible(rowModel.getObject())));
+                item.add(label);
             }
 
             private boolean isStageVisible(SelectableBean<AccessCertificationCampaignType> rowModel) {

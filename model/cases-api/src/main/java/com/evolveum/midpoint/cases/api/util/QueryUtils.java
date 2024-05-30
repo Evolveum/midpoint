@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -200,6 +201,9 @@ public class QueryUtils {
 
     public static ObjectQuery createQueryForOpenWorkItemsForCampaigns(
             List<String> campaignOids, MidPointPrincipal principal, boolean notDecidedOnly) {
+        if (CollectionUtils.isEmpty(campaignOids)) {
+            return null;
+        }
         S_FilterEntry queryPrefix = PrismContext.get().queryFor(AccessCertificationWorkItemType.class).block();
         S_FilterExit filterExit = null;
         for (String oid : campaignOids) {
@@ -209,6 +213,9 @@ public class QueryUtils {
              if (campaignOids.indexOf(oid) < campaignOids.size() - 1) {
                  queryPrefix = filterExit.or();
              }
+        }
+        if (filterExit == null) {
+            return null;
         }
         ObjectQuery query = filterExit.endBlock().build();
         return createQueryForOpenWorkItems(query, principal, notDecidedOnly);
