@@ -1240,13 +1240,26 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
             if (requestUpdateOp && !collection.isEmpty()) {
                 try {
-                    ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
-                            .item(RoleAnalysisClusterType.F_OPERATION_STATUS).replace(collection)
+
+                    List<RoleAnalysisOperationStatus> operationStatusToDelete = new ArrayList<>(cluster.getOperationStatus());
+                    for (RoleAnalysisOperationStatus operationStatus1 : operationStatusToDelete) {
+                        //TODO change status handling (temporary - there might be just one container but this is not correct solution)
+                        //USING replace in one executeChange cause reset container error (500)
+                        var candidateRoleToDelete = new RoleAnalysisCandidateRoleType().id(operationStatus1.getId());
+                        ObjectDelta<RoleAnalysisClusterType> deltaClear = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                                .item(RoleAnalysisClusterType.F_OPERATION_STATUS).delete(candidateRoleToDelete)
+                                .asObjectDelta(clusterOid);
+                        Collection<ObjectDelta<? extends ObjectType>> deltasClear = MiscSchemaUtil.createCollection(deltaClear);
+                        modelService.executeChanges(deltasClear, null, task, result);
+                    }
+
+                    ObjectDelta<RoleAnalysisClusterType> deltaAdd = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                            .item(RoleAnalysisClusterType.F_OPERATION_STATUS).add(collection)
                             .asObjectDelta(clusterOid);
 
-                    Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+                    Collection<ObjectDelta<? extends ObjectType>> deltasAdd = MiscSchemaUtil.createCollection(deltaAdd);
 
-                    modelService.executeChanges(deltas, null, task, result);
+                    modelService.executeChanges(deltasAdd, null, task, result);
 
                 } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException |
                         ExpressionEvaluationException |
