@@ -1,4 +1,3 @@
-
 <!-- invalid OID format -->
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -11,6 +10,7 @@
     <subtype>deprecated item</subtype>
 
     <parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="OrgType"/>
+    <!-- multivalue ref without oid -->
     <parentOrgRef>
         <filter>
             <q:text>name = "sample"</q:text>
