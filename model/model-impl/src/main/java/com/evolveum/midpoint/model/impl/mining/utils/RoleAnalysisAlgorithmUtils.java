@@ -303,7 +303,6 @@ public class RoleAnalysisAlgorithmUtils {
         List<DataPoint> dataPointCluster = cluster.getPoints();
         Set<ClusterExplanation> explanations = cluster.getExplanations();
         String clusterExplanationDescription = getClusterExplanationDescription(explanations);
-        String candidateName = resolveClusterName(explanations);
 
         Set<String> elementsOids = new HashSet<>();
         for (DataPoint clusterDataPoint : dataPointCluster) {
@@ -328,7 +327,6 @@ public class RoleAnalysisAlgorithmUtils {
         boolean detect = isDetectable(session, clusterStatistic);
         return generateClusterObject(roleAnalysisService,
                 clusterExplanationDescription,
-                candidateName,
                 clusterStatistic,
                 session,
                 roleAnalysisClusterStatisticType,
@@ -412,7 +410,8 @@ public class RoleAnalysisAlgorithmUtils {
                 analysisOption.getProcessMode());
 
         PrismObject<RoleAnalysisClusterType> clusterObject = generateClusterObject(roleAnalysisService,
-                null, null, clusterStatistic,
+                null,
+                clusterStatistic,
                 null,
                 roleAnalysisClusterStatisticType,
                 analysisOption,
@@ -427,7 +426,6 @@ public class RoleAnalysisAlgorithmUtils {
     private @NotNull PrismObject<RoleAnalysisClusterType> generateClusterObject(
             @NotNull RoleAnalysisService roleAnalysisService,
             @Nullable String clusterExplanationDescription,
-            @Nullable String candidateName,
             @NotNull ClusterStatistic clusterStatistic,
             @Nullable RoleAnalysisSessionType session,
             @NotNull AnalysisClusterStatisticType roleAnalysisClusterStatisticType,
@@ -462,8 +460,10 @@ public class RoleAnalysisAlgorithmUtils {
 
         cluster.setClusterStatistics(roleAnalysisClusterStatisticType);
 
-        String name = resolveClusterName(cluster, session, roleAnalysisService, task, result);
-        cluster.setName(name != null ? PolyStringType.fromOrig(name) : clusterStatistic.getName());
+        String candidateName = resolveClusterName(cluster, session, roleAnalysisService, task, result);
+        cluster.setName(candidateName != null && !candidateName.isEmpty()
+                ? PolyStringType.fromOrig(candidateName)
+                : clusterStatistic.getName());
 
         if (clusterExplanationDescription != null) {
             cluster.setDescription(clusterExplanationDescription);
