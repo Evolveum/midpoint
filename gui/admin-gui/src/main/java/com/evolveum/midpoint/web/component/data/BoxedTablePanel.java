@@ -122,6 +122,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             }
         };
         table.setOutputMarkupId(true);
+        table.add(new VisibleBehaviour(this::isDataTableVisible));
         tableContainer.add(table);
         add(tableContainer);
 
@@ -181,6 +182,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
     protected boolean hideFooterIfSinglePage() {
         return false;
+    }
+
+    protected boolean isDataTableVisible() {
+        return true;
     }
 
     @Override

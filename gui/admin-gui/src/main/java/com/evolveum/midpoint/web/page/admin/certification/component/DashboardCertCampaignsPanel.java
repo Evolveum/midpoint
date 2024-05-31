@@ -11,10 +11,13 @@ import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.table.ChartedHeaderDto;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -29,13 +32,11 @@ import com.evolveum.wicket.chartjs.ChartDataset;
 import com.evolveum.wicket.chartjs.DoughnutChartConfiguration;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serial;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @PanelType(name = "dashboardCertItems")
 public class DashboardCertCampaignsPanel extends ObjectListPanel<AccessCertificationCampaignType> {
@@ -44,8 +45,8 @@ public class DashboardCertCampaignsPanel extends ObjectListPanel<AccessCertifica
 
     private static final String DOT_CLASS = DashboardCertCampaignsPanel.class.getName() + ".";
     private static final Trace LOGGER = TraceManager.getTrace(DashboardCertCampaignsPanel.class);
-    private static final String OPERATION_COUNT_ALL_CERTIFICATION_ITEMS = DOT_CLASS + "loadCertItems";
-    private static final String OPERATION_COUNT_NOT_DECIDED_CERTIFICATION_ITEMS = DOT_CLASS + "loadNotDecidedCertItems";
+    private static final String OPERATION_COUNT_CERTIFICATION_ITEMS = DOT_CLASS + "countCertItems";
+    private static final String OPERATION_LOAD_CAMPAIGNS = DOT_CLASS + "loadCampaigns";
 
     public DashboardCertCampaignsPanel(String id) {
         super(id, AccessCertificationCampaignType.class);
@@ -103,12 +104,17 @@ public class DashboardCertCampaignsPanel extends ObjectListPanel<AccessCertifica
         long count = 0;
 
         try {
-            SelectableBeanObjectDataProvider<AccessCertificationCampaignType> provider
-                    = (SelectableBeanObjectDataProvider) getDataProvider();
-            List<String> oidList = provider.getAvailableData().stream().map(campaign -> campaign.getValue().getOid()).toList();
+            ObjectQuery campaignsQuery = getDashboardCampaignsQuery();
+            OperationResult result = new OperationResult(OPERATION_LOAD_CAMPAIGNS);
+            List<PrismObject<AccessCertificationCampaignType>> campaigns = WebModelServiceUtils.searchObjects(
+                    AccessCertificationCampaignType.class, campaignsQuery, null, result, getPageBase());
+            List<String> oidList = campaigns.stream().map(PrismObject::getOid).toList();
+            if (CollectionUtils.isEmpty(oidList)) {
+                return 0;
+            }
             ObjectQuery query = QueryUtils.createQueryForOpenWorkItemsForCampaigns(oidList, getPageBase().getPrincipal(),
                     notDecidedOnly);
-            Task task = getPageBase().createSimpleTask(OPERATION_COUNT_NOT_DECIDED_CERTIFICATION_ITEMS);
+            Task task = getPageBase().createSimpleTask(OPERATION_COUNT_CERTIFICATION_ITEMS);
             count = getPageBase().getModelService()
                     .countContainers(AccessCertificationWorkItemType.class, query, null, task, task.getResult());
         } catch (Exception ex) {
@@ -172,5 +178,10 @@ public class DashboardCertCampaignsPanel extends ObjectListPanel<AccessCertifica
             }
         };
 
+    }
+
+    @Override
+    protected boolean isDataTableVisible() {
+        return getDataProvider().size() > 1;
     }
 }
