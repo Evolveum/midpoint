@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
@@ -73,6 +75,18 @@ public interface ShadowAssociationsContainer extends ShadowItemsContainer, Prism
     ShadowReferenceAttribute findAssociation(QName assocName);
 
     ShadowReferenceAttribute findOrCreateAssociation(QName assocName) throws SchemaException;
+
+    default ShadowAssociationsContainer add(QName attributeName, ShadowAssociationValue value) throws SchemaException {
+        findOrCreateAssociation(attributeName)
+                .add(value);
+        return this;
+    }
+
+    default ShadowAssociationsContainer add(QName attributeName, AbstractShadow referencedShadow) throws SchemaException {
+        findOrCreateAssociation(attributeName)
+                .add(ShadowAssociationValue.of(referencedShadow, false));
+        return this;
+    }
 
     @Override
     ShadowAssociationsContainer clone();

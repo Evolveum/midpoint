@@ -13,6 +13,8 @@ import java.net.ConnectException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,6 +48,11 @@ public abstract class DummyObject implements DebugDumpable {
     private Date validFrom = null;
     private Date validTo = null;
     private String lastModifier;
+
+    /**
+     * Normally set up when adding this object to resource; but some utility methods require this value,
+     * so it can be provided at object construction time as well.
+     */
     protected DummyResource resource;
 
     /** Present only if hierarchy is supported. Set when object is added on the resource (we need to know the normalization). */
@@ -71,8 +78,17 @@ public abstract class DummyObject implements DebugDumpable {
         this.name = name;
     }
 
+    public DummyObject(String name, DummyResource dummyResource) {
+        this.name = name;
+        this.resource = dummyResource;
+    }
+
     public DummyResource getResource() {
         return resource;
+    }
+
+    public DummyResource getResourceRequired() {
+        return MiscUtil.stateNonNull(resource, "No resource set for " + this);
     }
 
     void setResource(DummyResource resource) {
@@ -323,7 +339,7 @@ public abstract class DummyObject implements DebugDumpable {
         Iterator<Object> iterator = currentValues.iterator();
         boolean foundMember = false;
 
-        if (name.equals(DummyGroup.ATTR_MEMBERS_NAME) && !resource.isTolerateDuplicateValues()) {
+        if (name.equals(DummyGroup.ATTR_MEMBERS_NAME) && !getResourceRequired().isTolerateDuplicateValues()) {
             checkIfExist(values, currentValues);
         }
 
@@ -331,7 +347,7 @@ public abstract class DummyObject implements DebugDumpable {
             Object currentValue = iterator.next();
             boolean found = false;
             for (Object value: values) {
-                if (resource.isCaseIgnoreValues() && currentValue instanceof String && value instanceof String) {
+                if (getResourceRequired().isCaseIgnoreValues() && currentValue instanceof String && value instanceof String) {
                     if (StringUtils.equalsIgnoreCase((String)currentValue, (String)value)) {
                         found = true;
                         break;
@@ -386,7 +402,9 @@ public abstract class DummyObject implements DebugDumpable {
         for (T valueToDelete : valuesToDelete) {
             boolean found = false;
             for (Object currentValue : currentValues) {
-                if (resource.isCaseIgnoreValues() && currentValue instanceof String && valueToDelete instanceof String) {
+                if (getResourceRequired().isCaseIgnoreValues()
+                        && currentValue instanceof String
+                        && valueToDelete instanceof String) {
                     if (StringUtils.equalsIgnoreCase((String)currentValue, (String)valueToDelete)) {
                         found = true;
                         break;
@@ -465,13 +483,14 @@ public abstract class DummyObject implements DebugDumpable {
         }
     }
 
+    /** {@link #resource} must be set up! */
     public DummyAttributeDefinition getAttributeDefinition(String attrName) {
         DummyAttributeDefinition def = getStructuralObjectClass().getAttributeDefinition(attrName);
         if (def != null) {
             return def;
         }
         for (String auxClassName : getAuxiliaryObjectClassNames()) {
-            DummyObjectClass auxObjectClass = resource.getAuxiliaryObjectClassMap().get(auxClassName);
+            DummyObjectClass auxObjectClass = getResourceRequired().getAuxiliaryObjectClassMap().get(auxClassName);
             if (auxObjectClass == null) {
                 throw new IllegalStateException("Auxiliary object class " + auxClassName + " couldn't be found");
             }
@@ -483,8 +502,9 @@ public abstract class DummyObject implements DebugDumpable {
         return null;
     }
 
+    /** {@link #resource} must be set up! */
     public @NotNull DummyObjectClass getStructuralObjectClass() {
-        return resource.getStructuralObjectClass(getObjectClassName());
+        return getResourceRequired().getStructuralObjectClass(getObjectClassName());
     }
 
     public abstract String getShortTypeName();
@@ -545,13 +565,31 @@ public abstract class DummyObject implements DebugDumpable {
         return normalizedHierarchicalName != null && normalizedHierarchicalName.residesIn(normalizedOrgName);
     }
 
+    /** {@link #resource} must be set up! */
     public String getNormalizedName() {
-        return resource.normalizeName(name);
+        return getResourceRequired().normalizeName(name);
     }
 
     @NotNull public abstract String getObjectClassName();
 
+    /** {@link #resource} must be set up! */
     public Collection<DummyObject> getLinkedObjects(@NotNull String linkName) {
-        return resource.getLinkedObjects(this, linkName);
+        return getResourceRequired().getLinkedObjects(this, linkName);
+    }
+
+    /** {@link #resource} must be set up! */
+    public void addLinkedObject(@NotNull String linkName, @NotNull DummyObject linkedObject) {
+        var resource = getResourceRequired();
+        var linkDef = getStructuralObjectClass().getLinkDefinitionRequired(linkName);
+        if (linkDef.isFirst()) {
+            resource.addLink(linkDef.getLinkClassName(), this, linkedObject);
+        } else {
+            resource.addLink(linkDef.getLinkClassName(), linkedObject, this);
+        }
+    }
+
+    /** {@link #resource} must be set up! */
+    public boolean isLink(String name) {
+        return getStructuralObjectClass().getLinkDefinition(name) != null;
     }
 }

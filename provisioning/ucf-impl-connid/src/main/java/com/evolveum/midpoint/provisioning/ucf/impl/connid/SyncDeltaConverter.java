@@ -91,7 +91,6 @@ class SyncDeltaConverter {
                         .convertToUcfObject(
                                 connIdDelta.getObject(),
                                 actualObjectDefinition,
-                                connectorInstance,
                                 UcfFetchErrorReportingMethod.UCF_OBJECT,
                                 result);
 

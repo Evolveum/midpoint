@@ -7,30 +7,34 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.ucfAttributeNameToConnId;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import org.identityconnectors.framework.common.objects.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.util.MiscUtil;
-
-import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.ConnectorObject;
-
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ActivationUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Converts from ConnId connector objects to UCF resource objects (by delegating
@@ -40,7 +44,15 @@ import org.jetbrains.annotations.NotNull;
  */
 class ConnIdObjectConvertor {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ConnIdObjectConvertor.class);
+
     private final ConnIdBeans b = ConnIdBeans.get();
+
+    @NotNull private final ConnectorContext connectorContext;
+
+    ConnIdObjectConvertor(@NotNull ConnectorContext connectorContext) {
+        this.connectorContext = connectorContext;
+    }
 
     /**
      * Converts ICF ConnectorObject to the midPoint ResourceObject.
@@ -54,19 +66,16 @@ class ConnIdObjectConvertor {
      * this still needs to be implemented.
      *
      * @param co ICF ConnectorObject to convert
-     *
      * @param ucfErrorReportingMethod If EXCEPTIONS (the default), any exceptions are thrown as such. But if FETCH_RESULT,
-     *                             exceptions are represented in fetchResult property of the returned resource object.
-     *                             Generally, when called as part of "searchObjectsIterative" in the context of
-     *                             a task, we might want to use the latter case to give the task handler a chance to report
-     *                             errors to the user (and continue processing of the correct objects).
-     *
+     * exceptions are represented in fetchResult property of the returned resource object.
+     * Generally, when called as part of "searchObjectsIterative" in the context of
+     * a task, we might want to use the latter case to give the task handler a chance to report
+     * errors to the user (and continue processing of the correct objects).
      * @return new mapped ResourceObject instance.
      */
     @NotNull UcfResourceObject convertToUcfObject(
             @NotNull ConnectorObject co,
             @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull ConnectorContext connectorContext,
             UcfFetchErrorReportingMethod ucfErrorReportingMethod,
             OperationResult parentResult) throws SchemaException {
 
@@ -112,35 +121,89 @@ class ConnIdObjectConvertor {
                 + co.getName() + ", class=" + co.getObjectClass() + ": " + t.getMessage();
     }
 
-    @NotNull Set<Attribute> convertFromResourceObjectToConnIdAttributes(
-            @NotNull ShadowAttributesContainer attributesPrism,
-            ResourceObjectDefinition ocDef) throws SchemaException {
-        Collection<ShadowSimpleAttribute<?>> simpleAttributes = attributesPrism.getAttributes();
-        return convertFromResourceObjectToConnIdAttributes(simpleAttributes, ocDef);
-    }
+    @NotNull ConnIdObjectInformation convertToConnIdObjectInfo(@NotNull ShadowType shadow) throws SchemaException {
 
-    private @NotNull Set<Attribute> convertFromResourceObjectToConnIdAttributes(
-            Collection<ShadowSimpleAttribute<?>> mpSimpleAttributes, ResourceObjectDefinition ocDef)
-            throws SchemaException {
+        ResourceObjectDefinition objDef = ShadowUtil.getResourceObjectDefinition(shadow);
+
+        ObjectClass icfObjectClass =
+                argNonNull(
+                        ucfObjectClassNameToConnId(shadow, connectorContext.isLegacySchema()),
+                        "Couldn't get icf object class from %s", shadow);
+
         Set<Attribute> attributes = new HashSet<>();
-        for (ShadowSimpleAttribute<?> attribute : emptyIfNull(mpSimpleAttributes)) {
-            attributes.add(convertToConnIdAttribute(attribute, ocDef));
+        try {
+            LOGGER.trace("midPoint object before conversion:\n{}", shadow.debugDumpLazily());
+            for (var simpleAttribute : ShadowUtil.getAttributes(shadow)) {
+                attributes.add(convertSimpleAttributeToConnId(simpleAttribute, objDef));
+            }
+            for (var referenceAttribute : ShadowUtil.getAssociations(shadow)) {
+                attributes.add(convertReferenceAttributeToConnId(referenceAttribute, objDef));
+            }
+
+            var passwordValue = ShadowUtil.getPasswordValue(shadow);
+            if (passwordValue != null) {
+                var guardedPassword = ConnIdUtil.toGuardedString(passwordValue, "new password", b.protector);
+                if (guardedPassword != null) {
+                    attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
+                }
+            }
+
+            if (ActivationUtil.hasAdministrativeActivation(shadow)) {
+                attributes.add(
+                        AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, ActivationUtil.isAdministrativeEnabled(shadow)));
+            }
+
+            var validFrom = ActivationUtil.getValidFrom(shadow);
+            if (validFrom != null) {
+                attributes.add(
+                        AttributeBuilder.build(OperationalAttributes.ENABLE_DATE_NAME, XmlTypeConverter.toMillis(validFrom)));
+            }
+
+            var validTo = ActivationUtil.getValidTo(shadow);
+            if (validTo != null) {
+                attributes.add(
+                        AttributeBuilder.build(OperationalAttributes.DISABLE_DATE_NAME, XmlTypeConverter.toMillis(validTo)));
+            }
+
+            var lockoutStatus = ActivationUtil.getLockoutStatus(shadow);
+            if (lockoutStatus != null) {
+                attributes.add(
+                        AttributeBuilder.build(OperationalAttributes.LOCK_OUT_NAME, ActivationUtil.isLockedOut(lockoutStatus)));
+            }
+
+            LOGGER.trace("ConnId attributes after conversion:\n{}", lazy(() -> ConnIdUtil.dump(attributes)));
+
+        } catch (SchemaException | RuntimeException ex) {
+            throw new SchemaException(
+                    "Error while converting shadow attributes for a %s. Reason: %s".formatted(
+                            icfObjectClass.getObjectClassValue(), ex.getMessage()),
+                    ex);
         }
-        return attributes;
+
+        List<String> icfAuxiliaryObjectClasses = new ArrayList<>();
+        for (QName auxiliaryObjectClassName : shadow.getAuxiliaryObjectClass()) {
+            icfAuxiliaryObjectClasses.add(
+                    ConnIdNameMapper.ucfObjectClassNameToConnId(auxiliaryObjectClassName, false)
+                            .getObjectClassValue());
+        }
+        if (!icfAuxiliaryObjectClasses.isEmpty()) {
+            attributes.add(new AttributeBuilder()
+                    .setName(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME)
+                    .addValue(icfAuxiliaryObjectClasses)
+                    .build());
+        }
+
+        return new ConnIdObjectInformation(icfObjectClass, attributes, icfAuxiliaryObjectClasses);
     }
 
-    private Attribute convertToConnIdAttribute(ShadowSimpleAttribute<?> mpAttribute, ResourceObjectDefinition ocDef)
+    private Attribute convertSimpleAttributeToConnId(ShadowSimpleAttribute<?> mpAttribute, ResourceObjectDefinition ocDef)
             throws SchemaException {
-        QName midPointAttrQName = mpAttribute.getElementName();
-        if (midPointAttrQName.equals(SchemaConstants.ICFS_UID)) {
-            throw new SchemaException("ICF UID explicitly specified in attributes");
-        }
-
         String connIdAttrName = ucfAttributeNameToConnId(mpAttribute, ocDef);
 
         Set<Object> connIdAttributeValues = new HashSet<>();
-        for (PrismPropertyValue<?> pval : mpAttribute.getValues()) {
-            connIdAttributeValues.add(ConnIdUtil.convertValueToConnId(pval, b.protector, mpAttribute.getElementName()));
+        for (var mpAttrValue : mpAttribute.getValues()) {
+            connIdAttributeValues.add(
+                    ConnIdUtil.convertValueToConnId(mpAttrValue, b.protector, mpAttribute.getElementName()));
         }
 
         try {
@@ -148,5 +211,50 @@ class ConnIdObjectConvertor {
         } catch (IllegalArgumentException e) {
             throw new SchemaException(e.getMessage(), e);
         }
+    }
+
+    private Attribute convertReferenceAttributeToConnId(ShadowReferenceAttribute mpAttribute, ResourceObjectDefinition ocDef)
+            throws SchemaException {
+        String connIdAttrName = ucfAttributeNameToConnId(mpAttribute, ocDef);
+
+        Set<ConnectorObjectReference> connIdAttrValues = new HashSet<>();
+        for (var mpRefAttrValue : mpAttribute.getAssociationValues()) {
+            var connIdInfo = convertToConnIdObjectInfo(mpRefAttrValue.getShadowBean());
+            // TODO this object should be "by value" (ConnectorObject) for associated objects,
+            //  and "by reference" (ConnectorObjectIdentification) for regular objects.
+            //  Unfortunately, we cannot instantiate ConnectorObject here if UID is missing; and this
+            //  is a common case when creating new objects. Hence, we use ConnectorObjectIdentification
+            //  for both cases.
+            var referencedObject = new ConnectorObjectIdentification(connIdInfo.objectClass, connIdInfo.attributes);
+            connIdAttrValues.add(
+                    new ConnectorObjectReference(referencedObject));
+        }
+
+        try {
+            return AttributeBuilder.build(connIdAttrName, connIdAttrValues);
+        } catch (IllegalArgumentException e) {
+            throw new SchemaException(e.getMessage(), e);
+        }
+    }
+
+    /** Quite ugly method - we should have a single place from where to take the object class. TODO resolve */
+    private @Nullable ObjectClass ucfObjectClassNameToConnId(ShadowType shadow, boolean legacySchema) {
+
+        QName objectClassName = shadow.getObjectClass();
+        if (objectClassName == null) {
+            ShadowAttributesContainer attrContainer = ShadowUtil.getAttributesContainer(shadow);
+            if (attrContainer == null) {
+                return null;
+            }
+            objectClassName = attrContainer.getDefinition().getTypeName();
+        }
+
+        return ConnIdNameMapper.ucfObjectClassNameToConnId(objectClassName, legacySchema);
+    }
+
+    record ConnIdObjectInformation(
+            @NotNull ObjectClass objectClass,
+            @NotNull Set<Attribute> attributes,
+            @NotNull List<String> auxiliaryObjectClasses) {
     }
 }

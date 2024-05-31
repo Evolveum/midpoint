@@ -204,6 +204,7 @@ class ConnIdSchemaParser {
                 ocDefBuilder.setNamingAttributeName(nameDefinition.getItemName());
             }
             ocDefBuilder.setAuxiliary(connIdClassInfo.isAuxiliary());
+            ocDefBuilder.setAssociationObject(connIdClassInfo.isAssociated());
 
             // The __ACCOUNT__ objectclass in ConnId is a default account objectclass. So mark it appropriately.
             if (ObjectClass.ACCOUNT_NAME.equals(connIdClassInfo.getType())) {

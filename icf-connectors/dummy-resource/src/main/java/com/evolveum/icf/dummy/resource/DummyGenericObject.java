@@ -24,6 +24,11 @@ public class DummyGenericObject extends DummyObject {
         this.objectClassName = objectClassName;
     }
 
+    public DummyGenericObject(@NotNull String objectClassName, String name, DummyResource resource) {
+        super(name, resource);
+        this.objectClassName = objectClassName;
+    }
+
     @Override
     public @NotNull String getObjectClassName() {
         return objectClassName;

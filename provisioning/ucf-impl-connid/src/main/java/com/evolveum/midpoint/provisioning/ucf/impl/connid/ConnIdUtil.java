@@ -575,8 +575,8 @@ public class ConnIdUtil {
         }
     }
 
-    @NotNull public static Collection<ShadowSimpleAttribute<?>> convertToIdentifiers(Uid uid,
-            ResourceObjectDefinition ocDef, ResourceSchema resourceSchema) throws SchemaException {
+    @NotNull static Collection<ShadowSimpleAttribute<?>> convertToIdentifiers(
+            Uid uid, ResourceObjectDefinition ocDef, ResourceSchema resourceSchema) throws SchemaException {
         ResourceObjectDefinition concreteObjectDefinition =
                 getConcreteObjectClassDefinition(ocDef, resourceSchema);
         if (concreteObjectDefinition == null) {

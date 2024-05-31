@@ -73,6 +73,7 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
     private static final int INITIAL_DMS_DOCUMENTS = 1;
 
     private static final String JACK = "jack";
+    private static final String JIM = "jim";
     private static final String GUIDE = "guide";
 
     /** Initialized for each test anew (when the specific resource is initialized). */
@@ -87,6 +88,7 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
     private static final DummyTestResource RESOURCE_DMS_140 = createDmsResource("resource-dms-140.xml");
     private static final DummyTestResource RESOURCE_DMS_150 = createDmsResource("resource-dms-150.xml");
     private static final DummyTestResource RESOURCE_DMS_170 = createDmsResource("resource-dms-170.xml");
+    private static final DummyTestResource RESOURCE_DMS_300 = createDmsResource("resource-dms-300.xml");
 
     private String guideOid;
 
@@ -377,22 +379,64 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
         // @formatter:on
     }
 
-//    @Test
-//    public void test150Temp() throws Exception {
-//        Task task = getTestTask();
-//        OperationResult result = task.getResult();
-//
-//        given("resource is reimported");
-//        reimportDmsResource(RESOURCE_DMS_130, task, result);
-//
-//        when("account is reimported (simulation)");
-//        importAccountsRequest()
-//                .withResourceOid(RESOURCE_DMS_OID)
-//                .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_DEFAULT))
-//                .withNameValue(JACK)
-//                .withTracing()
-//                .executeOnForeground(result);
-//    }
+    /**
+     * Resource definition: unchanged.
+     *
+     * Reimporting the jack (real).
+     */
+    @Test
+    public void test180Reimporting() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("reusing resource definition from previous test");
+
+        when("account is reimported (real)");
+        importJackReal(result);
+
+        then("the assignments are updated (real)");
+        assertUserAfterByUsername(JACK)
+                .assignments()
+                .assertAssignments(2)
+                .by().targetOid(guideOid).targetType(ServiceType.COMPLEX_TYPE).targetRelation(RELATION_READ).find().end()
+                .by().targetOid(guideOid).targetType(ServiceType.COMPLEX_TYPE).targetRelation(RELATION_WRITE).find().end();
+    }
+
+    /**
+     * Resource definition: added outbounds.
+     *
+     * Provisioning user `jim` with `read` access to `guide` (simulated).
+     */
+    @Test
+    public void test300ProvisionJimWithOutboundsSimulated() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("resource is reimported");
+        reimportDmsResource(RESOURCE_DMS_300, task, result);
+
+        and("user is created");
+        var jim = new UserType()
+                .name(JIM)
+                .assignment(new AssignmentType()
+                        .construction(RESOURCE_DMS_300.construction(ACCOUNT, INTENT_DEFAULT)));
+        addObject(jim, task, result);
+        assertUserBeforeByUsername(JIM)
+                .singleLink();
+        displayDumpable("account before", dmsScenario.account.getByNameRequired(JIM));
+
+        when("assignment providing read access to guide is created (simulation)");
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(new AssignmentType()
+                                .targetRef(guideOid, ServiceType.COMPLEX_TYPE, RELATION_READ))
+                        .asObjectDelta(jim.getOid()),
+                null, task, result);
+
+        then("all is OK");
+        displayDumpable("account after", dmsScenario.account.getByNameRequired(JIM));
+    }
 
     private void reimportDmsResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
         deleteObject(ResourceType.class, RESOURCE_DMS_OID, task, result);

@@ -6,12 +6,11 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.ucfAttributeNameToConnId;
-
 import static java.util.Collections.emptySet;
 import static org.apache.commons.collections4.SetUtils.emptyIfNull;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.ucfAttributeNameToConnId;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
 import static com.evolveum.midpoint.schema.reporting.ConnIdOperation.getIdentifier;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
@@ -50,7 +49,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfigurationOptions.CompleteSchemaProvider;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.query.FilterInterpreter;
@@ -64,7 +62,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
-import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -72,7 +69,10 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -145,7 +145,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         this.connectorInfo = connectorInfo;
         this.connectorBean = connectorBean;
         this.connectorSchema = connectorSchema;
-        this.connIdObjectConvertor = new ConnIdObjectConvertor();
+        this.connIdObjectConvertor = new ConnIdObjectConvertor(this);
     }
 
     /**
@@ -507,7 +507,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
 
             // TODO configure error reporting method
             return connIdObjectConvertor.convertToUcfObject(
-                    co, objectDefinition, this, UcfFetchErrorReportingMethod.EXCEPTION, result);
+                    co, objectDefinition, UcfFetchErrorReportingMethod.EXCEPTION, result);
 
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -687,196 +687,104 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             PrismObject<? extends ShadowType> shadow, UcfExecutionContext ctx, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException {
-        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
-        validateShadow(shadow, "add", false);
-        ShadowType shadowType = shadow.asObjectable();
 
-        ShadowAttributesContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
+        UcfExecutionContext.checkExecutionFullyPersistent(ctx);
+
+        validateShadowOnAdd(shadow);
+
         OperationResult result = parentResult.createSubresult(OP_ADD_OBJECT);
         result.addParam("resourceObject", shadow);
-
-        ResourceObjectDefinition objDef;
-        ResourceAttributeContainerDefinition attrContDef = attributesContainer.getDefinition();
-        if (attrContDef != null) {
-            objDef = attrContDef.getResourceObjectDefinition();
-        } else {
-            objDef = resourceSchema.findDefinitionForObjectClassRequired(shadow.asObjectable().getObjectClass());
-        }
-
-        // getting icf object class from resource object class
-        ObjectClass icfObjectClass = ucfObjectClassNameToConnId(shadow, isLegacySchema());
-
-        if (icfObjectClass == null) {
-            result.recordFatalError("Couldn't get icf object class from " + shadow);
-            throw new IllegalArgumentException("Couldn't get icf object class from " + shadow);
-        }
-
-        // setting ifc attributes from resource object attributes
-        Set<Attribute> attributes;
         try {
-            LOGGER.trace("midPoint object before conversion:\n{}", attributesContainer.debugDumpLazily());
-            attributes = connIdObjectConvertor.convertFromResourceObjectToConnIdAttributes(attributesContainer, objDef);
 
-            if (shadowType.getCredentials() != null && shadowType.getCredentials().getPassword() != null) {
-                PasswordType password = shadowType.getCredentials().getPassword();
-                ProtectedStringType protectedString = password.getValue();
-                var guardedPassword = ConnIdUtil.toGuardedString(protectedString, "new password", b.protector);
-                if (guardedPassword != null) {
-                    attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
+            var objDef = ShadowUtil.getResourceObjectDefinition(shadow.asObjectable());
+
+            var connIdInfo = connIdObjectConvertor.convertToConnIdObjectInfo(shadow.asObjectable());
+
+            OperationOptionsBuilder operationOptionsBuilder = new OperationOptionsBuilder();
+            OperationOptions options = operationOptionsBuilder.build();
+
+            OperationResult connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".create");
+            connIdResult.addArbitraryObjectAsParam("objectClass", connIdInfo.objectClass());
+            connIdResult.addArbitraryObjectCollectionAsParam("auxiliaryObjectClasses", connIdInfo.auxiliaryObjectClasses());
+            connIdResult.addArbitraryObjectCollectionAsParam("attributes", connIdInfo.attributes());
+            connIdResult.addArbitraryObjectAsParam("options", options);
+            connIdResult.addContext("connector", connIdConnectorFacade.getClass());
+
+            // CALL THE ConnId FRAMEWORK
+            InternalMonitor.recordConnectorOperation("create");
+            InternalMonitor.recordConnectorModification("create");
+            ConnIdOperation operation = recordIcfOperationStart(ctx, ProvisioningOperation.ICF_CREATE, objDef, null);
+
+            Uid uid;
+            try {
+
+                LOGGER.trace("Calling ConnId create for {}", operation);
+                uid = connIdConnectorFacade.create(connIdInfo.objectClass(), connIdInfo.attributes(), options);
+                if (operation != null && uid != null) {
+                    operation.setUid(uid.getUidValue());
+                }
+                recordIcfOperationEnd(ctx, operation, null);
+
+            } catch (Throwable ex) {
+                recordIcfOperationEnd(ctx, operation, ex);
+                Throwable midpointEx = processConnIdException(ex, this, connIdResult);
+                result.computeStatus("Add object failed");
+
+                // Do some kind of acrobatics to do proper throwing of checked exception
+                if (midpointEx instanceof ObjectAlreadyExistsException) {
+                    throw (ObjectAlreadyExistsException) midpointEx;
+                } else if (midpointEx instanceof CommunicationException) {
+                    throw (CommunicationException) midpointEx;
+                } else if (midpointEx instanceof GenericFrameworkException) {
+                    throw (GenericFrameworkException) midpointEx;
+                } else if (midpointEx instanceof SchemaException) {
+                    throw (SchemaException) midpointEx;
+                } else if (midpointEx instanceof ConfigurationException) {
+                    throw (ConfigurationException) midpointEx;
+                } else if (midpointEx instanceof SecurityViolationException) {
+                    throw (SecurityViolationException) midpointEx;
+                } else if (midpointEx instanceof PolicyViolationException) {
+                    throw (PolicyViolationException) midpointEx;
+                } else if (midpointEx instanceof RuntimeException) {
+                    throw (RuntimeException) midpointEx;
+                } else if (midpointEx instanceof Error) {
+                    throw (Error) midpointEx;
+                } else {
+                    throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
                 }
             }
 
-            if (ActivationUtil.hasAdministrativeActivation(shadowType)){
-                attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, ActivationUtil.isAdministrativeEnabled(shadowType)));
+            if (uid == null || uid.getUidValue() == null || uid.getUidValue().isEmpty()) {
+                connIdResult.recordFatalError("ConnId did not returned UID after create");
+                result.computeStatus("Add object failed");
+                throw new GenericFrameworkException("ConnId did not returned UID after create");
             }
 
-            if (ActivationUtil.hasValidFrom(shadowType)){
-                attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_DATE_NAME, XmlTypeConverter.toMillis(shadowType.getActivation().getValidFrom())));
+            var attributesContainer = ShadowUtil.getAttributesContainer(shadow.asObjectable());
+            for (ShadowSimpleAttribute<?> identifier : ConnIdUtil.convertToIdentifiers(uid, objDef, resourceSchema)) {
+                attributesContainer.getValue().addReplaceExisting(identifier);
             }
-
-            if (ActivationUtil.hasValidTo(shadowType)){
-                attributes.add(AttributeBuilder.build(OperationalAttributes.DISABLE_DATE_NAME, XmlTypeConverter.toMillis(shadowType.getActivation().getValidTo())));
-            }
-
-            if (ActivationUtil.hasLockoutStatus(shadowType)){
-                attributes.add(AttributeBuilder.build(OperationalAttributes.LOCK_OUT_NAME, ActivationUtil.isLockedOut(shadowType)));
-            }
-
-            LOGGER.trace("ConnId attributes after conversion:\n{}", lazy(() -> ConnIdUtil.dump(attributes)));
-
-        } catch (SchemaException | RuntimeException ex) {
-            result.recordFatalError(
-                    "Error while converting resource object attributes. Reason: " + ex.getMessage(), ex);
-            throw new SchemaException("Error while converting resource object attributes. Reason: "
-                    + ex.getMessage(), ex);
+            connIdResult.recordSuccess();
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
-
-        List<String> icfAuxiliaryObjectClasses = new ArrayList<>();
-        for (QName auxiliaryObjectClass: shadowType.getAuxiliaryObjectClass()) {
-            icfAuxiliaryObjectClasses.add(
-                    ConnIdNameMapper.ucfObjectClassNameToConnId(auxiliaryObjectClass, false)
-                            .getObjectClassValue());
-        }
-        if (!icfAuxiliaryObjectClasses.isEmpty()) {
-            AttributeBuilder ab = new AttributeBuilder();
-            ab.setName(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME);
-            ab.addValue(icfAuxiliaryObjectClasses);
-            attributes.add(ab.build());
-        }
-
-        OperationOptionsBuilder operationOptionsBuilder = new OperationOptionsBuilder();
-        OperationOptions options = operationOptionsBuilder.build();
-
-        OperationResult connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".create");
-        connIdResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
-        connIdResult.addArbitraryObjectCollectionAsParam("auxiliaryObjectClasses", icfAuxiliaryObjectClasses);
-        connIdResult.addArbitraryObjectCollectionAsParam("attributes", attributes);
-        connIdResult.addArbitraryObjectAsParam("options", options);
-        connIdResult.addContext("connector", connIdConnectorFacade.getClass());
-
-        // CALL THE ConnId FRAMEWORK
-        InternalMonitor.recordConnectorOperation("create");
-        InternalMonitor.recordConnectorModification("create");
-        ConnIdOperation operation = recordIcfOperationStart(ctx, ProvisioningOperation.ICF_CREATE, objDef, null);
-
-        Uid uid;
-        try {
-
-            LOGGER.trace("Calling ConnId create for {}", operation);
-            uid = connIdConnectorFacade.create(icfObjectClass, attributes, options);
-            if (operation != null && uid != null) {
-                operation.setUid(uid.getUidValue());
-            }
-            recordIcfOperationEnd(ctx, operation, null);
-
-        } catch (Throwable ex) {
-            recordIcfOperationEnd(ctx, operation, ex);
-            Throwable midpointEx = processConnIdException(ex, this, connIdResult);
-            result.computeStatus("Add object failed");
-
-            // Do some kind of acrobatics to do proper throwing of checked exception
-            if (midpointEx instanceof ObjectAlreadyExistsException) {
-                throw (ObjectAlreadyExistsException) midpointEx;
-            } else if (midpointEx instanceof CommunicationException) {
-                throw (CommunicationException) midpointEx;
-            } else if (midpointEx instanceof GenericFrameworkException) {
-                throw (GenericFrameworkException) midpointEx;
-            } else if (midpointEx instanceof SchemaException) {
-                throw (SchemaException) midpointEx;
-            } else if (midpointEx instanceof ConfigurationException) {
-                throw (ConfigurationException) midpointEx;
-            } else if (midpointEx instanceof SecurityViolationException) {
-                throw (SecurityViolationException) midpointEx;
-            } else if (midpointEx instanceof PolicyViolationException) {
-                throw (PolicyViolationException) midpointEx;
-            } else if (midpointEx instanceof RuntimeException) {
-                throw (RuntimeException) midpointEx;
-            } else if (midpointEx instanceof Error) {
-                throw (Error) midpointEx;
-            } else {
-                throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
-            }
-        }
-
-        if (uid == null || uid.getUidValue() == null || uid.getUidValue().isEmpty()) {
-            connIdResult.recordFatalError("ConnId did not returned UID after create");
-            result.computeStatus("Add object failed");
-            throw new GenericFrameworkException("ConnId did not returned UID after create");
-        }
-
-        Collection<ShadowSimpleAttribute<?>> identifiers =
-                ConnIdUtil.convertToIdentifiers(
-                        uid,
-                        attributesContainer.getDefinition().getResourceObjectDefinition(),
-                        resourceSchema);
-        for (ShadowSimpleAttribute<?> identifier: identifiers) {
-            attributesContainer.getValue().addReplaceExisting(identifier);
-        }
-        connIdResult.recordSuccess();
-
-        result.computeStatus();
-        return UcfAddReturnValue.of(attributesContainer.getAttributes(), result);
+        return UcfAddReturnValue.of(ShadowUtil.getAttributes(shadow), result);
     }
 
-    /** Quite ugly method - we should have a single place from where to take the object class. TODO resolve */
-    private @Nullable ObjectClass ucfObjectClassNameToConnId(
-            PrismObject<? extends ShadowType> shadow,
-            boolean legacySchema) {
-
-        ShadowType shadowBean = shadow.asObjectable();
-        QName objectClassName = shadowBean.getObjectClass();
-        if (objectClassName == null) {
-            ShadowAttributesContainer attrContainer = ShadowUtil.getAttributesContainer(shadowBean);
-            if (attrContainer == null) {
-                return null;
-            }
-            ResourceAttributeContainerDefinition objectClassDefinition = attrContainer.getDefinition();
-            objectClassName = objectClassDefinition.getTypeName();
-        }
-
-        return ConnIdNameMapper.ucfObjectClassNameToConnId(objectClassName, legacySchema);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private void validateShadow(PrismObject<? extends ShadowType> shadow, String operation, boolean requireUid) {
+    private void validateShadowOnAdd(PrismObject<? extends ShadowType> shadow) throws SchemaException {
         if (shadow == null) {
-            throw new IllegalArgumentException("Cannot " + operation + " null shadow");
+            throw new IllegalArgumentException("Cannot add null shadow");
         }
-        PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+        var attributesContainer = ShadowUtil.getAttributesContainer(shadow);
         if (attributesContainer == null) {
-            throw new IllegalArgumentException("Cannot " + operation + " shadow without attributes container");
+            throw new IllegalArgumentException("Cannot add a shadow without attributes container");
         }
-        ShadowAttributesContainer resourceAttributesContainer = ShadowUtil.getAttributesContainer(shadow);
-        if (resourceAttributesContainer == null) {
-            throw new IllegalArgumentException("Cannot " + operation
-                    + " shadow without attributes container of type ResourceAttributeContainer, got "
-                    + attributesContainer.getClass());
-        }
-        if (requireUid) {
-            Collection<ShadowSimpleAttribute<?>> identifiers = resourceAttributesContainer.getPrimaryIdentifiers();
-            if (identifiers == null || identifiers.isEmpty()) {
-                throw new IllegalArgumentException("Cannot " + operation + " shadow without identifiers");
-            }
+        // This is a legacy check; to be reviewed (why don't we check UID in non-ConnId form like ri:entryUUID?)
+        if (attributesContainer.findAttribute(SchemaConstants.ICFS_UID) != null) {
+            throw new SchemaException("ICF UID explicitly specified in attributes");
         }
     }
 

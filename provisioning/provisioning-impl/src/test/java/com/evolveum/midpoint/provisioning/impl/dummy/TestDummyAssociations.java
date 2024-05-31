@@ -8,6 +8,8 @@ package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME_PATH;
@@ -20,9 +22,10 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
+import com.evolveum.midpoint.test.DummyHrScenario.Contract;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
-import org.jetbrains.annotations.Nullable;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -50,7 +53,7 @@ import java.util.Collection;
 @DirtiesContext
 public class TestDummyAssociations extends AbstractDummyTest {
 
-    public static final File RESOURCE_DUMMY_HR_FILE = new File(TEST_DIR, "resource-dummy-hr.xml");
+    private static final File RESOURCE_DUMMY_HR_FILE = new File(TEST_DIR, "resource-dummy-hr.xml");
 
     private DummyHrScenario hrScenario;
 
@@ -177,5 +180,68 @@ public class TestDummyAssociations extends AbstractDummyTest {
         assertThat(def.getTypeIdentification())
                 .as("johnLaw contract object definition type")
                 .isEqualTo(ResourceObjectTypeIdentification.of(ShadowKindType.ASSOCIATED, "contract"));
+    }
+
+    @Test
+    public void test200AddAnnWithContract() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("ann with a contract in sciences");
+        var sciencesShadow =
+                MiscUtil.extractSingletonRequired(
+                        provisioningService.searchObjects(
+                                ShadowType.class,
+                                Resource.of(resource)
+                                        .queryFor(OrgUnit.OBJECT_CLASS_NAME.xsd())
+                                        .and().item(ICFS_NAME_PATH).eq("sciences")
+                                        .build(),
+                                null, task, result));
+
+        var annContractShadow = Resource.of(resource)
+                .getCompleteSchemaRequired()
+                .findObjectClassDefinitionRequired(hrScenario.contract.getObjectClassName().xsd())
+                .createBlankShadow();
+        annContractShadow.getAttributesContainer()
+                .add(ICFS_NAME, "ann-sciences");
+        annContractShadow.getOrCreateAssociationsContainer()
+                .add(Contract.LinkNames.ORG.q(), AbstractShadow.of(sciencesShadow));
+
+        var annShadow = Resource.of(resource)
+                .getCompleteSchemaRequired()
+                .findObjectClassDefinitionRequired(hrScenario.person.getObjectClassName().xsd())
+                .createBlankShadow();
+        annShadow.getAttributesContainer()
+                .add(Person.AttributeNames.NAME.q(), "ann")
+                .add(Person.AttributeNames.FIRST_NAME.q(), "Ann")
+                .add(Person.AttributeNames.LAST_NAME.q(), "Green");
+        annShadow.getOrCreateAssociationsContainer()
+                .add(Person.LinkNames.CONTRACT.q(), annContractShadow);
+
+        when("ann is created on the resource");
+        provisioningService.addObject(annShadow.getPrismObject(), null, null, task, result);
+
+        then("she's there");
+        var annShadowAfter =
+                MiscUtil.extractSingletonRequired(
+                        provisioningService.searchObjects(
+                                ShadowType.class,
+                                Resource.of(resource)
+                                        .queryFor(Person.OBJECT_CLASS_NAME.xsd())
+                                        .and().item(Person.AttributeNames.NAME.path()).eq("ann")
+                                        .build(),
+                                null, task, result));
+
+        assertShadow(annShadowAfter, "ann")
+                .display();
+
+        var annContractAfter = AbstractShadow.of(annShadowAfter)
+                .getAssociationValues(Person.LinkNames.CONTRACT.q())
+                .stream()
+                .map(val -> val.getShadowBean())
+                .findFirst().orElseThrow();
+
+        assertShadow(annContractAfter, "ann's contract")
+                .display();
     }
 }

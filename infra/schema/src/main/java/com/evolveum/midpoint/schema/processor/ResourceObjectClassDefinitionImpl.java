@@ -150,6 +150,11 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
+    public boolean isAssociationObject() {
+        return nativeObjectClassDefinition.isAssociationObject();
+    }
+
+    @Override
     public boolean isDefaultAccountDefinition() {
         return nativeObjectClassDefinition.isDefaultAccountDefinition();
     }

@@ -77,13 +77,13 @@ public class DummyResource implements DebugDumpable {
 
     // Specific stores for the respective standard object types.
     private final ObjectStore<DummyAccount> accountStore =
-            new ObjectStore<>(DummyAccount.class, DummyAccount.OBJECT_CLASS_NAME);
+            new ObjectStore<>(DummyAccount.class, DummyAccount.OBJECT_CLASS_NAME, DummyObjectClass.standard());
     private final ObjectStore<DummyGroup> groupStore =
-            new ObjectStore<>(DummyGroup.class, DummyGroup.OBJECT_CLASS_NAME);
+            new ObjectStore<>(DummyGroup.class, DummyGroup.OBJECT_CLASS_NAME, DummyObjectClass.standard());
     private final ObjectStore<DummyPrivilege> privilegeStore =
-            new ObjectStore<>(DummyPrivilege.class, DummyPrivilege.OBJECT_CLASS_NAME);
+            new ObjectStore<>(DummyPrivilege.class, DummyPrivilege.OBJECT_CLASS_NAME, DummyObjectClass.standard());
     private final ObjectStore<DummyOrg> orgStore =
-            new ObjectStore<>(DummyOrg.class, DummyOrg.OBJECT_CLASS_NAME);
+            new ObjectStore<>(DummyOrg.class, DummyOrg.OBJECT_CLASS_NAME, DummyObjectClass.standard());
 
     private final Map<String, DummyObjectClass> auxiliaryObjectClassMap = new ConcurrentHashMap<>();
     private final Map<String, LinkClassDefinition> linkClassDefinitionMap = new ConcurrentHashMap<>();

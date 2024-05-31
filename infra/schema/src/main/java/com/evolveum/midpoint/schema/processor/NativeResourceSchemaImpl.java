@@ -53,12 +53,12 @@ public class NativeResourceSchemaImpl
         return checkType(findInMap(name), true);
     }
 
-    private NativeComplexTypeDefinitionImpl checkType(NativeComplexTypeDefinitionImpl definition, boolean association) {
-        if (definition == null || definition.isAssociation() == association) {
+    private NativeComplexTypeDefinitionImpl checkType(NativeComplexTypeDefinitionImpl definition, boolean referenceType) {
+        if (definition == null || definition.isReferenceType() == referenceType) {
             return definition;
         } else {
             throw new IllegalStateException(
-                    "Expected " + (association ? "association" : "object") + " class definition, but got " + definition);
+                    "Expected " + (referenceType ? "reference type" : "object class") + " definition, but got " + definition);
         }
     }
 
@@ -74,14 +74,14 @@ public class NativeResourceSchemaImpl
     @Override
     public @NotNull Collection<? extends NativeObjectClassDefinition> getObjectClassDefinitions() {
         return nativeComplexTypeDefinitionMap.values().stream()
-                .filter(def -> !def.isAssociation())
+                .filter(def -> !def.isReferenceType())
                 .toList();
     }
 
     @Override
     public @NotNull Collection<? extends NativeReferenceTypeDefinition> getReferenceTypeDefinitions() {
         return nativeComplexTypeDefinitionMap.values().stream()
-                .filter(def -> def.isAssociation())
+                .filter(def -> def.isReferenceType())
                 .toList();
     }
 
@@ -189,38 +189,38 @@ public class NativeResourceSchemaImpl
     private class AssociationClassesComputer {
         void compute() throws SchemaException {
 
-            // Creating the association class definitions
-            nativeComplexTypeDefinitionMap.entrySet().removeIf(entry -> entry.getValue().isAssociation());
+            // Creating the reference type definitions
+            nativeComplexTypeDefinitionMap.entrySet().removeIf(entry -> entry.getValue().isReferenceType());
             for (var objectClassDefinition : getObjectClassDefinitions()) {
-                for (var associationDefinition : objectClassDefinition.getReferenceAttributeDefinitions()) {
-                    var associationClassName = associationDefinition.getTypeName();
-                    stateCheck(NS_RI.equals(associationClassName.getNamespaceURI()),
-                            "Association class name must be in the RI namespace: %s", associationClassName);
-                    findOrCreateAssociationClassDefinition(associationClassName)
+                for (var referenceAttributeDefinition : objectClassDefinition.getReferenceAttributeDefinitions()) {
+                    var referenceTypeName = referenceAttributeDefinition.getTypeName();
+                    stateCheck(NS_RI.equals(referenceTypeName.getNamespaceURI()),
+                            "Reference type name must be in the RI namespace: %s", referenceTypeName);
+                    findOrCreateReferenceTypeDefinition(referenceTypeName)
                             .addParticipant(
                                     objectClassDefinition.getName(),
-                                    associationDefinition.getItemName(),
-                                    associationDefinition.getReferenceParticipantRole());
+                                    referenceAttributeDefinition.getItemName(),
+                                    referenceAttributeDefinition.getReferenceParticipantRole());
                 }
             }
 
-            // Checking the consistency of the association class definitions
-            for (var associationClassDefinition : getReferenceTypeDefinitions()) {
-                MiscUtil.schemaCheck(!associationClassDefinition.getSubjects().isEmpty(),
-                        "Association class %s has no subject classes", associationClassDefinition);
-                MiscUtil.schemaCheck(!associationClassDefinition.getObjects().isEmpty(),
-                        "Association class %s has no object classes", associationClassDefinition);
+            // Checking the consistency of the reference type definitions
+            for (var referenceTypeDefinition : getReferenceTypeDefinitions()) {
+                MiscUtil.schemaCheck(!referenceTypeDefinition.getSubjects().isEmpty(),
+                        "Reference type %s has no subject classes", referenceTypeDefinition);
+                MiscUtil.schemaCheck(!referenceTypeDefinition.getObjects().isEmpty(),
+                        "Reference type %s has no object classes", referenceTypeDefinition);
             }
         }
 
-        private NativeReferenceTypeDefinition findOrCreateAssociationClassDefinition(QName typeName) {
+        private NativeReferenceTypeDefinition findOrCreateReferenceTypeDefinition(QName typeName) {
             var existingClass = findReferenceTypeDefinition(typeName);
             if (existingClass != null) {
                 return existingClass;
             }
             String localTypeName = typeName.getLocalPart();
             var newClass = new NativeComplexTypeDefinitionImpl(localTypeName);
-            newClass.setAssociation();
+            newClass.setReferenceType();
             nativeComplexTypeDefinitionMap.put(typeName.getLocalPart(), newClass);
             return newClass;
         }

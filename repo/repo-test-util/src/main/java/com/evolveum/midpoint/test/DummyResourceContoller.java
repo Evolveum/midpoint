@@ -232,7 +232,7 @@ public class DummyResourceContoller extends AbstractResourceController {
      * Extend dummy schema to have an auxiliary OC.
      */
     public void extendSchemaPosix() {
-        DummyObjectClass posixAccount = new DummyObjectClass();
+        DummyObjectClass posixAccount = DummyObjectClass.standard();
         addAttrDef(posixAccount, DUMMY_ACCOUNT_ATTRIBUTE_POSIX_UID_NUMBER, Integer.class, false, false);            // uid and gid are temporarily not required
         addAttrDef(posixAccount, DUMMY_ACCOUNT_ATTRIBUTE_POSIX_GID_NUMBER, Integer.class, false, false);
         dummyResource.addAuxiliaryObjectClass(DUMMY_POSIX_ACCOUNT_OBJECT_CLASS_NAME, posixAccount);

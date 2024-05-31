@@ -42,12 +42,12 @@ public class TestDummyResource {
     }
 
     private void createSchema() {
-        var personOC = new DummyObjectClass();
+        var personOC = DummyObjectClass.standard();
         addAttrDef(personOC, ATTR_FIRST_NAME, String.class, false, false);
         addAttrDef(personOC, ATTR_LAST_NAME, String.class, false, false);
         dummyResource.addStructuralObjectClass(OC_PERSON, personOC);
 
-        var contractOC = new DummyObjectClass();
+        var contractOC = DummyObjectClass.association();
         dummyResource.addStructuralObjectClass(OC_CONTRACT, contractOC);
 
         dummyResource.addLinkClassDef(

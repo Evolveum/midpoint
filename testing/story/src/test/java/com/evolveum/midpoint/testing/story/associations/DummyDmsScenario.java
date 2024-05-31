@@ -9,8 +9,7 @@ package com.evolveum.midpoint.testing.story.associations;
 
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
-import static com.evolveum.midpoint.test.AttrName.icfs;
-import static com.evolveum.midpoint.test.AttrName.ri;
+import static com.evolveum.midpoint.test.AttrName.*;
 import static com.evolveum.midpoint.test.ObjectClassName.custom;
 
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +50,7 @@ public class DummyDmsScenario extends AbstractDummyScenario {
         public static final ObjectClassName OBJECT_CLASS_NAME = custom("account");
 
         public static class AttributeNames {
-            public static final AttrName NAME = icfs("name");
+            public static final AttrName NAME = icfsName();
         }
 
         public static class LinkNames {
@@ -82,7 +81,7 @@ public class DummyDmsScenario extends AbstractDummyScenario {
         }
 
         void initialize() {
-            var oc = new DummyObjectClass();
+            var oc = DummyObjectClass.association();
             controller.addAttrDef(oc, AttributeNames.LEVEL.local(), String.class, false, false);
             controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
         }
@@ -98,7 +97,7 @@ public class DummyDmsScenario extends AbstractDummyScenario {
         public static final ObjectClassName OBJECT_CLASS_NAME = custom("document");
 
         public static class AttributeNames {
-            public static final AttrName NAME = icfs("name");
+            public static final AttrName NAME = icfsName();
         }
 
         public static class LinkNames {
@@ -106,7 +105,7 @@ public class DummyDmsScenario extends AbstractDummyScenario {
         }
 
         void initialize() {
-            var oc = new DummyObjectClass();
+            var oc = DummyObjectClass.standard();
             controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
         }
 

@@ -82,11 +82,11 @@ public class ConnIdNameMapper {
         return ucfAttributeNameToConnId(attrDef);
     }
 
-    static String ucfAttributeNameToConnId(ShadowSimpleAttribute<?> attribute, ResourceObjectDefinition ocDef)
+    static String ucfAttributeNameToConnId(ShadowAttribute<?, ?> attribute, ResourceObjectDefinition ocDef)
             throws SchemaException {
-        ShadowSimpleAttributeDefinition<?> attrDef = attribute.getDefinition();
+        var attrDef = attribute.getDefinition();
         if (attrDef == null) {
-            attrDef = ocDef.findSimpleAttributeDefinitionRequired(attribute.getElementName());
+            attrDef = ocDef.findAttributeDefinitionRequired(attribute.getElementName());
         }
         return ucfAttributeNameToConnId(attrDef);
     }

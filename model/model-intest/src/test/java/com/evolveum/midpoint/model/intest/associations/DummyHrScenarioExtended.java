@@ -9,8 +9,7 @@ package com.evolveum.midpoint.model.intest.associations;
 
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
-import static com.evolveum.midpoint.test.AttrName.icfs;
-import static com.evolveum.midpoint.test.AttrName.ri;
+import static com.evolveum.midpoint.test.AttrName.*;
 import static com.evolveum.midpoint.test.ObjectClassName.custom;
 
 import java.time.ZonedDateTime;
@@ -57,7 +56,7 @@ public class DummyHrScenarioExtended extends AbstractDummyScenario {
         public static final ObjectClassName OBJECT_CLASS_NAME = custom("person");
 
         public static class AttributeNames {
-            public static final AttrName NAME = icfs("name");
+            public static final AttrName NAME = icfsName();
             public static final AttrName FIRST_NAME = ri("firstName");
             public static final AttrName LAST_NAME = ri("lastName");
             public static final AttrName TITLE = ri("title");
@@ -68,7 +67,7 @@ public class DummyHrScenarioExtended extends AbstractDummyScenario {
         }
 
         void initialize() {
-            var oc = new DummyObjectClass();
+            var oc = DummyObjectClass.standard();
             controller.addAttrDef(oc, AttributeNames.FIRST_NAME.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.LAST_NAME.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.TITLE.local(), String.class, false, false);
@@ -98,7 +97,7 @@ public class DummyHrScenarioExtended extends AbstractDummyScenario {
         }
 
         void initialize() {
-            var oc = new DummyObjectClass();
+            var oc = DummyObjectClass.association();
             controller.addAttrDef(oc, AttributeNames.VALID_FROM.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, AttributeNames.VALID_TO.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, AttributeNames.NOTE.local(), String.class, false, false);
@@ -125,7 +124,7 @@ public class DummyHrScenarioExtended extends AbstractDummyScenario {
         }
 
         void initialize() {
-            var oc = new DummyObjectClass();
+            var oc = DummyObjectClass.standard();
             controller.addAttrDef(oc, AttributeNames.DESCRIPTION.local(), String.class, false, false);
             controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
         }
@@ -149,7 +148,7 @@ public class DummyHrScenarioExtended extends AbstractDummyScenario {
         }
 
         void initialize() {
-            var oc = new DummyObjectClass();
+            var oc = DummyObjectClass.standard();
             controller.addAttrDef(oc, AttributeNames.DESCRIPTION.local(), String.class, false, false);
             controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
         }
