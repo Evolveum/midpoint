@@ -360,7 +360,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         analysisClusterStatisticType.setRolesCount(clusterStatistics.getRolesCount());
         analysisClusterStatisticType.setUsersCount(clusterStatistics.getUsersCount());
         analysisClusterStatisticType.setMembershipMean(clusterStatistics.getMembershipMean());
-        analysisClusterStatisticType.setMembershipRange(clusterStatistics.getMembershipRange());
+        analysisClusterStatisticType.setMembershipRange(clusterStatistics.getMembershipRange().clone());
+        //TODO consider update
+        analysisClusterStatisticType.setRoleAttributeAnalysisResult(clusterStatistics.getRoleAttributeAnalysisResult().clone());
+        analysisClusterStatisticType.setUserAttributeAnalysisResult(clusterStatistics.getUserAttributeAnalysisResult().clone());
         return analysisClusterStatisticType;
     }
 
