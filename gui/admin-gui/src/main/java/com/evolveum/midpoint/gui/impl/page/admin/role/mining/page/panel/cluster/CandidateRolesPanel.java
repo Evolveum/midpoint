@@ -62,7 +62,7 @@ public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClu
 
     @Override
     protected void initLayout() {
-
+        recomputeClusterOpStatus();
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
         add(container);

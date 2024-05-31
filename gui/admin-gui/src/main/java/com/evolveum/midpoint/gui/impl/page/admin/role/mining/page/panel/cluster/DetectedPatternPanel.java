@@ -12,6 +12,9 @@ import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.tran
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -57,6 +60,7 @@ public class DetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysisCl
 
     @Override
     protected void initLayout() {
+        updatePatternIfRequired();
 
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
@@ -94,12 +98,25 @@ public class DetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysisCl
     }
 
     private void performOnRefresh() {
+        updatePatternIfRequired();
+
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, getObjectDetailsModels().getObjectType().getOid());
         parameters.add(ID_PANEL, getPanelConfiguration().getIdentifier());
         Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                 .getObjectDetailsPage(RoleAnalysisClusterType.class);
         getPageBase().navigateToNext(detailsPageClass, parameters);
+    }
+
+    private void updatePatternIfRequired() {
+        PageBase pageBase = getPageBase();
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
+        Task task = pageBase.createSimpleTask("Recompute and resolve cluster operation status");
+        OperationResult result = task.getResult();
+        roleAnalysisService
+                .recomputeAndResolveClusterOpStatus(cluster.getOid(), result, task, false,
+                        pageBase.getModelInteractionService());
     }
 
 }
