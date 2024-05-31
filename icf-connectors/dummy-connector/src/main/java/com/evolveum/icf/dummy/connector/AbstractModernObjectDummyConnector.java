@@ -200,15 +200,7 @@ public abstract class AbstractModernObjectDummyConnector
 
             } else {
 
-                final DummyObject dummyObject;
-                if (configuration.isUidBoundToName()) {
-                    dummyObject = resource.getObjectByName(objectClassName, uid.getUidValue(), false);
-                } else {
-                    dummyObject = resource.getObjectById(uid.getUidValue(), false);
-                }
-                if (dummyObject == null) {
-                    throw getUnknownUidException(objectClassName, uid);
-                }
+                DummyObject dummyObject = findObjectByUidRequired(objectClassName, uid, false);
                 applyModifyMetadata(dummyObject, options);
 
                 for (AttributeDelta delta : modifications) {

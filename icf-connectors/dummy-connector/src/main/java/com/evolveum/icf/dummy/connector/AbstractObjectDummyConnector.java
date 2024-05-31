@@ -143,10 +143,7 @@ public abstract class AbstractObjectDummyConnector
                 var uidAttr = (Uid) identification.getAttributeByName(Uid.NAME);
                 var nameAttr = (Name) identification.getAttributeByName(Name.NAME);
                 if (uidAttr != null) {
-                    referencedObject = resource.getObjectById(uidAttr.getUidValue(), false);
-                    if (referencedObject == null) {
-                        throw new ObjectDoesNotExistException("Object identified by " + uidAttr + " does not exist");
-                    }
+                    referencedObject = findObjectByUidRequired(referencedObjectClassName, uidAttr, false);
                 } else if (nameAttr != null) {
                     referencedObject = resource.getObjectByName(referencedObjectClassName, nameAttr.getNameValue(), false);
                     if (referencedObject == null) {
@@ -1622,5 +1619,24 @@ public abstract class AbstractObjectDummyConnector
     static UnknownUidException getUnknownUidException(String objectClassName, Uid uid) {
         return new UnknownUidException(
                 "Object of class '" + objectClassName + "' with UID " + uid + " does not exist on resource");
+    }
+
+    private DummyObject findObjectByUid(String objectClassName, Uid uid, boolean checkBreak)
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+        if (configuration.isUidBoundToName()) {
+            return resource.getObjectByName(objectClassName, uid.getUidValue(), checkBreak);
+        } else  {
+            return resource.getObjectById(uid.getUidValue(), checkBreak);
+        }
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    @NotNull DummyObject findObjectByUidRequired(String objectClassName, Uid uid, boolean checkBreak)
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+        var object = findObjectByUid(objectClassName, uid, checkBreak);
+        if (object == null) {
+            throw getUnknownUidException(objectClassName, uid);
+        }
+        return object;
     }
 }

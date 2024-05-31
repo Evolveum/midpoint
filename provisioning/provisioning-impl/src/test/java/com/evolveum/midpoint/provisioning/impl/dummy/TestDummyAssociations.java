@@ -8,11 +8,9 @@ package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME_PATH;
 
 import javax.xml.namespace.QName;
 
@@ -233,15 +231,45 @@ public class TestDummyAssociations extends AbstractDummyTest {
                                 null, task, result));
 
         assertShadow(annShadowAfter, "ann")
-                .display();
+                .display()
+                .attributes()
+                .assertValue(ICFS_UID, "ann")
+                .assertValue(Person.AttributeNames.NAME.q(), "ann")
+                .assertValue(Person.AttributeNames.FIRST_NAME.q(), "Ann")
+                .assertValue(Person.AttributeNames.LAST_NAME.q(), "Green");
 
-        var annContractAfter = AbstractShadow.of(annShadowAfter)
+        var annContractsAfter = AbstractShadow.of(annShadowAfter)
                 .getAssociationValues(Person.LinkNames.CONTRACT.q())
                 .stream()
                 .map(val -> val.getShadowBean())
-                .findFirst().orElseThrow();
+                .toList();
 
+        assertThat(annContractsAfter)
+                .as("ann's contracts")
+                .hasSize(1);
+
+        var annContractAfter = annContractsAfter.get(0);
         assertShadow(annContractAfter, "ann's contract")
-                .display();
+                .display()
+                .attributes()
+                .assertValue(ICFS_UID, "ann-sciences")
+                .assertValue(Contract.AttributeNames.NAME.q(), "ann-sciences");
+
+        var contractOrgsAfter = AbstractShadow.of(annContractAfter)
+                .getAssociationValues(Contract.LinkNames.ORG.q())
+                .stream()
+                .map(val -> val.getShadowBean())
+                .toList();
+
+        assertThat(contractOrgsAfter)
+                .as("ann's contract's orgs")
+                .hasSize(1);
+
+        var contractOrgAfter = contractOrgsAfter.get(0);
+        assertShadow(contractOrgAfter, "ann's contract's org")
+                .display()
+                .attributes()
+                .assertValue(ICFS_UID, "sciences")
+                .assertValue(OrgUnit.AttributeNames.NAME.q(), "sciences");
     }
 }

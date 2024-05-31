@@ -164,15 +164,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
 
             } else {
 
-                final DummyObject dummyObject;
-                if (configuration.isUidBoundToName()) {
-                    dummyObject = resource.getObjectByName(objectClassName, uid.getUidValue(), false);
-                } else {
-                    dummyObject = resource.getObjectById(uid.getUidValue(), false);
-                }
-                if (dummyObject == null) {
-                    throw getUnknownUidException(objectClassName, uid);
-                }
+                DummyObject dummyObject = findObjectByUidRequired(objectClassName, uid, false);
                 applyModifyMetadata(dummyObject, options);
 
                 for (Attribute attr : replaceAttributes) {
@@ -474,15 +466,7 @@ public class DummyConnectorLegacyUpdate extends AbstractObjectDummyConnector imp
 
             } else {
 
-                DummyObject dummyObject;
-                if (configuration.isUidBoundToName()) {
-                    dummyObject = resource.getObjectByName(objectClassName, uid.getUidValue(), false);
-                } else  {
-                    dummyObject = resource.getObjectById(uid.getUidValue(), false);
-                }
-                if (dummyObject == null) {
-                    throw new UnknownUidException("Privilege with UID " + uid + " does not exist on resource");
-                }
+                DummyObject dummyObject = findObjectByUidRequired(objectClassName, uid, false);
                 applyModifyMetadata(dummyObject, options);
 
                 for (Attribute attr : valuesToRemove) {
