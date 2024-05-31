@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
+import com.evolveum.midpoint.web.session.CertDecisionsStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -88,7 +89,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     }
 
     private List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createColumns() {
-        return ColumnUtils.getDefaultCertWorkItemColumns();
+        return ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems());
     }
 
     @Override
@@ -134,10 +135,13 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         };
     }
 
+    public CertDecisionsStorage getPageStorage() {
+        return getSession().getSessionStorage().getCertDecisions();
+    }
 
     @Override
     protected String getStorageKey() {
-        return SessionStorage.KEY_WORK_ITEMS;
+        return SessionStorage.KEY_CERT_DECISIONS;
     }
 
     private ContainerListDataProvider<AccessCertificationWorkItemType> createProvider(IModel<Search<AccessCertificationWorkItemType>> searchModel) {
