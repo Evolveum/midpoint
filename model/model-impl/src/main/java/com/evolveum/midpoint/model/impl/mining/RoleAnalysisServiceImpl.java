@@ -2305,6 +2305,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             }
 
         }
+
+        topDetectedPatterns.sort(Comparator.comparing(DetectedPattern::getMetric).reversed());
         return topDetectedPatterns;
     }
 
