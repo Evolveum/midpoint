@@ -107,7 +107,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
             }
         };
         processedObjectCount.setOutputMarkupId(true);
-        processedObjectCount.add(AttributeAppender.replace("title", () -> "Processed objects: " +
+        processedObjectCount.add(AttributeAppender.replace("title", () -> "Inducements count: " +
                 getModelObject().getInducementsCount()));
         processedObjectCount.add(new TooltipBehavior());
         add(processedObjectCount);
