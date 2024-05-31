@@ -731,6 +731,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
             }
         };
         progressBar.setOutputMarkupId(true);
+        progressBar.add(AttributeAppender.append("style", "width: 170px"));
         cellItem.add(progressBar);
     }
 
