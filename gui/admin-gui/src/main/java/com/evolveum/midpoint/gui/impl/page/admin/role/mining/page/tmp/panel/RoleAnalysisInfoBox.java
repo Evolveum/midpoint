@@ -24,6 +24,7 @@ public class RoleAnalysisInfoBox extends BasePanel<InfoBoxModel> {
     private static final String ID_INFO_BOX = "info-box";
     private static final String ID_INFO_BOX_ICON = "info-box-icon";
     private static final String ID_INFO_BOX_TEXT = "info-box-text";
+    private static final String ID_INFO_BOX_SUB_TEXT= "info-box-sub-text";
     private static final String ID_INFO_BOX_NUMBER = "info-box-number";
     private static final String ID_INFO_BOX_BAR = "info-box-bar";
     private static final String ID_INFO_BOX_DESCRIPTION = "info-box-description";
@@ -45,6 +46,9 @@ public class RoleAnalysisInfoBox extends BasePanel<InfoBoxModel> {
 
         Label text = new Label(ID_INFO_BOX_TEXT, () -> getModelObject().getText());
         infoBox.add(text);
+
+        Label subText = new Label(ID_INFO_BOX_SUB_TEXT, () -> getModelObject().getSubText());
+        infoBox.add(subText);
 
         Label number = new Label(ID_INFO_BOX_NUMBER, () -> getModelObject().getNumberText());
         infoBox.add(number);

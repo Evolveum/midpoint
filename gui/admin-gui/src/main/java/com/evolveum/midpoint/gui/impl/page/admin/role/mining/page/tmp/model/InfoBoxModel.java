@@ -14,6 +14,7 @@ public class InfoBoxModel implements Serializable {
     String numberText;
     double number;
     String description;
+    String subText;
 
     public InfoBoxModel(String iconClass, String text, String numberText, double number, String description) {
         this.iconClass = iconClass;
@@ -61,5 +62,13 @@ public class InfoBoxModel implements Serializable {
 
     public void setNumber(double number) {
         this.number = number;
+    }
+
+    public String getSubText() {
+        return subText;
+    }
+
+    public void setSubText(String subText) {
+        this.subText = subText;
     }
 }

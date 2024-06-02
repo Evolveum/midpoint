@@ -75,6 +75,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
         if (getModel().getObject() == null) {
             return;
         }
+
         IModel<String> reduction = Model.of(String.format("%.2f", pattern.getReductionFactorConfidence()) + "%");
         IModel<String> confidence = Model.of(String.format("%.2f", pattern.getItemsConfidence()) + "%");
         IModel<String> roleObjectCount = Model.of(String.valueOf(pattern.getRoles().size()));
@@ -86,6 +87,9 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
                 pattern.getReductionFactorConfidence(),
                 "Reduction factor");
 
+        Double patternMetric = pattern.getMetric();
+        int relationCount = patternMetric != null ? patternMetric.intValue() : 0;
+        infoBoxModelReduction.setSubText("(" + relationCount + " relations)");
         RoleAnalysisInfoBox reductionLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxModelReduction)) {
             @Override
             protected String getInfoBoxCssClass() {
