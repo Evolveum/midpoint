@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
         display = @PanelDisplay(
                 label = "RoleAnalysisClusterType.detectionOption",
                 icon = GuiStyleConstants.CLASS_OPTIONS_COGS,
-                order = 30
+                order = 20
         ),
         childOf = RoleAnalysisClusterOptionsPanel.class,
         containerPath = "detectionOption",
@@ -46,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
         display = @PanelDisplay(
                 label = "RoleAnalysisSessionType.sessionOptions",
                 icon = GuiStyleConstants.CLASS_OPTIONS_COGS,
-                order = 40
+                order = 20
         ),
         childOf = RoleAnalysisRoleSessionOptions.class,
         containerPath = "roleModeOptions",
@@ -59,7 +59,7 @@ import org.jetbrains.annotations.NotNull;
         display = @PanelDisplay(
                 label = "RoleAnalysisSessionType.sessionOptions",
                 icon = GuiStyleConstants.CLASS_OPTIONS_COG,
-                order = 40
+                order = 20
         ),
         childOf = RoleAnalysisUserSessionOptions.class,
         containerPath = "userModeOptions",

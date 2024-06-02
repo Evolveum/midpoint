@@ -18,7 +18,10 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 
 @PanelInstance(identifier = "roleModeSettings",
         applicableForType = RoleAnalysisSessionType.class,
-        display = @PanelDisplay(label = "PageRoleAnalysisSession.settings.panel", icon = GuiStyleConstants.CLASS_OPTIONS_COGS, order = 60))
+        display = @PanelDisplay(
+                label = "PageRoleAnalysisSession.settings.panel",
+                icon = GuiStyleConstants.CLASS_OPTIONS_COGS,
+                order = 40))
 public class RoleAnalysisRoleSessionOptions extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
     private static final String ID_CONTAINER = "container";

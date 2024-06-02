@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         display = @PanelDisplay(
                 label = "RoleAnalysisClusterType.candidateRoles",
                 icon = GuiStyleConstants.CLASS_GROUP_ICON,
-                order = 30
+                order = 20
         )
 )
 public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {

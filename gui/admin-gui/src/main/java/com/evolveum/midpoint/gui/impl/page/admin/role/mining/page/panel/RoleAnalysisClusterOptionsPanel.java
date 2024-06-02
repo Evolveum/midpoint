@@ -20,7 +20,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
 
 @PanelInstance(identifier = "settings",
         applicableForType = RoleAnalysisClusterType.class,
-        display = @PanelDisplay(label = "PageRoleAnalysisSession.settings.panel", icon = GuiStyleConstants.CLASS_OPTIONS_COGS, order = 60))
+        display = @PanelDisplay(
+                label = "PageRoleAnalysisSession.settings.panel",
+                icon = GuiStyleConstants.CLASS_OPTIONS_COGS,
+                order = 40))
 public class RoleAnalysisClusterOptionsPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
     private static final String ID_CONTAINER = "container";

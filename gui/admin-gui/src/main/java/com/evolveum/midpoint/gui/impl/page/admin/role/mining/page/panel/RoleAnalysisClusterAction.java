@@ -19,7 +19,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterT
 
 @PanelInstance(identifier = "actions",
         applicableForType = RoleAnalysisClusterType.class,
-        display = @PanelDisplay(label = "PageRoleAnalysisCluster.action.panel", icon = GuiStyleConstants. CLASS_ICON_SEARCH, order = 60))
+        display = @PanelDisplay(
+                label = "PageRoleAnalysisCluster.action.panel",
+                icon = GuiStyleConstants. CLASS_ICON_SEARCH,
+                order = 30))
 public class RoleAnalysisClusterAction<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {
 
     private static final String ID_CONTAINER = "container";

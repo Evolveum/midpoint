@@ -18,7 +18,10 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 
 @PanelInstance(identifier = "userModeSettings",
         applicableForType = RoleAnalysisSessionType.class,
-        display = @PanelDisplay(label = "PageRoleAnalysisSession.settings.panel", icon = GuiStyleConstants.CLASS_OPTIONS_COGS, order = 60))
+        display = @PanelDisplay(
+                label = "PageRoleAnalysisSession.settings.panel",
+                icon = GuiStyleConstants.CLASS_OPTIONS_COGS,
+                order = 40))
 public class RoleAnalysisUserSessionOptions extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
     private static final String ID_CONTAINER = "container";

@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
         display = @PanelDisplay(
                 label = "RoleAnalysis.basic.panel",
                 icon = GuiStyleConstants.CLASS_INFO_CIRCLE,
-                order = 100))
+                order = 10))
 
 @PanelInstance(identifier = "clusterBasic",
         applicableForType = RoleAnalysisClusterType.class,
@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
         display = @PanelDisplay(
                 label = "RoleAnalysis.basic.panel",
                 icon = GuiStyleConstants.CLASS_INFO_CIRCLE,
-                order = 100))
+                order = 10))
 public class RoleAnalysisBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {
 
     private static final String ID_MAIN_PANEL = "main";

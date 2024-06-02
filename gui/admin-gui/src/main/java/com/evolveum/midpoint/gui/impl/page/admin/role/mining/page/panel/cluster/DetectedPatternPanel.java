@@ -45,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterT
         display = @PanelDisplay(
                 label = "RoleAnalysisDetectionPatternType.detectedPattern",
                 icon = GuiStyleConstants.CLASS_ICON_SEARCH,
-                order = 30
+                order = 10
         )
 )
 public class DetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
