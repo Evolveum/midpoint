@@ -333,7 +333,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
                     }else{
                         appendIcon("fe fe-assignment", "color: red;");
                         appendText(" " + formattedReductionFactorConfidence, null);
-                        appendText("reduction - ", null);
+                        appendText("relations - ", null);
                         appendIcon("fa fa-leaf", "color: green");
                         appendText(" " + formattedItemConfidence + "% ", null);
                         appendText(" confidence", null);
