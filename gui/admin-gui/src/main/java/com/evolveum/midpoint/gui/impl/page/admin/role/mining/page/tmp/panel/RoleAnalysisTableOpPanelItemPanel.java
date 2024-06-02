@@ -282,10 +282,10 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
                         @Override
                         protected String load() {
                             if (modelObject.isCandidateRoleView()) {
-                                return "Candidate role" + (pattern.getIdentifier());
+                                return "Candidate role " + (pattern.getIdentifier());
                             }
 
-                            return "Pattern details #" + (patternIndex + 1);
+                            return "Pattern #" + (patternIndex + 1);
                         }
                     };
 
