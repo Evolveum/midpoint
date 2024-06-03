@@ -56,7 +56,15 @@ Following tables summarizes common property filters:
 | Name | Alias | Description
 
 | `equal` | `=` | Matches if any item is equal to value
-| `not equal` | != | Matches if item is different from value
+
+| `not equal`
+
+`notEqual`
+
+| !=
+| Matches if item is different from value
+
+
 | `less` | `<` | Matches if item is smaller than value
 | `lessOrEqual` | `&lt;=` | Matches if item is smaller or equal to the value
 | `greater` | `>` | Matches if item is greater than value
