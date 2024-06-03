@@ -496,6 +496,7 @@ public abstract class PageBase extends PageAdminLTE {
         dialog.setFooter(popupable.getFooter());
 
         dialog.setTitle(popupable.getTitle());
+        dialog.setTitleIconClass(popupable.getTitleIconClass());
         dialog.open(target);
     }
 

@@ -351,11 +351,20 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
                             @Override
                             protected void savePerformed(AjaxRequestTarget target, AccessCertificationResponseType response,
                                     String comment) {
-                                PrismContainerValueWrapper<AccessCertificationWorkItemType> wi =
-                                        (PrismContainerValueWrapper<AccessCertificationWorkItemType>) getRowModel().getObject();
-                                if (wi != null) {
-                                    recordActionOnSelected(response, Collections.singletonList(wi.getRealValue()), comment, target);
+                                List<AccessCertificationWorkItemType> items = new ArrayList<>();
+                                if (getRowModel() == null) {
+                                    items = getSelectedRealObjects();
+                                } else {
+                                    PrismContainerValueWrapper<AccessCertificationWorkItemType> wi =
+                                            (PrismContainerValueWrapper<AccessCertificationWorkItemType>) getRowModel().getObject();
+                                    items = Collections.singletonList(wi.getRealValue());
                                 }
+                                if (CollectionUtils.isEmpty(items)) {
+                                    warn(getString("PageCertDecisions.message.noItemSelected"));
+                                    target.add(getFeedbackPanel());
+                                    return;
+                                }
+                                recordActionOnSelected(response, items, comment, target);
                             }
                         };
                         getPageBase().showMainPopup(resolveItemPanel, target);

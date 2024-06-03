@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.page.admin.certification.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
@@ -38,6 +39,7 @@ public class ResolveItemPanel extends BasePanel implements Popupable {
     private static final String ID_RESPONSE_PANEL = "responsePanel";
     private static final String ID_SAVE_BUTTON = "saveButton";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
+    private static final String ID_FEEDBACK = "feedback";
 
     AccessCertificationResponseType selectedResponse = null;
 
@@ -94,8 +96,8 @@ public class ResolveItemPanel extends BasePanel implements Popupable {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (selectedResponse == null) {
-                    error(getString("ResolveItemPanel.message.noResponseSelected"));
-                    target.add(getPageBase());
+                    warn(getString("PageCertDecisions.message.noItemSelected"));
+                    target.add(ResolveItemPanel.this);
                     return;
                 }
                 savePerformed(target, selectedResponse, getComment());
@@ -113,6 +115,10 @@ public class ResolveItemPanel extends BasePanel implements Popupable {
             }
         };
         add(cancelButton);
+
+        FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
+        feedback.setOutputMarkupId(true);
+        add(feedback);
     }
 
     protected void savePerformed(AjaxRequestTarget target, AccessCertificationResponseType response, String comment) {
@@ -150,6 +156,11 @@ public class ResolveItemPanel extends BasePanel implements Popupable {
     @Override
     public Component getContent() {
         return this;
+    }
+
+    @Override
+    public IModel<String> getTitleIconClass() {
+        return () -> "fa fa-edit";
     }
 
     private IModel<String> getItemPanelAdditionalStyle(AccessCertificationResponseType response) {
