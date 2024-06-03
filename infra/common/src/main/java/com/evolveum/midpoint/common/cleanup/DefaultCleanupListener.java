@@ -204,12 +204,10 @@ public class DefaultCleanupListener implements CleanerListener {
 
         PrismNamespaceContext nsCtx = ref.getNamespaceContext();
         if (nsCtx == null) {
-            nsCtx = PrismNamespaceContext.EMPTY
-                    .childDefaultNamespace(SchemaConstantsGenerated.NS_COMMON)
-                    .childContext(Map.of("c", SchemaConstantsGenerated.NS_COMMON));
+            nsCtx = PrismContext.get().getSchemaRegistry().staticNamespaceContext();
         }
         return prismContext.querySerializer()
-                .serialize(filter, nsCtx)
+                .serialize(filter, nsCtx, true)
                 .toSearchFilterType();
     }
 
