@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.common.cleanup;
 
 import java.lang.module.ModuleDescriptor;
+import java.util.Map;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
@@ -165,7 +166,7 @@ public class DefaultCleanupListener implements CleanerListener {
 
             ConnectorType connectorType = connector.asObjectable();
 
-            SearchFilterType searchFilter = createSearchFilterType(connectorType);
+            SearchFilterType searchFilter = createSearchFilterType(ref, connectorType);
             if (searchFilter != null) {
                 val.setFilter(searchFilter);
                 clearOidFromReference(val);
@@ -182,7 +183,7 @@ public class DefaultCleanupListener implements CleanerListener {
         }
     }
 
-    private SearchFilterType createSearchFilterType(ConnectorType connectorType)
+    private SearchFilterType createSearchFilterType(PrismReference ref, ConnectorType connectorType)
             throws PrismQuerySerialization.NotSupportedException, SchemaException {
 
         S_MatchingRuleEntry filterBuilder = prismContext.queryFor(ConnectorType.class)
@@ -201,7 +202,12 @@ public class DefaultCleanupListener implements CleanerListener {
             return prismContext.getQueryConverter().createSearchFilterType(filter);
         }
 
-        PrismNamespaceContext nsCtx = PrismNamespaceContext.EMPTY.childDefaultNamespace(SchemaConstantsGenerated.NS_COMMON);
+        PrismNamespaceContext nsCtx = ref.getNamespaceContext();
+        if (nsCtx == null) {
+            nsCtx = PrismNamespaceContext.EMPTY
+                    .childDefaultNamespace(SchemaConstantsGenerated.NS_COMMON)
+                    .childContext(Map.of("c", SchemaConstantsGenerated.NS_COMMON));
+        }
         return prismContext.querySerializer()
                 .serialize(filter, nsCtx)
                 .toSearchFilterType();
