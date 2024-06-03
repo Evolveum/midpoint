@@ -34,9 +34,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
-public class CleanupActionProcessorTest extends AbstractUnitTest {
+public class ObjectCleanerTest extends AbstractUnitTest {
 
-    private static final Trace LOG = TraceManager.getTrace(CleanupActionProcessorTest.class);
+    private static final Trace LOG = TraceManager.getTrace(ObjectCleanerTest.class);
 
     private static final File TEST_DIR = new File("./src/test/resources/cleanup");
 
