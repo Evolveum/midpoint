@@ -201,9 +201,10 @@ public class DefaultCleanupListener implements CleanerListener {
             return prismContext.getQueryConverter().createSearchFilterType(filter);
         }
 
-        PrismNamespaceContext nsCtx = PrismNamespaceContext.EMPTY.childDefaultNamespace(SchemaConstantsGenerated.NS_COMMON);
+        // FIXME: Here we should use document specific namespace context
+        PrismNamespaceContext nsCtx = PrismContext.get().getSchemaRegistry().staticNamespaceContext();
         return prismContext.querySerializer()
-                .serialize(filter, nsCtx)
+                .serialize(filter, nsCtx, true)
                 .toSearchFilterType();
     }
 
