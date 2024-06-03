@@ -536,6 +536,10 @@ li.dropdown.user.user-menu {
 
   &.info-box-link {
     cursor: pointer;
+
+      &.active {
+        background-color: #dee9f0;
+      }
   }
 }
 
