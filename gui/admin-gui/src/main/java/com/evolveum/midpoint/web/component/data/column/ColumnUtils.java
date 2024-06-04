@@ -1143,7 +1143,8 @@ public class ColumnUtils {
         return columns;
     }
 
-    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> getDefaultCertWorkItemColumns() {
+    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> getDefaultCertWorkItemColumns(
+            boolean viewAllItems) {
         List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> columns = new ArrayList<>();
 
 
@@ -1171,18 +1172,20 @@ public class ColumnUtils {
                 return () -> Collections.singletonList(certCase.getTargetRef());
             }
         });
-       columns.add(new ObjectReferenceColumn<>(createStringResource("PageCertCampaign.table.reviewers"),
-               "") {
+        if (viewAllItems) {
+            columns.add(new ObjectReferenceColumn<>(createStringResource("PageCertCampaign.table.reviewers"),
+                    "") {
 
-           @Serial private static final long serialVersionUID = 1L;
+                @Serial private static final long serialVersionUID = 1L;
 
-           @Override
-           public IModel<List<ObjectReferenceType>> extractDataModel(
-                   IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
-               AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
-               return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel), certCase.getStageNumber());
-           }
-       });
+                @Override
+                public IModel<List<ObjectReferenceType>> extractDataModel(
+                        IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                    AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
+                    return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel), certCase.getStageNumber());
+                }
+            });
+        }
        columns.add(new AbstractColumn<>(createStringResource("PageCertCampaign.table.comments")) {
 
            @Serial private static final long serialVersionUID = 1L;

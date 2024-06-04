@@ -102,7 +102,7 @@ MidPoint can shine with its flexible authentication in such cases, even if it in
 
 == Configuration
 
-Please see sampleRef::configuration/[Flexible Authentication Configuration] for configuration details.
+Please see link:configuration/[Flexible Authentication Configuration] for configuration details.
 
 
 == Implementation Notes

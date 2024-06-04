@@ -14,6 +14,10 @@ import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
@@ -212,9 +216,13 @@ public class PageCertCampaign extends PageAdmin {
         AccessCertificationCampaignType campaign = null;
         try {
             String campaignOid = OnePageParameterEncoder.getParameter(this);
+            Collection<SelectorOptions<GetOperationOptions>> options =
+                    SchemaService.get().getOperationOptionsBuilder()
+                            .item(AccessCertificationCampaignType.F_CASE).retrieve(RetrieveOption.INCLUDE)
+                            .build();
             PrismObject<AccessCertificationCampaignType> campaignObject =
                     WebModelServiceUtils.loadObject(AccessCertificationCampaignType.class, campaignOid,
-                            PageCertCampaign.this, task, result);
+                            options, PageCertCampaign.this, task, result);
             if (campaignObject != null) {
                 campaign = campaignObject.asObjectable();
             }

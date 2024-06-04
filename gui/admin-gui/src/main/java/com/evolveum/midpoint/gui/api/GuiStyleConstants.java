@@ -126,6 +126,12 @@ public class GuiStyleConstants {
     public static final String CLASS_APPROVAL_OUTCOME_ICON_FUTURE_COLORED = "fa fa-question-circle text-warning";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_CANCELLED_COLORED = "fa fa-ban text-warning";
 
+    public static final String CLASS_CERT_OUTCOME_ICON_NOT_DECIDED = "fa fa-question";
+    public static final String CLASS_CERT_OUTCOME_ICON_APPROVED = "fa fa-check";
+    public static final String CLASS_CERT_OUTCOME_ICON_REJECTED = "fa fa-times";
+    public static final String CLASS_CERT_OUTCOME_ICON_REDUCED = "fa fa-rotate-left";
+    public static final String CLASS_CERT_OUTCOME_ICON_NO_RESPONSE = "far fa-clock";
+
     public static final String CLASS_ICON_EXPAND = "fa fa-chevron-left";
     public static final String CLASS_ICON_COLLAPSE = "fa  fa-chevron-down";
     public static final String CLASS_ICON_SORT_AMOUNT_ASC = "fa fa-sort-amount-asc";

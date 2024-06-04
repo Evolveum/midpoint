@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
@@ -20,10 +23,6 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -35,9 +34,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
-public class CleanupActionProcessorTest extends AbstractUnitTest {
+public class ObjectCleanerTest extends AbstractUnitTest {
 
-    private static final Trace LOG = TraceManager.getTrace(CleanupActionProcessorTest.class);
+    private static final Trace LOG = TraceManager.getTrace(ObjectCleanerTest.class);
 
     private static final File TEST_DIR = new File("./src/test/resources/cleanup");
 
@@ -52,7 +51,7 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
         return PrismTestUtil.getPrismContext();
     }
 
-    @Test
+    @Test()
     public void test100Resource() throws Exception {
         final ItemPath CAPABILITY_ACTIVATION = ItemPath.create(
                 ResourceType.F_CAPABILITIES,
@@ -89,6 +88,14 @@ public class CleanupActionProcessorTest extends AbstractUnitTest {
         CleanupResult result = processor.process(resource);
 
         LOG.info("AFTER \n{}", resource.debugDump());
+
+        SearchFilterType filter = resource.asObjectable().getConnectorRef().getFilter();
+        Assertions.assertThat(filter.getText())
+                .isEqualTo("connectorType = 'testconnector' and connectorVersion = '99.0' and available = true");
+        PrismNamespaceContext ctx = filter.getFilterClauseXNode().namespaceContext();
+
+        // FIXME: This assertion should take into account that prefixes could come from different place.
+        // Assertions.assertThat(ctx.localPrefixes().size()).isEqualTo(1);
 
         Assertions.assertThat(
                         resource.findItem(

@@ -215,7 +215,8 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(AccessCertificationWorkItemType.F_ORIGINAL_ASSIGNEE_REF),
                 ItemPath.create(AccessCertificationWorkItemType.F_CANDIDATE_REF),
                 ItemPath.create(AccessCertificationWorkItemType.F_PERFORMER_REF),
-                ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT),
+//                ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT),
+                ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME),
                 ItemPath.create(AccessCertificationWorkItemType.F_CREATE_TIMESTAMP),
                 ItemPath.create(AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
         ));
