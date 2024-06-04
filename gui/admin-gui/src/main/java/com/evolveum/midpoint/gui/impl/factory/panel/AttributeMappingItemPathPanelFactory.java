@@ -271,9 +271,9 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
 
     protected List<DisplayableValue<ItemPathType>> getAttributes(ResourceSchema schema, PrismValueWrapper<ItemPathType> propertyWrapper) {
         ResourceObjectTypeDefinitionType objectType = getResourceObjectType(propertyWrapper);
-        return WebPrismUtil.searchAttributeDefinitions(schema, objectType).stream()
+        return new ArrayList<>(WebPrismUtil.searchAttributeDefinitions(schema, objectType).stream()
                 .map(attr -> createDisplayValue(attr))
-                .toList();
+                .toList());
     }
 
     protected DisplayableValue<ItemPathType> createDisplayValue(ShadowAttributeDefinition attr) {
