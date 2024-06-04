@@ -300,7 +300,8 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
             @Override
             protected String load() {
-                int stageNumber = getCampaign().getStageNumber();
+                AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(getCampaign());
+                int stageNumber = stage != null ? stage.getNumber() : 0;
                 int numberOfStages = CertCampaignTypeUtil.getNumberOfStages(getCampaign());
                 return stageNumber + "/" + numberOfStages;
             }
