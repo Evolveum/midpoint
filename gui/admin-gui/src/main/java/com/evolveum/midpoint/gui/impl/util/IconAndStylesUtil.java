@@ -59,8 +59,14 @@ public class IconAndStylesUtil {
             return createRoleAnalysisSessionIcon();
         } else if (type == RoleAnalysisClusterType.class) {
             return createRoleAnalysisClusterIcon();
+        } else if (type == SchemaType.class) {
+            return createSchemaIcon();
         }
         return "";
+    }
+
+    private static String createSchemaIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_SCHEMA_TEMPLATE_ICON);
     }
 
     // TODO reconcile with ObjectTypeGuiDescriptor

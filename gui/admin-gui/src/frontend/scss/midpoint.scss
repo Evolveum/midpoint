@@ -1628,6 +1628,11 @@ td .prism-property-value {
   }
 }
 
+.navigation-details .active-second-level {
+  background-color: $lightblue;
+  color: $white;
+}
+
 fieldset.objectButtons {
 
   border-right: 1px solid $legend-border-color;

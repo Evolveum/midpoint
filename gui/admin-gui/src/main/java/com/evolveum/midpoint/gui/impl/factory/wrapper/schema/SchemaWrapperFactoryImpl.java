@@ -1,20 +1,21 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.factory.wrapper;
+package com.evolveum.midpoint.gui.impl.factory.wrapper.schema;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismContainerWrapperFactoryImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismSchemaWrapper;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.util.PrismSchemaTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
-import com.evolveum.midpoint.xml.ns._public.common.prism_schema_3.PrismSchemaType;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -63,10 +64,11 @@ public class SchemaWrapperFactoryImpl
         if (schema != null) {
             PrismObjectWrapper objectWrapper = parent.getParent().findObjectWrapper();
             ObjectType objectBean = (ObjectType) objectWrapper.getObject().asObjectable();
+            String lifecycleState = objectBean.getLifecycleState();
             childItem = def.instantiate();
-            PrismContainerValue<PrismSchemaType> value = PrismSchemaTypeUtil.convertToPrismSchemaType(
-                    schema.getRealValue(),
-                    objectBean.getLifecycleState()).asPrismContainerValue();
+            PrismContainerValue<PrismSchemaType> value =
+                    PrismSchemaTypeUtil.convertToPrismSchemaType(schema.getRealValue(), lifecycleState)
+                    .asPrismContainerValue();
             childItem.add(value);
         }
 
@@ -83,36 +85,7 @@ public class SchemaWrapperFactoryImpl
     }
 
     @Override
-    PrismContainerWrapper<PrismSchemaType> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<PrismSchemaType> childContainer, ItemStatus status) {
+    protected PrismContainerWrapper<PrismSchemaType> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<PrismSchemaType> childContainer, ItemStatus status) {
         return new PrismSchemaWrapper(parent, childContainer, status);
     }
-
-    //    @Override
-//    protected PrismPropertyValue<SchemaDefinitionType> createNewValue(PrismProperty<SchemaDefinitionType> item) throws SchemaException {
-//        PrismPropertyValue<SchemaDefinitionType> newValue = getPrismContext().itemFactory().createPropertyValue();
-//        item.add(newValue);
-//        return newValue;
-//    }
-//
-//    @Override
-//    protected PrismPropertyWrapper<SchemaDefinitionType> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismProperty<SchemaDefinitionType> item,
-//            ItemStatus status, WrapperContext wrapperContext) {
-//        PrismPropertyWrapper<SchemaDefinitionType> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
-//        return propertyWrapper;
-//    }
-//
-//
-//    @Override
-//    public SchemaPropertyWrapperImpl createValueWrapper(PrismPropertyWrapper<SchemaDefinitionType> parent, PrismPropertyValue<SchemaDefinitionType> value,
-//            ValueStatus status, WrapperContext context) {
-//
-//        return new SchemaPropertyWrapperImpl(parent, value, status);
-//    }
-//
-//    //TODO maybe special panel here?
-//    @Override
-//    public void registerWrapperPanel(PrismPropertyWrapper<SchemaDefinitionType> wrapper) {
-//        getRegistry().registerWrapperPanel(wrapper.getTypeName(), PrismPropertyPanel.class);
-//    }
-
 }

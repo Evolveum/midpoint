@@ -19,7 +19,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperC
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ItemWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
@@ -60,7 +60,7 @@ import java.util.Optional;
 /**
  * @author lskublik
  */
-public abstract class AttributeMappingsTable<P extends Containerable> extends AbstractResourceWizardTable<MappingType, P> {
+public abstract class AttributeMappingsTable<P extends Containerable> extends AbstractWizardTable<MappingType, P> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AttributeMappingsTable.class);
 

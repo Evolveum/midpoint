@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.form.CreateObjectForReferencePanel;
 import com.evolveum.midpoint.gui.impl.component.form.ReferenceAutocompletePanel;
 
@@ -75,7 +76,10 @@ public class VerticalFormPrismReferenceValuePanel<R extends Referencable> extend
             protected <O extends ObjectType> void choosePerformed(AjaxRequestTarget target, O object) {
                 super.choosePerformed(target, object);
                 getBaseFormComponent().validate();
-                target.add(getPageBase().getFeedbackPanel());
+                PageBase pageBase = findParent(PageBase.class);
+                if (pageBase != null) {
+                    target.add(pageBase.getFeedbackPanel());
+                }
                 target.add(getFeedback());
             }
 

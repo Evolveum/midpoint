@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2024 Evolveum and contributors
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/prism-schema-3"
-        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/prism-schema-3"
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/prism-schema-3"
+        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/prism-schema-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
@@ -56,6 +56,13 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="namespace" type="xsd:string" minOccurs="1"/>
+            <xsd:element name="defaultPrefix" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines constant prefix, which should be used for namespace defined in XSD schema.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="complexType" type="tns:ComplexTypeDefinitionType" minOccurs="1" maxOccurs="unbounded"/>
             <xsd:element name="enumerationType" type="tns:EnumerationTypeDefinitionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
@@ -74,7 +81,14 @@
         <xsd:complexContent>
             <xsd:extension base="tns:DefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="extension" type="xsd:QName" minOccurs="0"/>
+                    <xsd:element name="extension" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>20</a:displayOrder>
+                                <a:displayHint>emphasized</a:displayHint>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="itemDefinitions" type="tns:PrismItemDefinitionType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
@@ -140,6 +154,10 @@
                 <xsd:sequence>
                     <xsd:element name="type" type="xsd:QName" minOccurs="1">
                         <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>10</a:displayOrder>
+                                <a:displayHint>emphasized</a:displayHint>
+                            </xsd:appinfo>
                             <xsd:documentation>
                                 <p>
                                     Type of the item.
@@ -149,6 +167,9 @@
                     </xsd:element>
                     <xsd:element name="required" type="xsd:boolean" minOccurs="0" default="false">
                         <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>30</a:displayOrder>
+                            </xsd:appinfo>
                             <xsd:documentation>
                                 <p>
                                 Mark that this item is required.
@@ -158,6 +179,9 @@
                     </xsd:element>
                     <xsd:element name="multivalue" type="xsd:boolean" minOccurs="0" default="false">
                         <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>40</a:displayOrder>
+                            </xsd:appinfo>
                             <xsd:documentation>
                                 <p>
                                 Mark that this item is multivalue.
@@ -167,6 +191,9 @@
                     </xsd:element>
                     <xsd:element name="indexed" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>50</a:displayOrder>
+                            </xsd:appinfo>
                             <xsd:documentation>
                                 <p>
                                 Mark that this item is indexed. The default value for indexed flag (i.e. the XSD annotation)
@@ -190,7 +217,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:LookupTableType</a:objectReferenceTargetType>
+                                <a:objectReferenceTargetType>c:LookupTableType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -214,6 +241,10 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:QName" minOccurs="1">
                 <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayOrder>0</a:displayOrder>
+                        <a:displayHint>emphasized</a:displayHint>
+                    </xsd:appinfo>
                     <xsd:documentation>
                         <p>
                             Name of the item.
@@ -299,6 +330,10 @@
                     </xsd:element>
                     <xsd:element name="baseType" type="xsd:QName" minOccurs="1">
                         <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>10</a:displayOrder>
+                                <a:displayHint>emphasized</a:displayHint>
+                            </xsd:appinfo>
                             <xsd:documentation>
                                 <p>
                                     Base type of the values.
@@ -325,6 +360,10 @@
         <xsd:sequence>
             <xsd:element name="value" type="xsd:string" minOccurs="1">
                 <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayOrder>0</a:displayOrder>
+                        <a:displayHint>emphasized</a:displayHint>
+                    </xsd:appinfo>
                     <xsd:documentation>
                         <p>
                             Value of enumeration value.
@@ -334,6 +373,9 @@
             </xsd:element>
             <xsd:element name="documentation" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayOrder>30</a:displayOrder>
+                    </xsd:appinfo>
                     <xsd:documentation>
                         <p>
                             Documentation of enumeration value.
@@ -343,6 +385,10 @@
             </xsd:element>
             <xsd:element name="constantName" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayOrder>20</a:displayOrder>
+                        <a:displayHint>emphasized</a:displayHint>
+                    </xsd:appinfo>
                     <xsd:documentation>
                         <p>
                             Constant name of enumeration value.

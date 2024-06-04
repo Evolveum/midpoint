@@ -376,8 +376,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 itemTable.setCurrentPage(pageStorage);
             }
         }
+        itemTable.setShowAsCard(showTableAsCard());
 
         return itemTable;
+    }
+
+    protected boolean showTableAsCard() {
+        return true;
     }
 
     /**

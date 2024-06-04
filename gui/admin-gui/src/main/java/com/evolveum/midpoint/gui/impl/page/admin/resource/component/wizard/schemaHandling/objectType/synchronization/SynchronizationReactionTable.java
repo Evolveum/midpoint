@@ -25,7 +25,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperC
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.input.ContainersDropDownPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author lskublik
  */
-public abstract class SynchronizationReactionTable<C extends AbstractSynchronizationReactionType, P extends Containerable> extends AbstractResourceWizardTable<C, P> {
+public abstract class SynchronizationReactionTable<C extends AbstractSynchronizationReactionType, P extends Containerable> extends AbstractWizardTable<C, P> {
 
     public SynchronizationReactionTable(
             String id,

@@ -8,25 +8,21 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="card">
-        <div class="card-header py-2 pl-1">
-        <span>
-            <i wicket:id="icon"/>
-            <span class="pl-1" wicket:id="title"/>
-        </span>
-        </div>
-        <div class="card-body p-0 mx-auto w-100 d-flex">
-            <div class="d-flex flex-column" style="border-right: 1px solid rgba(0, 0, 0, .125);">
-                <div class="p-3" style="    border-bottom: 1px solid rgba(0, 0, 0, .125);">
-                    <button wicket:id="newValueButton" class="btn btn-default"/>
+    <div class="">
+        <div class="p-0 mx-auto w-100 d-flex">
+            <div class="d-flex flex-column card" style="border-right: 0 !important; min-width: auto; border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;">
+                <div class="p-3" style="border-bottom: 1px solid rgba(0, 0, 0, .125);">
+                    <button wicket:id="newValueButton" class="btn btn-default text-nowrap"/>
                 </div>
                 <div>
-                    <ul class="details-menu" wicket:id="listOfValues">
-                        <li class="navigation-details" wicket:id="value"/>
+                    <ul class="details-menu">
+                        <li class="navigation-details second-level mb-0" wicket:id="listOfValues">
+                            <div wicket:id="value" class="btn w-100 rounded-0" style="text-align: start;"/>
+                        </li>
                     </ul>
                 </div>
             </div>
-            <div wicket:id="table"/>
+            <div wicket:id="tabPanel" class="w-100" style="border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important;"/>
         </div>
     </div>
 </wicket:panel>

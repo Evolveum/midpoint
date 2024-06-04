@@ -85,6 +85,8 @@ public class GuiStyleConstants {
 
     public static final String CLASS_OBJECT_CONNECTOR_ICON = "fa fa-microchip";
 
+    public static final String CLASS_OBJECT_SCHEMA_TEMPLATE_ICON = "fa fa-sitemap";
+
     public static final String CLASS_REPORT_ICON = "fa fa-chart-pie";
 
     public static final String CLASS_ICON_STYLE = "icon-style-";  //some icon styles start with this string
@@ -301,4 +303,8 @@ public class GuiStyleConstants {
     public static final String CLASS_MARK = "fa-solid fa-tag";
 
     public static final String CLASS_AUDIT = "fa-solid fa-magnifying-glass-chart";
+
+    public static final String CLASS_SCHEMA_BASIC_SETTINGS_PANEL_ICON = "fa fa-cog";
+    public static final String CLASS_SCHEMA_COMPLEX_TYPE_ICON = "fa fa-cubes";
+    public static final String CLASS_SCHEMA_ENUM_TYPE_ICON = "fa fa-cube";
 }

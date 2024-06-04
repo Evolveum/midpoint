@@ -1,25 +1,20 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.factory.panel;
+package com.evolveum.midpoint.gui.impl.factory.panel.qname;
 
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.converter.QNameConverter;
+import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
@@ -27,27 +22,20 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationSt
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AbstractAutoCompleteRenderer;
-import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.request.Response;
-import org.apache.wicket.util.convert.IConverter;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author katkav
  */
 @Component
-public class QNameAttributePanelFactory extends DropDownChoicePanelFactory implements Serializable{
+public class QNameAttributePanelFactory extends AbstractQNameWithChoicesPanelFactory implements Serializable{
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
@@ -68,65 +56,14 @@ public class QNameAttributePanelFactory extends DropDownChoicePanelFactory imple
     }
 
     @Override
-    protected InputPanel getPanel(PrismPropertyPanelContext<QName> panelCtx) {
+    protected boolean applyAutocomplete(PrismPropertyPanelContext<QName> panelCtx) {
         PrismObjectWrapper<ObjectType> objectWrapper = panelCtx.unwrapWrapperModel().findObjectWrapper();
-        if (objectWrapper != null && ResourceType.class.isAssignableFrom(objectWrapper.getTypeClass())) {
+        return objectWrapper != null && ResourceType.class.isAssignableFrom(objectWrapper.getTypeClass());
+    }
 
-            IModel<List<DisplayableValue<QName>>> values = new LoadableDetachableModel<>() {
-                @Override
-                protected List<DisplayableValue<QName>> load() {
-                    return getAllAttributes(panelCtx.getValueWrapperModel(), panelCtx.getPageBase());
-                }
-            };
-
-
-                IAutoCompleteRenderer<QName> renderer = new AbstractAutoCompleteRenderer<>() {
-                    @Override
-                    protected void renderChoice(QName itemName, Response response, String s) {
-                        response.write(getTextValue(itemName));
-                    }
-
-                    @Override
-                    protected String getTextValue(QName itemName) {
-                        return values.getObject().stream()
-                                .filter(attr -> QNameUtil.match(attr.getValue(), itemName))
-                                .findFirst()
-                                .get().getLabel();
-                    }
-                };
-
-                AutoCompleteTextPanel panel = new AutoCompleteTextPanel<>(
-                        panelCtx.getComponentId(), panelCtx.getRealValueModel(), panelCtx.getTypeClass(), renderer) {
-                    @Override
-                    public Iterator<QName> getIterator(String input) {
-                        List<DisplayableValue<QName>> choices = new ArrayList<>(values.getObject());
-                        if (StringUtils.isNotEmpty(input)) {
-                            String partOfInput;
-                            if (input.contains(":")) {
-                                partOfInput = input.substring(input.indexOf(":") + 1);
-                            } else {
-                                partOfInput = input;
-                            }
-                            choices = choices.stream()
-                                    .filter(v -> v.getLabel().contains(partOfInput))
-                                    .collect(Collectors.toList());
-                        }
-                        return choices.stream()
-                                .map(v -> v.getValue())
-                                .collect(Collectors.toList())
-                                .iterator();
-                    }
-
-                    @Override
-                    protected <C> IConverter<C> getAutoCompleteConverter(Class<C> type, IConverter<C> originConverter) {
-                        return (IConverter<C>) new QNameConverter(values);
-                    }
-                };
-                panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                return panel;
-            }
-        return new TextPanel<>(panelCtx.getComponentId(),
-                panelCtx.getRealValueModel(), panelCtx.getTypeClass(), false);
+    @Override
+    protected List<DisplayableValue<QName>> createValues(PrismPropertyPanelContext<QName> panelCtx) {
+        return getAllAttributes(panelCtx.getValueWrapperModel(), panelCtx.getPageBase());
     }
 
     private List<DisplayableValue<QName>> getAllAttributes(

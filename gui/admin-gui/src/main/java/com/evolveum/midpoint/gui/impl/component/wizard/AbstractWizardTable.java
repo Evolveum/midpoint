@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
+package com.evolveum.midpoint.gui.impl.component.wizard;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -34,11 +34,11 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public abstract class AbstractResourceWizardTable<C extends Containerable, CV extends Containerable> extends MultivalueContainerListPanel<C> {
+public abstract class AbstractWizardTable<C extends Containerable, CV extends Containerable> extends MultivalueContainerListPanel<C> {
 
     private final IModel<PrismContainerValueWrapper<CV>> valueModel;
 
-    public AbstractResourceWizardTable(
+    public AbstractWizardTable(
             String id,
             IModel<PrismContainerValueWrapper<CV>> valueModel,
             ContainerPanelConfigurationType config,
@@ -85,11 +85,15 @@ public abstract class AbstractResourceWizardTable<C extends Containerable, CV ex
                 newItemPerformed(target, null);
             }
         };
-        newObjectButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm ml-3"));
+        newObjectButton.add(AttributeAppender.append("class", getNewButtonCssClass()));
         newObjectButton.showTitleAsLabel(true);
         newObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectVisible()));
         buttons.add(newObjectButton);
         return buttons;
+    }
+
+    protected String getNewButtonCssClass() {
+        return "btn btn-primary btn-sm ml-3";
     }
 
     @Override

@@ -89,7 +89,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
 //        this.realValueModel = ;
     }
 
-    IModel<? extends PrismValueWrapper<T>> getValueWrapperModel() {
+    public IModel<? extends PrismValueWrapper<T>> getValueWrapperModel() {
         return valueWrapperModel;
     }
 

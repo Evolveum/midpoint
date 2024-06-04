@@ -21303,7 +21303,24 @@
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
-                    <xsd:element name="namespace" type="xsd:string" minOccurs="1"/>
+                    <xsd:element name="namespace" type="xsd:string" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>5</a:displayOrder>
+                                <a:displayHint>emphasized</a:displayHint>
+                            </xsd:appinfo>
+                            <xsd:documentation>
+                                Namespace for schema.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="defaultPrefix" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines constant prefix, which should be used for namespace defined in XSD schema.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>

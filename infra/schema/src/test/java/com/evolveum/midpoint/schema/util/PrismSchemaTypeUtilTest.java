@@ -11,7 +11,7 @@ import com.evolveum.midpoint.schema.AbstractSchemaTest;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 
-import com.evolveum.midpoint.xml.ns._public.common.prism_schema_3.PrismSchemaType;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import org.testng.Assert;

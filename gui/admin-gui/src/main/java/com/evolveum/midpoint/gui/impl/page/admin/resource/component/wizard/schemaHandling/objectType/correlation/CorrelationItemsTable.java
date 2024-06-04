@@ -15,10 +15,9 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -51,7 +50,7 @@ import org.wicketstuff.select2.StringTextChoiceProvider;
 /**
  * @author lskublik
  */
-public abstract class CorrelationItemsTable extends AbstractResourceWizardTable<ItemsSubCorrelatorType, CorrelationDefinitionType> {
+public abstract class CorrelationItemsTable extends AbstractWizardTable<ItemsSubCorrelatorType, CorrelationDefinitionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationItemsTable.class);
 

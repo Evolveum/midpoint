@@ -20,7 +20,11 @@ import java.util.List;
 
 public class QNameConverter extends AutoCompleteDisplayableValueConverter<QName> {
     public QNameConverter(IModel<? extends List<DisplayableValue<QName>>> values) {
-        super(values, false);
+        this(values, false);
+    }
+
+    public QNameConverter(IModel<? extends List<DisplayableValue<QName>>> values, boolean strict) {
+        super(values, strict);
     }
 
     public QNameConverter() {

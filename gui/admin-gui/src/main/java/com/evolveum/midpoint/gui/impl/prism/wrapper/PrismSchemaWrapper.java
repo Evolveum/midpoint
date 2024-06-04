@@ -26,7 +26,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
-import com.evolveum.midpoint.xml.ns._public.common.prism_schema_3.PrismSchemaType;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
@@ -110,6 +110,7 @@ public class PrismSchemaWrapper extends PrismContainerWrapperImpl<PrismSchemaTyp
         @NotNull PrismSchemaType prismSchemaBean = value.asContainerable();
         if (objectBean instanceof SchemaType schemaBean) {
             prismSchemaBean.setNamespace(schemaBean.getNamespace());
+            prismSchemaBean.setDefaultPrefix(schemaBean.getDefaultPrefix());
         }
         SchemaDefinitionType schemaDefBean = PrismSchemaTypeUtil.convertToSchemaDefinitionType(prismSchemaBean, lifecycleState);
         return PrismContext.get().itemFactory().createPropertyValue(schemaDefBean);

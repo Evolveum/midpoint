@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2022 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
+package com.evolveum.midpoint.gui.impl.component.tile;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -23,12 +23,11 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author lskublik
  */
-public class ResourceTilePanel<O extends Serializable, T extends TemplateTile<O>> extends BasePanel<T> {
+public class TemplateTilePanel<O extends Serializable, T extends TemplateTile<O>> extends BasePanel<T> {
 
     private static final long serialVersionUID = 1L;
 
@@ -39,7 +38,7 @@ public class ResourceTilePanel<O extends Serializable, T extends TemplateTile<O>
 
     private static final String ID_TAG = "tag";
 
-    public ResourceTilePanel(String id, IModel<T> model) {
+    public TemplateTilePanel(String id, IModel<T> model) {
         super(id, model);
 
         initLayout();
@@ -91,7 +90,7 @@ public class ResourceTilePanel<O extends Serializable, T extends TemplateTile<O>
 
                 @Override
                 protected void onEvent(AjaxRequestTarget target) {
-                    ResourceTilePanel.this.onClick(target);
+                    TemplateTilePanel.this.onClick(target);
                 }
             });
         }

@@ -4,16 +4,17 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.factory.panel;
+package com.evolveum.midpoint.gui.impl.factory.panel.qname;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.common.prism_schema_3.PrismItemDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.prism_schema_3.PrismSchemaType;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedReferenceTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedReferenceTypeParticipantType;
