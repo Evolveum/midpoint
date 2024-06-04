@@ -6,30 +6,26 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.InfoBoxModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisInfoBox;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.InfoBoxModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisInfoBox;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "clusterOverview", defaultContainerPath = "empty")
 @PanelInstance(identifier = "clusterOverview",
@@ -67,7 +63,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
             RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
             RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
             RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_PANEL,
-                    Model.of("Cluster attributes analysis"), roleAttributeAnalysisResult, userAttributeAnalysisResult){
+                    Model.of("Cluster attributes analysis"), roleAttributeAnalysisResult, userAttributeAnalysisResult) {
                 @Override
                 protected @NotNull String getChartContainerStyle() {
                     return "height:25vh;";
@@ -97,10 +93,20 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         RoleAnalysisClusterType cluster = objectDetailsModels.getObjectType();
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
         List<ObjectReferenceType> resolvedPattern = cluster.getResolvedPattern();
+
         String resolvedPatternCount = "0";
         if (resolvedPattern != null) {
             resolvedPatternCount = String.valueOf(resolvedPattern.size());
         }
+
+        //TODO check why is there empty ObjectReferenceType
+        if (resolvedPattern != null && resolvedPattern.size() == 1) {
+            ObjectReferenceType objectReferenceType = resolvedPattern.get(0);
+            if (objectReferenceType == null || objectReferenceType.getOid() == null) {
+                resolvedPatternCount = "0";
+            }
+        }
+
         List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
         String candidateRolesCount = "0";
         if (candidateRoles != null) {
