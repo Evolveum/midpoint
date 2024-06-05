@@ -76,7 +76,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
     private static final String ID_ROLE_COUNT = "roles-count";
     private static final String ID_STATUS_BAR = "status";
     private static final String ID_BUTTON_BAR = "buttonBar";
-
+    private static final String ID_DETAILS = "details";
 
     public RoleAnalysisPatternTilePanel(String id, IModel<RoleAnalysisPatternTileModel<T>> model) {
         super(id, model);
@@ -92,6 +92,8 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
 
         initNamePanel();
 
+        initDetails();
+
         buildExploreButton();
 
         buildCandidateButton();
@@ -101,6 +103,17 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         initFirstCountPanel();
 
         initSecondCountPanel();
+    }
+
+    private void initDetails() {
+        RoleAnalysisPatternTileModel<T> modelObject = getModelObject();
+        Double metric = modelObject.getPattern().getMetric();
+        int relationCount = metric != null ? metric.intValue() : 0;
+        String description = "Reduced relations: " + relationCount;
+
+        Label details = new Label(ID_DETAILS, description);
+        details.setOutputMarkupId(true);
+        add(details);
     }
 
     private void initSecondCountPanel() {
@@ -414,7 +427,6 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
             }
 
         });
-
 
         items.add(new InlineMenuItem(createStringResource("Details view")) {
             @Serial private static final long serialVersionUID = 1L;

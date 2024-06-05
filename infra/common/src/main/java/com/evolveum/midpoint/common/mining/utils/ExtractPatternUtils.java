@@ -32,14 +32,14 @@ public class ExtractPatternUtils {
         return new DetectedPattern(
                 roles,
                 users,
-                users.size() * roles.size(), null);
+                (users.size() * roles.size()) - users.size(), null);
     }
 
     public static DetectedPattern prepareDetectedPattern(@NotNull Set<String> roles, @NotNull Set<String> users, Long patternId) {
         return new DetectedPattern(
                 roles,
                 users,
-                users.size() * roles.size(), patternId);
+                (users.size() * roles.size()) - users.size(), patternId);
     }
 
     public static @NotNull List<DetectedPattern> transformDefaultPattern(@NotNull RoleAnalysisClusterType cluster) {
@@ -89,7 +89,7 @@ public class ExtractPatternUtils {
         Set<String> roles = rolesRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
         Set<String> users = usersRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
 
-        return new DetectedPattern(roles, users, users.size() * roles.size(), pattern.getId());
+        return new DetectedPattern(roles, users, (users.size() * roles.size()) - users.size(), pattern.getId());
     }
 
     private static boolean isEmptyDetectionPattern(List<RoleAnalysisDetectionPatternType> defaultDetection) {

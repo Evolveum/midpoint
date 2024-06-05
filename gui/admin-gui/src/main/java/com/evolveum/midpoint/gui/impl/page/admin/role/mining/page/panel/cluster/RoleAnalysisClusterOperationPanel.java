@@ -242,7 +242,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                     }
 
                     membersOidSet.addAll(mappedMembers.get(roleOid));
-                    double clusterMetric = accessOidSet.size() * membersOidSet.size();
+                    double clusterMetric = (accessOidSet.size() * membersOidSet.size()) - membersOidSet.size();
 
                     DetectedPattern pattern = new DetectedPattern(
                             accessOidSet,
@@ -302,7 +302,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             }
 
             membersOidSet.addAll(mappedMembers.get(roleOid));
-            double clusterMetric = accessOidSet.size() * membersOidSet.size();
+            double clusterMetric = (accessOidSet.size() * membersOidSet.size()) - membersOidSet.size();
 
             DetectedPattern pattern = new DetectedPattern(
                     accessOidSet,
