@@ -1,4 +1,5 @@
 = Logging Configuration
+:page-display-order: 10
 
 MidPoint is using LogBack library for logging.
 LogBack has many logging options.
