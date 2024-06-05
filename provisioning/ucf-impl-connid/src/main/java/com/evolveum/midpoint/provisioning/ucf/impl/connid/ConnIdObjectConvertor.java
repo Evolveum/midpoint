@@ -135,7 +135,9 @@ class ConnIdObjectConvertor {
                 attributes.add(convertSimpleAttributeToConnId(simpleAttribute, objDef));
             }
             for (var referenceAttribute : ShadowUtil.getAssociations(shadow)) {
-                attributes.add(convertReferenceAttributeToConnId(referenceAttribute, objDef));
+                if (!referenceAttribute.getDefinitionRequired().isSimulated()) {
+                    attributes.add(convertReferenceAttributeToConnId(referenceAttribute, objDef));
+                }
             }
 
             var passwordValue = ShadowUtil.getPasswordValue(shadow);
