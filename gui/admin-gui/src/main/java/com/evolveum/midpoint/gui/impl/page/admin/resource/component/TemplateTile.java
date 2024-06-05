@@ -92,6 +92,9 @@ public class TemplateTile<T extends Serializable> extends Tile<T> {
     public static <O extends ObjectType> TemplateTile<SelectableBean<O>> createTileFromObject(SelectableBean<O> object, PageBase pageBase) {
         O obj = object.getValue();
         PrismObject prism = obj != null ? obj.asPrismObject() : null;
+        if (prism == null) {
+            return null;
+        }
         String icon = IconAndStylesUtil.createDefaultColoredIcon(prism.getValue().getTypeName());
 
         String description = object.getValue().getDescription();

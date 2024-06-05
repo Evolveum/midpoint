@@ -218,9 +218,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            PrismContainerValueWrapper<AccessCertificationWorkItemType> wi =
-                                    (PrismContainerValueWrapper<AccessCertificationWorkItemType>) getRowModel().getObject();
-                            confirmAction(response, Collections.singletonList(wi.getRealValue()), target);
+                            responseSelected(response, getRowModel(), target);
                         }
                     };
                 }
@@ -237,14 +235,25 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            PrismContainerValueWrapper<AccessCertificationWorkItemType> wi =
-                                    (PrismContainerValueWrapper<AccessCertificationWorkItemType>) getRowModel().getObject();
-                            confirmAction(response, Collections.singletonList(wi.getRealValue()), target);
+                            responseSelected(response, getRowModel(), target);
                         }
                     };
                 }
             };
         }
+    }
+
+    private void responseSelected(AccessCertificationResponseType response,
+            IModel rowModel, AjaxRequestTarget target) {
+        List<AccessCertificationWorkItemType> itemsToProcess = new ArrayList<>();
+        if (rowModel != null && rowModel.getObject() != null) {
+            AccessCertificationWorkItemType item =
+                    ((PrismContainerValueWrapper<AccessCertificationWorkItemType>) rowModel.getObject()).getRealValue();
+            itemsToProcess.add(item);
+        } else {
+            itemsToProcess = getSelectedRealObjects();
+        }
+        confirmAction(response, itemsToProcess, target);
     }
 
     private void confirmAction(AccessCertificationResponseType response, List<AccessCertificationWorkItemType> items,
