@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.RoleAnalysisStackedAttributeChartModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.RoleAnalysisStackedAttributeChartModel;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -28,7 +28,7 @@ import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStr
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.RepeatingAttributeForm;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.RoleAnalysisAttributeChartModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.RoleAnalysisAttributeChartModel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.wicket.chartjs.ChartConfiguration;

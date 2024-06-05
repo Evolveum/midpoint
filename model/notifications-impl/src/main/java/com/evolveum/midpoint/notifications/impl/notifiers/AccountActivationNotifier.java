@@ -20,7 +20,7 @@ import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -122,7 +122,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
                 body.append("unknown\n");
             }
             for (Object att : shadow.getAttributes().asPrismContainerValue().getItems()) {
-                if (att instanceof ResourceAttribute<?> attribute) {
+                if (att instanceof ShadowSimpleAttribute<?> attribute) {
                     body.append(" - ").append(attribute.getDisplayName()).append(": ");
                     if (attribute.isSingleValue()) {
                         body.append(attribute.getRealValue()).append("\n");

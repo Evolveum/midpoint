@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema.processor;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
+import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ObjectSynchronizationReactionDefinition;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -183,6 +185,11 @@ public final class ResourceObjectTypeDefinitionImpl
         refinedObjectClassDefinition.trimTo(paths);
     }
 
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return refinedObjectClassDefinition.getSchemaContextDefinition();
+    }
+
     //region Cloning ========================================================
     @NotNull
     @Override
@@ -255,7 +262,7 @@ public final class ResourceObjectTypeDefinitionImpl
         }
         ResourceObjectTypeDefinitionImpl that = (ResourceObjectTypeDefinitionImpl) o;
         return attributeDefinitions.equals(that.attributeDefinitions)
-                && associationDefinitions.equals(that.associationDefinitions)
+//                && associationDefinitions.equals(that.associationDefinitions)
                 && primaryIdentifiersNames.equals(that.primaryIdentifiersNames)
                 && secondaryIdentifiersNames.equals(that.secondaryIdentifiersNames)
                 && refinedObjectClassDefinition.equals(that.refinedObjectClassDefinition)
@@ -343,7 +350,7 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+    public @NotNull Collection<? extends ObjectSynchronizationReactionDefinition> getSynchronizationReactions() {
         return SynchronizationReactionDefinition.modern(
                 definitionBean.getSynchronization());
     }
@@ -406,7 +413,7 @@ public final class ResourceObjectTypeDefinitionImpl
 
     @Override
     public boolean hasAnyInbounds() {
-        return getShadowItemDefinitions().stream()
+        return getAttributeDefinitions().stream()
                 .anyMatch(def -> def.hasInboundMapping());
     }
 }

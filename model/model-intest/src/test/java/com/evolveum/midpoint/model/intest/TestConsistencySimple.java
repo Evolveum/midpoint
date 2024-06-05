@@ -343,7 +343,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         ObjectQuery shadowQuery = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
                 .and().item(SchemaConstants.ICFS_NAME_PATH,
-                        getAccountObjectClassDefinition().findAttributeDefinition(SchemaConstants.ICFS_NAME)).eq("jack")
+                        getAccountObjectClassDefinition().findSimpleAttributeDefinition(SchemaConstants.ICFS_NAME)).eq("jack")
                 .build();
         return repositoryService.searchObjects(ShadowType.class, shadowQuery, null, result);
     }

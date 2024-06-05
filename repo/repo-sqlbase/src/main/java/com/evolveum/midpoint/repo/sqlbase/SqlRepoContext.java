@@ -173,6 +173,27 @@ public class SqlRepoContext {
         }
     }
 
+    public <T> RepositoryObjectParseResult<T> parsePrismObject(
+            String serializedForm, ItemDefinition definition, Class<T> schemaType) throws SchemaException {
+        try {
+            PrismContext prismContext = schemaService.prismContext();
+            // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
+            ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
+            RootXNode xnodeValue;
+            T value;
+            try (var tracker = SqlBaseOperationTracker.parseJson2XNode(schemaType.getSimpleName())) {
+                xnodeValue = createStringParser(serializedForm).context(parsingContext).definition(definition).parseToXNode();
+
+            }
+            try (var tracker = SqlBaseOperationTracker.parseXnode2Prism(schemaType.getSimpleName())) {
+                value = prismContext.parserFor(xnodeValue).context(parsingContext).definition(definition).fastAddOperations().parseRealValue(schemaType);
+            }
+            return new RepositoryObjectParseResult<>(parsingContext, value);
+        } catch (RuntimeException e) {
+            throw new SchemaException("Unexpected exception while parsing serialized form: " + e, e);
+        }
+    }
+
     @NotNull
     public PrismParserNoIO createStringParser(String serializedResult) {
         return schemaService.parserFor(serializedResult);

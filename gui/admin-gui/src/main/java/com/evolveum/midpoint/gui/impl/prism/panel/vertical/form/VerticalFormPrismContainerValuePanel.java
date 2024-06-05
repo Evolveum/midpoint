@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
 
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -55,9 +56,27 @@ public class VerticalFormPrismContainerValuePanel<C extends Containerable, CVW e
         form.add(valueContainer);
 
         VerticalFormDefaultContainerablePanel<C> panel
-                = new VerticalFormDefaultContainerablePanel<C>(ID_INPUT, (IModel<PrismContainerValueWrapper<C>>) getModel(), getSettings());
+                = new VerticalFormDefaultContainerablePanel<C>(ID_INPUT, (IModel<PrismContainerValueWrapper<C>>) getModel(), getSettings()){
+            @Override
+            protected boolean isVisibleSubContainer(PrismContainerWrapper<? extends Containerable> c) {
+                return VerticalFormPrismContainerValuePanel.this.isVisibleSubContainer(c);
+            }
+
+            @Override
+            protected boolean isShowEmptyButtonVisible() {
+                return VerticalFormPrismContainerValuePanel.this.isShowEmptyButtonVisible();
+            }
+        };
         panel.setOutputMarkupId(true);
         valueContainer.add(panel);
+    }
+
+    protected boolean isShowEmptyButtonVisible() {
+        return true;
+    }
+
+    protected boolean isVisibleSubContainer(PrismContainerWrapper<? extends Containerable> c) {
+        return false;
     }
 
     @Override

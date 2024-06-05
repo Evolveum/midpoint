@@ -39,7 +39,7 @@ import java.util.*;
  * @author lskublik
  */
 public class ResourceTemplateProvider
-        extends ObjectDataProvider<TemplateTile<ResourceTemplate>, AssignmentHolderType> {
+        extends TemplateTileProvider<ResourceTemplate, AssignmentHolderType> {
 
     private static final String DOT_CLASS = ResourceTemplateProvider.class.getName() + ".";
     private static final String OPERATION_GET_DISPLAY = DOT_CLASS + "getDisplay";
@@ -94,7 +94,8 @@ public class ResourceTemplateProvider
         return super.createPaging(offset, pageSize);
     }
 
-    public TemplateTile<ResourceTemplate> createDataObjectWrapper(PrismObject<AssignmentHolderType> obj) {
+    @Override
+    protected TemplateTile<ResourceTemplate> createTileObject(PrismObject<AssignmentHolderType> obj) {
         if (obj.getCompileTimeClass().isAssignableFrom(ConnectorType.class)) {
             @NotNull ConnectorType connectorObject = (ConnectorType) obj.asObjectable();
             String title;
@@ -125,7 +126,6 @@ public class ResourceTemplateProvider
                 new ResourceTemplate(obj.getOid(), type.getObject()))
                 .description(obj.asObjectable().getDescription())
                 .addTag(new DisplayType().label(tag));
-
     }
 
     private String getDescriptionForConnectorType(@NotNull ConnectorType connectorObject) {

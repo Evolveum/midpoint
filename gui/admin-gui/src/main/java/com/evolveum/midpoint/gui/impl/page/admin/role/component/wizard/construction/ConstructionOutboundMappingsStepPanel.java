@@ -2,6 +2,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construc
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -10,7 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.OutboundAttributeMappingsTable;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping.OutboundAttributeMappingsTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingWrapper;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -51,7 +53,12 @@ public class ConstructionOutboundMappingsStepPanel<AR extends AbstractRoleType>
 
     private void initLayout() {
         add(new OutboundAttributeMappingsTable<>(ID_PANEL, getValueModel(), getContainerConfiguration(PANEL_TYPE)) {
-                @Override
+            @Override
+            protected ItemName getItemNameOfContainerWithMappings() {
+                return ConstructionType.F_ATTRIBUTE;
+            }
+
+            @Override
                 protected void editItemPerformed(
                         AjaxRequestTarget target,
                         IModel<PrismContainerValueWrapper<MappingType>> rowModel,

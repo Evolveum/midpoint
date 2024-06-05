@@ -13,6 +13,9 @@ doc-type: config
 :page-wiki-metadata-modify-date: 2021-02-26T14:25:04.587+01:00
 :page-since: "4.0"
 :page-toc: top
+:page-upkeep-status: yellow
+:page-upkeep-note: Collection domain is no longer experimental. The page is probably old, we need to review this page.
+
 
 
 == Introduction
@@ -55,10 +58,7 @@ The collection usually specifies a search filter that is used to find all the ob
     <name>Active Users</name>
     <type>UserType</type>
     <filter>
-            <q:equal>
-                    <q:path>activation/effectiveStatus</q:path>
-                    <q:value>enabled</q:value>
-            </q:equal>
+        <q:text>activation/effectiveStatus="enabled"</q:text>
     </filter>
 </objectCollection>
 ----
@@ -81,10 +81,7 @@ For example _active employees_ collection may be based on _employee_ archetype:
     <name>Active employees</name>
     <type>UserType</type>
     <filter>
-            <q:equal>
-                    <q:path>activation/effectiveStatus</q:path>
-                    <q:value>enabled</q:value>
-            </q:equal>
+        <q:text>activation/effectiveStatus="enabled"</q:text>
     </filter>
     <baseCollection>
             <collectionRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="ArchetypeType"/> <!-- Employee archetype -->

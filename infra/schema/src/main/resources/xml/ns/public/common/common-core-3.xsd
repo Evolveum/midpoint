@@ -2898,6 +2898,7 @@
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
                 <a:merger>AssignmentType</a:merger>
+                <a:naturalKey>identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12203,7 +12204,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
-                <a:merger>ScriptLanguageExpressionProfileType</a:merger>
+                <a:naturalKey>language</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12891,6 +12892,10 @@
                                     Domain just adds some kind of perspective when collection is presented to the user.
                                     The domain may also be important for policy rules. E.g. policy rules that trigger a notification when percentage of
                                     active employees gets too low.
+                                </p>
+                                <p>
+                                    No domain definition means that this collection does not have any domain.
+                                    On the other hand, empty domain definition means that all objects of applicable type are part of the domain, e.g. all users or all roles.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -21291,7 +21296,6 @@
                 Schema definition type. Replacement for extension schema defined in midPoint.home
             </xsd:documentation>
             <xsd:appinfo>
-                <!--<a:container>true</a:container>-->
                 <a:since>4.9</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
@@ -21299,17 +21303,28 @@
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
-                    <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                    <xsd:element name="namespace" type="xsd:string" minOccurs="1">
                         <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>5</a:displayOrder>
+                                <a:displayHint>emphasized</a:displayHint>
+                            </xsd:appinfo>
                             <xsd:documentation>
-                                type which this schema extends
+                                Namespace for schema.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="0">
+                    <xsd:element name="defaultPrefix" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                xsd schema definition
+                                Defines constant prefix, which should be used for namespace defined in XSD schema.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Xsd schema definition.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

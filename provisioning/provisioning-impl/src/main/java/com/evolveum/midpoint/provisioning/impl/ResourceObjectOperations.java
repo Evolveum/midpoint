@@ -9,12 +9,11 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
 
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -67,7 +66,7 @@ public class ResourceObjectOperations {
     }
 
     public <T> @NotNull PropertyModificationOperation<T> findOrCreateAttributeOperation(
-            @NotNull ResourceAttributeDefinition<T> attrDef, QName matchingRuleName) {
+            @NotNull ShadowSimpleAttributeDefinition<T> attrDef, QName matchingRuleName) {
         var attrName = attrDef.getItemName();
         for (Operation ucfOperation: ucfOperations) {
             if (ucfOperation instanceof PropertyModificationOperation<?> propOp) {

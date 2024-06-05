@@ -60,16 +60,16 @@ public class ShadowAssociationsContainerDefinitionImpl
     }
 
     @Override
-    public @NotNull List<? extends ShadowAssociationDefinition> getDefinitions() {
+    public @NotNull List<? extends ShadowReferenceAttributeDefinition> getDefinitions() {
         return getAssociationsDefinitions();
     }
 
     @Override
-    public @NotNull List<? extends ShadowAssociationDefinition> getAssociationsDefinitions() {
+    public @NotNull List<? extends ShadowReferenceAttributeDefinition> getAssociationsDefinitions() {
         // TODO Remove copying
-        List<ShadowAssociationDefinition> assocDefs = new ArrayList<>();
+        List<ShadowReferenceAttributeDefinition> assocDefs = new ArrayList<>();
         for (ItemDefinition<?> def: complexTypeDefinition.getDefinitions()) {
-            if (def instanceof ShadowAssociationDefinition associationDefinition) {
+            if (def instanceof ShadowReferenceAttributeDefinition associationDefinition) {
                 assocDefs.add(associationDefinition);
             } else {
                 throw new IllegalStateException(

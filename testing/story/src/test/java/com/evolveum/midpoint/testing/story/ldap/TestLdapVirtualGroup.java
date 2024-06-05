@@ -24,7 +24,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -501,10 +501,10 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         List<String> valuesList = new ArrayList<>(Arrays.asList(values));
 
         for (Object att : objShadow.asObjectable().getAttributes().asPrismContainerValue().getItems()) {
-            if (att instanceof ResourceAttribute) {
-                Collection propVals = ((ResourceAttribute) att).getRealValues();
+            if (att instanceof ShadowSimpleAttribute) {
+                Collection propVals = ((ShadowSimpleAttribute) att).getRealValues();
 
-                if (attribute.equals(((ResourceAttribute) att).getNativeAttributeName())) {
+                if (attribute.equals(((ShadowSimpleAttribute) att).getNativeAttributeName())) {
 
                     List<String> propValsString = new ArrayList<>(propVals.size());
                     for (Object pval : propVals) {

@@ -56,10 +56,7 @@ Definition of object collection as a separate midPoint object:
     <name>empls</name>
     <type>UserType</type>
     <filter>
-        <q:equal>
-            <q:path>subtype</q:path>
-            <q:value>EMP</q:value>
-        </q:equal>
+        <q:text>subtype="EMP"</q:text>
     </filter>
 </objectCollection>
 ----

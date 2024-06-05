@@ -36,8 +36,8 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.schema.processor.ShadowAssociation;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -59,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class AssociationFromLinkExpressionEvaluator
     extends AbstractExpressionEvaluator<
         PrismContainerValue<ShadowAssociationValueType>,
-        ShadowAssociationDefinition,
+        ShadowReferenceAttributeDefinition,
         AssociationFromLinkExpressionEvaluatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationFromLinkExpressionEvaluator.class);
@@ -69,7 +69,7 @@ public class AssociationFromLinkExpressionEvaluator
     AssociationFromLinkExpressionEvaluator(
             QName elementName,
             AssociationFromLinkExpressionEvaluatorType evaluatorType,
-            ShadowAssociationDefinition outputDefinition,
+            ShadowReferenceAttributeDefinition outputDefinition,
             Protector protector,
             ObjectResolver objectResolver) {
         super(elementName, evaluatorType, outputDefinition, protector);
@@ -170,7 +170,7 @@ public class AssociationFromLinkExpressionEvaluator
         }
     }
 
-    private ShadowAssociation createAssociationFromMatchingValues(
+    private ShadowReferenceAttribute createAssociationFromMatchingValues(
             List<String> candidateShadowsOidList,
             String resourceOid, ShadowKindType kind,
             String intent, ExpressionEvaluationContext context, OperationResult result) {
@@ -188,7 +188,7 @@ public class AssociationFromLinkExpressionEvaluator
             var targetObjects = objectResolver.searchObjects(
                     ShadowType.class, query, createNoFetchReadOnlyCollection(), context.getTask(), result);
 
-            ShadowAssociation outputAssociation = outputDefinition.instantiate();
+            ShadowReferenceAttribute outputAssociation = outputDefinition.instantiate();
             for (PrismObject<ShadowType> targetObject : targetObjects) {
                 if (ShadowUtil.isNotDead(targetObject)) {
                     outputAssociation.createNewValueWithFullObject(

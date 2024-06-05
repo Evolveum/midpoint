@@ -109,7 +109,7 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
                 .orElse(null);
     }
 
-    default @NotNull Collection<ResourceAttribute<?>> getAllIdentifiers() {
+    default @NotNull Collection<ShadowSimpleAttribute<?>> getAllIdentifiers() {
         return ShadowUtil.getAllIdentifiers(getBean());
     }
 
@@ -127,12 +127,12 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
                 getIdentifiersRequired());
     }
 
-    default <T> @Nullable ResourceAttribute<T> getPrimaryIdentifierAttribute() {
+    default <T> @Nullable ShadowSimpleAttribute<T> getPrimaryIdentifierAttribute() {
         //noinspection unchecked
-        return (ResourceAttribute<T>) getAttributesContainer().getPrimaryIdentifier();
+        return (ShadowSimpleAttribute<T>) getAttributesContainer().getPrimaryIdentifier();
     }
 
-    default <T> @NotNull ResourceAttribute<T> getPrimaryIdentifierAttributeRequired() {
+    default <T> @NotNull ShadowSimpleAttribute<T> getPrimaryIdentifierAttributeRequired() {
         return stateNonNull(getPrimaryIdentifierAttribute(), "No primary identifier in %s", this);
     }
 
@@ -190,13 +190,13 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
         return ShadowUtil.determineShadowName(getBean());
     }
 
-    default @NotNull ResourceAttributeContainer getAttributesContainer() {
+    default @NotNull ShadowAttributesContainer getAttributesContainer() {
         return MiscUtil.stateNonNull(
                 ShadowUtil.getAttributesContainer(getBean()),
                 "No attributes container in %s", this);
     }
 
-    default @NotNull Collection<ResourceAttribute<?>> getAttributes() {
+    default @NotNull Collection<ShadowSimpleAttribute<?>> getAttributes() {
         return ShadowUtil.getAttributes(getBean());
     }
 
@@ -207,12 +207,12 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
                 () -> "No attributes container definition in " + this);
     }
 
-    default @Nullable <X> ResourceAttribute<X> findAttribute(@NotNull QName name) {
+    default @Nullable <X> ShadowSimpleAttribute<X> findAttribute(@NotNull QName name) {
         return getAttributesContainer().findAttribute(name);
     }
 
     default <X> @NotNull Collection<PrismPropertyValue<X>> getAttributeValues(@NotNull QName name) {
-        ResourceAttribute<X> attribute = findAttribute(name);
+        ShadowSimpleAttribute<X> attribute = findAttribute(name);
         return attribute != null ? attribute.getValues() : List.of();
     }
 
@@ -237,11 +237,11 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
 
     default void checkAttributeDefinitions() {
         ResourceObjectDefinition objectDefinition = getObjectDefinition();
-        for (ResourceAttribute<?> attribute : getAttributes()) {
+        for (ShadowSimpleAttribute<?> attribute : getAttributes()) {
             var attrDef = MiscUtil.stateNonNull(
                     attribute.getDefinition(),
                     "Attribute %s with no definition in %s", attribute, this);
-            var attrDefFromObjectDef = objectDefinition.findAttributeDefinitionStrictlyRequired(attribute.getElementName());
+            var attrDefFromObjectDef = objectDefinition.findSimpleAttributeDefinitionStrictlyRequired(attribute.getElementName());
             if (!attrDef.equals(attrDefFromObjectDef)) {
                 // FIXME This is too harsh. See e.g. TestModelServiceContract#test350, where we provide our own account delta
                 //  that gets processed as part of inbound processing. The attribute definition was provided by the caller
@@ -277,11 +277,11 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
         return MiscUtil.extractSingleton(getAttributeRealValues(attrName));
     }
 
-    default @Nullable <T> ResourceAttribute<T> getAttribute(QName attrName) {
+    default @Nullable <T> ShadowSimpleAttribute<T> getAttribute(QName attrName) {
         return ShadowUtil.getAttribute(getPrismObject(), attrName);
     }
 
-    default @NotNull <T> ResourceAttribute<T> getAttributeRequired(QName attrName) {
+    default @NotNull <T> ShadowSimpleAttribute<T> getAttributeRequired(QName attrName) {
         return MiscUtil.stateNonNull(
                 getAttribute(attrName),
                 "No '%s' in %s", attrName, this);
@@ -303,7 +303,7 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
      *
      * @see ShadowUtil#getAssociations(ShadowType)
      */
-    default @NotNull Collection<ShadowAssociation> getAssociations() {
+    default @NotNull Collection<ShadowReferenceAttribute> getAssociations() {
         return ShadowUtil.getAssociations(getBean());
     }
 

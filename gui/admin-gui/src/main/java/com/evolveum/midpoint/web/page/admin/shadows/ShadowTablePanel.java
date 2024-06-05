@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil;
@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.DeleteShadowConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -490,7 +490,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
                 ShadowType value = dto.getValue();
                 if (value != null) {
-                    for (ResourceAttribute<?> attr : ShadowUtil.getAllIdentifiers(value)) {
+                    for (ShadowSimpleAttribute<?> attr : ShadowUtil.getAllIdentifiers(value)) {
                         repeater.add(new Label(repeater.newChildId(),
                                 attr.getElementName().getLocalPart() + ": " + attr.getRealValue()));
 
@@ -746,24 +746,43 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
             return;
         }
 
-        ConfirmationPanel dialog = new DeleteConfirmationPanel(
-                ((PageBase) getPage()).getMainPopupBodyId(), createDeleteConfirmString(selectedShadows)) {
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                deleteAccountsConfirmedPerformed(target, selectedShadows, result);
-            }
-        };
+        ConfirmationPanel dialog;
+
+        if (isDeleteOnlyRepoShadowAllow()) {
+            dialog = new DeleteShadowConfirmationPanel(
+                    ((PageBase) getPage()).getMainPopupBodyId(), createDeleteConfirmString(selectedShadows)) {
+                @Override
+                public void yesPerformed(AjaxRequestTarget target) {
+                    ModelExecuteOptions options = createModelExecuteOptions();
+                    if (options == null && !isDeletedResourceData()) {
+                        options = getPageBase().executeOptions().raw();
+                    }
+                    deleteAccountsConfirmedPerformed(target, selectedShadows, options, result);
+                }
+            };
+        } else {
+            dialog = new ConfirmationPanel(
+                    ((PageBase) getPage()).getMainPopupBodyId(), createDeleteConfirmString(selectedShadows)) {
+                @Override
+                public void yesPerformed(AjaxRequestTarget target) {
+                    deleteAccountsConfirmedPerformed(target, selectedShadows, createModelExecuteOptions(), result);
+                }
+            };
+        }
         getPageBase().showMainPopup(dialog, target);
 
     }
 
+    protected boolean isDeleteOnlyRepoShadowAllow() {
+        return true;
+    }
+
     private void deleteAccountsConfirmedPerformed(
-            AjaxRequestTarget target, List<SelectableBean<ShadowType>> selected, OperationResult parentResult) {
+            AjaxRequestTarget target, List<SelectableBean<ShadowType>> selected, ModelExecuteOptions options, OperationResult parentResult) {
         Task task = getPageBase().createSimpleTask(OPERATION_DELETE_OBJECTS); // created here because of serializability issues
 
         for (SelectableBean<ShadowType> shadowBean : selected) {
             ShadowType shadow = shadowBean.getValue();
-            ModelExecuteOptions options = createModelExecuteOptions();
             var result = parentResult.subresult(OPERATION_DELETE_OBJECT)
                     .addArbitraryObjectAsParam("object", shadow)
                     .build();

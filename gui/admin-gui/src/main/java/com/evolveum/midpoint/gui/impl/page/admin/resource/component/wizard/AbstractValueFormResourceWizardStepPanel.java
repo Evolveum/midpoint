@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -19,7 +20,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.*;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -41,7 +42,10 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
         extends AbstractWizardStepPanel<ODM> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractValueFormResourceWizardStepPanel.class);
-    private static final String ID_VALUE = "value";
+
+    protected static final String ID_VALUE = "value";
+    protected static final String ID_PARENT = "wizardPanelParent";
+
     private final IModel<PrismContainerValueWrapper<C>> newValueModel;
     private final IModel<? extends PrismContainerValueWrapper<?>> parentModelForAllSteps;
 
@@ -65,7 +69,7 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
     }
 
     protected <Con extends Containerable, T extends Containerable> IModel<PrismContainerValueWrapper<Con>> createNewValueModel(
-            IModel<PrismContainerValueWrapper<T>> parentValue, ItemName itemName) {
+            IModel<PrismContainerValueWrapper<T>> parentValue, ItemPath itempath) {
         return new LoadableDetachableModel<>() {
 
             @Override
@@ -73,7 +77,7 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
                 PrismContainerWrapperModel<T, Con> model
                         = PrismContainerWrapperModel.fromContainerValueWrapper(
                         parentValue,
-                        itemName);
+                        itempath);
                 if (model.getObject().getValues().isEmpty()) {
                     try {
                         PrismContainerValue<Con> newItem = model.getObject().getItem().createNewValue();
@@ -100,17 +104,17 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
     }
 
     protected void initLayout() {
+        WebMarkupContainer parent = new WebMarkupContainer(ID_PARENT);
+        parent.setOutputMarkupId(true);
+        add(parent);
+
         ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                 .visibilityHandler(getVisibilityHandler())
                 .mandatoryHandler(getMandatoryHandler()).build();
         settings.setConfig(getContainerConfiguration());
+
         VerticalFormPrismContainerValuePanel panel
                 = new VerticalFormPrismContainerValuePanel(ID_VALUE, getValueModel(), settings){
-
-            @Override
-            protected WebMarkupContainer createHeaderPanel() {
-                return super.createHeaderPanel();
-            }
 
             @Override
             protected LoadableDetachableModel<String> getLabelModel() {
@@ -121,8 +125,17 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
             protected String getIcon() {
                 return AbstractValueFormResourceWizardStepPanel.this.getIcon();
             }
+
+            @Override
+            protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
+                return AbstractValueFormResourceWizardStepPanel.this.isVisibleSubContainer(c);
+            }
         };
-        add(panel);
+        parent.add(panel);
+    }
+
+    protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
+        return false;
     }
 
     protected LoadableDetachableModel<String> createLabelModel() {
@@ -171,7 +184,7 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
     }
 
     private VerticalFormPrismContainerValuePanel getValuePanel() {
-        return (VerticalFormPrismContainerValuePanel) get(ID_VALUE);
+        return (VerticalFormPrismContainerValuePanel) get(createComponentPath(ID_PARENT, ID_VALUE));
     }
 
     protected IModel<PrismContainerValueWrapper<C>> getValueModel() {
@@ -179,7 +192,8 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
     }
 
     protected void refresh(AjaxRequestTarget target) {
-        target.add(get(ID_VALUE));
+        target.add(get(ID_PARENT));
+        target.add(getValuePanel());
     }
 
     @Override

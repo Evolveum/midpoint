@@ -65,6 +65,10 @@ For more information see xref:/midpoint/reference/deployment/ninja/command/verif
 *** Expanded user permission table settings, providing administrators with additional control and customization options.
 ** Performance and GUI Enhancements:
 *** Performance optimizations and user interface enhancements to improve overall user experience and efficiency.
+* Request access
+** Role catalog (tree) now has search filter with scope and type selectable.
+Tree node search is now same for all nodes.
+(Previously it was scope=one for non leaf nodes).
 
 === Other Improvements
 
@@ -87,7 +91,11 @@ See xref:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-status
 * New implementation and look of date time picker.
 * Support for item deltas targeting value metadata only (without need to replace whole container value)
 * Resolving the issue for creating a new member object with predefined by archetype options on members panel.
-* Resolving several issues for Self Service -> Credentials page.
+* Resolving several issues for Self Credentials page.
+Now password propagation to resource takes into account the script, defined in resource for credentials, in case of the appropriate configuration.
+* Notification sending strategy was added to the general notifier configuration.
+It is possible to configure now if the notification message should be generated once and sent to all recipients in the same form or if the message should be generated for each recipient separately.
+More details can be found in the xrefv:/midpoint/reference/master/misc/notifications/general/#basic-structure-of-the-notification-definition[Basic structure of the notification definition].
 
 === Releases Of Other Components
 

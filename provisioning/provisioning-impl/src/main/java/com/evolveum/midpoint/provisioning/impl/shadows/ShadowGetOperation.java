@@ -45,7 +45,7 @@ import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -87,7 +87,7 @@ class ShadowGetOperation {
     @NotNull private RepoShadow repoShadow;
 
     /** If present, overwrites the identifiers from the {@link #repoShadow}. */
-    @Nullable private final Collection<ResourceAttribute<?>> identifiersOverride;
+    @Nullable private final Collection<ShadowSimpleAttribute<?>> identifiersOverride;
 
     /** The "readOnly" is never set. This is because we need to modify the shadow during post-processing. */
     @Nullable private final Collection<SelectorOptions<GetOperationOptions>> options;
@@ -101,7 +101,7 @@ class ShadowGetOperation {
     private ShadowGetOperation(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
-            @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
+            @Nullable Collection<ShadowSimpleAttribute<?>> identifiersOverride,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
         this.ctx = ctx;
         this.oid = repoShadow.getOid();
@@ -116,7 +116,7 @@ class ShadowGetOperation {
     static Shadow execute(
             @NotNull String oid,
             @Nullable RawRepoShadow providedRepositoryShadow,
-            @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
+            @Nullable Collection<ShadowSimpleAttribute<?>> identifiersOverride,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull ProvisioningOperationContext context,
             @NotNull Task task,

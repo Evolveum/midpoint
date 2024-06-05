@@ -33,7 +33,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowedExternalChange;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExternalResourceObjectChange;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -91,7 +91,7 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
             ctx.assertDefinition();
 
             Object primaryIdentifierRealValue = getPrimaryIdentifierRealValue(anyShadow, event);
-            Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(anyShadow);
+            Collection<ShadowSimpleAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(anyShadow);
             if (identifiers.isEmpty()) {
                 throw new SchemaException("No identifiers");
             }
@@ -139,10 +139,10 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
     }
 
     private Object getPrimaryIdentifierRealValue(PrismObject<ShadowType> shadow, ExternalResourceEvent context) throws SchemaException {
-        Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+        Collection<ShadowSimpleAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
 
         Collection<Object> primaryIdentifierRealValues = new HashSet<>();
-        for (ResourceAttribute<?> primaryIdentifier : emptyIfNull(primaryIdentifiers)) {
+        for (ShadowSimpleAttribute<?> primaryIdentifier : emptyIfNull(primaryIdentifiers)) {
             primaryIdentifierRealValues.addAll(primaryIdentifier.getRealValues());
         }
         if (primaryIdentifierRealValues.isEmpty()) {

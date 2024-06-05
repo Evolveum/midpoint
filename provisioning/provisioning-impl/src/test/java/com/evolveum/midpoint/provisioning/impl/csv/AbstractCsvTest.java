@@ -211,10 +211,10 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 
         assertAccountDefinition(accountDef);
 
-        ResourceAttributeDefinition<?> icfsNameDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttributeDefinition<?> icfsNameDef = accountDef.findSimpleAttributeDefinition(SchemaConstants.ICFS_NAME);
         assertNull("ICFS NAME definition sneaked in", icfsNameDef);
 
-        ResourceAttributeDefinition<?> icfsUidDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_UID);
+        ShadowSimpleAttributeDefinition<?> icfsUidDef = accountDef.findSimpleAttributeDefinition(SchemaConstants.ICFS_UID);
         assertNull("ICFS UID definition sneaked in", icfsUidDef);
 
         assertCompleteSchemaCached(completeSchema, ResourceSchemaFactory.getCompleteSchema(resourceType));

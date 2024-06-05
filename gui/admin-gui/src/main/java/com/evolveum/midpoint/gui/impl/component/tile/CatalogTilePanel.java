@@ -14,21 +14,16 @@ import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.resource.IResource;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.data.column.RoundedImagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class CatalogTilePanel<T extends Serializable> extends FocusTilePanel<T, CatalogTile<T>> {
+public class CatalogTilePanel<T extends Serializable> extends ObjectTilePanel<T, CatalogTile<T>> {
 
     private static final long serialVersionUID = 1L;
 

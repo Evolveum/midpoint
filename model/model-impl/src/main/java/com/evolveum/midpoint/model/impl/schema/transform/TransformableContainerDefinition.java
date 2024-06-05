@@ -13,7 +13,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,10 +22,8 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.deleg.ContainerDefinitionDelegator;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.deleg.ResourceAttributeContainerDefinitionDelegator;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+
 import com.google.common.base.Preconditions;
 
 public class TransformableContainerDefinition<C extends Containerable>
@@ -66,6 +65,11 @@ public class TransformableContainerDefinition<C extends Containerable>
     @Override
     public Class getTypeClass() {
         return delegate().getTypeClass();
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return delegate().getSchemaContextDefinition();
     }
 
     @Override
@@ -302,5 +306,9 @@ public class TransformableContainerDefinition<C extends Containerable>
     @Override
     protected TransformableContainerDefinition<C> copy() {
         return new TransformableContainerDefinition<>(this);
+    }
+
+    @Override
+    public void setSchemaContextDefinition(SchemaContextDefinition schemaContextDefinition) {
     }
 }

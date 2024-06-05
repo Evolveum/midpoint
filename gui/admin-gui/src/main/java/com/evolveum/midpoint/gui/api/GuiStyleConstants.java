@@ -85,6 +85,8 @@ public class GuiStyleConstants {
 
     public static final String CLASS_OBJECT_CONNECTOR_ICON = "fa fa-microchip";
 
+    public static final String CLASS_OBJECT_SCHEMA_TEMPLATE_ICON = "fa fa-sitemap";
+
     public static final String CLASS_REPORT_ICON = "fa fa-chart-pie";
 
     public static final String CLASS_ICON_STYLE = "icon-style-";  //some icon styles start with this string
@@ -123,6 +125,12 @@ public class GuiStyleConstants {
     public static final String CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED = GuiStyleConstants.ICON_FAR_CLOCK + " text-info";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_FUTURE_COLORED = "fa fa-question-circle text-warning";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_CANCELLED_COLORED = "fa fa-ban text-warning";
+
+    public static final String CLASS_CERT_OUTCOME_ICON_NOT_DECIDED = "fa fa-question";
+    public static final String CLASS_CERT_OUTCOME_ICON_APPROVED = "fa fa-check";
+    public static final String CLASS_CERT_OUTCOME_ICON_REJECTED = "fa fa-times";
+    public static final String CLASS_CERT_OUTCOME_ICON_REDUCED = "fa fa-rotate-left";
+    public static final String CLASS_CERT_OUTCOME_ICON_NO_RESPONSE = "far fa-clock";
 
     public static final String CLASS_ICON_EXPAND = "fa fa-chevron-left";
     public static final String CLASS_ICON_COLLAPSE = "fa  fa-chevron-down";
@@ -301,4 +309,8 @@ public class GuiStyleConstants {
     public static final String CLASS_MARK = "fa-solid fa-tag";
 
     public static final String CLASS_AUDIT = "fa-solid fa-magnifying-glass-chart";
+
+    public static final String CLASS_SCHEMA_BASIC_SETTINGS_PANEL_ICON = "fa fa-cog";
+    public static final String CLASS_SCHEMA_COMPLEX_TYPE_ICON = "fa fa-cubes";
+    public static final String CLASS_SCHEMA_ENUM_TYPE_ICON = "fa fa-cube";
 }

@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.init;
 
 import java.util.*;
-import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -20,11 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
-import com.evolveum.midpoint.prism.impl.schema.SchemaParsingUtil;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -62,7 +58,6 @@ public class SchemaCache implements Cache {
         cacheRegistry.unregisterCache(this);
     }
 
-
     public void init() {
 
         if (!repositoryService.supports(SchemaType.class)) {
@@ -72,25 +67,17 @@ public class SchemaCache implements Cache {
 
         Map<String, Element> dbSchemaExtensions = new HashMap<>();
 
-        //TODO cleanup
         ResultHandler<SchemaType> handler = (object, parentResult) -> {
-//            try {
-                SchemaType schemaType = object.asObjectable();
-                QName extensionForType = schemaType.getType();
+            SchemaType schemaType = object.asObjectable();
+            String description = schemaType.getName() + " (" + schemaType.getOid() + ")";
+            if (SchemaConstants.LIFECYCLE_PROPOSED.equals(schemaType.getLifecycleState())) {
+                LOGGER.debug("Skip processing schema object from database, because SchemaType " + description + " is in proposed lifecycle state.");
+                return true;
+            }
 
-                SchemaDefinitionType def = schemaType.getDefinition();
-                Element schemaElement = def.getSchema();
-                dbSchemaExtensions.put("schema for " + extensionForType, schemaElement);
-
-//                PrismSchemaImpl extensionSchema = SchemaParsingUtil.createAndParse(
-//                        schemaElement, true, "schema for " + extensionForType, false);
-//                ComplexTypeDefinition finalDef = detectExtensionSchemas(extensionSchema, dbExtensions);
-//                if (finalDef != null) {
-//                    dbExtensions.put(extensionForType, finalDef);
-//                }
-//            } catch (SchemaException e) {
-//                throw new RuntimeException(e);
-//            }
+            SchemaDefinitionType def = schemaType.getDefinition();
+            Element schemaElement = def.getSchema();
+            dbSchemaExtensions.put("dynamic schema from db: " + description, schemaElement);
             return true;
         };
 
@@ -110,23 +97,6 @@ public class SchemaCache implements Cache {
             }
         }
     }
-
-//    private ComplexTypeDefinition detectExtensionSchemas(PrismSchema schema, Map<QName, ComplexTypeDefinition> extensionSchemas) {
-//        for (ComplexTypeDefinition def : schema.getDefinitions(ComplexTypeDefinition.class)) {
-//            QName typeBeingExtended = def.getExtensionForType(); // e.g. c:UserType
-//            if (typeBeingExtended != null) {
-////                LOGGER.trace("Processing {} as an extension for {}", def, typeBeingExtended);
-//                if (extensionSchemas.containsKey(typeBeingExtended)) {
-//                    ComplexTypeDefinition existingExtension = extensionSchemas.get(typeBeingExtended);
-//                    existingExtension.merge(def);
-//                    return existingExtension;
-//                } else {
-//                    return def.clone();
-//                }
-//            }
-//        }
-//        return null;
-//    }
 
     private static final Collection<Class<?>> INVALIDATION_RELATED_CLASSES = Arrays.asList(
             SchemaType.class

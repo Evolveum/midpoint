@@ -10,8 +10,8 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -20,12 +20,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Evaluation of an attribute mapping in resource object construction (assigned/plain).
  */
 class AttributeEvaluation<AH extends AssignmentHolderType, T>
-        extends ItemEvaluation<AH, PrismPropertyValue<T>, ResourceAttributeDefinition<T>> {
+        extends ItemEvaluation<AH, PrismPropertyValue<T>, ShadowSimpleAttributeDefinition<T>> {
 
     // [EP:M:OM] DONE 2/2
     AttributeEvaluation(
             ConstructionEvaluation<AH, ?> constructionEvaluation,
-            ResourceAttributeDefinition<T> attributeDefinition,
+            ShadowSimpleAttributeDefinition<T> attributeDefinition,
             MappingConfigItem mappingConfigItem,
             OriginType origin,
             MappingKindType mappingKind) {
@@ -50,7 +50,7 @@ class AttributeEvaluation<AH extends AssignmentHolderType, T>
     }
 
     @Override
-    ShadowAssociationDefinition getAssociationDefinition() {
+    ShadowReferenceAttributeDefinition getAssociationDefinition() {
         return null;
     }
 }

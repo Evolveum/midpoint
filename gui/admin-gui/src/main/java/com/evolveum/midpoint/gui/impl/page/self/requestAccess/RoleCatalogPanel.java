@@ -11,10 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.util.TableUtil;
-
-import com.evolveum.midpoint.web.component.util.*;
+import com.evolveum.midpoint.gui.impl.component.search.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -33,7 +30,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.IResource;
@@ -49,6 +45,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectDataProvider;
@@ -56,12 +53,12 @@ import com.evolveum.midpoint.gui.impl.component.menu.listGroup.CustomListGroupMe
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuPanel;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -79,6 +76,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -106,12 +107,14 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     private static final String ID_TABLE_FOOTER_FRAGMENT = "tableFooterFragment";
     private static final String ID_ADD_SELECTED = "addSelected";
     private static final String ID_ADD_ALL = "addAll";
-    public static final int DEFAULT_ROLE_CATALOG_DEPTH = 3;
+
+    private static final int DEFAULT_ROLE_CATALOG_DEPTH = 3;
+
+    private static final Class<? extends AbstractRoleType> DEFAULT_ROLE_CATALOG_TYPE = RoleType.class;
 
     private final PageBase page;
 
-    private LoadableDetachableModel<Search> searchModel;
-    private Search<?> search = null;
+    private SearchModel searchModel;
 
     private IModel<ListGroupMenu<RoleCatalogQueryItem>> menuModel;
 
@@ -183,7 +186,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     private void updateFalseQuery(RoleCatalogQuery query) {
-        updateFalseQuery(query, RoleType.class);
+        updateFalseQuery(query, DEFAULT_ROLE_CATALOG_TYPE);
     }
 
     private <R extends AbstractRoleType> void updateFalseQuery(RoleCatalogQuery query, Class<R> queryType) {
@@ -196,37 +199,42 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         query.setType(queryType);
     }
 
-    private void updateQueryFromOrgRef(RoleCatalogQuery query, ObjectReferenceType ref, boolean scopeOne) {
-        ObjectQuery oq = getPrismContext()
-                .queryFor(AbstractRoleType.class)
-                .isInScopeOf(ref.getOid(), scopeOne ? OrgFilter.Scope.ONE_LEVEL : OrgFilter.Scope.SUBTREE)
+    private void updateQueryFromOrgRef(RoleCatalogQuery query, ObjectReferenceType ref) {
+        query.setQuery(null);
+        query.setType(DEFAULT_ROLE_CATALOG_TYPE);
+
+        query.setParent(ref);
+    }
+
+    private ObjectQuery createParentRefQuery(ObjectReferenceType ref) {
+        OrgFilter.Scope scope = OrgFilter.Scope.ONE_LEVEL;
+
+        AbstractRoleSearchItemWrapper roleSearch = searchModel.getObject().findMemberSearchItem();
+        if (roleSearch != null) {
+            SearchBoxScopeType searchBoxScope = roleSearch.getScopeValue();
+            if (searchBoxScope == SearchBoxScopeType.SUBTREE) {
+                scope = OrgFilter.Scope.SUBTREE;
+            }
+        }
+
+        return getPrismContext()
+                .queryFor(DEFAULT_ROLE_CATALOG_TYPE)
+                .isInScopeOf(ref.getOid(), scope)
                 .asc(AbstractRoleType.F_NAME)
                 .build();
-
-        query.setQuery(oq);
-        query.setType(AbstractRoleType.class);
     }
 
     private void updateQueryForRolesOfTeammate(RoleCatalogQuery query, String userOid) {
         if (userOid == null) {
-            updateFalseQuery(query, AbstractRoleType.class);
+            updateFalseQuery(query, DEFAULT_ROLE_CATALOG_TYPE);
             return;
         }
 
         query.setType(AbstractRoleType.class);
 
-        if (getPageBase().isNativeRepo()) {
-            ObjectQuery oq = getPrismContext().queryFor(AbstractRoleType.class)
-                    .referencedBy(UserType.class, ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))
-                    .id(userOid)
-                    .and().not().type(ArchetypeType.class)
-                    .build();
-
-            query.setQuery(oq);
-            return;
-        }
-
         // searching for user assignments targets in two steps for non-native repository (doesn't support referencedBy)
+        // searching like this also in native repository since there's problem with creating authorization query for such
+        // referencedBy MID-9638
         Task task = page.createSimpleTask(OPERATION_LOAD_USER);
         OperationResult result = task.getResult();
         try {
@@ -273,21 +281,20 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         ObjectCollectionType objectCollection = collection.asObjectable();
 
         try {
-            QName type = objectCollection.getType();
-            if (type == null) {
-                type = AbstractRoleType.COMPLEX_TYPE;
+            Class<? extends AbstractRoleType> type = DEFAULT_ROLE_CATALOG_TYPE;
+            if (objectCollection.getType() != null) {
+                type = ObjectTypes.getObjectTypeFromTypeQName(objectCollection.getType()).getClassDefinition();
             }
-            ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
 
-            ObjectFilter filter = page.getQueryConverter().createObjectFilter(ot.getClassDefinition(), objectCollection.getFilter());
+            ObjectFilter filter = page.getQueryConverter().createObjectFilter(type, objectCollection.getFilter());
             ObjectQuery oq = getPrismContext()
-                    .queryFor(ot.getClassDefinition())
+                    .queryFor(type)
                     .filter(filter)
                     .asc(AbstractRoleType.F_NAME)
                     .build();
 
             query.setQuery(oq);
-            query.setType(ot.getClassDefinition());
+            query.setType(type);
         } catch (Exception ex) {
             LOGGER.debug("Couldn't create search filter", ex);
             page.error(page.getString("RoleCatalogPanel.message.searchFilterError", ex.getMessage()));
@@ -319,21 +326,60 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         updateFalseQuery(query);
         queryModel = Model.of(query);
 
-        searchModel = new LoadableDetachableModel<>() {
+        searchModel = new SearchModel() {
+
+            private Class<?> queryType;
+
+            private SearchBoxModeType searchMode;
+
+            private SearchBoxScopeType searchScope;
 
             @Override
             protected Search<?> load() {
-                Class<? extends ObjectType> type = queryModel.getObject().getType();
-                if (search != null && type.equals(search.getTypeClass())) {
-                    return search;
-                }
+                RoleCatalogQuery rcq = queryModel.getObject();
 
+                Class type = rcq.getParent() != null && queryType != null ? queryType : rcq.getType();
 
                 SearchBuilder<?> searchBuilder = new SearchBuilder<>(type)
                         .modelServiceLocator(page);
 
-                search = searchBuilder.build();
+                if (rcq.getParent() != null) {
+                    SearchContext ctx = new SearchContext();
+                    ctx.setPanelType(CollectionPanelType.ROLE_CATALOG);
+
+                    searchBuilder.additionalSearchContext(ctx);
+                }
+
+                Search<?> search = searchBuilder.build();
+
+                if (searchMode != null) {
+                    search.setSearchMode(searchMode);
+                }
+
+                if (rcq.getParent() != null) {
+                    AbstractRoleSearchItemWrapper roleSearch = search.findMemberSearchItem();
+                    if (searchScope != null && roleSearch.getScopeSearchItemWrapper() != null) {
+                        roleSearch.getScopeSearchItemWrapper().setValue(new SearchValue(searchScope));
+                    }
+                }
+
                 return search;
+            }
+
+            @Override
+            public void reset() {
+                Search search = getObject();
+                searchMode = search.getSearchMode();
+
+                super.reset();
+            }
+
+            @Override
+            public void saveType() {
+                Search search = getObject();
+
+                queryType = search.getTypeClass();
+                searchScope = search.findMemberSearchItem().getScopeValue();
             }
         };
 
@@ -347,7 +393,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 if (active == null) {
                     active = menu.activateFirstAvailableItem();
                 }
-                updateQueryModel(active);
+
+                updateQueryModelSearchAndParameters(active);
 
                 return menu;
             }
@@ -365,8 +412,15 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 menuModel.getObject();
 
                 RoleCatalogQuery catalogQuery = queryModel.getObject();
+
                 ObjectQuery query = catalogQuery.getQuery();
+                if (query != null) {
                 query = query.clone();
+                } else if (catalogQuery.getParent() != null) {
+                    // this is quite a mess since query couldn't be created at during building RoleCatalogQuery
+                    // since scope might have changes in search panel and queryModel wouldn't know...
+                    query = createParentRefQuery(catalogQuery.getParent());
+                }
 
                 Class<? extends AbstractRoleType> type = catalogQuery.getType();
 
@@ -571,41 +625,56 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         add(menu);
     }
 
-    private void updateQueryModel(ListGroupMenuItem<RoleCatalogQueryItem> item) {
+    private void updateQueryModelSearchAndParameters(ListGroupMenuItem<RoleCatalogQueryItem> item) {
+        boolean saveSearchType = updateQueryModel(item);
+        if (saveSearchType) {
+            searchModel.saveType();
+        }
+
+        searchModel.reset();
+    }
+
+    private boolean updateQueryModel(ListGroupMenuItem<RoleCatalogQueryItem> item) {
         RoleCatalogQuery query = queryModel.getObject();
+
+        boolean saveSearchType = query.getParent() != null;
 
         RoleCatalogQueryItem rcq = item != null ? item.getValue() : null;
 
         if (rcq == null) {
             updateFalseQuery(query);
-            return;
+            return saveSearchType;
         }
 
         if (rcq.rolesOfTeammate()) {
             updateQueryForRolesOfTeammate(query, getTeammateUserOid());
-            return;
+            return saveSearchType;
         }
 
         if (rcq.orgRef() != null) {
-            updateQueryFromOrgRef(query, rcq.orgRef(), rcq.scopeOne());
-            return;
+            updateQueryFromOrgRef(query, rcq.orgRef());
+            return saveSearchType;
         }
 
         RoleCollectionViewType collection = rcq.collection();
         if (collection == null) {
             updateFalseQuery(query);
-            return;
+            return saveSearchType;
         }
 
         if (collection.getCollectionRef() != null) {
             updateQueryFromCollectionRef(query, collection.getCollectionRef());
-            return;
-        } else if (collection.getCollectionIdentifier() != null) {
+            return saveSearchType;
+        }
+
+        if (collection.getCollectionIdentifier() != null) {
             updateQueryFromCollectionIdentifier(query, collection.getCollectionIdentifier());
-            return;
+            return saveSearchType;
         }
 
         updateFalseQuery(query);
+
+        return saveSearchType;
     }
 
     private String getTeammateUserOid() {
@@ -613,15 +682,17 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         return userRef != null ? userRef.getOid() : null;
     }
 
+    private TileTablePanel<?, ?> getTileTable() {
+        return (TileTablePanel<?, ?>) get(ID_TILES);
+    }
+
     private void onMenuClickPerformed(AjaxRequestTarget target, ListGroupMenuItem<RoleCatalogQueryItem> item) {
-        updateQueryModel(item);
-        searchModel.detach();
+        updateQueryModelSearchAndParameters(item);
 
-        TileTablePanel<?, ?> tilesTable = (TileTablePanel<?, ?>) get(ID_TILES);
+        TileTablePanel<?, ?> tilesTable = getTileTable();
         tilesTable.initHeaderFragment();
-        tilesTable.getTable().refreshSearch();
 
-        target.add(get(ID_TILES));
+        target.add(tilesTable);
         target.add(get(ID_MENU));
     }
 
@@ -845,8 +916,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 ListGroupMenuItem<RoleCatalogQueryItem> menu = new ListGroupMenuItem<>(name);
                 menu.setIconCss(GuiStyleConstants.CLASS_OBJECT_ORG_ICON);
                 menu.setValue(new RoleCatalogQueryItem()
-                        .orgRef(new ObjectReferenceType().oid(o.getOid()).type(o.getDefinition().getTypeName()))
-                        .scopeOne(currentLevel < maxLevel));
+                        .orgRef(new ObjectReferenceType().oid(o.getOid()).type(o.getDefinition().getTypeName())));
 
                 final ObjectReferenceType parentRef = new ObjectReferenceType()
                         .oid(o.getOid())
@@ -918,7 +988,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             @Override
             protected DisplayType createDisplayType(IModel<SelectableBean<ObjectType>> model) {
-                OperationResult result =  new OperationResult("getIcon");
+                OperationResult result = new OperationResult("getIcon");
                 return GuiDisplayTypeUtil.getDisplayTypeForObject(model.getObject().getValue(), result, getPageBase());
             }
         });
@@ -1079,5 +1149,14 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     @Override
     public VisibleEnableBehaviour getNextBehaviour() {
         return new VisibleEnableBehaviour(() -> !getModelObject().getShoppingCartAssignments().isEmpty());
+    }
+
+    private static abstract class SearchModel extends LoadableModel<Search> {
+
+        public SearchModel() {
+            super(false);
+        }
+
+        public abstract void saveType();
     }
 }

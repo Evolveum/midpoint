@@ -12,12 +12,13 @@ import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.MultiSelectObjectTypeTileWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
@@ -47,7 +48,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.gui.impl.component.wizard.MultiSelectTileWizardStepPanel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -78,7 +78,7 @@ import org.jetbrains.annotations.Nullable;
         display = @PanelDisplay(label = "PageRole.wizard.step.construction.group"),
         containerPath = "empty")
 public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
-        extends MultiSelectTileWizardStepPanel<ConstructionGroupStepPanel<AR>.AssociationWrapper, ShadowType, FocusDetailsModels<AR>, ConstructionType> {
+        extends MultiSelectObjectTypeTileWizardStepPanel<ConstructionGroupStepPanel<AR>.AssociationWrapper, ShadowType, FocusDetailsModels<AR>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionGroupStepPanel.class);
 
@@ -112,7 +112,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
     }
 
     private boolean nonExistAssociations() {
-        List<ShadowAssociationDefinition> associations = ProvisioningObjectsUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
+        List<ShadowReferenceAttributeDefinition> associations = ProvisioningObjectsUtil.getRefinedAssociationDefinition(getValueModel().getObject().getRealValue(), getPageBase());
         return associations.isEmpty();
     }
 

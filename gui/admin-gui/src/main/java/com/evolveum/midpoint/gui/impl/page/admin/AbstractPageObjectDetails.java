@@ -259,10 +259,23 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     public boolean hasUnsavedChanges(AjaxRequestTarget target) {
+        return hasUnsavedChanges(false, target);
+    }
+
+    public boolean hasUnsavedChangesInWizard(AjaxRequestTarget target) {
+        return hasUnsavedChanges(true, target);
+    }
+
+    private boolean hasUnsavedChanges(boolean inWizard, AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_SAVE);
 
         try {
-            Collection<ObjectDelta<? extends ObjectType>> deltas = getObjectDetailsModels().collectDeltas(result);
+            Collection<ObjectDelta<? extends ObjectType>> deltas;
+            if (inWizard) {
+                deltas = getObjectDetailsModels().collectDeltaWithoutSavedDeltas(result);
+            } else {
+                deltas = getObjectDetailsModels().collectDeltas(result);
+            }
 
             return !deltas.isEmpty();
         } catch (Throwable ex) {
@@ -676,6 +689,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
             overwritePageParameters(config);
             target.add(AbstractPageObjectDetails.this);
+            target.add(getMainForm());
         } catch (Throwable e) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Can't instantiate panel based on config\n {}", config.debugDump(), e);
@@ -769,6 +783,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     protected OperationalButtonsPanel getOperationalButtonsPanel() {
         return (OperationalButtonsPanel) get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM, ID_BUTTONS));
+    }
+
+    public DetailsNavigationPanel getNavigationPanel() {
+        return (DetailsNavigationPanel) get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM, ID_NAVIGATION));
     }
 
     public PrismObject<O> getPrismObject() {

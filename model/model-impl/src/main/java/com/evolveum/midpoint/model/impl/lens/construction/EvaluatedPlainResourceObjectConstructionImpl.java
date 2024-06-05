@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -64,7 +64,7 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
 
-        for (ResourceAttributeDefinition<?> attributeDef : objectDefinition.getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition<?> attributeDef : objectDefinition.getSimpleAttributeDefinitions()) {
             MappingType outboundMappingBean = attributeDef.getOutboundMappingBean();
             if (outboundMappingBean == null) {
                 continue;
@@ -97,7 +97,7 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
         List<AssociationEvaluation<AH>> associationsToEvaluate = new ArrayList<>();
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
-        for (var associationDefinition : objectDefinition.getAssociationDefinitions()) {
+        for (var associationDefinition : objectDefinition.getReferenceAttributeDefinitions()) {
             var outboundMappingBean = associationDefinition.getOutboundMappingBean();
             if (outboundMappingBean == null) {
                 continue;

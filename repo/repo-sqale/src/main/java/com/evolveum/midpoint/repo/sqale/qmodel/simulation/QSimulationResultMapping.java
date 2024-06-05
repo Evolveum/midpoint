@@ -190,5 +190,15 @@ public class QSimulationResultMapping
         }
     }
 
-
+    /**
+     * returns false, reindex is not feasible for Simulation Result
+     *
+     * Simulation Result stores large quantity of data and forceReindex, operation is Read, Remove, Add
+     * - which with SQL constraints would require reading whole simulation (and all results)
+     * storing it in-memory and then dumping it in one transaction into repository which is currently not feasible.
+     */
+    @Override
+    public boolean isReindexSupported() {
+        return false;
+    }
 }

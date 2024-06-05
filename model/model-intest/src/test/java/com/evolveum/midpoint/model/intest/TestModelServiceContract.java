@@ -419,15 +419,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 getDummyResourceController().getAttributeQName(DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME),
                 "cold");
 
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(account);
+        ShadowAttributesContainer attributesContainer = ShadowUtil.getAttributesContainer(account);
         assertNotNull("No attribute container from " + account, attributesContainer);
-        Collection<ResourceAttribute<?>> identifiers = attributesContainer.getPrimaryIdentifiers();
+        Collection<ShadowSimpleAttribute<?>> identifiers = attributesContainer.getPrimaryIdentifiers();
         assertNotNull("No identifiers (null) in attributes container in " + accountJackOid, identifiers);
         assertFalse("No identifiers (empty) in attributes container in " + accountJackOid, identifiers.isEmpty());
 
-        ResourceAttribute<String> fullNameAttr = attributesContainer.findAttribute(dummyResourceCtl.getAttributeFullnameQName());
+        ShadowSimpleAttribute<String> fullNameAttr = attributesContainer.findAttribute(dummyResourceCtl.getAttributeFullnameQName());
         PrismAsserts.assertPropertyValue(fullNameAttr, ACCOUNT_JACK_DUMMY_FULLNAME);
-        ResourceAttributeDefinition<String> fullNameAttrDef = fullNameAttr.getDefinition();
+        ShadowSimpleAttributeDefinition<String> fullNameAttrDef = fullNameAttr.getDefinition();
         displayDumpable("attribute fullname definition", fullNameAttrDef);
         PrismAsserts.assertDefinition(fullNameAttrDef, dummyResourceCtl.getAttributeFullnameQName(),
                 DOMUtil.XSD_STRING, 1, 1);
@@ -535,7 +535,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ResourceObjectClassDefinition accountObjectClassDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(accountObjectClassQName);
         QName weaponQName = dummyResourceCtl.getAttributeWeaponQName();
-        ResourceAttributeDefinition<?> weaponDefinition = accountObjectClassDefinition.findAttributeDefinition(weaponQName);
+        ShadowSimpleAttributeDefinition<?> weaponDefinition = accountObjectClassDefinition.findSimpleAttributeDefinition(weaponQName);
 
         ObjectQuery q = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
@@ -1511,7 +1511,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         when();
-        executeChanges(createJacksAccountModifyDelta(), null, task, result);
+        // Creating empty partial processing option is the same as having none. This code is here just to test MID-9477.
+        var options = ModelExecuteOptions.create()
+                .partialProcessing(new PartialProcessingOptionsType());
+        executeChanges(createJacksAccountModifyDelta(), options, task, result);
 
         then();
         assertSuccess(result);

@@ -254,7 +254,7 @@ public class IntegrationTestTools {
     }
 
     public static String getSecondaryIdentifier(PrismObject<ShadowType> shadow) {
-        Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+        Collection<ShadowSimpleAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
         if (secondaryIdentifiers == null || secondaryIdentifiers.isEmpty()) {
             return null;
         }
@@ -298,7 +298,7 @@ public class IntegrationTestTools {
         assertNotNull(message, values.iterator().next());
     }
 
-    public static void assertAttributeDefinition(ResourceAttribute<?> attr, QName expectedType, int minOccurs, int maxOccurs,
+    public static void assertAttributeDefinition(ShadowSimpleAttribute<?> attr, QName expectedType, int minOccurs, int maxOccurs,
             boolean canRead, boolean canCreate, boolean canUpdate, Class<?> expectedAttributeDefinitionClass) {
         var definition = attr.getDefinition();
         QName attrName = attr.getElementName();
@@ -324,8 +324,8 @@ public class IntegrationTestTools {
             Class<?> expectedAttributeDefinitionClass, QName objectClass) {
         // Check attribute definition
         PrismContainer<?> attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-        PrismAsserts.assertClass("Wrong attributes container class", ResourceAttributeContainer.class, attributesContainer);
-        ResourceAttributeContainer rAttributesContainer = (ResourceAttributeContainer) attributesContainer;
+        PrismAsserts.assertClass("Wrong attributes container class", ShadowAttributesContainer.class, attributesContainer);
+        ShadowAttributesContainer rAttributesContainer = (ShadowAttributesContainer) attributesContainer;
         var attrsDef = attributesContainer.getDefinition();
         assertNotNull("No attributes container definition", attrsDef);
         assertTrue("Wrong attributes definition class " + attrsDef.getClass().getName(), attrsDef instanceof ResourceAttributeContainerDefinition);
@@ -334,12 +334,12 @@ public class IntegrationTestTools {
         assertNotNull("No object class definition in attributes definition", objectClassDef);
         assertEquals("Wrong object class in attributes definition", objectClass, objectClassDef.getTypeName());
         var primaryIdDef = objectClassDef.getPrimaryIdentifiers().iterator().next();
-        ResourceAttribute<?> primaryIdAttr = rAttributesContainer.findAttribute(primaryIdDef.getItemName());
+        ShadowSimpleAttribute<?> primaryIdAttr = rAttributesContainer.findAttribute(primaryIdDef.getItemName());
         assertNotNull("No primary ID " + primaryIdDef.getItemName() + " in " + account, primaryIdAttr);
         assertAttributeDefinition(primaryIdAttr, DOMUtil.XSD_STRING, 0, 1, true, false, false, expectedAttributeDefinitionClass);
 
         var secondaryIdDef = objectClassDef.getSecondaryIdentifiers().iterator().next();
-        ResourceAttribute<Object> secondaryIdAttr = rAttributesContainer.findAttribute(secondaryIdDef.getItemName());
+        ShadowSimpleAttribute<Object> secondaryIdAttr = rAttributesContainer.findAttribute(secondaryIdDef.getItemName());
         assertNotNull("No secondary ID " + secondaryIdDef.getItemName() + " in " + account, secondaryIdAttr);
         assertAttributeDefinition(secondaryIdAttr, DOMUtil.XSD_STRING, 1, 1, true, true, true, expectedAttributeDefinitionClass);
     }
@@ -685,9 +685,9 @@ public class IntegrationTestTools {
         // We hope that the polystring/string hack will work for both repo and provisioning shadows
         String icfUid = ShadowUtil.getSingleStringAttributeValue(bean, SchemaConstants.ICFS_UID);
         if (icfUid == null) {
-            Collection<? extends ResourceAttributeDefinition<?>> identifierDefs = objectClassDef.getPrimaryIdentifiers();
+            Collection<? extends ShadowSimpleAttributeDefinition<?>> identifierDefs = objectClassDef.getPrimaryIdentifiers();
             assertFalse("No identifiers for " + objectClassDef, identifierDefs.isEmpty());
-            for (ResourceAttributeDefinition<?> idDef : identifierDefs) {
+            for (ShadowSimpleAttributeDefinition<?> idDef : identifierDefs) {
                 String id = ShadowUtil.getSingleStringAttributeValue(bean, idDef.getItemName());
                 assertNotNull("No identifier " + idDef.getItemName() + " in " + shadow, id);
             }
@@ -852,13 +852,13 @@ public class IntegrationTestTools {
 
         assertNotNull("No object class definition " + RI_ACCOUNT_OBJECT_CLASS, accountDefinition);
         assertTrue("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is not default account", accountDefinition.isDefaultAccountDefinition());
-        assertFalse("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is empty", accountDefinition.getAttributeDefinitions().isEmpty());
+        assertFalse("Object class " + RI_ACCOUNT_OBJECT_CLASS + " is empty", accountDefinition.getSimpleAttributeDefinitions().isEmpty());
 
-        Collection<? extends ResourceAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> identifiers = accountDefinition.getPrimaryIdentifiers();
         assertNotNull("Null identifiers for " + RI_ACCOUNT_OBJECT_CLASS, identifiers);
         assertFalse("Empty identifiers for " + RI_ACCOUNT_OBJECT_CLASS, identifiers.isEmpty());
 
-        ResourceAttributeDefinition<?> uidAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaConstants.ICFS_UID);
+        ShadowSimpleAttributeDefinition<?> uidAttributeDefinition = accountDefinition.findSimpleAttributeDefinition(SchemaConstants.ICFS_UID);
         assertNotNull("No definition for attribute " + SchemaConstants.ICFS_UID, uidAttributeDefinition);
         assertTrue("Attribute " + SchemaConstants.ICFS_UID + " in not an identifier",
                 accountDefinition.isPrimaryIdentifier(uidAttributeDefinition.getItemName()));
@@ -866,11 +866,11 @@ public class IntegrationTestTools {
         assertEquals("Wrong displayName for attribute " + SchemaConstants.ICFS_UID, "ConnId UID", uidAttributeDefinition.getDisplayName());
         assertEquals("Wrong displayOrder for attribute " + SchemaConstants.ICFS_UID, (Integer) 100, uidAttributeDefinition.getDisplayOrder());
 
-        Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifiers = accountDefinition.getSecondaryIdentifiers();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> secondaryIdentifiers = accountDefinition.getSecondaryIdentifiers();
         assertNotNull("Null secondary identifiers for " + RI_ACCOUNT_OBJECT_CLASS, secondaryIdentifiers);
         assertFalse("Empty secondary identifiers for " + RI_ACCOUNT_OBJECT_CLASS, secondaryIdentifiers.isEmpty());
 
-        ResourceAttributeDefinition<?> nameAttributeDefinition = accountDefinition.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttributeDefinition<?> nameAttributeDefinition = accountDefinition.findSimpleAttributeDefinition(SchemaConstants.ICFS_NAME);
         assertNotNull("No definition for attribute " + SchemaConstants.ICFS_NAME, nameAttributeDefinition);
         assertTrue("Attribute " + SchemaConstants.ICFS_NAME + " in not an identifier",
                 accountDefinition.isSecondaryIdentifier(
@@ -886,7 +886,7 @@ public class IntegrationTestTools {
         assertNotNull("No naming attribute in account", accountDefinition.getNamingAttribute());
         assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDefinition.getNativeObjectClassName()));
 
-        ResourceAttributeDefinition<?> uidDef = accountDefinition.findAttributeDefinitionRequired(SchemaConstants.ICFS_UID);
+        ShadowSimpleAttributeDefinition<?> uidDef = accountDefinition.findSimpleAttributeDefinitionRequired(SchemaConstants.ICFS_UID);
         assertEquals(1, uidDef.getMaxOccurs());
         assertEquals(0, uidDef.getMinOccurs());
         assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
@@ -897,7 +897,7 @@ public class IntegrationTestTools {
         assertEquals("Wrong refined displayName for attribute " + SchemaConstants.ICFS_UID, "ConnId UID", uidDef.getDisplayName());
         assertEquals("Wrong refined displayOrder for attribute " + SchemaConstants.ICFS_UID, (Integer) 100, uidDef.getDisplayOrder());
 
-        ResourceAttributeDefinition<?> nameDef = accountDefinition.findAttributeDefinitionRequired(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttributeDefinition<?> nameDef = accountDefinition.findSimpleAttributeDefinitionRequired(SchemaConstants.ICFS_NAME);
         assertEquals(1, nameDef.getMaxOccurs());
         assertEquals(1, nameDef.getMinOccurs());
         assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
@@ -908,7 +908,7 @@ public class IntegrationTestTools {
         assertEquals("Wrong refined displayName for attribute " + SchemaConstants.ICFS_NAME, "ConnId Name", nameDef.getDisplayName());
         assertEquals("Wrong refined displayOrder for attribute " + SchemaConstants.ICFS_NAME, (Integer) 110, nameDef.getDisplayOrder());
 
-        assertNull("The _PASSWORD_ attribute sneaked into schema", accountDefinition.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS, "password")));
+        assertNull("The _PASSWORD_ attribute sneaked into schema", accountDefinition.findSimpleAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS, "password")));
     }
 
     //TODO: add language parameter..for now, use xml serialization

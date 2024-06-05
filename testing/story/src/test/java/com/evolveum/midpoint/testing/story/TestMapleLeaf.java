@@ -31,8 +31,8 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -160,8 +160,8 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         assertNotNull("Shadow not found", shadow);
-        ResourceAttributeContainer shadowContainer = ShadowUtil.getAttributesContainer(shadow);
-        ResourceAttribute<String> initials = shadowContainer.findAttribute(new QName(NS_RESOURCE, "initials"));
+        ShadowAttributesContainer shadowContainer = ShadowUtil.getAttributesContainer(shadow);
+        ShadowSimpleAttribute<String> initials = shadowContainer.findAttribute(new QName(NS_RESOURCE, "initials"));
         assertEquals(initials.size(), 3, "Expected 3 values in attribute, but found " + initials.size());
 
         Collection<String> values = initials.getRealValues();
@@ -189,8 +189,8 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         assertNotNull("Shadow not found", shadow);
-        ResourceAttributeContainer shadowContainer = ShadowUtil.getAttributesContainer(shadow);
-        ResourceAttribute<String> initials = shadowContainer.findAttribute(new QName(NS_RESOURCE, "initials"));
+        ShadowAttributesContainer shadowContainer = ShadowUtil.getAttributesContainer(shadow);
+        ShadowSimpleAttribute<String> initials = shadowContainer.findAttribute(new QName(NS_RESOURCE, "initials"));
         assertEquals(initials.size(), 3, "Expected 3 values in attribute, but found " + initials.size());
 
         Collection<String> values = initials.getRealValues();
@@ -218,8 +218,8 @@ public class TestMapleLeaf extends AbstractStoryTest {
 
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         assertNotNull("Shadow not found", shadow);
-        ResourceAttributeContainer shadowContainer = ShadowUtil.getAttributesContainer(shadow);
-        ResourceAttribute<String> initials = shadowContainer.findAttribute(new QName(NS_RESOURCE, "initials"));
+        ShadowAttributesContainer shadowContainer = ShadowUtil.getAttributesContainer(shadow);
+        ShadowSimpleAttribute<String> initials = shadowContainer.findAttribute(new QName(NS_RESOURCE, "initials"));
         assertEquals(initials.size(), 3, "Expected 3 values in attribute, but found " + initials.size());
 
         Collection<String> values = initials.getRealValues();

@@ -290,6 +290,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
     }
 
     protected void openConflictPerformed(AjaxRequestTarget target) {
+        // intentionally empty
     }
 
     private void submitPerformed(AjaxRequestTarget target, IModel<CustomValidity> customValidity) {
@@ -304,7 +305,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar(cv.getFrom());
         XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(cv.getTo());
 
-        access.setValidity(from, to);
+        access.setRequestItemsValidity(from, to);
 
         submitPerformed(target);
     }

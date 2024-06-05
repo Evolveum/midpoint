@@ -169,15 +169,14 @@ In this case search in schema "common/common-3" for "LockoutStatusType"
 |====
 
 === Couldn't count objects
-image:err-couldnt-count-objects.png[Error couldn't count objects]
 
 This is error message telling that processing of the query failed somehow during processing.
 
 To know why it failed you need to open the error message and see what happened in the messages below.
 
-==== Unknown matching rule 'stringIgnoreCase'
+==== Unsupported matching rule 'stringIgnoreCase'
 
-image:err-couldnt-count-objects.png[Error couldn't count objects]
+image:err-unsupported-matching-rule.png[Error unsupported matching rule]
 
 [cols="15h,50" width=85%]
 |====
@@ -188,8 +187,7 @@ image:err-couldnt-count-objects.png[Error couldn't count objects]
 | `locality =[stringIgnoreCase] "Edinburgh"`
 
 | Error message
-| Couldn't count objects +
-Unknown matching rule 'stringIgnoreCase'.
+| Unsupported matching rule 'stringIgnoreCase' for value type 'PolyStringType'.
 
 | Reason
 a| The matching rules relate to attribute type. +
@@ -204,3 +202,32 @@ a| * For more information about matching rules in query see xref:../introduction
 * List of all matching rules is defined in xref:/midpoint/reference/concepts/matching-rules.adoc[matching rules] page.
 
 |====
+
+==== Cannot invoke ..SubfilterOrValueContext.valueSet() because "subfilterOrValue" is null
+
+image:err-cannot-invoke-subfilter-value-is-null.png[Error cannot invoke subfilter - value is null]
+
+[cols="15h,50" width=85%]
+|====
+| Request
+| Find all users having name similar to "ang" using levenshtein distance search.
+
+| Query
+| `name levenshtein("ang",2,true)`
+
+| Error message
+| Cannot invoke "com.evolveum.axiom.lang.antlr.query.AxiomQueryParser$SubfilterOrValueContext.valueSet()" because "subfilterOrValue" is null
+
+| Reason
+a| The `levenshtein` is filter name. Not a function with parameters. +
+There is missing space between `levenshtein` filter name and `(`
+
+| Correct query
+| `name levenshtein ("ang",2,true)`
+
+| Troubleshooting hints
+a| xref:../introduction.adoc#_similarity_filters[Similarity search filters] require 3 attributes. The set of attributes is enclosed in brackets.
+
+|====
+
+

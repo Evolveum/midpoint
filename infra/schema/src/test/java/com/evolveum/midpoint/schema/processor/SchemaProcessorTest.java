@@ -66,17 +66,17 @@ public class SchemaProcessorTest extends AbstractSchemaTest {
         var objectDef = schema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS);
         assertNotNull("AccountObjectClass definition not found", objectDef);
 
-        ResourceAttributeDefinition<?> attrDef = objectDef.findAttributeDefinitionRequired(new ItemName(icfNS, "uid"));
+        ShadowSimpleAttributeDefinition<?> attrDef = objectDef.findSimpleAttributeDefinitionRequired(new ItemName(icfNS, "uid"));
         AssertJUnit.assertTrue("uid readability", attrDef.canRead());
         AssertJUnit.assertFalse("uid updateability", attrDef.canModify());
         AssertJUnit.assertFalse("uid createability", attrDef.canAdd());
 
-        attrDef = objectDef.findAttributeDefinitionRequired(new ItemName(NS_RI, "title"));
+        attrDef = objectDef.findSimpleAttributeDefinitionRequired(new ItemName(NS_RI, "title"));
         AssertJUnit.assertTrue(attrDef.canRead());
         AssertJUnit.assertTrue(attrDef.canModify());
         AssertJUnit.assertTrue(attrDef.canAdd());
 
-        attrDef = objectDef.findAttributeDefinitionRequired(new ItemName(NS_RI, "photo"));
+        attrDef = objectDef.findSimpleAttributeDefinitionRequired(new ItemName(NS_RI, "photo"));
         AssertJUnit.assertFalse(attrDef.canRead());
         AssertJUnit.assertTrue(attrDef.canModify());
         AssertJUnit.assertTrue(attrDef.canAdd());

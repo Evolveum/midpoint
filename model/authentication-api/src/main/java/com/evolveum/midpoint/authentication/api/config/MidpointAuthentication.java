@@ -129,7 +129,6 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return AuthenticationSequenceTypeUtil.getSequenceIdentifier(sequence);
     }
 
-    @Deprecated
     public void setSequence(AuthenticationSequenceType sequence) {
         this.sequence = sequence;
     }

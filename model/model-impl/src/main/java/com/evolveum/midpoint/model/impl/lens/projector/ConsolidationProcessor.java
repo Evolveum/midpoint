@@ -310,7 +310,7 @@ public class ConsolidationProcessor {
         }
 
         //noinspection unchecked
-        ResourceAttributeDefinition<T> attributeDef =
+        ShadowSimpleAttributeDefinition<T> attributeDef =
                 triple.getAnyValue().getConstruction().findAttributeDefinition(itemName);
 
         ItemPath itemPath = ItemPath.create(ShadowType.F_ATTRIBUTES, itemName);
@@ -360,12 +360,12 @@ public class ConsolidationProcessor {
             ObjectDelta<ShadowType> existingDelta,
             LensProjectionContext projCtx,
             QName associationName,
-            DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>> triple,
+            DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>> triple,
             StrengthSelector strengthSelector,
             Task task,
             OperationResult result) throws SchemaException, ExpressionEvaluationException {
 
-        ShadowAssociationDefinition associationDef = objectDef.findAssociationDefinitionRequired(associationName);
+        ShadowReferenceAttributeDefinition associationDef = objectDef.findAssociationDefinitionRequired(associationName);
 
         if (!associationDef.isVisible(task)) {
             LOGGER.trace("Skipping consolidation of association {} because it is not visible in current execution mode",

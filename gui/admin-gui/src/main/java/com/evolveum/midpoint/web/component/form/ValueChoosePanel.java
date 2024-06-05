@@ -228,7 +228,11 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 
         };
 
-        pageBase.showMainPopup(objectBrowserPanel, target);
+        if (parentPopupableDialog != null) {
+            pageBase.replaceMainPopup(objectBrowserPanel, target);
+        } else {
+            pageBase.showMainPopup(objectBrowserPanel, target);
+        }
 
     }
 
@@ -313,7 +317,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
     //after the object is selected in ObjectBrowserPanel, the second popup is closed and the first one is shown again
     private void managePopupDialogContent(PageBase pageBase, AjaxRequestTarget target) {
         if (parentPopupableDialog != null) {
-            pageBase.showMainPopup(parentPopupableDialog, target);
+            pageBase.replaceMainPopup(parentPopupableDialog, target);
         } else {
             pageBase.hideMainPopup(target);
         }

@@ -68,7 +68,7 @@
             <xsd:element name="schema" type="tns:SchemaCapabilityType" minOccurs="0"/>
             <xsd:element name="discoverConfiguration" type="tns:DiscoverConfigurationCapabilityType" minOccurs="0"/>
             <xsd:element name="activation" type="tns:ActivationCapabilityType" minOccurs="0"/>
-            <xsd:element name="associations" type="tns:AssociationsCapabilityType" minOccurs="0"/>
+            <xsd:element name="references" type="tns:ReferencesCapabilityType" minOccurs="0"/>
             <xsd:element name="credentials" type="tns:CredentialsCapabilityType" minOccurs="0"/>
             <xsd:element name="liveSync" type="tns:LiveSyncCapabilityType" minOccurs="0"/>
             <xsd:element name="asyncUpdate" type="tns:AsyncUpdateCapabilityType" minOccurs="0"/>
@@ -880,7 +880,7 @@
 
     <xsd:element name="runAs" type="tns:RunAsCapabilityType"/>
 
-    <xsd:complexType name="AssociationsCapabilityType">
+    <xsd:complexType name="ReferencesCapabilityType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -892,18 +892,18 @@
         <xsd:complexContent>
             <xsd:extension base="tns:CapabilityType">
                 <xsd:sequence>
-                    <xsd:element name="associationClass" type="tns:SimulatedAssociationClassType" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element name="type" type="tns:SimulatedReferenceTypeDefinitionType" minOccurs="0" maxOccurs="unbounded" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:element name="associations" type="tns:AssociationsCapabilityType"/>
+    <xsd:element name="associations" type="tns:ReferencesCapabilityType"/>
 
-    <xsd:complexType name="SimulatedAssociationClassType">
+    <xsd:complexType name="SimulatedReferenceTypeDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Definition of a simulated association class.
+                Definition of a simulated reference type.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -914,11 +914,11 @@
             <xsd:element name="name" type="xsd:QName">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The name of the association class. The namespace must be empty or "ri:".
+                        The name of the reference type. The namespace must be empty or "ri:".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="subject" type="tns:SimulatedAssociationClassParticipantType">
+            <xsd:element name="subject" type="tns:SimulatedReferenceTypeParticipantType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Definition of the "subject" side of this association class.
@@ -926,7 +926,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="object" type="tns:SimulatedAssociationClassParticipantType">
+            <xsd:element name="object" type="tns:SimulatedReferenceTypeParticipantType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Definition of the "subject" side of this association class.
@@ -957,12 +957,12 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="simulatedAssociationClass" type="tns:SimulatedAssociationClassType"/>
+    <xsd:element name="simulatedReferenceType" type="tns:SimulatedReferenceTypeDefinitionType"/>
 
-    <xsd:complexType name="SimulatedAssociationClassParticipantType">
+    <xsd:complexType name="SimulatedReferenceTypeParticipantType">
         <xsd:annotation>
             <xsd:documentation>
-                Definition of a participant (subject or object) of an association class.
+                Definition of a participant (subject or object) of a reference.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>

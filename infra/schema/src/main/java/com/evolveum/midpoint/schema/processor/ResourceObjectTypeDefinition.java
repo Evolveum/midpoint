@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ObjectSynchronizationReactionDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
@@ -134,7 +134,7 @@ public interface ResourceObjectTypeDefinition
     boolean hasSynchronizationReactionsDefinition();
 
     /** Returns the synchronization reactions defined here. (They may be standalone.) */
-    @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions();
+    @NotNull Collection<? extends ObjectSynchronizationReactionDefinition> getSynchronizationReactions();
 
     /** Temporary? */
     @Nullable ExpressionType getClassificationCondition();

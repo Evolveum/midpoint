@@ -1,0 +1,16 @@
+= Module httpBasic
+:page-nav-title: Module httpBasic
+
+Definition of HTTP BASIC authentication module (RFC 7617).
+
+.Example of httpBasic module
+[source,xml]
+----
+<httpBasic>
+    <identifier>internalHttpBasic</identifier>
+    <description>Http basic username/password authentication, default user password</description>
+</httpBasic>
+----
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]

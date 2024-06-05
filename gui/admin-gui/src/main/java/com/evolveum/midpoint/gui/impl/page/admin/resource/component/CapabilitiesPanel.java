@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 /**
  * @author lskublik
  */
-public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> {
+public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<CapabilityCollectionType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperImpl.class);
 
@@ -70,7 +70,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
     public CapabilitiesPanel(
             String id,
             ResourceDetailsModel resourceModel,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model) {
+            IModel<PrismContainerValueWrapper<CapabilityCollectionType>> model) {
         super(id, model);
         this.resourceModel = resourceModel;
     }
@@ -100,7 +100,12 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
             protected ResourceObjectTypeDefinitionType load() {
                 if (getModelObject() != null) {
                     try {
-                        return getModelObject().getContainerValueApplyDelta().asContainerable();
+                        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parent =
+                                getModelObject().getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+                        if (parent == null) {
+                            return null;
+                        }
+                        return parent.getContainerValueApplyDelta().asContainerable();
                     } catch (SchemaException e) {
                         LOGGER.error("Couldn't get object type with applied deltas", e);
                     }
@@ -192,7 +197,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
         return new LoadableDetachableModel<>() {
             @Override
             protected List<PrismContainerWrapper<CapabilityType>> load() {
-                PrismContainerValueWrapper<Containerable> capabilitiesContainer = null;
+                PrismContainerValueWrapper<? extends Containerable> capabilitiesContainer = null;
                 try {
                     if (getModelObject() == null) {
                         capabilitiesContainer = resourceModel.getObjectWrapper().findContainer(
@@ -200,8 +205,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
                                 .getValues().iterator().next();
 
                     } else {
-                        capabilitiesContainer = getModelObject().findContainer(ResourceObjectTypeDefinitionType.F_CONFIGURED_CAPABILITIES)
-                                .getValues().iterator().next();
+                        capabilitiesContainer = getModelObject();
                     }
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't find capabilities container", e);
@@ -291,7 +295,7 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
         if (SchemaCapabilityType.class.isAssignableFrom(capability)) {
             return "fa fa-table-cells";
         }
-        if (AssociationsCapabilityType.class.isAssignableFrom(capability)) {
+        if (ReferencesCapabilityType.class.isAssignableFrom(capability)) {
             return "fa fa-shield";
         }
         return "fa fa-circle";

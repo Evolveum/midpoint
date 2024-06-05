@@ -15,6 +15,14 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
+import com.evolveum.axiom.concepts.CheckedFunction;
+import com.evolveum.midpoint.prism.ItemDefinition;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
+
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.*;
 import org.jetbrains.annotations.NotNull;
@@ -473,17 +481,19 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 .processExtensions(extContainer, holderType);
     }
 
-    protected S parseSchemaObject(byte[] fullObject, String identifier) throws SchemaException {
+    public S parseSchemaObject(byte[] fullObject, String identifier) throws SchemaException {
         return parseSchemaObject(fullObject, identifier, schemaType());
     }
 
-    protected <T> T parseSchemaObject(byte[] fullObject, String identifier, Class<T> clazz) throws SchemaException {
+    public <T> T parseSchemaObject(byte[] fullObject, String identifier, Class<T> clazz) throws SchemaException {
         String serializedForm = fullObject != null
                 ? new String(fullObject, StandardCharsets.UTF_8)
                 : null;
         try {
-            RepositoryObjectParseResult<T> result =
-                    repositoryContext().parsePrismObject(serializedForm, clazz);
+            var definition = getDefinition();
+            RepositoryObjectParseResult<T> result = definition != null ?
+                    repositoryContext().parsePrismObject(serializedForm, definition,  clazz)
+                    : repositoryContext().parsePrismObject(serializedForm, clazz);
             T schemaObject = result.prismValue;
             if (result.parsingContext.hasWarnings()) {
                 logger.warn("Object {} parsed with {} warnings",
@@ -506,7 +516,11 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     /** Creates serialized (byte array) form of an object or a container. */
     public <C extends Containerable> byte[] createFullObject(C container) throws SchemaException {
         repositoryContext().normalizeAllRelations(container.asPrismContainerValue());
+
+        ItemDefinition<?> definition = (ItemDefinition<?>) getDefinition();
+
         return repositoryContext().createStringSerializer()
+                .definition(definition)
                 .itemsToSkip(fullObjectItemsToSkip())
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
@@ -602,5 +616,25 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             SqlQueryContext<S, Q, R> sqlQueryContext, JdbcSession jdbcSession, Collection<SelectorOptions<GetOperationOptions>> options) {
         return (tuple, entityPath) ->
                 toSchemaObjectCompleteSafe(tuple, entityPath, options, jdbcSession, false);
+    }
+
+    /**
+     * Returns current global item definition for items stored in the table.
+     * @return
+     */
+    @Nullable
+    protected ItemDefinition<?> getDefinition() {
+        if (definitionDerivationKey() == null) {
+            return null;
+        }
+        return PrismContext.get().getSchemaRegistry().getDerivedObject(definitionDerivationKey(), definitionDerivation());
+    }
+
+    protected CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> definitionDerivation() {
+        return null;
+    }
+
+    protected SchemaRegistryState.DerivationKey<ItemDefinition<?>> definitionDerivationKey() {
+        return null;
     }
 }

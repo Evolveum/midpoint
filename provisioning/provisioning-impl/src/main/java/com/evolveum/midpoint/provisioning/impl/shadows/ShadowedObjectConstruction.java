@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
@@ -75,7 +74,7 @@ class ShadowedObjectConstruction {
     @NotNull private final ExistingResourceObject resourceObject;
 
     /** Attributes of the resource object. */
-    @NotNull private final ResourceAttributeContainer resourceObjectAttributes;
+    @NotNull private final ShadowAttributesContainer resourceObjectAttributes;
 
     /** Associations of the resource object. */
     @Nullable private final PrismContainer<ShadowAssociationsType> resourceObjectAssociations;
@@ -305,11 +304,11 @@ class ShadowedObjectConstruction {
                 authoritativeDefinition.getPrismObjectDefinition());
     }
 
-    private void copyAttributes(OperationResult result) throws SchemaException, ConfigurationException {
+    private void copyAttributes(OperationResult result) throws SchemaException {
 
         resultingShadowedBean.asPrismObject().removeContainer(ShadowType.F_ATTRIBUTES);
 
-        ResourceAttributeContainer resultAttributes = resourceObjectAttributes.clone();
+        ShadowAttributesContainer resultAttributes = resourceObjectAttributes.clone();
         resultAttributes.applyDefinition(authoritativeDefinition.toResourceAttributeContainerDefinition());
 
         b.accessChecker.filterGetAttributes(resultAttributes, authoritativeDefinition, result);
@@ -327,20 +326,27 @@ class ShadowedObjectConstruction {
      * @return false if the association value does not fit and should be removed
      */
     private boolean adoptAssociationValue(IterableAssociationValue iterableAssociationValue, OperationResult result)
-            throws SchemaException, CommunicationException, ConfigurationException,
+            throws CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException, EncryptionException {
 
         LOGGER.trace("Adopting association value (acquiring shadowRef) for {}", iterableAssociationValue);
 
+        var associationName = iterableAssociationValue.name();
         var associationValue = iterableAssociationValue.associationValue();
-        var attributesContainer = associationValue.getAttributesContainerRequired();
-        var associationClassDef = associationValue.getAssociationClassDefinition();
+
+        if (authoritativeDefinition.findReferenceAttributeDefinition(associationName) == null) {
+            // This is quite legal. Imagine that we are looking for account/type1 type that has an association defined,
+            // but the shadow is classified (after being fetched) as account/type2 that does not have the association.
+            // We should simply ignore such association.
+            LOGGER.trace("Association with name {} does not exist in {}, ignoring the value", associationName, ctx);
+            return false;
+        }
 
         boolean potentialMatch = false;
 
-        for (var participantDefinition : associationClassDef.getObjects()) {
-            LOGGER.trace("Checking if target object participant definition applies: {}", participantDefinition);
-            ResourceObjectDefinition participantObjectDefinition = participantDefinition.getObjectDefinition();
+        for (var targetParticipantType : associationValue.getDefinitionRequired().getTargetParticipantTypes()) {
+            LOGGER.trace("Checking if target object participant restriction matches: {}", targetParticipantType);
+            ResourceObjectDefinition participantObjectDefinition = targetParticipantType.getObjectDefinition();
             ProvisioningContext ctxAssociatedObject = ctx.spawnForDefinition(participantObjectDefinition);
 
             var entitlementShadow = acquireAssociatedRepoShadow(iterableAssociationValue, ctxAssociatedObject, result);
@@ -351,13 +357,12 @@ class ShadowedObjectConstruction {
             }
 
             @Nullable var existingClassification = ResourceObjectTypeIdentification.createIfKnown(entitlementShadow.getBean());
-            @Nullable var requiredClassification = participantDefinition.getTypeIdentification();
+            @Nullable var requiredClassification = targetParticipantType.getTypeIdentification();
 
             if (shadowDoesMatch(requiredClassification, existingClassification)) {
                 LOGGER.trace("Association value matches. Repo shadow is: {}", entitlementShadow);
                 associationValue.setShadow(entitlementShadow);
                 if (entitlementShadow.isClassified()) {
-                    addMissingIdentifiers(attributesContainer, participantObjectDefinition, entitlementShadow);
                     return true;
                 } else {
                     // We are not sure we have the right shadow. Hence let us be careful and not copy any identifiers.
@@ -389,23 +394,6 @@ class ShadowedObjectConstruction {
         return requiredClassification == null
                 || existingClassification == null // see the note above
                 || existingClassification.equals(requiredClassification);
-    }
-
-    /** Copies missing identifiers from entitlement repo shadow to the association value; does not overwrite anything! */
-    private void addMissingIdentifiers(
-            ResourceAttributeContainer identifiersContainer,
-            ResourceObjectDefinition objectDefinition,
-            AbstractShadow shadow)
-            throws SchemaException {
-        for (ResourceAttributeDefinition<?> identifierDef : objectDefinition.getAllIdentifiers()) {
-            ItemName identifierName = identifierDef.getItemName();
-            if (!identifiersContainer.containsAttribute(identifierName)) {
-                var shadowIdentifier = shadow.findAttribute(identifierName);
-                if (shadowIdentifier != null) {
-                    identifiersContainer.add(shadowIdentifier.clone());
-                }
-            }
-        }
     }
 
     /**
@@ -477,5 +465,4 @@ class ShadowedObjectConstruction {
                 ctxEntitlement, repoShadow, existingResourceObject, null);
         return shadowPostProcessor.execute(result);
     }
-
 }

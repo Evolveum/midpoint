@@ -393,7 +393,14 @@ public class TestSecurityGovernance extends AbstractEmptySecurityTest {
 
     private void assertCertWorkItemsVisible(AccessCertificationWorkItemId... ids) throws Exception {
         // When directly searching for them
-        assertCertWorkItemsSearch(ids);
+        assertSearchCertWorkItems(ids);
+
+        // When directly searching for them (with some filters)
+        assertSearchCertWorkItems(
+                queryFor(AccessCertificationWorkItemType.class)
+                        .item(AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP).isNull()
+                        .build(),
+                ids);
 
         // From cases
         var fromCases = AccessCertificationWorkItemId.of(getAllCertWorkItemsFromCases());

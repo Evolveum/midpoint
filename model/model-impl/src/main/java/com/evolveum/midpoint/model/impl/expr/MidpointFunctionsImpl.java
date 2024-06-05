@@ -866,7 +866,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             throws SchemaException, ConfigurationException {
         ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchema(resourceType);
         ResourceObjectDefinition rAccountDef = rSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
-        ResourceAttributeDefinition<?> attrDef = rAccountDef.findAttributeDefinition(attributeName);
+        ShadowSimpleAttributeDefinition<?> attrDef = rAccountDef.findSimpleAttributeDefinition(attributeName);
         if (attrDef == null) {
             throw new SchemaException("No attribute '" + attributeName + "' in " + rAccountDef);
         }
@@ -2306,8 +2306,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @NotNull
     @Override
-    public <T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, QName objectClassName,
-            QName attributeName) throws SchemaException, ConfigurationException {
+    public <T> ShadowSimpleAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, QName objectClassName,
+                                                                         QName attributeName) throws SchemaException, ConfigurationException {
         var resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         if (resourceSchema == null) {
             throw new SchemaException("No resource schema in " + resource);
@@ -2316,19 +2316,19 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (ocDef == null) {
             throw new SchemaException("No definition of object class " + objectClassName + " in " + resource);
         }
-        ResourceAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(attributeName);
+        ShadowSimpleAttributeDefinition<?> attrDef = ocDef.findSimpleAttributeDefinition(attributeName);
         if (attrDef == null) {
             throw new SchemaException("No definition of attribute " + attributeName + " in object class " + objectClassName
                     + " in " + resource);
         }
         //noinspection unchecked
-        return (ResourceAttributeDefinition<T>) attrDef;
+        return (ShadowSimpleAttributeDefinition<T>) attrDef;
     }
 
     @NotNull
     @Override
-    public <T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, String objectClassName,
-            String attributeName) throws SchemaException, ConfigurationException {
+    public <T> ShadowSimpleAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, String objectClassName,
+                                                                         String attributeName) throws SchemaException, ConfigurationException {
         return getAttributeDefinition(resource, new QName(objectClassName), new QName(attributeName));
     }
 

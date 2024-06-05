@@ -35,7 +35,7 @@ import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -599,7 +599,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .beginAttributes()
                 .<ShadowType>end()
                 .asPrismObject();
-        ResourceAttribute<String> nameAttr = RESOURCE_DUMMY_HACKED.controller.createAccountAttribute(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttribute<String> nameAttr = RESOURCE_DUMMY_HACKED.controller.createAccountAttribute(SchemaConstants.ICFS_NAME);
         nameAttr.setRealValue("hacker");
         hacker.findContainer(ShadowType.F_ATTRIBUTES).getValue().add(nameAttr);
         return hacker;

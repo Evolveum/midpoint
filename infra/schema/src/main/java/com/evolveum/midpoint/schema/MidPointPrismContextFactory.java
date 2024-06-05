@@ -11,12 +11,6 @@ import java.io.IOException;
 import java.util.Collections;
 import javax.xml.XMLConstants;
 
-import com.evolveum.midpoint.prism.impl.key.DefaultNaturalKeyDefinitionImpl;
-import com.evolveum.midpoint.prism.impl.GenericItemMerger;
-import com.evolveum.midpoint.schema.merger.assignment.AssignmentMerger;
-import com.evolveum.midpoint.schema.merger.objdef.LimitationsMerger;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 
@@ -24,8 +18,10 @@ import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 import com.evolveum.midpoint.prism.ItemMergerFactory;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.impl.GenericItemMerger;
 import com.evolveum.midpoint.prism.impl.ItemMergerFactoryImpl;
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
+import com.evolveum.midpoint.prism.impl.key.DefaultNaturalKeyDefinitionImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.impl.schema.axiom.AxiomEnabledSchemaRegistry;
 import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
@@ -34,11 +30,14 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.merger.assignment.AssignmentMerger;
+import com.evolveum.midpoint.schema.merger.objdef.LimitationsMerger;
 import com.evolveum.midpoint.schema.merger.resource.ObjectTypeDefinitionMerger;
 import com.evolveum.midpoint.schema.metadata.MidpointProvenanceEquivalenceStrategy;
 import com.evolveum.midpoint.schema.metadata.MidpointValueMetadataFactory;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ObjectFactory;
 
 /**
@@ -111,25 +110,10 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
                 "GuiObjectDetailsPageType",
                 GuiObjectDetailsPageType.class,
                 m -> new GenericItemMerger(m, DefaultNaturalKeyDefinitionImpl.of(GuiObjectDetailsPageType.F_TYPE)));
-//        factory.registerMergerSupplier(
-//                "GuiResourceDetailsPageType",
-//                GuiResourceDetailsPageType.class,
-//                m -> new GenericItemMerger(m, DefaultNaturalKeyImpl.of(
-//                        GuiResourceDetailsPageType.F_TYPE,
-//                        GuiResourceDetailsPageType.F_CONNECTOR_REF)));
         factory.registerMergerSupplier(
                 "ExpressionEvaluatorProfileType",
                 ExpressionEvaluatorProfileType.class,
                 m -> new GenericItemMerger(m, DefaultNaturalKeyDefinitionImpl.of(ExpressionEvaluatorProfileType.F_TYPE)));
-        factory.registerMergerSupplier(
-                "ScriptLanguageExpressionProfileType",
-                ScriptLanguageExpressionProfileType.class,
-                m -> new GenericItemMerger(
-                        m, DefaultNaturalKeyDefinitionImpl.of(ScriptLanguageExpressionProfileType.F_LANGUAGE)));
-//        factory.registerMergerSupplier(
-//                "ClassLoggerLevelOverrideType",
-//                ClassLoggerLevelOverrideType.class,
-//                m -> new GenericItemMerger(m, DefaultNaturalKeyImpl.of(ClassLoggerLevelOverrideType.F_LOGGER)));
         factory.registerMergerSupplier(
                 "ObjectSelectorType",
                 ObjectSelectorType.class,
@@ -262,6 +246,9 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/api-types-3.xsd", "apti",
                 com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectFactory.class.getPackage());
 
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/prism-schema/prism-schema-3.xsd", "prisms",
+                com.evolveum.midpoint.xml.ns._public.prism_schema_3.ObjectFactory.class.getPackage());
+
         schemaRegistry.registerPrismSchemasFromWsdlResource("xml/ns/public/model/model-3.wsdl",
                 Collections.singletonList(ObjectFactory.class.getPackage()));
 
@@ -291,6 +278,8 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-extension-3.xsd", "connext");
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/extension-3.xsd", "se");
+
+        schemaRegistry.registerStaticNamespace(MidPointConstants.NS_JAXB, MidPointConstants.PREFIX_NS_JAXB, false);
 
         schemaRegistry.registerStaticNamespace(MidPointConstants.NS_RI, MidPointConstants.PREFIX_NS_RI, false);
 

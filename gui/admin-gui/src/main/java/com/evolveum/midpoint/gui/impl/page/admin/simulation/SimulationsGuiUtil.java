@@ -37,7 +37,7 @@ import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil;
@@ -236,7 +236,7 @@ public class SimulationsGuiUtil {
 
         String name = null;
         try {
-            ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute((ShadowType) obj);
+            ShadowSimpleAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute((ShadowType) obj);
             Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
              name = realName != null ? realName.toString() : null;
         } catch (SystemException e) {
@@ -248,7 +248,7 @@ public class SimulationsGuiUtil {
     private static String getProcessedShadowName(ShadowType shadow, PageBase page) {
         ShadowKindType kind = shadow.getKind() != null ? shadow.getKind() : ShadowKindType.UNKNOWN;
 
-        ResourceAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute(shadow);
+        ShadowSimpleAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute(shadow);
         Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
         String name = realName != null ? realName.toString() : "";
 

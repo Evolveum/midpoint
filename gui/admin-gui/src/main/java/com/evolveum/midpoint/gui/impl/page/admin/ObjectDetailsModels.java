@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IDetachable;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,6 +57,8 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
 
     private LoadableDetachableModel<O> summaryModel;
     private List<ObjectDelta<? extends ObjectType>> savedDeltas = new ArrayList<>();
+
+    private final Map<String, IModel<PrismContainerValueWrapper>> subMenuModels = new HashMap<>();
 
     public ObjectDetailsModels(LoadableDetachableModel<PrismObject<O>> prismObjectModel, ModelServiceLocator serviceLocator) {
         this.prismObjectModel = prismObjectModel;
@@ -477,4 +481,19 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         retDeltas.addAll(actualDeltas);
     }
 
+    public void setSubPanelModel(String panelIdentifier, IModel<PrismContainerValueWrapper> valueModel) {
+        if (subMenuModels.containsKey(panelIdentifier)) {
+            subMenuModels.replace(panelIdentifier, valueModel);
+        } else {
+            subMenuModels.put(panelIdentifier, valueModel);
+        }
+    }
+
+    public boolean containsModelForSubmenu(String identifier) {
+        return subMenuModels.containsKey(identifier);
+    }
+
+    public IModel<PrismContainerValueWrapper> getModelForSubmenu(String identifier) {
+        return subMenuModels.get(identifier);
+    }
 }

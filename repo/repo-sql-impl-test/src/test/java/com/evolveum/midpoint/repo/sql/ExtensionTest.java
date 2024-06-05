@@ -80,9 +80,9 @@ public class ExtensionTest extends BaseSQLRepoTest {
     private PrismObject<ShadowType> expectedShadow;
     private String shadowOid;
 
-    private ResourceAttributeDefinition<String> attrGroupNameDefinition;
-    private ResourceAttributeDefinition<String> attrMemberDefinition;
-    private ResourceAttributeDefinition<String> attrManagerDefinition;
+    private ShadowSimpleAttributeDefinition<String> attrGroupNameDefinition;
+    private ShadowSimpleAttributeDefinition<String> attrMemberDefinition;
+    private ShadowSimpleAttributeDefinition<String> attrManagerDefinition;
 
     private RExtItem itemGroupName;
     private RExtItem itemMember;
@@ -114,9 +114,9 @@ public class ExtensionTest extends BaseSQLRepoTest {
                         .getCompleteSchemaRequired()
                         .findObjectClassDefinitionRequired(RI_GROUP_OBJECT_CLASS);
 
-        attrGroupNameDefinition = classDef.findAttributeDefinitionRequired(new ItemName(NS_RI, "groupName"));
-        attrMemberDefinition = classDef.findAttributeDefinitionRequired(new ItemName(NS_RI, "member"));
-        attrManagerDefinition = classDef.findAttributeDefinitionRequired(new ItemName(NS_RI, "manager"));
+        attrGroupNameDefinition = classDef.findSimpleAttributeDefinitionRequired(new ItemName(NS_RI, "groupName"));
+        attrMemberDefinition = classDef.findSimpleAttributeDefinitionRequired(new ItemName(NS_RI, "member"));
+        attrManagerDefinition = classDef.findSimpleAttributeDefinitionRequired(new ItemName(NS_RI, "manager"));
 
         shadowAttributesDefinition = classDef.toResourceAttributeContainerDefinition();
         shadowDefinition = classDef.getPrismObjectDefinition();
@@ -1864,13 +1864,13 @@ public class ExtensionTest extends BaseSQLRepoTest {
         PrismContainer<?> attributesContainer = shadowAttributesDefinition.instantiate();
         expectedShadow.getValue().add(attributesContainer);
         PrismContainerValue<?> attributes = attributesContainer.getValue();
-        ResourceAttribute<String> name = attrGroupNameDefinition.instantiate();
+        ShadowSimpleAttribute<String> name = attrGroupNameDefinition.instantiate();
         name.setRealValue("alumni");
         attributes.add(name);
-        ResourceAttribute<String> member = attrMemberDefinition.instantiate();
+        ShadowSimpleAttribute<String> member = attrMemberDefinition.instantiate();
         member.addRealValues("banderson", "kwhite");
         attributes.add(member);
-        ResourceAttribute<String> manager = attrManagerDefinition.instantiate();
+        ShadowSimpleAttribute<String> manager = attrManagerDefinition.instantiate();
         manager.addRealValues("jack", "jim");
         attributes.add(manager);
 
@@ -2355,13 +2355,13 @@ public class ExtensionTest extends BaseSQLRepoTest {
         expectedShadow.getValue().removeContainer(ShadowType.F_ATTRIBUTES); // just for sure
         PrismContainer<?> attributesContainer = shadowAttributesDefinition.instantiate();
         PrismContainerValue<?> attributes = attributesContainer.getValue();
-        ResourceAttribute<String> name = attrGroupNameDefinition.instantiate();
+        ShadowSimpleAttribute<String> name = attrGroupNameDefinition.instantiate();
         name.setRealValue("alumni");
         attributes.add(name);
-        ResourceAttribute<String> member = attrMemberDefinition.instantiate();
+        ShadowSimpleAttribute<String> member = attrMemberDefinition.instantiate();
         member.addRealValues("banderson", "kwhite");
         attributes.add(member);
-        ResourceAttribute<String> manager = attrManagerDefinition.instantiate();
+        ShadowSimpleAttribute<String> manager = attrManagerDefinition.instantiate();
         manager.addRealValues("jack", "jim");
         attributes.add(manager);
 
@@ -2426,13 +2426,13 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         PrismContainer<?> attributesContainer = shadowAttributesDefinition.instantiate();
         PrismContainerValue<?> attributes = attributesContainer.getValue();
-        ResourceAttribute<String> name = attrGroupNameDefinition.instantiate();
+        ShadowSimpleAttribute<String> name = attrGroupNameDefinition.instantiate();
         name.setRealValue("alumni2");
         attributes.add(name);
-        ResourceAttribute<String> member = attrMemberDefinition.instantiate();
+        ShadowSimpleAttribute<String> member = attrMemberDefinition.instantiate();
         member.addRealValues("banderson2", "kwhite2");
         attributes.add(member);
-        ResourceAttribute<String> manager = attrManagerDefinition.instantiate();
+        ShadowSimpleAttribute<String> manager = attrManagerDefinition.instantiate();
         manager.addRealValues("jack2", "jim2");
         attributes.add(manager);
 
@@ -2496,13 +2496,13 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         PrismContainer<?> attributesContainer = shadowAttributesDefinition.instantiate();
         PrismContainerValue<?> attributes = attributesContainer.getValue();
-        ResourceAttribute<String> name = attrGroupNameDefinition.instantiate();
+        ShadowSimpleAttribute<String> name = attrGroupNameDefinition.instantiate();
         name.setRealValue("alumni3");
         attributes.add(name);
-        ResourceAttribute<String> member = attrMemberDefinition.instantiate();
+        ShadowSimpleAttribute<String> member = attrMemberDefinition.instantiate();
         member.addRealValues("banderson3", "kwhite3");
         attributes.add(member);
-        ResourceAttribute<String> manager = attrManagerDefinition.instantiate();
+        ShadowSimpleAttribute<String> manager = attrManagerDefinition.instantiate();
         manager.addRealValues("jack3", "jim3");
         attributes.add(manager);
 

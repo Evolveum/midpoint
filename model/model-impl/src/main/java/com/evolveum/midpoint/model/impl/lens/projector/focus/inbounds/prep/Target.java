@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The target i.e. the object (focus, assignment, ...) into which the output of mappings will be put.
@@ -26,7 +27,7 @@ abstract class Target<T extends Containerable> {
      * - For pre-mappings this will be the empty object.
      * - For full processing, this will always be the target focus object (the "new" version).
      */
-    @NotNull final PrismContainerValue<T> targetPcv;
+    @Nullable final PrismContainerValue<T> targetPcv;
 
     /** Focus definition. It should be a CTD instead, but the mapping evaluation expects PCD for now. */
     @NotNull final PrismContainerDefinition<T> targetDefinition;
@@ -37,7 +38,7 @@ abstract class Target<T extends Containerable> {
     @NotNull private final ItemPath targetPathPrefix;
 
     Target(
-            @NotNull PrismContainerValue<T> targetPcv,
+            @Nullable PrismContainerValue<T> targetPcv,
             @NotNull PrismContainerDefinition<T> targetDefinition,
             @NotNull PathKeyedMap<ItemDefinition<?>> itemDefinitionMap,
             @NotNull ItemPath targetPathPrefix) {
@@ -47,8 +48,8 @@ abstract class Target<T extends Containerable> {
         this.targetPathPrefix = targetPathPrefix;
     }
 
-    @NotNull T getTargetRealValue() {
-        return targetPcv.asContainerable();
+    @Nullable T getTargetRealValue() {
+        return targetPcv != null ? targetPcv.asContainerable() : null;
     }
 
     @NotNull ItemPath getTargetPathPrefix() {

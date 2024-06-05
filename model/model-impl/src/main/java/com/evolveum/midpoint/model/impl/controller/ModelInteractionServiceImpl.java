@@ -93,7 +93,7 @@ import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -401,9 +401,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 attributesReadDecision, attributesAddDecision, attributesModifyDecision);
 
         // Let's work on the copied list, as we modify (replace = delete+add) the definitions in the object definition.
-        List<? extends ResourceAttributeDefinition<?>> definitionsCopy =
-                new ArrayList<>(objectDefinition.getAttributeDefinitions());
-        for (ResourceAttributeDefinition<?> rAttrDef : definitionsCopy) {
+        List<? extends ShadowSimpleAttributeDefinition<?>> definitionsCopy =
+                new ArrayList<>(objectDefinition.getSimpleAttributeDefinitions());
+        for (ShadowSimpleAttributeDefinition<?> rAttrDef : definitionsCopy) {
             ItemPath attributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, rAttrDef.getItemName());
             AuthorizationDecisionType attributeReadDecision =
                     securityConstraints.computeItemDecision(
@@ -422,7 +422,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                     || attributeModifyDecision != AuthorizationDecisionType.ALLOW) {
 
                 // This opens up flag overriding
-                ResourceAttributeDefinition<?> attrDefClone = rAttrDef.clone();
+                ShadowSimpleAttributeDefinition<?> attrDefClone = rAttrDef.clone();
                 if (attributeReadDecision != AuthorizationDecisionType.ALLOW) {
                     attrDefClone.setOverrideCanRead(false);
                 }
@@ -567,9 +567,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         try {
             return securityEnforcer.computeTargetSecurityFilter(
-                    principal, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN, AuthorizationPhaseType.REQUEST,
-                    targetType, focus, prismContext.queryFactory().createAll(), null, orderConstraintsList,
-                    gizmo, task, result);
+                    principal,
+                    ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN,
+                    ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH_BY,
+                    AuthorizationPhaseType.REQUEST, targetType, focus, prismContext.queryFactory().createAll(), null,
+                    orderConstraintsList, gizmo, task, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -585,9 +587,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return securityEnforcer.preProcessObjectFilter(
-                securityEnforcer.getMidPointPrincipal(), ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ATTORNEY, null,
-                searchResultType, origFilter, targetAuthorizationAction, List.of(),
-                SecurityEnforcer.Options.create(), task, parentResult);
+                securityEnforcer.getMidPointPrincipal(), ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ATTORNEY,
+                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH_BY,
+                null, searchResultType, origFilter, targetAuthorizationAction,
+                List.of(), SecurityEnforcer.Options.create(), task, parentResult);
     }
 
     @Override

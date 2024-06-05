@@ -8,7 +8,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.*;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdTypeMapper.connIdTypeToXsdTypeInfo;
-import static com.evolveum.midpoint.schema.processor.ObjectFactory.createNativeItemDefinition;
+import static com.evolveum.midpoint.schema.processor.ObjectFactory.createNativeAttributeDefinition;
 
 import java.util.*;
 import javax.xml.namespace.QName;
@@ -86,7 +86,7 @@ class ConnIdSchemaParser {
             }
         }
 
-        schemaBuilder.computeAssociationClasses();
+        schemaBuilder.computeReferenceTypes();
 
         NativeResourceSchema nativeSchema = schemaBuilder.getObjectBuilt();
         nativeSchema.freeze();
@@ -120,7 +120,7 @@ class ConnIdSchemaParser {
         @NotNull private final NativeObjectClassDefinitionBuilder ocDefBuilder;
 
         /** Already parsed attributes, indexed by their midPoint (UCF) QName. Used internally for some lookups. */
-        @NotNull private final Map<QName, NativeShadowItemDefinitionImpl<?>> parsedItemDefinitions = new HashMap<>();
+        @NotNull private final Map<QName, NativeShadowAttributeDefinitionImpl<?>> parsedItemDefinitions = new HashMap<>();
 
         /** Collecting information about supported special attributes (should be per object class, but currently is global). */
         @NotNull private final SpecialAttributes specialAttributes;
@@ -132,13 +132,13 @@ class ConnIdSchemaParser {
          * The definition of UID attribute, if present, and not overlapping with a different one.
          * In the case of overlap, the other attribute takes precedence, and its definition is used here.
          */
-        private NativeShadowItemDefinitionImpl<?> uidDefinition;
+        private NativeShadowAttributeDefinitionImpl<?> uidDefinition;
 
         /** True if UID is the same as NAME or another attribute, and therefore its definition was taken from it. */
         private boolean uidDefinitionTakenFromAnotherAttribute;
 
         /** The definition of NAME attribute, if present. */
-        private NativeShadowItemDefinitionImpl<?> nameDefinition;
+        private NativeShadowAttributeDefinitionImpl<?> nameDefinition;
 
         /**
          * The name of the object class is either like `AccountObjectClass`, `CustomPrivilegeObjectClass`, etc (for legacy mode)
@@ -158,7 +158,7 @@ class ConnIdSchemaParser {
             for (AttributeInfo connIdAttrInfo : connIdClassInfo.getAttributeInfo()) {
                 boolean isSpecial = specialAttributes.updateWithAttribute(connIdAttrInfo);
                 if (isSpecial) {
-                    continue; // Skip this attribute, capability is sufficient
+                    continue; // Skip this attribute, the capability presence is sufficient
                 }
                 var xsdAttrName = connIdAttributeNameToUcf(
                         connIdAttrInfo.getName(), connIdAttrInfo.getNativeName(), this::resolveFrameworkName);
@@ -178,7 +178,7 @@ class ConnIdSchemaParser {
             if (uidDefinition == null) {
                 // Every object has UID in ConnId, therefore add a default definition if no other was specified.
                 // Uid is a primary identifier of every object (this is the ConnId way).
-                uidDefinition = createNativeItemDefinition(SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING);
+                uidDefinition = createNativeAttributeDefinition(SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING);
                 uidDefinition.setMinOccurs(0); // It must not be present on create hence it cannot be mandatory.
                 uidDefinition.setMaxOccurs(1);
                 uidDefinition.setReadOnly();
@@ -212,7 +212,7 @@ class ConnIdSchemaParser {
         }
 
         private ItemName resolveFrameworkName(String frameworkName) {
-            for (NativeShadowItemDefinition parsedItemDefinition : parsedItemDefinitions.values()) {
+            for (NativeShadowAttributeDefinition parsedItemDefinition : parsedItemDefinitions.values()) {
                 if (frameworkName.equals(parsedItemDefinition.getFrameworkAttributeName())) {
                     return parsedItemDefinition.getItemName();
                 }
@@ -225,7 +225,7 @@ class ConnIdSchemaParser {
 
             QName xsdTypeName = xsdTypeInfo.xsdTypeName();
 
-            NativeShadowItemDefinitionImpl<?> mpItemDef = createNativeItemDefinition(xsdItemName, xsdTypeName);
+            NativeShadowAttributeDefinitionImpl<?> mpItemDef = createNativeAttributeDefinition(xsdItemName, xsdTypeName);
 
             var participantRole = xsdTypeInfo.associationParticipantRole();
             if (participantRole == null) {
@@ -234,7 +234,7 @@ class ConnIdSchemaParser {
                         PrettyPrinter.prettyPrintLazily(xsdItemName),
                         PrettyPrinter.prettyPrintLazily(xsdTypeName));
             } else {
-                mpItemDef.setAssociationParticipantRole(participantRole);
+                mpItemDef.setReferenceParticipantRole(participantRole);
                 LOGGER.trace("  association conversion: ConnId: {} ({}) -> XSD: {}",
                         connIdAttrName, connIdAttrInfo.getSubtype(), PrettyPrinter.prettyPrintLazily(xsdItemName));
             }
@@ -294,7 +294,7 @@ class ConnIdSchemaParser {
             }
         }
 
-        private void processCommonDefinitionParts(NativeShadowItemDefinitionImpl<?> mpItemDef, AttributeInfo connIdAttrInfo) {
+        private void processCommonDefinitionParts(NativeShadowAttributeDefinitionImpl<?> mpItemDef, AttributeInfo connIdAttrInfo) {
             mpItemDef.setMinOccurs(connIdAttrInfo.isRequired() ? 1 : 0);
             mpItemDef.setMaxOccurs(connIdAttrInfo.isMultiValued() ? -1 : 1);
 

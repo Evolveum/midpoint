@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.session;
 
+import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
@@ -20,6 +21,7 @@ public class CertCampaignsStorage implements PageStorage {
     private CertCampaignsSearchDto campaignsSearch;
     private ObjectPaging campaignsPaging;
     private Search search;
+    private ViewToggle viewToggle = ViewToggle.TILE;
 
     public CertCampaignsSearchDto getCampaignsSearch() {
         return campaignsSearch;
@@ -47,6 +49,14 @@ public class CertCampaignsStorage implements PageStorage {
     @Override
     public void setSearch(Search search) {
         this.search = search;
+    }
+
+    public ViewToggle getViewToggle() {
+        return viewToggle;
+    }
+
+    public void setViewToggle(ViewToggle viewToggle) {
+        this.viewToggle = viewToggle;
     }
 
     @Override

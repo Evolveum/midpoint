@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.task.api.Task;
@@ -80,8 +80,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
     private <T> void setAttribute(PrismObject<ShadowType> account, String attrName, T val) throws SchemaException {
         PrismContainer<Containerable> attrsCont = account.findContainer(ShadowType.F_ATTRIBUTES);
-        ResourceAttribute<T> attr = ObjectFactory.createResourceAttribute(
-            dummyResourceCtl.getAttributeQName(attrName), null);
+        ShadowSimpleAttribute<T> attr = ObjectFactory.createSimpleAttribute(dummyResourceCtl.getAttributeQName(attrName));
         attr.setRealValue(val);
         attrsCont.add(attr);
     }
@@ -240,7 +239,7 @@ public class TestDummySecurity extends AbstractDummyTest {
     // TODO: search
 
     private void checkAccountWill(AbstractShadow shadow) {
-        Collection<ResourceAttribute<?>> attributes = shadow.getAttributes();
+        Collection<ShadowSimpleAttribute<?>> attributes = shadow.getAttributes();
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L);

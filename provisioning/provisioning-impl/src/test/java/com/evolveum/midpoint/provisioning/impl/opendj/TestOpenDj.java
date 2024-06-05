@@ -198,9 +198,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         ResourceObjectClassDefinition inetOrgPersonDefinition =
                 parsedSchema.findObjectClassDefinitionRequired(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         assertNull("The _PASSWORD_ attribute sneaked into schema",
-                inetOrgPersonDefinition.findAttributeDefinition(ICFS_PASSWORD));
+                inetOrgPersonDefinition.findSimpleAttributeDefinition(ICFS_PASSWORD));
         assertNull("The userPassword attribute sneaked into schema",
-                inetOrgPersonDefinition.findAttributeDefinition(new QName(NS_RI, "userPassword")));
+                inetOrgPersonDefinition.findSimpleAttributeDefinition(new QName(NS_RI, "userPassword")));
 
         assertShadows(1);
     }
@@ -340,8 +340,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertNotNull("No naming attribute in account", accountClassDefBare.getNamingAttribute());
         assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountClassDefBare.getNativeObjectClassName()));
 
-        ResourceAttributeDefinition<?> idPrimaryDef =
-                accountClassDefBare.findAttributeDefinitionRequired(getPrimaryIdentifierQName());
+        ShadowSimpleAttributeDefinition<?> idPrimaryDef =
+                accountClassDefBare.findSimpleAttributeDefinitionRequired(getPrimaryIdentifierQName());
         assertEquals(1, idPrimaryDef.getMaxOccurs());
         assertEquals(0, idPrimaryDef.getMinOccurs());
         assertFalse("UID has create", idPrimaryDef.canAdd());
@@ -352,8 +352,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 ProvisioningTestUtil.CONNID_UID_NAME, idPrimaryDef.getFrameworkAttributeName());
         assertEquals("Wrong primary identifier matching rule", PrismConstants.UUID_MATCHING_RULE_NAME, idPrimaryDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<?> idSecondaryDef =
-                accountClassDefBare.findAttributeDefinitionRequired(getSecondaryIdentifierQName());
+        ShadowSimpleAttributeDefinition<?> idSecondaryDef =
+                accountClassDefBare.findSimpleAttributeDefinitionRequired(getSecondaryIdentifierQName());
         assertEquals(1, idSecondaryDef.getMaxOccurs());
         assertEquals(1, idSecondaryDef.getMinOccurs());
         assertTrue("No NAME create", idSecondaryDef.canAdd());
@@ -363,7 +363,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, idSecondaryDef.getFrameworkAttributeName());
         assertEquals("Wrong secondary identifier matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, idSecondaryDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<?> cnDef = accountClassDefBare.findAttributeDefinition("cn");
+        ShadowSimpleAttributeDefinition<?> cnDef = accountClassDefBare.findSimpleAttributeDefinition("cn");
         assertNotNull("No definition for cn", cnDef);
         assertEquals(-1, cnDef.getMaxOccurs());
         assertEquals(1, cnDef.getMinOccurs());
@@ -372,7 +372,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No cn read", cnDef.canRead());
         assertEquals("Wrong cn matching rule", PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME, cnDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<?> jpegPhoto = accountClassDefBare.findAttributeDefinition("jpegPhoto");
+        ShadowSimpleAttributeDefinition<?> jpegPhoto = accountClassDefBare.findSimpleAttributeDefinition("jpegPhoto");
         assertNotNull("No definition for jpegPhoto", jpegPhoto);
         assertEquals(-1, jpegPhoto.getMaxOccurs());
         assertEquals(0, jpegPhoto.getMinOccurs());
@@ -381,7 +381,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No jpegPhoto read", jpegPhoto.canRead());
         assertNull("Wrong jpegPhoto matching rule", jpegPhoto.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<?> dsDef = accountClassDefBare.findAttributeDefinition("ds-pwp-account-disabled");
+        ShadowSimpleAttributeDefinition<?> dsDef = accountClassDefBare.findSimpleAttributeDefinition("ds-pwp-account-disabled");
         assertNotNull("No definition for ds-pwp-account-disabled", dsDef);
         assertEquals(1, dsDef.getMaxOccurs());
         assertEquals(0, dsDef.getMinOccurs());
@@ -391,7 +391,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // TODO: MID-2358
 //        assertTrue("ds-pwp-account-disabled is NOT operational", dsDef.isOperational());
 
-        ResourceAttributeDefinition<?> memberOfDef = accountClassDefBare.findAttributeDefinition("isMemberOf");
+        ShadowSimpleAttributeDefinition<?> memberOfDef = accountClassDefBare.findSimpleAttributeDefinition("isMemberOf");
         assertNotNull("No definition for isMemberOf", memberOfDef);
         assertEquals(-1, memberOfDef.getMaxOccurs());
         assertEquals(0, memberOfDef.getMinOccurs());
@@ -400,7 +400,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No isMemberOf read", memberOfDef.canRead());
         assertEquals("Wrong isMemberOf matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, memberOfDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<?> labeledUriDef = accountClassDefBare.findAttributeDefinition("labeledURI");
+        ShadowSimpleAttributeDefinition<?> labeledUriDef = accountClassDefBare.findSimpleAttributeDefinition("labeledURI");
         assertNotNull("No definition for labeledUri", labeledUriDef);
         assertEquals(-1, labeledUriDef.getMaxOccurs());
         assertEquals(0, labeledUriDef.getMinOccurs());
@@ -409,7 +409,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No labeledUri read", labeledUriDef.canRead());
         assertNull("Wrong labeledUri matching rule", labeledUriDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<?> secretaryDef = accountClassDefBare.findAttributeDefinition("secretary");
+        ShadowSimpleAttributeDefinition<?> secretaryDef = accountClassDefBare.findSimpleAttributeDefinition("secretary");
         assertNotNull("No definition for secretary", secretaryDef);
         assertEquals(-1, secretaryDef.getMaxOccurs());
         assertEquals(0, secretaryDef.getMinOccurs());
@@ -418,7 +418,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No secretary read", secretaryDef.canRead());
         assertEquals("Wrong secretary matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, secretaryDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<?> createTimestampDef = accountClassDefBare.findAttributeDefinition("createTimestamp");
+        ShadowSimpleAttributeDefinition<?> createTimestampDef = accountClassDefBare.findSimpleAttributeDefinition("createTimestamp");
         assertNotNull("No definition for createTimestamp", createTimestampDef);
         assertTimestampType("createTimestamp", createTimestampDef);
         assertEquals(1, createTimestampDef.getMaxOccurs());
@@ -429,7 +429,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertNull("Wrong createTimestamp matching rule", createTimestampDef.getMatchingRuleQName());
 
         // MID-5210
-        ResourceAttributeDefinition<?> descriptionDef = accountClassDefBare.findAttributeDefinition(ATTRIBUTE_DESCRIPTION_NAME);
+        ShadowSimpleAttributeDefinition<?> descriptionDef = accountClassDefBare.findSimpleAttributeDefinition(ATTRIBUTE_DESCRIPTION_NAME);
         assertNotNull("No definition for description", descriptionDef);
         assertPolyStringType("description", descriptionDef);
         assertEquals(-1, descriptionDef.getMaxOccurs());
@@ -440,16 +440,16 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertNull("Wrong description matching rule", descriptionDef.getMatchingRuleQName());
 
         assertNull("The _PASSWORD_ attribute sneaked into schema",
-                accountClassDefBare.findAttributeDefinition(ICFS_PASSWORD));
+                accountClassDefBare.findSimpleAttributeDefinition(ICFS_PASSWORD));
 
         assertNull("The userPassword attribute sneaked into schema",
-                accountClassDefBare.findAttributeDefinition(new QName(NS_RI, "userPassword")));
+                accountClassDefBare.findSimpleAttributeDefinition(new QName(NS_RI, "userPassword")));
 
         assertNull("The objectClass attribute sneaked into schema",
-                accountClassDefBare.findAttributeDefinition(new QName(NS_RI, "objectClass")));
+                accountClassDefBare.findSimpleAttributeDefinition(new QName(NS_RI, "objectClass")));
 
         assertNull("The objectclass attribute sneaked into schema",
-                accountClassDefBare.findAttributeDefinition(new QName(NS_RI, "objectclass")));
+                accountClassDefBare.findSimpleAttributeDefinition(new QName(NS_RI, "objectclass")));
 
         ResourceObjectClassDefinition posixAccountDefBare =
                 bareSchema.findObjectClassDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
@@ -462,8 +462,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertFalse("No nativeObjectClass in posixAccount", StringUtils.isEmpty(posixAccountDefBare.getNativeObjectClassName()));
         assertTrue("posixAccount is not auxiliary", posixAccountDefBare.isAuxiliary());
 
-        ResourceAttributeDefinition<?> posixIdPrimaryDef =
-                posixAccountDefBare.findAttributeDefinitionRequired(getPrimaryIdentifierQName());
+        ShadowSimpleAttributeDefinition<?> posixIdPrimaryDef =
+                posixAccountDefBare.findSimpleAttributeDefinitionRequired(getPrimaryIdentifierQName());
         assertEquals(1, posixIdPrimaryDef.getMaxOccurs());
         assertEquals(0, posixIdPrimaryDef.getMinOccurs());
         assertFalse("UID has create", posixIdPrimaryDef.canAdd());
@@ -473,8 +473,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName",
                 ProvisioningTestUtil.CONNID_UID_NAME, posixIdPrimaryDef.getFrameworkAttributeName());
 
-        ResourceAttributeDefinition<?> posixIdSecondaryDef =
-                posixAccountDefBare.findAttributeDefinitionRequired(getSecondaryIdentifierQName());
+        ShadowSimpleAttributeDefinition<?> posixIdSecondaryDef =
+                posixAccountDefBare.findSimpleAttributeDefinitionRequired(getSecondaryIdentifierQName());
         assertEquals(1, posixIdSecondaryDef.getMaxOccurs());
         assertEquals(1, posixIdSecondaryDef.getMinOccurs());
         assertTrue("No NAME create", posixIdSecondaryDef.canAdd());
@@ -490,23 +490,23 @@ public class TestOpenDj extends AbstractOpenDjTest {
         displayDumpable("normalTestingObjectClass object class def", normalDef);
         assertNotNull("No definition for normalTestingObjectClass", normalDef);
         assertNotNull("The cn attribute missing in normalTestingObjectClass",
-                normalDef.findAttributeDefinition(new QName(normalDef.getTypeName().getNamespaceURI(), "cn")));
+                normalDef.findSimpleAttributeDefinition(new QName(normalDef.getTypeName().getNamespaceURI(), "cn")));
 
         ResourceObjectClassDefinition hybridDef =
                 bareSchema.findObjectClassDefinition(new QName(NS_RI, "hybridTestingObjectClass"));
         displayDumpable("Hybrid object class def", hybridDef);
         assertNotNull("No definition for hybridTestingObjectClass", hybridDef);
         assertNotNull("The cn attribute missing in hybridTestingObjectClass",
-                hybridDef.findAttributeDefinition(new QName(hybridDef.getTypeName().getNamespaceURI(), "cn")));
+                hybridDef.findSimpleAttributeDefinition(new QName(hybridDef.getTypeName().getNamespaceURI(), "cn")));
         assertNotNull("The uuidIdentifiedAttribute attribute missing in hybridTestingObjectClass",
-                hybridDef.findAttributeDefinition(new QName(hybridDef.getTypeName().getNamespaceURI(), "uuidIdentifiedAttribute")));
+                hybridDef.findSimpleAttributeDefinition(new QName(hybridDef.getTypeName().getNamespaceURI(), "uuidIdentifiedAttribute")));
 
         ResourceObjectClassDefinition uuidDef =
                 bareSchema.findObjectClassDefinition(new QName(NS_RI, "uuidIdentifiedObjectClass"));
         displayDumpable("uuidIdentifiedObjectClass object class def", uuidDef);
         assertNotNull("No definition for uuidIdentifiedObjectClass", uuidDef);
         assertNotNull("The uuidIdentifiedAttribute attribute missing in uuidIdentifiedObjectClass",
-                uuidDef.findAttributeDefinition(new QName(uuidDef.getTypeName().getNamespaceURI(), "uuidIdentifiedAttribute")));
+                uuidDef.findSimpleAttributeDefinition(new QName(uuidDef.getTypeName().getNamespaceURI(), "uuidIdentifiedAttribute")));
 
         ResourceObjectDefinition accountDef =
                 completeSchema.findDefinitionForObjectClassRequired(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
@@ -525,12 +525,12 @@ public class TestOpenDj extends AbstractOpenDjTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    protected void assertTimestampType(String attrName, ResourceAttributeDefinition<?> def) {
+    protected void assertTimestampType(String attrName, ShadowSimpleAttributeDefinition<?> def) {
         assertEquals("Wrong " + attrName + " type", DOMUtil.XSD_DATETIME, def.getTypeName());
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void assertPolyStringType(String attrName, ResourceAttributeDefinition<?> def) {
+    private void assertPolyStringType(String attrName, ShadowSimpleAttributeDefinition<?> def) {
         assertEquals("Wrong " + attrName + " type", PolyStringType.COMPLEX_TYPE, def.getTypeName());
     }
 
@@ -552,7 +552,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(
                 accountDef.getObjectClassDefinition().getNativeObjectClassName()));
 
-        ResourceAttributeDefinition<?> idPrimaryDef = accountDef.findAttributeDefinitionRequired(getPrimaryIdentifierQName());
+        ShadowSimpleAttributeDefinition<?> idPrimaryDef = accountDef.findSimpleAttributeDefinitionRequired(getPrimaryIdentifierQName());
         assertEquals(1, idPrimaryDef.getMaxOccurs());
         assertEquals(0, idPrimaryDef.getMinOccurs());
         assertFalse("UID has create", idPrimaryDef.canAdd());
@@ -561,7 +561,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(idPrimaryDef));
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName", ProvisioningTestUtil.CONNID_UID_NAME, idPrimaryDef.getFrameworkAttributeName());
 
-        ResourceAttributeDefinition<?> idSecondaryDef = accountDef.findAttributeDefinitionRequired(getSecondaryIdentifierQName());
+        ShadowSimpleAttributeDefinition<?> idSecondaryDef = accountDef.findSimpleAttributeDefinitionRequired(getSecondaryIdentifierQName());
         assertEquals(1, idSecondaryDef.getMaxOccurs());
         assertEquals(1, idSecondaryDef.getMinOccurs());
         assertTrue("No NAME create", idSecondaryDef.canAdd());
@@ -571,7 +571,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Wrong NAME matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, idSecondaryDef.getMatchingRuleQName());
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, idSecondaryDef.getFrameworkAttributeName());
 
-        ResourceAttributeDefinition<?> cnDef = accountDef.findAttributeDefinition("cn");
+        ShadowSimpleAttributeDefinition<?> cnDef = accountDef.findSimpleAttributeDefinition("cn");
         assertNotNull("No definition for cn", cnDef);
         assertEquals(-1, cnDef.getMaxOccurs());
         assertEquals(1, cnDef.getMinOccurs());
@@ -579,7 +579,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No cn update", cnDef.canModify());
         assertTrue("No cn read", cnDef.canRead());
 
-        ResourceAttributeDefinition<?> memberOfDef = accountDef.findAttributeDefinition("isMemberOf");
+        ShadowSimpleAttributeDefinition<?> memberOfDef = accountDef.findSimpleAttributeDefinition("isMemberOf");
         assertNotNull("No definition for isMemberOf", memberOfDef);
         assertEquals(-1, memberOfDef.getMaxOccurs());
         assertEquals(0, memberOfDef.getMinOccurs());
@@ -588,7 +588,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No isMemberOf read", memberOfDef.canRead());
         assertEquals("Wrong isMemberOf matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, memberOfDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<?> secretaryDef = accountDef.findAttributeDefinition("secretary");
+        ShadowSimpleAttributeDefinition<?> secretaryDef = accountDef.findSimpleAttributeDefinition("secretary");
         assertNotNull("No definition for secretary", secretaryDef);
         assertEquals(-1, secretaryDef.getMaxOccurs());
         assertEquals(0, secretaryDef.getMinOccurs());
@@ -597,7 +597,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No secretary read", secretaryDef.canRead());
         assertEquals("Wrong secretary matching rule", PrismConstants.XML_MATCHING_RULE_NAME, secretaryDef.getMatchingRuleQName());
 
-        ResourceAttributeDefinition<?> dsDef = accountDef.findAttributeDefinition("ds-pwp-account-disabled");
+        ShadowSimpleAttributeDefinition<?> dsDef = accountDef.findSimpleAttributeDefinition("ds-pwp-account-disabled");
         assertNotNull("No definition for cn", dsDef);
         assertEquals(1, dsDef.getMaxOccurs());
         assertEquals(0, dsDef.getMinOccurs());
@@ -609,7 +609,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("ds-pwp-account-disabled is NOT ignored", dsDef.isIgnored());
 
         assertNull("The _PASSWORD_ attribute sneaked into schema",
-                accountDef.findAttributeDefinition(ICFS_PASSWORD));
+                accountDef.findSimpleAttributeDefinition(ICFS_PASSWORD));
 
         ResourceObjectClassDefinition posixAccountObjectClassDef =
                 completeSchema.findObjectClassDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
@@ -623,8 +623,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 StringUtils.isEmpty(posixAccountObjectClassDef.getObjectClassDefinition().getNativeObjectClassName()));
         assertTrue("posixAccount is not auxiliary", posixAccountObjectClassDef.getObjectClassDefinition().isAuxiliary());
 
-        ResourceAttributeDefinition<?> posixIdPrimaryDef =
-                posixAccountObjectClassDef.findAttributeDefinitionRequired(getPrimaryIdentifierQName());
+        ShadowSimpleAttributeDefinition<?> posixIdPrimaryDef =
+                posixAccountObjectClassDef.findSimpleAttributeDefinitionRequired(getPrimaryIdentifierQName());
         assertEquals(1, posixIdPrimaryDef.getMaxOccurs());
         assertEquals(0, posixIdPrimaryDef.getMinOccurs());
         assertFalse("UID has create", posixIdPrimaryDef.canAdd());
@@ -636,8 +636,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Wrong " + OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME + " frameworkAttributeName",
                 ProvisioningTestUtil.CONNID_UID_NAME, posixIdPrimaryDef.getFrameworkAttributeName());
 
-        ResourceAttributeDefinition<?> posixIdSecondaryDef =
-                posixAccountObjectClassDef.findAttributeDefinitionRequired(
+        ShadowSimpleAttributeDefinition<?> posixIdSecondaryDef =
+                posixAccountObjectClassDef.findSimpleAttributeDefinitionRequired(
                         getSecondaryIdentifierQName());
         assertEquals(1, posixIdSecondaryDef.getMaxOccurs());
         assertEquals(1, posixIdSecondaryDef.getMinOccurs());
@@ -1969,7 +1969,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         for (PrismObject<ShadowType> searchResult : searchResults) {
             new PrismObjectAsserter<>((PrismObject<? extends ObjectType>) searchResult)
                     .assertSanity();
-            ResourceAttribute<String> uidAttr = ShadowUtil.getAttribute(searchResult, new QName(NS_RI, "uid"));
+            ShadowSimpleAttribute<String> uidAttr = ShadowUtil.getAttribute(searchResult, new QName(NS_RI, "uid"));
             String uid = uidAttr.getRealValues().iterator().next();
             displayValue("found uid", uid);
             assertEquals("Wrong uid (index " + i + ")", expectedUids[i], uid);
@@ -3514,9 +3514,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private <T> ResourceAttributeDefinition<T> getAccountAttributeDefinitionRequired(QName attrName) throws SchemaException {
+    private <T> ShadowSimpleAttributeDefinition<T> getAccountAttributeDefinitionRequired(QName attrName) throws SchemaException {
         return ResourceSchemaFactory.getBareSchema(resourceBean)
                 .findObjectClassDefinitionRequired(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS)
-                .findAttributeDefinitionRequired(attrName);
+                .findSimpleAttributeDefinitionRequired(attrName);
     }
 }

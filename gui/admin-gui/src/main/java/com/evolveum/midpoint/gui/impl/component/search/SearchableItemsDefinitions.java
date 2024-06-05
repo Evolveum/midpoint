@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -200,6 +200,25 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(SimulationResultProcessedObjectType.F_TYPE),
                 ItemPath.create(SimulationResultProcessedObjectType.F_OID),
                 ItemPath.create(SimulationResultProcessedObjectType.F_EVENT_MARK_REF)
+        ));
+
+        SEARCHABLE_OBJECTS.put(AccessCertificationCaseType.class, Arrays.asList(
+                ItemPath.create(AccessCertificationCaseType.F_OBJECT_REF),
+                ItemPath.create(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME),
+                ItemPath.create(AccessCertificationCaseType.F_OUTCOME),
+                ItemPath.create(AccessCertificationCaseType.F_TARGET_REF)
+        ));
+
+        SEARCHABLE_OBJECTS.put(AccessCertificationWorkItemType.class, Arrays.asList(
+                ItemPath.create(AccessCertificationWorkItemType.F_NAME),
+                ItemPath.create(AccessCertificationWorkItemType.F_ASSIGNEE_REF),
+                ItemPath.create(AccessCertificationWorkItemType.F_ORIGINAL_ASSIGNEE_REF),
+                ItemPath.create(AccessCertificationWorkItemType.F_CANDIDATE_REF),
+                ItemPath.create(AccessCertificationWorkItemType.F_PERFORMER_REF),
+//                ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT),
+                ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME),
+                ItemPath.create(AccessCertificationWorkItemType.F_CREATE_TIMESTAMP),
+                ItemPath.create(AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
         ));
     }
 
@@ -438,12 +457,12 @@ public class SearchableItemsDefinitions {
             return;
         }
 
-        for (ResourceAttributeDefinition def : resourceObjectDefinition.getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition def : resourceObjectDefinition.getSimpleAttributeDefinitions()) {
             searchableDefinitions.put(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)), def);
         }
     }
 
-    private ItemName getAttributeName(ResourceAttributeDefinition def) {
+    private ItemName getAttributeName(ShadowSimpleAttributeDefinition def) {
         return def.getItemName();
     }
 

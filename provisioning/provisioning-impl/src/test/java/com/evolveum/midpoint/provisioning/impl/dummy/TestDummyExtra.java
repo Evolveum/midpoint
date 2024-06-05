@@ -47,8 +47,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 
-import org.w3c.dom.Element;
-
 /**
  * Almost the same as TestDummy but with some extra things, such as:
  *
@@ -95,9 +93,9 @@ public class TestDummyExtra extends TestDummy {
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource); // TODO for this resource, or the one obtained as argument? (probably they are the same)
         ResourceObjectDefinition accountRDef = refinedSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
 
-        var associationDefinitions = accountRDef.getAssociationDefinitions();
+        var associationDefinitions = accountRDef.getReferenceAttributeDefinitions();
         assertEquals("Wrong number of association defs", 3, associationDefinitions.size());
-        ShadowAssociationDefinition crewAssociationDef = accountRDef.findAssociationDefinition(ASSOCIATION_CREW_NAME);
+        ShadowReferenceAttributeDefinition crewAssociationDef = accountRDef.findReferenceAttributeDefinition(ASSOCIATION_CREW_NAME);
         assertNotNull("No definition for crew association", crewAssociationDef);
     }
 

@@ -1,0 +1,17 @@
+= Module loginForm
+:page-nav-title: Module loginForm
+
+LoginForm module is used for interactive log-in of a user by using HTML forms.
+
+
+.Example of loginForm module
+[source,xml]
+----
+<loginForm>
+    <identifier>internalLoginForm</identifier>
+    <description>Internal username/password authentication, default user password, login form</description>
+</loginForm>
+----
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]

@@ -159,21 +159,13 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     public List<InlineMenuItem> getDefaultMenuActions() {
         List<InlineMenuItem> menuItems = new ArrayList<>();
-        menuItems.add(new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
-            private static final long serialVersionUID = 1L;
+        menuItems.add(createDeleteInlineMenu());
+        menuItems.add(createEditInlineMenu());
+        return menuItems;
+    }
 
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createDeleteColumnAction();
-            }
-        });
-
-        menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
+    protected ButtonInlineMenuItem createEditInlineMenu() {
+        return new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -185,10 +177,33 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             public InlineMenuItemAction initAction() {
                 return createEditColumnAction();
             }
-        });
-        return menuItems;
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return allowEditMultipleValuesAtOnce();
+            }
+        };
     }
 
+    protected ButtonInlineMenuItem createDeleteInlineMenu() {
+        return new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return createDeleteColumnAction();
+            }
+        };
+    }
+
+    protected boolean allowEditMultipleValuesAtOnce() {
+        return true;
+    }
 
     public <AH extends AssignmentHolderType> PrismObject<AH> getFocusObject(){
         PageBase pageBase = getPageBase();
@@ -299,5 +314,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
      */
     protected boolean isDuplicationSupported() {
         return isCreateNewObjectVisible();
+    }
+
+    @Override
+    protected boolean isFulltextEnabled() {
+        return false;
     }
 }

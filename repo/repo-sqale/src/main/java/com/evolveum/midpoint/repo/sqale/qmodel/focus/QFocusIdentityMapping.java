@@ -11,17 +11,20 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentity
 import java.util.Objects;
 import java.util.UUID;
 
+import com.evolveum.axiom.concepts.CheckedFunction;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
+
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
@@ -43,6 +46,12 @@ public class QFocusIdentityMapping<OR extends MFocus>
     public static final ItemPath PATH = ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY);
     private static QFocusIdentityMapping<?> instance;
 
+    private final SchemaRegistryState.DerivationKey<ItemDefinition<?>> derivationKey;
+
+    private final CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> derivationMapping;
+
+
+
     public static <OR extends MFocus> QFocusIdentityMapping<OR> init(
             @NotNull SqaleRepoContext repositoryContext) {
         if (needsInitialization(instance, repositoryContext)) {
@@ -61,7 +70,11 @@ public class QFocusIdentityMapping<OR extends MFocus>
     private QFocusIdentityMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QFocusIdentity.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 FocusIdentityType.class, (Class) QFocusIdentity.class, repositoryContext);
-
+        this.derivationKey = SchemaRegistryState.derivationKeyFrom(getClass(), "DEFINITION");
+        this.derivationMapping = (registry) -> {
+            var focusDef = registry.findObjectDefinitionByCompileTimeClass(FocusType.class);
+            return focusDef.findItemDefinition(ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY));
+        };
         addRelationResolver(PrismConstants.T_PARENT,
                 // mapping supplier is used to avoid cycles in the initialization code
                 TableRelationResolver.usingJoin(
@@ -136,5 +149,15 @@ public class QFocusIdentityMapping<OR extends MFocus>
     @Override
     public OrderSpecifier<?> orderSpecifier(QFocusIdentity<OR> orqFocusIdentity) {
         return new OrderSpecifier<>(Order.ASC, orqFocusIdentity.cid);
+    }
+
+    @Override
+    protected SchemaRegistryState.DerivationKey<ItemDefinition<?>> definitionDerivationKey() {
+        return derivationKey;
+    }
+
+    @Override
+    protected CheckedFunction<SchemaRegistryState, ItemDefinition<?>, SystemException> definitionDerivation() {
+        return derivationMapping;
     }
 }

@@ -225,8 +225,8 @@ class DelineationMatcher {
      */
     private LdapName getShadowDistinguishedName() {
         ShadowType shadow = context.getShadowedResourceObject();
-        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(shadow);
-        ResourceAttribute<?> dnIdentifier = selectDistinguishedNameIdentifier(identifiers);
+        Collection<ShadowSimpleAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(shadow);
+        ShadowSimpleAttribute<?> dnIdentifier = selectDistinguishedNameIdentifier(identifiers);
         if (dnIdentifier == null) {
             LOGGER.debug("No DN-identifier in {}", shadow);
             return null;
@@ -245,9 +245,9 @@ class DelineationMatcher {
         }
     }
 
-    private ResourceAttribute<?> selectDistinguishedNameIdentifier(Collection<ResourceAttribute<?>> identifiers) {
-        for (ResourceAttribute<?> identifier : identifiers) {
-            ResourceAttributeDefinition<?> definition = identifier.getDefinition();
+    private ShadowSimpleAttribute<?> selectDistinguishedNameIdentifier(Collection<ShadowSimpleAttribute<?>> identifiers) {
+        for (ShadowSimpleAttribute<?> identifier : identifiers) {
+            ShadowSimpleAttributeDefinition<?> definition = identifier.getDefinition();
             if (isDistinguishedNameType(definition)) {
                 return identifier;
             }

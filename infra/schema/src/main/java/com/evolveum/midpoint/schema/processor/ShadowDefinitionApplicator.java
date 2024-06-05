@@ -86,10 +86,10 @@ public class ShadowDefinitionApplicator {
         PrismContainerValue<ShadowAttributesType> pcv = (PrismContainerValue<ShadowAttributesType>) value;
         for (Item<?, ?> item : List.copyOf(pcv.getItems())) {
             ItemDefinition<?> itemDef = item.getDefinition();
-            if (itemDef instanceof ResourceAttributeDefinition) {
+            if (itemDef instanceof ShadowSimpleAttributeDefinition) {
                 continue; // already ok
             }
-            var attributeDefinition = definition.findAttributeDefinitionRequired(item.getElementName());
+            var attributeDefinition = definition.findSimpleAttributeDefinitionRequired(item.getElementName());
             pcv.remove(item);
             pcv.add(
                     attributeDefinition.instantiateFrom(
@@ -102,7 +102,7 @@ public class ShadowDefinitionApplicator {
         PrismContainerValue<ShadowAssociationsType> pcv = (PrismContainerValue<ShadowAssociationsType>) value;
         for (Item<?, ?> item : pcv.getItems()) {
             ItemDefinition<?> itemDef = item.getDefinition();
-            if (itemDef instanceof ShadowAssociationDefinition) {
+            if (itemDef instanceof ShadowReferenceAttributeDefinition) {
                 continue;
             }
             //noinspection unchecked,rawtypes
@@ -115,10 +115,10 @@ public class ShadowDefinitionApplicator {
     private <V extends PrismValue, D extends ItemDefinition<?>> void applyToAttributeDelta(
             ItemDelta<V, D> itemDelta) throws SchemaException {
         D itemDef = itemDelta.getDefinition();
-        if (!(itemDef instanceof ResourceAttributeDefinition)) {
+        if (!(itemDef instanceof ShadowSimpleAttributeDefinition)) {
             QName attributeName = itemDelta.getElementName();
-            ResourceAttributeDefinition<?> attributeDefinition =
-                    definition.findAttributeDefinitionRequired(attributeName, () -> " in object delta");
+            ShadowSimpleAttributeDefinition<?> attributeDefinition =
+                    definition.findSimpleAttributeDefinitionRequired(attributeName, () -> " in object delta");
             if (itemDef != null) {
                 // We are going to rewrite the definition anyway. Let's just do some basic checks first
                 if (!QNameUtil.match(itemDef.getTypeName(), attributeDefinition.getTypeName())) {
@@ -147,7 +147,7 @@ public class ShadowDefinitionApplicator {
     }
 
     private static boolean requiresDefinitionApplication(ItemDelta<?, ?> itemDelta) {
-        if (!(itemDelta.getDefinition() instanceof ShadowAssociationDefinition)) {
+        if (!(itemDelta.getDefinition() instanceof ShadowReferenceAttributeDefinition)) {
             return true;
         }
         // TODO implement in a nicer way
@@ -206,7 +206,7 @@ public class ShadowDefinitionApplicator {
 
     /** Applies the correct definitions to objects embedded in association values. Assumes known shadow type. */
     public void applyToAssociationValues(ShadowType shadow) throws SchemaException {
-        for (ShadowAssociation association : ShadowUtil.getAssociations(shadow)) {
+        for (ShadowReferenceAttribute association : ShadowUtil.getAssociations(shadow)) {
             for (var associationValue : association.getValues()) {
                 var shadowRef = associationValue.asContainerable().getShadowRef();
                 ShadowType embeddedShadow = shadowRef != null ? (ShadowType) shadowRef.getObjectable() : null;
@@ -215,7 +215,7 @@ public class ShadowDefinitionApplicator {
                 }
                 var embeddedShadowDef = definition
                         .findAssociationDefinitionRequired(association.getElementName())
-                        .getTargetObjectDefinition();
+                        .getRepresentativeTargetObjectDefinition();
                 // TODO what if we don't have the correct object definition here?!
                 new ShadowDefinitionApplicator(embeddedShadowDef)
                         .applyTo(embeddedShadow);
@@ -233,14 +233,14 @@ public class ShadowDefinitionApplicator {
             @NotNull PrismContainerValue<?> parentPcv,
             Object context) throws SchemaException {
         try {
-            if (attributesContainer instanceof ResourceAttributeContainer) {
+            if (attributesContainer instanceof ShadowAttributesContainer) {
                 // Intentionally forcing the definition. We want to make sure that everything is up to date.
                 attributesContainer.applyDefinition(objectDefinition.toResourceAttributeContainerDefinition());
             } else {
                 // We need to convert <attributes> to ResourceAttributeContainer
                 parentPcv.replace(
                         attributesContainer,
-                        ResourceAttributeContainer.convertFromPrismContainer(attributesContainer, objectDefinition));
+                        ShadowAttributesContainer.convertFromPrismContainer(attributesContainer, objectDefinition));
             }
         } catch (SchemaException e) {
             throw e.wrap("Couldn't apply attributes definitions in " + context);

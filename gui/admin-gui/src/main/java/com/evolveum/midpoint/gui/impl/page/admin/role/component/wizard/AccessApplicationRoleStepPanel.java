@@ -6,7 +6,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
-import com.evolveum.midpoint.gui.impl.component.wizard.MultiSelectTileWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.MultiSelectObjectTypeTileWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -43,7 +43,7 @@ import java.util.*;
         display = @PanelDisplay(label = "PageRole.wizard.step.access.applicationRole", icon = "fa fa-list"),
         containerPath = "empty")
 public class AccessApplicationRoleStepPanel
-        extends MultiSelectTileWizardStepPanel<AbstractMap.SimpleEntry<String, String>, RoleType, FocusDetailsModels<RoleType>, RoleType> {
+        extends MultiSelectObjectTypeTileWizardStepPanel<AbstractMap.SimpleEntry<String, String>, RoleType, FocusDetailsModels<RoleType>> {
 
     protected static final Trace LOGGER = TraceManager.getTrace(AccessApplicationRoleStepPanel.class);
 

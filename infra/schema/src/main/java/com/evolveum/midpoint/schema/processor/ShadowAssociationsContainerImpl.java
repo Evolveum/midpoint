@@ -51,14 +51,14 @@ public final class ShadowAssociationsContainerImpl
 
     @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public @NotNull Collection<ShadowAssociation> getAssociations() {
+    public @NotNull Collection<ShadowReferenceAttribute> getAssociations() {
         // TODO: Iterate over the list to assert correct types
         return List.copyOf((Collection) getValue().getItems());
     }
 
     @Override
     public void add(Item<?, ?> item) throws SchemaException {
-        if (item instanceof ShadowAssociation association) {
+        if (item instanceof ShadowReferenceAttribute association) {
             add(association);
         } else {
             throw new IllegalArgumentException("Couldn't add item: " + item);
@@ -66,18 +66,18 @@ public final class ShadowAssociationsContainerImpl
     }
 
     @Override
-    public void add(ShadowAssociation association) throws SchemaException {
+    public void add(ShadowReferenceAttribute association) throws SchemaException {
         super.add(association);
     }
 
     @Override
-    public ShadowAssociation findAssociation(QName assocName) {
-        return (ShadowAssociation) super.<ShadowAssociationValueType>findContainer(assocName);
+    public ShadowReferenceAttribute findAssociation(QName assocName) {
+        return (ShadowReferenceAttribute) super.<ShadowAssociationValueType>findContainer(assocName);
     }
 
     @Override
-    public ShadowAssociation findOrCreateAssociation(QName assocName) throws SchemaException {
-        return (ShadowAssociation) getValue().<ShadowAssociationValueType>findOrCreateContainer(assocName);
+    public ShadowReferenceAttribute findOrCreateAssociation(QName assocName) throws SchemaException {
+        return (ShadowReferenceAttribute) getValue().<ShadowAssociationValueType>findOrCreateContainer(assocName);
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
@@ -112,7 +112,7 @@ public final class ShadowAssociationsContainerImpl
         var value = values.get(0);
         Collection<Item<?,?>> items = value.getItems();
         for (Item<?, ?> item : items) {
-            if (!(item instanceof ShadowAssociation)) {
+            if (!(item instanceof ShadowReferenceAttribute)) {
                 throw new IllegalStateException(
                         "Found illegal item in ResourceAssociationContainer: %s (%s)".formatted(
                                 item, item.getClass()));

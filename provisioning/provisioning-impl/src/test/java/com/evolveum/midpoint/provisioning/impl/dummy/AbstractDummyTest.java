@@ -229,7 +229,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         origAttrContainerValue.clear();
         for (Item<?, ?> clonedItem : attrContainerClone.getValue().getItems()) {
             origAttrContainerValue.add(
-                    objectDef.findAttributeDefinitionRequired(clonedItem.getElementName())
+                    objectDef.findSimpleAttributeDefinitionRequired(clonedItem.getElementName())
                             .toNormalizationAware()
                             .adoptRealValuesAndInstantiate(clonedItem.getRealValues()));
         }

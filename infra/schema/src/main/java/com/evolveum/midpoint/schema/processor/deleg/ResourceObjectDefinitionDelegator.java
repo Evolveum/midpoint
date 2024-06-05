@@ -29,27 +29,27 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
-    default @NotNull List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
-        return delegate().getAttributeDefinitions();
+    default @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getSimpleAttributeDefinitions() {
+        return delegate().getSimpleAttributeDefinitions();
+    }
+
+//    @Override
+//    default @NotNull Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions() {
+//        return delegate().getShadowItemDefinitions();
+//    }
+
+    @Override
+    default <T> @Nullable ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinition(QName name, boolean caseInsensitive) {
+        return delegate().findSimpleAttributeDefinition(name, caseInsensitive);
     }
 
     @Override
-    default @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions() {
-        return delegate().getShadowItemDefinitions();
+    default <T> ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinition(String name) {
+        return delegate().findSimpleAttributeDefinition(name);
     }
 
     @Override
-    default <T> @Nullable ResourceAttributeDefinition<T> findAttributeDefinition(QName name, boolean caseInsensitive) {
-        return delegate().findAttributeDefinition(name, caseInsensitive);
-    }
-
-    @Override
-    default <T> ResourceAttributeDefinition<T> findAttributeDefinition(String name) {
-        return delegate().findAttributeDefinition(name);
-    }
-
-    @Override
-    default @NotNull Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers() {
+    default @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getPrimaryIdentifiers() {
         return delegate().getPrimaryIdentifiers();
     }
 
@@ -59,7 +59,7 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
-    default @NotNull Collection<? extends ResourceAttributeDefinition<?>> getSecondaryIdentifiers() {
+    default @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getSecondaryIdentifiers() {
         return delegate().getSecondaryIdentifiers();
     }
 
@@ -69,12 +69,12 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
-    default ResourceAttributeDefinition<?> getDescriptionAttribute() {
+    default ShadowSimpleAttributeDefinition<?> getDescriptionAttribute() {
         return delegate().getDescriptionAttribute();
     }
 
     @Override
-    default ResourceAttributeDefinition<?> getDisplayNameAttribute() {
+    default ShadowSimpleAttributeDefinition<?> getDisplayNameAttribute() {
         return delegate().getDisplayNameAttribute();
     }
 
@@ -133,9 +133,8 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
-    @NotNull
-    default List<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
-        return delegate().getAssociationDefinitions();
+    default @NotNull List<? extends ShadowReferenceAttributeDefinition> getReferenceAttributeDefinitions() {
+        return delegate().getReferenceAttributeDefinitions();
     }
 
     @Override
@@ -248,7 +247,7 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     @Nullable
     default String getLifecycleState() {
         return delegate().getLifecycleState();
-    };
+    }
 
     @Override
     default @NotNull Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
@@ -309,13 +308,13 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
-    default ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException {
-        return delegate().getAttributeInboundDefinition(itemName);
+    default ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+        return delegate().getSimpleAttributeInboundDefinition(itemName);
     }
 
     @Override
-    default ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) throws SchemaException {
-        return delegate().getAssociationInboundDefinition(itemName);
+    default ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+        return delegate().getReferenceAttributeInboundDefinition(itemName);
     }
 
     @Override
@@ -325,8 +324,7 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
-    @NotNull
-    default Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+    default @NotNull Collection<? extends SynchronizationReactionDefinition> getSynchronizationReactions() {
         return delegate().getSynchronizationReactions();
     }
 

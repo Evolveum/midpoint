@@ -25,7 +25,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
 import com.evolveum.midpoint.testing.conntest.AbstractLdapTest;
@@ -55,8 +55,7 @@ import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -796,7 +795,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         display("Shadow (model)", shadow);
         accountBarbossaOid = shadow.getOid();
-        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+        Collection<ShadowSimpleAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
         String accountBarbossaIcfUid = (String) identifiers.iterator().next().getRealValue();
         assertNotNull("No identifier in " + shadow, accountBarbossaIcfUid);
 
@@ -810,7 +809,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         assertAttribute(entry, ATTRIBUTE_OBJECT_CATEGORY_NAME, getObjectCategoryPerson());
 
         // MID-4624
-        ResourceAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
+        ShadowSimpleAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in " + shadow, createTimestampAttribute);
         XMLGregorianCalendar createTimestamp = createTimestampAttribute.getRealValue();
         long createTimestampMillis = XmlTypeConverter.toMillis(createTimestamp);
@@ -831,7 +830,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, ATTRIBUTE_TITLE_NAME);
-        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
+        ShadowSimpleAttributeDefinition<?> attrDef = accountDefinition.findSimpleAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
@@ -866,7 +865,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
-        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
+        ShadowSimpleAttributeDefinition<?> attrDef = accountDefinition.findSimpleAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
@@ -904,7 +903,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
-        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
+        ShadowSimpleAttributeDefinition<?> attrDef = accountDefinition.findSimpleAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
@@ -946,7 +945,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, ATTRIBUTE_PROXY_ADDRESSES_NAME);
-        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
+        ShadowSimpleAttributeDefinition<?> attrDef = accountDefinition.findSimpleAttributeDefinition(attrQName);
         assertNotNull("No definition for attribute " + attrQName, attrDef);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationAddProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, PROXY_ADDRES_ADDR_UPCASE);
@@ -985,7 +984,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, ATTRIBUTE_USER_PARAMETERS_NAME);
-        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
+        ShadowSimpleAttributeDefinition<?> attrDef = accountDefinition.findSimpleAttributeDefinition(attrQName);
         assertNotNull("No definition for attribute " + attrQName, attrDef);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, VERY_STRANGE_PARAMETER);
@@ -1026,7 +1025,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, ATTRIBUTE_TELEPHONE_NUMBER);
-        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
+        ShadowSimpleAttributeDefinition<?> attrDef = accountDefinition.findSimpleAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "+421901123456");
         delta.addModification(attrDelta);
@@ -1066,7 +1065,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, ATTRIBUTE_TELEPHONE_NUMBER);
-        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
+        ShadowSimpleAttributeDefinition<?> attrDef = accountDefinition.findSimpleAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "+4219011234567890123456789012345678901234567890123456789012345678901234567890");
         delta.addModification(attrDelta);
@@ -1993,7 +1992,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         display("Shadow (model)", shadow);
         accountSubmanOid = shadow.getOid();
-        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+        Collection<ShadowSimpleAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
         assertNotNull("Unexpected situation, no identifiers found", identifiers);
         String accountBarbossaIcfUid = (String) identifiers.iterator().next().getRealValue();
         assertNotNull("No identifier in " + shadow, accountBarbossaIcfUid);
@@ -2007,7 +2006,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
         // MID-4624
-        ResourceAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
+        ShadowSimpleAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in " + shadow, createTimestampAttribute);
         XMLGregorianCalendar createTimestamp = createTimestampAttribute.getRealValue();
         long createTimestampMillis = XmlTypeConverter.toMillis(createTimestamp);
@@ -2231,7 +2230,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         display("Shadow (model)", shadow);
         assertThat(shadow.getOid()).isNotBlank();
-        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+        Collection<ShadowSimpleAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
         String accountIcfUid = (String) identifiers.iterator().next().getRealValue();
         assertNotNull("No identifier in " + shadow, accountIcfUid);
 

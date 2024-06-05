@@ -6,14 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.prism.wrapper;
 
-import java.util.Map;
-import java.util.function.Consumer;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.DeepCloneOperation;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -21,8 +15,8 @@ import org.jetbrains.annotations.NotNull;
  * @author skublik
  *
  */
-public interface ResourceAttributeWrapper<T> extends PrismPropertyWrapper<T>, ResourceAttributeDefinition<T> {
+public interface ResourceAttributeWrapper<T> extends PrismPropertyWrapper<T>, ShadowSimpleAttributeDefinition<T> {
 
     @Override
-    ResourceAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation);
+    ShadowSimpleAttributeDefinition<T> deepClone(@NotNull DeepCloneOperation operation);
 }

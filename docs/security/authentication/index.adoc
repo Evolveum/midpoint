@@ -1,3 +1,7 @@
+---
+midpoint-feature: flexible-authentication
+doc-type: intro
+---
 = MidPoint Authentication Configuration
 :page-nav-title: Authentication
 :page-wiki-name: Security And Authentication Configuration

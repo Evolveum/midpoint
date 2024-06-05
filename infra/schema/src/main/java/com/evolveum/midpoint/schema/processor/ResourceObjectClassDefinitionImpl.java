@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -155,6 +156,11 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return null;
+    }
+
+    @Override
     public @NotNull ResourceObjectClassDefinitionImpl clone() {
         try {
             return clone(currentLayer, basicResourceInformation);
@@ -273,7 +279,7 @@ public class ResourceObjectClassDefinitionImpl
         return getClass().getSimpleName() + "{" +
                 "native=" + nativeObjectClassDefinition +
                 ", attributeDefinitions: " + attributeDefinitions.size() +
-                ", associationDefinitions: " + associationDefinitions.size() +
+//                ", associationDefinitions: " + associationDefinitions.size() +
                 ", primaryIdentifiersNames: " + primaryIdentifiersNames.size() +
                 ", secondaryIdentifiersNames: " + secondaryIdentifiersNames.size() +
                 "}";
@@ -314,7 +320,7 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<SynchronizationReactionDefinition> getSynchronizationReactions() {
+    public @NotNull Collection<? extends SynchronizationReactionDefinition> getSynchronizationReactions() {
         return List.of();
     }
 

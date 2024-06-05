@@ -72,7 +72,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         return createWrapper(parent, childItem, status, context);
     }
 
-    ItemStatus getStatus(I childItem) {
+    protected ItemStatus getStatus(Item childItem) {
         if (childItem == null) {
             return ItemStatus.ADDED;
         }
@@ -115,7 +115,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
     }
 
-    boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
+    protected boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
         if (def == null) {
             return true;
         }
@@ -330,7 +330,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         return item.getValues();
     }
 
-    private boolean determineReadOnly(IW itemWrapper, WrapperContext context) {
+    protected boolean determineReadOnly(IW itemWrapper, WrapperContext context) {
 
         Boolean readOnly = context.getReadOnly();
         if (readOnly != null) {

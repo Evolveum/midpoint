@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -74,20 +73,20 @@ class MappedItems<T extends Containerable> {
      * This excludes special mappings. They are _evaluated_ later. (This is planned to be changed!)
      */
     void collectMappedItems() throws SchemaException, ConfigurationException {
-        var selfInboundDefinition = source.inboundDefinition.getAssociationValueInboundDefinition();
+        var selfInboundDefinition = source.inboundDefinition.getDefaultObjectRefDefinition();
         if (selfInboundDefinition != null) {
             createMappedItemForAssociationValueItself(
                     source.getOwningAssociationDefinition(), selfInboundDefinition);
         }
 
-        for (var attributeDef : source.resourceObjectDefinition.getAttributeDefinitions()) {
-            createMappedItemForAttribute(
-                    attributeDef, source.inboundDefinition.getAttributeInboundDefinition(attributeDef.getItemName()));
+        for (var simpleAttributeDef : source.resourceObjectDefinition.getSimpleAttributeDefinitions()) {
+            createMappedItemForSimpleAttribute(
+                    simpleAttributeDef, source.inboundDefinition.getSimpleAttributeInboundDefinition(simpleAttributeDef.getItemName()));
         }
 
-        for (var associationDef : source.resourceObjectDefinition.getAssociationDefinitions()) {
-            createMappedItemForAssociation(
-                    associationDef, source.inboundDefinition.getAssociationInboundDefinition(associationDef.getItemName()));
+        for (var refAttributeDef : source.resourceObjectDefinition.getReferenceAttributeDefinitions()) {
+            createMappedItemForReferenceAttribute(
+                    refAttributeDef, source.inboundDefinition.getReferenceAttributeInboundDefinition(refAttributeDef.getItemName()));
         }
 
         // FIXME Remove this temporary check
@@ -108,11 +107,11 @@ class MappedItems<T extends Containerable> {
      * Creates a mapping creation request for mapping(s) for given attribute.
      *
      * @param <TA> type of the attribute
-     * @see #createMappedItemForAssociation(ShadowAssociationDefinition, ItemInboundDefinition)
+     * @see #createMappedItemForReferenceAttribute(ShadowReferenceAttributeDefinition, ItemInboundDefinition)
      * @see #createMappedItemForAuxObjectClasses()
      */
-    private <TA> void createMappedItemForAttribute(
-            ResourceAttributeDefinition<TA> attributeDefinition,
+    private <TA> void createMappedItemForSimpleAttribute(
+            ShadowSimpleAttributeDefinition<TA> attributeDefinition,
             ItemInboundDefinition attributeInboundDefinition)
             throws SchemaException, ConfigurationException {
 
@@ -178,32 +177,32 @@ class MappedItems<T extends Containerable> {
     /**
      * Creates a {@link MappedItem} for given association.
      *
-     * @see #createMappedItemForAttribute(ResourceAttributeDefinition, ItemInboundDefinition)
+     * @see #createMappedItemForSimpleAttribute(ShadowSimpleAttributeDefinition, ItemInboundDefinition)
      * @see #createMappedItemForAuxObjectClasses()
      */
-    private void createMappedItemForAssociation(
-            ShadowAssociationDefinition associationDefinition,
-            ItemInboundDefinition associationInboundDefinition)
+    private void createMappedItemForReferenceAttribute(
+            ShadowReferenceAttributeDefinition attributeDefinition,
+            ItemInboundDefinition attributeInboundDefinition)
             throws SchemaException, ConfigurationException {
 
-        if (associationInboundDefinition == null) {
+        if (attributeInboundDefinition == null) {
             return;
         }
 
         // 1. Definitions
 
-        var inboundMappingBeans = associationInboundDefinition.getInboundMappingBeans();
+        var inboundMappingBeans = attributeInboundDefinition.getInboundMappingBeans();
         if (inboundMappingBeans.isEmpty()) {
             return;
         }
 
-        var associationName = associationDefinition.getItemName();
+        var associationName = attributeDefinition.getItemName();
         ItemPath itemPath = ShadowType.F_ASSOCIATIONS.append(associationName);
         String itemDescription = "association " + associationName;
         List<InboundMappingConfigItem> applicableMappings =
                 source.selectMappingBeansForEvaluationPhase(
                         createMappingCIs(inboundMappingBeans),
-                        associationInboundDefinition.getCorrelatorDefinition() != null,
+                        attributeInboundDefinition.getCorrelatorDefinition() != null,
                         context.getCorrelationItemPaths());
         if (applicableMappings.isEmpty()) {
             LOGGER.trace("No applicable beans for this phase");
@@ -212,20 +211,20 @@ class MappedItems<T extends Containerable> {
 
         // 2. Values
 
-        ItemDelta<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>
+        ItemDelta<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>
                 associationAPrioriDelta = getItemAPrioriDelta(itemPath);
-        MappedItem.ItemProvider<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>
+        MappedItem.ItemProvider<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>
                 associationProvider = () -> {
                     //noinspection unchecked,rawtypes
                     return (Item) MappedItems.this.getCurrentAssociation(associationName);
                 };
-        MappedItem.PostProcessor<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition> associationPostProcessor =
+        MappedItem.PostProcessor<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition> associationPostProcessor =
                 (aPrioriDelta, currentItem) -> {
                     // FIXME remove this ugly hacking
                     //noinspection unchecked,rawtypes
                     source.resolveInputEntitlements(
                             (ContainerDelta<ShadowAssociationValueType>) (ContainerDelta) aPrioriDelta,
-                            (ShadowAssociation) (Item) currentItem);
+                            (ShadowReferenceAttribute) (Item) currentItem);
                 };
 
         // 3. Processing source
@@ -234,9 +233,9 @@ class MappedItems<T extends Containerable> {
                 itemDescription,
                 associationAPrioriDelta,
                 applicableMappings,
-                associationDefinition.isVisible(context),
-                associationDefinition.isIgnored(LayerType.MODEL),
-                associationDefinition.getLimitations(LayerType.MODEL));
+                attributeDefinition.isVisible(context),
+                attributeDefinition.isIgnored(LayerType.MODEL),
+                attributeDefinition.getLimitations(LayerType.MODEL));
         if (processingMode == ProcessingMode.NONE) {
             return;
         }
@@ -252,7 +251,7 @@ class MappedItems<T extends Containerable> {
                         itemPath, // source path (cannot point to specified association name!)
                         itemDescription,
                         associationAPrioriDelta,
-                        associationDefinition,
+                        attributeDefinition,
                         associationProvider,
                         associationPostProcessor,
                         source::getEntitlementVariableProducer, // so-called variable producer
@@ -268,9 +267,11 @@ class MappedItems<T extends Containerable> {
 
     /**
      * Creates a {@link MappedItem} for an association value referenced by "." path.
+     *
+     * FIXME reconsider this
      */
     private void createMappedItemForAssociationValueItself(
-            ShadowAssociationDefinition associationDefinition,
+            ShadowReferenceAttributeDefinition associationDefinition,
             @NotNull ItemInboundDefinition associationInboundDefinition)
             throws SchemaException, ConfigurationException {
 
@@ -296,9 +297,9 @@ class MappedItems<T extends Containerable> {
 
         // 2. Values
 
-        ItemDelta<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>
+        ItemDelta<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>
                 associationAPrioriDelta = null; // TEMPORARY
-        MappedItem.ItemProvider<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition>
+        MappedItem.ItemProvider<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>
                 associationProvider = () -> {
             var association = associationDefinition.instantiate();
             association.add(
@@ -307,13 +308,13 @@ class MappedItems<T extends Containerable> {
                             false));
             return (Item) association;
         };
-        MappedItem.PostProcessor<PrismContainerValue<ShadowAssociationValueType>, ShadowAssociationDefinition> associationPostProcessor =
+        MappedItem.PostProcessor<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition> associationPostProcessor =
                 (aPrioriDelta, currentItem) -> {
                     // FIXME remove this ugly hacking
                     //noinspection unchecked,rawtypes
                     source.resolveInputEntitlements(
                             (ContainerDelta<ShadowAssociationValueType>) (ContainerDelta) aPrioriDelta,
-                            (ShadowAssociation) (Item) currentItem);
+                            (ShadowReferenceAttribute) (Item) currentItem);
                 };
 
         // 3. Processing source
@@ -350,8 +351,8 @@ class MappedItems<T extends Containerable> {
     /**
      * Creates a {@link MappedItem} for "auxiliary object classes" property.
      *
-     * @see #createMappedItemForAttribute(ResourceAttributeDefinition, ItemInboundDefinition)
-     * @see #createMappedItemForAssociation(ShadowAssociationDefinition, ItemInboundDefinition)
+     * @see #createMappedItemForSimpleAttribute(ShadowSimpleAttributeDefinition, ItemInboundDefinition)
+     * @see #createMappedItemForReferenceAttribute(ShadowReferenceAttributeDefinition, ItemInboundDefinition)
      */
     private void createMappedItemForAuxObjectClasses() throws SchemaException, ConfigurationException {
 
@@ -437,7 +438,7 @@ class MappedItems<T extends Containerable> {
         }
     }
 
-    private @Nullable ShadowAssociation getCurrentAssociation(QName associationName) {
+    private @Nullable ShadowReferenceAttribute getCurrentAssociation(QName associationName) {
         return source.currentShadow != null ? ShadowUtil.getAssociation(source.currentShadow, associationName) : null;
     }
 

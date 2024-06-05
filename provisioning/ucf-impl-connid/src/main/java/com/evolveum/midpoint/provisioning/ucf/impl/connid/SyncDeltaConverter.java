@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -63,7 +63,7 @@ class SyncDeltaConverter {
         @NotNull String uidValue = uid.getUidValue();
         @NotNull UcfSyncToken token = toUcf(connIdDelta.getToken());
 
-        Collection<ResourceAttribute<?>> identifiers = new ArrayList<>();
+        Collection<ShadowSimpleAttribute<?>> identifiers = new ArrayList<>();
         ResourceObjectDefinition actualObjectDefinition = null;
         ObjectDelta<ShadowType> objectDelta = null;
         UcfResourceObject resourceObject = null;

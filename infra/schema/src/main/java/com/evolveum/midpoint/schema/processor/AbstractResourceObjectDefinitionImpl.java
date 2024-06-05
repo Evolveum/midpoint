@@ -64,13 +64,14 @@ public abstract class AbstractResourceObjectDefinitionImpl
     /**
      * Definition of attributes.
      *
-     * It seems that elements are strictly of {@link ResourceAttributeDefinitionImpl} class, but this is currently
-     * not enforceable in the compile time - see e.g. {@link #copyDefinitionDataFrom(LayerType, ResourceObjectDefinition)}
+     * It seems that elements are strictly of {@link ShadowAttributeDefinitionImpl} class and its subclasses,
+     * but this is currently not enforceable in the compile time -
+     * see e.g. {@link #copyDefinitionDataFrom(LayerType, ResourceObjectDefinition)}
      * or {@link #addInternal(ItemDefinition)}. TODO reconsider if it's ok this way.
      *
      * Frozen after creation.
      */
-    @NotNull final DeeplyFreezableList<ResourceAttributeDefinition<?>> attributeDefinitions =
+    @NotNull final DeeplyFreezableList<ShadowAttributeDefinition<?, ?>> attributeDefinitions =
             new DeeplyFreezableList<>();
 
     /**
@@ -79,7 +80,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
      *
      * Temporary/experimental.
      */
-    private Map<QName, ResourceAttributeDefinition<?>> attributeDefinitionMap;
+    private Map<QName, ShadowAttributeDefinition<?, ?>> attributeDefinitionMap;
 
     /**
      * Names of primary identifiers. They are the same for both raw and refined definitions.
@@ -117,14 +118,11 @@ public abstract class AbstractResourceObjectDefinitionImpl
     @NotNull final DeeplyFreezableList<ResourceObjectDefinition> auxiliaryObjectClassDefinitions =
             new DeeplyFreezableList<>();
 
-    /**
-     * Definition of associations. Immutable.
-     */
-    @NotNull final DeeplyFreezableList<ShadowAssociationDefinition> associationDefinitions =
-            new DeeplyFreezableList<>();
-
-    /** Definitions of attributes + associations. Created when freezing. */
-    @NotNull private final FreezableList<ShadowItemDefinition<?, ?>> itemDefinitions = new FreezableList<>();
+//    /**
+//     * Definition of associations. Immutable.
+//     */
+//    @NotNull final DeeplyFreezableList<XXX> associationDefinitions =
+//            new DeeplyFreezableList<>();
 
     /**
      * The "source" bean for this definition.
@@ -180,40 +178,34 @@ public abstract class AbstractResourceObjectDefinitionImpl
         return basicResourceInformation;
     }
 
-    @NotNull
     @Override
-    public List<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
+    public @NotNull List<? extends ShadowAttributeDefinition<?, ?>> getAttributeDefinitions() {
         return attributeDefinitions;
     }
 
     @Override
-    public @NotNull List<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
-        return associationDefinitions;
-    }
-
-    @Override
-    public <T> @Nullable ResourceAttributeDefinition<T> findAttributeDefinition(QName name, boolean caseInsensitive) {
+    public <T> @Nullable ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinition(QName name, boolean caseInsensitive) {
         if (caseInsensitive || isMutable() || QNameUtil.isUnqualified(name)) {
-            return ResourceObjectDefinition.super.findAttributeDefinition(name, caseInsensitive);
+            return ResourceObjectDefinition.super.findSimpleAttributeDefinition(name, caseInsensitive);
         } else {
             //noinspection unchecked
-            return (ResourceAttributeDefinition<T>) attributeDefinitionMap.get(name);
+            return (ShadowSimpleAttributeDefinition<T>) attributeDefinitionMap.get(name);
         }
     }
 
     @NotNull
     @Override
-    public Collection<ResourceAttributeDefinition<?>> getPrimaryIdentifiers() {
+    public Collection<ShadowSimpleAttributeDefinition<?>> getPrimaryIdentifiers() {
         return primaryIdentifiersNames.stream()
-                .map(this::findAttributeDefinitionStrictlyRequired)
+                .map(this::findSimpleAttributeDefinitionStrictlyRequired)
                 .collect(Collectors.toUnmodifiableList());
     }
 
     @NotNull
     @Override
-    public Collection<ResourceAttributeDefinition<?>> getSecondaryIdentifiers() {
+    public Collection<ShadowSimpleAttributeDefinition<?>> getSecondaryIdentifiers() {
         return secondaryIdentifiersNames.stream()
-                .map(this::findAttributeDefinitionStrictlyRequired)
+                .map(this::findSimpleAttributeDefinitionStrictlyRequired)
                 .collect(Collectors.toUnmodifiableList());
     }
 
@@ -403,7 +395,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
             @NotNull ResourceObjectDefinition source) {
         source.getAttributeDefinitions().forEach(
                 def -> attributeDefinitions.add(def.forLayer(layer)));
-        associationDefinitions.addAll(source.getAssociationDefinitions());
+        //associationDefinitions.addAll(source.getReferenceAttributeDefinitions());
         primaryIdentifiersNames.addAll(source.getPrimaryIdentifiersNames());
         secondaryIdentifiersNames.addAll(source.getSecondaryIdentifiersNames());
         auxiliaryObjectClassDefinitions.addAll(source.getAuxiliaryDefinitions());
@@ -420,12 +412,12 @@ public abstract class AbstractResourceObjectDefinitionImpl
     protected void performFreeze() {
         attributeDefinitions.freeze();
         createAttributeDefinitionMap();
-        associationDefinitions.freeze();
+        //associationDefinitions.freeze();
 
-        stateCheck(itemDefinitions.isEmpty(), "Any item definitions in %s", this);
-        //noinspection unchecked,rawtypes
-        itemDefinitions.addAll((Collection) getMergedDefinitions());
-        itemDefinitions.freeze();
+//        stateCheck(itemDefinitions.isEmpty(), "Any item definitions in %s", this);
+//        //noinspection unchecked,rawtypes
+//        itemDefinitions.addAll((Collection) getMergedDefinitions());
+//        itemDefinitions.freeze();
 
         primaryIdentifiersNames.freeze();
         secondaryIdentifiersNames.freeze();
@@ -433,7 +425,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     private void createAttributeDefinitionMap() {
-        var map = new HashMap<QName, ResourceAttributeDefinition<?>>();
+        var map = new HashMap<QName, ShadowAttributeDefinition<?, ?>>();
         attributeDefinitions.forEach(def -> {
             var previous = map.put(def.getItemName(), def);
             stateCheck(previous == null, "Multiple definitions for attribute %s in %s", def, this);
@@ -446,7 +438,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         visitor.visit(this);
         attributeDefinitions.forEach(def -> def.accept(visitor));
         auxiliaryObjectClassDefinitions.forEach(def -> def.accept(visitor));
-        associationDefinitions.forEach(def -> def.accept(visitor));
+        //associationDefinitions.forEach(def -> def.accept(visitor));
     }
 
     @Override
@@ -457,7 +449,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
             visitor.visit(this);
             attributeDefinitions.forEach(def -> def.accept(visitor, visitation));
             auxiliaryObjectClassDefinitions.forEach(def -> def.accept(visitor, visitation));
-            associationDefinitions.forEach(def -> def.accept(visitor));
+            //associationDefinitions.forEach(def -> def.accept(visitor));
             return true;
         }
     }
@@ -477,16 +469,10 @@ public abstract class AbstractResourceObjectDefinitionImpl
             sb.append(", layer=").append(layer);
         }
         var attributeDefinitions = _this.getAttributeDefinitions();
-        var associationDefinitions = _this.getAssociationDefinitions();
-        sb.append(") with ").append(attributeDefinitions.size()).append(" attribute");
-        sb.append(" and ").append(associationDefinitions.size()).append(" association definitions");
-        for (ResourceAttributeDefinition<?> rAttrDef : attributeDefinitions) {
+        sb.append(") with ").append(attributeDefinitions.size()).append(" attribute definitions");
+        for (var attrDef : attributeDefinitions) {
             sb.append("\n");
-            sb.append(rAttrDef.debugDump(indent + 1, layer));
-        }
-        for (ShadowAssociationDefinition assocDef : associationDefinitions) {
-            sb.append("\n");
-            sb.append(assocDef.debugDump(indent + 1));
+            sb.append(attrDef.debugDump(indent + 1, layer));
         }
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "Expanded definition bean", _this.getDefinitionBean(), indent + 1);
@@ -502,26 +488,15 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     @Override
     public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
-        if (isMutable()) {
-            return getMergedDefinitions(); // inefficient but flexible
-        } else {
-            // Currently not possible to write in type-safe manner, but all of these are item definitions.
-            //noinspection unchecked,rawtypes
-            return (List) itemDefinitions;
-        }
-    }
-
-    private List<ItemDefinition<?>> getMergedDefinitions() {
-        List<ItemDefinition<?>> allDefinitions = new ArrayList<>(attributeDefinitions);
-        allDefinitions.addAll(associationDefinitions);
-        return allDefinitions;
-    }
-
-    @Override
-    public @NotNull Collection<? extends ShadowItemDefinition<?, ?>> getShadowItemDefinitions() {
         //noinspection unchecked
-        return (Collection<? extends ShadowItemDefinition<?, ?>>) getDefinitions();
+        return (List<? extends ItemDefinition<?>>) getAttributeDefinitions();
     }
+
+//    @Override
+//    public @NotNull Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions() {
+//        //noinspection unchecked
+//        return (Collection<? extends ShadowAttributeDefinition<?, ?>>) getDefinitions();
+//    }
 
     @Override
     public @NotNull QName getTypeName() {
@@ -701,14 +676,12 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     private void addInternal(@NotNull ItemDefinition<?> definition) {
-        if (definition instanceof ResourceAttributeDefinition<?> resourceAttributeDefinition) {
+        if (definition instanceof ShadowAttributeDefinition<?, ?> attributeDefinition) {
             // Can occur during definition replacement.
-            attributeDefinitions.add(resourceAttributeDefinition);
-        } else if (definition instanceof ShadowAssociationDefinitionImpl associationDefinition) {
-            associationDefinitions.add(associationDefinition);
+            attributeDefinitions.add(attributeDefinition);
         } else {
             throw new IllegalArgumentException(
-                    ("Only attribute and association definitions should be put into a resource object definition. "
+                    ("Only attribute definitions should be put into a resource object definition. "
                             + "Item definition = %s (%s), object definition = %s").formatted(
                                     definition, definition.getClass(), this));
         }
@@ -733,7 +706,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
                 .map(ItemPath::asSingleName)
                 .collect(Collectors.toList());
         attributeDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getItemName()));
-        associationDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getItemName()));
+        //associationDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getItemName()));
 
         // TODO what about QName references like primary or secondary identifier names,
         //  or name, display name, or description attribute names?
@@ -742,15 +715,15 @@ public abstract class AbstractResourceObjectDefinitionImpl
     @Override
     public void validate() throws SchemaException {
         Set<QName> attributeNames = new HashSet<>();
-        for (ResourceAttributeDefinition<?> attributeDefinition : getAttributeDefinitions()) {
+        for (ShadowSimpleAttributeDefinition<?> attributeDefinition : getSimpleAttributeDefinitions()) {
             QName attrName = attributeDefinition.getItemName();
             if (!attributeNames.add(attrName)) {
                 throw new SchemaException("Duplicate definition of attribute " + attrName + " in " + this);
             }
         }
 
-        Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = getPrimaryIdentifiers();
-        Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifiers = getSecondaryIdentifiers();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> primaryIdentifiers = getPrimaryIdentifiers();
+        Collection<? extends ShadowSimpleAttributeDefinition<?>> secondaryIdentifiers = getSecondaryIdentifiers();
 
         if (primaryIdentifiers.isEmpty() && secondaryIdentifiers.isEmpty()) {
             throw new SchemaException("No identifiers in definition of object class " + getTypeName() + " in " + this);
@@ -761,11 +734,11 @@ public abstract class AbstractResourceObjectDefinitionImpl
         return definitionBean;
     }
 
-    void addAssociationDefinition(@NotNull ShadowAssociationDefinition associationDef) {
-        checkMutable();
-        associationDefinitions.add(associationDef);
-        invalidatePrismObjectDefinition();
-    }
+//    void addReferenceAttributeDefinition(@NotNull ShadowReferenceAttributeDefinition definition) {
+//        checkMutable();
+//        associationDefinitions.add(definition);
+//        invalidatePrismObjectDefinition();
+//    }
 
     void addAuxiliaryObjectClassDefinition(@NotNull ResourceObjectDefinition definition) {
         checkMutable();
@@ -797,13 +770,13 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public ItemInboundDefinition getAttributeInboundDefinition(ItemName itemName) throws SchemaException {
-        return findAttributeDefinition(itemName);
+    public ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+        return findSimpleAttributeDefinition(itemName);
     }
 
     @Override
-    public ItemInboundDefinition getAssociationInboundDefinition(ItemName itemName) throws SchemaException {
-        return findAssociationDefinition(itemName);
+    public ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+        return findReferenceAttributeDefinition(itemName);
     }
 
     @Override

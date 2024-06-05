@@ -2855,9 +2855,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         shadowType.setObjectClass(objectClassDefinition.getTypeName());
         shadowType.setKind(ShadowKindType.ACCOUNT);
         shadowType.setIntent(INTENT_DEFAULT);
-        ResourceAttributeContainer attrCont = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-        ResourceAttributeDefinition<?> idSecondaryDef = objectClassDefinition.getSecondaryIdentifiers().iterator().next();
-        ResourceAttribute icfsNameAttr = idSecondaryDef.instantiate();
+        ShadowAttributesContainer attrCont = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
+        ShadowSimpleAttributeDefinition<?> idSecondaryDef = objectClassDefinition.getSecondaryIdentifiers().iterator().next();
+        ShadowSimpleAttribute icfsNameAttr = idSecondaryDef.instantiate();
         icfsNameAttr.setRealValue(name);
         attrCont.add(icfsNameAttr);
         ActivationType activation = new ActivationType();
@@ -2871,8 +2871,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <T> void addAttributeToShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, String attrName, T attrValue) throws SchemaException {
-        ResourceAttributeContainer attrs = ShadowUtil.getAttributesContainer(shadow);
-        ResourceAttribute<T> attr = attrs.getDefinition()
+        ShadowAttributesContainer attrs = ShadowUtil.getAttributesContainer(shadow);
+        ShadowSimpleAttribute<T> attr = attrs.getDefinition()
                 .<T>findAttributeDefinition(new ItemName(MidPointConstants.NS_RI, attrName))
                 .instantiate();
         attr.setRealValue(attrValue);
@@ -3131,7 +3131,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             QName objectClass,
             MatchingRule<String> nameMatchingRule) throws SchemaException, ConfigurationException {
         assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
-        IntegrationTestTools.assertProvisioningShadow(accountShadow, ResourceAttributeDefinition.class, objectClass);
+        IntegrationTestTools.assertProvisioningShadow(accountShadow, ShadowSimpleAttributeDefinition.class, objectClass);
     }
 
     protected ObjectDelta<UserType> createModifyUserAddDummyAccount(String userOid, String dummyResourceName)
@@ -6628,14 +6628,47 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return assertContainerSearch(AccessCertificationCaseType.class, null, expectedNumber);
     }
 
+    protected List<AccessCertificationCaseType> assertSearchCertCases(ObjectQuery query, int expectedNumber) throws CommonException {
+        return assertContainerSearch(AccessCertificationCaseType.class, query, expectedNumber);
+    }
+
+    protected ObjectQuery queryForCertCasesByCampaignOwner(String ownerOid) {
+        return queryFor(AccessCertificationCaseType.class)
+                .item(PrismConstants.T_PARENT, AccessCertificationCampaignType.F_OWNER_REF).ref(ownerOid)
+                .build();
+    }
+
+    protected ObjectQuery queryForCertCasesByStageNumber(int number) {
+        return queryFor(AccessCertificationCaseType.class)
+                .item(AccessCertificationCaseType.F_STAGE_NUMBER).eq(number)
+                .build();
+    }
+
+    protected ObjectQuery queryForCertCasesByWorkItemOutcome(String outcomeUri) {
+        return queryFor(AccessCertificationCaseType.class)
+                .exists(AccessCertificationCaseType.F_WORK_ITEM)
+                .block()
+                    .item(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).eq(outcomeUri)
+                .endBlock()
+                .build();
+    }
+
     protected void assertCertCasesSearch(AccessCertificationCaseId... ids) throws CommonException {
         var cases = assertSearchCertCases(ids.length);
         var realIds = AccessCertificationCaseId.of(cases);
         assertThat(realIds).as("certification cases IDs").containsExactlyInAnyOrder(ids);
     }
 
-    protected void assertCertWorkItemsSearch(AccessCertificationWorkItemId... ids) throws CommonException {
-        var workItems = assertContainerSearch(AccessCertificationWorkItemType.class, null, ids.length);
+    protected void assertSearchCertWorkItems(ObjectQuery query, int expectedResults) throws CommonException {
+        assertContainerSearch(AccessCertificationWorkItemType.class, query, expectedResults);
+    }
+
+    protected void assertSearchCertWorkItems(AccessCertificationWorkItemId... ids) throws CommonException {
+        assertSearchCertWorkItems(null, ids);
+    }
+
+    protected void assertSearchCertWorkItems(ObjectQuery query, AccessCertificationWorkItemId... ids) throws CommonException {
+        var workItems = assertContainerSearch(AccessCertificationWorkItemType.class, query, ids.length);
         var realIds = AccessCertificationWorkItemId.of(workItems);
         assertThat(realIds).as("certification work items IDs").containsExactlyInAnyOrder(ids);
     }

@@ -395,6 +395,14 @@ Applies to concrete notifiers, not to the general one.
 | 0..N
 | To what transport(s) should the message be sent.
 
+| notificationSendingStrategy
+| String
+| 0..1
+| Defines how to send notification to individual recipients.
+
+Possible values: _sameNotificationToAllRecipients_ (a notification message is generated once, and sent to all the recipients in the same form);
+_separateNotificationToEachRecipient_ (the default value, a notification message is generated and sent to every recipient separately, taking into account such individual settings as local).
+
 
 |===
 
