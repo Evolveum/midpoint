@@ -55,6 +55,8 @@ public abstract class DummyObject implements DebugDumpable {
      */
     protected DummyResource resource;
 
+    private boolean presentOnResource;
+
     /** Present only if hierarchy is supported. Set when object is added on the resource (we need to know the normalization). */
     private HierarchicalName normalizedHierarchicalName;
 
@@ -91,8 +93,13 @@ public abstract class DummyObject implements DebugDumpable {
         return MiscUtil.stateNonNull(resource, "No resource set for " + this);
     }
 
-    void setResource(DummyResource resource) {
+    void setPresentOnResource(DummyResource resource) {
         this.resource = resource;
+        presentOnResource = true;
+    }
+
+    void setNotPresentOnResource() {
+        presentOnResource = false;
     }
 
     public String getName() {
@@ -456,7 +463,7 @@ public abstract class DummyObject implements DebugDumpable {
     }
 
     private <T> void recordModify(String attributeName, Collection<T> valuesAdded, Collection<T> valuesDeleted, Collection<T> valuesReplaced) {
-        if (resource != null) {
+        if (resource != null && presentOnResource) {
             resource.recordModify(this, attributeName, valuesAdded, valuesDeleted, valuesReplaced);
         }
     }

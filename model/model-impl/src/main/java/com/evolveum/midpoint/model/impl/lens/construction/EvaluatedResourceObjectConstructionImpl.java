@@ -219,7 +219,9 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
     }
 
     void addAttributeTripleProducer(PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> tripleProducer) {
-        attributeTripleProducers.add(tripleProducer);
+        if (tripleProducer != null) {
+            attributeTripleProducers.add(tripleProducer);
+        }
     }
 
     public @NotNull Collection<PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowReferenceAttributeDefinition>> getAssociationTripleProducers() {
@@ -228,7 +230,9 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
 
     void addAssociationTripleProducer(
             PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowReferenceAttributeDefinition> mapping) {
-        associationTripleProducers.add(mapping);
+        if (mapping != null) {
+            associationTripleProducers.add(mapping);
+        }
     }
     //endregion
 

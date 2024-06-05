@@ -707,7 +707,7 @@ public class DummyResource implements DebugDumpable {
             objectToAdd.addAttributeValue(DummyAccount.ATTR_INTERNAL_ID, new Random().nextInt());
         }
 
-        objectToAdd.setResource(this);
+        objectToAdd.setPresentOnResource(this);
 
         String normalizedName = objectToAdd.getNormalizedName(); // requires the object being on the resource already
         if (normalizedName != null && forbiddenNames != null && forbiddenNames.contains(normalizedName)) {
@@ -832,6 +832,8 @@ public class DummyResource implements DebugDumpable {
         } else {
             throw new ObjectDoesNotExistException(type.getSimpleName() + " with name '" + normalName + "' does not exist");
         }
+
+        existingObject.setNotPresentOnResource();
 
         if (syncStyle != DummySyncStyle.NONE) {
             deltas.add(
