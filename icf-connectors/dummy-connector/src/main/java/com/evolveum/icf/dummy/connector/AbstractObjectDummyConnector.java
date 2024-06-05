@@ -28,6 +28,7 @@ import org.identityconnectors.framework.spi.operations.*;
 import com.evolveum.icf.dummy.resource.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Connector for the Dummy Resource, abstract superclass.
@@ -125,44 +126,54 @@ public abstract class AbstractObjectDummyConnector
     }
 
     private void convertReferenceAttribute(DummyObject mainObject, Attribute createAttribute)
-            throws SchemaViolationException, ConflictException, FileNotFoundException, InterruptedException, ConnectException,
-            ObjectDoesNotExistException, ObjectAlreadyExistsException {
+            throws SchemaViolationException, ConflictException, FileNotFoundException, InterruptedException, ConnectException {
         for (Object value : emptyIfNull(createAttribute.getValue())) {
-            if (!(value instanceof ConnectorObjectReference reference)) {
-                throw new SchemaViolationException("Reference attribute with non-reference value: " + value);
-            }
-            var referencedObjectClass = reference.getReferencedValue().getObjectClass();
-            var referencedObjectClassName = referencedObjectClass.getObjectClassValue();
-            var referencedObjectClassDef = resource.getStructuralObjectClass(referencedObjectClassName);
-            DummyObject referencedObject;
-            if (referencedObjectClassDef.isAssociationObject()) {
-                var attributes = reference.getReferencedValue().getAttributes();
-                referencedObject = convertToDummyObjectAndAdd(referencedObjectClass, attributes);
-            } else {
-                var identification = reference.getReferencedObjectIdentification();
-                var uidAttr = (Uid) identification.getAttributeByName(Uid.NAME);
-                var nameAttr = (Name) identification.getAttributeByName(Name.NAME);
-                if (uidAttr != null) {
-                    referencedObject = findObjectByUidRequired(referencedObjectClassName, uidAttr, false);
-                } else if (nameAttr != null) {
-                    referencedObject = resource.getObjectByName(referencedObjectClassName, nameAttr.getNameValue(), false);
-                    if (referencedObject == null) {
-                        throw new ObjectDoesNotExistException(
-                                "Object of class " + referencedObjectClassName + " named " + nameAttr + " does not exist");
-                    }
-                } else {
-                    throw new IllegalArgumentException("Neither UID nor NAME was provided in object reference: " + reference);
-                }
-            }
-            mainObject.addLinkedObject(createAttribute.getName(), referencedObject);
+            DummyObject referencedObject = convertReferenceAttributeValueWhenAdding(value);
+            mainObject.addLinkValue(createAttribute.getName(), referencedObject);
         }
+    }
+
+    @NotNull DummyObject convertReferenceAttributeValueWhenAdding(Object referenceAttributeValue)
+            throws SchemaViolationException, ConflictException, FileNotFoundException, InterruptedException, ConnectException {
+        if (!(referenceAttributeValue instanceof ConnectorObjectReference reference)) {
+            throw new SchemaViolationException("Reference attribute with non-reference value: " + referenceAttributeValue);
+        }
+        var referencedObjectClass = reference.getReferencedValue().getObjectClass();
+        var referencedObjectClassName = referencedObjectClass.getObjectClassValue();
+        var referencedObjectClassDef = resource.getStructuralObjectClass(referencedObjectClassName);
+        DummyObject referencedObject;
+        if (referencedObjectClassDef.isAssociationObject()) {
+            var attributes = reference.getReferencedValue().getAttributes();
+            try {
+                referencedObject = convertToDummyObjectAndAdd(referencedObjectClass, attributes);
+            } catch (ObjectAlreadyExistsException | ObjectDoesNotExistException e) {
+                throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e);
+            }
+        } else {
+            var identification = reference.getReferencedObjectIdentification();
+            var uidAttr = (Uid) identification.getAttributeByName(Uid.NAME);
+            var nameAttr = (Name) identification.getAttributeByName(Name.NAME);
+            if (uidAttr != null) {
+                referencedObject = findObjectByUidRequired(referencedObjectClassName, uidAttr, false);
+            } else if (nameAttr != null) {
+                referencedObject = resource.getObjectByName(referencedObjectClassName, nameAttr.getNameValue(), false);
+                if (referencedObject == null) {
+                    throw new IllegalArgumentException( // todo reconsider ObjectNotFoundException here
+                            "Object of class " + referencedObjectClassName + " named " + nameAttr + " does not exist");
+                }
+            } else {
+                throw new IllegalArgumentException("Neither UID nor NAME was provided in object reference: " + reference);
+            }
+        }
+        return referencedObject;
     }
 
     private DummyObject convertToDummyObjectExceptLinks(ObjectClass objectClass, Set<Attribute> createAttributes)
             throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
-        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
+        var objectClassName = objectClass.getObjectClassValue();
+        if (ObjectClass.ACCOUNT.is(objectClassName)) {
             return convertToAccount(createAttributes);
-        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
+        } else if (ObjectClass.GROUP.is(objectClassName)) {
             return convertToGroup(createAttributes);
         } else if (objectClass.is(DummyPrivilege.OBJECT_CLASS_NAME)) {
             return convertToOther(
@@ -179,8 +190,8 @@ public abstract class AbstractObjectDummyConnector
         } else {
             return convertToOther(
                     new DummyGenericObject(
-                            objectClass.getObjectClassValue(),
-                            getIcfName(createAttributes),
+                            objectClassName,
+                            getIcfNameIfPresent(createAttributes),
                             resource),
                     createAttributes);
         }
@@ -1343,8 +1354,17 @@ public abstract class AbstractObjectDummyConnector
         }
     }
 
-    private String getIcfName(Set<Attribute> createAttributes) {
-        String icfName = Utils.getMandatoryStringAttribute(createAttributes, Name.NAME);
+    private String getIcfName(Set<Attribute> attributes) {
+        return convertIcfName(
+                Utils.getMandatoryStringAttribute(attributes, Name.NAME));
+    }
+
+    private String getIcfNameIfPresent(Set<Attribute> attributes) {
+        return convertIcfName(
+                Utils.getAttributeSingleValue(attributes, Name.NAME, String.class));
+    }
+
+    private @Nullable String convertIcfName(String icfName) {
         if (configuration.getUpCaseName()) {
             return StringUtils.upperCase(icfName);
         } else {

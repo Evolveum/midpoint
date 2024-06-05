@@ -114,18 +114,18 @@ public class TestDummyResource {
 
         DummyObject c200000 = new DummyGenericObject(OC_CONTRACT, "200000");
         dummyResource.addObject(c200000);
-        dummyResource.addLink(LC_PERSON_CONTRACT, p100000, c200000);
-        dummyResource.addLink(LC_CONTRACT_ORG, c200000, facultyOfScience);
+        dummyResource.addLinkValue(LC_PERSON_CONTRACT, p100000, c200000);
+        dummyResource.addLinkValue(LC_CONTRACT_ORG, c200000, facultyOfScience);
 
         DummyObject c200001 = new DummyGenericObject(OC_CONTRACT, "200001");
         dummyResource.addObject(c200001);
-        dummyResource.addLink(LC_PERSON_CONTRACT, p100000, c200001);
-        dummyResource.addLink(LC_CONTRACT_ORG, c200001, facultyOfLaw);
+        dummyResource.addLinkValue(LC_PERSON_CONTRACT, p100000, c200001);
+        dummyResource.addLinkValue(LC_CONTRACT_ORG, c200001, facultyOfLaw);
 
         DummyObject c200002 = new DummyGenericObject(OC_CONTRACT, "200002");
         dummyResource.addObject(c200002);
-        dummyResource.addLink(LC_PERSON_CONTRACT, p100000, c200002);
-        dummyResource.addLink(LC_CONTRACT_ORG, c200002, facultyOfMedicine);
+        dummyResource.addLinkValue(LC_PERSON_CONTRACT, p100000, c200002);
+        dummyResource.addLinkValue(LC_CONTRACT_ORG, c200002, facultyOfMedicine);
 
         // Mark only at one
         DummyObject p100001 = new DummyGenericObject(OC_PERSON, "100001");
@@ -135,8 +135,8 @@ public class TestDummyResource {
 
         DummyObject c200003 = new DummyGenericObject(OC_CONTRACT, "200003");
         dummyResource.addObject(c200003);
-        dummyResource.addLink(LC_PERSON_CONTRACT, p100001, c200003);
-        dummyResource.addLink(LC_CONTRACT_ORG, c200003, facultyOfScience);
+        dummyResource.addLinkValue(LC_PERSON_CONTRACT, p100001, c200003);
+        dummyResource.addLinkValue(LC_CONTRACT_ORG, c200003, facultyOfScience);
 
         System.out.println(dummyResource.debugDump());
 

@@ -12,14 +12,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.ConnectException;
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.Map.Entry;
-
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NoPermissionException;
 import javax.naming.ServiceUnavailableException;
@@ -29,13 +23,8 @@ import javax.naming.directory.SchemaViolationException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.exceptions.*;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.OperationOptions;
@@ -44,6 +33,8 @@ import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.CompositeFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
+import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -52,21 +43,16 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Set of utility methods that work around some of the ConnId and connector problems.
@@ -193,7 +179,7 @@ public class ConnIdUtil {
             return newEx;
         }
 
-        //fix of MiD-2645
+        //fix of MID-2645
         //exception brought by the connector is java.lang.RuntimeException with cause=CommunicationsException
         //this exception is to be analyzed here before the following if clause
         if (connIdException.getCause() != null){
@@ -630,32 +616,31 @@ public class ConnIdUtil {
         }
     }
 
-    public static Object convertValueToConnId(Object value, Protector protector, QName propName) throws SchemaException {
+    public static Object convertValueToConnId(Object value, Protector protector, QName propName) {
         if (value == null) {
             return null;
         }
 
-        if (value instanceof PrismPropertyValue) {
-            return convertValueToConnId(((PrismPropertyValue) value).getValue(), protector, propName);
+        if (value instanceof PrismPropertyValue<?> ppv) {
+            return convertValueToConnId(ppv.getValue(), protector, propName);
         }
 
-        if (value instanceof XMLGregorianCalendar) {
-            return XmlTypeConverter.toZonedDateTime((XMLGregorianCalendar) value);
+        if (value instanceof XMLGregorianCalendar calendar) {
+            return XmlTypeConverter.toZonedDateTime(calendar);
         }
 
-        if (value instanceof ProtectedStringType) {
-            ProtectedStringType ps = (ProtectedStringType) value;
+        if (value instanceof ProtectedStringType ps) {
             return toGuardedString(ps, protector, propName.toString());
         }
 
-        if (value instanceof PolyString) {
-            return polyStringToMap((PolyString)value);
+        if (value instanceof PolyString polyString) {
+            return polyStringToMap(polyString);
         }
 
         return value;
     }
 
-    public static GuardedString toGuardedString(ProtectedStringType ps, Protector protector, String propertyName) {
+    private static GuardedString toGuardedString(ProtectedStringType ps, Protector protector, String propertyName) {
         if (ps == null) {
             return null;
         }
@@ -706,6 +691,4 @@ public class ConnIdUtil {
         sb.append(")");
         return sb.toString();
     }
-
-
 }

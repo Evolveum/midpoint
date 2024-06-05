@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.identityconnectors.framework.common.objects.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,10 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -219,15 +217,8 @@ class ConnIdObjectConvertor {
 
         Set<ConnectorObjectReference> connIdAttrValues = new HashSet<>();
         for (var mpRefAttrValue : mpAttribute.getAssociationValues()) {
-            var connIdInfo = convertToConnIdObjectInfo(mpRefAttrValue.getShadowBean());
-            // TODO this object should be "by value" (ConnectorObject) for associated objects,
-            //  and "by reference" (ConnectorObjectIdentification) for regular objects.
-            //  Unfortunately, we cannot instantiate ConnectorObject here if UID is missing; and this
-            //  is a common case when creating new objects. Hence, we use ConnectorObjectIdentification
-            //  for both cases.
-            var referencedObject = new ConnectorObjectIdentification(connIdInfo.objectClass, connIdInfo.attributes);
             connIdAttrValues.add(
-                    new ConnectorObjectReference(referencedObject));
+                    convertReferenceAttributeValueToConnId(mpRefAttrValue));
         }
 
         try {
@@ -235,6 +226,18 @@ class ConnIdObjectConvertor {
         } catch (IllegalArgumentException e) {
             throw new SchemaException(e.getMessage(), e);
         }
+    }
+
+    @NotNull ConnectorObjectReference convertReferenceAttributeValueToConnId(ShadowAssociationValue mpRefAttrValue)
+            throws SchemaException {
+        var connIdInfo = convertToConnIdObjectInfo(mpRefAttrValue.getShadowBean());
+        // TODO this object should be "by value" (ConnectorObject) for associated objects,
+        //  and "by reference" (ConnectorObjectIdentification) for regular objects.
+        //  Unfortunately, we cannot instantiate ConnectorObject here if UID is missing; and this
+        //  is a common case when creating new objects. Hence, we use ConnectorObjectIdentification
+        //  for both cases.
+        var referencedObject = new ConnectorObjectIdentification(connIdInfo.objectClass, connIdInfo.attributes);
+        return new ConnectorObjectReference(referencedObject);
     }
 
     /** Quite ugly method - we should have a single place from where to take the object class. TODO resolve */

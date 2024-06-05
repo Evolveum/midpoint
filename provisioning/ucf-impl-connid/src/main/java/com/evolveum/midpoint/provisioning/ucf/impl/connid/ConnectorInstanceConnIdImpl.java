@@ -796,8 +796,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
 
     @Override
     public @NotNull UcfModifyReturnValue modifyObject(
-            ResourceObjectIdentification.WithPrimary identification,
-            PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectIdentification.WithPrimary identification,
+            PrismObject<ShadowType> shadowIgnored,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
             UcfExecutionContext ctx, OperationResult parentResult)
@@ -851,14 +851,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
 
         ResourceObjectDefinition objectClassDef = identification.getResourceObjectDefinition();
 
-        DeltaModificationConverter converter = new DeltaModificationConverter();
-        converter.setChanges(changes);
-        converter.setConnectorDescription(description);
-        converter.setConnectorType(connectorBean);
-        converter.setObjectDefinition(objectClassDef);
-        converter.setProtector(b.protector);
-        converter.setResourceSchema(resourceSchema);
-        converter.setOptions(options);
+        var converter = new DeltaModificationConverter(
+                changes, resourceSchema, objectClassDef, description, options, connIdObjectConvertor);
 
         try {
 
@@ -874,7 +868,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         OperationResult connIdResult;
 
         @NotNull Set<AttributeDelta> knownExecutedChanges; // May or may not cover all executed changes
-        Set<AttributeDelta> attributesDelta = converter.getAttributesDelta();
+        Set<AttributeDelta> attributesDelta = converter.getAttributesDeltas();
         if (!attributesDelta.isEmpty()) {
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
             connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".updateDelta");
@@ -1001,13 +995,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         ResourceObjectDefinition objectClassDef = identification.getResourceObjectDefinition();
         String originalUid = uid.getUidValue();
 
-        UpdateModificationConverter converter = new UpdateModificationConverter();
-        converter.setChanges(changes);
-        converter.setConnectorDescription(description);
-        converter.setConnectorType(connectorBean);
-        converter.setObjectDefinition(objectClassDef);
-        converter.setProtector(b.protector);
-        converter.setResourceSchema(resourceSchema);
+        var converter = new UpdateModificationConverter(
+                changes, resourceSchema, objectClassDef, description, options, connIdObjectConvertor);
 
         try {
 

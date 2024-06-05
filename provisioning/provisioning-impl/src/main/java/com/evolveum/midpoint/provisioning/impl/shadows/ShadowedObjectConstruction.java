@@ -344,7 +344,7 @@ class ShadowedObjectConstruction {
 
         boolean potentialMatch = false;
 
-        for (var targetParticipantType : associationValue.getDefinitionRequired().getTargetParticipantTypes()) {
+        for (var targetParticipantType : associationValue.getDefinitionRequired().getImmediateTargetParticipantTypes()) {
             LOGGER.trace("Checking if target object participant restriction matches: {}", targetParticipantType);
             ResourceObjectDefinition participantObjectDefinition = targetParticipantType.getObjectDefinition();
             ProvisioningContext ctxAssociatedObject = ctx.spawnForDefinition(participantObjectDefinition);

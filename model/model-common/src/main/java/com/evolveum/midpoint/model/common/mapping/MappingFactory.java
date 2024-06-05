@@ -14,6 +14,8 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
+import com.evolveum.midpoint.schema.config.MetadataMappingConfigItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingType;
 
@@ -81,17 +83,17 @@ public class MappingFactory {
 
     // [EP:M:OM] [EP:M:IM] [EP:M:Tag] [EP:M:FM] ALL DONE
     public <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> createMappingBuilder(
-            @Nullable MappingType mappingBean, @NotNull ConfigurationItemOrigin context, String shortDesc) {
+            @NotNull MappingType mappingBean, @NotNull ConfigurationItemOrigin origin, String shortDesc) {
         return this.<V,D>createMappingBuilder()
-                .mappingBean(mappingBean, context)
+                .mapping(MappingConfigItem.of(mappingBean, origin))
                 .contextDescription(shortDesc);
     }
 
     // [EP:M:MM] DONE 1/1
     public <V extends PrismValue, D extends ItemDefinition<?>> MetadataMappingBuilder<V, D> createMappingBuilder(
-            @Nullable MetadataMappingType mappingBean, @NotNull ConfigurationItemOrigin context, String shortDesc) {
+            @NotNull MetadataMappingType mappingBean, @NotNull ConfigurationItemOrigin context, String shortDesc) {
         return this.<V,D>createMetadataMappingBuilder()
-                .mappingBean(mappingBean, context)
+                .mapping(MetadataMappingConfigItem.of(mappingBean, context))
                 .contextDescription(shortDesc);
     }
 }

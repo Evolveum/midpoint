@@ -16,8 +16,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindTyp
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.GENERIC;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -74,6 +77,7 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
 
     private static final String JACK = "jack";
     private static final String JIM = "jim";
+    private static final String ALICE = "alice";
     private static final String GUIDE = "guide";
 
     /** Initialized for each test anew (when the specific resource is initialized). */
@@ -158,7 +162,7 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
     }
 
     /**
-     * Resource definition: only accounts and documents, no association types.
+     * Resource definition: same as above.
      *
      * Checks that accounts and documents can be imported.
      */
@@ -180,6 +184,11 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
         assertUsers(INITIAL_DMS_ACCOUNTS + 1);
         assertUserAfterByUsername(JACK); // TODO some assertions
 
+        importDocuments(result);
+    }
+
+    /** Extra method to be ad-hoc callable from the outside. */
+    private void importDocuments(OperationResult result) throws CommonException, IOException {
         when("documents are imported");
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DMS_OID)
@@ -192,7 +201,7 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
         guideOid = assertServiceAfterByName(GUIDE)
                 .assertHasArchetype(ARCHETYPE_DOCUMENT.oid)
                 .getOid();
-                // TODO more assertions
+        // TODO more assertions
     }
 
     /**
@@ -426,16 +435,83 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
         displayDumpable("account before", dmsScenario.account.getByNameRequired(JIM));
 
         when("assignment providing read access to guide is created (simulation)");
+        var simResult = executeWithSimulationResult(
+                List.of(deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(new AssignmentType()
+                                .targetRef(guideOid, ServiceType.COMPLEX_TYPE, RELATION_READ))
+                        .asObjectDelta(jim.getOid())),
+                task, result);
+
+        then("all is OK");
+        assertProcessedObjects(simResult, "after")
+                .display();
+    }
+
+    /**
+     * Resource definition: same as above.
+     *
+     * Provisioning user `jim` with `read` access to `guide` (real).
+     */
+    @Test
+    public void test310ProvisionJimWithOutboundsReal() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("reusing resource definition from previous test");
+
+        and("user 'jim' existing from the previous test");
+
+        var jimOid = assertUserBeforeByUsername(JIM)
+                .singleLink()
+                .end()
+                .getOid();
+
+        displayDumpable("account before", dmsScenario.account.getByNameRequired(JIM));
+
+        when("assignment providing read access to guide is created (real)");
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
                         .add(new AssignmentType()
                                 .targetRef(guideOid, ServiceType.COMPLEX_TYPE, RELATION_READ))
-                        .asObjectDelta(jim.getOid()),
+                        .asObjectDelta(jimOid),
                 null, task, result);
 
         then("all is OK");
+        assertUserAfterByUsername(JIM)
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .display();
+
         displayDumpable("account after", dmsScenario.account.getByNameRequired(JIM));
+    }
+
+    @Test
+    public void test350ProvisionNewAccount() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("reusing resource definition from previous test");
+
+        when("user with access to guide is created");
+        var alice = new UserType()
+                .name(ALICE)
+                .assignment(new AssignmentType()
+                        .construction(RESOURCE_DMS_300.construction(ACCOUNT, INTENT_DEFAULT)))
+                .assignment(new AssignmentType()
+                        .targetRef(guideOid, ServiceType.COMPLEX_TYPE, RELATION_READ));
+        addObject(alice, task, result);
+
+        then("all is OK");
+        assertUserAfterByUsername(ALICE)
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .display();
+
+        displayDumpable("account after", dmsScenario.account.getByNameRequired(ALICE));
     }
 
     private void reimportDmsResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {

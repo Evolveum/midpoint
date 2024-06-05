@@ -6,11 +6,12 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
+import com.evolveum.midpoint.provisioning.ucf.api.Operation;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.AttributeDelta;
@@ -19,11 +20,15 @@ import org.identityconnectors.framework.common.objects.OperationalAttributes;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -31,14 +36,28 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  */
 public class DeltaModificationConverter extends AbstractModificationConverter {
 
-    private Set<AttributeDelta> attributesDelta = new HashSet<>();
+    private final Set<AttributeDelta> attributesDeltas = new HashSet<>();
 
-    public Set<AttributeDelta> getAttributesDelta() {
-        return attributesDelta;
+    DeltaModificationConverter(
+            @NotNull Collection<Operation> changes,
+            @NotNull ResourceSchema resourceSchema,
+            @NotNull ResourceObjectDefinition objectDefinition,
+            String connectorDescription,
+            ConnectorOperationOptions options,
+            @NotNull ConnIdObjectConvertor objectConvertor) {
+        super(changes, resourceSchema, objectDefinition, connectorDescription, options, objectConvertor);
+    }
+
+    Set<AttributeDelta> getAttributesDeltas() {
+        return attributesDeltas;
     }
 
     @Override
-    protected <T> void collect(String connIdAttrName, PropertyDelta<T> delta, PlusMinusZero isInModifiedAuxilaryClass, CollectorValuesConverter<T> valuesConverter) throws SchemaException {
+    protected <V extends PrismValue> void collect(
+            String connIdAttrName,
+            ItemDelta<V, ?> delta,
+            PlusMinusZero isInModifiedAuxiliaryClass,
+            CollectorValuesConverter<V> valuesConverter) throws SchemaException {
         AttributeDeltaBuilder deltaBuilder = new AttributeDeltaBuilder();
         deltaBuilder.setName(connIdAttrName);
         if (delta.isAdd()) {
@@ -53,9 +72,9 @@ public class DeltaModificationConverter extends AbstractModificationConverter {
             }
         }
         if (delta.isDelete()) {
-            if (delta.getDefinition().isMultiValue() || isInModifiedAuxilaryClass == PlusMinusZero.MINUS) {
-                List<Object> connIdAttributeValues = valuesConverter.covertAttributeValuesToConnId(delta.getValuesToDelete(), delta.getElementName());
-                deltaBuilder.addValueToRemove(connIdAttributeValues);
+            if (delta.getDefinition().isMultiValue() || isInModifiedAuxiliaryClass == PlusMinusZero.MINUS) {
+                deltaBuilder.addValueToRemove(
+                        valuesConverter.covertAttributeValuesToConnId(delta.getValuesToDelete(), delta.getElementName()));
             } else {
                 // Force "update" for single-valued attributes instead of "add". This is saving one
                 // read in some cases.
@@ -68,23 +87,24 @@ public class DeltaModificationConverter extends AbstractModificationConverter {
             }
         }
         if (delta.isReplace()) {
-            List<Object> connIdAttributeValues = valuesConverter.covertAttributeValuesToConnId(delta.getValuesToReplace(), delta.getElementName());
-            if (isInModifiedAuxilaryClass == PlusMinusZero.PLUS) {
+            List<Object> connIdAttributeValues =
+                    valuesConverter.covertAttributeValuesToConnId(delta.getValuesToReplace(), delta.getElementName());
+            if (isInModifiedAuxiliaryClass == PlusMinusZero.PLUS) {
                 deltaBuilder.addValueToAdd(connIdAttributeValues);
             } else {
                 deltaBuilder.addValueToReplace(connIdAttributeValues);
             }
         }
-        attributesDelta.add(deltaBuilder.build());
+        attributesDeltas.add(deltaBuilder.build());
     }
 
     @Override
-    protected <T> void collectReplace(String connIdAttrName, T connIdAttrValue) throws SchemaException {
+    protected <T> void collectReplace(String connIdAttrName, T connIdAttrValue) {
         if (connIdAttrValue == null) {
             // Explicitly replace with empty list. Passing null here would mean "no replace in this delta".
-            attributesDelta.add(AttributeDeltaBuilder.build(connIdAttrName, Collections.EMPTY_LIST));
+            attributesDeltas.add(AttributeDeltaBuilder.build(connIdAttrName, Collections.EMPTY_LIST));
         } else {
-            attributesDelta.add(AttributeDeltaBuilder.build(connIdAttrName, connIdAttrValue));
+            attributesDeltas.add(AttributeDeltaBuilder.build(connIdAttrName, connIdAttrValue));
         }
     }
 
@@ -102,47 +122,24 @@ public class DeltaModificationConverter extends AbstractModificationConverter {
             GuardedString oldPasswordGs = passwordToGuardedString(oldPasswordPs, "old password");
             deltaBuilder.addValueToRemove(oldPasswordGs);
 
-            attributesDelta.add(deltaBuilder.build());
+            attributesDeltas.add(deltaBuilder.build());
         } else {
             super.collectPassword(passwordDelta);
         }
     }
 
-    protected void collectPasswordDelta(String connIdAttrName, PropertyDelta<ProtectedStringType> delta, PlusMinusZero isInModifiedAuxilaryClass, CollectorValuesConverter<ProtectedStringType> valuesConverter) throws SchemaException {
-        AttributeDeltaBuilder deltaBuilder = new AttributeDeltaBuilder();
-        deltaBuilder.setName(connIdAttrName);
-        List<Object> newPasswordConnIdValues = valuesConverter.covertAttributeValuesToConnId(delta.getValuesToReplace(), delta.getElementName());
-        if (isSelfPasswordChange(delta)) {
-            // Self-service password *change*
-            List<Object> oldPasswordConnIdValues = valuesConverter.covertAttributeValuesToConnId(delta.getEstimatedOldValues(), delta.getElementName());
-            deltaBuilder.addValueToAdd(newPasswordConnIdValues);
-            deltaBuilder.addValueToRemove(oldPasswordConnIdValues);
-        } else {
-            // Password *reset*
-            deltaBuilder.addValueToReplace(newPasswordConnIdValues);
-        }
-        attributesDelta.add(deltaBuilder.build());
-    }
-
     private boolean isSelfPasswordChange(PropertyDelta<ProtectedStringType> delta) {
         // We need runAs option, otherwise this is no self-service but an administrator setting the password.
-        if (getOptions() == null) {
-            return false;
-        }
-        if (getOptions().getRunAsIdentification() == null) {
+        if (options == null || options.getRunAsIdentification() == null) {
             return false;
         }
 
         Collection<PrismPropertyValue<ProtectedStringType>> estimatedOldValues = delta.getEstimatedOldValues();
-        if (estimatedOldValues == null || estimatedOldValues.isEmpty()) {
-            return false;
-        }
-
-        return true;
+        return estimatedOldValues != null && !estimatedOldValues.isEmpty();
     }
 
     @Override
     protected void debugDumpOutput(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabelLn(sb, "attributesDelta", attributesDelta, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "attributesDelta", attributesDeltas, indent + 1);
     }
 }

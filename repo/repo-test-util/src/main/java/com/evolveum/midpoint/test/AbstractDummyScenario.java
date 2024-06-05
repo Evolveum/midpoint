@@ -124,7 +124,7 @@ public class AbstractDummyScenario {
 
         /** Creates the respective link on the resource. */
         public void add(DummyObject first, DummyObject second) {
-            controller.getDummyResource().addLink(getLinkClassName().local(), first, second);
+            controller.getDummyResource().addLinkValue(getLinkClassName().local(), first, second);
         }
 
         public abstract @NotNull ObjectClassName getLinkClassName();

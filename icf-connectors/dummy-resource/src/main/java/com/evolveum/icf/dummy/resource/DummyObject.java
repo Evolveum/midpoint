@@ -539,9 +539,26 @@ public abstract class DummyObject implements DebugDumpable {
             sb.append(" ").append(PrettyPrinter.prettyPrint(validFrom)).append(" - ").append(PrettyPrinter.prettyPrint(validTo));
         }
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "lastModifier", lastModifier, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "Last modifier", lastModifier, indent + 1);
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "Attributes", attributes, indent + 1);
+        if (resource != null) {
+            for (var linkDefinition : getStructuralObjectClass().getLinkDefinitions()) {
+                var linkName = linkDefinition.getParticipant().getLinkName();
+                if (!linkDefinition.getParticipant().isVisible()) {
+                    continue;
+                }
+                sb.append("\n");
+                var label = "Linked objects (" + linkName + ")";
+                var linkedObjects = getLinkedObjects(linkName);
+                if (linkDefinition.getParticipant().isExpandedByDefault()) {
+                    DebugUtil.debugDumpWithLabel(sb, label, linkedObjects, indent + 1);
+                } else {
+                    var names = linkedObjects.stream().map(obj -> obj.getName()).toList();
+                    DebugUtil.debugDumpWithLabel(sb, label, names, indent + 1);
+                }
+            }
+        }
         extendDebugDump(sb, indent);
         return sb.toString();
     }
@@ -577,14 +594,54 @@ public abstract class DummyObject implements DebugDumpable {
         return getResourceRequired().getLinkedObjects(this, linkName);
     }
 
-    /** {@link #resource} must be set up! */
-    public void addLinkedObject(@NotNull String linkName, @NotNull DummyObject linkedObject) {
+    /**
+     * Adds a link to given object. (It must already exist on the resource.)
+     *
+     * The {@link #resource} must be set up for the current object.
+     */
+    public void addLinkValue(@NotNull String linkName, @NotNull DummyObject linkedObject) {
         var resource = getResourceRequired();
         var linkDef = getStructuralObjectClass().getLinkDefinitionRequired(linkName);
         if (linkDef.isFirst()) {
-            resource.addLink(linkDef.getLinkClassName(), this, linkedObject);
+            resource.addLinkValue(linkDef.getLinkClassName(), this, linkedObject);
         } else {
-            resource.addLink(linkDef.getLinkClassName(), linkedObject, this);
+            resource.addLinkValue(linkDef.getLinkClassName(), linkedObject, this);
+        }
+    }
+
+    /**
+     * Deletes a link value. The linked object will be deleted if it's stored "by value".
+     *
+     * The {@link #resource} must be set up for the current object.
+     */
+    public void deleteLinkValue(@NotNull String linkName, @NotNull DummyObject linkedObject)
+            throws ConflictException, FileNotFoundException, SchemaViolationException,
+            InterruptedException, ConnectException {
+        var resource = getResourceRequired();
+        var linkDef = getStructuralObjectClass().getLinkDefinitionRequired(linkName);
+        if (linkDef.isFirst()) {
+            resource.deleteLinkValue(linkDef.getLinkClassName(), this, linkedObject);
+        } else {
+            resource.deleteLinkValue(linkDef.getLinkClassName(), linkedObject, this);
+        }
+        if (linkDef.getParticipant().isExpandedByDefault()) {
+            try {
+                resource.deleteObjectById(linkedObject.getObjectClassName(), linkedObject.getId());
+            } catch (ObjectDoesNotExistException e) {
+                throw new IllegalStateException("Linked object " + linkedObject + " does not exist", e);
+            }
+        }
+    }
+
+    /**
+     * Deletes all values of a given link, along with the linked objects if they are stored "by value".
+     *
+     * The {@link #resource} must be set up for the current object.
+     */
+    public void deleteAllLinkValues(@NotNull String linkName)
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+        for (DummyObject linkedObject : getLinkedObjects(linkName)) {
+            deleteLinkValue(linkName, linkedObject);
         }
     }
 

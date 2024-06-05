@@ -305,7 +305,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public @Nullable UcfModifyReturnValue modifyObject(
-            ResourceObjectIdentification.WithPrimary identification,
+            @NotNull ResourceObjectIdentification.WithPrimary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,

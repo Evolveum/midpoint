@@ -505,13 +505,18 @@ class ResourceSchemaParser {
             if (assocTypeCI == null) {
                 return; // Currently nothing to do here; TODO implement in future
             }
+
+            // TEMPORARY
+            ((ShadowReferenceAttributeDefinitionImpl) refAttrDef)
+                    .setAssociationTypeDefinitionBean(assocTypeCI.value());
+
             var subjectSideCI = assocTypeCI.getSubject().getAssociation();
             if (subjectSideCI == null) {
                 return; // Nothing to attach to the reference attr definition
             }
 
-            ((ShadowReferenceAttributeDefinitionImpl) refAttrDef).setAssociationDefinitionBean(
-                    subjectSideCI.value());
+            ((ShadowReferenceAttributeDefinitionImpl) refAttrDef)
+                    .setAssociationDefinitionBean(subjectSideCI.value());
 //            var refAttrName = refAttrDef.getItemName();
 //            var declaringAssocName = assocTypeCI != null ? assocTypeCI.getSubject().getDeclaringItemName() : null;
 //            var assocDefBeanFromAssociationType = assocTypeCI != null ? value(assocTypeCI.getSubject().getAssociation()) : null;

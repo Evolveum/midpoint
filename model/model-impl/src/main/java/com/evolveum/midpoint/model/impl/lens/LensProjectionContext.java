@@ -59,6 +59,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import static com.evolveum.midpoint.model.impl.lens.ChangeExecutionResult.getExecutedDelta;
 import static com.evolveum.midpoint.model.impl.lens.ElementState.in;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
  * @author semancik
@@ -268,7 +269,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * - Target: ReconciliationProcessor
      */
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes;
-    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>>> squeezedAssociations;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<ShadowAssociationValue, ShadowReferenceAttributeDefinition>>> squeezedAssociations;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses;
 
     /** Dependency-defining beans *with the defaults filled-in*. All of resource OID, kind, and intent are not null. */
@@ -897,12 +898,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.squeezedAttributes = squeezedAttributes;
     }
 
-    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>>> getSqueezedAssociations() {
+    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<ShadowAssociationValue, ShadowReferenceAttributeDefinition>>> getSqueezedAssociations() {
         return squeezedAssociations;
     }
 
     public void setSqueezedAssociations(
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>>> squeezedAssociations) {
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<ShadowAssociationValue, ShadowReferenceAttributeDefinition>>> squeezedAssociations) {
         this.squeezedAssociations = squeezedAssociations;
     }
 
@@ -923,17 +924,21 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
-    public ResourceSchema getResourceSchema() throws SchemaException, ConfigurationException {
+    public CompleteResourceSchema getResourceSchema() throws SchemaException, ConfigurationException {
         if (resource == null) {
             return null;
         }
         return ResourceSchemaFactory.getCompleteSchema(resource, LayerType.MODEL);
     }
 
+    public @NotNull CompleteResourceSchema getResourceSchemaRequired() throws SchemaException, ConfigurationException {
+        return stateNonNull(getResourceSchema(), "No resource schema in %s", this);
+    }
+
     /** Returns immutable definition. */
     public @Nullable ResourceObjectDefinition getStructuralObjectDefinition() throws SchemaException, ConfigurationException {
         if (structuralObjectDefinition == null) {
-            ResourceSchema resourceSchema = getResourceSchema();
+            var resourceSchema = getResourceSchema();
             if (resourceSchema == null) {
                 LOGGER.trace("No resource schema -> no structural object definition");
                 return null;

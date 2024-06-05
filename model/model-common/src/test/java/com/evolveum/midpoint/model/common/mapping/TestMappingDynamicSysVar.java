@@ -13,6 +13,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -28,7 +32,6 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
@@ -78,7 +81,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Captain jack"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("Captain jack"));
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
@@ -208,15 +211,15 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                        evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
+                        evaluator.toPath("name"), PolyString.fromOrig("Jack"));
 
         String shortTestName = getTestNameShort();
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
                 evaluator.createMapping(filename, shortTestName, "title", delta);
 
-        PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+        PrismObject<UserType> user = getOldObject(mapping);
         user.asObjectable().getSubtype().add("CAPTAIN");
-        mapping.getSourceContext().recompute();
+        mapping.getDefaultSourceContextIdi().recompute();
 
         OperationResult opResult = createOperationResult();
 
@@ -226,8 +229,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Captain Jack"));
-        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Captain jack"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("Captain Jack"));
+        PrismAsserts.assertTripleMinus(outputTriple, PolyString.fromOrig("Captain jack"));
     }
 
     @Test
@@ -239,7 +242,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                        evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
+                        evaluator.toPath("name"), PolyString.fromOrig("Jack"));
 
         String shortTestName = getTestNameShort();
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
@@ -264,7 +267,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                        evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
+                        evaluator.toPath("name"), PolyString.fromOrig("Jack"));
         delta.addModificationAddProperty(evaluator.toPath("subtype"), "CAPTAIN");
 
         String shortTestName = getTestNameShort();
@@ -279,7 +282,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Captain Jack"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("Captain Jack"));
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
@@ -299,9 +302,9 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
                 evaluator.createMapping(filename, shortTestName, "title", delta);
 
-        PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+        PrismObject<UserType> user = getOldObject(mapping);
         user.asObjectable().getSubtype().add("CAPTAIN");
-        mapping.getSourceContext().recompute();
+        mapping.getDefaultSourceContextIdi().recompute();
 
         OperationResult opResult = createOperationResult();
 
@@ -312,7 +315,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
         PrismAsserts.assertTripleNoPlus(outputTriple);
-        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Captain jack"));
+        PrismAsserts.assertTripleMinus(outputTriple, PolyString.fromOrig("Captain jack"));
     }
 
     @Test
@@ -344,16 +347,16 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                        evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
+                        evaluator.toPath("name"), PolyString.fromOrig("Jack"));
 
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 filename,
                 shortTestName, "title", delta);
 
-        PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+        PrismObject<UserType> user = getOldObject(mapping);
         user.asObjectable().getSubtype().clear();
         user.asObjectable().setEmployeeNumber(null);
-        mapping.getSourceContext().recompute();
+        mapping.getDefaultSourceContextIdi().recompute();
 
         OperationResult opResult = createOperationResult();
 
@@ -363,8 +366,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Landlubber Jack"));
-        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Landlubber jack"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("Landlubber Jack"));
+        PrismAsserts.assertTripleMinus(outputTriple, PolyString.fromOrig("Landlubber jack"));
     }
 
     @Test
@@ -390,9 +393,9 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
                 filename,
                 shortTestName, "title", delta);
 
-        PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+        PrismObject<UserType> user = getOldObject(mapping);
         user.asObjectable().setEmployeeNumber("666");
-        mapping.getSourceContext().recompute();
+        mapping.getDefaultSourceContextIdi().recompute();
 
         OperationResult opResult = createOperationResult();
 
@@ -402,7 +405,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Landlubber jack"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("Landlubber jack"));
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
@@ -435,16 +438,16 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-                        evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
+                        evaluator.toPath("name"), PolyString.fromOrig("Jack"));
 
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 filename,
                 shortTestName, "title", delta);
 
-        PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+        PrismObject<UserType> user = getOldObject(mapping);
         user.asObjectable().getSubtype().add("SAILOR");
         user.asObjectable().setEmployeeNumber("666");
-        mapping.getSourceContext().recompute();
+        mapping.getDefaultSourceContextIdi().recompute();
 
         OperationResult opResult = createOperationResult();
 
@@ -480,9 +483,9 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
                 filename,
                 shortTestName, "title", delta);
 
-        PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+        PrismObject<UserType> user = getOldObject(mapping);
         user.asObjectable().setEmployeeNumber(null);
-        mapping.getSourceContext().recompute();
+        mapping.getDefaultSourceContextIdi().recompute();
 
         OperationResult opResult = createOperationResult();
 
@@ -493,7 +496,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
         PrismAsserts.assertTripleNoPlus(outputTriple);
-        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Landlubber jack"));
+        PrismAsserts.assertTripleMinus(outputTriple, PolyString.fromOrig("Landlubber jack"));
     }
 
     @Test
@@ -515,7 +518,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("15"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("15"));
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
@@ -530,9 +533,9 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
                 evaluator.createMapping("mapping-npe.xml", shortTestName, "title", delta);
 
-        PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
-        user.asObjectable().setAdditionalName(PrismTestUtil.createPolyStringType("Sultan of the Caribbean"));
-        mapping.getSourceContext().recompute();
+        PrismObject<UserType> user = getOldObject(mapping);
+        user.asObjectable().setAdditionalName(PolyStringType.fromOrig("Sultan of the Caribbean"));
+        mapping.getDefaultSourceContextIdi().recompute();
 
         OperationResult opResult = createOperationResult();
 
@@ -543,7 +546,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
         PrismAsserts.assertTripleNoPlus(outputTriple);
-        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("23"));
+        PrismAsserts.assertTripleMinus(outputTriple, PolyString.fromOrig("23"));
     }
 
     @Test
@@ -602,7 +605,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
         // THEN
         PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("666"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("666"));
         PrismAsserts.assertTripleNoMinus(outputTriple);
 
         // Make sure it is recomputed
@@ -703,9 +706,9 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
                 "mapping-script-system-variables-employee-type.xml",
                 getTestNameShort(), "subtype", delta);
 
-        PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+        PrismObject<UserType> user = getOldObject(mapping);
         setEmployeeType(user.asObjectable(), "A");
-        mapping.getSourceContext().recompute();
+        mapping.getDefaultSourceContextIdi().recompute();
 
         OperationResult opResult = createOperationResult();
 
@@ -731,9 +734,9 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
                 "mapping-script-system-variables-employee-type.xml",
                 getTestNameShort(), "subtype", delta);
 
-        PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+        PrismObject<UserType> user = getOldObject(mapping);
         setEmployeeType(user.asObjectable());
-        mapping.getSourceContext().recompute();
+        mapping.getDefaultSourceContextIdi().recompute();
 
         OperationResult opResult = createOperationResult();
 
@@ -759,9 +762,9 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
                 "mapping-script-system-variables-employee-type.xml",
                 getTestNameShort(), "subtype", delta);
 
-        PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+        PrismObject<UserType> user = getOldObject(mapping);
         setEmployeeType(user.asObjectable(), "B");
-        mapping.getSourceContext().recompute();
+        mapping.getDefaultSourceContextIdi().recompute();
 
         OperationResult opResult = createOperationResult();
 
@@ -835,9 +838,9 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
                 "mapping-script-system-variables-employee-type.xml",
                 getTestNameShort(), "subtype", delta);
 
-        PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+        PrismObject<UserType> user = getOldObject(mapping);
         setEmployeeType(user.asObjectable(), oldVals);
-        mapping.getSourceContext().recompute();
+        mapping.getDefaultSourceContextIdi().recompute();
 
         OperationResult opResult = createOperationResult();
 
@@ -917,9 +920,9 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
                 "mapping-script-system-variables-employee-type.xml",
                 getTestNameShort(), "subtype", delta);
 
-        PrismObject<UserType> user = (PrismObject<UserType>) mapping.getSourceContext().getOldObject();
+        PrismObject<UserType> user = getOldObject(mapping);
         setEmployeeType(user.asObjectable(), oldVals);
-        mapping.getSourceContext().recompute();
+        mapping.getDefaultSourceContextIdi().recompute();
 
         OperationResult opResult = createOperationResult();
 
@@ -959,8 +962,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
 
         // THEN
         PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("weighAnch0r"));
-        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("d3adM3nT3llN0Tal3s"));
+        PrismAsserts.assertTriplePlus(outputTriple, PolyString.fromOrig("weighAnch0r"));
+        PrismAsserts.assertTripleMinus(outputTriple, PolyString.fromOrig("d3adM3nT3llN0Tal3s"));
     }
 
     @Test
@@ -993,5 +996,10 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         PrismAsserts.assertTripleNoZero(outputTriple);
         PrismAsserts.assertTriplePlus(outputTriple, "weighAnch0r123");
         PrismAsserts.assertTripleMinus(outputTriple, "d3adM3nT3llN0Tal3s123");
+    }
+
+    private PrismObject<UserType> getOldObject(MappingImpl<?, ?> mapping) {
+        //noinspection unchecked
+        return ((ObjectDeltaObject<UserType>) mapping.getDefaultSourceContextIdi()).getOldObject();
     }
 }

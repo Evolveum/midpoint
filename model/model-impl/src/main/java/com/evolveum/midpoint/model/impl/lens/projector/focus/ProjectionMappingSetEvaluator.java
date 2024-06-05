@@ -120,8 +120,8 @@ public class ProjectionMappingSetEvaluator {
                 mappingBuilder.defaultTargetDefinition(params.getTargetItemDefinition());
             }
             mappingBuilder.defaultTargetPath(defaultTargetItemPath);
-            mappingBuilder.targetContext(targetObjectDefinition);
-            mappingBuilder.sourceContext(params.getSourceContext());
+            mappingBuilder.targetContextDefinition(targetObjectDefinition);
+            mappingBuilder.defaultSourceContextIdi(params.getSourceContext());
 
             // Initialize mapping (using Inversion of Control)
             MappingBuilder<V, D> initializedMappingBuilder = params.getInitializer().initialize(mappingBuilder);

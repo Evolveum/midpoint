@@ -196,7 +196,7 @@ public class MappingTestEvaluator {
         ObjectDeltaObject<UserType> userOdo =
                 new ObjectDeltaObject<>(userOld, userDelta, null, objectDefinition);
         userOdo.recompute();
-        mappingBuilder.sourceContext(userOdo);
+        mappingBuilder.defaultSourceContextIdi(userOdo);
 
         // Variable $focus
         mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, userOdo);
@@ -212,7 +212,7 @@ public class MappingTestEvaluator {
 
         // Target context: user
         PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
-        mappingBuilder.targetContext(userDefinition);
+        mappingBuilder.targetContextDefinition(userDefinition);
 
         mappingBuilder.valuePolicySupplier((result) -> policy);
         // Default target
@@ -245,7 +245,7 @@ public class MappingTestEvaluator {
                 new Source<>(null, delta, null, ExpressionConstants.VAR_INPUT_QNAME, delta.getDefinition());
         defaultSource.recompute();
         builder.defaultSource(defaultSource);
-        builder.targetContext(getUserDefinition());
+        builder.targetContextDefinition(getUserDefinition());
         builder.addVariableDefinition(ExpressionConstants.VAR_USER, user, UserType.class);
         builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user, UserType.class);
         builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account.asPrismObject(), ShadowType.class);

@@ -8,9 +8,13 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 
 import org.identityconnectors.framework.common.objects.ObjectClass;
 
@@ -80,6 +84,11 @@ public class ConnIdNameMapper {
             attrDef = ocDef.findSimpleAttributeDefinitionRequired(attributeDelta.getElementName());
         }
         return ucfAttributeNameToConnId(attrDef);
+    }
+
+    static String ucfAttributeNameToConnId(ContainerDelta<ShadowAssociationValueType> referenceDelta) throws SchemaException {
+        return ucfAttributeNameToConnId(
+                MiscUtil.castSafely(referenceDelta.getDefinition(), ShadowReferenceAttributeDefinition.class));
     }
 
     static String ucfAttributeNameToConnId(ShadowAttribute<?, ?> attribute, ResourceObjectDefinition ocDef)

@@ -68,6 +68,10 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
         return getBean().getOid();
     }
 
+    default @NotNull String getOidRequired() {
+        return MiscUtil.stateNonNull(getBean().getOid(), "No OID in %s", this);
+    }
+
     /** Currently, returns "plain" reference (only type + OID). This may change in the future. Returns null if there's no OID. */
     default @Nullable ObjectReferenceType getRef() {
         var oid = getOid();
@@ -340,6 +344,14 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
 
     default @NotNull ShadowAssociationsCollection getAssociationsCollection() {
         return ShadowAssociationsCollection.ofShadow(getBean());
+    }
+
+    default ResourceObjectTypeIdentification getTypeIdentification() {
+        return ShadowUtil.getTypeIdentification(getBean());
+    }
+
+    default boolean equalsByContent(AbstractShadow other) {
+        return ShadowUtil.equalsByContent(this.getBean(), other.getBean());
     }
 
     /**

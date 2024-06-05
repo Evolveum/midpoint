@@ -6,40 +6,39 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+
+import java.io.File;
+import java.util.Collection;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.schema.util.AbstractShadow;
-
-import com.evolveum.midpoint.test.DummyHrScenario.Contract;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyObject;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyHrScenario;
+import com.evolveum.midpoint.test.DummyHrScenario.Contract;
 import com.evolveum.midpoint.test.DummyHrScenario.OrgUnit;
 import com.evolveum.midpoint.test.DummyHrScenario.Person;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
-
-import java.io.File;
-import java.util.Collection;
 
 /**
  * Testing the native associations.
@@ -186,15 +185,7 @@ public class TestDummyAssociations extends AbstractDummyTest {
         var result = task.getResult();
 
         given("ann with a contract in sciences");
-        var sciencesShadow =
-                MiscUtil.extractSingletonRequired(
-                        provisioningService.searchObjects(
-                                ShadowType.class,
-                                Resource.of(resource)
-                                        .queryFor(OrgUnit.OBJECT_CLASS_NAME.xsd())
-                                        .and().item(ICFS_NAME_PATH).eq("sciences")
-                                        .build(),
-                                null, task, result));
+        var sciencesShadow = getOrgUnitByName("sciences", task, result);
 
         var annContractShadow = Resource.of(resource)
                 .getCompleteSchemaRequired()
@@ -220,15 +211,7 @@ public class TestDummyAssociations extends AbstractDummyTest {
         provisioningService.addObject(annShadow.getPrismObject(), null, null, task, result);
 
         then("she's there");
-        var annShadowAfter =
-                MiscUtil.extractSingletonRequired(
-                        provisioningService.searchObjects(
-                                ShadowType.class,
-                                Resource.of(resource)
-                                        .queryFor(Person.OBJECT_CLASS_NAME.xsd())
-                                        .and().item(Person.AttributeNames.NAME.path()).eq("ann")
-                                        .build(),
-                                null, task, result));
+        var annShadowAfter = getPersonByName("ann", task, result);
 
         assertShadow(annShadowAfter, "ann")
                 .display()
@@ -271,5 +254,143 @@ public class TestDummyAssociations extends AbstractDummyTest {
                 .attributes()
                 .assertValue(ICFS_UID, "sciences")
                 .assertValue(OrgUnit.AttributeNames.NAME.q(), "sciences");
+    }
+
+    @Test
+    public void test210AddDeleteContract() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("bob account is on resource (no contract)");
+        var sciencesShadow = getOrgUnitByName("sciences", task, result);
+
+        var bobShadow = Resource.of(resource)
+                .getCompleteSchemaRequired()
+                .findObjectClassDefinitionRequired(hrScenario.person.getObjectClassName().xsd())
+                .createBlankShadow();
+        bobShadow.getAttributesContainer()
+                .add(Person.AttributeNames.NAME.q(), "bob")
+                .add(Person.AttributeNames.FIRST_NAME.q(), "Bob")
+                .add(Person.AttributeNames.LAST_NAME.q(), "Black");
+
+        provisioningService.addObject(bobShadow.getPrismObject(), null, null, task, result);
+
+        when("bob's contract on sciences is created");
+
+        var bobContractShadow = Resource.of(resource)
+                .getCompleteSchemaRequired()
+                .findObjectClassDefinitionRequired(hrScenario.contract.getObjectClassName().xsd())
+                .createBlankShadow();
+        bobContractShadow.getAttributesContainer()
+                .add(ICFS_NAME, "bob-sciences");
+        bobContractShadow.getOrCreateAssociationsContainer()
+                .add(Contract.LinkNames.ORG.q(), AbstractShadow.of(sciencesShadow));
+
+        provisioningService.modifyObject(
+                ShadowType.class,
+                bobShadow.getOidRequired(),
+                Resource.of(resource)
+                        .deltaFor(Person.OBJECT_CLASS_NAME.xsd())
+                        .item(Person.LinkNames.CONTRACT.path())
+                        .add(ShadowAssociationValue.of(bobContractShadow.clone(), false))
+                        .asItemDeltas(),
+                null, null, task, result);
+
+        then("the contract is there");
+        var bobShadowAfterAdding = getPersonByName("bob", task, result);
+
+        assertShadow(bobShadowAfterAdding, "after adding")
+                .display()
+                .attributes()
+                .assertValue(ICFS_UID, "bob")
+                .assertValue(Person.AttributeNames.NAME.q(), "bob")
+                .assertValue(Person.AttributeNames.FIRST_NAME.q(), "Bob")
+                .assertValue(Person.AttributeNames.LAST_NAME.q(), "Black");
+
+        var contractsAfterAdding = AbstractShadow.of(bobShadowAfterAdding)
+                .getAssociationValues(Person.LinkNames.CONTRACT.q())
+                .stream()
+                .map(val -> val.getShadowBean())
+                .toList();
+
+        assertThat(contractsAfterAdding)
+                .as("contracts after adding")
+                .hasSize(1);
+
+        var contractAfterAdding = contractsAfterAdding.get(0);
+        assertShadow(contractAfterAdding, "contract after adding")
+                .display()
+                .attributes()
+                .assertValue(ICFS_UID, "bob-sciences")
+                .assertValue(Contract.AttributeNames.NAME.q(), "bob-sciences");
+
+        var contractOrgsAfter = AbstractShadow.of(contractAfterAdding)
+                .getAssociationValues(Contract.LinkNames.ORG.q())
+                .stream()
+                .map(val -> val.getShadowBean())
+                .toList();
+
+        assertThat(contractOrgsAfter)
+                .as("contract's orgs after adding")
+                .hasSize(1);
+
+        var contractOrgAfter = contractOrgsAfter.get(0);
+        assertShadow(contractOrgAfter, "contract's org")
+                .display()
+                .attributes()
+                .assertValue(ICFS_UID, "sciences")
+                .assertValue(OrgUnit.AttributeNames.NAME.q(), "sciences");
+
+        when("contract is removed (by value)");
+        bobContractShadow.getBean().setOid(null);
+        provisioningService.modifyObject(
+                ShadowType.class,
+                bobShadow.getOidRequired(),
+                Resource.of(resource)
+                        .deltaFor(Person.OBJECT_CLASS_NAME.xsd())
+                        .item(Person.LinkNames.CONTRACT.path())
+                        .delete(ShadowAssociationValue.of(bobContractShadow.clone(), false))
+                        .asItemDeltas(),
+                null, null, task, result);
+
+        then("the contract is no longer there");
+        var bobShadowAfterDeleting = getPersonByName("bob", task, result);
+
+        assertShadow(bobShadowAfterDeleting, "after deleting")
+                .display()
+                .attributes()
+                .assertValue(ICFS_UID, "bob")
+                .assertValue(Person.AttributeNames.NAME.q(), "bob")
+                .assertValue(Person.AttributeNames.FIRST_NAME.q(), "Bob")
+                .assertValue(Person.AttributeNames.LAST_NAME.q(), "Black");
+
+        var contractsAfterDeleting = AbstractShadow.of(bobShadowAfterDeleting)
+                .getAssociationValues(Person.LinkNames.CONTRACT.q());
+
+        assertThat(contractsAfterDeleting)
+                .as("contracts after deleting")
+                .isEmpty();
+    }
+
+    private @NotNull PrismObject<ShadowType> getOrgUnitByName(String name, Task task, OperationResult result) throws Exception {
+        return MiscUtil.extractSingletonRequired(
+                provisioningService.searchObjects(
+                        ShadowType.class,
+                        Resource.of(resource)
+                                .queryFor(OrgUnit.OBJECT_CLASS_NAME.xsd())
+                                .and().item(ICFS_NAME_PATH).eq(name)
+                                .build(),
+                        null, task, result));
+    }
+
+    private @NotNull PrismObject<ShadowType> getPersonByName(String name, Task task, OperationResult result) throws Exception {
+        return MiscUtil.extractSingletonRequired(
+                provisioningService.searchObjects(
+                        ShadowType.class,
+                        Resource.of(resource)
+                                .queryFor(Person.OBJECT_CLASS_NAME.xsd())
+                                .and().item(Person.AttributeNames.NAME.path()).eq(name)
+                                .build(),
+                        null, task, result));
     }
 }
