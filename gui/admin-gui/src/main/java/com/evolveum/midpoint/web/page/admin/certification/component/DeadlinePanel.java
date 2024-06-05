@@ -157,7 +157,7 @@ public class DeadlinePanel extends BasePanel<XMLGregorianCalendar> {
                 deadline.getDay());
         LocalDate now = LocalDate.now();
 
-        return (int) ChronoUnit.DAYS.between(deadlineLocalDate, now);
+        return (int) ChronoUnit.DAYS.between(now, deadlineLocalDate);
     }
 
     protected DeadlineLabelFormat getDeadlineLabelFormat() {

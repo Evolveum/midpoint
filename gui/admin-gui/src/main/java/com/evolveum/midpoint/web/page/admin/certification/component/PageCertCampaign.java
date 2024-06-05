@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
+import com.evolveum.midpoint.web.page.admin.certification.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.PageAdminCertification;
 
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
@@ -139,9 +140,9 @@ public class PageCertCampaign extends PageAdmin {
 
                     @Override
                     public Component createValueComponent(String id) {
-                        return new ProgressBarPanel(id, createCampaignProgressModel());
+                        return new ProgressBarPanel(id, CertMiscUtil.createCampaignProgressBarModel(campaignModel.getObject()));
                     }
-                }); //todo calculate progress
+                });
                 list.add(new DetailsTableItem(createStringResource("PageCertDefinition.numberOfStages"),
                         () -> "" + campaignModel.getObject().getStage().size()));
                 AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaignModel.getObject());
@@ -346,21 +347,6 @@ public class PageCertCampaign extends PageAdmin {
             default:
                 return null;        // todo warning/error?
         }
-    }
-
-    private @NotNull LoadableModel<List<ProgressBar>> createCampaignProgressModel() {
-        return new LoadableModel<>() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<ProgressBar> load() {
-                AccessCertificationCampaignType campaign = campaignModel.getObject();
-                float completed = CertCampaignTypeUtil.getCasesCompletedPercentageAllStagesAllIterations(campaign);
-
-                ProgressBar progressBar = new ProgressBar(completed, ProgressBar.State.INFO);
-                return Collections.singletonList(progressBar);
-            }
-        };
     }
 
     private @NotNull LoadableModel<List<ProgressBar>> createResponseStatisticsModel() {

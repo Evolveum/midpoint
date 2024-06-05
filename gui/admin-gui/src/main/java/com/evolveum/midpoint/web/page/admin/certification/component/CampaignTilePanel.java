@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.certification.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignStateHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -43,6 +44,7 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -120,7 +122,8 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         description.setOutputMarkupId(true);
         add(description);
 
-        ProgressBarPanel progressBar = new ProgressBarPanel(ID_PROGRESS_BAR, createProgressBarModel());
+        ProgressBarPanel progressBar = new ProgressBarPanel(ID_PROGRESS_BAR,
+                CertMiscUtil.createCampaignProgressBarModel(getCampaign()));
         progressBar.setOutputMarkupId(true);
         add(progressBar);
 
@@ -265,21 +268,6 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
     private AccessCertificationCampaignType getCampaign() {
         return getModelObject().getValue().getValue();
-    }
-
-    protected @NotNull LoadableModel<List<ProgressBar>> createProgressBarModel() {
-        return new LoadableModel<>() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<ProgressBar> load() {
-                AccessCertificationCampaignType campaign = getCampaign();
-                float completed = CertCampaignTypeUtil.getCasesCompletedPercentageAllStagesAllIterations(campaign);
-
-                ProgressBar progressBar = new ProgressBar(completed, ProgressBar.State.INFO);
-                return Collections.singletonList(progressBar);
-            }
-        };
     }
 
     private LoadableModel<Date> getDeadlineModel() {
