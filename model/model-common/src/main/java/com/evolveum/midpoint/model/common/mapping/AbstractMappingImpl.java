@@ -931,8 +931,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             deleteOwnYieldFromNonNegativeValues();
         }
 
-        if (target.getSet() == null) {
-            return;
+        ValueSetDefinitionType rangeSetDefBean = target.getSet();
+        // As of 4.9: Multivalues have by default provenance set mapping.
+        if (rangeSetDefBean == null && shouldUseMatchingProvenance()) {
+            rangeSetDefBean = new ValueSetDefinitionType().predefined(ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE);
         }
 
         String name;
@@ -947,7 +949,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                     "Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
         }
 
-        ValueSetDefinitionType rangeSetDefBean = target.getSet();
+
         ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(
                 rangeSetDefBean,
                 getOutputDefinition(),
@@ -1633,5 +1635,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     @Override
     public boolean isPushChanges() {
         return pushChanges;
+    }
+
+
+    boolean shouldUseMatchingProvenance() {
+        return getOutputDefinition().isMultiValue() && mappingBean.getName() != null;
     }
 }
