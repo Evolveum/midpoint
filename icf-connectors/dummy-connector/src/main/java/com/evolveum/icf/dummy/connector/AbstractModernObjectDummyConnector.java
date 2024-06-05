@@ -402,26 +402,65 @@ public abstract class AbstractModernObjectDummyConnector
             InterruptedException, ConnectException {
         for (Object valueToDelete : valuesToDelete) {
             for (DummyObject linkedObject : dummyObject.getLinkedObjects(linkName)) {
-                if (!(valueToDelete instanceof ConnectorObjectReference reference)) {
-                    throw new SchemaViolationException("Trying to delete non-reference link value: " + valueToDelete);
-                }
-                var attributes = reference.getReferencedValue().getAttributes();
-                if (objectMatches(linkedObject, attributes)) {
+                if (objectMatches(linkedObject, valueToDelete)) {
                     dummyObject.deleteLinkValue(linkName, linkedObject);
                 }
             }
         }
     }
 
-    private boolean objectMatches(DummyObject object, Set<Attribute> attributes) {
-        for (var attribute : attributes) {
-            Set<Object> currentValues = new HashSet<>(emptyIfNull(object.getAttributeValues(attribute.getName(), Object.class)));
-            Set<Object> expectedValues = new HashSet<>(emptyIfNull(attribute.getValue()));
-            if (!Objects.equals(currentValues, expectedValues)) {
-                return false;
+    private boolean objectMatches(DummyObject object, Object value) throws SchemaViolationException {
+        if (!(value instanceof ConnectorObjectReference reference)) {
+            throw new SchemaViolationException("Trying to delete non-reference link value: " + value);
+        }
+        for (var icfAttribute : reference.getReferencedValue().getAttributes()) {
+            var attrName = icfAttribute.getName();
+            if (icfAttribute.is(Uid.NAME)) {
+                var currentUidValue = createUid(object).getUidValue();
+                var expectedUidValue = Utils.getAttributeSingleValue(icfAttribute, String.class);
+                if (!Objects.equals(currentUidValue, expectedUidValue)) {
+                    return false;
+                }
+            } else if (icfAttribute.is(Name.NAME)) {
+                var currentName = object.getName();
+                var expectedName = convertIcfName(Utils.getAttributeSingleValue(icfAttribute, String.class));
+                if (!Objects.equals(currentName, expectedName)) {
+                    return false;
+                }
+            } else if (object.isLink(attrName)) {
+                var currentLinkedObjects = object.getLinkedObjects(attrName);
+                var expectedValues = emptyIfNull(icfAttribute.getValue());
+                if (!linkValuesMatch(currentLinkedObjects, expectedValues)) {
+                    return false;
+                }
+            } else {
+                Set<Object> currentValues = new HashSet<>(emptyIfNull(object.getAttributeValues(attrName, Object.class)));
+                Set<Object> expectedValues = new HashSet<>(emptyIfNull(icfAttribute.getValue()));
+                if (!Objects.equals(currentValues, expectedValues)) {
+                    return false;
+                }
             }
         }
         return true;
+    }
+
+    private boolean linkValuesMatch(Collection<DummyObject> currentLinkedObjects, List<Object> expectedValues)
+            throws SchemaViolationException {
+        var remainingExpectedValues = new ArrayList<>(expectedValues);
+        for (DummyObject currentLinkedObject : currentLinkedObjects) {
+            var matchFound = false;
+            for (Object expectedValue : remainingExpectedValues) {
+                if (objectMatches(currentLinkedObject, expectedValue)) {
+                    matchFound = true;
+                    remainingExpectedValues.remove(expectedValue);
+                    break;
+                }
+            }
+            if (!matchFound) {
+                return false;
+            }
+        }
+        return remainingExpectedValues.isEmpty();
     }
 
     private Boolean getBoolean(AttributeDelta delta) {

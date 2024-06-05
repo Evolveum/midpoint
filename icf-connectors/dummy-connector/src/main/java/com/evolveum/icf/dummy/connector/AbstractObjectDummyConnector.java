@@ -100,7 +100,7 @@ public abstract class AbstractObjectDummyConnector
         return createUid(newObject);
     }
 
-    private @NotNull Uid createUid(DummyObject newObject) {
+    @NotNull Uid createUid(DummyObject newObject) {
         String id;
         if (configuration.isUidBoundToName()) {
             id = newObject.getName();
@@ -1364,7 +1364,7 @@ public abstract class AbstractObjectDummyConnector
                 Utils.getAttributeSingleValue(attributes, Name.NAME, String.class));
     }
 
-    private @Nullable String convertIcfName(String icfName) {
+    @Nullable String convertIcfName(String icfName) {
         if (configuration.getUpCaseName()) {
             return StringUtils.upperCase(icfName);
         } else {
