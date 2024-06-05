@@ -129,7 +129,7 @@ public class CampaignStateHelper implements Serializable {
 
     public CampaignAction getNextAction() {
         if (AccessCertificationCampaignStateType.REVIEW_STAGE_DONE.equals(campaignState)) {
-            if (campaign.getStageNumber() == campaign.getStage().size()) {
+            if (campaign.getStageNumber() == campaign.getStageDefinition().size()) {
                 return CampaignAction.CLOSE_CAMPAIGN;
             }
         }
