@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.PrismSchemaTypeUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -47,11 +49,13 @@ public class PrismSchemaWrapper extends PrismContainerWrapperImpl<PrismSchemaTyp
     public <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> Collection<D> getDelta() throws SchemaException {
 
         Collection<D> deltas = new ArrayList<>();
+        PrismObjectWrapper<ObjectType> objectWrapper = findObjectWrapper();
+        @NotNull ItemPath propertyPath = getPath().allExceptLast().append(SchemaType.F_DEFINITION);
+        PrismPropertyDefinition<SchemaDefinitionType> propertyDef = objectWrapper.getItem().getDefinition().findPropertyDefinition(propertyPath);
+
+        Collection<ItemDelta<? extends PrismValue, ? extends ItemDefinition>> predefinedPrefixDeltas = getPredefinedPrefixDelta(objectWrapper);
         for (PrismContainerValueWrapper<PrismSchemaType> pVal : getValues()) {
             LOGGER.trace("Processing delta for value:\n {}", pVal);
-            PrismObjectWrapper<ObjectType> objectWrapper = findObjectWrapper();
-            @NotNull ItemPath propertyPath = getPath().allExceptLast().append(SchemaType.F_DEFINITION);
-            PrismPropertyDefinition<SchemaDefinitionType> propertyDef = objectWrapper.getItem().getDefinition().findPropertyDefinition(propertyPath);
             PropertyDelta<SchemaDefinitionType> delta = propertyDef.createEmptyDelta(propertyPath);
             switch (pVal.getStatus()) {
                 case ADDED:
@@ -80,7 +84,7 @@ public class PrismSchemaWrapper extends PrismContainerWrapperImpl<PrismSchemaTyp
                     for (ItemWrapper iw : pVal.getItems()) {
                         LOGGER.trace("Start computing modifications for {}", iw);
                         Collection subDeltas = iw.getDelta();
-                        if (CollectionUtils.isNotEmpty(subDeltas)) {
+                        if (CollectionUtils.isNotEmpty(subDeltas) || CollectionUtils.isNotEmpty(predefinedPrefixDeltas)) {
                             LOGGER.trace("Deltas computed for {}", iw);
                             delta.addValueToAdd(
                                     createSchemaValue(
@@ -101,6 +105,18 @@ public class PrismSchemaWrapper extends PrismContainerWrapperImpl<PrismSchemaTyp
             }
         }
         return deltas;
+    }
+
+    private Collection<ItemDelta<? extends PrismValue, ? extends ItemDefinition>> getPredefinedPrefixDelta(PrismObjectWrapper<ObjectType> objectWrapper) throws SchemaException {
+        if (!QNameUtil.match(objectWrapper.getTypeName(), SchemaType.COMPLEX_TYPE)) {
+            return Collections.emptyList();
+        }
+
+        PrismPropertyWrapper<Object> predefinedPrefixWrapper = objectWrapper.findProperty(SchemaType.F_DEFAULT_PREFIX);
+        if (predefinedPrefixWrapper == null) {
+            return Collections.emptyList();
+        }
+        return predefinedPrefixWrapper.getDelta();
     }
 
     private PrismPropertyValue<SchemaDefinitionType> createSchemaValue(
