@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.factory.panel;
+package com.evolveum.midpoint.gui.impl.factory.panel.itempath;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.input.converter.AutoCompleteDisplayableValueConverter;
+import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -278,12 +279,6 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
 
     protected DisplayableValue<ItemPathType> createDisplayValue(ShadowAttributeDefinition attr) {
         return new AttributeDisplayableValue(attr);
-    }
-
-    protected DisplayableValue<ItemPathType> createDisplayValueForReference(ShadowAttributeDefinition attr) {
-        return new AttributeDisplayableValue(
-                attr,
-                "AttributeMappingItemPathPanelFactory.reference");
     }
 
     private ResourceObjectTypeDefinitionType getResourceObjectType(PrismValueWrapper<ItemPathType> propertyWrapper) {

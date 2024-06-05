@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.gui.impl.factory.panel.qname.AbstractObjectClassFactory;
 import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;

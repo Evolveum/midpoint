@@ -73,7 +73,7 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
     protected final PrismContainerValueWrapper createNewValue(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
         try {
             PrismContainerWrapper<ResourceAttributeDefinitionType> mappingAttributeContainer =
-                    getValueModel().getObject().findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+                    getValueModel().getObject().findContainer(getItemNameOfContainerWithMappings());
             PrismContainerValue<ResourceAttributeDefinitionType> newMapping
                     = mappingAttributeContainer.getItem().createNewValue();
 
@@ -148,7 +148,7 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
             protected PrismContainerWrapper<MappingType> load() {
                 PrismContainerValueWrapper<P> container = getValueModel().getObject();
                 ItemDefinition<?> def = container.getDefinition().findContainerDefinition(
-                        ItemPath.create(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, getPathBaseOnMappingType()));
+                        ItemPath.create(getItemNameOfContainerWithMappings(), getPathBaseOnMappingType()));
                 try {
                     Task task = getPageBase().createSimpleTask("Create virtual item");
                     OperationResult result = task.getResult();
@@ -157,10 +157,10 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
                     virtualMappingContainer.getValues().clear();
 
                     PrismContainerWrapper<ResourceAttributeDefinitionType> mappingAttributeContainer =
-                            getValueModel().getObject().findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+                            getValueModel().getObject().findContainer(getItemNameOfContainerWithMappings());
 
                     PrismPropertyDefinition<Object> propertyDef = container.getDefinition().findPropertyDefinition(
-                            ItemPath.create(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_REF));
+                            ItemPath.create(getItemNameOfContainerWithMappings(), ResourceAttributeDefinitionType.F_REF));
 
                     for (PrismContainerValueWrapper<ResourceAttributeDefinitionType> value : mappingAttributeContainer.getValues()) {
 
@@ -190,11 +190,13 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
         };
     }
 
+    protected abstract ItemName getItemNameOfContainerWithMappings();
+
     private void createVirtualItemInMapping(PrismContainerValueWrapper<MappingType> mapping) throws SchemaException {
         PrismContainerValueWrapper<P> container = getValueModel().getObject();
 
         PrismPropertyDefinition<Object> propertyDef = container.getDefinition().findPropertyDefinition(
-                ItemPath.create(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_REF));
+                ItemPath.create(getItemNameOfContainerWithMappings(), ResourceAttributeDefinitionType.F_REF));
 
         createVirtualItemInMapping(mapping, null, propertyDef);
     }

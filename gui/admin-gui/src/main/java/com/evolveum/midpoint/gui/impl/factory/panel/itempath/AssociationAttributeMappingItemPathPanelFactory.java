@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.factory.panel;
+package com.evolveum.midpoint.gui.impl.factory.panel.itempath;
 
 import java.io.Serializable;
 import java.util.*;
@@ -24,7 +24,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -56,9 +55,13 @@ public class AssociationAttributeMappingItemPathPanelFactory extends AttributeMa
                 SchemaHandlingType.F_ASSOCIATION_TYPE,
                 ShadowAssociationTypeDefinitionType.F_SUBJECT,
                 ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
-                ResourceObjectTypeDefinitionType.F_ATTRIBUTE,
+                getItemNameForContainerOfAttributes(),
                 ResourceAttributeDefinitionType.F_REF))
                 || isVirtualPropertyOfMapping(wrapper));
+    }
+
+    protected ItemName getItemNameForContainerOfAttributes() {
+        return ShadowAssociationDefinitionType.F_ATTRIBUTE;
     }
 
     private <IW extends ItemWrapper<?, ?>> boolean isVirtualPropertyOfMapping(IW wrapper) {
@@ -68,39 +71,20 @@ public class AssociationAttributeMappingItemPathPanelFactory extends AttributeMa
                 SchemaHandlingType.F_ASSOCIATION_TYPE,
                 ShadowAssociationTypeDefinitionType.F_SUBJECT,
                 ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
-                ResourceObjectTypeDefinitionType.F_ATTRIBUTE,
+                getItemNameForContainerOfAttributes(),
                 ResourceAttributeDefinitionType.F_INBOUND))
                 || wrapper.getParent().getPath().namedSegmentsOnly().equivalent(ItemPath.create(
                 ResourceType.F_SCHEMA_HANDLING,
                 SchemaHandlingType.F_ASSOCIATION_TYPE,
                 ShadowAssociationTypeDefinitionType.F_SUBJECT,
                 ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
-                ResourceObjectTypeDefinitionType.F_ATTRIBUTE,
+                getItemNameForContainerOfAttributes(),
                 ResourceAttributeDefinitionType.F_OUTBOUND)));
     }
 
     @Override
     protected List<DisplayableValue<ItemPathType>> getAttributes(ResourceSchema schema, PrismValueWrapper<ItemPathType> propertyWrapper) {
-        if (schema == null) {
-            return Collections.emptyList();
-        }
-
-        ResourceObjectTypeIdentificationType objectTypeOfSubject = getObjectTypeOfSubject(propertyWrapper);
-        if (objectTypeOfSubject == null) {
-            return Collections.emptyList();
-        }
-
-        @Nullable ResourceObjectTypeDefinition objectTypeDef = schema.getObjectTypeDefinition(objectTypeOfSubject.getKind(), objectTypeOfSubject.getIntent());
-        if (objectTypeDef == null) {
-            return Collections.emptyList();
-        }
-
-        ItemName ref = getRef(propertyWrapper);
-        if (ref == null) {
-            return Collections.emptyList();
-        }
-
-        ShadowReferenceAttributeDefinition refAttribute = objectTypeDef.findReferenceAttributeDefinition(ref);
+        ShadowReferenceAttributeDefinition refAttribute = getShadowReferenceAttribute(schema, propertyWrapper);
         if (refAttribute == null) {
             return Collections.emptyList();
         }
@@ -108,10 +92,32 @@ public class AssociationAttributeMappingItemPathPanelFactory extends AttributeMa
         List<DisplayableValue<ItemPathType>> attributes = new ArrayList<>();
         refAttribute.getRepresentativeTargetObjectDefinition().getAttributeDefinitions()
                 .forEach(attribute -> attributes.add(createDisplayValue(attribute)));
-        attributes.add(createDisplayValueForReference(refAttribute));
+        attributes.add(createDisplayValue(refAttribute));
         return attributes;
     }
 
+    protected ShadowReferenceAttributeDefinition getShadowReferenceAttribute(ResourceSchema schema, PrismValueWrapper<ItemPathType> propertyWrapper) {
+        if (schema == null) {
+            return null;
+        }
+
+        ResourceObjectTypeIdentificationType objectTypeOfSubject = getObjectTypeOfSubject(propertyWrapper);
+        if (objectTypeOfSubject == null) {
+            return null;
+        }
+
+        @Nullable ResourceObjectTypeDefinition objectTypeDef = schema.getObjectTypeDefinition(objectTypeOfSubject.getKind(), objectTypeOfSubject.getIntent());
+        if (objectTypeDef == null) {
+            return null;
+        }
+
+        ItemName ref = getRef(propertyWrapper);
+        if (ref == null) {
+            return null;
+        }
+
+        return objectTypeDef.findReferenceAttributeDefinition(ref);
+    }
 
     protected ResourceObjectTypeIdentificationType getObjectTypeOfSubject(PrismValueWrapper<ItemPathType> propertyWrapper) {
         PrismContainerValueWrapper<ShadowAssociationTypeSubjectDefinitionType> subject =

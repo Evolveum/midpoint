@@ -63,7 +63,7 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
     protected PrismContainerValueWrapper createNewValue(PrismContainerValue<ResourceAttributeDefinitionType> value, AjaxRequestTarget target) {
         try {
             PrismContainerWrapper<ResourceAttributeDefinitionType> mappingAttributeContainer =
-                    getValueModel().getObject().findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+                    getValueModel().getObject().findContainer(getItemNameOfContainerWithMappings());
             PrismContainerValue<ResourceAttributeDefinitionType> newMapping = value;
             if (newMapping == null) {
                 newMapping = mappingAttributeContainer.getItem().createNewValue();
@@ -80,9 +80,11 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
         return null;
     }
 
+    protected abstract ItemName getItemNameOfContainerWithMappings();
+
     @Override
     protected IModel<PrismContainerWrapper<ResourceAttributeDefinitionType>> getContainerModel() {
-        return PrismContainerWrapperModel.fromContainerValueWrapper(getValueModel(), ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+        return PrismContainerWrapperModel.fromContainerValueWrapper(getValueModel(), getItemNameOfContainerWithMappings());
     }
 
     @Override
