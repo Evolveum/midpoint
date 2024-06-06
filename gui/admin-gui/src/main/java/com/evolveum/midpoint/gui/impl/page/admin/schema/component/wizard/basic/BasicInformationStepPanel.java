@@ -10,6 +10,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
@@ -73,7 +75,7 @@ public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<Assig
 
     protected boolean checkMandatory(ItemWrapper itemWrapper) {
         if (itemWrapper.getItemName().equals(SchemaType.F_NAME)
-                || itemWrapper.getItemName().equals(SchemaType.F_NAMESPACE)) {
+                || itemWrapper.getItemName().equals(PrismSchemaType.F_NAMESPACE)) {
             return true;
         }
         return itemWrapper.isMandatory();
