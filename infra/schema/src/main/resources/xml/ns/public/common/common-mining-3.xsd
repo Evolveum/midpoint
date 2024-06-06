@@ -75,7 +75,18 @@
                                 The cluster that owns outlier.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>RoleAnalysisOutlierType.targetSession</a:displayName>
+                                <a:displayName>RoleAnalysisOutlierType.targetClusterRef</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="targetSessionRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The session that owns outlier
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisOutlierType.targetSessionRef</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
