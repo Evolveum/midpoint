@@ -676,6 +676,17 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull Task task,
             @NotNull OperationResult result) {
         try {
+            PrismObject<RoleAnalysisSessionType> prismSession = this.getSessionTypeObject(sessionOid, task, result);
+            if (prismSession == null) {
+                return;
+            }
+            RoleAnalysisSessionType session = prismSession.asObjectable();
+            RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+            RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+            if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                deleteAllOutliers(task, result);
+            }
+
             deleteSessionClustersMembers(sessionOid, task, result);
 
             ObjectDelta<AssignmentHolderType> deleteDelta = PrismContext.get().deltaFactory().object()
@@ -685,6 +696,40 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
             LOGGER.error("Couldn't delete RoleAnalysisSessionType {}", sessionOid, e);
+        }
+    }
+
+    public void deleteAllOutliers(@NotNull Task task,
+            @NotNull OperationResult result) {
+        ResultHandler<RoleAnalysisOutlierType> resultHandler = (object, parentResult) -> {
+            deleteOutlier(object.asObjectable(), task, result);
+            return true;
+        };
+
+        try {
+            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler, null,
+                    task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't delete outliers", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+    }
+
+    public void deleteOutlier(
+            @NotNull RoleAnalysisOutlierType outlier,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        String outlierOid = outlier.getOid();
+        try {
+            ObjectDelta<RoleAnalysisOutlierType> deleteDelta = PrismContext.get().deltaFactory().object()
+                    .createDeleteDelta(RoleAnalysisOutlierType.class, outlierOid);
+
+            modelService.executeChanges(singleton(deleteDelta), null, task, result);
+
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't delete RoleAnalysisOutlierType {}", outlierOid, e);
         }
     }
 
