@@ -223,7 +223,8 @@ class AssociationValuesTripleComputation {
                 resultingTriple.addAllToSet(mode, List.of(associationValue));
                 return resultingTriple;
             } else {
-                throw new UnsupportedOperationException("Not implemented yet");
+                // FIXME implement this
+                return PrismContext.get().deltaFactory().createPrismValueDeltaSetTriple();
             }
         }
 

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_C;
+
 import static com.google.common.collect.ImmutableSetMultimap.flatteningToImmutableSetMultimap;
 import static com.google.common.collect.ImmutableSetMultimap.toImmutableSetMultimap;
 
@@ -48,6 +50,9 @@ public interface ShadowReferenceAttributeDefinition
         PrismContainerDefinition<ShadowAssociationValueType>,
         ShadowAttributeDefinition<ShadowReferenceAttribute, ShadowAssociationValueType> {
 
+    // TEMPORARY!
+    ItemName VALUE = ItemName.from(NS_C, "value");
+
     /** Returns "immediate neighbors". TODO */
     @NotNull Collection<AssociationParticipantType> getImmediateTargetParticipantTypes();
 
@@ -87,7 +92,7 @@ public interface ShadowReferenceAttributeDefinition
         if (!hasAssociationObject()) {
             // "empty" association - just target objects, nothing inside, so immediate targets are the objects
             return getImmediateTargetParticipantTypes().stream()
-                    .collect(toImmutableSetMultimap(part -> null, part -> part));
+                    .collect(toImmutableSetMultimap(part -> VALUE, part -> part));
         } else {
             // The object types can be defined either by the association type definition, or by the association object
             // class or type definition.
