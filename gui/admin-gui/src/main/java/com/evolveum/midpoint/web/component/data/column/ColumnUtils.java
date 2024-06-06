@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.certification.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.component.CertificationItemsPanel;
 import com.evolveum.midpoint.web.page.admin.certification.component.DeadlinePanel;
@@ -1093,8 +1094,7 @@ public class ColumnUtils {
 
            @Override
            protected CompositedIcon getCompositedIcon(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-               AccessCertificationCaseType certItem = unwrapRowModel(rowModel);
-               AccessCertificationResponseType response = OutcomeUtils.fromUri(certItem.getOutcome());
+               AccessCertificationResponseType response = getResponse(stageNumber, rowModel);
                DisplayType responseDisplayType = new CertificationItemResponseHelper(response).getResponseDisplayType();
                return new CompositedIconBuilder()
                        .setBasicIcon(responseDisplayType.getIcon(), IconCssStyle.IN_ROW_STYLE)
@@ -1103,21 +1103,31 @@ public class ColumnUtils {
 
            @Override
            public IModel<DisplayType> getLabelDisplayModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-               AccessCertificationCaseType certItem = unwrapRowModel(rowModel);
-               AccessCertificationResponseType response = OutcomeUtils.fromUri(certItem.getOutcome());
+               AccessCertificationResponseType response = getResponse(stageNumber, rowModel);
                return Model.of(new CertificationItemResponseHelper(response).getResponseDisplayType());
            }
 
            @Override
            public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-               AccessCertificationCaseType certItem = unwrapRowModel(rowModel);
-               AccessCertificationResponseType response = OutcomeUtils.fromUri(certItem.getOutcome());
+               AccessCertificationResponseType response = getResponse(stageNumber, rowModel);
                DisplayType responseDisplayType = new CertificationItemResponseHelper(response).getResponseDisplayType();
                return Model.of(LocalizationUtil.translatePolyString(responseDisplayType.getLabel()));
            }
+
+           private AccessCertificationResponseType getResponse(int stageNumber,
+                   IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
+               AccessCertificationCaseType certItem = unwrapRowModel(rowModel);
+               AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaign(certItem);
+               int currentStageNumber = campaign.getStageNumber();
+               if (currentStageNumber == stageNumber) {
+                   return OutcomeUtils.fromUri(certItem.getCurrentStageOutcome());
+               }
+               return CertMiscUtil.getStageOutcome(certItem, stageNumber);
+           }
+
        });
 
-       columns.add(new IconColumn<>(createStringResource("PageCertCampaign.table.comments")) {
+       columns.add(new IconColumn<>(Model.of("")) {
 
            @Serial private static final long serialVersionUID = 1L;
 
