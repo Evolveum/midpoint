@@ -347,6 +347,11 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
             @Override
+            protected boolean isDataTableVisible() {
+                return ContainerableListPanel.this.isDataTableVisible();
+            }
+
+            @Override
             public int getAutoRefreshInterval() {
                 return ContainerableListPanel.this.getAutoRefreshInterval();
             }
@@ -376,8 +381,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 itemTable.setCurrentPage(pageStorage);
             }
         }
+        itemTable.setShowAsCard(showTableAsCard());
 
         return itemTable;
+    }
+
+    protected boolean showTableAsCard() {
+        return true;
     }
 
     /**
@@ -1237,6 +1247,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     protected boolean hideFooterIfSinglePage() {
         return false;
+    }
+
+    protected boolean isDataTableVisible() {
+        return true;
     }
 
     public void setManualRefreshEnabled(Boolean manualRefreshEnabled) {

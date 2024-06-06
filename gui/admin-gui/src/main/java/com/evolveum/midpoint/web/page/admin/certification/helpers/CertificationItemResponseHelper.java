@@ -10,6 +10,8 @@ package com.evolveum.midpoint.web.page.admin.certification.helpers;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
@@ -22,18 +24,20 @@ import java.util.Map;
 public class CertificationItemResponseHelper implements Serializable {
 
     enum CertificationItemResponse {
-        ACCEPT(GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED, "-success"),
-        REVOKE(GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED, "-danger"),
-        REDUCE(GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED, "-warning"),
-        NOT_DECIDED(GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED, "-warning"),
-        DELEGATE(GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_FORWARDED_COLORED, "-info"),
-        NO_RESPONSE(GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED, "-info");
+        ACCEPT(GuiStyleConstants.CLASS_CERT_OUTCOME_ICON_APPROVED, "-success", "AccessCertificationResponseType.ACCEPT.description"),
+        REVOKE(GuiStyleConstants.CLASS_CERT_OUTCOME_ICON_REJECTED, "-danger", "AccessCertificationResponseType.REVOKE.description"),
+        REDUCE(GuiStyleConstants.CLASS_CERT_OUTCOME_ICON_REDUCED, "-warning", "AccessCertificationResponseType.REDUCE.description"),
+        NOT_DECIDED(GuiStyleConstants.CLASS_CERT_OUTCOME_ICON_NOT_DECIDED, "-secondary", "AccessCertificationResponseType.NOT_DECIDED.description"),
+//        DELEGATE(GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_FORWARDED_COLORED, "-info"),
+        NO_RESPONSE(GuiStyleConstants.CLASS_CERT_OUTCOME_ICON_NO_RESPONSE, "-light", "AccessCertificationResponseType.NO_RESPONSE.description");
 
         String iconCssClass;
         String colorCssClassSuffix;
+        String help;
 
-        CertificationItemResponse(String iconCssClass, String colorCssClassSuffix) {
+        CertificationItemResponse(String iconCssClass, String colorCssClassSuffix, String help) {
             this.iconCssClass = iconCssClass;
+            this.help = help;
             this.colorCssClassSuffix = colorCssClassSuffix;
         }
     }
@@ -45,7 +49,7 @@ public class CertificationItemResponseHelper implements Serializable {
         RESPONSES_MAP.put(AccessCertificationResponseType.REVOKE, CertificationItemResponse.REVOKE);
         RESPONSES_MAP.put(AccessCertificationResponseType.REDUCE, CertificationItemResponse.REDUCE);
         RESPONSES_MAP.put(AccessCertificationResponseType.NOT_DECIDED, CertificationItemResponse.NOT_DECIDED);
-        RESPONSES_MAP.put(AccessCertificationResponseType.DELEGATE, CertificationItemResponse.DELEGATE);
+//        RESPONSES_MAP.put(AccessCertificationResponseType.DELEGATE, CertificationItemResponse.DELEGATE);
         RESPONSES_MAP.put(AccessCertificationResponseType.NO_RESPONSE, CertificationItemResponse.NO_RESPONSE);
     }
 
@@ -59,16 +63,17 @@ public class CertificationItemResponseHelper implements Serializable {
         CertificationItemResponse itemResponse = RESPONSES_MAP.get(response);
         return new DisplayType()
                 .label(LocalizationUtil.translateEnum(response))
+                .help(getDocumentation())
                 .cssClass(getTextCssClass())
                 .icon(new IconType().cssClass(itemResponse.iconCssClass));
     }
 
-    private String getTextCssClass() {
+    public String getTextCssClass() {
         CertificationItemResponse itemResponse = RESPONSES_MAP.get(response);
         return "text" + itemResponse.colorCssClassSuffix;
     }
 
-    private String getBackgroundCssClass() {
+    public String getBackgroundCssClass() {
         CertificationItemResponse itemResponse = RESPONSES_MAP.get(response);
         return "bg" + itemResponse.colorCssClassSuffix;
     }
@@ -86,4 +91,11 @@ public class CertificationItemResponseHelper implements Serializable {
         return "CertificationItemResponse." + itemResponse.name();
     }
 
+    private String getDocumentation() {
+        //todo get documentation from schema
+//        var def = PrismContext.get().getSchemaRegistry().findItemDefinitionByElementName(AbstractWorkItemOutputType.F_OUTCOME);
+//        return def != null ? def.getDocumentation() : null;
+        CertificationItemResponse itemResponse = RESPONSES_MAP.get(response);
+        return itemResponse.help;
+    }
 }

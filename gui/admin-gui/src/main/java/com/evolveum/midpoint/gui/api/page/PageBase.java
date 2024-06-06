@@ -500,6 +500,7 @@ public abstract class PageBase extends PageAdminLTE {
         }
 
         dialog.setTitle(popupable.getTitle());
+        dialog.setTitleIconClass(popupable.getTitleIconClass());
         dialog.open(target);
     }
 

@@ -15,7 +15,7 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 /**
  * @author lskublik
  */
-public abstract class MappingOverrideTable<C extends Containerable> extends AbstractResourceWizardTable<ResourceAttributeDefinitionType, C> {
+public abstract class MappingOverrideTable<C extends Containerable> extends AbstractWizardTable<ResourceAttributeDefinitionType, C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingOverrideTable.class);
 
@@ -63,7 +63,7 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
     protected PrismContainerValueWrapper createNewValue(PrismContainerValue<ResourceAttributeDefinitionType> value, AjaxRequestTarget target) {
         try {
             PrismContainerWrapper<ResourceAttributeDefinitionType> mappingAttributeContainer =
-                    getValueModel().getObject().findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+                    getValueModel().getObject().findContainer(getItemNameOfContainerWithMappings());
             PrismContainerValue<ResourceAttributeDefinitionType> newMapping = value;
             if (newMapping == null) {
                 newMapping = mappingAttributeContainer.getItem().createNewValue();
@@ -80,9 +80,11 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
         return null;
     }
 
+    protected abstract ItemName getItemNameOfContainerWithMappings();
+
     @Override
     protected IModel<PrismContainerWrapper<ResourceAttributeDefinitionType>> getContainerModel() {
-        return PrismContainerWrapperModel.fromContainerValueWrapper(getValueModel(), ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+        return PrismContainerWrapperModel.fromContainerValueWrapper(getValueModel(), getItemNameOfContainerWithMappings());
     }
 
     @Override

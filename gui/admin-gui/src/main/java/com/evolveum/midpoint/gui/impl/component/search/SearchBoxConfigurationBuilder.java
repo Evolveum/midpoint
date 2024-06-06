@@ -78,6 +78,9 @@ public class SearchBoxConfigurationBuilder {
         FIXED_SEARCH_ITEMS.put(SimulationResultProcessedObjectType.class, Arrays.asList(
                 SimulationResultProcessedObjectType.F_STATE
         ));
+        FIXED_SEARCH_ITEMS.put(AccessCertificationWorkItemType.class, Arrays.asList(
+                ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME)
+        ));
     }
 
     private Class<?> type;

@@ -532,7 +532,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private MainMenuItem createSchemaItems() {
-        MainMenuItem menu = createMainMenuItem("PageAdmin.menu.top.schema", GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA);
+        MainMenuItem menu = createMainMenuItem("PageAdmin.menu.top.schemas", GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA);
         createBasicAssignmentHolderMenuItems(menu, PageTypes.SCHEMA);
 
         return menu;

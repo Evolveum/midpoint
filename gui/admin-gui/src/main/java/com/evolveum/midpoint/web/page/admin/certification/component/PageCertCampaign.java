@@ -14,6 +14,10 @@ import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
@@ -22,6 +26,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
+import com.evolveum.midpoint.web.page.admin.certification.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.PageAdminCertification;
 
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
@@ -135,11 +140,11 @@ public class PageCertCampaign extends PageAdmin {
 
                     @Override
                     public Component createValueComponent(String id) {
-                        return new ProgressBarPanel(id, createCampaignProgressModel());
+                        return new ProgressBarPanel(id, CertMiscUtil.createCampaignProgressBarModel(campaignModel.getObject()));
                     }
-                }); //todo calculate progress
+                });
                 list.add(new DetailsTableItem(createStringResource("PageCertDefinition.numberOfStages"),
-                        () -> "" + campaignModel.getObject().getStage().size()));
+                        () -> "" + campaignModel.getObject().getStageDefinition().size()));
                 AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaignModel.getObject());
                 list.add(new DetailsTableItem(createStringResource("PageCertCampaign.currentState"),
                         null) {
@@ -212,9 +217,13 @@ public class PageCertCampaign extends PageAdmin {
         AccessCertificationCampaignType campaign = null;
         try {
             String campaignOid = OnePageParameterEncoder.getParameter(this);
+            Collection<SelectorOptions<GetOperationOptions>> options =
+                    SchemaService.get().getOperationOptionsBuilder()
+                            .item(AccessCertificationCampaignType.F_CASE).retrieve(RetrieveOption.INCLUDE)
+                            .build();
             PrismObject<AccessCertificationCampaignType> campaignObject =
                     WebModelServiceUtils.loadObject(AccessCertificationCampaignType.class, campaignOid,
-                            PageCertCampaign.this, task, result);
+                            options, PageCertCampaign.this, task, result);
             if (campaignObject != null) {
                 campaign = campaignObject.asObjectable();
             }
@@ -338,21 +347,6 @@ public class PageCertCampaign extends PageAdmin {
             default:
                 return null;        // todo warning/error?
         }
-    }
-
-    private @NotNull LoadableModel<List<ProgressBar>> createCampaignProgressModel() {
-        return new LoadableModel<>() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<ProgressBar> load() {
-                AccessCertificationCampaignType campaign = campaignModel.getObject();
-                float completed = CertCampaignTypeUtil.getCasesCompletedPercentageAllStagesAllIterations(campaign);
-
-                ProgressBar progressBar = new ProgressBar(completed, ProgressBar.State.INFO);
-                return Collections.singletonList(progressBar);
-            }
-        };
     }
 
     private @NotNull LoadableModel<List<ProgressBar>> createResponseStatisticsModel() {

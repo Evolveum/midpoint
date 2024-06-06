@@ -20,6 +20,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleA
 
 import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchema;
 
+import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchemas;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -118,6 +120,7 @@ public final class DetailsPageUtil {
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ResourceType.class, PageResources.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(TaskType.class, PageTasks.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(PageMessageTemplate.class, PageMessageTemplates.class);
+        DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(SchemaType.class, PageSchemas.class);
     }
 
     static {

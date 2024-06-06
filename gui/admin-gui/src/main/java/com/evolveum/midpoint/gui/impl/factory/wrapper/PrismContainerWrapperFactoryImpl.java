@@ -189,7 +189,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
         return containerWrapper;
     }
 
-    PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer, ItemStatus status) {
+    protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer, ItemStatus status) {
         return new PrismContainerWrapperImpl<>(parent, childContainer, status);
     }
 

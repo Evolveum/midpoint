@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
+
 import org.apache.wicket.model.LoadableDetachableModel;
 
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
@@ -45,5 +47,9 @@ public class AssignmentHolderDetailsModel<AH extends AssignmentHolderType> exten
             LOGGER.error("Cannot merge details page configuration from archetype policy, {}", e.getMessage(), e);
             return defaultPageConfig;
         }
+    }
+
+    public PageAssignmentHolderDetails<AH, AssignmentHolderDetailsModel<AH>> getPageAssignmentHolder() {
+        return (PageAssignmentHolderDetails<AH, AssignmentHolderDetailsModel<AH>>) super.getPageBase();
     }
 }

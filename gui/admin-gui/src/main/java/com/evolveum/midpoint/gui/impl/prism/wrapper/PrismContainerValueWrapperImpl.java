@@ -113,6 +113,11 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     }
 
     @Override
+    public void replaceContainerItemValue(PrismContainerValue<C> newValue) {
+        setNewValue(newValue);
+    }
+
+    @Override
     public String getDisplayName() {
         if (isVirtual()) {
             return getContainerDefinition().getDisplayName();

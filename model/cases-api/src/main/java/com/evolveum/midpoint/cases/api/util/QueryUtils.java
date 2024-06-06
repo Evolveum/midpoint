@@ -200,6 +200,9 @@ public class QueryUtils {
 
     public static ObjectQuery createQueryForOpenWorkItemsForCampaigns(
             List<String> campaignOids, MidPointPrincipal principal, boolean notDecidedOnly) {
+        if (campaignOids == null || campaignOids.isEmpty()) {
+            return null;
+        }
         S_FilterEntry queryPrefix = PrismContext.get().queryFor(AccessCertificationWorkItemType.class).block();
         S_FilterExit filterExit = null;
         for (String oid : campaignOids) {
@@ -209,6 +212,9 @@ public class QueryUtils {
              if (campaignOids.indexOf(oid) < campaignOids.size() - 1) {
                  queryPrefix = filterExit.or();
              }
+        }
+        if (filterExit == null) {
+            return null;
         }
         ObjectQuery query = filterExit.endBlock().build();
         return createQueryForOpenWorkItems(query, principal, notDecidedOnly);

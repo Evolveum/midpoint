@@ -85,6 +85,8 @@ public class GuiStyleConstants {
 
     public static final String CLASS_OBJECT_CONNECTOR_ICON = "fa fa-microchip";
 
+    public static final String CLASS_OBJECT_SCHEMA_TEMPLATE_ICON = "fa fa-sitemap";
+
     public static final String CLASS_REPORT_ICON = "fa fa-chart-pie";
 
     public static final String CLASS_ICON_STYLE = "icon-style-";  //some icon styles start with this string
@@ -123,6 +125,12 @@ public class GuiStyleConstants {
     public static final String CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED = GuiStyleConstants.ICON_FAR_CLOCK + " text-info";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_FUTURE_COLORED = "fa fa-question-circle text-warning";
     public static final String CLASS_APPROVAL_OUTCOME_ICON_CANCELLED_COLORED = "fa fa-ban text-warning";
+
+    public static final String CLASS_CERT_OUTCOME_ICON_NOT_DECIDED = "fa fa-question";
+    public static final String CLASS_CERT_OUTCOME_ICON_APPROVED = "fa fa-check";
+    public static final String CLASS_CERT_OUTCOME_ICON_REJECTED = "fa fa-times";
+    public static final String CLASS_CERT_OUTCOME_ICON_REDUCED = "fa fa-rotate-left";
+    public static final String CLASS_CERT_OUTCOME_ICON_NO_RESPONSE = "far fa-clock";
 
     public static final String CLASS_ICON_EXPAND = "fa fa-chevron-left";
     public static final String CLASS_ICON_COLLAPSE = "fa  fa-chevron-down";
@@ -164,7 +172,6 @@ public class GuiStyleConstants {
     public static final String CLASS_TEST_CONNECTION_MENU_ITEM = "fa fa-question";
     public static final String CLASS_DELETE_MENU_ITEM = "fa fa-minus";
     public static final String CLASS_EDIT_MENU_ITEM = "fa fa-edit";
-    public static final String CLASS_REFRESH = "fa fa-refresh";
     public static final String CLASS_SUSPEND_MENU_ITEM = "fa fa-pause";
     public static final String CLASS_RESUME_MENU_ITEM = "fa fa-check-square";
     public static final String CLASS_STOP_MENU_ITEM = "fa fa-stop";
@@ -207,9 +214,7 @@ public class GuiStyleConstants {
 
     public static final String CLASS_SYSTEM_CONFIGURATION_ICON = "fa fa-cog";
 
-    public static final String CLASS_OPTIONS_COGS = "fa fa-cogs";
-    public static final String CLASS_OPTIONS_COG = "fa fa-cog";
-    public static final String CLASS_INFO_CIRCLE = "fa fa-info-circle";
+    public static final String CLASS_OPTIONS = "fa fa-cogs";
     public static final String CLASS_SYSTEM_CONFIGURATION_ICON_COLORED = CLASS_SYSTEM_CONFIGURATION_ICON + " object-shadow-color";
 
     public static final String CLASS_ASSIGN = "fa fa-link";
@@ -222,10 +227,7 @@ public class GuiStyleConstants {
     public static final String CLASS_PAUSE = "fa fa-pause";
 
     public static final String ARROW_LEFT = "fa fa-arrow-left";
-    public static final String ARROW_LONG_DOWN = "fa fa-long-arrow-down";
-    public static final String CLASS_DETECTED_PATTERN_ICON = "fa fa-cube";
-    public static final String CLASS_CANDIDATE_ROLE_ICON ="fe fe-role";
-    public static final String THUMBS_UP = "fa fa-thumbs-up";
+
     public static final String EVO_CROW_ICON = "fe fe-crown-object";
     public static final String EVO_RIGHT_TOP_ARROW_ICON = "fe fe-arrow";
     public static final String EVO_ASSIGNMENT_ICON = "fe fe-assignment";
@@ -306,6 +308,18 @@ public class GuiStyleConstants {
     public static final String CLASS_MARK = "fa-solid fa-tag";
 
     public static final String CLASS_AUDIT = "fa-solid fa-magnifying-glass-chart";
+
+    public static final String CLASS_SCHEMA_BASIC_SETTINGS_PANEL_ICON = "fa fa-cog";
+    public static final String CLASS_SCHEMA_COMPLEX_TYPE_ICON = "fa fa-cubes";
+    public static final String CLASS_SCHEMA_ENUM_TYPE_ICON = "fa fa-cube";
+    public static final String CLASS_REFRESH = "fa fa-refresh";
+    public static final String CLASS_OPTIONS_COGS = "fa fa-cogs";
+    public static final String CLASS_OPTIONS_COG = "fa fa-cog";
+    public static final String CLASS_INFO_CIRCLE = "fa fa-info-circle";
+    public static final String ARROW_LONG_DOWN = "fa fa-long-arrow-down";
+    public static final String CLASS_DETECTED_PATTERN_ICON = "fa fa-cube";
+    public static final String CLASS_CANDIDATE_ROLE_ICON = "fe fe-role";
+    public static final String THUMBS_UP = "fa fa-thumbs-up";
 
     public static final String CLASS_ICON_OUTLIER = "fa fa-user-circle";
 }

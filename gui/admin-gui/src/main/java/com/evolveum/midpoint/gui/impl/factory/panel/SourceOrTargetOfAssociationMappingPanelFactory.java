@@ -18,6 +18,9 @@ import org.apache.wicket.model.IModel;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Component
 public class SourceOrTargetOfAssociationMappingPanelFactory extends SourceOrTargetOfMappingPanelFactory implements Serializable {
@@ -42,6 +45,12 @@ public class SourceOrTargetOfAssociationMappingPanelFactory extends SourceOrTarg
                 containerPath,
                 ResourceAttributeDefinitionType.F_OUTBOUND,
                 InboundMappingType.F_SOURCE);
+    }
+
+    protected Collection<ItemPath> getMatchedPaths() {
+        List<ItemPath> list = new ArrayList<>(super.getMatchedPaths());
+        list.add(ShadowAssociationDefinitionType.F_OBJECT_REF);
+        return list;
     }
 
     protected SourceMappingProvider createProvider(IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel) {

@@ -63,7 +63,7 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         LOGGER.trace("Start of match for SourceOrTargetOfMappingPanelFactory, wrapper: " + wrapper + ", value: " + valueWrapper);
         boolean match = QNameUtil.match(VariableBindingDefinitionType.COMPLEX_TYPE, wrapper.getTypeName())
-                && MATCHED_PATHS.stream().anyMatch(path -> {
+                && getMatchedPaths().stream().anyMatch(path -> {
             if (createTargetPath(path).equivalent(wrapper.getPath().namedSegmentsOnly())) {
                 LOGGER.trace("Matches for target path: " + path);
                 return true;
@@ -77,6 +77,10 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
         });
         LOGGER.trace("Result of match for SourceOrTargetOfMappingPanelFactory is " + match);
         return match;
+    }
+
+    protected Collection<ItemPath> getMatchedPaths() {
+        return MATCHED_PATHS;
     }
 
     protected ItemPath createTargetPath(ItemPath containerPath) {

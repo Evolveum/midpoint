@@ -27,6 +27,10 @@ public interface Popupable {
     IModel<String> getTitle();
     Component getContent();
 
+    default IModel<String> getTitleIconClass() {
+        return null;
+    }
+
     @NotNull
     default Component getFooter() {
         return new WebMarkupContainer(ID_FOOTER);

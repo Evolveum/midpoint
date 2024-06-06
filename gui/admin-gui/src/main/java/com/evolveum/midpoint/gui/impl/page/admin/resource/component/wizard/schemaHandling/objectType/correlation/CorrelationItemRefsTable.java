@@ -17,7 +17,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrappe
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.input.ContainersDropDownPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -48,7 +48,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * @author lskublik
  */
-public class CorrelationItemRefsTable extends AbstractResourceWizardTable<CorrelationItemType, ItemsSubCorrelatorType> {
+public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationItemType, ItemsSubCorrelatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationItemRefsTable.class);
 

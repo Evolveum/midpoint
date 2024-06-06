@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 
 import com.evolveum.midpoint.prism.Containerable;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -124,6 +125,11 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             public WebMarkupContainer createPanel(String panelId) {
                 return new InboundAttributeMappingsTable<>(panelId, getValueModel(), getConfiguration(INBOUND_PANEL_TYPE)) {
                     @Override
+                    protected ItemName getItemNameOfContainerWithMappings() {
+                        return AttributeMappingsTableWizardPanel.this.getItemNameOfContainerWithMappings();
+                    }
+
+                    @Override
                     protected void editItemPerformed(
                             AjaxRequestTarget target,
                             IModel<PrismContainerValueWrapper<MappingType>> rowModel,
@@ -142,6 +148,8 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         };
     }
 
+    protected abstract ItemName getItemNameOfContainerWithMappings();
+
     protected boolean isInboundVisible() {
         return true;
     }
@@ -155,6 +163,11 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 return new OutboundAttributeMappingsTable<>(panelId, getValueModel(), getConfiguration(OUTBOUND_PANEL_TYPE)) {
+                    @Override
+                    protected ItemName getItemNameOfContainerWithMappings() {
+                        return AttributeMappingsTableWizardPanel.this.getItemNameOfContainerWithMappings();
+                    }
+
                     @Override
                     protected void editItemPerformed(
                             AjaxRequestTarget target,

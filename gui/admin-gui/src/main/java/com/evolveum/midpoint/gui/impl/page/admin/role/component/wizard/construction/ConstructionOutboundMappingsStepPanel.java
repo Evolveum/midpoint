@@ -2,6 +2,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construc
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -51,7 +53,12 @@ public class ConstructionOutboundMappingsStepPanel<AR extends AbstractRoleType>
 
     private void initLayout() {
         add(new OutboundAttributeMappingsTable<>(ID_PANEL, getValueModel(), getContainerConfiguration(PANEL_TYPE)) {
-                @Override
+            @Override
+            protected ItemName getItemNameOfContainerWithMappings() {
+                return ConstructionType.F_ATTRIBUTE;
+            }
+
+            @Override
                 protected void editItemPerformed(
                         AjaxRequestTarget target,
                         IModel<PrismContainerValueWrapper<MappingType>> rowModel,

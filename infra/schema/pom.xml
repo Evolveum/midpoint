@@ -176,7 +176,7 @@
                         <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/common/api-types-3.xsd</schemaFile>
                         <schemaFile>target/additional-schemas/prism-impl/xml/ns/public/annotation-3.xsd</schemaFile>
-                        <schemaFile>src/main/resources/xml/ns/public/common/prism-schema-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/prism-schema/prism-schema-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-3.xsd</schemaFile>
                         <!--
@@ -214,7 +214,7 @@
                         <schemaFile>src/main/resources/xml/ns/public/common/audit-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/common/api-types-3.xsd</schemaFile>
                         <schemaFile>target/additional-schemas/prism-impl/xml/ns/public/annotation-3.xsd</schemaFile>
-                        <schemaFile>src/main/resources/xml/ns/public/common/prism-schema-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/prism-schema/prism-schema-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/resource/capabilities-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/connector-schema-3.xsd</schemaFile>

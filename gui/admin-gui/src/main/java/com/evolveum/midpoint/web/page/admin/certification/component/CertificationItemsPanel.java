@@ -28,6 +28,9 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -35,6 +38,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
+import com.evolveum.midpoint.web.session.CertDecisionsStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -88,7 +92,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     }
 
     private List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createColumns() {
-        return ColumnUtils.getDefaultCertWorkItemColumns();
+        return ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems());
     }
 
     @Override
@@ -134,10 +138,13 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         };
     }
 
+    public CertDecisionsStorage getPageStorage() {
+        return getSession().getSessionStorage().getCertDecisions();
+    }
 
     @Override
     protected String getStorageKey() {
-        return SessionStorage.KEY_WORK_ITEMS;
+        return SessionStorage.KEY_CERT_DECISIONS;
     }
 
     private ContainerListDataProvider<AccessCertificationWorkItemType> createProvider(IModel<Search<AccessCertificationWorkItemType>> searchModel) {
@@ -188,7 +195,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
             items.add(createResponseMenu(buttonsCount, NO_RESPONSE));
         }
 //        addCommentWorkItemAction(items); //todo is it possible just to add comment without any response?
-//        addForwardWorkItemAction(items);
+        addResolveCertItemAction(items);
         return items;
     }
 
@@ -211,9 +218,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            PrismContainerValueWrapper<AccessCertificationWorkItemType> wi =
-                                    (PrismContainerValueWrapper<AccessCertificationWorkItemType>) getRowModel().getObject();
-                            confirmAction(response, Collections.singletonList(wi.getRealValue()), target);
+                            responseSelected(response, getRowModel(), target);
                         }
                     };
                 }
@@ -230,14 +235,25 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            PrismContainerValueWrapper<AccessCertificationWorkItemType> wi =
-                                    (PrismContainerValueWrapper<AccessCertificationWorkItemType>) getRowModel().getObject();
-                            confirmAction(response, Collections.singletonList(wi.getRealValue()), target);
+                            responseSelected(response, getRowModel(), target);
                         }
                     };
                 }
             };
         }
+    }
+
+    private void responseSelected(AccessCertificationResponseType response,
+            IModel rowModel, AjaxRequestTarget target) {
+        List<AccessCertificationWorkItemType> itemsToProcess = new ArrayList<>();
+        if (rowModel != null && rowModel.getObject() != null) {
+            AccessCertificationWorkItemType item =
+                    ((PrismContainerValueWrapper<AccessCertificationWorkItemType>) rowModel.getObject()).getRealValue();
+            itemsToProcess.add(item);
+        } else {
+            itemsToProcess = getSelectedRealObjects();
+        }
+        confirmAction(response, itemsToProcess, target);
     }
 
     private void confirmAction(AccessCertificationResponseType response, List<AccessCertificationWorkItemType> items,
@@ -326,6 +342,47 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         });
     }
 
+    private void addResolveCertItemAction(List<InlineMenuItem> items) {
+        items.add(new InlineMenuItem(createStringResource("CertificationItemsPanel.action.resolve")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        ResolveItemPanel resolveItemPanel = new ResolveItemPanel(getPageBase().getMainPopupBodyId()) {
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void savePerformed(AjaxRequestTarget target, AccessCertificationResponseType response,
+                                    String comment) {
+                                List<AccessCertificationWorkItemType> items = new ArrayList<>();
+                                if (getRowModel() == null) {
+                                    items = getSelectedRealObjects();
+                                } else {
+                                    PrismContainerValueWrapper<AccessCertificationWorkItemType> wi =
+                                            (PrismContainerValueWrapper<AccessCertificationWorkItemType>) getRowModel().getObject();
+                                    items = Collections.singletonList(wi.getRealValue());
+                                }
+                                if (CollectionUtils.isEmpty(items)) {
+                                    warn(getString("PageCertDecisions.message.noItemSelected"));
+                                    target.add(getFeedbackPanel());
+                                    return;
+                                }
+                                recordActionOnSelected(response, items, comment, target);
+                            }
+                        };
+                        getPageBase().showMainPopup(resolveItemPanel, target);
+                    }
+                };
+            }
+        });
+    }
+
     protected ObjectQuery getOpenCertWorkItemsQuery(boolean notDecidedOnly) {
         ObjectQuery query;
         if (StringUtils.isNotEmpty(campaignOid)) {
@@ -343,7 +400,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     }
 
     protected boolean isMyCertItems() {
-        return false;
+        return true;
     }
 
 }
