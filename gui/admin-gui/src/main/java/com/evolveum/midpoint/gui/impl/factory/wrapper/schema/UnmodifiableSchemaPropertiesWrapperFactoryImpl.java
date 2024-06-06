@@ -39,8 +39,7 @@ public class UnmodifiableSchemaPropertiesWrapperFactoryImpl<T>
         }
 
         if (PrismSchemaType.class.isAssignableFrom(parent.getCompileTimeClass())
-                && (def.getItemName().equivalent(PrismSchemaType.F_NAMESPACE)
-                || def.getItemName().equivalent(PrismSchemaType.F_DEFAULT_PREFIX))) {
+                && def.getItemName().equivalent(PrismSchemaType.F_NAMESPACE)) {
             return true;
         }
 
