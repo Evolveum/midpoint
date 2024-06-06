@@ -22,6 +22,9 @@ import com.evolveum.midpoint.gui.impl.prism.wrapper.ExpressionWrapper;
 import com.evolveum.midpoint.web.component.input.AssociationExpressionValuePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
+import java.io.Serializable;
+import java.util.List;
+
 @Component
 public class AssociationAndExpressionPanelFactory extends AbstractGuiComponentFactory<ExpressionType> {
 
@@ -35,10 +38,22 @@ public class AssociationAndExpressionPanelFactory extends AbstractGuiComponentFa
         ExpressionWrapper expressionWrapper = (ExpressionWrapper) panelCtx.unwrapWrapperModel();
 
         if (expressionWrapper.isAttributeExpression()) {
-            return new ExpressionPanel(panelCtx.getComponentId(), (IModel)panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel());
+            return new ExpressionPanel(panelCtx.getComponentId(), (IModel)panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel()) {
+                @Override
+                protected List<ExpressionPanel.RecognizedEvaluator> getChoices() {
+                    return AssociationAndExpressionPanelFactory.this.getChoices(super.getChoices());
+                }
+            };
         }
 
         return new AssociationExpressionValuePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(), expressionWrapper.getConstruction());
+    }
+
+    protected List<ExpressionPanel.RecognizedEvaluator> getChoices(List<ExpressionPanel.RecognizedEvaluator> parentChoices) {
+        parentChoices.removeIf(choice ->
+                ExpressionPanel.RecognizedEvaluator.ASSOCIATION_FROM_LINK == choice
+                || ExpressionPanel.RecognizedEvaluator.SHADOW_OWNER_REFERENCE_SEARCH == choice);
+        return parentChoices;
     }
 
     @Override

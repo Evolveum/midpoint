@@ -50,7 +50,9 @@ public class ExpressionUtil {
         AS_IS,
         PATH,
         SCRIPT,
-        GENERATE
+        GENERATE,
+        ASSOCIATION_FROM_LINK,
+        SHADOW_OWNER_REFERENCE_SEARCH
     }
 
     public enum Language {
@@ -93,6 +95,10 @@ public class ExpressionUtil {
     public static final String ELEMENT_VALUE = "</value>";
     public static final String ELEMENT_AS_IS = "<asIs/>";
     public static final String ELEMENT_AS_IS_WITH_NS = "<asIs";
+    public static final String ELEMENT_ASSOCIATION_FROM_LINK = "<associationFromLink/>";
+    public static final String ELEMENT_ASSOCIATION_FROM_LINK_WITH_NS = "<associationFromLink";
+    public static final String ELEMENT_SHADOW_OWNER_REFERENCE_SEARCH = "<shadowOwnerReferenceSearch/>";
+    public static final String ELEMENT_SHADOW_OWNER_REFERENCE_SEARCH_WITH_NS = "<shadowOwnerReferenceSearch";
 
     public static String getExpressionString(ExpressionEvaluatorType type, ObjectReferenceType policy) {
         if (ExpressionEvaluatorType.GENERATE.equals(type) && policy != null) {
@@ -151,10 +157,14 @@ public class ExpressionUtil {
             return ExpressionEvaluatorType.GENERATE;
         } else if (expression.contains(ELEMENT_PATH)) {
             return ExpressionEvaluatorType.PATH;
+        } else if (expression.contains(ELEMENT_SHADOW_OWNER_REFERENCE_SEARCH) || expression.contains(ELEMENT_SHADOW_OWNER_REFERENCE_SEARCH_WITH_NS)) {
+            return ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH;
         } else if (expression.contains(ELEMENT_SCRIPT)) {
             return ExpressionEvaluatorType.SCRIPT;
         } else if (expression.contains(ELEMENT_VALUE)) {
             return ExpressionEvaluatorType.LITERAL;
+        } else if (expression.contains(ELEMENT_ASSOCIATION_FROM_LINK) || expression.contains(ELEMENT_ASSOCIATION_FROM_LINK_WITH_NS)) {
+            return ExpressionEvaluatorType.ASSOCIATION_FROM_LINK;
         }
 
         return null;
@@ -557,8 +567,28 @@ public class ExpressionUtil {
     public static ScriptExpressionEvaluatorType getScriptExpressionValue(ExpressionType expression) throws SchemaException {
         List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_SCRIPT);
         for (JAXBElement<?> element : elements) {
-            if (element.getValue() instanceof ScriptExpressionEvaluatorType) {
-                return (ScriptExpressionEvaluatorType) element.getValue();
+            if (element.getValue() instanceof ScriptExpressionEvaluatorType evaluator) {
+                return evaluator;
+            }
+        }
+        return null;
+    }
+
+    public static AssociationFromLinkExpressionEvaluatorType getAssociationFromLinkExpressionValue(ExpressionType expression) throws SchemaException {
+        List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK);
+        for (JAXBElement<?> element : elements) {
+            if (element.getValue() instanceof AssociationFromLinkExpressionEvaluatorType evaluator) {
+                return evaluator;
+            }
+        }
+        return null;
+    }
+
+    public static ShadowOwnerReferenceSearchExpressionEvaluatorType getShadowOwnerExpressionValue(ExpressionType expression) throws SchemaException {
+        List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_SHADOW_OWNER_REFERENCE_SEARCH);
+        for (JAXBElement<?> element : elements) {
+            if (element.getValue() instanceof ShadowOwnerReferenceSearchExpressionEvaluatorType evaluator) {
+                return evaluator;
             }
         }
         return null;
@@ -567,8 +597,8 @@ public class ExpressionUtil {
     public static GenerateExpressionEvaluatorType getGenerateExpressionValue(ExpressionType expression) throws SchemaException {
         List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_GENERATE);
         for (JAXBElement<?> element : elements) {
-            if (element.getValue() instanceof GenerateExpressionEvaluatorType) {
-                return (GenerateExpressionEvaluatorType) element.getValue();
+            if (element.getValue() instanceof GenerateExpressionEvaluatorType evaluator) {
+                return evaluator;
             }
         }
         return null;
@@ -591,6 +621,18 @@ public class ExpressionUtil {
             ExpressionType expression, ScriptExpressionEvaluatorType evaluator) throws SchemaException {
         return updateExpressionEvaluator(
                 expression, evaluator, ScriptExpressionEvaluatorType.class, SchemaConstantsGenerated.C_SCRIPT);
+    }
+
+    public static ExpressionType updateAssociationFromLinkExpressionValue(
+            ExpressionType expression, AssociationFromLinkExpressionEvaluatorType evaluator) throws SchemaException {
+        return updateExpressionEvaluator(
+                expression, evaluator, AssociationFromLinkExpressionEvaluatorType.class, SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK);
+    }
+
+    public static ExpressionType updateShadowOwnerReferenceSearchExpressionValue(
+            ExpressionType expression, ShadowOwnerReferenceSearchExpressionEvaluatorType evaluator) throws SchemaException {
+        return updateExpressionEvaluator(
+                expression, evaluator, ShadowOwnerReferenceSearchExpressionEvaluatorType.class, SchemaConstantsGenerated.C_SHADOW_OWNER_REFERENCE_SEARCH);
     }
 
     private static <E extends Object> ExpressionType updateExpressionEvaluator(
@@ -684,6 +726,5 @@ public class ExpressionUtil {
         } else {
             return valueNode.getValue() != null ? valueNode.getValue().toString() : null;
         }
-
     }
 }
