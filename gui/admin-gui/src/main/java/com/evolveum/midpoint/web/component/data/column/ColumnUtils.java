@@ -1154,7 +1154,7 @@ public class ColumnUtils {
     }
 
     public static List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> getDefaultCertWorkItemColumns(
-            boolean viewAllItems) {
+            boolean viewAllItems, boolean notDecidedOnly) {
         List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> columns = new ArrayList<>();
 
 
@@ -1216,6 +1216,51 @@ public class ColumnUtils {
                     AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
                     return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel), certCase.getStageNumber());
                 }
+            });
+        }
+        if (!notDecidedOnly) {
+            columns.add(new CompositedIconWithLabelColumn<>(createStringResource("PageCertCampaign.statistics.response")) {
+
+                @Serial private static final long serialVersionUID = 1L;
+
+                @Override
+                protected CompositedIcon getCompositedIcon(IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                    AccessCertificationResponseType response = getResponse(rowModel);
+                    if (response == null) {
+                        return null;
+                    }
+                    DisplayType responseDisplayType = new CertificationItemResponseHelper(response).getResponseDisplayType();
+                    return new CompositedIconBuilder()
+                            .setBasicIcon(responseDisplayType.getIcon(), IconCssStyle.IN_ROW_STYLE)
+                            .build();
+                }
+
+                @Override
+                public IModel<DisplayType> getLabelDisplayModel(IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                    AccessCertificationResponseType response = getResponse(rowModel);
+                    if (response == null) {
+                        return Model.of(new DisplayType());
+                    }
+                    return Model.of(new CertificationItemResponseHelper(response).getResponseDisplayType());
+                }
+
+                @Override
+                public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                    AccessCertificationResponseType response = getResponse(rowModel);
+                    if (response == null) {
+                        return Model.of("");
+                    }
+                    DisplayType responseDisplayType = new CertificationItemResponseHelper(response).getResponseDisplayType();
+                    return Model.of(LocalizationUtil.translatePolyString(responseDisplayType.getLabel()));
+                }
+
+                private AccessCertificationResponseType getResponse(
+                        IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                    AccessCertificationWorkItemType workItem = unwrapRowModel(rowModel);
+                    String outcome = WorkItemTypeUtil.getOutcome(workItem);
+                    return OutcomeUtils.fromUri(outcome);
+                }
+
             });
         }
         columns.add(new IconColumn<>(Model.of("")) {

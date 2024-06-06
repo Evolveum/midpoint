@@ -101,6 +101,9 @@ public class CertificationItemResponseHelper implements Serializable {
 //        var def = PrismContext.get().getSchemaRegistry().findItemDefinitionByElementName(AbstractWorkItemOutputType.F_OUTCOME);
 //        return def != null ? def.getDocumentation() : null;
         CertificationItemResponse itemResponse = RESPONSES_MAP.get(response);
+        if (itemResponse == null) {
+            return null;
+        }
         return itemResponse.help;
     }
 }

@@ -92,7 +92,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     }
 
     private List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createColumns() {
-        return ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems());
+        return ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
     }
 
     @Override
@@ -163,7 +163,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
-                return getOpenCertWorkItemsQuery(true);
+                return getOpenCertWorkItemsQuery(showOnlyNotDecidedItems());
             }
 
         };
@@ -401,6 +401,10 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
     protected boolean isMyCertItems() {
         return true;
+    }
+
+    protected boolean showOnlyNotDecidedItems() {
+        return false;
     }
 
 }
