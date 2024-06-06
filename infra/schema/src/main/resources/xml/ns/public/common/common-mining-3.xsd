@@ -112,6 +112,14 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="patternInfo" type="c:RoleAnalysisPatternInfo" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Pattern result.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1761,10 +1769,62 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="patternInfo" type="c:RoleAnalysisPatternInfo" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Pattern result.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="roleAnalysisOutlierDescriptionType" type="tns:RoleAnalysisOutlierDescriptionType"/>
+
+    <xsd:complexType name="RoleAnalysisPatternInfo">
+        <xsd:annotation>
+            <xsd:documentation>
+                Contains detailed information about pattern analysis.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+
+            <xsd:element name="confidence" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Confidence level associated with the identified outlier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="totalRelations" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Confidence level associated with the identified outlier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="topPatternRelation" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Confidence level associated with the identified outlier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="detectedPatternCount" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Confidence level associated with the identified outlier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="roleAnalysisPatternInfo" type="tns:RoleAnalysisPatternInfo"/>
 
     <xsd:simpleType name="OutlierCategory">
         <xsd:annotation>
