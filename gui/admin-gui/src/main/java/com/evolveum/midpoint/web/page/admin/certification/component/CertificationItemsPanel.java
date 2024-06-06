@@ -161,10 +161,10 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
                 return getPageBase().getSessionStorage().getCertDecisions();
             }
 
-            @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                return getOpenCertWorkItemsQuery(showOnlyNotDecidedItems());
-            }
+//            @Override
+//            protected ObjectQuery getCustomizeContentQuery() {
+//                return getOpenCertWorkItemsQuery(showOnlyNotDecidedItems());
+//            }
 
         };
 //        provider.setSort(CaseWorkItemType.F_DEADLINE.getLocalPart(), SortOrder.DESCENDING);

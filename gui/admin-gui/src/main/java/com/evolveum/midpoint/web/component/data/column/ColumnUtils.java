@@ -1287,20 +1287,6 @@ public class ColumnUtils {
                                 .color("blue"));
             }
         });
-       columns.add(new AbstractColumn<>(Model.of("")) {
-
-           @Serial private static final long serialVersionUID = 1L;
-
-           @Override
-           public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationWorkItemType>>> cellItem,
-                   String componentId, final IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
-               String comment = WorkItemTypeUtil.getComment(unwrapRowModel(rowModel));
-               Label label = new Label(componentId, (IModel<String>) () -> comment);
-               label.add(AttributeModifier.append("title", comment));
-               label.add(AttributeModifier.append("class", "text-truncate"));
-               cellItem.add(label);
-           }
-       });
         return columns;
     }
 
