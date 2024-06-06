@@ -50,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
 @PanelType(name = "sessionOverView", defaultContainerPath = "empty")
 @PanelInstance(identifier = "sessionOverView",
         applicableForType = RoleAnalysisSessionType.class,
+        defaultPanel = true,
         display = @PanelDisplay(
                 label = "RoleAnalysis.overview.panel",
                 icon = GuiStyleConstants.CLASS_LINE_CHART_ICON,
@@ -289,7 +290,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         infoBoxReductionLabel.setOutputMarkupId(true);
         headerItems.add(infoBoxReductionLabel);
 
-        InfoBoxModel infoBoxOutliers = new InfoBoxModel(" fa fa-user-times text-white",
+        InfoBoxModel infoBoxOutliers = new InfoBoxModel(GuiStyleConstants.CLASS_OUTLIER_ICON + " text-white",
                 "Outliers",
                 String.valueOf(outliers),
                 100,

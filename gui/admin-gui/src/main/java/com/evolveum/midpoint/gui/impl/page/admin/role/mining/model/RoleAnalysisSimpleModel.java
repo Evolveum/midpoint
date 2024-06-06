@@ -14,9 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * The RoleAnalysisModel class stores role analysis data, count of roles and users that are used in the histogram chart.
@@ -25,7 +23,10 @@ import java.util.List;
 public class RoleAnalysisSimpleModel implements Serializable {
 
     double density;
+    double comparedDensity;
     String description;
+
+    boolean isCompared = false;
 
     public RoleAnalysisSimpleModel(double density, String description) {
         this.density = density;
@@ -40,12 +41,32 @@ public class RoleAnalysisSimpleModel implements Serializable {
         return description;
     }
 
+    public double getComparedPercentagePart() {
+        return (density * 0.01) * comparedDensity;
+    }
+
+    public double getComparedDensity() {
+        return comparedDensity;
+    }
+
+    public void setComparedDensity(double comparedDensity) {
+        this.comparedDensity = comparedDensity;
+    }
+
+    public boolean isCompared() {
+        return isCompared;
+    }
+
+    public void setCompared(boolean compared) {
+        isCompared = compared;
+    }
+
     public static @NotNull List<RoleAnalysisSimpleModel> getRoleAnalysisSimpleModel(
             @Nullable RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult,
             @Nullable RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult) {
         List<RoleAnalysisSimpleModel> roleAnalysisSimpleModel = new ArrayList<>();
 
-        if(roleAttributeAnalysisResult == null || userAttributeAnalysisResult == null) {
+        if (roleAttributeAnalysisResult == null || userAttributeAnalysisResult == null) {
             return roleAnalysisSimpleModel;
         }
         List<RoleAnalysisAttributeAnalysis> roleAttributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
@@ -69,6 +90,72 @@ public class RoleAnalysisSimpleModel implements Serializable {
             roleAnalysisSimpleModel.add(
                     new RoleAnalysisSimpleModel(attributeAnalysis.getDensity(),
                             "(User) " + itemDescription));
+        }
+
+        roleAnalysisSimpleModel.sort(Comparator.comparingDouble(RoleAnalysisSimpleModel::getDensity));
+        return roleAnalysisSimpleModel;
+    }
+
+    public static @NotNull List<RoleAnalysisSimpleModel> getRoleAnalysisSimpleComparedModel(
+            @Nullable RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult,
+            @Nullable RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult,
+            @Nullable RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResultCompared,
+            @Nullable RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResultCompared) {
+        List<RoleAnalysisSimpleModel> roleAnalysisSimpleModel = new ArrayList<>();
+
+        if (roleAttributeAnalysisResult == null && userAttributeAnalysisResult == null) {
+            return roleAnalysisSimpleModel;
+        }
+
+        Map<String, RoleAnalysisAttributeAnalysis> roleAttributeAnalysisComparedMap = new HashMap<>();
+        Map<String, RoleAnalysisAttributeAnalysis> userAttributeAnalysisComparedMap = new HashMap<>();
+
+        if (roleAttributeAnalysisResultCompared != null) {
+            for (RoleAnalysisAttributeAnalysis attributeAnalysis : roleAttributeAnalysisResultCompared.getAttributeAnalysis()) {
+                roleAttributeAnalysisComparedMap.put(attributeAnalysis.getItemPath(), attributeAnalysis);
+            }
+        }
+
+        if (userAttributeAnalysisResultCompared != null) {
+            for (RoleAnalysisAttributeAnalysis attributeAnalysis : userAttributeAnalysisResultCompared.getAttributeAnalysis()) {
+                userAttributeAnalysisComparedMap.put(attributeAnalysis.getItemPath(), attributeAnalysis);
+            }
+        }
+
+        if (roleAttributeAnalysisResult != null) {
+            List<RoleAnalysisAttributeAnalysis> roleAttributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
+            for (RoleAnalysisAttributeAnalysis attributeAnalysis : roleAttributeAnalysis) {
+                String itemDescription = attributeAnalysis.getItemPath();
+                if (itemDescription != null && !itemDescription.isEmpty()) {
+                    itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
+                }
+                RoleAnalysisSimpleModel roleAnalysisSimpleModelPreparation = new RoleAnalysisSimpleModel(attributeAnalysis.getDensity(),
+                        "(Role) " + itemDescription);
+                roleAnalysisSimpleModelPreparation.setCompared(true);
+                String itemPath = attributeAnalysis.getItemPath();
+
+                roleAnalysisSimpleModelPreparation.setComparedDensity(roleAttributeAnalysisComparedMap.get(itemPath) != null ?
+                        roleAttributeAnalysisComparedMap.get(itemPath).getDensity() : 0.0);
+                roleAnalysisSimpleModel.add(roleAnalysisSimpleModelPreparation);
+            }
+        }
+
+        if (userAttributeAnalysisResult != null) {
+            List<RoleAnalysisAttributeAnalysis> userAttributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
+            for (RoleAnalysisAttributeAnalysis attributeAnalysis : userAttributeAnalysis) {
+                String itemDescription = attributeAnalysis.getItemPath();
+                if (itemDescription != null && !itemDescription.isEmpty()) {
+                    itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
+                }
+
+                RoleAnalysisSimpleModel roleAnalysisSimpleModelPreparation = new RoleAnalysisSimpleModel(attributeAnalysis.getDensity(),
+                        "(User) " + itemDescription);
+                roleAnalysisSimpleModelPreparation.setCompared(true);
+                String itemPath = attributeAnalysis.getItemPath();
+                roleAnalysisSimpleModelPreparation.setComparedDensity(userAttributeAnalysisComparedMap.get(itemPath) != null ?
+                        userAttributeAnalysisComparedMap.get(itemPath).getDensity() : 0.0);
+                roleAnalysisSimpleModel.add(roleAnalysisSimpleModelPreparation);
+            }
         }
 
         roleAnalysisSimpleModel.sort(Comparator.comparingDouble(RoleAnalysisSimpleModel::getDensity));

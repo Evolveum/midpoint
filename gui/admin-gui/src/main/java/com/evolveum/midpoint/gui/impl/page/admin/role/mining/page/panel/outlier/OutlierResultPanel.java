@@ -29,6 +29,7 @@ import java.io.Serial;
 
 public class OutlierResultPanel extends BasePanel<String> implements Popupable {
 
+    private static final String ID_CARD = "card";
     private static final String ID_CARD_HEADER = "card-header";
     private static final String ID_CARD_BODY = "card-body";
     private static final String ID_CARD_FOOTER = "card-footer";
@@ -54,17 +55,22 @@ public class OutlierResultPanel extends BasePanel<String> implements Popupable {
 
     private void initLayout() {
 
+        WebMarkupContainer card = new WebMarkupContainer(ID_CARD);
+        card.setOutputMarkupId(true);
+        card.add(AttributeAppender.replace("class", getCardCssClass()));
+        add(card);
+
         WebMarkupContainer cardHeader = new WebMarkupContainer(ID_CARD_HEADER);
         cardHeader.setOutputMarkupId(true);
-        add(cardHeader);
+        card.add(cardHeader);
 
         WebMarkupContainer cardFooter = new WebMarkupContainer(ID_CARD_FOOTER);
         cardFooter.setOutputMarkupId(true);
-        add(cardFooter);
+        card.add(cardFooter);
 
         WebMarkupContainer cardBody = new WebMarkupContainer(ID_CARD_BODY);
         cardBody.setOutputMarkupId(true);
-        add(cardBody);
+        card.add(cardBody);
 
         WebMarkupContainer cardBodyBody = new WebMarkupContainer(ID_CARD_BODY_BODY);
         cardBodyBody.setOutputMarkupId(true);
@@ -83,6 +89,10 @@ public class OutlierResultPanel extends BasePanel<String> implements Popupable {
         Label bodySubtitle = new Label(ID_BODY_SUBTITLE, getBodySubtitle());
         bodySubtitle.setOutputMarkupId(true);
         cardBody.add(bodySubtitle);
+    }
+
+    public String getCardCssClass() {
+        return "card";
     }
 
     public String getBodyTitle() {

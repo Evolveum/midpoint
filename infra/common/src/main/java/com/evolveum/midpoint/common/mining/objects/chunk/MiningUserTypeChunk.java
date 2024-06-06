@@ -33,6 +33,10 @@ public class MiningUserTypeChunk extends MiningBaseTypeChunk implements Serializ
         super(roles, users, chunkName, frequency, objectStatus);
     }
 
+    public MiningUserTypeChunk(@NotNull MiningBaseTypeChunk chunk) {
+        super(chunk.getMembers(), chunk.getProperties(), chunk.getChunkName(), chunk.getFrequencyItem(), chunk.getObjectStatus());
+    }
+
     public MiningUserTypeChunk(
             @NotNull List<String> users,
             @NotNull List<String> roles,

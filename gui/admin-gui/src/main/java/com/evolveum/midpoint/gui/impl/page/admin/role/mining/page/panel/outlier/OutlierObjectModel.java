@@ -1,5 +1,17 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
 
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
+
+import java.io.Serializable;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.util.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -7,19 +19,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serializable;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.util.*;
-
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis;
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 
 public class OutlierObjectModel implements Serializable {
 
@@ -30,16 +29,20 @@ public class OutlierObjectModel implements Serializable {
 
     String timeCreated;
 
+    RoleAnalysisPatternInfo patternInfo;
+
     public OutlierObjectModel(
             @NotNull String outlierName,
             @NotNull String outlierDescription,
             double outlierConfidence,
-            String timeCreated) {
+            String timeCreated,
+            RoleAnalysisPatternInfo patternInfo) {
         this.outlierName = outlierName;
         this.outlierDescription = outlierDescription;
         this.outlierConfidence = outlierConfidence;
         this.timeCreated = timeCreated;
         this.outlierItemModels = new ArrayList<>();
+        this.patternInfo = patternInfo;
     }
 
     public void addOutlierItemModel(OutlierItemModel outlierItemModel) {
@@ -118,8 +121,18 @@ public class OutlierObjectModel implements Serializable {
         String outlierDescription = "User has been marked as outlier object due to confidence score:";
         String propertyConfidenceRange = decimalFormat.format(min) + " - " + decimalFormat.format(max) + "%";
         String propertyDescription = "There is detected " + propertyCount + " outlier assignment(s) with high confidence";
+        RoleAnalysisPatternInfo patternInfo = outlierResult.getPatternInfo();
+        OutlierObjectModel outlierObjectModel = new OutlierObjectModel(name.getOrig(), outlierDescription, outlierConfidenceInt, createTimestamp.toString(), patternInfo);
 
-        OutlierObjectModel outlierObjectModel = new OutlierObjectModel(name.getOrig(), outlierDescription, outlierConfidenceInt, createTimestamp.toString());
+        if (patternInfo != null) {
+            Double detectedPatternCount = patternInfo.getDetectedPatternCount();
+            Double topPatternRelation = patternInfo.getTopPatternRelation();
+            Double totalRelations = patternInfo.getTotalRelations();
+            String value = detectedPatternCount + " pattern(s) detected";
+            String description = "Top pattern relation: " + topPatternRelation + " Total relations: " + totalRelations;
+            OutlierItemModel patternItemModel = new OutlierItemModel(value, description, "fa fa-cubes");
+            outlierObjectModel.addOutlierItemModel(patternItemModel);
+        }
 
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
         int similarObjectCount = cluster.getMember().size();
@@ -257,8 +270,19 @@ public class OutlierObjectModel implements Serializable {
         String propertyConfidenceRange = decimalFormat.format(min) + " - " + decimalFormat.format(max) + "%";
         String propertyDescription = "There is detected " + propertyCount + " outlier assignment(s) with high confidence";
 
+        RoleAnalysisPatternInfo patternInfo = outlierResult.getPatternInfo();
         OutlierObjectModel outlierObjectModel = new OutlierObjectModel(
-                name.getOrig(), outlierDescription, outlierConfidenceInt, createTimestamp.toString());
+                name.getOrig(), outlierDescription, outlierConfidenceInt, createTimestamp.toString(), patternInfo);
+
+        if (patternInfo != null) {
+            Double detectedPatternCount = patternInfo.getDetectedPatternCount();
+            Double topPatternRelation = patternInfo.getTopPatternRelation();
+            Double totalRelations = patternInfo.getTotalRelations();
+            String value = detectedPatternCount + " pattern(s) detected";
+            String description = "Top pattern relation: " + topPatternRelation + " Total relations: " + totalRelations;
+            OutlierItemModel patternItemModel = new OutlierItemModel(value, description, "fa fa-cubes");
+            outlierObjectModel.addOutlierItemModel(patternItemModel);
+        }
 
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
         int similarObjectCount = cluster.getMember().size();
@@ -389,8 +413,19 @@ public class OutlierObjectModel implements Serializable {
         int outlierConfidenceInt = (int) confidence;
         String description = "Assignment has been marked as outlier object due to confidence score:";
 
+        RoleAnalysisPatternInfo patternInfo = outlierResult.getPatternInfo();
         OutlierObjectModel outlierObjectModel = new OutlierObjectModel(
-                name.getOrig(), description, outlierConfidenceInt, outlierResult.getCreateTimestamp().toString());
+                name.getOrig(), description, outlierConfidenceInt, outlierResult.getCreateTimestamp().toString(), patternInfo);
+
+        if (patternInfo != null) {
+            Double detectedPatternCount = patternInfo.getDetectedPatternCount();
+            Double topPatternRelation = patternInfo.getTopPatternRelation();
+            Double totalRelations = patternInfo.getTotalRelations();
+            String value = detectedPatternCount + " pattern(s) detected";
+            String patternDescription = "Top pattern relation: " + topPatternRelation + " Total relations: " + totalRelations;
+            OutlierItemModel patternItemModel = new OutlierItemModel(value, patternDescription, "fa fa-cubes");
+            outlierObjectModel.addOutlierItemModel(patternItemModel);
+        }
 
         double occurInCluster = outlierResult.getFrequency() * 100;
         String descriptionOccurInCluster = "Outlier assignment coverage in cluster.";

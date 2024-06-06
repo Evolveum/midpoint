@@ -13,9 +13,18 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.c
 import java.io.Serial;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetailsPopup;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.model.api.ModelService;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -31,6 +40,7 @@ import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisInfoPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetailsPopup;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisInfoItem;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisSessionTileTable;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
@@ -86,7 +96,7 @@ public class PageRoleAnalysis extends PageAdmin {
 
         RoleAnalysisInfoPanel roleAnalysisInfoPanel = new RoleAnalysisInfoPanel(ID_CHART_PANEL) {
             @Override
-            public void addItems(RepeatingView repeatingView) {
+            public void addPatternItems(RepeatingView repeatingView) {
                 PageBase pageBase = getPageBase();
                 RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
                 Task task = pageBase.createSimpleTask("loadRoleAnalysisInfo");
@@ -124,12 +134,15 @@ public class PageRoleAnalysis extends PageAdmin {
                         @Override
                         protected void addDescriptionComponents() {
                             appendText("A potential reduction has been detected. ");
-                            appendText(" The reduction involves ");
+                            WebMarkupContainer container = new WebMarkupContainer(getRepeatedView().newChildId());
+                            container.add(AttributeAppender.append("class", "d-flex"));
+                            appendComponent(container);
+                            appendText(" Involves ");
                             appendIcon("fe fe-assignment", "color: red;");
-                            appendText(" " + formattedReductionFactorConfidence + " assignments ");
-                            appendText("and is associated with an attribute confidence of ");
+                            appendText(" " + formattedReductionFactorConfidence + " relations ");
+                            appendText("and ");
                             appendIcon("fa fa-leaf", "color: green");
-                            appendText(" " + formattedItemConfidence + "%. ");
+                            appendText(" " + formattedItemConfidence + "% confidence.");
                         }
 
                         @Override
@@ -170,6 +183,116 @@ public class PageRoleAnalysis extends PageAdmin {
                                     ((PageBase) getPage()).getMainPopupBodyId(),
                                     Model.of(pattern));
                             ((PageBase) getPage()).showMainPopup(component, target);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void addOutliersItems(RepeatingView repeatingView) {
+                PageBase pageBase = getPageBase();
+                ModelService modelService = pageBase.getModelService();
+                Task task = pageBase.createSimpleTask("loadRoleAnalysisInfo");
+                OperationResult result = task.getResult();
+                SearchResultList<PrismObject<RoleAnalysisOutlierType>> searchResultList;
+                try {
+                    searchResultList = modelService
+                            .searchObjects(RoleAnalysisOutlierType.class, null, null, task, result);
+                } catch (SchemaException | ObjectNotFoundException | SecurityViolationException |
+                        CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                    throw new RuntimeException(e);
+                }
+
+                if (searchResultList == null || searchResultList.isEmpty()) {
+                    return;
+                }
+
+                for (int i = 0; i < searchResultList.size(); i++) {
+                    PrismObject<RoleAnalysisOutlierType> outlierTypePrismObject = searchResultList.get(i);
+                    RoleAnalysisOutlierType outlierObject = outlierTypePrismObject.asObjectable();
+                    List<RoleAnalysisOutlierDescriptionType> outlierStatResult = outlierObject.getResult();
+                    String label = "";
+                    if (outlierStatResult == null || outlierStatResult.isEmpty()) {
+                        continue;
+                    }
+                    double averageConfidence = 0;
+                    for (RoleAnalysisOutlierDescriptionType item : outlierStatResult) {
+                        averageConfidence += item.getConfidence();
+                    }
+                    averageConfidence = averageConfidence / outlierStatResult.size();
+                    String formattedConfidence = String.format("%.2f", averageConfidence * 100);
+
+                    if (outlierStatResult.size() > 1) {
+
+                        label = "Has been detected outliers with multiple (" + outlierStatResult.size() + ") anomalies"
+                                + "and confidence of " + formattedConfidence + "%";
+                    } else {
+                        label = "Has been detected outliers with single anomalies and confidence of " + formattedConfidence + "%";
+                    }
+
+                    int finalI = i;
+                    String finalLabel = label;
+                    repeatingView.add(new RoleAnalysisInfoItem(repeatingView.newChildId(), Model.of(finalLabel)) {
+
+                        @Override
+                        protected String getIconBoxText() {
+//                            return "#" + (finalI + 1);
+                            return null;
+                        }
+
+                        @Override
+                        protected String getIconClass() {
+                            return "fa-2x " + GuiStyleConstants.CLASS_OUTLIER_ICON;
+                        }
+
+                        @Override
+                        protected String getIconBoxIconStyle() {
+                            return super.getIconBoxIconStyle();
+                        }
+
+                        @Override
+                        protected String getIconContainerCssClass() {
+                            return "btn btn-outline-dark";
+                        }
+
+                        @Override
+                        protected void addDescriptionComponents() {
+                            appendText(finalLabel);
+                        }
+
+                        @Override
+                        protected IModel<String> getDescriptionModel() {
+                            return Model.of(finalLabel);
+                        }
+
+                        @Override
+                        protected IModel<String> getLinkModel() {
+                            IModel<String> linkModel = super.getLinkModel();
+                            return Model.of(linkModel.getObject() + " outlier #" + (finalI + 1));
+                        }
+
+                        @Override
+                        protected void onClickLinkPerform(AjaxRequestTarget target) {
+                            PageParameters parameters = new PageParameters();
+                            String outlierOid = outlierObject.getOid();
+                            parameters.add(OnePageParameterEncoder.PARAMETER, outlierOid);
+                            StringValue fullTableSetting = getPageBase().getPageParameters().get(PARAM_TABLE_SETTING);
+                            if (fullTableSetting != null && fullTableSetting.toString() != null) {
+                                parameters.add(PARAM_TABLE_SETTING, fullTableSetting.toString());
+                            }
+
+                            Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                                    .getObjectDetailsPage(RoleAnalysisOutlierType.class);
+                            getPageBase().navigateToNext(detailsPageClass, parameters);
+
+                        }
+
+                        @Override
+                        protected void onClickIconPerform(AjaxRequestTarget target) {
+//                            RoleAnalysisDetectedPatternDetailsPopup component = new RoleAnalysisDetectedPatternDetailsPopup(
+//                                    ((PageBase) getPage()).getMainPopupBodyId(),
+//                                    Model.of(pattern));
+//                            ((PageBase) getPage()).showMainPopup(component, target);
                         }
                     });
                 }

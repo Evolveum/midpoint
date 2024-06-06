@@ -61,7 +61,8 @@ public class QOutlierObjectMapping
                 t -> row.targetObjectRefTargetType = t,
                 r -> row.targetObjectRefRelationId = r);
 
-        setReference(outlierObject.getTargetClusterRef(),
+        //TODO: session not cluster
+        setReference(outlierObject.getTargetSessionRef(),
                 o -> row.targetClusterRefTargetOid = o,
                 t -> row.targetClusterRefTargetType = t,
                 r -> row.targetClusterRefRelationId = r);

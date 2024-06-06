@@ -7,11 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
+import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import org.jetbrains.annotations.NotNull;
@@ -62,10 +60,12 @@ public class OutliersDetectionUtil {
 
             ZScoreData zScoreData = roleAnalysisService.resolveOutliersZScore(miningRoleTypeChunks, minFrequency, maxFrequency);
 
+            //this is row miningRoleTypeChunk
             for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
 
                 FrequencyItem frequencyItem = miningRoleTypeChunk.getFrequencyItem();
                 if (!frequencyItem.getStatus().equals(FrequencyItem.Status.INCLUDE)) {
+
                     List<String> roles = miningRoleTypeChunk.getMembers();
                     List<String> users = miningRoleTypeChunk.getProperties();
 
@@ -98,11 +98,14 @@ public class OutliersDetectionUtil {
                             userOutliers = new RoleAnalysisOutlierType();
                             userOutliers.setTargetObjectRef(new ObjectReferenceType().oid(user).type(UserType.COMPLEX_TYPE));
                             for (RoleAnalysisOutlierDescriptionType prepareRoleOutlier : prepareRoleOutliers) {
+                                detectAndLoadPatternAnalysis(miningRoleTypeChunk, user, prepareRoleOutlier, miningRoleTypeChunks);
+
                                 userOutliers.getResult().add(prepareRoleOutlier.clone());
                             }
                             map.put(user, userOutliers);
                         } else {
                             for (RoleAnalysisOutlierDescriptionType prepareRoleOutlier : prepareRoleOutliers) {
+                                detectAndLoadPatternAnalysis(miningRoleTypeChunk, user, prepareRoleOutlier, miningRoleTypeChunks);
                                 userOutliers.getResult().add(prepareRoleOutlier.clone());
                             }
                         }
@@ -110,6 +113,11 @@ public class OutliersDetectionUtil {
                     }
 
                 }
+            }
+
+//            TODO this is just for USER MODE! Implement Role (Experimental)
+            for (RoleAnalysisOutlierType roleAnalysisOutlierType : map.values()) {
+                detectAndLoadPatternAnalysis(roleAnalysisOutlierType, miningRoleTypeChunks);
             }
 
         } else if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
@@ -171,5 +179,69 @@ public class OutliersDetectionUtil {
         }
 
         return map.values();
+    }
+
+    //TODO this is just for USER MODE! Implement Role (Experimental)
+    private static void detectAndLoadPatternAnalysis(
+            @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
+            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks) {
+        ObjectReferenceType userRef = roleAnalysisOutlierType.getTargetObjectRef();
+        String userOid = userRef.getOid();
+
+        DetectionOption detectionOption = new DetectionOption(
+                10, 100, 2, 2);
+        List<SimpleHeatPattern> totalRelationOfPatternsForCell = new OutlierPatternResolver()
+                .performSingleCellDetection(RoleAnalysisProcessModeType.USER, miningRoleTypeChunks, detectionOption,
+                        Collections.singletonList(userOid), null);
+
+        int patternCount = totalRelationOfPatternsForCell.size();
+        int totalRelations = 0;
+        int topPatternRelation = 0;
+        for (SimpleHeatPattern simpleHeatPattern : totalRelationOfPatternsForCell) {
+            int relations = simpleHeatPattern.getTotalRelations();
+            totalRelations += relations;
+            if (relations > topPatternRelation) {
+                topPatternRelation = relations;
+            }
+        }
+
+        RoleAnalysisPatternInfo patternInfo = new RoleAnalysisPatternInfo();
+        patternInfo.setConfidence(0.0);
+        patternInfo.setDetectedPatternCount((double) patternCount);
+        patternInfo.setTopPatternRelation((double) topPatternRelation);
+        patternInfo.setTotalRelations((double) totalRelations);
+        roleAnalysisOutlierType.setPatternInfo(patternInfo);
+    }
+
+    //TODO this is just for USER MODE! Implement Role (Experimental)
+    private static void detectAndLoadPatternAnalysis(
+            @NotNull MiningRoleTypeChunk miningRoleTypeChunk,
+            @NotNull String user,
+            @NotNull RoleAnalysisOutlierDescriptionType prepareRoleOutlier,
+            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks) {
+        List<String> allowedProperties = miningRoleTypeChunk.getProperties();
+        DetectionOption detectionOption = new DetectionOption(
+                10, 100, 2, 2);
+        List<SimpleHeatPattern> totalRelationOfPatternsForCell = new OutlierPatternResolver()
+                .performSingleCellDetection(RoleAnalysisProcessModeType.USER, miningRoleTypeChunks, detectionOption,
+                        Collections.singletonList(user), allowedProperties);
+
+        int patternCount = totalRelationOfPatternsForCell.size();
+        int totalRelations = 0;
+        int topPatternRelation = 0;
+        for (SimpleHeatPattern simpleHeatPattern : totalRelationOfPatternsForCell) {
+            int relations = simpleHeatPattern.getTotalRelations();
+            totalRelations += relations;
+            if (relations > topPatternRelation) {
+                topPatternRelation = relations;
+            }
+        }
+
+        RoleAnalysisPatternInfo patternInfo = new RoleAnalysisPatternInfo();
+        patternInfo.setConfidence(0.0);
+        patternInfo.setDetectedPatternCount((double) patternCount);
+        patternInfo.setTopPatternRelation((double) topPatternRelation);
+        patternInfo.setTotalRelations((double) totalRelations);
+        prepareRoleOutlier.setPatternInfo(patternInfo);
     }
 }

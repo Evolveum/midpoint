@@ -173,7 +173,7 @@ public class RoleAnalysisInfoItem extends BasePanel<String> {
     }
 
     protected String getDescriptionStyle() {
-        return "font-size:15px; line-height: 1.1;";
+        return "font-size:14px; line-height: 1.1;";
     }
 
     protected IModel<String> getLinkModel() {

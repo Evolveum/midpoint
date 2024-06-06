@@ -226,10 +226,11 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
                         RoleAnalysisSessionType sessionType = sessionTypeObject.asObjectable();
                         RoleAnalysisProcessModeType processMode = sessionType.getAnalysisOption().getProcessMode();
                         OutlierObjectModel outlierObjectModel;
+                        RoleAnalysisOutlierType outlier = rowModel.getObject().getValue();
                         if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-                            outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, rowModel.getObject().getValue(), task, task.getResult(), cluster);
+                            outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlier, task, task.getResult(), cluster);
                         } else {
-                            outlierObjectModel = generateRoleOutlierResultModel(roleAnalysisService, rowModel.getObject().getValue(), task, task.getResult(), cluster);
+                            outlierObjectModel = generateRoleOutlierResultModel(roleAnalysisService,outlier, task, task.getResult(), cluster);
                         }
 
                         String outlierName = outlierObjectModel.getOutlierName();

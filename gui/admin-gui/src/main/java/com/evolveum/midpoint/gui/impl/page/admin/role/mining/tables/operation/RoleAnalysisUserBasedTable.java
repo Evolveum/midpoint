@@ -16,7 +16,13 @@ import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.create
 import java.io.Serial;
 import java.util.*;
 
+import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+
+import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -211,7 +217,6 @@ public class RoleAnalysisUserBasedTable extends Panel {
     private void initLayout(@NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull LoadableDetachableModel<DisplayValueOption> displayValueOptionModel) {
         List<ObjectReferenceType> resolvedPattern = cluster.asObjectable().getResolvedPattern();
-
         DisplayValueOption object = displayValueOptionModel.getObject();
         RoleAnalysisSortMode roleAnalysisSortMode = RoleAnalysisSortMode.NONE;
         if (object != null) {
@@ -224,8 +229,17 @@ public class RoleAnalysisUserBasedTable extends Panel {
         specialColumnCount = users.size();
         toCol = Math.min(toCol, specialColumnCount);
 
+        //TODO this is just tmp test
+        ListMultimap<String, SimpleHeatPattern> totalRelationOfPatternsForChunk = null;
+        if (isOutlierDetection()) {
+            DetectionOption detectionOption = new DetectionOption(
+                    10, 100, 2, 2);
+            totalRelationOfPatternsForChunk = new OutlierPatternResolver()
+                    .performDetection(RoleAnalysisProcessModeType.USER, roles, detectionOption);
+        }
+
         RoleMiningProvider<MiningRoleTypeChunk> provider = createRoleMiningProvider(roles);
-        RoleAnalysisTable<MiningRoleTypeChunk> table = generateTable(provider, users, resolvedPattern, cluster, displayValueOptionModel);
+        RoleAnalysisTable<MiningRoleTypeChunk> table = generateTable(provider, users, roles, resolvedPattern, cluster, displayValueOptionModel, totalRelationOfPatternsForChunk);
         table.add(AttributeAppender.append("class", "border border-light"));
         add(table);
     }
@@ -248,11 +262,14 @@ public class RoleAnalysisUserBasedTable extends Panel {
     public RoleAnalysisTable<MiningRoleTypeChunk> generateTable(
             RoleMiningProvider<MiningRoleTypeChunk> provider,
             List<MiningUserTypeChunk> users,
+            List<MiningRoleTypeChunk> roles,
             List<ObjectReferenceType> reductionObjects,
-            PrismObject<RoleAnalysisClusterType> cluster, @NotNull LoadableDetachableModel<DisplayValueOption> displayValueOptionModel) {
+            PrismObject<RoleAnalysisClusterType> cluster,
+            @NotNull LoadableDetachableModel<DisplayValueOption> displayValueOptionModel,
+            ListMultimap<String, SimpleHeatPattern> totalRelationOfPatternsForChunk) {
 
         RoleAnalysisTable<MiningRoleTypeChunk> table = new RoleAnalysisTable<>(
-                ID_DATATABLE, provider, initColumns(users, reductionObjects, displayValueOptionModel),
+                ID_DATATABLE, provider, initColumns(users, roles, reductionObjects, displayValueOptionModel, totalRelationOfPatternsForChunk),
                 null, true, specialColumnCount, displayValueOptionModel) {
 
             @Override
@@ -343,7 +360,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 valueTitle = value;
                 fromCol = Integer.parseInt(rangeParts[0]);
                 toCol = Integer.parseInt(rangeParts[1]);
-                getTable().replaceWith(generateTable(provider, users, reductionObjects, cluster, displayValueOptionModel));
+                getTable().replaceWith(generateTable(provider, users, roles, reductionObjects, cluster, displayValueOptionModel, totalRelationOfPatternsForChunk));
                 target.add(getTable().setOutputMarkupId(true));
                 target.appendJavaScript(applyTableScaleScript());
             }
@@ -356,7 +373,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 toCol = Math.min(value, specialColumnCount);
                 valueTitle = "0 - " + toCol;
 
-                getTable().replaceWith(generateTable(provider, users, reductionObjects, cluster, displayValueOptionModel));
+                getTable().replaceWith(generateTable(provider, users, roles, reductionObjects, cluster, displayValueOptionModel, totalRelationOfPatternsForChunk));
                 target.add(getTable().setOutputMarkupId(true));
                 target.appendJavaScript(applyTableScaleScript());
             }
@@ -390,8 +407,12 @@ public class RoleAnalysisUserBasedTable extends Panel {
     private boolean isObjectLinkHeaderActive = true;
     private boolean isActionIconHeaderActive = true;
 
-    public List<IColumn<MiningRoleTypeChunk, String>> initColumns(List<MiningUserTypeChunk> users,
-            List<ObjectReferenceType> reductionObjects, @NotNull LoadableDetachableModel<DisplayValueOption> displayValueOptionModel) {
+    public List<IColumn<MiningRoleTypeChunk, String>> initColumns(
+            List<MiningUserTypeChunk> users,
+            List<MiningRoleTypeChunk> roles,
+            List<ObjectReferenceType> reductionObjects,
+            @NotNull LoadableDetachableModel<DisplayValueOption> displayValueOptionModel,
+            ListMultimap<String, SimpleHeatPattern> totalRelationOfPatternsForChunk) {
 
         List<IColumn<MiningRoleTypeChunk, String>> columns = new ArrayList<>();
 
@@ -499,9 +520,19 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 String title = rowModel.getObject().getChunkName();
                 if (isOutlierDetection()) {
                     double confidence = rowModel.getObject().getFrequencyItem().getzScore();
-                    title = " (" + confidence + ")" + title;
+                    title = title + " (" + confidence + "confidence) ";
+                    List<SimpleHeatPattern> simpleHeatPatterns = totalRelationOfPatternsForChunk.get(rowModel.getObject().getMembers().get(0));
+                    if (!simpleHeatPatterns.isEmpty()) {
+                        int totalRelations = 0;
+                        for (SimpleHeatPattern simpleHeatPattern : simpleHeatPatterns) {
+                            totalRelations += simpleHeatPattern.getTotalRelations();
+                        }
+
+                        title = title + " (" + totalRelations + "relations) " + " (" + simpleHeatPatterns.size() + " patterns)";
+                    }
+
                 }
-                return new AjaxLinkPanel(componentId,
+                AjaxLinkPanel component = new AjaxLinkPanel(componentId,
                         createStringResource(title)) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -524,6 +555,10 @@ public class RoleAnalysisUserBasedTable extends Panel {
                     }
 
                 };
+                component.setOutputMarkupId(true);
+                component.add(new TooltipBehavior());
+                component.add(AttributeAppender.append("title", title));
+                return component;
             }
 
             @Override
@@ -658,8 +693,8 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
         IColumn<MiningRoleTypeChunk, String> column;
         for (int i = fromCol - 1; i < toCol; i++) {
-            MiningUserTypeChunk userChunk = users.get(i);
-            int membersSize = userChunk.getUsers().size();
+            MiningUserTypeChunk colChunk = users.get(i);
+            int membersSize = colChunk.getUsers().size();
             RoleAnalysisTableTools.StyleResolution styleWidth = RoleAnalysisTableTools.StyleResolution.resolveSize(membersSize);
 
             column = new AbstractColumn<>(createStringResource("")) {
@@ -667,16 +702,16 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 @Override
                 public void populateItem(Item<ICellPopulator<MiningRoleTypeChunk>> cellItem,
                         String componentId, IModel<MiningRoleTypeChunk> model) {
-                    MiningRoleTypeChunk object = model.getObject();
-                    List<String> roles = model.getObject().getRoles();
-                    int propertiesCount = roles.size();
+                    MiningRoleTypeChunk rowChunk = model.getObject();
+                    List<String> cellRoles = model.getObject().getRoles();
+                    int propertiesCount = cellRoles.size();
                     RoleAnalysisTableTools.StyleResolution styleHeight = RoleAnalysisTableTools
                             .StyleResolution
                             .resolveSize(propertiesCount);
 
                     applySquareTableCell(cellItem, styleWidth, styleHeight);
 
-                    boolean isInclude = resolveCellTypeUserTable(componentId, cellItem, object, userChunk,
+                    boolean isInclude = resolveCellTypeUserTable(componentId, cellItem, rowChunk, colChunk,
                             new LoadableDetachableModel<>() {
                                 @Override
                                 protected Map<String, String> load() {
@@ -688,6 +723,8 @@ public class RoleAnalysisUserBasedTable extends Panel {
                         isRelationSelected = true;
                     }
 
+                    outlierPatternCellResolver(cellItem, rowChunk, colChunk, roles);
+
                 }
 
                 @Override
@@ -698,20 +735,20 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
                 @Override
                 public Component getHeader(String componentId) {
-                    List<String> elements = userChunk.getUsers();
+                    List<String> elements = colChunk.getUsers();
 
                     String defaultBlackIcon = IconAndStylesUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE);
                     CompositedIconBuilder compositedIconBuilder = new CompositedIconBuilder().setBasicIcon(defaultBlackIcon,
                             LayeredIconCssStyle.IN_ROW_STYLE);
 
-                    String iconColor = userChunk.getIconColor();
+                    String iconColor = colChunk.getIconColor();
                     if (iconColor != null) {
                         compositedIconBuilder.appendColorHtmlValue(iconColor);
                     }
 
                     CompositedIcon compositedIcon = compositedIconBuilder.build();
 
-                    String title = userChunk.getChunkName();
+                    String title = colChunk.getChunkName();
                     return new AjaxLinkTruncatePanelAction(componentId,
                             createStringResource(title), createStringResource(title), compositedIcon,
                             new LoadableDetachableModel<>() {
@@ -720,7 +757,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                                     if (getSelectedPatterns().size() > 1) {
                                         return RoleAnalysisOperationMode.DISABLE;
                                     }
-                                    return userChunk.getStatus();
+                                    return colChunk.getStatus();
                                 }
                             }) {
 
@@ -730,10 +767,10 @@ public class RoleAnalysisUserBasedTable extends Panel {
                             isRelationSelected = false;
                             RoleAnalysisObjectStatus objectStatus = new RoleAnalysisObjectStatus(status.toggleStatus());
                             objectStatus.setContainerId(new HashSet<>(getPatternIdentifiers()));
-                            userChunk.setObjectStatus(objectStatus);
+                            colChunk.setObjectStatus(objectStatus);
 
                             target.add(getTable().setOutputMarkupId(true));
-                            return userChunk.getStatus();
+                            return colChunk.getStatus();
                         }
 
                         @Override
@@ -763,6 +800,47 @@ public class RoleAnalysisUserBasedTable extends Panel {
         }
 
         return columns;
+    }
+
+    private void outlierPatternCellResolver(Item<ICellPopulator<MiningRoleTypeChunk>> cellItem,
+            MiningRoleTypeChunk object,
+            MiningUserTypeChunk userChunk,
+            List<MiningRoleTypeChunk> roles) {
+        if (isOutlierDetection()) {
+            cellItem.add(new AjaxEventBehavior("click") {
+                @Override
+                protected void onEvent(AjaxRequestTarget ajaxRequestTarget) {
+                    List<String> members = userChunk.getMembers();
+                    List<SimpleHeatPattern> totalRelationOfPatternsForCell;
+                    List<String> mustMeet = object.getProperties();
+                    String debugText;
+                    if (!mustMeet.containsAll(members)) {
+                        debugText = "There are no patterns for this cell. Members does not have relation with roles.";
+                    } else {
+                        DetectionOption detectionOption = new DetectionOption(
+                                10, 100, 2, 2);
+                        totalRelationOfPatternsForCell = new OutlierPatternResolver()
+                                .performSingleCellDetection(RoleAnalysisProcessModeType.USER, roles, detectionOption, members, mustMeet);
+
+                        double totalRelations = 0;
+
+                        List<List<String>> patterns = new ArrayList<>();
+                        for (SimpleHeatPattern simpleHeatPattern : totalRelationOfPatternsForCell) {
+                            totalRelations += simpleHeatPattern.getTotalRelations();
+                            patterns.add(simpleHeatPattern.getPropertiesOids());
+                        }
+                        debugText = "Total relations: " + totalRelations
+                                + " Patterns " + totalRelationOfPatternsForCell.size()
+                               + "\n" + patterns;
+                    }
+
+                    DebugLabel debugLabel = new DebugLabel(((PageBase) getPage()).getMainPopupBodyId(), Model.of(debugText));
+                    debugLabel.setOutputMarkupId(true);
+                    ((PageBase) getPage()).showMainPopup(debugLabel, ajaxRequestTarget);
+
+                }
+            });
+        }
     }
 
     public PageBase getPageBase() {

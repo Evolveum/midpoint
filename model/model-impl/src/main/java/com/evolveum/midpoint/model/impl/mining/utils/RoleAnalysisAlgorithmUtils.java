@@ -610,9 +610,15 @@ public class RoleAnalysisAlgorithmUtils {
                     roleAnalysisService, cluster, session, analysisOption, task, result);
 
             for (RoleAnalysisOutlierType roleAnalysisOutlierType : roleAnalysisOutlierTypes) {
-                roleAnalysisOutlierType.setTargetClusterRef(new ObjectReferenceType()
+                roleAnalysisOutlierType.setTargetSessionRef(new ObjectReferenceType()
                         .oid(session.getOid())
+                        .targetName(session.getName())
                         .type(RoleAnalysisSessionType.COMPLEX_TYPE));
+
+                roleAnalysisOutlierType.setTargetClusterRef(new ObjectReferenceType()
+                        .oid(cluster.getOid())
+                        .targetName(cluster.getName())
+                        .type(RoleAnalysisClusterType.COMPLEX_TYPE));
 
                 ObjectReferenceType targetObjectRef = roleAnalysisOutlierType.getTargetObjectRef();
                 PrismObject<FocusType> object = roleAnalysisService

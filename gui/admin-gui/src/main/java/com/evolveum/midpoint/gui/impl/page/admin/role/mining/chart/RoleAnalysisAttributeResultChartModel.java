@@ -50,6 +50,30 @@ public class RoleAnalysisAttributeResultChartModel extends LoadableModel<ChartCo
     private @NotNull ChartData createDataset() {
         ChartData chartData = new ChartData();
 
+        if (isCompare()) {
+            ChartDataRm dataset = new ChartDataRm();
+            dataset.setLabel(getDatasetUserLabel());
+            dataset.addBackgroudColor("#206f9d");
+            dataset.setBorderRadius("10");
+            dataset.setStack("stack0");
+
+            ChartDataRm datasetCompared = new ChartDataRm();
+            datasetCompared.setLabel(getDatasetRoleLabel());
+            datasetCompared.addBackgroudColor("red");
+            datasetCompared.setBorderRadius("10");
+            datasetCompared.setStack("stack0");
+
+            List<RoleAnalysisSimpleModel> object = roleAnalysisModels.getObject();
+            for (RoleAnalysisSimpleModel roleAnalysisModel : object) {
+                dataset.addData(roleAnalysisModel.getDensity());
+                datasetCompared.addData(-roleAnalysisModel.getComparedPercentagePart());
+                chartData.addLabel(roleAnalysisModel.getDescription());
+            }
+            chartData.addDataset(dataset);
+            chartData.addDataset(datasetCompared);
+            return chartData;
+        }
+
         ChartDataRm datasetUsers = new ChartDataRm();
         datasetUsers.setLabel(getDatasetUserLabel());
         datasetUsers.addBackgroudColor("#206f9d");
@@ -67,6 +91,7 @@ public class RoleAnalysisAttributeResultChartModel extends LoadableModel<ChartCo
 
     private @NotNull ChartOptions createChartOptions() {
         ChartOptions options = new ChartOptions();
+        options.setBarPercentage(0.8);
         options.setLegend(createLegendOptions());
         options.setIndexAxis(IndexAxis.AXIS_Y.getValue());
         options.setResponsive(true);
@@ -78,7 +103,10 @@ public class RoleAnalysisAttributeResultChartModel extends LoadableModel<ChartCo
         options.setInteraction(interaction);
 
         ChartScaleAxisOption chartScaleXAxisOption = new ChartScaleAxisOption();
+        chartScaleXAxisOption.setStacked(isCompare());
+
         chartScaleXAxisOption.setDisplay(true);
+
         ChartTitleOption chartTitleXOption =
                 new ChartTitleOption();
         chartTitleXOption.setDisplay(true);
@@ -87,6 +115,8 @@ public class RoleAnalysisAttributeResultChartModel extends LoadableModel<ChartCo
         chartScaleXAxisOption.setTitle(chartTitleXOption);
 
         ChartScaleAxisOption chartScaleYAxisOption = new ChartScaleAxisOption();
+        chartScaleYAxisOption.setStacked(isCompare());
+
         chartScaleYAxisOption.setDisplay(true);
         ChartTitleOption chartTitleYOption =
                 new ChartTitleOption();
@@ -125,6 +155,10 @@ public class RoleAnalysisAttributeResultChartModel extends LoadableModel<ChartCo
 
     public String getDatasetRoleLabel() {
         return "Roles";
+    }
+
+    public boolean isCompare() {
+        return false;
     }
 
 }

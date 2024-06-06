@@ -86,6 +86,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
     private static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisInfoPanel.class);
 
     private static final String ID_PATTERN_PANEL = "patternPanel";
+    private static final String ID_OUTLIER_PANEL = "outlierPanel";
     private static final String ID_TOOL_FORM = "toolForm";
     private static final String ID_MODE_BUTTON = "modeButton";
     private static final String ID_SCALE_BUTTON = "scaleButton";
@@ -114,24 +115,8 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
     }
 
     private void initChartPart() {
-        RoleAnalysisItemPanel roleAnalysisInfoPanel = new RoleAnalysisItemPanel(ID_PATTERN_PANEL, Model.of("Suggestions")) {
-            @Override
-            protected void addItem(RepeatingView repeatingView) {
-                addItems(repeatingView);
-            }
-
-            @Override
-            public String getCardBodyCssClass() {
-                return " overflow-auto ";
-            }
-
-            @Override
-            public String getCardBodyStyle() {
-                return " height:34vh;";
-            }
-        };
-        roleAnalysisInfoPanel.setOutputMarkupId(true);
-        add(roleAnalysisInfoPanel);
+        initInfoPatternPanel();
+        initInfoOutlierPanel();
 
         WebMarkupContainer chartContainer = new WebMarkupContainer(ID_CONTAINER_CHART);
         chartContainer.setOutputMarkupId(true);
@@ -169,6 +154,50 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
         initChartTypeButton(chartContainer, roleAnalysisChart, toolForm);
 
         initExportButton(toolForm);
+    }
+
+    private void initInfoPatternPanel() {
+        RoleAnalysisItemPanel roleAnalysisInfoPatternPanel = new RoleAnalysisItemPanel(ID_PATTERN_PANEL,
+                Model.of("Reduction suggestions")) {
+            @Override
+            protected void addItem(RepeatingView repeatingView) {
+                addPatternItems(repeatingView);
+            }
+
+            @Override
+            public String getCardBodyCssClass() {
+                return " overflow-auto ";
+            }
+
+            @Override
+            public String getCardBodyStyle() {
+                return " height:34vh;";
+            }
+        };
+        roleAnalysisInfoPatternPanel.setOutputMarkupId(true);
+        add(roleAnalysisInfoPatternPanel);
+    }
+
+    private void initInfoOutlierPanel() {
+        RoleAnalysisItemPanel roleAnalysisInfoOutlierPanel = new RoleAnalysisItemPanel(ID_OUTLIER_PANEL,
+                Model.of("Outlier suggestions")) {
+            @Override
+            protected void addItem(RepeatingView repeatingView) {
+                addOutliersItems(repeatingView);
+            }
+
+            @Override
+            public String getCardBodyCssClass() {
+                return " overflow-auto ";
+            }
+
+            @Override
+            public String getCardBodyStyle() {
+                return " height:34vh;";
+            }
+        };
+        roleAnalysisInfoOutlierPanel.setOutputMarkupId(true);
+        add(roleAnalysisInfoOutlierPanel);
     }
 
     private void initExportButton(Form<?> toolForm) {
@@ -591,7 +620,11 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
         return "MidPointTheme.initScaleResize('#chartScaleContainer');";
     }
 
-    public void addItems(RepeatingView repeatingView) {
+    public void addPatternItems(RepeatingView repeatingView) {
+
+    }
+
+    public void addOutliersItems(RepeatingView repeatingView) {
 
     }
 

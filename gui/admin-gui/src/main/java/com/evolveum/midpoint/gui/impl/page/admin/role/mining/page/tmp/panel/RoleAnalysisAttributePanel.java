@@ -9,6 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -31,7 +34,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.Ro
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
 
-public class RoleAnalysisAttributePanel extends BasePanel<String> {
+public class RoleAnalysisAttributePanel extends BasePanel<String> implements Popupable {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -43,6 +46,8 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> {
 
     RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult;
     RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult;
+
+    boolean isCompared = false;
 
     LoadableDetachableModel<List<RoleAnalysisSimpleModel>> chartModel = new LoadableDetachableModel<>() {
         @Override
@@ -62,6 +67,23 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> {
 
         chartModel.setObject(RoleAnalysisSimpleModel
                 .getRoleAnalysisSimpleModel(roleAttributeAnalysisResult, userAttributeAnalysisResult));
+        initLayout();
+    }
+
+    public RoleAnalysisAttributePanel(
+            @NotNull String id,
+            @NotNull IModel<String> model,
+            @Nullable RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult,
+            @Nullable RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult,
+            @Nullable RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResultCompared,
+            @Nullable RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResultCompared) {
+        super(id, model);
+        this.roleAttributeAnalysisResult = roleAttributeAnalysisResult;
+        this.userAttributeAnalysisResult = userAttributeAnalysisResult;
+        this.isCompared = true;
+        chartModel.setObject(RoleAnalysisSimpleModel
+                .getRoleAnalysisSimpleComparedModel(roleAttributeAnalysisResult, userAttributeAnalysisResult,
+                        roleAttributeAnalysisResultCompared, userAttributeAnalysisResultCompared));
         initLayout();
     }
 
@@ -89,6 +111,12 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> {
     private @NotNull RoleAnalysisAttributeResultChartPanel initCardBodyComponentChart() {
 
         RoleAnalysisAttributeResultChartPanel roleAnalysisChartPanel = new RoleAnalysisAttributeResultChartPanel(ID_CARD_BODY_COMPONENT) {
+
+            @Override
+            public boolean isCompare() {
+                return isCompared;
+            }
+
             @Override
             public @NotNull List<RoleAnalysisSimpleModel> prepareRoleAnalysisData() {
                 if (chartModel == null || chartModel.getObject() == null) {
@@ -116,47 +144,65 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> {
 
         RoleAnalysisAttributeAnalysisResult analysisAttributeToDisplay = new RoleAnalysisAttributeAnalysisResult();
 
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
-        for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
-            if (rolePath.contains(analysis.getItemPath())) {
-                analysisAttributeToDisplay.getAttributeAnalysis().add(analysis.clone());
+        if (roleAttributeAnalysisResult != null) {
+            List<RoleAnalysisAttributeAnalysis> attributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
+            for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
+                if (rolePath.contains(analysis.getItemPath())) {
+                    analysisAttributeToDisplay.getAttributeAnalysis().add(analysis.clone());
+                }
             }
         }
 
-        List<RoleAnalysisAttributeAnalysis> userAttributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
-        for (RoleAnalysisAttributeAnalysis analysis : userAttributeAnalysis) {
-            if (userPath.contains(analysis.getItemPath())) {
-                analysisAttributeToDisplay.getAttributeAnalysis().add(analysis.clone());
+        if (userAttributeAnalysisResult != null) {
+            List<RoleAnalysisAttributeAnalysis> userAttributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
+            for (RoleAnalysisAttributeAnalysis analysis : userAttributeAnalysis) {
+                if (userPath.contains(analysis.getItemPath())) {
+                    analysisAttributeToDisplay.getAttributeAnalysis().add(analysis.clone());
+                }
             }
         }
-        RepeatingAttributeProgressForm component = new RepeatingAttributeProgressForm(ID_CARD_BODY_COMPONENT, analysisAttributeToDisplay);
+        RepeatingAttributeProgressForm component = new RepeatingAttributeProgressForm(ID_CARD_BODY_COMPONENT, analysisAttributeToDisplay) {
+            @Override
+            protected Set<String> getPathToMark() {
+                return RoleAnalysisAttributePanel.this.getPathToMark();
+            }
+        };
         component.setOutputMarkupId(true);
         return component;
     }
 
+    public Set<String> getPathToMark() {
+        return null;
+    }
+
     private void initCardHeaderButtons(WebMarkupContainer cardContainer) {
         RepeatingView repeatingView = new RepeatingView(ID_CARD_HEADER_REPEATING_BUTTONS);
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
-        for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
-            String itemDescription = analysis.getItemPath();
-            if (itemDescription != null && !itemDescription.isEmpty()) {
-                itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
-            }
-            String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_USER_ICON + " object-user-color";
+        if (userAttributeAnalysisResult != null) {
 
-            int badge = analysis.getAttributeStatistics().size();
-            initRepeatingChildButtons(classObjectIcon, repeatingView, itemDescription, badge, true);
+            List<RoleAnalysisAttributeAnalysis> attributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
+            for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
+                String itemDescription = analysis.getItemPath();
+                if (itemDescription != null && !itemDescription.isEmpty()) {
+                    itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
+                }
+                String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_USER_ICON + " object-user-color";
+
+                int badge = analysis.getAttributeStatistics().size();
+                initRepeatingChildButtons(classObjectIcon, repeatingView, itemDescription, badge, true);
+            }
         }
 
-        for (RoleAnalysisAttributeAnalysis analysis : roleAttributeAnalysisResult.getAttributeAnalysis()) {
-            String itemDescription = analysis.getItemPath();
-            if (itemDescription != null && !itemDescription.isEmpty()) {
-                itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
-            }
-            String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON + " object-role-color";
+        if (roleAttributeAnalysisResult != null) {
+            for (RoleAnalysisAttributeAnalysis analysis : roleAttributeAnalysisResult.getAttributeAnalysis()) {
+                String itemDescription = analysis.getItemPath();
+                if (itemDescription != null && !itemDescription.isEmpty()) {
+                    itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
+                }
+                String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON + " object-role-color";
 
-            int badge = analysis.getAttributeStatistics().size();
-            initRepeatingChildButtons(classObjectIcon, repeatingView, itemDescription, badge, false);
+                int badge = analysis.getAttributeStatistics().size();
+                initRepeatingChildButtons(classObjectIcon, repeatingView, itemDescription, badge, false);
+            }
         }
 
         repeatingView.setOutputMarkupId(true);
@@ -242,5 +288,35 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> {
     @Contract(pure = true)
     protected @Nullable String getChartContainerStyle() {
         return null;
+    }
+
+    @Override
+    public int getWidth() {
+        return 70;
+    }
+
+    @Override
+    public int getHeight() {
+        return 70;
+    }
+
+    @Override
+    public String getWidthUnit() {
+        return "%";
+    }
+
+    @Override
+    public String getHeightUnit() {
+        return "%";
+    }
+
+    @Override
+    public IModel<String> getTitle() {
+        return Model.of("Analysis");
+    }
+
+    @Override
+    public Component getContent() {
+        return this;
     }
 }

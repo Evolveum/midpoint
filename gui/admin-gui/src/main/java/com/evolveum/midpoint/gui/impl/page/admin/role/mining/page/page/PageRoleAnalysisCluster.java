@@ -338,7 +338,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
                         .icon(new IconType()
                                 .cssClass(IconAndStylesUtil.createDefaultColoredIcon(RoleAnalysisSessionType.COMPLEX_TYPE) + " fa-2x fa-inverse"));
 
-                NavigationDetailsTablePanel details = new NavigationDetailsTablePanel("navigationHeader",
+                NavigationDetailsTablePanel navigationPanel = new NavigationDetailsTablePanel("navigationHeader",
                         Model.of(displayType),
                         detailsModelIModel) {
 
@@ -347,8 +347,8 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
                         return initNavigation();
                     }
                 };
-                details.setOutputMarkupId(true);
-                form.add(details);
+                navigationPanel.setOutputMarkupId(true);
+                form.add(navigationPanel);
 
                 ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration();
                 initMainPanel(defaultConfiguration, form);

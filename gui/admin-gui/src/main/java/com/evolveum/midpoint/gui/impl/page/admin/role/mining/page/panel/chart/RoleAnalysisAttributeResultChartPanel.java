@@ -67,6 +67,12 @@ public class RoleAnalysisAttributeResultChartPanel extends BasePanel<String> {
                 return prepareRoleAnalysisData();
             }
         }, chartType) {
+
+            @Override
+            public boolean isCompare() {
+                return RoleAnalysisAttributeResultChartPanel.this.isCompare();
+            }
+
             @Override
             public String getXAxisTitle() {
                 return "Density";
@@ -90,6 +96,10 @@ public class RoleAnalysisAttributeResultChartPanel extends BasePanel<String> {
     }
     public @NotNull List<RoleAnalysisSimpleModel> prepareRoleAnalysisData() {
         return new ArrayList<>();
+    }
+
+    public boolean isCompare() {
+        return false;
     }
 
 }

@@ -7,18 +7,27 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.panel.RoleAnalysisDetectedPatternTable;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.RoleAnalysisOutlierPropertyTable;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisOutlierPropertyTileTable;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
 @PanelType(name = "outlierProperty")
@@ -48,9 +57,39 @@ public class OutlierPropertyPanel extends AbstractObjectMainPanel<RoleAnalysisOu
         container.setOutputMarkupId(true);
         add(container);
 
-        RoleAnalysisOutlierType objectType = getObjectDetailsModels().getObjectType();
-        RoleAnalysisOutlierPropertyTable components = new RoleAnalysisOutlierPropertyTable(ID_PANEL, objectType);
+        RoleAnalysisOutlierPropertyTileTable components = loadTable();
         container.add(components);
+    }
+
+    @NotNull
+    private RoleAnalysisOutlierPropertyTileTable loadTable() {
+        RoleAnalysisOutlierType outlierParent = getObjectDetailsModels().getObjectType();
+        List<RoleAnalysisOutlierDescriptionType> result = outlierParent.getResult();
+
+        RoleAnalysisOutlierPropertyTileTable components = new RoleAnalysisOutlierPropertyTileTable(ID_PANEL, getPageBase(),
+                new LoadableDetachableModel<>() {
+                    @Override
+                    protected List<RoleAnalysisOutlierDescriptionType> load() {
+                        return result;
+                    }
+                }, outlierParent) {
+
+            @Override
+            protected void onRefresh(AjaxRequestTarget target) {
+                performOnRefresh();
+            }
+        };
+        components.setOutputMarkupId(true);
+        return components;
+    }
+
+    private void performOnRefresh() {
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, getObjectDetailsModels().getObjectType().getOid());
+        parameters.add(ID_PANEL, getPanelConfiguration().getIdentifier());
+        Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                .getObjectDetailsPage(RoleAnalysisOutlierType.class);
+        getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
     public PageBase getPageBase() {
