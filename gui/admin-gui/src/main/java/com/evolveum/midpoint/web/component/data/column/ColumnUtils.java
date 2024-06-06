@@ -1170,6 +1170,17 @@ public class ColumnUtils {
                 return () -> Collections.singletonList(certCase.getObjectRef());
             }
         });
+        columns.add(new AbstractColumn<>(createStringResource("WorkItemsPanel.displayName")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationWorkItemType>>> item,
+                    String componentId, IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
+                item.add(new Label(componentId, WebComponentUtil.getDisplayName(certCase.getObjectRef(), true)));
+            }
+        });
         columns.add(new ObjectReferenceColumn<>(createStringResource("WorkItemsPanel.target"),
                 "") {
 
@@ -1180,6 +1191,17 @@ public class ColumnUtils {
                     IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
                 AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
                 return () -> Collections.singletonList(certCase.getTargetRef());
+            }
+        });
+        columns.add(new AbstractColumn<>(createStringResource("WorkItemsPanel.displayName")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationWorkItemType>>> item,
+                    String componentId, IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
+                item.add(new Label(componentId, WebComponentUtil.getDisplayName(certCase.getTargetRef(), true)));
             }
         });
         if (viewAllItems) {
@@ -1196,7 +1218,31 @@ public class ColumnUtils {
                 }
             });
         }
-       columns.add(new AbstractColumn<>(createStringResource("PageCertCampaign.table.comments")) {
+        columns.add(new IconColumn<>(Model.of("")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationWorkItemType>>> cellItem,
+                    String componentId, IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                ImagePanel imagePanel = new ImagePanel(componentId, new ReadOnlyModel<>(() -> getIconDisplayType(rowModel)));
+                imagePanel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(
+                        LocalizationUtil.translatePolyString(getIconDisplayType(rowModel).getTooltip()))));
+                cellItem.add(imagePanel);
+            }
+
+            @Override
+            public DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                AccessCertificationWorkItemType wi = unwrapRowModel(rowModel);
+                String comment = WorkItemTypeUtil.getComment(wi);
+                return new DisplayType()
+                        .tooltip(comment)
+                        .icon(new IconType()
+                                .cssClass("fa fa-comment")
+                                .color("blue"));
+            }
+        });
+       columns.add(new AbstractColumn<>(Model.of("")) {
 
            @Serial private static final long serialVersionUID = 1L;
 
