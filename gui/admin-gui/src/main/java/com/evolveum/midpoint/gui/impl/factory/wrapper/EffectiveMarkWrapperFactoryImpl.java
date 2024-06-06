@@ -42,7 +42,7 @@ public class EffectiveMarkWrapperFactoryImpl extends PrismReferenceWrapperFactor
     }
 
     @Override
-    boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
+    public boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
         if (QNameUtil.match(RoleAnalysisSessionType.F_EFFECTIVE_MARK_REF, def.getItemName())) {
             return false;
         }
