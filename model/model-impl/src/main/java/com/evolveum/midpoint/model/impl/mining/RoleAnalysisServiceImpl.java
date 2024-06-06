@@ -1789,23 +1789,19 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull RoleAnalysisProcessModeType processModeType,
             @NotNull AnalysisClusterStatisticType clusterStatistics) {
 
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysis;
+        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = new ArrayList<>();
 
-        if (processModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
-            RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
-            if (roleAttributeAnalysisResult == null) {
-                return "0.0";
-            }
-            attributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
-        } else {
-            RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
-            if (userAttributeAnalysisResult == null) {
-                return "0.0";
-            }
-            attributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
+        RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
+        if (roleAttributeAnalysisResult != null) {
+            attributeAnalysis.addAll(roleAttributeAnalysisResult.getAttributeAnalysis());
         }
 
-        if (attributeAnalysis == null || attributeAnalysis.isEmpty()) {
+        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
+        if (userAttributeAnalysisResult != null && processModeType.equals(RoleAnalysisProcessModeType.USER)) {
+            attributeAnalysis.addAll(userAttributeAnalysisResult.getAttributeAnalysis());
+        }
+
+        if (attributeAnalysis.isEmpty()) {
             return "0.0";
         }
 
