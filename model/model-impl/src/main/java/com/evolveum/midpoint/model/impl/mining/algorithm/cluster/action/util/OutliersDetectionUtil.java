@@ -205,11 +205,13 @@ public class OutliersDetectionUtil {
             }
         }
 
+        int clusterRelations = calculateOveralClusterRelationsCount(miningRoleTypeChunks);
         RoleAnalysisPatternInfo patternInfo = new RoleAnalysisPatternInfo();
         patternInfo.setConfidence(0.0);
-        patternInfo.setDetectedPatternCount((double) patternCount);
-        patternInfo.setTopPatternRelation((double) topPatternRelation);
-        patternInfo.setTotalRelations((double) totalRelations);
+        patternInfo.setDetectedPatternCount(patternCount);
+        patternInfo.setTopPatternRelation(topPatternRelation);
+        patternInfo.setTotalRelations(totalRelations);
+        patternInfo.setClusterRelations(clusterRelations);
         roleAnalysisOutlierType.setPatternInfo(patternInfo);
     }
 
@@ -237,11 +239,27 @@ public class OutliersDetectionUtil {
             }
         }
 
+        int clusterRelations = calculateOveralClusterRelationsCount(miningRoleTypeChunks);
         RoleAnalysisPatternInfo patternInfo = new RoleAnalysisPatternInfo();
         patternInfo.setConfidence(0.0);
-        patternInfo.setDetectedPatternCount((double) patternCount);
-        patternInfo.setTopPatternRelation((double) topPatternRelation);
-        patternInfo.setTotalRelations((double) totalRelations);
+        patternInfo.setDetectedPatternCount(patternCount);
+        patternInfo.setTopPatternRelation(topPatternRelation);
+        patternInfo.setTotalRelations(totalRelations);
+        patternInfo.setClusterRelations(clusterRelations);
         prepareRoleOutlier.setPatternInfo(patternInfo);
+    }
+
+    //TODO this is just for USER MODE! Implement Role (Experimental)
+    /**
+     * Calculate total relations (connections between properties and members) in the cluster.
+     */
+    public static int calculateOveralClusterRelationsCount(@NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks) {
+        int totalRelations = 0;
+        for (MiningRoleTypeChunk roleTypeChunk : miningRoleTypeChunks) {
+            int propertiesCount = roleTypeChunk.getProperties().size();
+            int membersCount = roleTypeChunk.getMembers().size();
+            totalRelations += (propertiesCount * membersCount);
+        }
+        return totalRelations;
     }
 }

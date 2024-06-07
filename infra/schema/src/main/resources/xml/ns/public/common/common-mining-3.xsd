@@ -1799,21 +1799,28 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="totalRelations" type="xsd:double" minOccurs="0">
+            <xsd:element name="totalRelations" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Confidence level associated with the identified outlier.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="topPatternRelation" type="xsd:double" minOccurs="0">
+            <xsd:element name="clusterRelations" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Confidence level associated with the identified outlier.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="detectedPatternCount" type="xsd:double" minOccurs="0">
+            <xsd:element name="topPatternRelation" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Confidence level associated with the identified outlier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="detectedPatternCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Confidence level associated with the identified outlier.

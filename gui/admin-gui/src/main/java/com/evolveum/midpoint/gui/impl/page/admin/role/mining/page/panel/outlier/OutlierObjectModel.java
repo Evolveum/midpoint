@@ -120,17 +120,27 @@ public class OutlierObjectModel implements Serializable {
         int outlierConfidenceInt = (int) (outlierConfidence * 100);
         String outlierDescription = "User has been marked as outlier object due to confidence score:";
         String propertyConfidenceRange = decimalFormat.format(min) + " - " + decimalFormat.format(max) + "%";
-        String propertyDescription = "There is detected " + propertyCount + " outlier assignment(s) with high confidence";
+        String propertyDescription;
+        if (propertyCount > 1) {
+            propertyDescription = "Has been detected multiple (" + propertyCount + ") outlier assignment(s) anomaly with high confidence";
+        } else {
+            propertyDescription = "Has been detected single outlier assignment anomaly with high confidence";
+        }
         RoleAnalysisPatternInfo patternInfo = outlierResult.getPatternInfo();
         OutlierObjectModel outlierObjectModel = new OutlierObjectModel(name.getOrig(), outlierDescription, outlierConfidenceInt, createTimestamp.toString(), patternInfo);
 
         if (patternInfo != null) {
-            Double detectedPatternCount = patternInfo.getDetectedPatternCount();
-            Double topPatternRelation = patternInfo.getTopPatternRelation();
-            Double totalRelations = patternInfo.getTotalRelations();
+            Integer detectedPatternCount = patternInfo.getDetectedPatternCount();
+            Integer topPatternRelation = patternInfo.getTopPatternRelation();
+            Integer totalRelations = patternInfo.getTotalRelations();
+            Integer clusterRelations = patternInfo.getClusterRelations();
+            double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
             String value = detectedPatternCount + " pattern(s) detected";
-            String description = "Top pattern relation: " + topPatternRelation + " Total relations: " + totalRelations;
-            OutlierItemModel patternItemModel = new OutlierItemModel(value, description, "fa fa-cubes");
+            int averageRelation = totalRelations / detectedPatternCount;
+            String patternDescription = "Maximum coverage is " + String.format("%.2f", topPatternCoverage)
+                    + "% (" + topPatternRelation + "relations) "
+                    + "and average relation per pattern is " + averageRelation;
+            OutlierItemModel patternItemModel = new OutlierItemModel(value, patternDescription, "fa fa-cubes");
             outlierObjectModel.addOutlierItemModel(patternItemModel);
         }
 
@@ -268,19 +278,29 @@ public class OutlierObjectModel implements Serializable {
         int outlierConfidenceInt = (int) (outlierConfidence * 100);
         String outlierDescription = "User has been marked as outlier object due to confidence score:";
         String propertyConfidenceRange = decimalFormat.format(min) + " - " + decimalFormat.format(max) + "%";
-        String propertyDescription = "There is detected " + propertyCount + " outlier assignment(s) with high confidence";
+        String propertyDescription;
+        if (propertyCount > 1) {
+            propertyDescription = "Has been detected multiple (" + propertyCount + ") outlier assignment(s) anomaly with high confidence";
+        } else {
+            propertyDescription = "Has been detected single outlier assignment anomaly with high confidence";
+        }
 
         RoleAnalysisPatternInfo patternInfo = outlierResult.getPatternInfo();
         OutlierObjectModel outlierObjectModel = new OutlierObjectModel(
                 name.getOrig(), outlierDescription, outlierConfidenceInt, createTimestamp.toString(), patternInfo);
 
         if (patternInfo != null) {
-            Double detectedPatternCount = patternInfo.getDetectedPatternCount();
-            Double topPatternRelation = patternInfo.getTopPatternRelation();
-            Double totalRelations = patternInfo.getTotalRelations();
+            Integer detectedPatternCount = patternInfo.getDetectedPatternCount();
+            Integer topPatternRelation = patternInfo.getTopPatternRelation();
+            Integer totalRelations = patternInfo.getTotalRelations();
+            Integer clusterRelations = patternInfo.getClusterRelations();
+            double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
             String value = detectedPatternCount + " pattern(s) detected";
-            String description = "Top pattern relation: " + topPatternRelation + " Total relations: " + totalRelations;
-            OutlierItemModel patternItemModel = new OutlierItemModel(value, description, "fa fa-cubes");
+            int averageRelation = totalRelations / detectedPatternCount;
+            String patternDescription = "Maximum coverage is " + String.format("%.2f", topPatternCoverage)
+                    + "% (" + topPatternRelation + "relations) "
+                    + "and average relation per pattern is " + averageRelation;
+            OutlierItemModel patternItemModel = new OutlierItemModel(value, patternDescription, "fa fa-cubes");
             outlierObjectModel.addOutlierItemModel(patternItemModel);
         }
 
@@ -418,11 +438,16 @@ public class OutlierObjectModel implements Serializable {
                 name.getOrig(), description, outlierConfidenceInt, outlierResult.getCreateTimestamp().toString(), patternInfo);
 
         if (patternInfo != null) {
-            Double detectedPatternCount = patternInfo.getDetectedPatternCount();
-            Double topPatternRelation = patternInfo.getTopPatternRelation();
-            Double totalRelations = patternInfo.getTotalRelations();
+            Integer detectedPatternCount = patternInfo.getDetectedPatternCount();
+            Integer topPatternRelation = patternInfo.getTopPatternRelation();
+            Integer totalRelations = patternInfo.getTotalRelations();
+            Integer clusterRelations = patternInfo.getClusterRelations();
+            double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
             String value = detectedPatternCount + " pattern(s) detected";
-            String patternDescription = "Top pattern relation: " + topPatternRelation + " Total relations: " + totalRelations;
+            int averageRelation = totalRelations / detectedPatternCount;
+            String patternDescription = "Maximum coverage is " + String.format("%.2f", topPatternCoverage)
+                    + "% (" + topPatternRelation + "relations) "
+                    + "and average relation per pattern is " + averageRelation;
             OutlierItemModel patternItemModel = new OutlierItemModel(value, patternDescription, "fa fa-cubes");
             outlierObjectModel.addOutlierItemModel(patternItemModel);
         }
