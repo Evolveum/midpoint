@@ -81,7 +81,7 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         return schema;
     }
 
-    public ResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
+    public CompleteResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
         return ResourceSchemaFactory.getCompleteSchema(getObjectWrapperModel().getObject().getObjectOld().asObjectable());
     }
 

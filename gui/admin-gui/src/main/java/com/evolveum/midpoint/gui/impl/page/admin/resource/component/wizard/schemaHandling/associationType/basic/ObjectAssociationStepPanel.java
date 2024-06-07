@@ -110,7 +110,7 @@ public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel 
         }
 
         ResourceObjectTypeIdentificationType bean = objectTypeOfSubject.getValues().iterator().next().getRealValue();
-        ResourceSchema schema = getDetailsModel().getRefinedSchema();
+        CompleteResourceSchema schema = getDetailsModel().getRefinedSchema();
         @Nullable ResourceObjectTypeDefinition def = schema.getObjectTypeDefinition(bean.getKind(), bean.getIntent());
         if (def == null) {
             return values;
@@ -122,16 +122,17 @@ public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel 
         }
 
         referenceAttributes.forEach(referenceAttribute -> {
-            ResourceObjectDefinition targetDef = referenceAttribute.getRepresentativeTargetObjectDefinition();
-            if (targetDef instanceof ResourceObjectTypeDefinition objectTypeDef) {
-                addObjectTypeDef(values, objectTypeDef);
-                return;
-            }
-            if (targetDef instanceof ResourceObjectClassDefinition objectClassDef){
-                schema.getObjectTypeDefinitions().stream()
-                        .filter(objectTypeDef -> QNameUtil.match(objectTypeDef.getObjectClassName(), objectClassDef.getObjectClassName()))
-                        .forEach(objectTypeDef -> addObjectTypeDef(values, objectTypeDef));
-            }
+            referenceAttribute.getObjectParticipants(schema).values().forEach(associationParticipantType -> {
+                ResourceObjectDefinition targetDef = associationParticipantType.getObjectDefinition();
+
+                if (targetDef.getTypeIdentification() != null) {
+                    addObjectTypeDef(values, (ResourceObjectTypeDefinition) targetDef);
+                } else {
+                    schema.getObjectTypeDefinitions().stream()
+                            .filter(objectTypeDef -> QNameUtil.match(objectTypeDef.getObjectClassName(), targetDef.getObjectClassName()))
+                            .forEach(objectTypeDef -> addObjectTypeDef(values, objectTypeDef));
+                }
+            });
         });
         return values;
     }

@@ -86,18 +86,30 @@ public class GuiDisplayNameUtil {
         return name;
     }
 
-    public static String getDisplayName(VariableBindingDefinitionType value) {
+    public static String getDisplayName(VariableBindingDefinitionType value, boolean stripVariableSegment) {
         if (value == null) {
             return null;
         }
-        return getDisplayName(value.getPath());
+        return getDisplayName(value.getPath(), stripVariableSegment);
+    }
+
+    public static String getDisplayName(VariableBindingDefinitionType value) {
+        return getDisplayName(value, true);
     }
 
     public static String getDisplayName(ItemPathType value) {
+        return getDisplayName(value, true);
+    }
+
+    public static String getDisplayName(ItemPathType value, boolean stripVariableSegment) {
         if (value == null) {
             return null;
         }
-        return value.getItemPath().stripVariableSegment().toString();
+        ItemPath path = value.getItemPath();
+        if (stripVariableSegment) {
+            path = path.stripVariableSegment();
+        }
+        return path.toString();
     }
 
     public static String getDisplayName(ItemConstraintType constraint) {

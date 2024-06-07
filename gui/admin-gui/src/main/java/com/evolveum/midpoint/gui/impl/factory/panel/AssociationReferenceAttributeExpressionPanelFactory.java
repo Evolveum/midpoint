@@ -6,22 +6,15 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.input.expression.ExpressionPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ExpressionWrapper;
-import com.evolveum.midpoint.web.component.input.AssociationExpressionValuePanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
 
-import jakarta.annotation.PostConstruct;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -44,7 +37,12 @@ public class AssociationReferenceAttributeExpressionPanelFactory extends Associa
     }
 
     @Override
-    protected List<ExpressionPanel.RecognizedEvaluator> getChoices(List<ExpressionPanel.RecognizedEvaluator> parentChoices) {
+    protected List<ExpressionPanel.RecognizedEvaluator> getChoices(ExpressionWrapper wrapper, List<ExpressionPanel.RecognizedEvaluator> parentChoices) {
+        if (wrapper.getPath().containsNameExactly(ResourceAttributeDefinitionType.F_INBOUND)) {
+            parentChoices.removeIf(choice -> ExpressionPanel.RecognizedEvaluator.ASSOCIATION_FROM_LINK == choice);
+        } else {
+            parentChoices.removeIf(choice -> ExpressionPanel.RecognizedEvaluator.SHADOW_OWNER_REFERENCE_SEARCH == choice);
+        }
         return parentChoices;
     }
 

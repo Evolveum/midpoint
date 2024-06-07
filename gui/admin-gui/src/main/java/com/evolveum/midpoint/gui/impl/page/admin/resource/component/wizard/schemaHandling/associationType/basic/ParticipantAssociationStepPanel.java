@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -301,5 +303,10 @@ public abstract class ParticipantAssociationStepPanel
         public int hashCode() {
             return Objects.hash(kind, intent);
         }
+    }
+
+    @Override
+    public VisibleEnableBehaviour getHeaderBehaviour() {
+        return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
     }
 }

@@ -16,7 +16,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
-import com.evolveum.midpoint.gui.impl.component.input.SourceMappingProvider;
+import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
@@ -163,8 +163,18 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
                     }
                 };
 
-                return new Select2MultiChoicePanel<>(componentId, multiselectModel,
-                        new SourceMappingProvider((IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel));
+                FocusDefinitionsMappingProvider provider;
+                if (isMappingForAssociation()) {
+                    provider = new FocusDefinitionsMappingProvider((IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel) {
+                        @Override
+                        protected PrismContainerDefinition<? extends Containerable> getFocusTypeDefinition(ResourceObjectTypeDefinitionType resourceObjectType) {
+                            return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
+                        }
+                    };
+                } else {
+                    provider = new FocusDefinitionsMappingProvider((IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel);
+                }
+                return new Select2MultiChoicePanel<>(componentId, multiselectModel, provider);
             }
 
             @Override
@@ -210,5 +220,10 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
         columns.add(createVirtualRefItemColumn(resourceAttributeDef, "col-xl-2 col-lg-2 col-md-3"));
 
         return columns;
+    }
+
+    private boolean isMappingForAssociation() {
+        var associationParent = getValueModel().getObject().getParentContainerValue(ShadowAssociationDefinitionType.class);
+        return associationParent != null;
     }
 }

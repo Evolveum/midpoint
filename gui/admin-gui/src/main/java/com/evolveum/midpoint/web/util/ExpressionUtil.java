@@ -151,14 +151,14 @@ public class ExpressionUtil {
     }
 
     public static ExpressionEvaluatorType getExpressionType(String expression) {
-        if (expression.contains(ELEMENT_AS_IS) || expression.contains(ELEMENT_AS_IS_WITH_NS)) {
+        if (expression.contains(ELEMENT_SHADOW_OWNER_REFERENCE_SEARCH) || expression.contains(ELEMENT_SHADOW_OWNER_REFERENCE_SEARCH_WITH_NS)) {
+            return ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH;
+        } else if (expression.contains(ELEMENT_AS_IS) || expression.contains(ELEMENT_AS_IS_WITH_NS)) {
             return ExpressionEvaluatorType.AS_IS;
         } else if (expression.contains(ELEMENT_GENERATE) || expression.contains(ELEMENT_GENERATE_WITH_NS)) {
             return ExpressionEvaluatorType.GENERATE;
         } else if (expression.contains(ELEMENT_PATH)) {
             return ExpressionEvaluatorType.PATH;
-        } else if (expression.contains(ELEMENT_SHADOW_OWNER_REFERENCE_SEARCH) || expression.contains(ELEMENT_SHADOW_OWNER_REFERENCE_SEARCH_WITH_NS)) {
-            return ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH;
         } else if (expression.contains(ELEMENT_SCRIPT)) {
             return ExpressionEvaluatorType.SCRIPT;
         } else if (expression.contains(ELEMENT_VALUE)) {
@@ -574,6 +574,16 @@ public class ExpressionUtil {
         return null;
     }
 
+    public static ItemPathType getPathExpressionValue(ExpressionType expression) throws SchemaException {
+        List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_PATH);
+        for (JAXBElement<?> element : elements) {
+            if (element.getValue() instanceof ItemPathType path) {
+                return path;
+            }
+        }
+        return null;
+    }
+
     public static AssociationFromLinkExpressionEvaluatorType getAssociationFromLinkExpressionValue(ExpressionType expression) throws SchemaException {
         List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK);
         for (JAXBElement<?> element : elements) {
@@ -621,6 +631,11 @@ public class ExpressionUtil {
             ExpressionType expression, ScriptExpressionEvaluatorType evaluator) throws SchemaException {
         return updateExpressionEvaluator(
                 expression, evaluator, ScriptExpressionEvaluatorType.class, SchemaConstantsGenerated.C_SCRIPT);
+    }
+
+    public static ExpressionType updatePathEvaluator(ExpressionType expression, ItemPathType path) throws SchemaException {
+        return updateExpressionEvaluator(
+                expression, path, ItemPathType.class, SchemaConstantsGenerated.C_PATH);
     }
 
     public static ExpressionType updateAssociationFromLinkExpressionValue(
