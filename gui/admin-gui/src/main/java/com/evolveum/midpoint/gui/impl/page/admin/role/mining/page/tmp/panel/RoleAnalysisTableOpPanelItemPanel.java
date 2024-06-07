@@ -32,6 +32,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.Oper
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
+import org.jetbrains.annotations.Nullable;
+
 public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelModel> {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -230,13 +232,15 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
                     handlePatternClick(ajaxRequestTarget, modelObject, pattern);
                 }
 
+                @Contract(pure = true)
                 @Override
-                public String appendIconPanelCssClass() {
-                    return null;
+                public @NotNull String appendIconPanelCssClass() {
+                    return " elevation-1";
                 }
 
+                @Contract(pure = true)
                 @Override
-                public String appendIconPanelStyle() {
+                public @NotNull String appendIconPanelStyle() {
                     if (candidateRoleView) {
                         return "background-color: #DFF2E3;";
                     } else {
@@ -260,19 +264,32 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
                     return super.getBackgroundColorStyle();
                 }
 
+                @Contract("_ -> new")
                 @Override
-                public Component generateIconComponent(String idIcon) {
+                public @NotNull Component generateIconComponent(String idIcon) {
                     String iconClass = modelObject.isCandidateRoleView()
                             ? GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON
                             : GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON;
                     return new CompositedIconTextPanel(idIcon,
-                            "fa-2x " + iconClass + " text-secondary",
+                            "fa-2x " + iconClass + " text-dark",
                             finalI + 1 + "",
-                            "text-secondary bg-white border border-white rounded-circle");
+                            "text-secondary bg-white border border-white rounded-circle") {
+                        @Override
+                        protected String getBasicIconCssStyle() {
+                            return "font-size:25px; width:27px; height:27px;";
+                        }
+                    };
                 }
 
+                @Contract(pure = true)
                 @Override
-                public String replaceIconCssClass() {
+                public @NotNull String replaceIconCssStyle() {
+                    return "width: 27px; height: 27px;";
+                }
+
+                @Contract(pure = true)
+                @Override
+                public @Nullable String replaceIconCssClass() {
                     return null;
                 }
 
@@ -280,7 +297,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
                 public @NotNull Component getDescriptionTitleComponent(String id) {
                     LoadableDetachableModel<String> model = new LoadableDetachableModel<>() {
                         @Override
-                        protected String load() {
+                        protected @NotNull String load() {
                             if (modelObject.isCandidateRoleView()) {
                                 return "Candidate role " + (pattern.getIdentifier());
                             }
@@ -319,18 +336,18 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
                 @Override
                 protected void addDescriptionComponents() {
-                    if(modelObject.isCandidateRoleView()){
+                    if (modelObject.isCandidateRoleView()) {
                         Set<String> users = pattern.getUsers();
                         Set<String> roles = pattern.getRoles();
-                        if(users != null && !users.isEmpty() && roles != null && !roles.isEmpty()){
-                            appendIcon(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED,null);
+                        if (users != null && !users.isEmpty() && roles != null && !roles.isEmpty()) {
+                            appendIcon(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED, null);
                             appendText(" " + pattern.getUsers().size(), null);
                             appendText("users - ", null);
-                            appendIcon(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED,null);
+                            appendIcon(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, null);
                             appendText(" " + pattern.getRoles().size(), null);
                             appendText(" roles", null);
                         }
-                    }else{
+                    } else {
                         appendIcon("fe fe-assignment", "color: red;");
                         appendText(" " + formattedReductionFactorConfidence, null);
                         appendText("relations - ", null);
@@ -366,8 +383,8 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
             @Override
             public String replaceIconCssClass() {
                 return isExpanded().getObject()
-                        ? "fa-2x fa fa-align-justify text-secondary"
-                        : "fa-2x fa fa-columns text-secondary";
+                        ? "fa-2x fa fa-align-justify text-dark"
+                        : "fa-2x fa fa-columns text-dark";
             }
 
             @Override
@@ -437,12 +454,12 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
     private @NotNull String getCompareModeIconCssClass() {
         OperationPanelModel modelObject = RoleAnalysisTableOpPanelItemPanel.this.getModelObject();
-        return modelObject.isCompareMode() ? "fa-2x fa fa-clone text-secondary" : "fa-2x fas fa-search text-secondary";
+        return modelObject.isCompareMode() ? "fa-2x fa fa-clone text-secondary" : "fa-2x fas fa-search text-dark";
     }
 
     private @NotNull String getCandidateRoleViewIconCssClass() {
         OperationPanelModel modelObject = RoleAnalysisTableOpPanelItemPanel.this.getModelObject();
-        return modelObject.isCandidateRoleView() ? "fa-2x fe fe-role text-secondary" : "fa-2x fa fa-cube text-secondary";
+        return modelObject.isCandidateRoleView() ? "fa-2x fe fe-role text-secondary" : "fa-2x fa fa-cube text-dark";
     }
 
     protected LoadableDetachableModel<Boolean> isExpanded() {

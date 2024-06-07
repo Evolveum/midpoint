@@ -185,9 +185,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
             @Override
             protected Search<?> load() {
                 SearchBuilder<?> searchBuilder = new SearchBuilder<>(getSearchableType())
-                        .collectionView(getObjectCollectionView())
                         .modelServiceLocator(getPageBase());
-
                 return searchBuilder.build();
             }
         };
@@ -395,11 +393,9 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
 
     private void initSearchModel() {
         searchModel = new LoadableDetachableModel<>() {
-
             @Override
             protected Search<?> load() {
                 SearchBuilder<?> searchBuilder = new SearchBuilder<>(getSearchableType())
-                        .collectionView(getObjectCollectionView())
                         .modelServiceLocator(getPageBase());
 
                 return searchBuilder.build();

@@ -16,10 +16,6 @@ import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.create
 import java.io.Serial;
 import java.util.*;
 
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
-
-import com.evolveum.midpoint.web.util.TooltipBehavior;
-
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -48,13 +44,13 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
+import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectStatus;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -78,13 +74,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisTable;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkTruncatePanelAction;
 import com.evolveum.midpoint.web.component.data.column.LinkIconPanelStatus;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -187,9 +183,9 @@ public class RoleAnalysisUserBasedTable extends Panel {
                     @Override
                     public @NotNull String replaceIconCssClass() {
                         if (showAsExpandCard) {
-                            return "fa-2x fa fa-compress text-secondary";
+                            return "fa-2x fa fa-compress text-dark";
                         }
-                        return "fa-2x fas fa-expand text-secondary";
+                        return "fa-2x fas fa-expand text-dark";
                     }
 
                     @Override
@@ -308,48 +304,20 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 RepeatingView repeatingView = new RepeatingView(id);
                 repeatingView.setOutputMarkupId(true);
 
-                AjaxIconButton refreshIcon = new AjaxIconButton(
-                        repeatingView.newChildId(),
-                        new Model<>(GuiStyleConstants.CLASS_RECONCILE),
-                        createStringResource("MainObjectListPanel.refresh")) {
-
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        onRefresh(cluster);
-                    }
-                };
+                CompositedIconBuilder refreshIconBuilder = new CompositedIconBuilder().setBasicIcon(
+                        GuiStyleConstants.CLASS_REFRESH, LayeredIconCssStyle.IN_ROW_STYLE);
+                AjaxCompositedIconSubmitButton refreshIcon = buildRefreshTableButton(repeatingView, refreshIconBuilder,
+                        cluster);
                 refreshIcon.add(AttributeAppender.replace("class", "btn btn-default btn-sm"));
-
                 repeatingView.add(refreshIcon);
 
                 CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
                         "fa fa-cog", LayeredIconCssStyle.IN_ROW_STYLE);
-                AjaxCompositedIconButton tableSetting = new AjaxCompositedIconButton(
-                        repeatingView.newChildId(), iconBuilder.build(), createStringResource("")) {
-
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        RoleAnalysisTableSettingPanel selector = new RoleAnalysisTableSettingPanel(
-                                ((PageBase) getPage()).getMainPopupBodyId(),
-                                createStringResource("RoleAnalysisPathTableSelector.title"), displayValueOptionModel) {
-
-                            @Override
-                            public void performAfterFinish(AjaxRequestTarget target) {
-                                resetTable(target, displayValueOptionModel.getObject());
-                            }
-                        };
-                        ((PageBase) getPage()).showMainPopup(selector, target);
-                    }
-
-                };
-
+                AjaxCompositedIconSubmitButton tableSetting = buildTableSettingButton(repeatingView, iconBuilder,
+                        displayValueOptionModel);
                 tableSetting.add(AttributeAppender.replace("class", "btn btn-default btn-sm"));
-
                 repeatingView.add(tableSetting);
+
                 return repeatingView;
             }
 
@@ -401,6 +369,56 @@ public class RoleAnalysisUserBasedTable extends Panel {
         table.setOutputMarkupId(true);
 
         return table;
+    }
+
+    @NotNull
+    private AjaxCompositedIconSubmitButton buildTableSettingButton(@NotNull RepeatingView repeatingView,
+            @NotNull CompositedIconBuilder iconBuilder,
+            @NotNull LoadableDetachableModel<DisplayValueOption> displayValueOptionModel) {
+        AjaxCompositedIconSubmitButton tableSetting = new AjaxCompositedIconSubmitButton(
+                repeatingView.newChildId(), iconBuilder.build(), createStringResource("Table settings")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target) {
+                RoleAnalysisTableSettingPanel selector = new RoleAnalysisTableSettingPanel(
+                        ((PageBase) getPage()).getMainPopupBodyId(),
+                        createStringResource("RoleAnalysisPathTableSelector.title"), displayValueOptionModel) {
+
+                    @Override
+                    public void performAfterFinish(AjaxRequestTarget target) {
+                        resetTable(target, displayValueOptionModel.getObject());
+                    }
+                };
+                ((PageBase) getPage()).showMainPopup(selector, target);
+            }
+
+        };
+
+        tableSetting.titleAsLabel(true);
+        return tableSetting;
+    }
+
+    @NotNull
+    private AjaxCompositedIconSubmitButton buildRefreshTableButton(
+            @NotNull RepeatingView repeatingView,
+            @NotNull CompositedIconBuilder refreshIconBuilder,
+            @NotNull PrismObject<RoleAnalysisClusterType> cluster) {
+        AjaxCompositedIconSubmitButton refreshIcon = new AjaxCompositedIconSubmitButton(
+                repeatingView.newChildId(), refreshIconBuilder.build(), createStringResource("Refresh")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target) {
+                onRefresh(cluster);
+            }
+
+        };
+
+        refreshIcon.titleAsLabel(true);
+        return refreshIcon;
     }
 
     private boolean isObjectIconHeaderActive = true;
@@ -696,7 +714,6 @@ public class RoleAnalysisUserBasedTable extends Panel {
             MiningUserTypeChunk colChunk = users.get(i);
             int membersSize = colChunk.getUsers().size();
             RoleAnalysisTableTools.StyleResolution styleWidth = RoleAnalysisTableTools.StyleResolution.resolveSize(membersSize);
-
             column = new AbstractColumn<>(createStringResource("")) {
 
                 @Override
@@ -814,7 +831,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                     List<SimpleHeatPattern> totalRelationOfPatternsForCell;
                     List<String> mustMeet = object.getProperties();
                     String debugText;
-                    if (!mustMeet.containsAll(members)) {
+                    if (!new HashSet<>(mustMeet).containsAll(members)) {
                         debugText = "There are no patterns for this cell. Members does not have relation with roles.";
                     } else {
                         DetectionOption detectionOption = new DetectionOption(
@@ -831,7 +848,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                         }
                         debugText = "Total relations: " + totalRelations
                                 + " Patterns " + totalRelationOfPatternsForCell.size()
-                               + "\n" + patterns;
+                                + "\n" + patterns;
                     }
 
                     DebugLabel debugLabel = new DebugLabel(((PageBase) getPage()).getMainPopupBodyId(), Model.of(debugText));
@@ -867,7 +884,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
     }
 
     public void loadDetectedPattern(AjaxRequestTarget target) {
-
+        isRelationSelected = false;
         List<MiningUserTypeChunk> users = miningOperationChunk.getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
         List<MiningRoleTypeChunk> roles = miningOperationChunk.getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
 

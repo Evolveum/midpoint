@@ -84,6 +84,7 @@ public class RoleAnalysisTableOpPanelItem extends BasePanel<String> {
             public void onConfigure(Component component) {
                 super.onConfigure(component);
                 icon.add(AttributeAppender.replace("class", replaceIconCssClass()));
+                icon.add(AttributeAppender.replace("style", replaceIconCssStyle()));
             }
         });
 
@@ -127,6 +128,10 @@ public class RoleAnalysisTableOpPanelItem extends BasePanel<String> {
 
     public String replaceIconCssClass() {
         return "fa-2x fa fa-hashtag";
+    }
+
+    public String replaceIconCssStyle() {
+        return null;
     }
 
     public Component getDescriptionTitleComponent(String id) {

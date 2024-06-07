@@ -46,6 +46,7 @@ public class CompositedIconTextPanel extends BasePanel<String> {
 
         WebComponent basicIcon = new WebComponent(ID_BASIC_ICON);
         basicIcon.add(AttributeAppender.append("class", this.basicIconCss));
+        basicIcon.add(AttributeAppender.replace("style", getBasicIconCssStyle()));
         layeredIcon.add(basicIcon);
 
         Label text = new Label("text", Model.of(this.text));
@@ -53,5 +54,9 @@ public class CompositedIconTextPanel extends BasePanel<String> {
         text.setOutputMarkupId(true);
         layeredIcon.add(text);
 
+    }
+
+    protected String getBasicIconCssStyle() {
+        return null;
     }
 }
