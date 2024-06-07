@@ -95,7 +95,7 @@ public class NavigationDetailsTablePanel extends BasePanel<List<DetailsTableItem
     }
 
     protected void addPanelProperty() {
-        add(AttributeModifier.append("class", "card"));
+        add(AttributeModifier.append("class", "card p-0"));
     }
 
     protected Component getNavigationComponent() {
