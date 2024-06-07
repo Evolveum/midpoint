@@ -239,7 +239,7 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
                         .label(outlier.getName())
                         .help(getLastRebuildTimeStamp(outlier))
                         .icon(new IconType()
-                                .cssClass(IconAndStylesUtil.createDefaultColoredIcon(RoleAnalysisSessionType.COMPLEX_TYPE) + " fa-2x fa-inverse"));
+                                .cssClass(IconAndStylesUtil.createDefaultColoredIcon(RoleAnalysisOutlierType.COMPLEX_TYPE) + " fa-2x fa-inverse"));
 
                 NavigationDetailsTablePanel details = new NavigationDetailsTablePanel("navigationHeader",
                         Model.of(displayType),
@@ -291,7 +291,7 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
 
                 double averageConfidence = 0.0;
                 for (RoleAnalysisOutlierDescriptionType resultDetails : analysisResult) {
-                    Double confidence = resultDetails.getConfidence();
+                    Double confidence = resultDetails.getConfidenceDeviation();
                     if (confidence != null) {
                         averageConfidence += confidence;
                     }

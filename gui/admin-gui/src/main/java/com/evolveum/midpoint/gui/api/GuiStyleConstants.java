@@ -321,6 +321,6 @@ public class GuiStyleConstants {
     public static final String CLASS_CANDIDATE_ROLE_ICON = "fe fe-role";
     public static final String THUMBS_UP = "fa fa-thumbs-up";
 
-    public static final String CLASS_OUTLIER_ICON = "fa fa-user-times";
+    public static final String CLASS_OUTLIER_ICON = "fa fa-id-badge";
     public static final String CLASS_ICON_OUTLIER = "fa fa-user-circle";
 }

@@ -222,7 +222,7 @@ public class PageRoleAnalysis extends PageAdmin {
                     }
                     double averageConfidence = 0;
                     for (RoleAnalysisOutlierDescriptionType item : outlierStatResult) {
-                        averageConfidence += item.getConfidence();
+                        averageConfidence += item.getConfidenceDeviation();
                     }
                     averageConfidence = averageConfidence / outlierStatResult.size();
                     String formattedConfidence = String.format("%.2f", averageConfidence * 100);

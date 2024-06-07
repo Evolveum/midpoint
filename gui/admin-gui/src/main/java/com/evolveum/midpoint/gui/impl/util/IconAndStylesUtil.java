@@ -109,7 +109,7 @@ public class IconAndStylesUtil {
         } else if (QNameUtil.match(RoleAnalysisSessionType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
         } else if (QNameUtil.match(RoleAnalysisOutlierType.COMPLEX_TYPE, objectType)) {
-            return GuiStyleConstants.CLASS_ICON_OUTLIER;
+            return GuiStyleConstants.CLASS_OUTLIER_ICON;
         } else {
             return "";
         }

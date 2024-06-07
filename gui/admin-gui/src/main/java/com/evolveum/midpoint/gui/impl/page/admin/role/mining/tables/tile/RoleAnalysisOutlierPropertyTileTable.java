@@ -448,7 +448,7 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
 
             @Override
             public String getSortProperty() {
-                return RoleAnalysisOutlierDescriptionType.F_CONFIDENCE.getLocalPart();
+                return RoleAnalysisOutlierDescriptionType.F_CONFIDENCE_DEVIATION.getLocalPart();
             }
 
             @Override
@@ -460,7 +460,7 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
             public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item, String componentId,
                     IModel<RoleAnalysisOutlierDescriptionType> rowModel) {
                 if (rowModel.getObject() != null) {
-                    Double confidence = rowModel.getObject().getConfidence();
+                    Double confidence = rowModel.getObject().getConfidenceDeviation();
                     if (confidence != null) {
                         double confidencePercentage = confidence * 100.0;
                         confidencePercentage = confidencePercentage * 100.0 / 100.0;

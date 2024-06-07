@@ -99,6 +99,22 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="clusterConfidence" type="xsd:double" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Confidence level associated with the identified outlier.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="outlierPropertyConfidence" type="xsd:double" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Confidence level associated with the identified outlier.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="attributeAnalysis" type="c:AttributeAnalysis" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1738,7 +1754,35 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="confidenceDeviation" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Confidence level associated with the identified outlier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="confidence" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Confidence level associated with the identified outlier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="itemFactorConfidence" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Confidence level associated with the identified outlier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="memberCoverageConfidence" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Confidence level associated with the identified outlier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outlierCoverageConfidence" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Confidence level associated with the identified outlier.

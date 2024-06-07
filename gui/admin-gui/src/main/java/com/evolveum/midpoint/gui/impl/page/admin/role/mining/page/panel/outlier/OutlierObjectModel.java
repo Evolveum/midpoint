@@ -24,6 +24,11 @@ public class OutlierObjectModel implements Serializable {
 
     String outlierName;
     String outlierDescription;
+
+    public void setOutlierConfidence(double outlierConfidence) {
+        this.outlierConfidence = outlierConfidence;
+    }
+
     double outlierConfidence;
     List<OutlierItemModel> outlierItemModels;
 
@@ -47,17 +52,6 @@ public class OutlierObjectModel implements Serializable {
 
     public void addOutlierItemModel(OutlierItemModel outlierItemModel) {
         this.outlierItemModels.add(outlierItemModel);
-    }
-
-    public OutlierObjectModel(
-            @NotNull String outlierName,
-            @NotNull String outlierDescription,
-            double outlierConfidence,
-            @NotNull List<OutlierItemModel> outlierItemModels) {
-        this.outlierName = outlierName;
-        this.outlierDescription = outlierDescription;
-        this.outlierConfidence = outlierConfidence;
-        this.outlierItemModels = outlierItemModels;
     }
 
     public String getOutlierName() {
@@ -102,13 +96,11 @@ public class OutlierObjectModel implements Serializable {
 
         double min = 100;
         double max = 0;
-        double confidenceSum = 0;
         for (RoleAnalysisOutlierDescriptionType property : propertyOutlier) {
-            Double confidence = property.getConfidence();
+            Double confidence = property.getConfidenceDeviation();
             if (confidence != null) {
                 min = Math.min(min, confidence);
                 max = Math.max(max, confidence);
-                confidenceSum += confidence;
             }
         }
 
@@ -116,8 +108,10 @@ public class OutlierObjectModel implements Serializable {
         max = max * 100;
 
         int propertyCount = propertyOutlier.size();
-        double outlierConfidence = confidenceSum / propertyCount;
-        int outlierConfidenceInt = (int) (outlierConfidence * 100);
+
+        Double outlierPropertyConfidence = outlierResult.getOutlierPropertyConfidence();
+        double outlierPropertyConfidenceDouble = outlierPropertyConfidence != null ? outlierPropertyConfidence : 0;
+        int outlierConfidenceInt = (int) (outlierPropertyConfidenceDouble);
         String outlierDescription = "User has been marked as outlier object due to confidence score:";
         String propertyConfidenceRange = decimalFormat.format(min) + " - " + decimalFormat.format(max) + "%";
         String propertyDescription;
@@ -133,11 +127,9 @@ public class OutlierObjectModel implements Serializable {
             Integer detectedPatternCount = patternInfo.getDetectedPatternCount();
             Integer topPatternRelation = patternInfo.getTopPatternRelation();
             Integer totalRelations = patternInfo.getTotalRelations();
-            Integer clusterRelations = patternInfo.getClusterRelations();
-            double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
             String value = detectedPatternCount + " pattern(s) detected";
             int averageRelation = totalRelations / detectedPatternCount;
-            String patternDescription = "Maximum coverage is " + String.format("%.2f", topPatternCoverage)
+            String patternDescription = "Maximum coverage is " + String.format("%.2f", patternInfo.getConfidence())
                     + "% (" + topPatternRelation + "relations) "
                     + "and average relation per pattern is " + averageRelation;
             OutlierItemModel patternItemModel = new OutlierItemModel(value, patternDescription, "fa fa-cubes");
@@ -195,7 +187,7 @@ public class OutlierObjectModel implements Serializable {
         OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs) + "%", attributeDescription, "fa fa-cogs");
         outlierObjectModel.addOutlierItemModel(attributeItemModel);
 
-        OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(String.valueOf(attributeAboveThreshold) + " attribute(s)", attributeDescriptionThreshold.toString(), "fa fa-cogs");
+        OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(attributeAboveThreshold + " attribute(s)", attributeDescriptionThreshold.toString(), "fa fa-cogs");
         outlierObjectModel.addOutlierItemModel(attributeItemModelThreshold);
 
         List<String> rolesOid = getRolesOidAssignment(userTypeObject.asObjectable());
@@ -262,7 +254,7 @@ public class OutlierObjectModel implements Serializable {
         double max = 0;
         double confidenceSum = 0;
         for (RoleAnalysisOutlierDescriptionType property : propertyOutlier) {
-            Double confidence = property.getConfidence();
+            Double confidence = property.getConfidenceDeviation();
             if (confidence != null) {
                 min = Math.min(min, confidence);
                 max = Math.max(max, confidence);
@@ -293,11 +285,9 @@ public class OutlierObjectModel implements Serializable {
             Integer detectedPatternCount = patternInfo.getDetectedPatternCount();
             Integer topPatternRelation = patternInfo.getTopPatternRelation();
             Integer totalRelations = patternInfo.getTotalRelations();
-            Integer clusterRelations = patternInfo.getClusterRelations();
-            double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
             String value = detectedPatternCount + " pattern(s) detected";
             int averageRelation = totalRelations / detectedPatternCount;
-            String patternDescription = "Maximum coverage is " + String.format("%.2f", topPatternCoverage)
+            String patternDescription = "Maximum coverage is " + String.format("%.2f", patternInfo.getConfidence())
                     + "% (" + topPatternRelation + "relations) "
                     + "and average relation per pattern is " + averageRelation;
             OutlierItemModel patternItemModel = new OutlierItemModel(value, patternDescription, "fa fa-cubes");
@@ -429,7 +419,7 @@ public class OutlierObjectModel implements Serializable {
         }
 
         PolyString name = roleTypeObject.getName();
-        double confidence = 100 - outlierResult.getConfidence();
+        double confidence = 100 - outlierResult.getConfidenceDeviation();
         int outlierConfidenceInt = (int) confidence;
         String description = "Assignment has been marked as outlier object due to confidence score:";
 
@@ -441,18 +431,17 @@ public class OutlierObjectModel implements Serializable {
             Integer detectedPatternCount = patternInfo.getDetectedPatternCount();
             Integer topPatternRelation = patternInfo.getTopPatternRelation();
             Integer totalRelations = patternInfo.getTotalRelations();
-            Integer clusterRelations = patternInfo.getClusterRelations();
-            double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
             String value = detectedPatternCount + " pattern(s) detected";
             int averageRelation = totalRelations / detectedPatternCount;
-            String patternDescription = "Maximum coverage is " + String.format("%.2f", topPatternCoverage)
+            String patternDescription = "Maximum coverage is " + String.format("%.2f", patternInfo.getConfidence())
                     + "% (" + topPatternRelation + "relations) "
                     + "and average relation per pattern is " + averageRelation;
             OutlierItemModel patternItemModel = new OutlierItemModel(value, patternDescription, "fa fa-cubes");
             outlierObjectModel.addOutlierItemModel(patternItemModel);
         }
+        Double outlierCoverageConfidence = outlierResult.getOutlierCoverageConfidence();
+        double occurInCluster = outlierCoverageConfidence == null ? 0 : outlierCoverageConfidence;
 
-        double occurInCluster = outlierResult.getFrequency() * 100;
         String descriptionOccurInCluster = "Outlier assignment coverage in cluster.";
 
         OutlierItemModel occurInClusterItemModel = new OutlierItemModel(String.format("%.2f", occurInCluster)
@@ -466,8 +455,7 @@ public class OutlierObjectModel implements Serializable {
                 indirectAssignmentsDescription, "fe fe-role");
         outlierObjectModel.addOutlierItemModel(indirectAssignmentsItemModel);
 
-        int roleMemberCount = 0;
-
+        int roleMemberCount;
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         roleAnalysisService.extractUserTypeMembers(
                 userExistCache, null,
@@ -475,11 +463,20 @@ public class OutlierObjectModel implements Serializable {
                 task, result);
         roleMemberCount = userExistCache.size();
 
+        Double memberCoverageConfidence = outlierResult.getMemberCoverageConfidence();
+        double memberPercentageRepo = memberCoverageConfidence == null ? 0 : memberCoverageConfidence;
+
         String roleMemberDescription = "Role member count of the outlier assignment.";
 
         OutlierItemModel roleMemberItemModel = new OutlierItemModel(String.valueOf(roleMemberCount),
                 roleMemberDescription, "fe fe-user");
         outlierObjectModel.addOutlierItemModel(roleMemberItemModel);
+
+        String memberPercentageRepoDescription = "Role member percentage compared to all users in the repository.";
+
+        OutlierItemModel memberPercentageRepoItemModel = new OutlierItemModel(String.format("%.2f",
+                memberPercentageRepo) + "%", memberPercentageRepoDescription, "fe fe-user");
+        outlierObjectModel.addOutlierItemModel(memberPercentageRepoItemModel);
 
         List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
         RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService
@@ -489,15 +486,6 @@ public class OutlierObjectModel implements Serializable {
 
         RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService
                 .resolveSimilarAspect(userAttributes, roleAnalysisAttributeAnalysisResult);
-
-        int userCountInRepo = roleAnalysisService.countObjects(UserType.class, null, null, task, result);
-
-        double memberPercentageRepo = (((double) roleMemberCount / userCountInRepo) * 100);
-        String memberPercentageRepoDescription = "Role member percentage compared to all users in the repository.";
-
-        OutlierItemModel memberPercentageRepoItemModel = new OutlierItemModel(String.format("%.2f",
-                memberPercentageRepo) + "%", memberPercentageRepoDescription, "fe fe-user");
-        outlierObjectModel.addOutlierItemModel(memberPercentageRepoItemModel);
 
         double averageItemsOccurs = 0;
         assert compareAttributeResult != null;
@@ -518,6 +506,8 @@ public class OutlierObjectModel implements Serializable {
             }
         }
 
+        averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
+
         if (attributeAboveThreshold == 0) {
             attributeDescriptionThreshold = new StringBuilder("No attributes with occurrence above ")
                     .append(threshold).append("%.");
@@ -527,13 +517,31 @@ public class OutlierObjectModel implements Serializable {
                 + " attribute(s)", attributeDescriptionThreshold.toString(), "fa fa-cogs");
         outlierObjectModel.addOutlierItemModel(attributeItemModelThreshold);
 
-        averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
-
         String attributeDescription = "Items factor outlier assignment vs members.";
 
         OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs)
                 + "%", attributeDescription, "fa fa-cogs");
         outlierObjectModel.addOutlierItemModel(attributeItemModel);
+
+        String deviationDescription = "Unreliability of assignment based on a standard distribution";
+
+        double deviationConfidence = 0;
+        if (outlierResult.getConfidenceDeviation() != null) {
+            deviationConfidence = outlierResult.getConfidenceDeviation() * 100;
+        }
+
+        OutlierItemModel deviationItemModel = new OutlierItemModel(String.format("%.2f", deviationConfidence)
+                + "%", deviationDescription, "fa fa-bar-chart");
+        outlierObjectModel.addOutlierItemModel(deviationItemModel);
+
+        Double totalConfidence = outlierResult.getConfidence();
+        if (totalConfidence != null) {
+            double totalConfidenceDouble = totalConfidence;
+            int outlierAssignmentConfidence = (int) (totalConfidenceDouble);
+            outlierObjectModel.setOutlierConfidence(outlierAssignmentConfidence);
+        } else {
+            outlierObjectModel.setOutlierConfidence(0);
+        }
 
         return outlierObjectModel;
     }

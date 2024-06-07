@@ -9,7 +9,9 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util;
 
 import java.util.*;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +26,8 @@ import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
 
 public class OutliersDetectionUtil {
 
@@ -81,7 +85,7 @@ public class OutliersDetectionUtil {
                         outlierDescription.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
 
                         double confidence = roleAnalysisService.calculateZScoreConfidence(miningRoleTypeChunk, zScoreData);
-                        outlierDescription.setConfidence(confidence);
+                        outlierDescription.setConfidenceDeviation(confidence);
                         outlierDescription.setFrequency(frequencyItem.getFrequency());
 
                         outlierDescription.setCluster(clusterRef.clone());
@@ -93,15 +97,35 @@ public class OutliersDetectionUtil {
 
                     for (String user : users) {
                         RoleAnalysisOutlierType userOutliers = map.get(user);
-
+                        double outlierConfidenceBasedAssignment = 0;
                         if (userOutliers == null) {
                             userOutliers = new RoleAnalysisOutlierType();
                             userOutliers.setTargetObjectRef(new ObjectReferenceType().oid(user).type(UserType.COMPLEX_TYPE));
                             for (RoleAnalysisOutlierDescriptionType prepareRoleOutlier : prepareRoleOutliers) {
                                 detectAndLoadPatternAnalysis(miningRoleTypeChunk, user, prepareRoleOutlier, miningRoleTypeChunks);
+                                PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(user, task, result);
+                                double itemFactorConfidence = calculateItemFactorConfidence(prepareRoleOutlier, userTypeObject, roleAnalysisService, task, result);
+                                double distributionConfidence = prepareRoleOutlier.getConfidenceDeviation();
+                                double patternConfidence = prepareRoleOutlier.getPatternInfo().getConfidence();
+                                double roleMemberConfidence = calculateRoleCoverageConfidence(prepareRoleOutlier, userTypeObject, roleAnalysisService, task, result);
+                                double coverageConfidence = calculateOutlierCoverageConfidence(prepareRoleOutlier);
 
+                                double distributionConfidenceDiff = distributionConfidence * 100;
+                                double patternConfidenceDiff = 100 - patternConfidence;
+                                double itemFactorConfidenceDiff = 100 - itemFactorConfidence;
+                                double roleMemberConfidenceDiff = 100 - roleMemberConfidence;
+                                double coverageConfidenceDiff = 100 - coverageConfidence;
+
+                                double confidence = (distributionConfidenceDiff + patternConfidenceDiff + itemFactorConfidenceDiff
+                                        + roleMemberConfidenceDiff + coverageConfidenceDiff) / 5;
+                                outlierConfidenceBasedAssignment += confidence;
+                                prepareRoleOutlier.setConfidence(confidence);
                                 userOutliers.getResult().add(prepareRoleOutlier.clone());
                             }
+                            outlierConfidenceBasedAssignment = outlierConfidenceBasedAssignment / prepareRoleOutliers.size();
+                            //TODO  clusterConfidence
+                            userOutliers.setClusterConfidence(outlierConfidenceBasedAssignment);
+                            userOutliers.setOutlierPropertyConfidence(outlierConfidenceBasedAssignment);
                             map.put(user, userOutliers);
                         } else {
                             for (RoleAnalysisOutlierDescriptionType prepareRoleOutlier : prepareRoleOutliers) {
@@ -145,7 +169,7 @@ public class OutliersDetectionUtil {
 
                         double confidence = roleAnalysisService.calculateZScoreConfidence(miningUserTypeChunk, zScoreData);
 
-                        outlierDescription.setConfidence(confidence);
+                        outlierDescription.setConfidenceDeviation(confidence);
 
                         outlierDescription.setCluster(clusterRef.clone());
                         outlierDescription.setFrequency(frequencyItem.getFrequency());
@@ -241,7 +265,8 @@ public class OutliersDetectionUtil {
 
         int clusterRelations = calculateOveralClusterRelationsCount(miningRoleTypeChunks);
         RoleAnalysisPatternInfo patternInfo = new RoleAnalysisPatternInfo();
-        patternInfo.setConfidence(0.0);
+        double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
+        patternInfo.setConfidence(topPatternCoverage);
         patternInfo.setDetectedPatternCount(patternCount);
         patternInfo.setTopPatternRelation(topPatternRelation);
         patternInfo.setTotalRelations(totalRelations);
@@ -250,6 +275,7 @@ public class OutliersDetectionUtil {
     }
 
     //TODO this is just for USER MODE! Implement Role (Experimental)
+
     /**
      * Calculate total relations (connections between properties and members) in the cluster.
      */
@@ -261,5 +287,66 @@ public class OutliersDetectionUtil {
             totalRelations += (propertiesCount * membersCount);
         }
         return totalRelations;
+    }
+
+    public static double calculateItemFactorConfidence(@NotNull RoleAnalysisOutlierDescriptionType outlierResult,
+            @NotNull PrismObject<UserType> userTypeObject,
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        ObjectReferenceType targetObjectRef = outlierResult.getObject();
+        PrismObject<RoleType> roleTypeObject = roleAnalysisService.getRoleTypeObject(targetObjectRef.getOid(), task, result);
+        if (roleTypeObject == null) {
+            return 0;
+        }
+
+        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
+        RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService
+                .resolveRoleMembersAttribute(roleTypeObject.getOid(), task, result, attributesForUserAnalysis);
+
+        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject);
+
+        RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService
+                .resolveSimilarAspect(userAttributes, roleAnalysisAttributeAnalysisResult);
+
+        double averageItemsOccurs = 0;
+        assert compareAttributeResult != null;
+        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
+        for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
+            Double density = analysis.getDensity();
+            if (density != null) {
+                averageItemsOccurs += density;
+            }
+        }
+        outlierResult.setItemFactorConfidence(averageItemsOccurs / attributeAnalysis.size());
+        return averageItemsOccurs / attributeAnalysis.size();
+    }
+
+    public static double calculateRoleCoverageConfidence(@NotNull RoleAnalysisOutlierDescriptionType outlierResult,
+            @NotNull PrismObject<UserType> userTypeObject,
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        ObjectReferenceType targetObjectRef = outlierResult.getObject();
+        int roleMemberCount = 0;
+        Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
+        roleAnalysisService.extractUserTypeMembers(
+                userExistCache, null,
+                new HashSet<>(Collections.singleton(targetObjectRef.getOid())),
+                task, result);
+        roleMemberCount = userExistCache.size();
+
+        int userCountInRepo = roleAnalysisService.countObjects(UserType.class, null, null, task, result);
+
+        double memberPercentageRepo = (((double) roleMemberCount / userCountInRepo) * 100);
+        outlierResult.setMemberCoverageConfidence(memberPercentageRepo);
+        return memberPercentageRepo;
+    }
+
+    public static double calculateOutlierCoverageConfidence(@NotNull RoleAnalysisOutlierDescriptionType outlierResult) {
+        double occurInCluster = outlierResult.getFrequency() * 100;
+        outlierResult.setOutlierCoverageConfidence(occurInCluster);
+        return occurInCluster;
     }
 }

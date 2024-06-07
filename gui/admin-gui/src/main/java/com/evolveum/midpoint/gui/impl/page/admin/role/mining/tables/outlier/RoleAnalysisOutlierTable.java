@@ -132,7 +132,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
                         double max = Double.NEGATIVE_INFINITY;
 
                         for (RoleAnalysisOutlierDescriptionType roleAnalysisOutlierDescriptionType : result) {
-                            Double confidence = roleAnalysisOutlierDescriptionType.getConfidence();
+                            Double confidence = roleAnalysisOutlierDescriptionType.getConfidenceDeviation();
                             if (confidence != null) {
                                 if (confidence < min) {
                                     min = confidence;
