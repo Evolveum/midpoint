@@ -908,6 +908,9 @@
                         response based on defined algorithms. If the case is not transferred into the next stage,
                         the value of this item stays as it is.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AccessCertificationCaseType.currentStageOutcome</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0">

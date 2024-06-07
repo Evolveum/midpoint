@@ -165,6 +165,8 @@ public class DashboardCertCampaignsPanel extends ObjectListPanel<AccessCertifica
     @Override
     protected LoadableModel<PageParameters> getNavigationParametersModel() {
         return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected PageParameters load() {
                 SelectableBeanObjectDataProvider<AccessCertificationCampaignType> provider =
