@@ -91,8 +91,10 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException,
             CommunicationException, PolicyViolationException, ObjectAlreadyExistsException,
             SecurityViolationException {
-        CaseType rootCase = repositoryService.getObject(CaseType.class, subcase.getParentRef().getOid(), null, result)
-                .asObjectable();
+        CaseType rootCase =
+                repositoryService
+                        .getObject(CaseType.class, subcase.getParentRef().getOid(), null, result)
+                        .asObjectable();
         LensContext<?> modelContext = miscHelper.getModelContext(rootCase, task, result);
         ObjectTreeDeltas<?> deltas = pcpGeneralHelper.retrieveResultingDeltas(subcase);
         if (deltas == null) {

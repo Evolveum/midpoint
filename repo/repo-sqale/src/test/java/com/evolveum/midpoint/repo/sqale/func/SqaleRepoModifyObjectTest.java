@@ -22,6 +22,9 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.InfraItemName;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.assertj.core.api.Assertions;
@@ -2369,8 +2372,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .anyMatch(aRow -> aRow.cid == row.containerIdSeq - 1
                         && aRow.resourceRefTargetOid.equals(resourceOid));
 
-        QAssignmentReference ar =
-                QAssignmentReferenceMapping.getForAssignmentCreateApprover().defaultAlias();
+        var ar = QAssignmentReferenceMapping.getForAssignmentCreateApprover().defaultAlias();
         List<MAssignmentReference> refRows = select(ar, ar.ownerOid.eq(UUID.fromString(user1Oid))
                 .and(ar.assignmentCid.eq(row.containerIdSeq - 2)));
         assertThat(refRows).hasSize(2)
@@ -2478,7 +2480,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                         && ass.resourceRefTargetOid == null); // removed construction
 
         // Approver references were removed from the only assignment that had them.
-        QAssignmentReference ar =
+        QAssignmentReference<?> ar =
                 QAssignmentReferenceMapping.getForAssignmentCreateApprover().defaultAlias();
         assertThat(count(ar, ar.ownerOid.eq(UUID.fromString(user1Oid)))).isZero();
     }
@@ -3420,6 +3422,155 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         PrismProperty<PolyString> valueAfter = shadowAfter.findProperty(attrPath);
         assertThat(valueAfter.getRealValue()).isEqualTo(PolyString.fromOrig("JACK2"));
     }
+    // endregion
+
+    // region value metadata
+    @Test
+    public void test600AddingAndModifyingObjectMetadata()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        var createdOn = XmlTypeConverter.createXMLGregorianCalendar();
+
+        given("delta adding value metadata for user 1");
+        UUID approverOid1 = UUID.randomUUID();
+        UUID approverOid2 = UUID.randomUUID();
+        QName refRelation = QName.valueOf("{https://random.org/ns}approver");
+        // Note that this operation may fail if there are some metadata already present - adapt the test in such case.
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(InfraItemName.METADATA)
+                .add(new ValueMetadataType()
+                        .storage(new StorageMetadataType()
+                                .createTimestamp(createdOn))
+                        .process(new ProcessMetadataType()
+                                .createApproverRef(approverOid1.toString(), UserType.COMPLEX_TYPE, refRelation)
+                                .createApproverRef(approverOid2.toString(), UserType.COMPLEX_TYPE, refRelation)))
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userObject = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(ValueMetadataTypeUtil.getCreateTimestamp(userObject)).isEqualTo(createdOn);
+        assertThat(ValueMetadataTypeUtil.getCreateApproverRefs(userObject)).hasSize(2)
+                .anyMatch(refMatcher(approverOid1, refRelation))
+                .anyMatch(refMatcher(approverOid2, refRelation));
+
+        and("user row version is incremented");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+
+        and("externalized refs are inserted to the dedicated table");
+        QObjectReference<?> r = QObjectReferenceMapping.getForCreateApprover().defaultAlias();
+        UUID ownerOid = UUID.fromString(user1Oid);
+        List<MReference> refs = select(r, r.ownerOid.eq(ownerOid));
+        assertThat(refs).hasSize(2)
+                .anyMatch(refRowMatcher(approverOid1, refRelation))
+                .anyMatch(refRowMatcher(approverOid2, refRelation));
+
+        when("value metadata for user 1 are updated");
+        var modifiedOn = XmlTypeConverter.createXMLGregorianCalendar();
+        ObjectDelta<UserType> delta2 = prismContext.deltaFor(UserType.class)
+                .item(InfraItemName.METADATA, ValueMetadataTypeUtil.getSingleValueMetadataId(userObject),
+                        ValueMetadataType.F_STORAGE, StorageMetadataType.F_MODIFY_TIMESTAMP)
+                .replace(modifiedOn)
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta2.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).recompute().isSuccess();
+
+        and("serialized form (fullObject) is updated (but contains the original metadata as well)");
+        var userObject2 = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userObject2.getVersion()).isEqualTo(String.valueOf(row.version + 1));
+        assertThat(ValueMetadataTypeUtil.getCreateTimestamp(userObject2)).isEqualTo(createdOn);
+        assertThat(ValueMetadataTypeUtil.getModifyTimestamp(userObject2)).isEqualTo(modifiedOn);
+        assertThat(ValueMetadataTypeUtil.getCreateApproverRefs(userObject2)).hasSize(2)
+                .anyMatch(refMatcher(approverOid1, refRelation))
+                .anyMatch(refMatcher(approverOid2, refRelation));
+
+        and("user row version is incremented");
+        MUser row2 = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row2.version).isEqualTo(row.version + 1);
+    }
+
+    @Test
+    public void test610AddingAndModifyingAssignmentMetadata()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+        var createdOn = XmlTypeConverter.createXMLGregorianCalendar();
+
+        given("delta adding assignment with value metadata for user 1");
+        var originOid = UUID.randomUUID();
+        var assignment = new AssignmentType()
+                .description("empty assignment");
+        var provenance = new ProvenanceMetadataType()
+                .acquisition(new ProvenanceAcquisitionType()
+                        .originRef(originOid.toString(), ServiceType.COMPLEX_TYPE));
+        ValueMetadataTypeUtil.getOrCreateStorageMetadata(assignment, provenance)
+                .createTimestamp(createdOn);
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .replace(assignment)
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userRetrieved = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userRetrieved.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userRetrieved.getAssignment()).hasSize(1);
+        var assignmentRetrieved = userRetrieved.getAssignment().get(0);
+        var storageRetrieved = ValueMetadataTypeUtil.getStorageMetadata(assignmentRetrieved, provenance);
+        assertThat(storageRetrieved).isNotNull();
+        assertThat(storageRetrieved.getCreateTimestamp()).isEqualTo(createdOn);
+
+        when("value metadata for the assignment are updated");
+        var modifiedOn = XmlTypeConverter.createXMLGregorianCalendar();
+        ObjectDelta<UserType> delta2 = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, assignmentRetrieved.getId(),
+                        InfraItemName.METADATA, ValueMetadataTypeUtil.getValueMetadataId(assignmentRetrieved, provenance),
+                        ValueMetadataType.F_STORAGE, StorageMetadataType.F_MODIFY_TIMESTAMP)
+                .replace(modifiedOn)
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta2.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).recompute().isSuccess();
+
+        and("serialized form (fullObject) is updated (but contains the original metadata as well)");
+        var userRetrieved2 = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(userRetrieved2.getVersion()).isEqualTo(String.valueOf(originalRow.version + 2));
+        assertThat(userRetrieved2.getAssignment()).hasSize(1);
+        var assignmentRetrieved2 = userRetrieved2.getAssignment().get(0);
+        var storageRetrieved2 = ValueMetadataTypeUtil.getStorageMetadata(assignmentRetrieved2, provenance);
+        assertThat(storageRetrieved2).isNotNull();
+        assertThat(storageRetrieved2.getCreateTimestamp()).isEqualTo(createdOn);
+        assertThat(storageRetrieved2.getModifyTimestamp()).isEqualTo(modifiedOn);
+    }
+
     // endregion
 
     // region precondition and modify dynamically

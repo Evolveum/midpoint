@@ -6,9 +6,8 @@
  */
 package com.evolveum.midpoint.authentication.evaluator;
 
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.authentication.api.evaluator.context.PasswordAuthenticationContext;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,7 +98,7 @@ public class TestPasswordAuthenticationEvaluator extends TestAbstractAuthenticat
     }
 
     @Override
-    public QName getCredentialType() {
+    public ItemName getCredentialType() {
         return CredentialsType.F_PASSWORD;
     }
 

@@ -22,6 +22,13 @@ public class OperationResultAssert extends AbstractAssert<OperationResultAssert,
         super(operationResult, OperationResultAssert.class);
     }
 
+    /** Use when checking status repeatedly. (Not very elegant solution, though. Think about it.) */
+    public OperationResultAssert recompute() {
+        isNotNull();
+        actual.recomputeStatus();
+        return this;
+    }
+
     public OperationResultAssert isSuccess() {
         isNotNull();
         actual.computeStatusIfUnknown();

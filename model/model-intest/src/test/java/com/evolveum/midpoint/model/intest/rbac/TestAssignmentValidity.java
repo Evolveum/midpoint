@@ -63,10 +63,11 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User jack after", userAfter);
-        assertModifyMetadata(userAfter, startTs, endTs);
-        assertAssignments(userAfter, 1);
+        var userAfter = assertUserAfter(USER_JACK_OID)
+                .assertAssignments(1)
+                .assertModifyMetadataComplex(startTs, endTs)
+                .getObject();
+
         AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_PIRATE_OID);
         assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.ENABLED);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
@@ -127,10 +128,11 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User jack after", userAfter);
-        assertModifyMetadata(userAfter, startTs, endTs);
-        assertAssignments(userAfter, 2);
+        var userAfter = assertUserAfter(USER_JACK_OID)
+                .assertAssignments(2)
+                .assertModifyMetadataComplex(startTs, endTs)
+                .getObject();
+
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
         assertDelegatedRef(userAfter);
 
@@ -293,10 +295,11 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User jack after", userAfter);
-        assertModifyMetadata(userAfter, startTs, endTs);
-        assertAssignments(userAfter, 2);
+        var userAfter = assertUserAfter(USER_JACK_OID)
+                .assertAssignments(2)
+                .assertModifyMetadataComplex(startTs, endTs)
+                .getObject();
+
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
         assertDelegatedRef(userAfter);
 
@@ -338,10 +341,10 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User jack after", userAfter);
-        assertModifyMetadata(userAfter, startTs, endTs);
-        assertAssignments(userAfter, 1);
+        var userAfter = assertUserAfter(USER_JACK_OID)
+                .assertAssignments(1)
+                .assertModifyMetadataComplex(startTs, endTs)
+                .getObject();
         AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_STRONG_SAILOR_OID);
         assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.ENABLED);
         assertRoleMembershipRef(userAfter, ROLE_STRONG_SAILOR_OID);
@@ -402,10 +405,10 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User jack after", userAfter);
-        assertModifyMetadata(userAfter, startTs, endTs);
-        assertAssignments(userAfter, 2);
+        var userAfter = assertUserAfter(USER_JACK_OID)
+                .assertAssignments(2)
+                .assertModifyMetadataComplex(startTs, endTs)
+                .getObject();
         assertRoleMembershipRef(userAfter, ROLE_STRONG_SAILOR_OID);
         assertDelegatedRef(userAfter);
 
@@ -541,10 +544,10 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User jack after", userAfter);
-        assertModifyMetadata(userAfter, startTs, endTs);
-        assertAssignments(userAfter, 2);
+        var userAfter = assertUserAfter(USER_JACK_OID)
+                .assertAssignments(2)
+                .assertModifyMetadataComplex(startTs, endTs)
+                .getObject();
         assertRoleMembershipRef(userAfter, ROLE_STRONG_SAILOR_OID);
         assertDelegatedRef(userAfter);
 
@@ -645,10 +648,10 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User jack after", userAfter);
-        assertModifyMetadata(userAfter, startTs, endTs);
-        assertAssignments(userAfter, 2);
+        var userAfter = assertUserAfter(USER_JACK_OID)
+                .assertAssignments(2)
+                .assertModifyMetadataComplex(startTs, endTs)
+                .getObject();
         assertRoleMembershipRef(userAfter, ROLE_STRONG_SAILOR_OID);
         assertDelegatedRef(userAfter);
 
@@ -1481,10 +1484,10 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User jack after", userAfter);
-        assertModifyMetadata(userAfter, startTs, endTs);
-        assertAssignments(userAfter, 2);
+        var userAfter = assertUserAfter(USER_JACK_OID)
+                .assertAssignments(2)
+                .assertModifyMetadataComplex(startTs, endTs)
+                .getObject();
         AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_STRONG_RICH_SAILOR_OID);
         assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.ENABLED);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID, ROLE_STRONG_RICH_SAILOR_OID);
@@ -1557,10 +1560,10 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User jack after", userAfter);
-        assertModifyMetadata(userAfter, startTs, endTs);
-        assertAssignments(userAfter, 2);
+        var userAfter = assertUserAfter(USER_JACK_OID)
+                .assertAssignments(2)
+                .assertModifyMetadataComplex(startTs, endTs)
+                .getObject();
         AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_RICH_SAILOR_OID);
         assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.ENABLED);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID, ROLE_RICH_SAILOR_OID);

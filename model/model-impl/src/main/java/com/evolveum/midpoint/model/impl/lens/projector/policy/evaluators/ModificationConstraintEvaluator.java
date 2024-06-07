@@ -31,6 +31,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModificationPolicyConstraintType;
 
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.DATA_ALLOWING_MISSING_IDS;
+
 @Component
 public abstract class ModificationConstraintEvaluator<C extends ModificationPolicyConstraintType, T extends EvaluatedModificationTrigger<C>>
         implements PolicyConstraintEvaluator<C, T> {
@@ -87,7 +89,8 @@ public abstract class ModificationConstraintEvaluator<C extends ModificationPoli
             @NotNull ItemPath path) {
         Collection<PrismValue> oldValues = oldContainerValue.getAllValues(path);
         Collection<PrismValue> newValues = newContainerValue.getAllValues(path);
-        boolean different = !MiscUtil.unorderedCollectionEquals(oldValues, newValues);
+        boolean different = !MiscUtil.unorderedCollectionEquals(
+                oldValues, newValues, DATA_ALLOWING_MISSING_IDS.prismValueEqualsChecker());
         LOGGER.trace("valuesChanged considering '{}': oldValues: {}, newValues: {}, different: {}",
                 path, oldValues, newValues, different);
         return different;

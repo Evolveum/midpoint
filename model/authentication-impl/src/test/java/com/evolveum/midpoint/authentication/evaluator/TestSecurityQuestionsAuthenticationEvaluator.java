@@ -9,9 +9,9 @@ package com.evolveum.midpoint.authentication.evaluator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.evaluator.context.SecurityQuestionsAuthenticationContext;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,7 +87,7 @@ public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAu
     }
 
     @Override
-    public QName getCredentialType() {
+    public ItemName getCredentialType() {
         return CredentialsType.F_SECURITY_QUESTIONS;
     }
 

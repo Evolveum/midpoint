@@ -9,9 +9,11 @@ package com.evolveum.midpoint.model.intest.simulation;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_METADATA_LAST_PROVISIONING_TIMESTAMP;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_METADATA_LAST_PROVISIONING_TIMESTAMP_NAMES_ONLY;
 
 import java.util.List;
+
+import com.evolveum.midpoint.prism.path.InfraItemName;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -269,12 +271,12 @@ public class TestRealExecution extends AbstractSimulationsTest {
         ObjectDeltaOperation<UserType> userOdo2 = dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         // model thinks there is some provisioning - this may change in future
         assertDelta(userOdo2.getObjectDelta(), "user after reconciliation")
-                .assertModified(PATH_METADATA_LAST_PROVISIONING_TIMESTAMP);
+                .assertModified(PATH_METADATA_LAST_PROVISIONING_TIMESTAMP_NAMES_ONLY);
         // this delta is metadata-only, because the only "meat" was cut out ... TODO shouldn't we skip it?
         ObjectDeltaOperation<ShadowType> shadowOdo2 = dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         assertDelta(shadowOdo2.getObjectDelta(), "shadow after reconciliation")
                 .assertNoRealResourceObjectModifications()
-                .assertModified(ShadowType.F_METADATA);
+                .assertModified(InfraItemName.METADATA);
 
         and("there is one delta in the simulation result");
         // @formatter:off

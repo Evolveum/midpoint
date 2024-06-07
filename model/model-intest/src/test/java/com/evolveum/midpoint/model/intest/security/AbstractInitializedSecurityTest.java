@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest.security;
 
+import static com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil.getStorageMetadataPath;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.*;
@@ -694,8 +696,9 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
 
     protected <O extends ObjectType> void assertModifyMetadataDeny(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
         XMLGregorianCalendar oneHourAgo = XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), "-PT1H");
-        assertModifyDenyOptions(type, oid, getMetadataPath(MetadataType.F_MODIFY_TIMESTAMP), null, oneHourAgo);
-        assertModifyDenyOptions(type, oid, getMetadataPath(MetadataType.F_CREATE_CHANNEL), null, "hackHackHack");
+        var object = getObjectViaRepo(type, oid).asObjectable();
+        assertModifyDenyOptions(type, oid, getStorageMetadataPath(object, MetadataType.F_MODIFY_TIMESTAMP), null, oneHourAgo);
+        assertModifyDenyOptions(type, oid, getStorageMetadataPath(object, MetadataType.F_CREATE_CHANNEL), null, "hackHackHack");
     }
 
     protected <O extends ObjectType> void assertPasswordChangeDeny(Class<O> type, String oid, String newPassword) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {

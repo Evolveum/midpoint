@@ -3187,7 +3187,7 @@ public class TestMapping extends AbstractMappingTest {
                 .name(USER_JIM_NAME)
                 .subtype(USER_TYPE_CARTHESIAN)
                 .beginAssignment()
-                .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                .targetRef(ROLE_SUPERUSER.oid, RoleType.COMPLEX_TYPE)
                 .end();
 
         when();
@@ -3268,7 +3268,7 @@ public class TestMapping extends AbstractMappingTest {
         UserType user = new UserType()
                 .name(userName)
                 .beginAssignment()
-                .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                .targetRef(ROLE_SUPERUSER.oid, RoleType.COMPLEX_TYPE)
                 .<UserType>end()
                 .beginAssignment()
                 .beginConstruction()
@@ -3287,7 +3287,7 @@ public class TestMapping extends AbstractMappingTest {
 
         when();
 
-        AssignmentType roleAssignment = findAssignment(userCreated, ROLE_SUPERUSER_OID, SchemaConstants.ORG_DEFAULT);
+        AssignmentType roleAssignment = findAssignment(userCreated, ROLE_SUPERUSER.oid, SchemaConstants.ORG_DEFAULT);
         assertNotNull("role assignment not found", roleAssignment);
         PrismContainerValue<Containerable> roleAssignmentIdOnlyPcv = prismContext.itemFactory().createContainerValue();
         roleAssignmentIdOnlyPcv.setId(roleAssignment.getId());

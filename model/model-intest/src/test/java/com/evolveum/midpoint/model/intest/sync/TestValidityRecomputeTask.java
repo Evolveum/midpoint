@@ -1499,11 +1499,11 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // the following assignments are used only to generate superfluous searches in validity scanner task
         userDrakeType
                 .beginAssignment()
-                    .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                    .targetRef(ROLE_SUPERUSER.oid, RoleType.COMPLEX_TYPE)
                     .activation(activation.clone())
                 .<UserType>end()
                 .beginAssignment()
-                    .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                    .targetRef(ROLE_SUPERUSER.oid, RoleType.COMPLEX_TYPE)
                     .activation(activation.clone())
                     .description("just to differentiate")
                 .end();
@@ -1815,14 +1815,14 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
     private void assertNotRecomputed(UserType u1) throws CommonException {
         assertUserAfter(u1.getOid())
-                .objectMetadata()
-                .assertNone();
+                .valueMetadata()
+                .assertSize(0);
     }
 
     private void assertRecomputed(UserType user) throws CommonException {
         assertUserAfter(user.getOid())
-                .objectMetadata()
-                .assertPresent();
+                .valueMetadata()
+                .assertSize(1);
     }
 
     private void setFuneralTimestamp(UserType user, String durationSpec) throws SchemaException {

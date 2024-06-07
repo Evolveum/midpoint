@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="855aec87-a7cf-424a-a85d-a1d53980381d">
+    <name>guest</name>
+    <item>
+        <ref>assignment</ref>
+        <mapping>
+            <name>guest-via-template</name>
+            <strength>strong</strength>
+            <expression>
+                <assignmentTargetSearch>
+                    <targetType>RoleType</targetType>
+                    <oid>bdefc429-304f-4627-b63d-c36de191f989</oid>
+                </assignmentTargetSearch>
+            </expression>
+        </mapping>
+    </item>
+</objectTemplate>

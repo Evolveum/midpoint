@@ -608,7 +608,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
                                 iteration + ":" + System.currentTimeMillis() + "-" + (int) (Math.random() * 1_000_000));
                         ObjectDelta<? extends ObjectType> delta = prismContext.deltaFor(UserType.class)
                                 .item(UserType.F_FULL_NAME).replace(fromOrig("Hi" + iteration))
-                                .item(UserType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP)
+                                .item(UserType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP) // TODO replace with something not deprecated
                                 .replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
                                 // OID in ascii: "audi-to-id-: -000...index"
                                 .asObjectDelta(String.format("61756469-746f-6964-3a20-%012d", index));

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -34,13 +35,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 public class TextFormatter {
 
-    public static final List<ItemPath> SYNCHRONIZATION_PATHS = List.of(
+    private static final List<ItemPath> SYNCHRONIZATION_PATHS = List.of(
             ShadowType.F_SYNCHRONIZATION_SITUATION,
             ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION,
             ShadowType.F_SYNCHRONIZATION_TIMESTAMP,
             ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP);
 
-    public static final List<ItemPath> AUXILIARY_PATHS = List.of(
+    private static final List<ItemPath> AUXILIARY_PATHS = List.of(
+            InfraItemName.METADATA,
             ShadowType.F_METADATA,
             ShadowType.F_ACTIVATION.append(ActivationType.F_VALIDITY_STATUS), // works for user activation as well
             ShadowType.F_ACTIVATION.append(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
@@ -106,7 +108,8 @@ public class TextFormatter {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean containsVisibleModifiedItems(Collection<? extends ItemDelta<?, ?>> modifications,
+    public boolean containsVisibleModifiedItems(
+            Collection<? extends ItemDelta<?, ?>> modifications,
             boolean showSynchronizationAttributes, boolean showAuxiliaryAttributes) {
         Collection<ItemPath> hiddenPaths = getHiddenPaths(showSynchronizationAttributes, showAuxiliaryAttributes);
         return deltaFormatter.containsVisibleModifiedItems(modifications, hiddenPaths, showAuxiliaryAttributes);

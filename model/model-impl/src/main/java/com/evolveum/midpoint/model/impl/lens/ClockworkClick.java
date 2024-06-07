@@ -93,7 +93,7 @@ public class ClockworkClick<F extends ObjectType> {
             ModelState state = context.getState();
             if (state == ModelState.INITIAL) {
                 beans.medic.clockworkStart(context);
-                beans.metadataManager.setRequestMetadataInContext(context, now, task);
+                context.initializeRequestMetadata(now, task);
                 context.getStats().setRequestTimestamp(now);
                 context.generateRequestIdentifierIfNeeded();
                 // We need to do this BEFORE projection. If we would do that after projection

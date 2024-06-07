@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import java.io.Serial;
 import java.util.*;
@@ -208,6 +209,10 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     @Override
     public PrismObject<O> getObjectCurrent() {
         return state.getCurrentObject();
+    }
+
+    public PrismObject<O> getObjectCurrentRequired() {
+        return stateNonNull(getObjectCurrent(), "No current object in %s", this);
     }
 
     @Override

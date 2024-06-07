@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.test.asserter.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -441,6 +442,16 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return asserter;
     }
 
+    public ValueMetadataAsserter<? extends PrismObjectAsserter<O, RA>> valueMetadata() throws SchemaException {
+        return valueMetadata(ItemPath.EMPTY_PATH);
+    }
+
+    public ValueMetadataValueAsserter<? extends ValueMetadataAsserter<? extends PrismObjectAsserter<O, RA>>> valueMetadataSingle()
+            throws SchemaException {
+        return valueMetadata(ItemPath.EMPTY_PATH)
+                .singleValue();
+    }
+
     public ValueMetadataAsserter<? extends PrismObjectAsserter<O, RA>> valueMetadata(ItemPath path) throws SchemaException {
         return createValueMetadataAsserter(path, getValueMetadata(path, null));
     }
@@ -480,7 +491,7 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return asserter;
     }
 
-    private PrismContainer<ValueMetadataType> getValueMetadata(ItemPath path, ValueSelector<? extends PrismValue> valueSelector) throws SchemaException {
+    private PrismContainer<ValueMetadataType> getValueMetadata(ItemPath path, ValueSelector<? extends PrismValue> valueSelector) {
         Object o = getObject().find(path);
         if (o instanceof PrismValue) {
             return ((PrismValue) o).getValueMetadataAsContainer();
@@ -681,30 +692,26 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
                 && record.getStatus() == status;
     }
 
-    public MetadataAsserter<PrismObjectAsserter<O, RA>> passwordMetadata() {
-        MetadataType metadata = getPasswordMetadata();
-        MetadataAsserter<PrismObjectAsserter<O, RA>> asserter =
-                new MetadataAsserter<>(metadata, this, "password metadata in " + desc());
+    public ValueMetadataValueAsserter<PrismObjectAsserter<O, RA>> passwordMetadata() {
+        ValueMetadataType metadata = getPasswordMetadata();
+        ValueMetadataValueAsserter<PrismObjectAsserter<O, RA>> asserter =
+                new ValueMetadataValueAsserter<>(metadata, this, "password metadata in " + desc());
         copySetupTo(asserter);
         return asserter;
     }
 
-    private MetadataType getPasswordMetadata() {
-        Item<?, ?> item = object.findItem(
-                ItemPath.create(
-                        FocusType.F_CREDENTIALS, // the same for ShadowType
-                        CredentialsType.F_PASSWORD,
-                        PasswordType.F_METADATA));
-        assertThat(item).as("password metadata").isNotNull();
-        //noinspection unchecked
-        return ((PrismContainer<MetadataType>) item).getRealValue();
+    private ValueMetadataType getPasswordMetadata() {
+        var passwordContainer = object.findContainer(SchemaConstants.PATH_CREDENTIALS_PASSWORD);
+        assertThat(passwordContainer).as("password").isNotNull();
+        AbstractCredentialType value = (AbstractCredentialType) passwordContainer.getValue().asContainerable();
+        return ValueMetadataTypeUtil.getMetadata(value);
     }
 
-    public MetadataAsserter<PrismObjectAsserter<O, RA>> objectMetadata() {
-        MetadataType metadata = object.asObjectable().getMetadata();
-        MetadataAsserter<PrismObjectAsserter<O, RA>> asserter =
-                new MetadataAsserter<>(metadata, this, "object metadata in " + desc());
-        copySetupTo(asserter);
-        return asserter;
-    }
+//    public MetadataAsserter<PrismObjectAsserter<O, RA>> legacyObjectMetadata() {
+//        MetadataType metadata = object.asObjectable().getMetadata();
+//        MetadataAsserter<PrismObjectAsserter<O, RA>> asserter =
+//                new MetadataAsserter<>(metadata, this, "object metadata in " + desc());
+//        copySetupTo(asserter);
+//        return asserter;
+//    }
 }

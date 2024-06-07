@@ -1,0 +1,114 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="00000000-0000-0000-0000-000000000001" version="3">
+    <adminGuiConfiguration>
+        <objectDetails>
+            <objectDetailsPage id="83">
+                <type>c:TaskType</type>
+                <panel id="86">
+                    <identifier>operational-attributes-panel</identifier>
+                    <display>
+                        <label>Operational attributes</label>
+                    </display>
+                    <container id="92">
+                        <identifier>operational-attributes</identifier>
+                        <display>
+                            <label>Operational attributes (state)</label>
+                        </display>
+                        <displayOrder>900</displayOrder>
+                        <item id="94">
+                            <path>executionState</path>
+                        </item>
+                        <item id="95">
+                            <path>schedulingState</path>
+                        </item>
+                        <item id="96">
+                            <path>node</path>
+                        </item>
+                        <item id="97">
+                            <path>nodeAsObserved</path>
+                        </item>
+                        <item id="98">
+                            <path>resultStatus</path>
+                        </item>
+                        <item id="99">
+                            <path>result</path>
+                        </item>
+                        <item id="100">
+                            <path>nextRunStartTimestamp</path>
+                        </item>
+                        <item id="101">
+                            <path>nextRetryTimestamp</path>
+                        </item>
+                        <item id="102">
+                            <path>unpauseAction</path>
+                        </item>
+                        <item id="103">
+                            <path>taskIdentifier</path>
+                        </item>
+                        <item id="104">
+                            <path>parent</path>
+                        </item>
+                        <item id="105">
+                            <path>waitingReason</path>
+                        </item>
+                        <item id="106">
+                            <path>stateBeforeSuspend</path>
+                        </item>
+                        <item id="107">
+                            <path>schedulingStateBeforeSuspend</path>
+                        </item>
+                        <item id="108">
+                            <path>otherHandlersUriStack</path>
+                        </item>
+                        <item id="109">
+                            <path>channel</path>
+                        </item>
+                        <item id="110">
+                            <path>subtaskRef</path>
+                        </item>
+                        <item id="111">
+                            <path>dependentTaskRef</path>
+                        </item>
+                        <item id="112">
+                            <path>lastRunStartTimestamp</path>
+                        </item>
+                        <item id="113">
+                            <path>lastRunFinishTimestamp</path>
+                        </item>
+                        <item id="114">
+                            <path>completionTimestamp</path>
+                        </item>
+                    </container>
+                    <container id="93">
+                        <identifier>operation-attributes-progress</identifier>
+                        <display>
+                            <label>Operational attributes (progress)</label>
+                        </display>
+                        <visibility>hidden</visibility>
+                        <displayOrder>910</displayOrder>
+                        <item id="115">
+                            <path>progress</path>
+                        </item>
+                        <item id="116">
+                            <path>expectedTotal</path>
+                        </item>
+                        <item id="117">
+                            <path>stalledSince</path>
+                        </item>
+                    </container>
+                    <panelType>formPanel</panelType>
+                </panel>
+            </objectDetailsPage>
+        </objectDetails>
+    </adminGuiConfiguration>
+</systemConfiguration>
