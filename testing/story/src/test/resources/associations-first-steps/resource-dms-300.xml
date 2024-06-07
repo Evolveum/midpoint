@@ -133,9 +133,7 @@
                 <association>
                     <ref>ri:access</ref>
                     <focus>
-                        <assignmentTarget>
-                            <type>ServiceType</type>
-                        </assignmentTarget>
+                        <assignmentTargetType>ServiceType</assignmentTargetType>
                     </focus>
                     <attribute>
                         <ref>ri:level</ref>

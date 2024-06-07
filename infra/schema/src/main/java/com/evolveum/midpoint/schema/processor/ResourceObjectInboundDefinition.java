@@ -238,8 +238,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
                 @Override
                 public QName getAssignmentTargetTypeName() {
                     var focusBean = definitionBean.getFocus();
-                    var targetBean = focusBean != null ? focusBean.getAssignmentTarget() : null;
-                    return targetBean != null ? targetBean.getType() : null;
+                    return focusBean != null ? focusBean.getAssignmentTargetType() : null;
                 }
 
                 @Override
@@ -389,8 +388,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
                 @Override
                 public QName getAssignmentTargetTypeName() {
                     var focusBean = definitionBean.getFocus();
-                    var targetBean = focusBean != null ? focusBean.getAssignmentTarget() : null;
-                    return targetBean != null ? targetBean.getType() : null;
+                    return focusBean != null ? focusBean.getAssignmentTargetType() : null;
                 }
 
                 @Override

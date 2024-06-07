@@ -344,9 +344,7 @@ public final class ResourceObjectTypeDefinitionImpl
 
             @Override
             public QName getAssignmentTargetTypeName() {
-                var focusBean = definitionBean.getFocus();
-                var targetBean = focusBean != null ? focusBean.getAssignmentTarget() : null;
-                return targetBean != null ? targetBean.getType() : null;
+                return null;
             }
 
             @Override
