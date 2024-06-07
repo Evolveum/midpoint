@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -381,7 +379,7 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
                         List<RoleAnalysisAttributeDef> attributesForRoleAnalysis = getAttributesForRoleAnalysis();
                         Set<String> rolePathToMark = roleAnalysisService.resolveRoleValueToMark(roleTypeObject, attributesForRoleAnalysis);
 
-                        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject);
+                        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
                         RoleAnalysisAttributeAnalysisResult clusterAttributes = cluster.getClusterStatistics().getUserAttributeAnalysisResult();
                         RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService.resolveSimilarAspect(userAttributes, clusterAttributes);
 
@@ -484,7 +482,7 @@ public class RoleAnalysisOutlierPropertyTable extends BasePanel<String> {
 
                         RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService
                                 .resolveRoleMembersAttribute(prismRole.getOid(), task, operationResult, getAttributesForRoleAnalysis());
-                        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject);
+                        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
 
                         RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService
                                 .resolveSimilarAspect(userAttributes, roleAnalysisAttributeAnalysisResult);

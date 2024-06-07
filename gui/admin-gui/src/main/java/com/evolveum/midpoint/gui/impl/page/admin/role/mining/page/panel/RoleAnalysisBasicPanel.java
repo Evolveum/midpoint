@@ -18,12 +18,13 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 @PanelType(name = "miningBasic", defaultContainerPath = "empty")
+
 @PanelInstance(identifier = "sessionBasic",
         applicableForType = RoleAnalysisSessionType.class,
         childOf = RoleAnalysisUserSessionOptions.class,
@@ -47,6 +48,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
                 label = "RoleAnalysis.basic.panel",
                 icon = GuiStyleConstants.CLASS_INFO_CIRCLE,
                 order = 10))
+
+@PanelInstance(identifier = "outlierBasic",
+        applicableForType = RoleAnalysisOutlierType.class,
+        display = @PanelDisplay(
+                label = "RoleAnalysis.basic.panel",
+                icon = GuiStyleConstants.CLASS_INFO_CIRCLE,
+                order = 10))
+
 public class RoleAnalysisBasicPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {
 
     private static final String ID_MAIN_PANEL = "main";
@@ -60,12 +69,13 @@ public class RoleAnalysisBasicPanel<AH extends AssignmentHolderType> extends Abs
         SingleContainerPanel mainPanel = new SingleContainerPanel(ID_MAIN_PANEL, getObjectWrapperModel(), getPanelConfiguration()) {
 
             @Override
-            protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
+            protected ItemVisibility getVisibility(@NotNull ItemWrapper itemWrapper) {
                 return getBasicTabVisibility(itemWrapper.getPath());
             }
 
+            @Contract(pure = true)
             @Override
-            protected ItemEditabilityHandler getEditabilityHandler() {
+            protected @NotNull ItemEditabilityHandler getEditabilityHandler() {
                 return wrapper -> true;
             }
 
@@ -83,6 +93,18 @@ public class RoleAnalysisBasicPanel<AH extends AssignmentHolderType> extends Abs
         }
 
         if (RoleAnalysisSessionType.F_DESCRIPTION.equivalent(path)) {
+            return ItemVisibility.AUTO;
+        }
+
+        if (RoleAnalysisOutlierType.F_TARGET_OBJECT_REF.equivalent(path)) {
+            return ItemVisibility.AUTO;
+        }
+
+        if (RoleAnalysisOutlierType.F_TARGET_CLUSTER_REF.equivalent(path)) {
+            return ItemVisibility.AUTO;
+        }
+
+        if (RoleAnalysisOutlierType.F_TARGET_SESSION_REF.equivalent(path)) {
             return ItemVisibility.AUTO;
         }
 

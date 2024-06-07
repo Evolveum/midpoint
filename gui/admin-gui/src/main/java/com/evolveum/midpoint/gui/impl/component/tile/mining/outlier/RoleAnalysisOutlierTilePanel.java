@@ -8,12 +8,10 @@
 package com.evolveum.midpoint.gui.impl.component.tile.mining.outlier;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis;
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
@@ -312,15 +310,19 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                 RoleAnalysisOutlierType outlierParent = getModelObject().getOutlierParent();
                 ObjectReferenceType outlierParentObjectRef = outlierParent.getTargetObjectRef();
                 ObjectReferenceType clusterRef = result.getCluster();
+                ObjectReferenceType sessionRef = result.getSession();
 
-                PrismObject<RoleAnalysisClusterType> object = roleAnalysisService
-                        .getObject(RoleAnalysisClusterType.class, clusterRef.getOid(), task, task.getResult());
+                PrismObject<RoleAnalysisClusterType> clusterPrism = roleAnalysisService.getClusterTypeObject(
+                        clusterRef.getOid(), task, task.getResult());
 
-                if (object == null) {
+                PrismObject<RoleAnalysisSessionType> sessionPrism = roleAnalysisService.getSessionTypeObject(
+                        sessionRef.getOid(), task, task.getResult());
+                if (clusterPrism == null || sessionPrism == null) {
                     return;
                 }
 
-                RoleAnalysisClusterType cluster = object.asObjectable();
+                RoleAnalysisClusterType cluster = clusterPrism.asObjectable();
+                RoleAnalysisSessionType session = sessionPrism.asObjectable();
 
                 ObjectReferenceType propertyObjectRef = result.getObject();
                 QName type = propertyObjectRef.getType();
@@ -338,13 +340,13 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                 if (userTypeObject == null || roleTypeObject == null) {
                     return;
                 }
-                List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
+                List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(session, UserType.COMPLEX_TYPE);
+                if (attributesForUserAnalysis == null || attributesForUserAnalysis.isEmpty()) {
+                    return;
+                }
                 Set<String> userPathToMark = roleAnalysisService.resolveUserValueToMark(userTypeObject, attributesForUserAnalysis);
 
-                List<RoleAnalysisAttributeDef> attributesForRoleAnalysis = getAttributesForRoleAnalysis();
-                Set<String> rolePathToMark = roleAnalysisService.resolveRoleValueToMark(roleTypeObject, attributesForRoleAnalysis);
-
-                RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject);
+                RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
 
                 RoleAnalysisAttributeAnalysisResult clusterAttributes = cluster.getClusterStatistics().getUserAttributeAnalysisResult();
                 RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService.resolveSimilarAspect(userAttributes, clusterAttributes);
@@ -352,23 +354,14 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                 if (compareAttributeResult == null) {
                     return;
                 }
-                List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
 
                 AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
                 RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
-                RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
 
-                Set<String> valuesToMark = new HashSet<>();
-                if (userPathToMark != null) {
-                    valuesToMark.addAll(userPathToMark);
-                }
-                if (rolePathToMark != null) {
-                    valuesToMark.addAll(rolePathToMark);
-                }
                 //TODO Support role mode
                 RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(((PageBase) getPage()).getMainPopupBodyId(),
                         Model.of("Role analysis attribute panel"),
-                        roleAttributeAnalysisResult, userAttributeAnalysisResult,
+                        null, userAttributeAnalysisResult,
                         null, compareAttributeResult) {
                     @Override
                     protected @NotNull String getChartContainerStyle() {
@@ -377,39 +370,12 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
 
                     @Override
                     public Set<String> getPathToMark() {
-                        return valuesToMark;
+                        return userPathToMark;
                     }
                 };
 
                 roleAnalysisAttributePanel.setOutputMarkupId(true);
                 ((PageBase) getPage()).showMainPopup(roleAnalysisAttributePanel, target);
-
-//                RoleAnalysisAttributeChartPopupPanel detailsPanel = new RoleAnalysisAttributeChartPopupPanel(
-//                        ((PageBase) getPage()).getMainPopupBodyId(),
-//                        Model.of("Analyzed members details panel"),
-//                        cluster) {
-//
-//                    @Override
-//                    public List<AttributeAnalysisStructure> getStackedNegativeValue() {
-//                        return extractAttributeAnalysis(attributeAnalysis, UserType.COMPLEX_TYPE);
-//                    }
-//
-//                    @Override
-//                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-//                        super.onClose(ajaxRequestTarget);
-//                    }
-//
-//                    @Override
-//                    protected Set<String> getRolePathToMark() {
-//                        return rolePathToMark;
-//                    }
-//
-//                    @Override
-//                    protected Set<String> getUserPathToMark() {
-//                        return userPathToMark;
-//                    }
-//                };
-//                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
             }
 
             @Override
@@ -495,15 +461,27 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                 OperationResult operationResult = task.getResult();
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
+                RoleAnalysisOutlierTileModel<T> modelObject = getModelObject();
+                ObjectReferenceType sessionRef = modelObject.getDescriptionType().getSession();
+
+                PrismObject<RoleAnalysisSessionType> sessionPrism = roleAnalysisService.getSessionTypeObject(
+                        sessionRef.getOid(), task, task.getResult());
+
+                if(sessionPrism == null){
+                    return;
+                }
+
+                List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(sessionPrism.asObjectable(), UserType.COMPLEX_TYPE);
+                if (attributesForUserAnalysis == null || attributesForUserAnalysis.isEmpty()) {
+                    return;
+                }
+
                 PrismObject<RoleType> prismRole = roleAnalysisService
                         .getRoleTypeObject(roleRef.getOid(), task, operationResult);
                 if (prismRole == null) {
                     return;
                 }
 
-                List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
-                List<AttributeAnalysisStructure> attributeAnalysisStructures = roleAnalysisService
-                        .roleMembersAttributeAnalysis(attributesForUserAnalysis, prismRole.getOid(), task, operationResult);
 
                 PrismObject<UserType> userTypeObject = roleAnalysisService
                         .getUserTypeObject(parentRef.getOid(), task, task.getResult());
@@ -515,9 +493,9 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                 Set<String> userPathToMark = roleAnalysisService.resolveUserValueToMark(userTypeObject, attributesForUserAnalysis);
 
                 RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService
-                        .resolveRoleMembersAttribute(prismRole.getOid(), task, operationResult, getAttributesForRoleAnalysis());
+                        .resolveRoleMembersAttribute(prismRole.getOid(), task, operationResult, attributesForUserAnalysis);
 
-                RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject);
+                RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
 
                 RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService
                         .resolveSimilarAspect(userAttributes, roleAnalysisAttributeAnalysisResult);
@@ -525,12 +503,7 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                 if (compareAttributeResult == null) {
                     return;
                 }
-                List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
 
-                Set<String> valuesToMark = new HashSet<>();
-                if (userPathToMark != null) {
-                    valuesToMark.addAll(userPathToMark);
-                }
                 //TODO Support role mode
                 RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(((PageBase) getPage()).getMainPopupBodyId(),
                         Model.of("Role analysis attribute panel"),
@@ -543,33 +516,12 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
 
                     @Override
                     public Set<String> getPathToMark() {
-                        return valuesToMark;
+                        return userPathToMark;
                     }
                 };
 
                 roleAnalysisAttributePanel.setOutputMarkupId(true);
                 ((PageBase) getPage()).showMainPopup(roleAnalysisAttributePanel, target);
-
-//                RoleAnalysisAttributeChartPopupPanel detailsPanel = new RoleAnalysisAttributeChartPopupPanel(
-//                        ((PageBase) getPage()).getMainPopupBodyId(),
-//                        Model.of("Analyzed members details panel"),
-//                        attributeAnalysisStructures, RoleAnalysisProcessModeType.USER) {
-//                    @Override
-//                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-//                        super.onClose(ajaxRequestTarget);
-//                    }
-//
-//                    @Override
-//                    public List<AttributeAnalysisStructure> getStackedNegativeValue() {
-//                        return extractAttributeAnalysis(attributeAnalysis, UserType.COMPLEX_TYPE);
-//                    }
-//
-//                    @Override
-//                    protected Set<String> getUserPathToMark() {
-//                        return userPathToMark;
-//                    }
-//                };
-//                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
             }
 
             @Override

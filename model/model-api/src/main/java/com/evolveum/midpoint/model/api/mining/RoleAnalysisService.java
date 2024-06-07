@@ -803,7 +803,7 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    RoleAnalysisAttributeAnalysisResult resolveUserAttributes(@NotNull PrismObject<UserType> prismUser);
+    RoleAnalysisAttributeAnalysisResult resolveUserAttributes(@NotNull PrismObject<UserType> prismUser, List<RoleAnalysisAttributeDef> attributesForUserAnalysis);
 
     @Nullable RoleAnalysisAttributeAnalysisResult resolveSimilarAspect(
             @NotNull RoleAnalysisAttributeAnalysisResult compared,

@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util;
+package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object;
 
 import java.io.Serializable;
 import java.util.List;

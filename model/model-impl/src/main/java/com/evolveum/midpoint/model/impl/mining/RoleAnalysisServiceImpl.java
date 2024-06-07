@@ -1960,7 +1960,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     @NotNull
-    public RoleAnalysisAttributeAnalysisResult resolveUserAttributes(@NotNull PrismObject<UserType> prismUser) {
+    public RoleAnalysisAttributeAnalysisResult resolveUserAttributes(@NotNull PrismObject<UserType> prismUser, List<RoleAnalysisAttributeDef> attributesForUserAnalysis) {
         RoleAnalysisAttributeAnalysisResult outlierCandidateAttributeAnalysisResult = new RoleAnalysisAttributeAnalysisResult();
 
         List<RoleAnalysisAttributeDef> itemDef = getAttributesForUserAnalysis();

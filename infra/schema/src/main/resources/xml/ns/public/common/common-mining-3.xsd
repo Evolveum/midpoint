@@ -104,6 +104,20 @@
                             <xsd:documentation>
                                 Confidence level associated with the identified outlier.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisOutlierType.clusterConfidence</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="outlierAssignmentFrequencyConfidence" type="xsd:double" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Confidence level associated with the identified outlier.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisOutlierType.outlierAssignmentFrequencyConfidence</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -112,6 +126,9 @@
                             <xsd:documentation>
                                 Confidence level associated with the identified outlier.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisOutlierType.outlierPropertyConfidence</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 
@@ -167,6 +184,30 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="userAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Contains information about the attribute analysis result.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AttributeAnalysis.userAttributeAnalysisResult</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="userClusterCompare" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Contains information about the attribute analysis result.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AttributeAnalysis.userAttributeAnalysisResult</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="userRoleMembersCompare" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>

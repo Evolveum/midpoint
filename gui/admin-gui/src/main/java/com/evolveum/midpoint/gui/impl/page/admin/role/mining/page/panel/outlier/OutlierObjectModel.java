@@ -6,6 +6,7 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 import java.io.Serializable;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -87,41 +88,37 @@ public class OutlierObjectModel implements Serializable {
         ObjectReferenceType targetObjectRef = outlierResult.getTargetObjectRef();
         PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(targetObjectRef.getOid(), task, result);
         XMLGregorianCalendar createTimestamp = outlierResult.getMetadata().getCreateTimestamp();
+        GregorianCalendar gregorianCalendar = createTimestamp.toGregorianCalendar();
+        Date date = gregorianCalendar.getTime();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String formattedDate = sdf.format(date);
         if (userTypeObject == null) {
             return null;
         }
 
         PolyString name = userTypeObject.getName();
+        Double clusterConfidence = outlierResult.getClusterConfidence();
+        double clusterConfidenceDouble = clusterConfidence != null ? clusterConfidence : 0;
+        int outlierConfidenceInt = (int) (clusterConfidenceDouble);
+        String outlierDescription = "User has been marked as outlier object due to confidence score:";
+        RoleAnalysisPatternInfo patternInfo = outlierResult.getPatternInfo();
+        OutlierObjectModel outlierObjectModel = new OutlierObjectModel(
+                name.getOrig(), outlierDescription, outlierConfidenceInt, formattedDate, patternInfo);
+
         List<RoleAnalysisOutlierDescriptionType> propertyOutlier = outlierResult.getResult();
-
-        double min = 100;
-        double max = 0;
-        for (RoleAnalysisOutlierDescriptionType property : propertyOutlier) {
-            Double confidence = property.getConfidenceDeviation();
-            if (confidence != null) {
-                min = Math.min(min, confidence);
-                max = Math.max(max, confidence);
-            }
-        }
-
-        min = min * 100;
-        max = max * 100;
-
         int propertyCount = propertyOutlier.size();
-
         Double outlierPropertyConfidence = outlierResult.getOutlierPropertyConfidence();
         double outlierPropertyConfidenceDouble = outlierPropertyConfidence != null ? outlierPropertyConfidence : 0;
-        int outlierConfidenceInt = (int) (outlierPropertyConfidenceDouble);
-        String outlierDescription = "User has been marked as outlier object due to confidence score:";
-        String propertyConfidenceRange = decimalFormat.format(min) + " - " + decimalFormat.format(max) + "%";
+        String propertyConfidence = String.format("%.2f", outlierPropertyConfidenceDouble) + "%";
         String propertyDescription;
         if (propertyCount > 1) {
-            propertyDescription = "Has been detected multiple (" + propertyCount + ") outlier assignment(s) anomaly with high confidence";
+            propertyDescription = "Has been detected multiple (" + propertyCount + ") "
+                    + "outlier assignment(s) anomaly with high confidence";
         } else {
             propertyDescription = "Has been detected single outlier assignment anomaly with high confidence";
         }
-        RoleAnalysisPatternInfo patternInfo = outlierResult.getPatternInfo();
-        OutlierObjectModel outlierObjectModel = new OutlierObjectModel(name.getOrig(), outlierDescription, outlierConfidenceInt, createTimestamp.toString(), patternInfo);
+        OutlierItemModel outlierItemModel = new OutlierItemModel(propertyConfidence, propertyDescription, "fe fe-role");
+        outlierObjectModel.addOutlierItemModel(outlierItemModel);
 
         if (patternInfo != null) {
             Integer detectedPatternCount = patternInfo.getDetectedPatternCount();
@@ -139,18 +136,13 @@ public class OutlierObjectModel implements Serializable {
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
         int similarObjectCount = cluster.getMember().size();
         Double membershipDensity = clusterStatistics.getMembershipDensity();
-        String clusterDescription = "Detected " + similarObjectCount + " similar objects with membership density " + String.format("%.2f", membershipDensity) + "%";
-        OutlierItemModel clusterItemModel = new OutlierItemModel(similarObjectCount + " similar object(s)", clusterDescription, "fa fa-cubes");
+        String clusterDescription = "Detected " + similarObjectCount + " similar objects with membership density "
+                + String.format("%.2f", membershipDensity) + "%";
+        OutlierItemModel clusterItemModel = new OutlierItemModel(similarObjectCount + " similar object(s)",
+                clusterDescription, "fa fa-cubes");
         outlierObjectModel.addOutlierItemModel(clusterItemModel);
 
-        OutlierItemModel outlierItemModel = new OutlierItemModel(propertyConfidenceRange, propertyDescription, "fe fe-role");
-        outlierObjectModel.addOutlierItemModel(outlierItemModel);
-
-        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = cluster.getClusterStatistics().getUserAttributeAnalysisResult();
-
-        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject);
-
-        RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService.resolveSimilarAspect(userAttributes, userAttributeAnalysisResult);
+        RoleAnalysisAttributeAnalysisResult compareAttributeResult = outlierResult.getAttributeAnalysis().getUserClusterCompare();
 
         double averageItemsOccurs = 0;
         assert compareAttributeResult != null;
@@ -161,14 +153,9 @@ public class OutlierObjectModel implements Serializable {
         StringBuilder attributeDescriptionThreshold = new StringBuilder();
         attributeDescriptionThreshold.append("Attributes with occurrence above ").append(threshold).append("%: ");
 
-        double roleAssignmentsOccurs = 0;
-        String roleAssignmentsDescription = "Outlier object coverage in role assignments compared to similar objects.";
         for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysis) {
             Double density = attribute.getDensity();
             if (density != null) {
-                if (attribute.getItemPath().equals("role assignment")) {
-                    roleAssignmentsOccurs = density;
-                }
                 if (density > 0.8) {
                     attributeAboveThreshold++;
                     attributeDescriptionThreshold.append(attribute.getItemPath()).append(", ");
@@ -179,15 +166,21 @@ public class OutlierObjectModel implements Serializable {
 
         averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
 
-        OutlierItemModel roleAssignmentsItemModel = new OutlierItemModel(String.format("%.2f", roleAssignmentsOccurs) + "%", roleAssignmentsDescription, "fe fe-role");
-        outlierObjectModel.addOutlierItemModel(roleAssignmentsItemModel);
+        String assignmentsFrequencyDescription = "Assignment of the outlier object confidence in the cluster.";
+        OutlierItemModel roleAssignmentsFrequencyItemModel = new OutlierItemModel(
+                String.format("%.2f", outlierResult.getOutlierAssignmentFrequencyConfidence())
+                        + "%", assignmentsFrequencyDescription, "fe fe-role");
+        outlierObjectModel.addOutlierItemModel(roleAssignmentsFrequencyItemModel);
 
-        String attributeDescription = "Items factor outlier vs cluster. (average overlap value of outlier attributes with similar objects.)";
+        String attributeDescription = "Items factor outlier vs cluster. "
+                + "(average overlap value of outlier attributes with similar objects.)";
 
-        OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs) + "%", attributeDescription, "fa fa-cogs");
+        OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs) + "%",
+                attributeDescription, "fa fa-cogs");
         outlierObjectModel.addOutlierItemModel(attributeItemModel);
 
-        OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(attributeAboveThreshold + " attribute(s)", attributeDescriptionThreshold.toString(), "fa fa-cogs");
+        OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(attributeAboveThreshold + " attribute(s)",
+                attributeDescriptionThreshold.toString(), "fa fa-cogs");
         outlierObjectModel.addOutlierItemModel(attributeItemModelThreshold);
 
         List<String> rolesOid = getRolesOidAssignment(userTypeObject.asObjectable());
@@ -209,22 +202,26 @@ public class OutlierObjectModel implements Serializable {
             }
         }
 
-        OutlierItemModel directRolesItemModel = new OutlierItemModel(String.valueOf(directRoles), directRolesDescription, "fe fe-role");
+        OutlierItemModel directRolesItemModel = new OutlierItemModel(String.valueOf(directRoles),
+                directRolesDescription, "fe fe-role");
         outlierObjectModel.addOutlierItemModel(directRolesItemModel);
 
-        OutlierItemModel indirectRolesItemModel = new OutlierItemModel(String.valueOf(indirectRoles), indirectRolesDescription, "fe fe-role");
+        OutlierItemModel indirectRolesItemModel = new OutlierItemModel(String.valueOf(indirectRoles),
+                indirectRolesDescription, "fe fe-role");
         outlierObjectModel.addOutlierItemModel(indirectRolesItemModel);
 
         int rolesByCondition = 0;
         String rolesByConditionDescription = "Role assignments of the outlier object by condition. (?)";
 
-        OutlierItemModel rolesByConditionItemModel = new OutlierItemModel(String.valueOf(rolesByCondition), rolesByConditionDescription, "fe fe-role");
+        OutlierItemModel rolesByConditionItemModel = new OutlierItemModel(String.valueOf(rolesByCondition),
+                rolesByConditionDescription, "fe fe-role");
         outlierObjectModel.addOutlierItemModel(rolesByConditionItemModel);
 
         int outdatedAccessRights = 0;
         String outdatedAccessRightsDescription = "Outdated access rights of the outlier object.";
 
-        OutlierItemModel outdatedAccessRightsItemModel = new OutlierItemModel(String.valueOf(outdatedAccessRights), outdatedAccessRightsDescription, "fa fa-key");
+        OutlierItemModel outdatedAccessRightsItemModel = new OutlierItemModel(String.valueOf(outdatedAccessRights),
+                outdatedAccessRightsDescription, "fa fa-key");
         outlierObjectModel.addOutlierItemModel(outdatedAccessRightsItemModel);
 
         return outlierObjectModel;
@@ -243,6 +240,10 @@ public class OutlierObjectModel implements Serializable {
         ObjectReferenceType targetObjectRef = outlierResult.getTargetObjectRef();
         PrismObject<RoleType> roleTypePrismObject = roleAnalysisService.getRoleTypeObject(targetObjectRef.getOid(), task, result);
         XMLGregorianCalendar createTimestamp = outlierResult.getMetadata().getCreateTimestamp();
+        GregorianCalendar gregorianCalendar = createTimestamp.toGregorianCalendar();
+        Date date = gregorianCalendar.getTime();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String formattedDate = sdf.format(date);
         if (roleTypePrismObject == null) {
             return null;
         }
@@ -254,7 +255,7 @@ public class OutlierObjectModel implements Serializable {
         double max = 0;
         double confidenceSum = 0;
         for (RoleAnalysisOutlierDescriptionType property : propertyOutlier) {
-            Double confidence = property.getConfidenceDeviation();
+            Double confidence = property.getConfidence();
             if (confidence != null) {
                 min = Math.min(min, confidence);
                 max = Math.max(max, confidence);
@@ -272,14 +273,15 @@ public class OutlierObjectModel implements Serializable {
         String propertyConfidenceRange = decimalFormat.format(min) + " - " + decimalFormat.format(max) + "%";
         String propertyDescription;
         if (propertyCount > 1) {
-            propertyDescription = "Has been detected multiple (" + propertyCount + ") outlier assignment(s) anomaly with high confidence";
+            propertyDescription = "Has been detected multiple (" + propertyCount + ") "
+                    + "outlier assignment(s) anomaly with high confidence";
         } else {
             propertyDescription = "Has been detected single outlier assignment anomaly with high confidence";
         }
 
         RoleAnalysisPatternInfo patternInfo = outlierResult.getPatternInfo();
         OutlierObjectModel outlierObjectModel = new OutlierObjectModel(
-                name.getOrig(), outlierDescription, outlierConfidenceInt, createTimestamp.toString(), patternInfo);
+                name.getOrig(), outlierDescription, outlierConfidenceInt, formattedDate, patternInfo);
 
         if (patternInfo != null) {
             Integer detectedPatternCount = patternInfo.getDetectedPatternCount();
@@ -303,18 +305,12 @@ public class OutlierObjectModel implements Serializable {
                 + " similar object(s)", clusterDescription, "fa fa-cubes");
         outlierObjectModel.addOutlierItemModel(clusterItemModel);
 
-        OutlierItemModel outlierItemModel = new OutlierItemModel(propertyConfidenceRange, propertyDescription, "fe fe-role");
+        OutlierItemModel outlierItemModel = new OutlierItemModel(propertyConfidenceRange, propertyDescription,
+                "fe fe-role");
         outlierObjectModel.addOutlierItemModel(outlierItemModel);
 
-        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = cluster.getClusterStatistics()
-                .getUserAttributeAnalysisResult();
-
-        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
-        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService
-                .resolveRoleMembersAttribute(roleTypePrismObject.getOid(), task, result, attributesForUserAnalysis);
-
-        RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService
-                .resolveSimilarAspect(userAttributes, userAttributeAnalysisResult);
+        RoleAnalysisAttributeAnalysisResult compareAttributeResult = outlierResult.getAttributeAnalysis()
+                .getUserRoleMembersCompare();
 
         double averageItemsOccurs = 0;
         assert compareAttributeResult != null;
@@ -325,14 +321,9 @@ public class OutlierObjectModel implements Serializable {
         StringBuilder attributeDescriptionThreshold = new StringBuilder();
         attributeDescriptionThreshold.append("Attributes with occurrence above ").append(threshold).append("%: ");
 
-        double roleAssignmentsOccurs = 0;
-        String roleAssignmentsDescription = "Outlier object coverage in role assignments compared to similar objects.";
         for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysis) {
             Double density = attribute.getDensity();
             if (density != null) {
-                if (attribute.getItemPath().equals("role assignment")) {
-                    roleAssignmentsOccurs = density;
-                }
                 if (density > 0.8) {
                     attributeAboveThreshold++;
                     attributeDescriptionThreshold.append(attribute.getItemPath()).append(", ");
@@ -343,9 +334,11 @@ public class OutlierObjectModel implements Serializable {
 
         averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
 
-        OutlierItemModel roleAssignmentsItemModel = new OutlierItemModel(String.format("%.2f", roleAssignmentsOccurs)
-                + "%", roleAssignmentsDescription, "fe fe-role");
-        outlierObjectModel.addOutlierItemModel(roleAssignmentsItemModel);
+        String assignmentsFrequencyDescription = "Assignment of the outlier object confidence in the cluster.";
+        OutlierItemModel roleAssignmentsFrequencyItemModel = new OutlierItemModel(
+                String.format("%.2f", outlierResult.getOutlierAssignmentFrequencyConfidence())
+                        + "%", assignmentsFrequencyDescription, "fe fe-role");
+        outlierObjectModel.addOutlierItemModel(roleAssignmentsFrequencyItemModel);
 
         String attributeDescription = "Items factor outlier vs cluster. "
                 + "(average overlap value of outlier attributes with similar objects.)";
@@ -423,9 +416,14 @@ public class OutlierObjectModel implements Serializable {
         int outlierConfidenceInt = (int) confidence;
         String description = "Assignment has been marked as outlier object due to confidence score:";
 
+        XMLGregorianCalendar createTimestamp = outlierResult.getCreateTimestamp();
+        GregorianCalendar gregorianCalendar = createTimestamp.toGregorianCalendar();
+        Date date = gregorianCalendar.getTime();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String formattedDate = sdf.format(date);
         RoleAnalysisPatternInfo patternInfo = outlierResult.getPatternInfo();
         OutlierObjectModel outlierObjectModel = new OutlierObjectModel(
-                name.getOrig(), description, outlierConfidenceInt, outlierResult.getCreateTimestamp().toString(), patternInfo);
+                name.getOrig(), description, outlierConfidenceInt, formattedDate, patternInfo);
 
         if (patternInfo != null) {
             Integer detectedPatternCount = patternInfo.getDetectedPatternCount();
@@ -482,7 +480,8 @@ public class OutlierObjectModel implements Serializable {
         RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService
                 .resolveRoleMembersAttribute(roleTypeObject.getOid(), task, result, attributesForUserAnalysis);
 
-        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject);
+        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(
+                userTypeObject, attributesForUserAnalysis);
 
         RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService
                 .resolveSimilarAspect(userAttributes, roleAnalysisAttributeAnalysisResult);

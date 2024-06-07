@@ -839,16 +839,33 @@ public class RoleAnalysisUserBasedTable extends Panel {
                         totalRelationOfPatternsForCell = new OutlierPatternResolver()
                                 .performSingleCellDetection(RoleAnalysisProcessModeType.USER, roles, detectionOption, members, mustMeet);
 
-                        double totalRelations = 0;
-
                         List<List<String>> patterns = new ArrayList<>();
+
+                        int patternCount = totalRelationOfPatternsForCell.size();
+                        int totalRelations = 0;
+                        int topPatternRelation = 0;
                         for (SimpleHeatPattern simpleHeatPattern : totalRelationOfPatternsForCell) {
-                            totalRelations += simpleHeatPattern.getTotalRelations();
                             patterns.add(simpleHeatPattern.getPropertiesOids());
+                            int relations = simpleHeatPattern.getTotalRelations();
+                            totalRelations += relations;
+                            if (relations > topPatternRelation) {
+                                topPatternRelation = relations;
+                            }
                         }
-                        debugText = "Total relations: " + totalRelations
-                                + " Patterns " + totalRelationOfPatternsForCell.size()
-                                + "\n" + patterns;
+
+                        int clusterRelations = 0;
+                        for (MiningRoleTypeChunk roleTypeChunk : roles) {
+                            int propertiesCount = roleTypeChunk.getProperties().size();
+                            int membersCount = roleTypeChunk.getMembers().size();
+                            clusterRelations += (propertiesCount * membersCount);
+                        }
+                        double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
+
+                        String value = patternCount + " pattern(s) detected";
+                        int averageRelation = totalRelations / patterns.size();
+                        debugText = value + ", maximum coverage pattern " + String.format("%.2f", topPatternCoverage)
+                                + "% (" + topPatternRelation + "relations) "
+                                + "and average relation per pattern is " + averageRelation + "relations";
                     }
 
                     DebugLabel debugLabel = new DebugLabel(((PageBase) getPage()).getMainPopupBodyId(), Model.of(debugText));

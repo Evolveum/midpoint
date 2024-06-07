@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         display = @PanelDisplay(
                 label = "RoleAnalysis.overview.panel",
                 icon = GuiStyleConstants.CLASS_LINE_CHART_ICON,
-                order = 10))
+                order = 20))
 public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainPanel<RoleAnalysisOutlierType, ObjectDetailsModels<RoleAnalysisOutlierType>> {
 
     private static final String ID_CONTAINER = "container";

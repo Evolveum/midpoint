@@ -16,6 +16,8 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.SimpleHeatPattern;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;

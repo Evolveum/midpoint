@@ -216,17 +216,9 @@ public class PageRoleAnalysis extends PageAdmin {
                     PrismObject<RoleAnalysisOutlierType> outlierTypePrismObject = searchResultList.get(i);
                     RoleAnalysisOutlierType outlierObject = outlierTypePrismObject.asObjectable();
                     List<RoleAnalysisOutlierDescriptionType> outlierStatResult = outlierObject.getResult();
-                    String label = "";
-                    if (outlierStatResult == null || outlierStatResult.isEmpty()) {
-                        continue;
-                    }
-                    double averageConfidence = 0;
-                    for (RoleAnalysisOutlierDescriptionType item : outlierStatResult) {
-                        averageConfidence += item.getConfidenceDeviation();
-                    }
-                    averageConfidence = averageConfidence / outlierStatResult.size();
-                    String formattedConfidence = String.format("%.2f", averageConfidence * 100);
-
+                    Double clusterConfidence = outlierObject.getClusterConfidence();
+                    String formattedConfidence = String.format("%.2f", clusterConfidence);
+                    String label;
                     if (outlierStatResult.size() > 1) {
                         label = "Has been detected outliers with multiple (" + outlierStatResult.size() + ") anomalies "
                                 + "and confidence of " + formattedConfidence + "%";
@@ -315,7 +307,7 @@ public class PageRoleAnalysis extends PageAdmin {
                                         roleAnalysisService, outlierObject, task, task.getResult(), cluster);
                             } else {
                                 outlierObjectModel = generateRoleOutlierResultModel(
-                                        roleAnalysisService,outlierObject, task, task.getResult(), cluster);
+                                        roleAnalysisService, outlierObject, task, task.getResult(), cluster);
                             }
 
                             assert outlierObjectModel != null;
