@@ -132,6 +132,11 @@
                 </objectType>
                 <association>
                     <ref>ri:access</ref>
+                    <focus>
+                        <assignmentTarget>
+                            <type>ServiceType</type>
+                        </assignmentTarget>
+                    </focus>
                     <attribute>
                         <ref>ri:level</ref>
                         <outbound>

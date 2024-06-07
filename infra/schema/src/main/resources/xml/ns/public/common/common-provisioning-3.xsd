@@ -1186,6 +1186,47 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="assignmentTarget" type="tns:AssignmentTargetSpecificationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TEMPORARY!
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="AssignmentTargetSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the focus objects.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!--<xsd:element name="archetypeRef" type="tns:ObjectReferenceType" minOccurs="0">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            TODO-->
+            <!--        </xsd:documentation>-->
+            <!--        <xsd:appinfo>-->
+            <!--            <xsd:appinfo>-->
+            <!--                <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>-->
+            <!--            </xsd:appinfo>-->
+            <!--        </xsd:appinfo>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -1791,6 +1832,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         If specified, only assignments with this subtype are considered for the processing.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="assignmentTarget" type="tns:AssignmentTargetSpecificationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TEMPORARY!
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

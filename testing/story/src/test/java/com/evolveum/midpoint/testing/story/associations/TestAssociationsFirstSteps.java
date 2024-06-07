@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -512,6 +513,16 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
                 .display();
 
         displayDumpable("account after", dmsScenario.account.getByNameRequired(ALICE));
+
+        when("recomputing alice (simulated)");
+        var simResult = executeWithSimulationResult(
+                TaskExecutionMode.SIMULATED_PRODUCTION,
+                null,
+                task, result,
+                simulationResult -> recomputeUser(alice.getOid(), task, result));
+        assertProcessedObjectsAfter(simResult)
+                .by().objectType(UserType.class).find().assertState(ObjectProcessingStateType.UNMODIFIED).end()
+                .by().objectType(ShadowType.class).find().assertState(ObjectProcessingStateType.UNMODIFIED).end();
     }
 
     private void reimportDmsResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {

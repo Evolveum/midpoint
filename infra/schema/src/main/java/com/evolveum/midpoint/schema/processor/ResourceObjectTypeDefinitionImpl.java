@@ -343,6 +343,13 @@ public final class ResourceObjectTypeDefinitionImpl
             }
 
             @Override
+            public QName getAssignmentTargetTypeName() {
+                var focusBean = definitionBean.getFocus();
+                var targetBean = focusBean != null ? focusBean.getAssignmentTarget() : null;
+                return targetBean != null ? targetBean.getType() : null;
+            }
+
+            @Override
             public String getArchetypeOid() {
                 return ResourceObjectTypeDefinitionImpl.this.getArchetypeOid();
             }

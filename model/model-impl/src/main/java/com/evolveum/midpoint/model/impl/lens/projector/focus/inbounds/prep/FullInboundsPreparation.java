@@ -14,6 +14,8 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.QNameUtil;
+
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -409,14 +411,15 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                 return List.of();
             }
             var assignments = targetPcv.asContainerable().getAssignment();
-            var assignmentSubtype = inboundDefinition.getFocusSpecification().getAssignmentSubtype();
-            if (assignmentSubtype == null) {
-                return assignments;
-            } else {
-                return assignments.stream()
-                        .filter(a -> a.getSubtype().contains(assignmentSubtype))
-                        .toList();
-            }
+            var focusSpecification = inboundDefinition.getFocusSpecification();
+            var assignmentSubtype = focusSpecification.getAssignmentSubtype();
+            var assignmentTargetTypeName = focusSpecification.getAssignmentTargetTypeName();
+            return assignments.stream()
+                    .filter(a -> assignmentSubtype == null
+                            || a.getSubtype().contains(assignmentSubtype))
+                    .filter(a -> assignmentTargetTypeName == null
+                            || a.getTargetRef() != null && QNameUtil.match(a.getTargetRef().getType(), assignmentTargetTypeName))
+                    .toList();
         }
 
         /**
