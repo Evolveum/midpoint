@@ -109,4 +109,9 @@ public abstract class QContainerWithFullObjectMapping<S extends Containerable, Q
     public Q createAlias() {
         return defaultAlias();
     }
+
+    @Override
+    public boolean useDeltaApplyResults() {
+        return true;
+    }
 }
