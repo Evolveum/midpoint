@@ -79,7 +79,8 @@ public class CertificationCasesPanel extends
             @Override
             public void onClick(AjaxRequestTarget target,
                     IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-                showResponseDetailsPopup(target, rowModel.getObject());
+                //todo uncomment when response details panel is implemented
+//                showResponseDetailsPopup(target, rowModel.getObject());
             }
 
         };
