@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import com.google.common.collect.Sets;
@@ -37,10 +38,6 @@ import com.evolveum.midpoint.model.impl.sync.ItemSynchronizationState;
 import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluation;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
@@ -341,13 +338,22 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
     void executeComplexProcessing(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, StopProcessingProjectionException {
+        // FIXME fix this hacking aimed at providing "object new" version
         var shadow = source.getResourceObjectNew();
-        if (shadow == null) {
+        if (shadow == null && !ObjectDelta.isAdd(source.aPrioriDelta)) {
             return;
+        }
+
+        if (ObjectDelta.isAdd(source.aPrioriDelta)) {
+            shadow = source.aPrioriDelta.getObjectToAdd();
+        } else if (ObjectDelta.isModify(source.aPrioriDelta)) {
+            shadow = shadow.clone();
+            source.aPrioriDelta.applyTo(shadow);
         }
 
         // TODO implement also for attributes
 
+        // FIXME treat also empty associations here (i.e., go by definitions, not by actual data)
         for (var association : ShadowUtil.getAssociations(shadow)) {
             for (var inboundDefinition : association.getDefinition().getRelevantInboundDefinitions()) {
                 LOGGER.trace("Processing association {} using {}", association.getElementName(), inboundDefinition);
@@ -383,7 +389,23 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                 ConfigurationException, StopProcessingProjectionException, ObjectNotFoundException {
 
             // Processing individual values of the reference attribute
-            for (var refAttributeValue : referenceAttribute.getAssociationValues()) {
+            values: for (var refAttributeValue : referenceAttribute.getAssociationValues()) {
+
+                // FIXME EXTRA HACK: we check if the association value was not removed by a-priori delta
+                //  (normal delta application does not work here)
+                if (source.aPrioriDelta != null) {
+                    var associationDelta = source.aPrioriDelta.<ShadowAssociationValueType>findContainerDelta(
+                            associationDefinition.getStandardPath());
+                    if (associationDelta != null) {
+                        for (var deletedValue : emptyIfNull(associationDelta.getValuesToDelete())) {
+                            if (refAttributeValue.matches((ShadowAssociationValue) deletedValue)) {
+                                LOGGER.trace("Ignoring association value that was already deleted: {}", refAttributeValue);
+                                continue values;
+                            }
+                        }
+                    }
+                }
+
                 LOGGER.trace("Processing reference attribute value: {}", refAttributeValue);
                 new ValueProcessing(refAttributeValue)
                         .process(result);

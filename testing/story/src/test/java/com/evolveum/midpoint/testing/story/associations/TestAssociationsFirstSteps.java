@@ -482,11 +482,52 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
         then("all is OK");
         assertUserAfterByUsername(JIM)
                 .withObjectResolver(createSimpleModelObjectResolver())
+                .assertAssignments(2)
                 .singleLink()
                 .resolveTarget()
                 .display();
 
         displayDumpable("account after", dmsScenario.account.getByNameRequired(JIM));
+
+        when("assignment providing write access to guide is created (real)");
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(new AssignmentType()
+                                .targetRef(guideOid, ServiceType.COMPLEX_TYPE, RELATION_WRITE))
+                        .asObjectDelta(jimOid),
+                null, task, result);
+
+        then("all is OK");
+        var newAssignment = assertUserAfterByUsername(JIM)
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .end()
+                .end()
+                .assignments()
+                .assertAssignments(3)
+                .by().targetRelation(RELATION_WRITE).find().getAssignment();
+
+        displayDumpable("account after", dmsScenario.account.getByNameRequired(JIM));
+
+        when("assignment providing write access to guide is deleted (real)");
+        traced(() -> executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .delete(newAssignment.clone())
+                        .asObjectDelta(jimOid),
+                null, task, result));
+
+        then("all is OK");
+        displayDumpable("account after", dmsScenario.account.getByNameRequired(JIM));
+        assertUserAfterByUsername(JIM)
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .assertAssignments(2)
+                .singleLink()
+                .resolveTarget()
+                .display();
     }
 
     @Test
