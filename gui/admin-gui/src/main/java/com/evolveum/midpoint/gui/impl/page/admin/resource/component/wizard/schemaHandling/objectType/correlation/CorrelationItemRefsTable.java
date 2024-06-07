@@ -17,7 +17,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrappe
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.input.ContainersDropDownPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -37,6 +37,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
@@ -48,7 +49,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * @author lskublik
  */
-public class CorrelationItemRefsTable extends AbstractResourceWizardTable<CorrelationItemType, ItemsSubCorrelatorType> {
+public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationItemType, ItemsSubCorrelatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationItemRefsTable.class);
 
@@ -91,53 +92,72 @@ public class CorrelationItemRefsTable extends AbstractResourceWizardTable<Correl
                 getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-3";
+                return isCorrelationForAssociation() ? null : "col-3";
             }
         });
 
-        columns.add(new PrismContainerWrapperColumn<>(
-                correlationDef,
-                ItemPath.create(
-                        CorrelationItemType.F_SEARCH,
-                        ItemSearchDefinitionType.F_FUZZY),
-                getPageBase()) {
-            @Override
-            protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
-                ContainersDropDownPanel<SynchronizationActionsType> panel = new ContainersDropDownPanel(
-                        componentId,
-                        rowModel) {
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-                        target.add(findParent(SelectableDataTable.SelectableRowItem.class));
-                    }
+        if (isCorrelationForAssociation()) {
+            columns.add(new PrismContainerWrapperColumn<>(
+                    correlationDef,
+                    ItemPath.create(
+                            CorrelationItemType.F_SEARCH,
+                            ItemSearchDefinitionType.F_FUZZY),
+                    getPageBase()) {
+                @Override
+                protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+                    return new Label(componentId, getString("CorrelationItemRefsTable.column.fuzzy.nullValue"));
+                }
+            });
+        } else {
+            columns.add(new PrismContainerWrapperColumn<>(
+                    correlationDef,
+                    ItemPath.create(
+                            CorrelationItemType.F_SEARCH,
+                            ItemSearchDefinitionType.F_FUZZY),
+                    getPageBase()) {
+                @Override
+                protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+                    ContainersDropDownPanel<SynchronizationActionsType> panel = new ContainersDropDownPanel(
+                            componentId,
+                            rowModel) {
+                        @Override
+                        protected void onUpdate(AjaxRequestTarget target) {
+                            target.add(findParent(SelectableDataTable.SelectableRowItem.class));
+                        }
 
-                    @Override
-                    protected String getNullValidDisplayValue() {
-                        return getString("CorrelationItemRefsTable.column.fuzzy.nullValue");
-                    }
-                };
-                panel.setOutputMarkupId(true);
-                return panel;
-            }
+                        @Override
+                        protected String getNullValidDisplayValue() {
+                            return getString("CorrelationItemRefsTable.column.fuzzy.nullValue");
+                        }
+                    };
+                    panel.setOutputMarkupId(true);
+                    return panel;
+                }
 
-            @Override
-            public String getCssClass() {
-                return "col-3";
-            }
-        });
+                @Override
+                public String getCssClass() {
+                    return "col-3";
+                }
+            });
 
-        columns.add(createColumnForPropertyOfFuzzyContainer(
-                LevenshteinDistanceSearchDefinitionType.F_THRESHOLD,
-                "CorrelationItemRefsTable.column.threshold.label",
-                "CorrelationItemRefsTable.column.threshold.help",
-                "col-3"));
-        columns.add(createColumnForPropertyOfFuzzyContainer(
-                LevenshteinDistanceSearchDefinitionType.F_INCLUSIVE,
-                "CorrelationItemRefsTable.column.inclusive.label",
-                "CorrelationItemRefsTable.column.inclusive.help",
-                "col-2"));
+            columns.add(createColumnForPropertyOfFuzzyContainer(
+                    LevenshteinDistanceSearchDefinitionType.F_THRESHOLD,
+                    "CorrelationItemRefsTable.column.threshold.label",
+                    "CorrelationItemRefsTable.column.threshold.help",
+                    "col-3"));
+            columns.add(createColumnForPropertyOfFuzzyContainer(
+                    LevenshteinDistanceSearchDefinitionType.F_INCLUSIVE,
+                    "CorrelationItemRefsTable.column.inclusive.label",
+                    "CorrelationItemRefsTable.column.inclusive.help",
+                    "col-2"));
+        }
 
         return columns;
+    }
+
+    private boolean isCorrelationForAssociation() {
+        var associationParent = getValueModel().getObject().getParentContainerValue(ShadowAssociationDefinitionType.class);
+        return associationParent != null;
     }
 
     private IColumn<PrismContainerValueWrapper<CorrelationItemType>, String> createColumnForPropertyOfFuzzyContainer(

@@ -110,20 +110,10 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
                 "GuiObjectDetailsPageType",
                 GuiObjectDetailsPageType.class,
                 m -> new GenericItemMerger(m, DefaultNaturalKeyDefinitionImpl.of(GuiObjectDetailsPageType.F_TYPE)));
-//        factory.registerMergerSupplier(
-//                "GuiResourceDetailsPageType",
-//                GuiResourceDetailsPageType.class,
-//                m -> new GenericItemMerger(m, DefaultNaturalKeyImpl.of(
-//                        GuiResourceDetailsPageType.F_TYPE,
-//                        GuiResourceDetailsPageType.F_CONNECTOR_REF)));
         factory.registerMergerSupplier(
                 "ExpressionEvaluatorProfileType",
                 ExpressionEvaluatorProfileType.class,
                 m -> new GenericItemMerger(m, DefaultNaturalKeyDefinitionImpl.of(ExpressionEvaluatorProfileType.F_TYPE)));
-//        factory.registerMergerSupplier(
-//                "ClassLoggerLevelOverrideType",
-//                ClassLoggerLevelOverrideType.class,
-//                m -> new GenericItemMerger(m, DefaultNaturalKeyImpl.of(ClassLoggerLevelOverrideType.F_LOGGER)));
         factory.registerMergerSupplier(
                 "ObjectSelectorType",
                 ObjectSelectorType.class,
@@ -256,8 +246,8 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/api-types-3.xsd", "apti",
                 com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectFactory.class.getPackage());
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/prism-schema-3.xsd", "prisms",
-                com.evolveum.midpoint.xml.ns._public.common.prism_schema_3.ObjectFactory.class.getPackage());
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/prism-schema/prism-schema-3.xsd", "prisms",
+                com.evolveum.midpoint.xml.ns._public.prism_schema_3.ObjectFactory.class.getPackage());
 
         schemaRegistry.registerPrismSchemasFromWsdlResource("xml/ns/public/model/model-3.wsdl",
                 Collections.singletonList(ObjectFactory.class.getPackage()));

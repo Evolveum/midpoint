@@ -26,6 +26,7 @@ public class SearchConfigurationWrapperFactory {
         factories.add(new ProcessedObjectTypeItemWrapperFactory());
         factories.add(new DeadShadowSearchItemWrapperFactory());
         factories.add(new ChoicesSearchItemWrapperFactory());
+        factories.add(new CertItemOutcomeSearchItemWrapperFactory());
         factories.add(new AutocompleteSearchItemWrapperFactory());
         factories.add(new ReferenceSearchItemWrapperFactory());
         factories.add(new ObjectClassSearchItemWrapperFactory());

@@ -28,12 +28,17 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
+import com.evolveum.midpoint.web.session.CertDecisionsStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -45,6 +50,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serial;
 import java.util.ArrayList;
@@ -65,8 +71,11 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     private static final String OPERATION_RECORD_ACTION = DOT_CLASS + "recordAction";
     private static final String OPERATION_RECORD_ACTION_SELECTED = DOT_CLASS + "recordActionSelected";
 
-    public CertificationItemsPanel(String id) {
+    private String campaignOid;
+
+    public CertificationItemsPanel(String id, String campaignOid) {
         super(id, AccessCertificationWorkItemType.class);
+        this.campaignOid = campaignOid;
     }
 
     public CertificationItemsPanel(String id, ContainerPanelConfigurationType configurationType) {
@@ -83,7 +92,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     }
 
     private List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createColumns() {
-        return ColumnUtils.getDefaultCertWorkItemColumns();
+        return ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
     }
 
     @Override
@@ -129,10 +138,13 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         };
     }
 
+    public CertDecisionsStorage getPageStorage() {
+        return getSession().getSessionStorage().getCertDecisions();
+    }
 
     @Override
     protected String getStorageKey() {
-        return SessionStorage.KEY_WORK_ITEMS;
+        return SessionStorage.KEY_CERT_DECISIONS;
     }
 
     private ContainerListDataProvider<AccessCertificationWorkItemType> createProvider(IModel<Search<AccessCertificationWorkItemType>> searchModel) {
@@ -149,10 +161,10 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
                 return getPageBase().getSessionStorage().getCertDecisions();
             }
 
-            @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                return getOpenCertWorkItemsQuery(true);
-            }
+//            @Override
+//            protected ObjectQuery getCustomizeContentQuery() {
+//                return getOpenCertWorkItemsQuery(showOnlyNotDecidedItems());
+//            }
 
         };
 //        provider.setSort(CaseWorkItemType.F_DEADLINE.getLocalPart(), SortOrder.DESCENDING);
@@ -183,7 +195,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
             items.add(createResponseMenu(buttonsCount, NO_RESPONSE));
         }
 //        addCommentWorkItemAction(items); //todo is it possible just to add comment without any response?
-//        addForwardWorkItemAction(items);
+        addResolveCertItemAction(items);
         return items;
     }
 
@@ -206,9 +218,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            PrismContainerValueWrapper<AccessCertificationWorkItemType> wi =
-                                    (PrismContainerValueWrapper<AccessCertificationWorkItemType>) getRowModel().getObject();
-                            confirmAction(response, Collections.singletonList(wi.getRealValue()), target);
+                            responseSelected(response, getRowModel(), target);
                         }
                     };
                 }
@@ -225,14 +235,25 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            PrismContainerValueWrapper<AccessCertificationWorkItemType> wi =
-                                    (PrismContainerValueWrapper<AccessCertificationWorkItemType>) getRowModel().getObject();
-                            confirmAction(response, Collections.singletonList(wi.getRealValue()), target);
+                            responseSelected(response, getRowModel(), target);
                         }
                     };
                 }
             };
         }
+    }
+
+    private void responseSelected(AccessCertificationResponseType response,
+            IModel rowModel, AjaxRequestTarget target) {
+        List<AccessCertificationWorkItemType> itemsToProcess = new ArrayList<>();
+        if (rowModel != null && rowModel.getObject() != null) {
+            AccessCertificationWorkItemType item =
+                    ((PrismContainerValueWrapper<AccessCertificationWorkItemType>) rowModel.getObject()).getRealValue();
+            itemsToProcess.add(item);
+        } else {
+            itemsToProcess = getSelectedRealObjects();
+        }
+        confirmAction(response, itemsToProcess, target);
     }
 
     private void confirmAction(AccessCertificationResponseType response, List<AccessCertificationWorkItemType> items,
@@ -321,14 +342,52 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         });
     }
 
+    private void addResolveCertItemAction(List<InlineMenuItem> items) {
+        items.add(new InlineMenuItem(createStringResource("CertificationItemsPanel.action.resolve")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        ResolveItemPanel resolveItemPanel = new ResolveItemPanel(getPageBase().getMainPopupBodyId()) {
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void savePerformed(AjaxRequestTarget target, AccessCertificationResponseType response,
+                                    String comment) {
+                                List<AccessCertificationWorkItemType> items = new ArrayList<>();
+                                if (getRowModel() == null) {
+                                    items = getSelectedRealObjects();
+                                } else {
+                                    PrismContainerValueWrapper<AccessCertificationWorkItemType> wi =
+                                            (PrismContainerValueWrapper<AccessCertificationWorkItemType>) getRowModel().getObject();
+                                    items = Collections.singletonList(wi.getRealValue());
+                                }
+                                if (CollectionUtils.isEmpty(items)) {
+                                    warn(getString("PageCertDecisions.message.noItemSelected"));
+                                    target.add(getFeedbackPanel());
+                                    return;
+                                }
+                                recordActionOnSelected(response, items, comment, target);
+                            }
+                        };
+                        getPageBase().showMainPopup(resolveItemPanel, target);
+                    }
+                };
+            }
+        });
+    }
+
     protected ObjectQuery getOpenCertWorkItemsQuery(boolean notDecidedOnly) {
-        String campaignOid = getCampaignOid();
         ObjectQuery query;
         if (StringUtils.isNotEmpty(campaignOid)) {
-            query = PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
-                    .ownedBy(AccessCertificationCaseType.class, AccessCertificationCaseType.F_WORK_ITEM)
-                    .id(campaignOid)
-                    .build();
+            query = QueryUtils.createQueryForOpenWorkItemsForCampaigns(Collections.singletonList(campaignOid),
+                    getPageBase().getPrincipal(), notDecidedOnly);
         } else {
             query = PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
                     .build();
@@ -340,11 +399,11 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         return QueryUtils.createQueryForOpenWorkItems(query, principal, notDecidedOnly);
     }
 
-    protected String getCampaignOid() {
-        return null;
+    protected boolean isMyCertItems() {
+        return true;
     }
 
-    protected boolean isMyCertItems() {
+    protected boolean showOnlyNotDecidedItems() {
         return false;
     }
 

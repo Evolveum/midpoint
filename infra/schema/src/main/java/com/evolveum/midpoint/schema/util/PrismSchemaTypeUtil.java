@@ -11,26 +11,32 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.*;
 import com.evolveum.midpoint.prism.impl.EnumerationTypeDefinitionImpl.ValueDefinitionImpl;
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.prism.impl.schema.SchemaDomSerializer;
 import com.evolveum.midpoint.prism.impl.schema.SchemaParsingUtil;
+import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayHintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.prism_schema_3.*;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.*;
 import com.evolveum.prism.xml.ns._public.annotation_3.AccessAnnotationType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import javax.xml.namespace.QName;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+
+import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 /**
  * Util methods for PrismSchemaTypeUtil for converting xsd schema to PrismSchemaType and PrismSchemaType to xsd schema
@@ -55,7 +61,11 @@ public class PrismSchemaTypeUtil {
         PrismSchemaImpl parsedSchema = new PrismSchemaImpl(prismSchemaBean.getNamespace());
 
         prismSchemaBean.getComplexType().forEach(complexTypeBean -> {
-            ComplexTypeDefinitionImpl complexTypeDefinition = new ComplexTypeDefinitionImpl(complexTypeBean.getName());
+            ComplexTypeDefinitionImpl complexTypeDefinition = new ComplexTypeDefinitionImpl(
+                    new QName(
+                            prismSchemaBean.getNamespace(),
+                            complexTypeBean.getName().getLocalPart(),
+                            complexTypeBean.getName().getPrefix()));
             processComplexTypeDefinition(complexTypeDefinition.mutator(), complexTypeBean, lifecycleState);
             parsedSchema.add((Definition) complexTypeDefinition);
         });
@@ -63,13 +73,35 @@ public class PrismSchemaTypeUtil {
         prismSchemaBean.getEnumerationType().forEach(enumTypeBean -> {
             List<ValueDefinitionImpl> values = collectValues(enumTypeBean);
             EnumerationTypeDefinitionImpl enumTypeDefinition = new EnumerationTypeDefinitionImpl(
-                    enumTypeBean.getName(), enumTypeBean.getBaseType(), (List) values);
+                    new QName(
+                            prismSchemaBean.getNamespace(),
+                            enumTypeBean.getName().getLocalPart(),
+                            enumTypeBean.getName().getPrefix()),
+                    enumTypeBean.getBaseType(),
+                    (List) values);
             processDefinition(enumTypeDefinition.mutator(), enumTypeBean, lifecycleState);
             parsedSchema.add((Definition) enumTypeDefinition);
         });
 
-        Document doc = parsedSchema.serializeToXsd();
+        SchemaDomSerializer serializer = new SchemaDomSerializer(parsedSchema);
+        Document doc = serializer.serializeSchema();
         Element schemaElement = DOMUtil.getFirstChildElement(doc);
+        if (StringUtils.isNotBlank(prismSchemaBean.getDefaultPrefix())) {
+            DynamicNamespacePrefixMapper namespaceMapper = PrismContext.get().getSchemaRegistry().getNamespacePrefixMapper();
+            Element annotationElement = DOMUtil.getOrCreateSubElement(
+                    doc,
+                    schemaElement,
+                    namespaceMapper.setQNamePrefix(PrismConstants.SCHEMA_ANNOTATION));
+            Element appinfoElement = DOMUtil.getOrCreateSubElement(
+                    doc,
+                    annotationElement,
+                    namespaceMapper.setQNamePrefix(PrismConstants.SCHEMA_APP_INFO));
+            Element defaultPrefix = DOMUtil.createElement(
+                    doc,
+                    namespaceMapper.setQNamePrefix(PrismConstants.A_DEFAULT_PREFIX));
+            appinfoElement.appendChild(defaultPrefix);
+            defaultPrefix.setTextContent(prismSchemaBean.getDefaultPrefix());
+        }
         SchemaDefinitionType schemaDefinitionType = new SchemaDefinitionType();
         schemaDefinitionType.setSchema(schemaElement);
         return schemaDefinitionType;
@@ -94,19 +126,30 @@ public class PrismSchemaTypeUtil {
         complexTypeBean.getItemDefinitions().forEach(definitionBean -> {
             ItemDefinition itemDefinition = null;
             if (definitionBean instanceof PrismPropertyDefinitionType propertyDefinitionBean) {
-                itemDefinition = new PrismPropertyDefinitionImpl(propertyDefinitionBean.getName(), propertyDefinitionBean.getType());
+                itemDefinition = new PrismPropertyDefinitionImpl(
+                        new QName(((ComplexTypeDefinitionImpl) complexTypeDefinition).getTypeName().getNamespaceURI(),
+                                propertyDefinitionBean.getName().getLocalPart(),
+                                propertyDefinitionBean.getName().getPrefix()),
+                        propertyDefinitionBean.getType());
                 processItemDefinition(itemDefinition.mutator(), definitionBean, lifecycleState);
             }
 
             if (definitionBean instanceof PrismContainerDefinitionType containerDefinitionBean) {
 
                 itemDefinition = PrismContext.get().definitionFactory().newContainerDefinitionWithoutTypeDefinition(
-                        containerDefinitionBean.getName(), containerDefinitionBean.getType());
+                        new QName(((ComplexTypeDefinitionImpl) complexTypeDefinition).getTypeName().getNamespaceURI(),
+                                containerDefinitionBean.getName().getLocalPart(),
+                                containerDefinitionBean.getName().getPrefix()),
+                        containerDefinitionBean.getType());
                 processItemDefinition(itemDefinition.mutator(), definitionBean, lifecycleState);
             }
 
             if (definitionBean instanceof PrismReferenceDefinitionType referenceDefinitionBean) {
-                itemDefinition = new PrismReferenceDefinitionImpl(referenceDefinitionBean.getName(), referenceDefinitionBean.getType());
+                itemDefinition = new PrismReferenceDefinitionImpl(
+                        new QName(((ComplexTypeDefinitionImpl) complexTypeDefinition).getTypeName().getNamespaceURI(),
+                                referenceDefinitionBean.getName().getLocalPart(),
+                                referenceDefinitionBean.getName().getPrefix()),
+                        referenceDefinitionBean.getType());
                 processReferenceDefinition((PrismReferenceDefinition.PrismReferenceDefinitionMutator) itemDefinition.mutator(), referenceDefinitionBean, lifecycleState);
             }
 
@@ -227,6 +270,12 @@ public class PrismSchemaTypeUtil {
         PrismSchemaType prismSchema = new PrismSchemaType();
 
         prismSchema.namespace(parsedSchema.getNamespace());
+        Optional<Element> defaultPrefix = DOMUtil.getElement(
+                schemaElement,
+                PrismConstants.SCHEMA_ANNOTATION, PrismConstants.SCHEMA_APP_INFO, PrismConstants.A_DEFAULT_PREFIX);
+        if(defaultPrefix.isPresent()) {
+            prismSchema.defaultPrefix(defaultPrefix.get().getTextContent());
+        }
 
         parsedSchema.getComplexTypeDefinitions().forEach(complexTypeDef -> {
             ComplexTypeDefinitionType complexTypeBean = new ComplexTypeDefinitionType();
@@ -315,8 +364,9 @@ public class PrismSchemaTypeUtil {
                 .required(itemDef.isMandatory())
                 .multivalue(itemDef.isMultiValue());
 
-        if (itemDef.getValueEnumerationRef() != null) {
-            itemBean.valueEnumerationRef((ObjectReferenceType) itemDef.getValueEnumerationRef().getRealValue());
+        if (itemDef.getValueEnumerationRef() != null && itemDef.getValueEnumerationRef().getRealValue() != null) {
+            @Nullable Referencable reference = itemDef.getValueEnumerationRef().getRealValue();
+            itemBean.valueEnumerationRef(reference.getOid(), reference.getType(), reference.getRelation());
         }
 
         if (!itemDef.canModify() && !itemDef.canAdd() && !itemDef.canRead()) {

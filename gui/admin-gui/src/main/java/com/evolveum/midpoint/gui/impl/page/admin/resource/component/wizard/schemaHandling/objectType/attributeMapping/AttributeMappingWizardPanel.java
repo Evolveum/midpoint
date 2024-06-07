@@ -14,6 +14,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.prism.Containerable;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -57,6 +59,11 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
             }
 
             @Override
+            protected ItemName getItemNameOfContainerWithMappings() {
+                return AttributeMappingWizardPanel.this.getItemNameOfContainerWithMappings();
+            }
+
+            @Override
             protected void onShowOverrides(AjaxRequestTarget target, MappingDirection selectedTable) {
                 showAttributeOverrides(target, selectedTable);
             }
@@ -73,12 +80,21 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
                     }
 
                     @Override
+                    protected ItemName getItemNameOfContainerWithMappings() {
+                        return AttributeMappingWizardPanel.this.getItemNameOfContainerWithMappings();
+                    }
+
+                    @Override
                     protected void inEditNewValue(IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> value, AjaxRequestTarget target) {
                         showWizardFragment(
                                 target,
                                 new WizardPanel(getIdOfWizardPanel(), new WizardModel(createNewAttributeOverrideSteps(value, selectedTable))));
                     }
                 });
+    }
+
+    protected ItemName getItemNameOfContainerWithMappings() {
+        return ResourceObjectTypeDefinitionType.F_ATTRIBUTE;
     }
 
     private void showInboundAttributeMappingWizardFragment(

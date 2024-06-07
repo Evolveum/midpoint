@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.page.admin.certification.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
@@ -37,7 +38,7 @@ public class DeadlinePanel extends BasePanel<XMLGregorianCalendar> {
         NORMAL(null, "text-success", ""),
         CLOSE_IN_TIME(10, "text-warning", "fa fa-warning "),
         CRITICALLY_CLOSE_IN_TIME(3, "text-danger", "fa fa-exclamation-circle"),
-        UNDEFINED(UNDEFINED_DEADLINE_DISTANCE_VALUE, "", "");
+        PAST_OR_UNDEFINED(UNDEFINED_DEADLINE_DISTANCE_VALUE, "text-primary", "");
 
         private final Integer maxDayDistanceFromDeadline;
         private final String cssStyle;
@@ -55,6 +56,7 @@ public class DeadlinePanel extends BasePanel<XMLGregorianCalendar> {
                 "DeadlinePanel.deadlineInDays"),        // e.g. "in 3 days", can be used when Deadline label precedes DeadlinePanel
         DAYS_REMAINING_TEXT_FORMAT("DeadlinePanel.dayRemaining",
                 "DeadlinePanel.daysRemaining"), // e.g. "3 days remaining", clear message for separate DeadlinePanel usage
+        FINISHED("DeadlinePanel.finishedOn", "DeadlinePanel.finishedOn"), // e.g. "finished on ..."
         DATE_FORMAT(null, null);                // e.g. usual date format
 
         private final String messageKeyForOneDay;
@@ -92,17 +94,24 @@ public class DeadlinePanel extends BasePanel<XMLGregorianCalendar> {
     }
 
     private IModel<String> createLabelModel() {
-        var deadlineLabelFormat = getDeadlineLabelFormat();
         int daysToDeadline = getDaysToDeadline();
+        if (daysToDeadline < 0) {
+            if (getModelObject() == null) {
+                return Model.of("");
+            } else {
+                String formatedDate = WebComponentUtil.getLocalizedDate(getModelObject(), DateLabelComponent.SHORT_NOTIME_STYLE);
+                return createStringResource(DeadlineLabelFormat.FINISHED.messageKeyForOneDay, formatedDate);
+            }
+        }
+
         String labelKey;
+        var deadlineLabelFormat = getDeadlineLabelFormat();
         if (daysToDeadline == 1) {
             labelKey = deadlineLabelFormat.messageKeyForOneDay;
         } else {
             labelKey = deadlineLabelFormat.messageKeyForMoreDays;
         }
-        if (daysToDeadline == UNDEFINED_DEADLINE_DISTANCE_VALUE) {
-            return Model.of("");
-        }
+
         if (StringUtils.isEmpty(labelKey)) {
             return Model.of(WebComponentUtil.getShortDateTimeFormattedValue(getModelObject(), getPageBase()));
         }
@@ -126,8 +135,8 @@ public class DeadlinePanel extends BasePanel<XMLGregorianCalendar> {
 
     private DeadlineDistance calculateDeadlineDistance() {
         int daysToDeadline = getDaysToDeadline();
-        if (daysToDeadline == UNDEFINED_DEADLINE_DISTANCE_VALUE) {
-            return DeadlineDistance.UNDEFINED;
+        if (daysToDeadline < 0) {
+            return DeadlineDistance.PAST_OR_UNDEFINED;
         }
         if (daysToDeadline <= DeadlineDistance.CRITICALLY_CLOSE_IN_TIME.maxDayDistanceFromDeadline) {
             return DeadlineDistance.CRITICALLY_CLOSE_IN_TIME;
@@ -148,7 +157,7 @@ public class DeadlinePanel extends BasePanel<XMLGregorianCalendar> {
                 deadline.getDay());
         LocalDate now = LocalDate.now();
 
-        return (int) ChronoUnit.DAYS.between(deadlineLocalDate, now);
+        return (int) ChronoUnit.DAYS.between(now, deadlineLocalDate);
     }
 
     protected DeadlineLabelFormat getDeadlineLabelFormat() {

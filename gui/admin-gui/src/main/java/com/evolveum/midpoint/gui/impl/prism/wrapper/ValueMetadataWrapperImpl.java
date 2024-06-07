@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.delta.ItemMerger;
 import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -126,6 +127,11 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     @Override
     public @Nullable NaturalKeyDefinition getNaturalKeyInstance() {
         return metadataValueWrapper.getNaturalKeyInstance();
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return metadataValueWrapper.getSchemaContextDefinition();
     }
 
     @Override

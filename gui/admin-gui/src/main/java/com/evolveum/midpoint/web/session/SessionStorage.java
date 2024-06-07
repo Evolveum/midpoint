@@ -70,7 +70,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     private static final String KEY_TASKS = "tasks";
     private static final String KEY_SUBTASKS = "subtasks";
     private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
-    private static final String KEY_CERT_DECISIONS = "certDecisions";
+    public static final String KEY_CERT_DECISIONS = "certDecisions";
 
     public enum Mode {
 

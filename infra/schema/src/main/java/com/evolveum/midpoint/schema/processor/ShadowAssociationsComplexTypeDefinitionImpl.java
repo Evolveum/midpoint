@@ -9,10 +9,14 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Implementation of a CTD for a {@link ShadowAssociationsContainer}.
@@ -45,6 +49,11 @@ class ShadowAssociationsComplexTypeDefinitionImpl
         } else {
             return null;
         }
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return objectDefinition.getSchemaContextDefinition();
     }
 
     @Override

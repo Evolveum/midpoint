@@ -27,7 +27,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.component.CertificationItemsPanel;
-import com.evolveum.midpoint.web.page.admin.certification.component.MyCertificationItemsPanel;
 import com.evolveum.midpoint.web.page.admin.certification.dto.*;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
@@ -87,6 +86,8 @@ public class PageCertDecisions extends PageAdminCertification {
     private static final String ID_SHOW_NOT_DECIDED_ONLY = "showNotDecidedOnly";
     private static final String ID_TABLE_HEADER = "tableHeader";
 
+    public static final String CAMPAIGN_OID_PARAMETER = "campaignOid";
+
     private CertDecisionHelper helper = new CertDecisionHelper();
 
     boolean isDisplayingAllItems() {
@@ -136,10 +137,13 @@ public class PageCertDecisions extends PageAdminCertification {
     private void initLayout() {
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
-        MyCertificationItemsPanel table = new MyCertificationItemsPanel(ID_DECISIONS_TABLE) {
-
+        CertificationItemsPanel table = new CertificationItemsPanel(ID_DECISIONS_TABLE, getCampaignOid()) {
             @Serial private static final long serialVersionUID = 1L;
 
+            @Override
+            protected boolean isMyCertItems() {
+                return !isDisplayingAllItems();
+            }
 
         };
         table.setOutputMarkupId(true);
@@ -158,6 +162,15 @@ public class PageCertDecisions extends PageAdminCertification {
 //            }
 //        });
 //    }
+
+    protected String getCampaignOid() {
+        PageParameters pageParameters = getPageParameters();
+        if (pageParameters != null && pageParameters.get(CAMPAIGN_OID_PARAMETER) != null) {
+            return pageParameters.get(CAMPAIGN_OID_PARAMETER).toString();
+        }
+        return null;
+    }
+
 
     private List<IColumn<CertWorkItemDto, String>> initColumns() {
         List<IColumn<CertWorkItemDto, String>> columns = new ArrayList<>();

@@ -11,12 +11,12 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -57,6 +57,11 @@ public abstract class MappingOverridesTableWizardPanel<C extends Containerable> 
 
         MappingOverrideTable<C> table = new MappingOverrideTable<>(ID_TABLE, getValueModel(), getConfiguration()) {
             @Override
+            protected ItemName getItemNameOfContainerWithMappings() {
+                return MappingOverridesTableWizardPanel.this.getItemNameOfContainerWithMappings();
+            }
+
+            @Override
             protected void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> rowModel, List<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> listItems) {
                 inEditNewValue(rowModel, target);
             }
@@ -65,6 +70,8 @@ public abstract class MappingOverridesTableWizardPanel<C extends Containerable> 
         table.setOutputMarkupId(true);
         add(table);
     }
+
+    protected abstract ItemName getItemNameOfContainerWithMappings();
 
     @Override
     protected boolean isValid(AjaxRequestTarget target) {

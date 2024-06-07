@@ -11,7 +11,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTilePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -34,7 +34,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
-public class MappingTilePanel extends ResourceTilePanel<PrismContainerValueWrapper<
+public class MappingTilePanel extends TemplateTilePanel<PrismContainerValueWrapper<
         ? extends Containerable>, MappingTile<PrismContainerValueWrapper<? extends Containerable>>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingTilePanel.class);

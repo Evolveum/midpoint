@@ -40,13 +40,14 @@ public abstract class ResourceAssociationTypeWizardPreviewPanel
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        add(AttributeAppender.append("class", "col-xxl-10 col-12 gap-3 m-auto"));
+        add(AttributeAppender.append("class", "col-xxl-8 col-10 gap-3 m-auto"));
     }
 
     public enum ResourceAssociationTypePreviewTileType implements TileEnum {
 
         BASIC("fa fa-circle"),
         ATTRIBUTE_MAPPING("fa fa-retweet"),
+        REFERENCE_MAPPING("fa fa-retweet"),
         SYNCHRONIZATION("fa fa-arrows-rotate"),
         CORRELATION("fa fa-code-branch"),
         ACTIVATION("fa fa-toggle-off");

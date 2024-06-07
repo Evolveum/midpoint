@@ -180,7 +180,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public void showSynchronizationWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizard(target, pathToValue, SynchronizationWizardPanel.class);
+        showContainerWizard(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_SYNCHRONIZATION), SynchronizationWizardPanel.class);
     }
 
     public void showAttributeMappingWizard(AjaxRequestTarget target, ItemPath pathToValue) {
@@ -188,7 +188,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public void showCorrelationWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizard(target, pathToValue, CorrelationWizardPanel.class);
+        showContainerWizard(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_CORRELATION), CorrelationWizardPanel.class);
     }
 
     public void showCapabilitiesWizard(AjaxRequestTarget target, ItemPath pathToValue) {

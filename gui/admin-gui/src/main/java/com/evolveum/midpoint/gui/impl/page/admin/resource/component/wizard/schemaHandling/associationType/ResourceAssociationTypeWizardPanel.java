@@ -6,10 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.ResourceAssociationTypeBasicWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.objectRef.ReferenceMappingWizardPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
 
@@ -20,19 +19,10 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.SchemaHandlingTypeWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.PreviewResourceObjectTypeDataWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeWizardPreviewPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.activation.ActivationsWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.associations.AssociationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping.AttributeMappingWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.basic.ResourceObjectTypeBasicWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.capabilities.CapabilitiesWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.credentials.CredentialsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.synchronization.SynchronizationWizardPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-
-import org.apache.wicket.model.IModel;
 
 /**
  * @author lskublik
@@ -60,7 +50,10 @@ public class ResourceAssociationTypeWizardPanel extends SchemaHandlingTypeWizard
                         showResourceObjectTypeBasic(target);
                         break;
                     case ATTRIBUTE_MAPPING:
-                        showTableForAttributes(target);
+                        showTableForAttributesMappings(target);
+                        break;
+                    case REFERENCE_MAPPING:
+                        showTableForReferenceMappings(target);
                         break;
                     case SYNCHRONIZATION:
                         showSynchronizationConfigWizard(target);
@@ -132,10 +125,23 @@ public class ResourceAssociationTypeWizardPanel extends SchemaHandlingTypeWizard
         );
     }
 
-    private void showTableForAttributes(AjaxRequestTarget target) {
+    private void showTableForAttributesMappings(AjaxRequestTarget target) {
         showWizardFragment(
                 target,
                 new AttributeMappingWizardPanel<>(
+                        getIdOfWizardPanel(),
+                        createHelper(
+                                ItemPath.create(
+                                        ShadowAssociationTypeDefinitionType.F_SUBJECT,
+                                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION),
+                                false))
+        );
+    }
+
+    private void showTableForReferenceMappings(AjaxRequestTarget target) {
+        showWizardFragment(
+                target,
+                new ReferenceMappingWizardPanel(
                         getIdOfWizardPanel(),
                         createHelper(
                                 ItemPath.create(

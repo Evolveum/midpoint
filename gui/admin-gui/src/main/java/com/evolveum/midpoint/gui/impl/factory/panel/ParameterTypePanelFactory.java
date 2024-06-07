@@ -10,7 +10,8 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
-import jakarta.annotation.PostConstruct;
+import com.evolveum.midpoint.gui.impl.factory.panel.qname.DropDownChoicePanelFactory;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.QNameUtil;
@@ -19,7 +20,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;

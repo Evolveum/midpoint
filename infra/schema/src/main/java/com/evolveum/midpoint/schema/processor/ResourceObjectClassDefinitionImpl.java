@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -157,6 +158,11 @@ public class ResourceObjectClassDefinitionImpl
     @Override
     public boolean isDefaultAccountDefinition() {
         return nativeObjectClassDefinition.isDefaultAccountDefinition();
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return null;
     }
 
     @Override

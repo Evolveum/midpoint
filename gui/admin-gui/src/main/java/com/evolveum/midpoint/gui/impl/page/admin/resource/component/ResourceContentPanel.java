@@ -406,9 +406,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
                 if (valueModel != null && valueModel.getObject() != null) {
-                    getObjectDetailsModels().getPageResource().showSynchronizationWizard(
-                            target,
-                            valueModel.getObject().getPath().append(ResourceObjectTypeDefinitionType.F_SYNCHRONIZATION));
+                    getObjectDetailsModels().getPageResource().showSynchronizationWizard(target, valueModel.getObject().getPath());
                 }
             }
         };
@@ -428,9 +426,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
                 if (valueModel != null && valueModel.getObject() != null) {
-                    getObjectDetailsModels().getPageResource().showCorrelationWizard(
-                            target,
-                            valueModel.getObject().getPath().append(ResourceObjectTypeDefinitionType.F_CORRELATION));
+                    getObjectDetailsModels().getPageResource().showCorrelationWizard(target, valueModel.getObject().getPath());
                 }
             }
         };

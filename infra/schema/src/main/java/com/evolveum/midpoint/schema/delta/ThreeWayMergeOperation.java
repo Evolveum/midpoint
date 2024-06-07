@@ -88,10 +88,19 @@ public class ThreeWayMergeOperation<O extends ObjectType> {
     }
 
     public Collection<? extends ItemDelta<?, ?>> getNonConflictingModifications(Direction direction) {
-        ObjectTreeDelta<O> delta = direction == Direction.LEFT_TO_RIGHT ? leftDelta : rightDelta;
-        ObjectTreeDelta<O> other = direction == Direction.LEFT_TO_RIGHT ? rightDelta : leftDelta;
+        ObjectTreeDelta<O> delta = direction == Direction.FROM_LEFT ? leftDelta : rightDelta;
+        ObjectTreeDelta<O> other = direction == Direction.FROM_LEFT ? rightDelta : leftDelta;
 
         return delta.getNonConflictingModifications(other, strategy);
+    }
+
+    public ObjectDelta<O> getNonConflictingDelta(Direction direction) {
+        Collection modifications = getNonConflictingModifications(direction);
+
+        ObjectDelta<O> delta = base.createModifyDelta();
+        delta.addModifications(modifications);
+
+        return delta;
     }
 
     public Collection<Conflict> getConflictingModifications() {

@@ -239,7 +239,7 @@ Old password field and Password propagation section can be configured (can be hi
 | *propagationUserControl*
 | Constraints that define how propagation of the credentials can be controlled by the +
 user. E.g. if user can choose where the password change will be propagated.
-| _**mapping**_ (Credentials propagation will be determined by the mappings. User cannot choose where the credentials will be propagated.The credentials propagation dialog will not be shown.)
+| _**objectRef**_ (Credentials propagation will be determined by the mappings. User cannot choose where the credentials will be propagated.The credentials propagation dialog will not be shown.)
 
 _**userChoice**_ (The user can choose where the credentials will be propagated.The propagation dialog will be shown.)
 

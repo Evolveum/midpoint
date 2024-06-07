@@ -9,7 +9,7 @@ package com.evolveum.midpoint.schema.delta;
 
 public enum Direction {
 
-    LEFT_TO_RIGHT,
+    FROM_LEFT,
 
-    RIGHT_TO_LEFT
+    FROM_RIGHT
 }

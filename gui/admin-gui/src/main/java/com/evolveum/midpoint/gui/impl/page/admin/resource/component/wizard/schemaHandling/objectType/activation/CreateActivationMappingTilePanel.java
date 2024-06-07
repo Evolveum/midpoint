@@ -7,14 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.activation;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTilePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
-public class CreateActivationMappingTilePanel extends ResourceTilePanel<PrismContainerDefinition, CreateActivationMappingTile> {
+public class CreateActivationMappingTilePanel extends TemplateTilePanel<PrismContainerDefinition, CreateActivationMappingTile> {
     public CreateActivationMappingTilePanel(String id, IModel<CreateActivationMappingTile> model) {
         super(id, model);
     }

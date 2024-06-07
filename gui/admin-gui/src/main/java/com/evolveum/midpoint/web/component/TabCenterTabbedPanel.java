@@ -7,14 +7,9 @@
 
 package com.evolveum.midpoint.web.component;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Tabbed Panel with different html file. Split width of panel for tabs button in header.

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.processor;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ObjectSynchronizationReactionDefinition;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -182,6 +183,11 @@ public final class ResourceObjectTypeDefinitionImpl
         }
         super.trimTo(paths);
         refinedObjectClassDefinition.trimTo(paths);
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return refinedObjectClassDefinition.getSchemaContextDefinition();
     }
 
     //region Cloning ========================================================
