@@ -936,7 +936,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (rangeSetDefBean == null && shouldUseMatchingProvenance()) {
             rangeSetDefBean = new ValueSetDefinitionType().predefined(ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE);
         }
-
+        if (rangeSetDefBean == null) {
+            return;
+        }
         String name;
         if (getOutputPath() != null) {
             name = getOutputPath().lastName().getLocalPart();
@@ -1095,8 +1097,11 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         V valueToDelete = (V) originalValue.clone();
         if (rangeSetDef.isYieldSpecific()) {
             LOGGER.trace("A yield of original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
+
+
+
             valueToDelete.<ValueMetadataType>getValueMetadataAsContainer()
-                    .removeIf(md -> !hasMappingSpecification(md.asContainerable(), mappingSpecification));
+                    .removeIf(md -> !rangeSetDef.hasMappingSpecification(md.asContainerable()));
             // TODO we could check if the minus set already contains the value we are going to remove
         } else {
             LOGGER.trace("Original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
