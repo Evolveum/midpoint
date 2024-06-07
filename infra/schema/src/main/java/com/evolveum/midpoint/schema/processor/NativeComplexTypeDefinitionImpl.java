@@ -31,7 +31,7 @@ import javax.xml.namespace.QName;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 
 /**
- * Represents native object class or association class definition.
+ * Represents native object class or reference type definition.
  *
  * Similarly to {@link NativeShadowAttributeDefinitionImpl}, it is practical to merge these two into one implementation class.
  * The main reason is that both correspond to XSD complex type definition, and we need to instantiate them as early as
@@ -75,8 +75,8 @@ public class NativeComplexTypeDefinitionImpl
     @NotNull private final Set<NativeReferenceTypeDefinition.NativeParticipant> objects = new HashSet<>();
     //endregion
 
-    /** False for object classes, true for association classes. */
-    private boolean association;
+    /** False for object classes, true for reference types. */
+    private boolean referenceType;
 
     NativeComplexTypeDefinitionImpl(@NotNull String name) {
         this.name = name;
@@ -93,23 +93,23 @@ public class NativeComplexTypeDefinitionImpl
         return qName;
     }
 
-    public boolean isAssociation() {
-        return association;
+    public boolean isReferenceType() {
+        return referenceType;
     }
 
-    /** We use the years-old `a:resourceObject` annotation to distinguish between object and association classes. */
+    /** We use the years-old `a:resourceObject` annotation to distinguish between object classes and reference types. */
     boolean isResourceObjectClass() {
-        return !association;
+        return !referenceType;
     }
 
-    public void setAssociation() {
+    public void setReferenceType() {
         checkMutable();
-        this.association = true;
+        this.referenceType = true;
     }
 
     public void setResourceObject(boolean isResourceObjectClass) {
         checkMutable();
-        this.association = !isResourceObjectClass;
+        this.referenceType = !isResourceObjectClass;
     }
 
     //region Implementation for OBJECT classes
@@ -248,6 +248,7 @@ public class NativeComplexTypeDefinitionImpl
                 ResourceDefinitionFeatures.ForClass.DF_NATIVE_OBJECT_CLASS_NAME,
                 ResourceDefinitionFeatures.ForClass.DF_DEFAULT_ACCOUNT_DEFINITION,
                 ResourceDefinitionFeatures.ForClass.DF_AUXILIARY,
+                ResourceDefinitionFeatures.ForClass.DF_ASSOCIATION_OBJECT,
                 ResourceDefinitionFeatures.ForClass.DF_NAMING_ATTRIBUTE_NAME,
                 ResourceDefinitionFeatures.ForClass.DF_DISPLAY_NAME_ATTRIBUTE_NAME,
                 ResourceDefinitionFeatures.ForClass.DF_DESCRIPTION_ATTRIBUTE_NAME,
@@ -326,7 +327,7 @@ public class NativeComplexTypeDefinitionImpl
     @Override
     public NativeComplexTypeDefinitionImpl clone() {
         NativeComplexTypeDefinitionImpl clone = new NativeComplexTypeDefinitionImpl(name);
-        clone.association = association;
+        clone.referenceType = referenceType;
         // objects
         clone.ucfData().copyFrom(ucfData);
         attributeDefinitions.forEach(def -> clone.addItemDefinition(def.clone()));
@@ -340,7 +341,7 @@ public class NativeComplexTypeDefinitionImpl
     public String toString() {
         StringBuilder sb = new StringBuilder(humanReadableName());
         sb.append("{");
-        if (association) {
+        if (referenceType) {
             sb.append(subjects).append(" <-> ").append(objects);
         } else {
             sb.append(attributeDefinitions.size()).append(" item definitions");
@@ -352,7 +353,7 @@ public class NativeComplexTypeDefinitionImpl
     @Override
     public String debugDump(int indent) {
         var sb = DebugUtil.createTitleStringBuilder(humanReadableName() + "\n", indent);
-        if (!association) {
+        if (!referenceType) {
             DebugUtil.debugDumpWithLabelLn(sb, "UCF data", ucfData, indent + 1);
             DebugUtil.debugDumpLabelLn(sb, "Items", indent + 1);
             sb.append(DebugUtil.debugDump(attributeDefinitions, indent + 1));
@@ -368,7 +369,7 @@ public class NativeComplexTypeDefinitionImpl
 
     @NotNull
     private String humanReadableName() {
-        return "Native " + (association ? "association" : "object") + " class '" + name + "'";
+        return "Native " + (referenceType ? "reference type" : "object class") + " '" + name + "'";
     }
 
     @Override

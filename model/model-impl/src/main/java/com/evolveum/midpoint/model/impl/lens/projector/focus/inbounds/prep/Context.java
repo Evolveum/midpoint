@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.AssignmentsProcessingContext;
 import com.evolveum.midpoint.prism.path.PathSet;
 
 import com.evolveum.midpoint.schema.TaskExecutionMode;
@@ -31,11 +32,14 @@ abstract class Context implements ExecutionModeProvider {
     /** The environment: context description, now (the clock), task. */
     @NotNull protected final MappingEvaluationEnvironment env;
 
+    @NotNull final AssignmentsProcessingContext assignmentsProcessingContext;
+
     /** Useful Spring beans. */
     @NotNull final ModelBeans beans = ModelBeans.get();
 
-    Context(@NotNull MappingEvaluationEnvironment env) {
+    Context(@NotNull MappingEvaluationEnvironment env, @NotNull AssignmentsProcessingContext assignmentsProcessingContext) {
         this.env = env;
+        this.assignmentsProcessingContext = assignmentsProcessingContext;
     }
 
     abstract String getOperation();

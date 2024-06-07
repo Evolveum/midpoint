@@ -59,8 +59,8 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
     }
 
     @Override
-    List<AttributeEvaluation<AH, ?>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) {
-        List<AttributeEvaluation<AH, ?>> attributesToEvaluate = new ArrayList<>();
+    List<AttributeMapper<AH, ?>> getAttributeMappers(ConstructionEvaluation<AH, ?> constructionEvaluation) {
+        var mappers = new ArrayList<AttributeMapper<AH, ?>>();
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
 
@@ -82,40 +82,43 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
             // [EP:M:OM] DONE: the construction sits in the resource, so the origin is correct
             var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
 
-            attributesToEvaluate.add(
-                    new AttributeEvaluation<>(
+            mappers.add(
+                    new AttributeMapper<>(
                             constructionEvaluation, attributeDef,
                             MappingConfigItem.of(outboundMappingBean, origin), // [EP:M:OM] DONE
                             OriginType.OUTBOUND, MappingKindType.OUTBOUND));
         }
 
-        return attributesToEvaluate;
+        return mappers;
     }
 
     @Override
-    List<AssociationEvaluation<AH>> getAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) {
-        List<AssociationEvaluation<AH>> associationsToEvaluate = new ArrayList<>();
+    List<AssociationMapper<AH>> getAssociationMappers(ConstructionEvaluation<AH, ?> constructionEvaluation) {
+        List<AssociationMapper<AH>> mappers = new ArrayList<>();
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
         for (var associationDefinition : objectDefinition.getReferenceAttributeDefinitions()) {
+            // legacy outbound mapping
             var outboundMappingBean = associationDefinition.getOutboundMappingBean();
-            if (outboundMappingBean == null) {
-                continue;
+            if (outboundMappingBean != null) {
+                if (associationDefinition.isVisible(constructionEvaluation.task)) {
+                    var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
+                    mappers.add(
+                            new AssociationMapper<>(
+                                    constructionEvaluation, associationDefinition,
+                                    MappingConfigItem.of(outboundMappingBean, origin),
+                                    OriginType.OUTBOUND, MappingKindType.OUTBOUND));
+                } else {
+                    LOGGER.trace("Skipping processing outbound mapping for association {} because it is not visible in current "
+                            + "execution mode", associationDefinition);
+                }
             }
-            if (!associationDefinition.isVisible(constructionEvaluation.task)) {
-                LOGGER.trace("Skipping processing outbound mapping for association {} because it is not visible in current "
-                        + "execution mode", associationDefinition);
-                continue;
+            // modern association type definition
+            if (constructionEvaluation.projectionContext != null && associationDefinition.hasModernOutbound()) {
+                mappers.add(
+                        new AssociationMapper<>(constructionEvaluation, associationDefinition));
             }
-
-            var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
-
-            associationsToEvaluate.add(
-                    new AssociationEvaluation<>(
-                            constructionEvaluation, associationDefinition,
-                            MappingConfigItem.of(outboundMappingBean, origin),
-                            OriginType.OUTBOUND, MappingKindType.OUTBOUND));
         }
-        return associationsToEvaluate;
+        return mappers;
     }
 }

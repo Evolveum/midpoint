@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schema;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
@@ -524,7 +525,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
      * Analogy of:
      * MODIFY/replace (credentials/password) + MODIFY/add (credentials/password/metadata)   [MID-4593]
      */
-    @Test      // MID-4690
+    @Test // MID-4690
     public void testObjectDeltaUnion() throws Exception {
         // GIVEN
         ProtectedStringType value = new ProtectedStringType();
@@ -540,24 +541,68 @@ public class TestSchemaDelta extends AbstractSchemaTest {
                 .asObjectDelta("001");
 
         // WHEN
-        ObjectDelta<UserType> userDeltaUnion = ObjectDeltaCollectionsUtil.union(userDelta1, userDelta2);
+        ObjectDelta<UserType> summarizedDelta = ObjectDeltaCollectionsUtil.union(userDelta1, userDelta2);
 
         // THEN
-        displayValue("result", userDeltaUnion);
+        displayValue("result", summarizedDelta);
+        assertThat(summarizedDelta).isNotNull();
 
-        PrismObject<UserType> userWithSeparateDeltas = new UserType(getPrismContext()).asPrismObject();
+        PrismObject<UserType> userWithSeparateDeltas = new UserType().asPrismObject();
         userDelta1.applyTo(userWithSeparateDeltas);
         userDelta2.applyTo(userWithSeparateDeltas);
         displayValue("userWithSeparateDeltas after", userWithSeparateDeltas);
 
-        PrismObject<UserType> userWithUnion = new UserType(getPrismContext()).asPrismObject();
-        userDeltaUnion.applyTo(userWithUnion);
-        displayValue("userWithUnion after", userWithUnion);
+        PrismObject<UserType> userWithSummarizedDelta = new UserType().asPrismObject();
+        summarizedDelta.applyTo(userWithSummarizedDelta);
+        displayValue("userWithSummarizedDelta after", userWithSummarizedDelta);
 
-        // set to isLiteral = false after fixing MID-4688
-        ObjectDelta<UserType> diff = userWithSeparateDeltas.diff(userWithUnion, EquivalenceStrategy.LITERAL);
+        ObjectDelta<UserType> diff = userWithSeparateDeltas.diff(userWithSummarizedDelta, EquivalenceStrategy.LITERAL);
         displayValue("diff", diff.debugDump());
         assertTrue("Deltas have different effects:\n" + diff.debugDump(), diff.isEmpty());
+    }
+
+    /** Adding an assignment, and then modifying it. */
+    @Test
+    public void testSameAssignmentDeltaMerging() throws Exception {
+        given("object and item delta");
+        var userOid = "30c0a1c6-26f4-4aa9-b2a2-4096eae7c6af";
+        var targetOid = "b56dfd32-07e7-4cc0-b51d-093cf620bdca";
+        ObjectDelta<UserType> userDelta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT).add(
+                        new AssignmentType()
+                                .id(123L)
+                                .targetRef(targetOid, RoleType.COMPLEX_TYPE)
+                                .description("hi"))
+                .asObjectDelta(userOid);
+        var itemDelta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_DESCRIPTION)
+                .replace("bye")
+                .asItemDelta();
+
+        when("swallowing the delta");
+        userDelta.swallow(itemDelta);
+
+        then("the delta has single (and correct) modification");
+        displayValue("userDelta", userDelta.debugDump());
+        assertThat(userDelta.getModifications())
+                .singleElement()
+                .satisfies(mod -> {
+                    assertThat(mod.getPath().equivalent(UserType.F_ASSIGNMENT))
+                            .withFailMessage("Wrong path: %s", mod.getPath())
+                            .isTrue();
+                });
+
+        var user = new UserType();
+        userDelta.applyTo(user.asPrismObject());
+
+        assertThat(user.getAssignment())
+                .singleElement()
+                .satisfies(a -> {
+                    assertThat(a.getId()).isEqualTo(123L);
+                    assertThat(a.getDescription()).isEqualTo("bye");
+                    assertThat(a.getTargetRef().getOid()).isEqualTo(targetOid);
+                    assertThat(a.getTargetRef().getType()).isEqualTo(RoleType.COMPLEX_TYPE);
+                });
     }
 
     @Test

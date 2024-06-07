@@ -49,10 +49,10 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
     }
 
     @Override
-    List<AttributeEvaluation<AH, ?>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
+    List<AttributeMapper<AH, ?>> getAttributeMappers(ConstructionEvaluation<AH, ?> constructionEvaluation)
             throws ConfigurationException {
 
-        List<AttributeEvaluation<AH, ?>> attributesToEvaluate = new ArrayList<>();
+        List<AttributeMapper<AH, ?>> attributesToEvaluate = new ArrayList<>();
 
         // [EP:CONST] DONE
         for (ResourceAttributeDefinitionConfigItem attributeConstrDefinitionCI : getTypedConfigItemRequired().getAttributes()) {
@@ -79,7 +79,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
             }
 
             attributesToEvaluate.add(
-                    new AttributeEvaluation<>(
+                    new AttributeMapper<>(
                             constructionEvaluation,
                             attributeDef,
                             outboundMappingCI, // [EP:M:OM] DONE
@@ -90,10 +90,10 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
     }
 
     @Override
-    List<AssociationEvaluation<AH>> getAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation)
+    List<AssociationMapper<AH>> getAssociationMappers(ConstructionEvaluation<AH, ?> constructionEvaluation)
             throws ConfigurationException {
 
-        List<AssociationEvaluation<AH>> associationsToEvaluate = new ArrayList<>();
+        List<AssociationMapper<AH>> mappers = new ArrayList<>();
 
         for (var associationConstructionCI : getTypedConfigItemRequired().getAssociations()) {
 
@@ -110,14 +110,14 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
                         + "execution mode", associationDef);
                 continue;
             }
-            associationsToEvaluate.add(
-                    new AssociationEvaluation<>(
+            mappers.add(
+                    new AssociationMapper<>(
                             constructionEvaluation,
                             associationDef,
                             associationConstructionCI.getOutboundMappingRequired(), // [EP:M:OM] DONE
                             OriginType.ASSIGNMENTS,
                             MappingKindType.CONSTRUCTION));
         }
-        return associationsToEvaluate;
+        return mappers;
     }
 }

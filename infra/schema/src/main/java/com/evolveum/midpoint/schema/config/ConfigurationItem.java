@@ -137,14 +137,6 @@ public class ConfigurationItem<T extends Serializable & Cloneable>
         return origin;
     }
 
-    public @NotNull ConfigurationItemOrigin originFor(@NotNull ItemPath path) {
-        return origin.child(path);
-    }
-
-    public <C extends Containerable> @NotNull OriginProvider<C> originProviderFor(@NotNull ItemPath path) {
-        return item -> originFor(path);
-    }
-
     /** Null-safe variant of {@link #as(Class)}. */
     @Contract("null, _ -> null; !null, _ -> !null")
     protected static <V extends Serializable & Cloneable, CI extends RAW_CI, RAW_CI extends ConfigurationItem<V>> CI as(

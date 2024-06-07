@@ -8,22 +8,13 @@
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import static com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil.mergeCorrelationDefinition;
-import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
-
-import com.evolveum.midpoint.model.impl.sync.ItemSynchronizationState;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ItemSynchronizationReactionDefinition;
-import com.evolveum.midpoint.schema.result.OperationResult;
-
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,10 +26,12 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequests;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluatorParams;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingInitializer;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingOutputProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingTimeEval;
+import com.evolveum.midpoint.model.impl.sync.ItemSynchronizationState;
 import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluation;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -58,6 +51,13 @@ import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ItemSynchronizationReactionDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -347,238 +347,272 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
         // TODO implement also for attributes
 
         for (var association : ShadowUtil.getAssociations(shadow)) {
-            var associationDefinition = association.getDefinition();
-            var relevantInboundDefinitions = associationDefinition.getRelevantInboundDefinitions();
-            if (relevantInboundDefinitions.isEmpty()) {
-                continue;
-            }
-            for (var associationValue : association.getAssociationValues()) {
-                for (var inboundProcessingDefinition : relevantInboundDefinitions) {
-                    LOGGER.trace("Processing association value: {} ({})", associationValue, relevantInboundDefinitions);
-                    var processing = new ValueProcessing(
-                            associationValue, associationDefinition, inboundProcessingDefinition,
-                            projectionContext.getResourceRequired());
-                    processing.process(result);
-                }
+            for (var inboundDefinition : association.getDefinition().getRelevantInboundDefinitions()) {
+                LOGGER.trace("Processing association {} using {}", association.getElementName(), inboundDefinition);
+                new AssociationProcessing(association, inboundDefinition)
+                        .process(result);
             }
         }
     }
 
     /**
-     * Complex processing of a embedded object (later: any embedded value):
-     *
-     * 1. transforming to object for correlation ("pre-focus")
-     * 2. determining the target PCV + action (synchronizing or not)
-     * 3. collecting the mappings
+     * Complex processing of an association (represented by a reference attribute)
+     * by given {@link ResourceObjectInboundDefinition}.
      */
-    private class ValueProcessing {
+    private class AssociationProcessing {
 
-        @NotNull private final ShadowAssociationValue associationValue;
+        @NotNull private final ShadowReferenceAttribute referenceAttribute;
         @NotNull private final ShadowReferenceAttributeDefinition associationDefinition;
         @NotNull private final ResourceObjectInboundDefinition inboundDefinition;
-        @Deprecated // provide more abstract characterization (~ "assigned")
-        @NotNull private final ItemPath focusItemPath;
-        @NotNull private final ResourceType resource;
 
-        ValueProcessing(
-                @NotNull ShadowAssociationValue associationValue,
-                @NotNull ShadowReferenceAttributeDefinition associationDefinition,
-                @NotNull ResourceObjectInboundDefinition inboundDefinition,
-                @NotNull ResourceType resource) throws ConfigurationException {
-            this.associationValue = associationValue;
-            this.associationDefinition = associationDefinition;
+        /** IDs of (existing) assignments that were seen by this processing. Other assignments in the range will be removed. */
+        @NotNull private final Set<Long> assignmentsSeen = new HashSet<>();
+
+        AssociationProcessing(
+                @NotNull ShadowReferenceAttribute referenceAttribute,
+                @NotNull ResourceObjectInboundDefinition inboundDefinition) {
+            this.referenceAttribute = referenceAttribute;
+            this.associationDefinition = referenceAttribute.getDefinition();
             this.inboundDefinition = inboundDefinition;
-            this.focusItemPath = configNonNull(
-                    inboundDefinition.getFocusSpecification().getFocusItemPath(),
-                    "No focus item path in %s", inboundDefinition);
-            this.resource = resource;
         }
 
-        void process(OperationResult parentResult)
-                throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                ConfigurationException, ObjectNotFoundException, StopProcessingProjectionException {
-
-            OperationResult result = parentResult.subresult(OP_PROCESS_ASSOCIATED_OBJECT)
-                    .addArbitraryObjectAsParam("associationValue", associationValue)
-                    .addArbitraryObjectAsParam("associatedObjectDefinition", associationDefinition)
-                    .build();
-            try {
-
-                var objectForCorrelation = computeObjectForCorrelation(result);
-                var correlationResult = executeCorrelation(objectForCorrelation, result);
-                var synchronizationReaction = determineReaction(correlationResult);
-                executeReaction(correlationResult, synchronizationReaction, result);
-
-            } catch (Throwable t) {
-                result.recordException(t);
-                throw t;
-            } finally {
-                result.close();
-            }
-        }
-
-        private Containerable computeObjectForCorrelation(OperationResult result)
-                throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                ConfigurationException, ObjectNotFoundException {
-            var target = instantiateTargetObject();
-            PreMappingsEvaluation.computePreFocusForAssociationValue(
-                    associationValue,
-                    inboundDefinition,
-                    projectionContext.getResourceRequired(),
-                    target,
-                    context.env.task,
-                    result);
-            LOGGER.trace("Target (for correlation):\n{}", target.debugDumpLazily(1));
-            return target;
-        }
-
-        private @NotNull SimplifiedCorrelationResult executeCorrelation(
-                Containerable objectForCorrelation, OperationResult result)
-                throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException {
-
-            var candidateObjects = getCandidateObjects();
-            if (candidateObjects.isEmpty()) {
-                LOGGER.trace("No candidate objects, the correlation is trivial: no owner");
-                return SimplifiedCorrelationResult.noOwner();
-            }
-
-            var correlationDefinitionBean = mergeCorrelationDefinition(inboundDefinition, null, resource);
-
-            var correlationResult = beans.correlationServiceImpl.correlateLimited(
-                    CorrelatorContextCreator.createRootContext(
-                            correlationDefinitionBean,
-                            CorrelatorDiscriminator.forSynchronization(),
-                            null,
-                            context.getSystemConfigurationBean()),
-                    new CorrelationContext.Shadow(
-                            associationValue.getShadowBean(),
-                            projectionContext.getResourceRequired(),
-                            associationValue.getAssociatedObjectDefinition(),
-                            objectForCorrelation,
-                            candidateObjects,
-                            context.getSystemConfigurationBean(),
-                            context.env.task),
-                    result);
-            LOGGER.trace("Correlation result:\n{}", correlationResult.debugDumpLazily(1));
-            return correlationResult;
-        }
-
-        private @NotNull Collection<? extends Containerable> getCandidateObjects() throws ConfigurationException {
-
-            var assignmentSubtype = inboundDefinition.getFocusSpecification().getAssignmentSubtype();
-            LOGGER.trace("Getting candidate objects for {} (assignment subtype: {})", focusItemPath, assignmentSubtype);
-
-            var targetItem = target.targetPcv.findItem(focusItemPath);
-            if (targetItem == null) {
-                return List.of();
-            }
-            if (assignmentSubtype == null) {
-                return targetItem.getRealValues(Containerable.class);
-            }
-            if (!AssignmentHolderType.F_ASSIGNMENT.equivalent(focusItemPath)) {
-                throw new ConfigurationException(
-                        "Specifying assignment subtype but not referencing assignments? in " + associationDefinition);
-            }
-            return targetItem.getRealValues(AssignmentType.class).stream()
-                    .filter(a -> a.getSubtype().contains(assignmentSubtype))
-                    .toList();
-        }
-
-        private AssignmentType instantiateTargetObject() {
-            // FIXME temporary
-            return new AssignmentType()
-                    .subtype(inboundDefinition.getFocusSpecification().getAssignmentSubtype());
-        }
-
-        // FIXME temporary
-        private ItemSynchronizationReactionDefinition determineReaction(SimplifiedCorrelationResult correlationResult) {
-            var synchronizationState = ItemSynchronizationState.fromCorrelationResult(correlationResult);
-            ItemSynchronizationSituationType situation = synchronizationState.situation();
-            for (var abstractReaction : inboundDefinition.getSynchronizationReactions()) {
-                var reaction = (ItemSynchronizationReactionDefinition) abstractReaction;
-                if (reaction.matchesSituation(situation)) {
-                    // TODO evaluate other aspects, like condition etc
-                    LOGGER.trace("Determined synchronization reaction: {}", reaction);
-                    return reaction;
-                }
-            }
-            LOGGER.trace("No synchronization reaction matches");
-            return null;
-        }
-
-        private void executeReaction(
-                @NotNull SimplifiedCorrelationResult correlationResult,
-                @Nullable ItemSynchronizationReactionDefinition synchronizationReaction,
-                @NotNull OperationResult result)
-                throws ConfigurationException, SchemaException, ExpressionEvaluationException, SecurityViolationException,
-                CommunicationException, StopProcessingProjectionException, ObjectNotFoundException {
-            if (synchronizationReaction == null) {
-                return;
-            }
-            for (var action : synchronizationReaction.getActions()) {
-                // TODO implement using action factory, like the regular ones are
-                var beanClass = action.getClass();
-                if (AddFocusValueItemSynchronizationActionType.class.equals(beanClass)) {
-                    executeAdd(result);
-                } else if (DeleteFocusValueItemSynchronizationActionType.class.equals(beanClass)) {
-                    executeDelete();
-                } else if (SynchronizeItemSynchronizationActionType.class.equals(beanClass)) {
-                    executeSynchronize(correlationResult, result);
-                } else {
-                    throw new UnsupportedOperationException("Action " + action + " is not supported here");
-                }
-            }
-        }
-
-        private void executeAdd(@NotNull OperationResult result)
-                throws ConfigurationException, SchemaException, ExpressionEvaluationException, SecurityViolationException,
-                CommunicationException, StopProcessingProjectionException, ObjectNotFoundException {
-            var focusContext = lensContext.getFocusContextRequired();
-            long id = focusContext.getTemporaryContainerId(focusItemPath);
-            focusContext.swallowToSecondaryDelta(
-                    PrismContext.get().deltaFor(FocusType.class)
-                            .item(focusItemPath)
-                            .add(instantiateTargetObject()
-                                    .id(id)
-                                    .identifier(String.valueOf(id))) // TEMPORARY FIXME (needed to make them different! fix the swallower instead!)
-                            .asItemDelta());
-            LOGGER.trace("Going to ADD a new focus-side value ({}/{}) for associated object: {}",
-                    focusItemPath, id, associationDefinition);
-            collectChildMappings(id, result);
-        }
-
-        private void executeSynchronize(@NotNull SimplifiedCorrelationResult correlationResult, @NotNull OperationResult result)
+        void process(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                 ConfigurationException, StopProcessingProjectionException, ObjectNotFoundException {
-            var owner = stateNonNull(
-                    correlationResult.getOwner(),
-                    "Cannot invoke SYNCHRONIZE action without the owner");
-            var ownerId = stateNonNull(
-                    owner.asPrismContainerValue().getId(),
-                    "Cannot invoke SYNCHRONIZE action on an owner without PCV ID: %s", owner);
-            LOGGER.trace("Going to SYNCHRONIZE existing focus-side value ({}/{}) for associated object: {}",
-                    focusItemPath, ownerId, associationDefinition);
-            collectChildMappings(ownerId, result);
+
+            // Processing individual values of the reference attribute
+            for (var refAttributeValue : referenceAttribute.getAssociationValues()) {
+                LOGGER.trace("Processing reference attribute value: {}", refAttributeValue);
+                new ValueProcessing(refAttributeValue)
+                        .process(result);
+            }
+
+            // Deleting unseen assignments from the range
+            var assignmentsInRange = getAssignmentsInRange();
+            var assignmentsToDelete = Sets.difference(assignmentsInRange, assignmentsSeen);
+            LOGGER.trace("Assignments in range: {}; seen: {}; to delete: {}",
+                    assignmentsInRange, assignmentsSeen, assignmentsToDelete);
+            context.assignmentsProcessingContext.addAssignmentsToKeep(assignmentsSeen);
+            context.assignmentsProcessingContext.addAssignmentsToDelete(assignmentsToDelete);
         }
 
-        private void collectChildMappings(long id, @NotNull OperationResult result)
-                throws ConfigurationException, SchemaException, ObjectNotFoundException, SecurityViolationException,
-                CommunicationException, ExpressionEvaluationException, StopProcessingProjectionException {
-            MSource childSource = new FullSource(
-                    associationValue.getShadow().getPrismObject(),
-                    null, // TODO
-                    associationValue.getAssociatedObjectDefinition(),
-                    inboundDefinition,
-                    projectionContext,
-                    context,
-                    associationDefinition);
-            child(childSource, focusItemPath.append(id))
-                    .collectOrEvaluate(result);
+        // TODO consider provenance metadata here as well
+        private @NotNull Set<Long> getAssignmentsInRange() {
+            return getCandidateAssignments().stream()
+                    .map(AssignmentType::getId)
+                    .collect(Collectors.toSet());
         }
 
-        private void executeDelete() {
-            throw new UnsupportedOperationException("Sorry, 'delete' action is not supported yet");
+        private @NotNull Collection<AssignmentType> getCandidateAssignments() {
+            var targetPcv = target.targetPcv;
+            if (targetPcv == null) {
+                return List.of();
+            }
+            var assignments = targetPcv.asContainerable().getAssignment();
+            var assignmentSubtype = inboundDefinition.getFocusSpecification().getAssignmentSubtype();
+            if (assignmentSubtype == null) {
+                return assignments;
+            } else {
+                return assignments.stream()
+                        .filter(a -> a.getSubtype().contains(assignmentSubtype))
+                        .toList();
+            }
+        }
+
+        /**
+         * Complex processing of a embedded object (later: any embedded value):
+         *
+         * 1. transforming to object for correlation ("pre-focus")
+         * 2. determining the target PCV + action (synchronizing or not)
+         * 3. collecting the mappings
+         */
+        private class ValueProcessing {
+
+            @NotNull private final ShadowAssociationValue associationValue;
+            @NotNull private final ResourceType resource = projectionContext.getResourceRequired();
+
+            ValueProcessing(@NotNull ShadowAssociationValue associationValue) {
+                this.associationValue = associationValue;
+            }
+
+            void process(OperationResult parentResult)
+                    throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+                    ConfigurationException, ObjectNotFoundException, StopProcessingProjectionException {
+
+                OperationResult result = parentResult.subresult(OP_PROCESS_ASSOCIATED_OBJECT)
+                        .addArbitraryObjectAsParam("associationValue", associationValue)
+                        .build();
+                try {
+
+                    var correlationResult = executeCorrelation(result);
+                    var synchronizationReaction = determineReaction(correlationResult);
+                    executeReaction(correlationResult, synchronizationReaction, result);
+
+                    registerAssignmentsSeen(correlationResult);
+
+                } catch (Throwable t) {
+                    result.recordException(t);
+                    throw t;
+                } finally {
+                    result.close();
+                }
+            }
+
+            private @NotNull SimplifiedCorrelationResult executeCorrelation(OperationResult result)
+                    throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+                    SecurityViolationException, ObjectNotFoundException {
+
+                LOGGER.trace("Executing correlation for assignments");
+
+                var candidateAssignments = getCandidateAssignments();
+                if (candidateAssignments.isEmpty()) {
+                    LOGGER.trace("No candidate assignments found, the correlation is trivial: no owner");
+                    return SimplifiedCorrelationResult.noOwner();
+                }
+
+                var assignmentForCorrelation = computeAssignmentForCorrelation(result);
+
+                var correlationDefinitionBean = mergeCorrelationDefinition(inboundDefinition, null, resource);
+
+                var correlationResult = beans.correlationServiceImpl.correlateLimited(
+                        CorrelatorContextCreator.createRootContext(
+                                correlationDefinitionBean,
+                                CorrelatorDiscriminator.forSynchronization(),
+                                null,
+                                context.getSystemConfigurationBean()),
+                        new CorrelationContext.Shadow(
+                                associationValue.getShadowBean(),
+                                projectionContext.getResourceRequired(),
+                                associationValue.getAssociatedObjectDefinition(),
+                                assignmentForCorrelation,
+                                candidateAssignments,
+                                context.getSystemConfigurationBean(),
+                                context.env.task),
+                        result);
+
+                LOGGER.trace("Correlation result:\n{}", correlationResult.debugDumpLazily(1));
+                return correlationResult;
+            }
+
+            private AssignmentType computeAssignmentForCorrelation(OperationResult result)
+                    throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+                    ConfigurationException, ObjectNotFoundException {
+                var targetAssignment = instantiateTargetAssignment();
+                PreMappingsEvaluation.computePreFocusForAssociationValue(
+                        associationValue,
+                        inboundDefinition,
+                        projectionContext.getResourceRequired(),
+                        targetAssignment,
+                        context.env.task,
+                        result);
+                LOGGER.trace("Target (for correlation):\n{}", targetAssignment.debugDumpLazily(1));
+                return targetAssignment;
+            }
+
+            private AssignmentType instantiateTargetAssignment() {
+                // FIXME temporary
+                var assignment = new AssignmentType();
+                var subtype = inboundDefinition.getFocusSpecification().getAssignmentSubtype();
+                if (subtype != null) {
+                    assignment.subtype(subtype);
+                }
+                return assignment;
+            }
+
+            private void registerAssignmentsSeen(SimplifiedCorrelationResult correlationResult) {
+                var owner = correlationResult.getOwner();
+                if (owner != null) {
+                    assignmentsSeen.add(owner.asPrismContainerValue().getId());
+                }
+                // This is to be discussed. We probably should avoid deleting assignments that were matched with 100%
+                // confidence, even if there are multiple ones. Should we do the same also for assignment matched with
+                // less certainty? Currently, we do so.
+                emptyIfNull(correlationResult.getUncertainOwners()).forEach(
+                        a -> assignmentsSeen.add(a.getValue().asPrismContainerValue().getId()));
+            }
+
+            // FIXME temporary
+            private ItemSynchronizationReactionDefinition determineReaction(SimplifiedCorrelationResult correlationResult) {
+                var synchronizationState = ItemSynchronizationState.fromCorrelationResult(correlationResult);
+                ItemSynchronizationSituationType situation = synchronizationState.situation();
+                for (var abstractReaction : inboundDefinition.getSynchronizationReactions()) {
+                    var reaction = (ItemSynchronizationReactionDefinition) abstractReaction;
+                    if (reaction.matchesSituation(situation)) {
+                        // TODO evaluate other aspects, like condition etc
+                        LOGGER.trace("Determined synchronization reaction: {}", reaction);
+                        return reaction;
+                    }
+                }
+                LOGGER.trace("No synchronization reaction matches");
+                return null;
+            }
+
+            private void executeReaction(
+                    @NotNull SimplifiedCorrelationResult correlationResult,
+                    @Nullable ItemSynchronizationReactionDefinition synchronizationReaction,
+                    @NotNull OperationResult result)
+                    throws ConfigurationException, SchemaException, ExpressionEvaluationException, SecurityViolationException,
+                    CommunicationException, StopProcessingProjectionException, ObjectNotFoundException {
+                if (synchronizationReaction == null) {
+                    return;
+                }
+                for (var action : synchronizationReaction.getActions()) {
+                    // TODO implement using action factory, like the regular ones are
+                    var beanClass = action.getClass();
+                    if (AddFocusValueItemSynchronizationActionType.class.equals(beanClass)) {
+                        executeAdd(result);
+                    } else if (DeleteFocusValueItemSynchronizationActionType.class.equals(beanClass)) {
+                        executeDelete();
+                    } else if (SynchronizeItemSynchronizationActionType.class.equals(beanClass)) {
+                        executeSynchronize(correlationResult, result);
+                    } else {
+                        throw new UnsupportedOperationException("Action " + action + " is not supported here");
+                    }
+                }
+            }
+
+            private void executeAdd(@NotNull OperationResult result)
+                    throws ConfigurationException, SchemaException, ExpressionEvaluationException, SecurityViolationException,
+                    CommunicationException, StopProcessingProjectionException, ObjectNotFoundException {
+                var focusContext = lensContext.getFocusContextRequired();
+                long id = focusContext.getTemporaryContainerId(FocusType.F_ASSIGNMENT);
+                LOGGER.trace("Going to ADD a new assignment ({}) for association: {}", id, associationDefinition);
+                context.assignmentsProcessingContext.addAssignmentToAdd(
+                        instantiateTargetAssignment().id(id));
+                collectChildMappings(id, result);
+            }
+
+            private void executeSynchronize(@NotNull SimplifiedCorrelationResult correlationResult, @NotNull OperationResult result)
+                    throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+                    ConfigurationException, StopProcessingProjectionException, ObjectNotFoundException {
+                var owner = stateNonNull(
+                        correlationResult.getOwner(),
+                        "Cannot invoke SYNCHRONIZE action without the owner");
+                var ownerId = stateNonNull(
+                        owner.asPrismContainerValue().getId(),
+                        "Cannot invoke SYNCHRONIZE action on an owner without PCV ID: %s", owner);
+                LOGGER.trace("Going to SYNCHRONIZE existing assignment ({}) for association: {}", ownerId, associationDefinition);
+                collectChildMappings(ownerId, result);
+            }
+
+            private void collectChildMappings(long id, @NotNull OperationResult result)
+                    throws ConfigurationException, SchemaException, ObjectNotFoundException, SecurityViolationException,
+                    CommunicationException, ExpressionEvaluationException, StopProcessingProjectionException {
+                MSource childSource = new FullSource(
+                        associationValue.getShadow().getPrismObject(),
+                        null, // TODO
+                        associationValue.getAssociatedObjectDefinition(),
+                        inboundDefinition,
+                        projectionContext,
+                        context,
+                        associationDefinition);
+                child(childSource, FocusType.F_ASSIGNMENT.append(id))
+                        .collectOrEvaluate(result);
+            }
+
+            private void executeDelete() {
+                throw new UnsupportedOperationException("Sorry, 'delete' action is not supported yet");
+            }
         }
     }
 }

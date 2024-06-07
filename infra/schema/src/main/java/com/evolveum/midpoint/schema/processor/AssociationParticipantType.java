@@ -9,6 +9,10 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Objects;
+
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,6 +74,14 @@ public class AssociationParticipantType implements Serializable {
         }
     }
 
+    public boolean matches(@NotNull ShadowType shadow) {
+        if (typeIdentification != null) {
+            return typeIdentification.equals(ShadowUtil.getTypeIdentification(shadow));
+        } else {
+            return objectDefinition.getObjectClassName().equals(shadow.getObjectClass());
+        }
+    }
+
     @Override
     public String toString() {
         if (typeIdentification != null) {
@@ -77,5 +89,23 @@ public class AssociationParticipantType implements Serializable {
         } else {
             return objectDefinition.getObjectClassName().getLocalPart();
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        AssociationParticipantType that = (AssociationParticipantType) o;
+        return Objects.equals(typeIdentification, that.typeIdentification)
+                && Objects.equals(objectDefinition, that.objectDefinition);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(typeIdentification, objectDefinition);
     }
 }

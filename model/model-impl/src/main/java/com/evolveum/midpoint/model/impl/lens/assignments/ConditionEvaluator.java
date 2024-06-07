@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -72,7 +73,7 @@ class ConditionEvaluator {
     }
 
     private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateCondition(
-            MappingType condition,
+            @NotNull MappingType condition,
             ConfigurationItemOrigin mappingOrigin, // [EP:M:ARC] DONE 2/2
             ObjectType source,
             @NotNull AssignmentPathVariables assignmentPathVariables,
@@ -84,14 +85,14 @@ class ConditionEvaluator {
         MappingBuilder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
                 ctx.ae.mappingFactory.createMappingBuilder();
         ObjectDeltaObject<?> focusOdo = absolute ? ctx.ae.focusOdoAbsolute : ctx.ae.focusOdoRelative;
-        builder = builder.mappingBean(condition, mappingOrigin) // [EP:M:ARC] DONE^
+        builder = builder.mapping(MappingConfigItem.of(condition, mappingOrigin)) // [EP:M:ARC] DONE^
                 .mappingKind(MappingKindType.ASSIGNMENT_CONDITION)
                 .contextDescription((absolute ? "(absolute) " : "(relative) ") + contextDescription)
-                .sourceContext(focusOdo)
+                .defaultSourceContextIdi(focusOdo)
                 .originType(OriginType.ASSIGNMENTS)
                 .defaultTargetDefinition(LensUtil.createConditionDefinition())
                 .addVariableDefinitions(ctx.ae.getAssignmentEvaluationVariables())
-                .rootNode(focusOdo)
+                .addRootVariableDefinition(focusOdo)
                 .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
                 .addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
                 .addAliasRegistration(ExpressionConstants.VAR_USER, null)

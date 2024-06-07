@@ -34,6 +34,10 @@ public class AttrName {
         return new AttrName(new ItemName(SchemaConstants.NS_RI, localPart));
     }
 
+    public static AttrName icfsName() {
+        return icfs("name");
+    }
+
     public static AttrName icfs(String localPart) {
         return new AttrName(new ItemName(SchemaConstants.NS_ICFS, localPart));
     }

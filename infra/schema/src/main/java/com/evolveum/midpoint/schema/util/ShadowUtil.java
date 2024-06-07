@@ -1178,4 +1178,12 @@ public class ShadowUtil {
         PrismContainer<?> associationsContainer = shadow.findContainer(ShadowType.F_ASSOCIATIONS);
         return associationsContainer != null && !(associationsContainer instanceof ShadowAssociationsContainer);
     }
+
+    // FIXME improve this method
+    static boolean equalsByContent(@NotNull ShadowType s1, @NotNull ShadowType s2) {
+        return MiscUtil.unorderedCollectionEquals(getAttributes(s1), getAttributes(s2))
+                && MiscUtil.unorderedCollectionEquals(getAssociations(s1), getAssociations(s2))
+                && Objects.equals(s1.getActivation(), s2.getActivation()) // TODO less strict comparison
+                && Objects.equals(s1.getCredentials(), s2.getCredentials()); // TODO less strict comparison
+    }
 }

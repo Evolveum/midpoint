@@ -15,8 +15,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -89,13 +87,6 @@ public class AssociationFromLinkExpressionEvaluator
         AbstractRoleType thisRole = getRelevantRole(context);
         LOGGER.trace("Evaluating association from link {} on: {}", expressionEvaluatorBean.getDescription(), thisRole);
 
-        var associationDefinition = getAssociationDefinition(context);
-
-        ShadowDiscriminatorType projectionDiscriminator = expressionEvaluatorBean.getProjectionDiscriminator();
-        if (projectionDiscriminator == null) {
-            throw new ExpressionEvaluationException("No projectionDiscriminator in "+desc);
-        }
-
         List<String> candidateShadowOidList = new ArrayList<>();
         // Always process the first role (myself) regardless of recursion setting
         gatherCandidateShadowsFromAbstractRole(thisRole, candidateShadowOidList);
@@ -104,13 +95,7 @@ public class AssociationFromLinkExpressionEvaluator
         }
         LOGGER.trace("Candidate shadow OIDs: {}", candidateShadowOidList);
 
-        var outputAssociation = createAssociationFromMatchingValues(
-                candidateShadowOidList,
-                associationDefinition.getResourceOid(),
-                configNonNull(projectionDiscriminator.getKind(), "No kind in projectionDiscriminator in %s", desc),
-                projectionDiscriminator.getIntent(),
-                context,
-                result);
+        var outputAssociation = createAssociationFromMatchingValues(candidateShadowOidList, context, result);
         return ItemDeltaUtil.toDeltaSetTriple(outputAssociation, null);
     }
 
@@ -171,29 +156,56 @@ public class AssociationFromLinkExpressionEvaluator
     }
 
     private ShadowReferenceAttribute createAssociationFromMatchingValues(
-            List<String> candidateShadowsOidList,
-            String resourceOid, ShadowKindType kind,
-            String intent, ExpressionEvaluationContext context, OperationResult result) {
+            List<String> candidateShadowsOidList, ExpressionEvaluationContext context, OperationResult result)
+            throws ExpressionEvaluationException, ConfigurationException {
+
+        // TODO please obtain resource OID in a nicer way
+        var resourceOid = getAssociationDefinition(context).getResourceOid();
 
         S_FilterExit filter = prismContext.queryFor(ShadowType.class)
                 .id(candidateShadowsOidList.toArray(new String[0]))
-                .and().item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
-                .and().item(ShadowType.F_KIND).eq(kind);
-        if (intent != null) {
-            filter = filter.and().item(ShadowType.F_INTENT).eq(intent);
+                .and().item(ShadowType.F_RESOURCE_REF).ref(resourceOid);
+
+        ShadowDiscriminatorType discriminator = expressionEvaluatorBean.getProjectionDiscriminator();
+        if (discriminator != null) {
+            // The discriminator was once obligatory; but it's no longer so. We can derive the criteria from the reference
+            // attribute definition; although they will be checked only after the search.
+            var kind = configNonNull(discriminator.getKind(), "No kind in projectionDiscriminator in %s", context);
+            filter = filter.and().item(ShadowType.F_KIND).eq(kind);
+            var intent = discriminator.getIntent();
+            if (intent != null) {
+                filter = filter.and().item(ShadowType.F_INTENT).eq(intent);
+            }
+        } else {
+            // We need the object class for the provisioning to be able to search for shadows
+            filter = filter.and()
+                    .item(ShadowType.F_OBJECT_CLASS)
+                    .eq(outputDefinition.getImmediateTargetObjectClass().getTypeName());
         }
         ObjectQuery query = filter.build();
 
         try {
+            LOGGER.trace("Searching for relevant shadows:\n{}", query.debugDumpLazily(1));
             var targetObjects = objectResolver.searchObjects(
                     ShadowType.class, query, createNoFetchReadOnlyCollection(), context.getTask(), result);
 
             ShadowReferenceAttribute outputAssociation = outputDefinition.instantiate();
             for (PrismObject<ShadowType> targetObject : targetObjects) {
-                if (ShadowUtil.isNotDead(targetObject)) {
-                    outputAssociation.createNewValueWithFullObject(
-                            AbstractShadow.of(targetObject));
+                var target = AbstractShadow.of(targetObject);
+                if (target.isDead()) {
+                    LOGGER.trace("Skipping dead shadow {}", target);
+                    continue;
                 }
+                if (discriminator == null) {
+                    if (!outputDefinition.matches(target.getBean())) {
+                        LOGGER.trace("Skipping non-matching shadow {}", target);
+                        continue;
+                    }
+                } else {
+                    // Filtering on kind/intent was already done.
+                }
+                LOGGER.trace("Adding to association: {}", target);
+                outputAssociation.createNewValueWithFullObject(target);
             }
 
             return outputAssociation;

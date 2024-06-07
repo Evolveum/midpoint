@@ -55,7 +55,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final String NS_HR = "http://midpoint.evolveum.com/xml/ns/samples/hr";
     private static final String NS_DMS = "http://midpoint.evolveum.com/xml/ns/samples/dms";
 
-    private static final ItemName HR_COST_CENTER = new ItemName(NS_HR, "costCenter");
+    private static final ItemName HR_COST_CENTER = ItemName.from(NS_HR, "costCenter");
 
     private static final String LEVEL_READ = "read";
     private static final String LEVEL_WRITE = "write";
@@ -461,7 +461,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .withResourceOid(RESOURCE_DUMMY_AD.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_DEFAULT))
                 .withNameValue(name)
-                .withTracingProfile(createModelAndProvisioningLoggingTracingProfile())
                 .executeOnForeground(result);
     }
 }

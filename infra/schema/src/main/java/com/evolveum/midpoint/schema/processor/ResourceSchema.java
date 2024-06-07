@@ -102,6 +102,13 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
             @NotNull ResourceObjectTypeIdentification identification) {
         return getObjectTypeDefinition(identification.getKind(), identification.getIntent());
     }
+
+    default @NotNull ResourceObjectTypeDefinition getObjectTypeDefinitionRequired(
+            @NotNull ResourceObjectTypeIdentification identification) {
+        return stateNonNull(
+                getObjectTypeDefinition(identification.getKind(), identification.getIntent()),
+                "No object type definition for %s in %s", identification, this);
+    }
     //endregion
 
     //region More complex definitions lookup methods

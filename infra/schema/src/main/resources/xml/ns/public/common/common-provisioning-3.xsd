@@ -1845,6 +1845,9 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="ref" type="xsd:QName" minOccurs="0">
+                <!-- TODO docs -->
+            </xsd:element>
             <xsd:element name="objectType" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>

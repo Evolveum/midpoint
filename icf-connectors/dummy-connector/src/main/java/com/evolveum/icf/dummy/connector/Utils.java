@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lazyman
@@ -29,20 +30,28 @@ public class Utils {
     public static <T> T getAttributeSingleValue(Set<Attribute> attributes, String attributeName, Class<T> type) {
         for (Attribute attr : attributes) {
             if (attributeName.equals(attr.getName())) {
-                List<Object> values = attr.getValue();
-                if (values == null || values.isEmpty()) {
-                    return null;
-                }
-                if (values.size()>1) {
-                    throw new IllegalArgumentException("Multiple values for single valued attribute "+attributeName);
-                }
-                if (!(type.isAssignableFrom(values.get(0).getClass()))) {
-                    throw new IllegalArgumentException("Illegal value type "+values.get(0).getClass().getName()+" for attribute "+attributeName+", expecting type "+type.getClass().getName());
-                }
-                return (T)values.get(0);
+                return getAttributeSingleValue(attr, type);
             }
         }
         return null;
+    }
+
+    public static <T> @Nullable T getAttributeSingleValue(Attribute attr, Class<T> type) {
+        List<Object> values = attr.getValue();
+        if (values == null || values.isEmpty()) {
+            return null;
+        }
+        if (values.size() > 1) {
+            throw new IllegalArgumentException("Multiple values for single valued attribute " + attr.getName());
+        }
+        Object value = values.get(0);
+        if (!(type.isAssignableFrom(value.getClass()))) {
+            throw new IllegalArgumentException(
+                    "Illegal value type %s for attribute %s, expecting type %s".formatted(
+                            value.getClass().getName(), attr.getName(), type.getName()));
+        }
+        //noinspection unchecked
+        return (T) value;
     }
 
     public static void notNull(Object object, String message) {

@@ -48,6 +48,9 @@ public interface ResourceObjectClassDefinition
      */
     boolean isAuxiliary();
 
+    /** TODO */
+    boolean isAssociationObject();
+
     /**
      * Indicates whether definition is the default account definition.
      * (This feature is present for "dumb" resource definition that are completely without `schemaHandling` part.)

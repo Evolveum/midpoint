@@ -24,6 +24,10 @@ public class DummyOrg extends DummyObject {
         super(orgName);
     }
 
+    public DummyOrg(String orgName, DummyResource resource) {
+        super(orgName, resource);
+    }
+
     @Override
     public @NotNull String getObjectClassName() {
         return OBJECT_CLASS_NAME;

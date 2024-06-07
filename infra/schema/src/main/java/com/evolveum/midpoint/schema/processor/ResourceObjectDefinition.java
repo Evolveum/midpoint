@@ -12,8 +12,10 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
+import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -325,7 +327,7 @@ public interface ResourceObjectDefinition
     //  But that stinks. Something is broken here. We should define what "blank shadow" is. E.g., should aux OCs be there?
 
     /**
-     * Creates a blank, empty {@link ShadowType} object.
+     * Creates a blank, empty shadow.
      * It contains only the object class name and resource OID.
      * Kind/intent are not set.
      */
@@ -350,7 +352,7 @@ public interface ResourceObjectDefinition
         return shadow;
     }
 
-    /** As {@link #createBlankShadow()} but having the correct resource OID, kind/intent (if applicable), and tag set.  */
+    /** As {@link #createBlankShadow()} but having the correct resource OID, kind/intent (if applicable), and tag set. */
     default AbstractShadow createBlankShadowWithTag(String tag) {
         var shadow = createBlankShadow();
         shadow.getBean().tag(tag);
@@ -569,5 +571,17 @@ public interface ResourceObjectDefinition
     @Override
     default ShadowReferenceAttributeDefinition findReferenceAttributeDefinition(QName name) {
         return AttributeDefinitionStore.super.findReferenceAttributeDefinition(name);
+    }
+
+    default @NotNull ResourceObjectIdentification.WithPrimary createPrimaryIdentification(@NotNull Object identifierRealValue)
+            throws SchemaException {
+        return ResourceObjectIdentification.withPrimary(
+                this,
+                getPrimaryIdentifierRequired().instantiateFromRealValue(identifierRealValue),
+                List.of());
+    }
+
+    default @NotNull S_FilterEntryOrEmpty queryFor() {
+        return PrismContext.get().queryFor(ShadowType.class, new Resource.ResourceItemDefinitionResolver(this));
     }
 }

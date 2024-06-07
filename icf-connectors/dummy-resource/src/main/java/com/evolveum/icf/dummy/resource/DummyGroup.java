@@ -33,6 +33,10 @@ public class DummyGroup extends DummyObject {
         super(username);
     }
 
+    public DummyGroup(String username, DummyResource resource) {
+        super(username, resource);
+    }
+
     public Collection<String> getMembers() {
         return getAttributeValues(ATTR_MEMBERS_NAME, String.class);
     }

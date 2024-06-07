@@ -7,6 +7,7 @@
 package com.evolveum.icf.dummy.connector;
 
 import static com.evolveum.icf.dummy.connector.Utils.notNull;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
@@ -25,6 +26,9 @@ import org.identityconnectors.framework.spi.SearchResultsHandler;
 import org.identityconnectors.framework.spi.operations.*;
 
 import com.evolveum.icf.dummy.resource.*;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Connector for the Dummy Resource, abstract superclass.
@@ -70,9 +74,7 @@ public abstract class AbstractObjectDummyConnector
         DummyObject newObject;
         try {
 
-            newObject = convertToDummyObject(objectClass, createAttributes);
-            LOG.ok("Adding dummy object:\n{0}", newObject.debugDump());
-            resource.addObject(newObject);
+            newObject = convertToDummyObjectAndAdd(objectClass, createAttributes);
 
         } catch (ObjectAlreadyExistsException e) {
             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -94,33 +96,103 @@ public abstract class AbstractObjectDummyConnector
             throw new OperationTimeoutException(e);
         }
 
+        LOG.info("create::end");
+        return createUid(newObject);
+    }
+
+    @NotNull Uid createUid(DummyObject newObject) {
         String id;
         if (configuration.isUidBoundToName()) {
             id = newObject.getName();
         } else {
             id = newObject.getId();
         }
-        Uid uid = new Uid(id);
-
-        LOG.info("create::end");
-        return uid;
+        return new Uid(id);
     }
 
-    private DummyObject convertToDummyObject(ObjectClass objectClass, Set<Attribute> createAttributes)
+    private DummyObject convertToDummyObjectAndAdd(ObjectClass objectClass, Set<Attribute> createAttributes)
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException,
+            ObjectDoesNotExistException, ObjectAlreadyExistsException {
+        var mainObject = convertToDummyObjectExceptLinks(objectClass, createAttributes);
+        LOG.ok("Adding dummy object:\n{0}", mainObject.debugDump());
+        resource.addObject(mainObject);
+
+        for (Attribute createAttribute : createAttributes) {
+            if (mainObject.isLink(createAttribute.getName())) {
+                convertReferenceAttribute(mainObject, createAttribute);
+            }
+        }
+        return mainObject;
+    }
+
+    private void convertReferenceAttribute(DummyObject mainObject, Attribute createAttribute)
+            throws SchemaViolationException, ConflictException, FileNotFoundException, InterruptedException, ConnectException {
+        for (Object value : emptyIfNull(createAttribute.getValue())) {
+            DummyObject referencedObject = convertReferenceAttributeValueWhenAdding(value);
+            mainObject.addLinkValue(createAttribute.getName(), referencedObject);
+        }
+    }
+
+    @NotNull DummyObject convertReferenceAttributeValueWhenAdding(Object referenceAttributeValue)
+            throws SchemaViolationException, ConflictException, FileNotFoundException, InterruptedException, ConnectException {
+        if (!(referenceAttributeValue instanceof ConnectorObjectReference reference)) {
+            throw new SchemaViolationException("Reference attribute with non-reference value: " + referenceAttributeValue);
+        }
+        var referencedObjectClass = reference.getReferencedValue().getObjectClass();
+        var referencedObjectClassName = referencedObjectClass.getObjectClassValue();
+        var referencedObjectClassDef = resource.getStructuralObjectClass(referencedObjectClassName);
+        DummyObject referencedObject;
+        if (referencedObjectClassDef.isAssociationObject()) {
+            var attributes = reference.getReferencedValue().getAttributes();
+            try {
+                referencedObject = convertToDummyObjectAndAdd(referencedObjectClass, attributes);
+            } catch (ObjectAlreadyExistsException | ObjectDoesNotExistException e) {
+                throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e);
+            }
+        } else {
+            var identification = reference.getReferencedObjectIdentification();
+            var uidAttr = (Uid) identification.getAttributeByName(Uid.NAME);
+            var nameAttr = (Name) identification.getAttributeByName(Name.NAME);
+            if (uidAttr != null) {
+                referencedObject = findObjectByUidRequired(referencedObjectClassName, uidAttr, false);
+            } else if (nameAttr != null) {
+                referencedObject = resource.getObjectByName(referencedObjectClassName, nameAttr.getNameValue(), false);
+                if (referencedObject == null) {
+                    throw new IllegalArgumentException( // todo reconsider ObjectNotFoundException here
+                            "Object of class " + referencedObjectClassName + " named " + nameAttr + " does not exist");
+                }
+            } else {
+                throw new IllegalArgumentException("Neither UID nor NAME was provided in object reference: " + reference);
+            }
+        }
+        return referencedObject;
+    }
+
+    private DummyObject convertToDummyObjectExceptLinks(ObjectClass objectClass, Set<Attribute> createAttributes)
             throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
-        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
+        var objectClassName = objectClass.getObjectClassValue();
+        if (ObjectClass.ACCOUNT.is(objectClassName)) {
             return convertToAccount(createAttributes);
-        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
+        } else if (ObjectClass.GROUP.is(objectClassName)) {
             return convertToGroup(createAttributes);
         } else if (objectClass.is(DummyPrivilege.OBJECT_CLASS_NAME)) {
-            return convertToOther(new DummyPrivilege(getIcfName(createAttributes)), createAttributes);
+            return convertToOther(
+                    new DummyPrivilege(
+                            getIcfName(createAttributes),
+                            resource),
+                    createAttributes);
         } else if (objectClass.is(DummyOrg.OBJECT_CLASS_NAME)) {
-            return convertToOther(new DummyOrg(getIcfName(createAttributes)), createAttributes);
+            return convertToOther(
+                    new DummyOrg(
+                            getIcfName(createAttributes),
+                            resource),
+                    createAttributes);
         } else {
             return convertToOther(
                     new DummyGenericObject(
-                            objectClass.getObjectClassValue(),
-                            getIcfName(createAttributes)),
+                            objectClassName,
+                            getIcfNameIfPresent(createAttributes),
+                            resource),
                     createAttributes);
         }
     }
@@ -273,12 +345,13 @@ public abstract class AbstractObjectDummyConnector
         // for subclasses
     }
 
-    private ObjectClassInfoBuilder createCommonObjectClassBuilder(String typeName,
-            DummyObjectClass dummyAccountObjectClass, boolean supportsActivation) {
+    private ObjectClassInfoBuilder createCommonObjectClassBuilder(
+            String typeName, DummyObjectClass dummyAccountObjectClass, boolean supportsActivation) {
         ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
         if (typeName != null) {
             objClassBuilder.setType(typeName);
         }
+        objClassBuilder.setAssociated(dummyAccountObjectClass.isAssociationObject());
 
         buildAttributes(objClassBuilder, dummyAccountObjectClass);
         buildLinks(objClassBuilder, dummyAccountObjectClass);
@@ -1148,7 +1221,7 @@ public abstract class AbstractObjectDummyConnector
         LOG.ok("Create attributes: {0}", createAttributes);
         String userName = getIcfName(createAttributes);
         LOG.ok("Username {0}", userName);
-        final DummyAccount newAccount = new DummyAccount(userName);
+        final DummyAccount newAccount = new DummyAccount(userName, resource);
 
         Boolean enabled = null;
         boolean hasPassword = false;
@@ -1186,14 +1259,7 @@ public abstract class AbstractObjectDummyConnector
                         getBooleanMandatory(attr));
 
             } else {
-                String name = attr.getName();
-                try {
-                    newAccount.replaceAttributeValues(name,attr.getValue());
-                } catch (SchemaViolationException e) {
-                    // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-                    // The framework should deal with it ... somehow
-                    throw new InvalidAttributeValueException(e.getMessage(),e);
-                }
+                addGenericAttribute(newAccount, attr);
             }
         }
 
@@ -1209,7 +1275,7 @@ public abstract class AbstractObjectDummyConnector
     }
 
     private DummyGroup convertToGroup(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        final DummyGroup newGroup = new DummyGroup(getIcfName(createAttributes));
+        final DummyGroup newGroup = new DummyGroup(getIcfName(createAttributes), resource);
 
         for (Attribute attr : createAttributes) {
             if (attr.is(Uid.NAME)) {
@@ -1240,12 +1306,7 @@ public abstract class AbstractObjectDummyConnector
                 }
 
             } else {
-                String name = attr.getName();
-                try {
-                    newGroup.replaceAttributeValues(name,attr.getValue());
-                } catch (SchemaViolationException e) {
-                    throw new InvalidAttributeValueException(e.getMessage(),e);
-                }
+                addGenericAttribute(newGroup, attr);
             }
         }
 
@@ -1268,22 +1329,42 @@ public abstract class AbstractObjectDummyConnector
                 throw new InvalidAttributeValueException("Unsupported ENABLE attribute");
 
             } else {
-                String name = attr.getName();
-                try {
-                    newObject.replaceAttributeValues(name,attr.getValue());
-                } catch (SchemaViolationException e) {
-                    throw new InvalidAttributeValueException(e.getMessage(),e);
-                } catch (InterruptedException e) {
-                    throw new OperationTimeoutException(e.getMessage(),e);
-                }
+                addGenericAttribute(newObject, attr);
             }
         }
 
         return newObject;
     }
 
-    private String getIcfName(Set<Attribute> createAttributes) {
-        String icfName = Utils.getMandatoryStringAttribute(createAttributes, Name.NAME);
+    private static void addGenericAttribute(DummyObject newObject, Attribute attr)
+            throws ConnectException, FileNotFoundException, ConflictException {
+        String name = attr.getName();
+        try {
+            if (newObject.isLink(name)) {
+                // links are processed later
+            } else {
+                newObject.replaceAttributeValues(name, attr.getValue());
+            }
+        } catch (SchemaViolationException e) {
+            // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+            // The framework should deal with it ... somehow
+            throw new InvalidAttributeValueException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new OperationTimeoutException(e.getMessage(), e);
+        }
+    }
+
+    private String getIcfName(Set<Attribute> attributes) {
+        return convertIcfName(
+                Utils.getMandatoryStringAttribute(attributes, Name.NAME));
+    }
+
+    private String getIcfNameIfPresent(Set<Attribute> attributes) {
+        return convertIcfName(
+                Utils.getAttributeSingleValue(attributes, Name.NAME, String.class));
+    }
+
+    @Nullable String convertIcfName(String icfName) {
         if (configuration.getUpCaseName()) {
             return StringUtils.upperCase(icfName);
         } else {
@@ -1558,5 +1639,24 @@ public abstract class AbstractObjectDummyConnector
     static UnknownUidException getUnknownUidException(String objectClassName, Uid uid) {
         return new UnknownUidException(
                 "Object of class '" + objectClassName + "' with UID " + uid + " does not exist on resource");
+    }
+
+    private DummyObject findObjectByUid(String objectClassName, Uid uid, boolean checkBreak)
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+        if (configuration.isUidBoundToName()) {
+            return resource.getObjectByName(objectClassName, uid.getUidValue(), checkBreak);
+        } else  {
+            return resource.getObjectById(uid.getUidValue(), checkBreak);
+        }
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    @NotNull DummyObject findObjectByUidRequired(String objectClassName, Uid uid, boolean checkBreak)
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+        var object = findObjectByUid(objectClassName, uid, checkBreak);
+        if (object == null) {
+            throw getUnknownUidException(objectClassName, uid);
+        }
+        return object;
     }
 }
