@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 
 import java.util.List;
 
@@ -23,7 +24,6 @@ public class CertItemOutcomeSearchItemWrapper  extends ChoicesSearchItemWrapper<
     public CertItemOutcomeSearchItemWrapper(ItemPath path, List<DisplayableValue<AccessCertificationResponseType>> availableValues) {
         super(path, availableValues);
     }
-
 
     @Override
     public boolean canRemoveSearchItem() {
@@ -36,6 +36,14 @@ public class CertItemOutcomeSearchItemWrapper  extends ChoicesSearchItemWrapper<
             return null;
         }
         AccessCertificationResponseType response = getValue().getValue();
+
+        if (AccessCertificationResponseType.NO_RESPONSE.equals(response) &&
+                AccessCertificationWorkItemType.class.equals(type)) {
+            //work items without response have null outcome
+            return PrismContext.get().queryFor(type)
+                    .item(getPath()).isNull()
+                    .buildFilter();
+        }
         return PrismContext.get().queryFor(type)
                 .item(getPath()).eq(OutcomeUtils.toUri(response)).buildFilter();
     }

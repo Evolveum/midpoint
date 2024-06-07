@@ -27,6 +27,7 @@ public class CertItemOutcomeSearchItemWrapperFactory  extends
     protected CertItemOutcomeSearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
         List<DisplayableValue<AccessCertificationResponseType>> availableValues = getAvailableValues(ctx);
         CertItemOutcomeSearchItemWrapper wrapper = new CertItemOutcomeSearchItemWrapper(ctx .getPath(), availableValues);
+        setDefaultValue(ctx, wrapper);
         return wrapper;
     }
 
@@ -42,14 +43,14 @@ public class CertItemOutcomeSearchItemWrapperFactory  extends
     }
 
     private boolean skipResponse(SearchItemContext ctx, AccessCertificationResponseType value) {
-        if (isCertificationCaseOutcome(ctx)) {
+//        if (isCertificationCaseOutcome(ctx)) {
             return AccessCertificationResponseType.DELEGATE.equals(value);
-        }
-        if (isWorkItemOutcome(ctx)) {
-            return AccessCertificationResponseType.NO_RESPONSE.equals(value)
-                    || AccessCertificationResponseType.DELEGATE.equals(value);
-        }
-        return false;
+//        }
+//        if (isWorkItemOutcome(ctx)) {
+//            return AccessCertificationResponseType.NO_RESPONSE.equals(value)
+//                    || AccessCertificationResponseType.DELEGATE.equals(value);
+//        }
+//        return false;
     }
 
     @Override
@@ -65,5 +66,11 @@ public class CertItemOutcomeSearchItemWrapperFactory  extends
     private boolean isWorkItemOutcome(SearchItemContext ctx) {
         return ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME)
                 .equivalent(ctx.getPath()) && ctx.isVisible();
+    }
+
+    private void setDefaultValue(SearchItemContext ctx, CertItemOutcomeSearchItemWrapper wrapper) {
+        if (isWorkItemOutcome(ctx)) {
+            wrapper.setValue(new SearchValue<>(AccessCertificationResponseType.NO_RESPONSE));
+        }
     }
 }
