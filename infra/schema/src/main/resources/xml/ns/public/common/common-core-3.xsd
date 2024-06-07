@@ -5614,6 +5614,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="additionalMappingSpecification" type="c:MappingSpecificationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of additional mappings, which are considered as part of value set. Ideal for migration
+                        after rename of mapping.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <!-- TODO: other set definition types:
                        * reference to lookup table
                        * reference to schema enumeration -->
@@ -16842,6 +16850,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ORIGIN_INTERNAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000601">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ORIGIN_USER_ENTRY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

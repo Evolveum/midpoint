@@ -162,6 +162,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Autowired(required = false)                        // not required in all circumstances
     private CertificationManager certificationManager;
+    @Autowired private OperationalDataManager operationalDataManager;
 
     public ModelObjectResolver getObjectResolver() {
         return objectResolver;
@@ -351,6 +352,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         // We generate focus OID even for generic repo, and when access metadata are not concerned.
         // It is maybe not strictly needed for these cases, but this allows us to rely on the fact that the OID is always there.
         generateFocusOidIfNeeded(context, result);
+
+        operationalDataManager.addExternalAssignmentProvenance(context, task);
 
         clockwork.run(context, task, result);
 

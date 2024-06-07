@@ -15,6 +15,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.repo.api.ModifyObjectResult;
+
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -150,7 +154,7 @@ public class ShadowUpdater {
         LOGGER.trace("Applying repository shadow modifications:\n{}", debugDumpLazily(clonedModifications, 1));
         try {
             ConstraintsChecker.onShadowModifyOperation(clonedModifications);
-            executeRepoShadowModificationsRaw(repoShadow, clonedModifications.getRawItemDeltas(), result);
+            var modifyResult = executeRepoShadowModificationsRaw(repoShadow, clonedModifications.getRawItemDeltas(), result);
             // Maybe we should catch ObjectNotFoundException here and issue death event. But unless such deletion occurred
             // in raw mode by the administrator, we shouldn't care, because the thread that deleted the shadow should have
             // updated the links accordingly.
@@ -162,9 +166,17 @@ public class ShadowUpdater {
             List<ItemDelta<?, ?>> itemDeltas = clonedModifications.getItemDeltas();
             ctx.applyCurrentDefinition(itemDeltas); // Isn't this just too late?
             repoShadow.updateWith(itemDeltas);
+            updateMetadataPcvId(repoShadow, modifyResult);
             LOGGER.trace("Shadow changes processed successfully.");
         } catch (ObjectAlreadyExistsException ex) {
             throw SystemException.unexpected(ex, "when updating shadow in the repository");
+        }
+    }
+
+    private void updateMetadataPcvId(RepoShadow repoShadow, ModifyObjectResult<ShadowType> modifyResult) {
+        var shadow = repoShadow.getBean();
+        if (ValueMetadataTypeUtil.needsMetadataValuePcvIdUpdate(shadow)) {
+            ValueMetadataTypeUtil.updatePcvId(shadow, modifyResult.getModifications());
         }
     }
 
@@ -173,20 +185,21 @@ public class ShadowUpdater {
      *
      * Does *not* update the in-memory object.
      */
-    public void executeRepoShadowModificationsRaw(
+    private ModifyObjectResult<ShadowType> executeRepoShadowModificationsRaw(
             @NotNull RepoShadow repoShadow,
             @NotNull List<ItemDelta<?, ?>> modifications,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), modifications, result);
+        return repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), modifications, result);
     }
 
-    private void executeRepoShadowModificationsRaw(
+    /** Does *not* update the in-memory object. */
+    private ModifyObjectResult<ShadowType> executeRepoShadowModificationsRaw(
             @NotNull RepoShadow repoShadow,
             @NotNull RepoShadowModifications modifications,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        executeRepoShadowModificationsRaw(repoShadow, modifications.getRawItemDeltas(), result);
+        return executeRepoShadowModificationsRaw(repoShadow, modifications.getRawItemDeltas(), result);
     }
 
     /** A convenience method (updates object in repo and in memory). */

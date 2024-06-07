@@ -404,10 +404,12 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         then("role is assigned, audit and metadata are OK");
         assertUserAfter(userOid)
                 .assignments()
-                .assertRole(roleObject.oid);
+                .assertRole(roleObject.oid)
+                .end()
+                .valueMetadataSingle()
+                .assertModifyApprovers(approverOid);
 
         checkAuditRecords(createResultMap(roleObject.oid, WorkflowResult.APPROVED));
-        checkUserApprovers(userOid, singletonList(approverOid), result);
     }
 
     private List<PrismReferenceValue> getPotentialAssignees(PrismObject<UserType> user) {

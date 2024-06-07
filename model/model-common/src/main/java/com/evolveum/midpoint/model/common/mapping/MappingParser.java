@@ -22,10 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractMappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueSetDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -201,7 +198,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
                     m.getExpressionProfile(),
                     ModelCommonBeans.get().expressionFactory,
                     variableName,
-                    null,
+                    null, // FIXME: Why?
                     "domain of " + variableName,
                     "domain of " + variableName + " in " + m.getMappingContextDescription(),
                     m.getTask(),

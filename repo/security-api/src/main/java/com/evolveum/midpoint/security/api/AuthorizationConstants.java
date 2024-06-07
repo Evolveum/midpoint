@@ -8,6 +8,7 @@ package com.evolveum.midpoint.security.api;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -621,6 +622,7 @@ public class AuthorizationConstants {
      * justified by those operational issues.
      */
     public static final PathSet EXECUTION_ITEMS_ALLOWED_BY_DEFAULT = PathSet.of(
+            ItemPath.create(InfraItemName.METADATA),
             ItemPath.create(ObjectType.F_METADATA),
             ItemPath.create(ObjectType.F_PARENT_ORG_REF),
             ItemPath.create(ObjectType.F_TENANT_REF),
@@ -635,6 +637,7 @@ public class AuthorizationConstants {
             ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
             ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
             ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_METADATA),
+            ItemPath.create(FocusType.F_ASSIGNMENT, InfraItemName.METADATA),
             ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_POLICY_SITUATION),
             ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TRIGGERED_POLICY_RULE),
             ItemPath.create(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP),
@@ -647,6 +650,7 @@ public class AuthorizationConstants {
             ItemPath.create(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
             ItemPath.create(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
             ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_METADATA),
+            ItemPath.create(AbstractRoleType.F_INDUCEMENT, InfraItemName.METADATA),
             ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_POLICY_SITUATION),
             ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_TRIGGERED_POLICY_RULE),
             ItemPath.create(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP),
@@ -658,10 +662,13 @@ public class AuthorizationConstants {
             ItemPath.create(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS),
             ItemPath.create(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
             ItemPath.create(AbstractRoleType.F_INDUCEMENT, FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
+            // TODO What's this? inducement/assignment/xxx ? There's no such path.
             ItemPath.create(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_METADATA),
+            ItemPath.create(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, InfraItemName.METADATA),
             ItemPath.create(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_POLICY_SITUATION),
             ItemPath.create(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_TRIGGERED_POLICY_RULE),
             ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA),
+            ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, InfraItemName.METADATA),
             ItemPath.create(FocusType.F_DELEGATED_REF),
             ItemPath.create(FocusType.F_ITERATION),
             ItemPath.create(FocusType.F_ITERATION_TOKEN),

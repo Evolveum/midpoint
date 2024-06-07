@@ -154,4 +154,8 @@ public class QContainerMapping<S extends Containerable, Q extends QContainer<R, 
     public int containerDepth() {
         return 1;
     }
+
+    public boolean useDeltaApplyResults() {
+        return false;
+    }
 }

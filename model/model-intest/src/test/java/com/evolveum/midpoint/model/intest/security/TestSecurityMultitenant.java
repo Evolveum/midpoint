@@ -748,7 +748,7 @@ public class TestSecurityMultitenant extends AbstractInitializedSecurityTest {
                         RoleType.F_AUTHORIZATION, task, result, superuserAuthorization));
 
         assertDeny("induce superuser",
-                (task, result) -> induceRole(ROLE_ATREIDES_ADMIN_OID, ROLE_SUPERUSER_OID, task, result));
+                (task, result) -> induceRole(ROLE_ATREIDES_ADMIN_OID, ROLE_SUPERUSER.oid, task, result));
 
         assertDeny("add dummy account",
                 (task, result) -> assignAccount(UserType.class, USER_PAUL_ATREIDES_OID, RESOURCE_DUMMY_OID, null, task, result));
@@ -800,7 +800,7 @@ public class TestSecurityMultitenant extends AbstractInitializedSecurityTest {
         assertAddAllow(ROLE_ATREIDES_SWORDMASTER_FILE);
 
         assertDeny("induce superuser",
-                (task, result) -> induceRole(ROLE_ATREIDES_SWORDMASTER_OID, ROLE_SUPERUSER_OID, task, result));
+                (task, result) -> induceRole(ROLE_ATREIDES_SWORDMASTER_OID, ROLE_SUPERUSER.oid, task, result));
 
         assertAllow("uninduce soldier from swordmaster",
                 (task, result) -> uninduceRole(ROLE_ATREIDES_SWORDMASTER_OID, ROLE_ATREIDES_SOLDIER_OID, task, result));
@@ -878,7 +878,7 @@ public class TestSecurityMultitenant extends AbstractInitializedSecurityTest {
 
         // Outside of tenant
         assertDeny("induce superuser",
-                (task, result) -> induceRole(ROLE_ATREIDES_SWORDMASTER_OID, ROLE_SUPERUSER_OID, task, result));
+                (task, result) -> induceRole(ROLE_ATREIDES_SWORDMASTER_OID, ROLE_SUPERUSER.oid, task, result));
 
         // Only role inducements are allowed, not assignments
         assertDeny("assign swordmaster to admin",

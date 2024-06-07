@@ -25,7 +25,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -396,7 +395,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         when();
-        assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_SUPERUSER.oid, task, result);
 
         then();
         result.computeStatus();
@@ -405,7 +404,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack);
-        assertAssignedRole(userJack, ROLE_SUPERUSER_OID);
+        assertAssignedRole(userJack, ROLE_SUPERUSER.oid);
         assertAssignments(userJack, 2);
 
         // Check notifications
@@ -446,7 +445,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         when();
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
-        AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
+        AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER.oid);
         Long id = assignment.getId();
         executeChanges(
                 prismContext.deltaFor(UserType.class)
@@ -504,7 +503,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         when();
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
-        AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
+        AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER.oid);
         Long id = assignment.getId();
         executeChanges(
                 prismContext.deltaFor(UserType.class)

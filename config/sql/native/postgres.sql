@@ -1973,7 +1973,7 @@ CREATE TABLE m_assignment_metadata (
     modifyChannelId INTEGER REFERENCES m_uri(id),
     modifyTimestamp TIMESTAMPTZ,
 
-    PRIMARY KEY (ownerOid, cid)
+    PRIMARY KEY (ownerOid, assignmentCid, cid)
 ) INHERITS(m_container);
 
 CREATE INDEX m_assignment_metadata_createTimestamp_idx ON m_assignment (createTimestamp);
@@ -1996,6 +1996,9 @@ CREATE INDEX m_assignment_orgRefTargetOid_idx ON m_assignment (orgRefTargetOid);
 CREATE INDEX m_assignment_resourceRefTargetOid_idx ON m_assignment (resourceRefTargetOid);
 CREATE INDEX m_assignment_createTimestamp_idx ON m_assignment (createTimestamp);
 CREATE INDEX m_assignment_modifyTimestamp_idx ON m_assignment (modifyTimestamp);
+
+ALTER TABLE "m_assignment_metadata"
+ADD FOREIGN KEY ("owneroid", "assignmentcid") REFERENCES "m_assignment" ("owneroid", "cid") ON DELETE CASCADE;
 
 -- stores assignment/metadata/createApproverRef
 CREATE TABLE m_assignment_ref_create_approver (
@@ -2305,4 +2308,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(33, $$ SELECT 1 $$, true);
+call apply_change(34, $$ SELECT 1 $$, true);

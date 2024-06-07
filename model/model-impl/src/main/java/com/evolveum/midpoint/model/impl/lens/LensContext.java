@@ -11,14 +11,19 @@ import static com.evolveum.midpoint.model.impl.lens.LensProjectionContext.fromLe
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.io.Serial;
+import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.util.MappingInspector;
+
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -150,12 +155,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     private boolean executionAudited = false; // was the execution audited?
     private LensContextStatsType stats = new LensContextStatsType();
 
-    /**
-     * Metadata of the request. Metadata recorded when the operation has
-     * started. Currently only the requestor related data (requestTimestamp, requestorRef)
-     * are collected. But later other metadata may be used.
-     */
-    private MetadataType requestMetadata;
+    /** Metadata of the request. Metadata recorded when the operation has started. */
+    private RequestMetadata requestMetadata;
 
     /**
      * Executed deltas from rotten projection contexts.
@@ -781,12 +782,21 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    MetadataType getRequestMetadata() {
+    RequestMetadata getRequestMetadata() {
         return requestMetadata;
     }
 
-    void setRequestMetadata(MetadataType requestMetadata) {
+    private void setRequestMetadata(RequestMetadata requestMetadata) {
         this.requestMetadata = requestMetadata;
+    }
+
+    /**
+     * Stores request metadata in the model context. Because the operation can finish later
+     * (if switched to background), we need to have these data recorded at the beginning.
+     */
+    void initializeRequestMetadata(XMLGregorianCalendar now, Task task) {
+        setRequestMetadata(
+                RequestMetadata.create(now, task));
     }
 
     public ClockworkInspector getInspector() {
@@ -1377,7 +1387,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             bean.setExecutionAudited(executionAudited);
             bean.setRequestAuthorized(isRequestAuthorized());
             bean.setStats(stats);
-            bean.setRequestMetadata(requestMetadata);
+            if (requestMetadata != null) {
+                bean.setRequestMetadata(requestMetadata.toBean());
+            }
             bean.setOwnerOid(ownerOid);
 
             for (LensObjectDeltaOperation<?> executedDelta : rottenExecutedDeltas) {
@@ -1462,7 +1474,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         lensContext.setRequestAuthorized(
                 Boolean.TRUE.equals(bean.isRequestAuthorized()) ? AuthorizationState.FULL : AuthorizationState.NONE);
         lensContext.setStats(bean.getStats());
-        lensContext.setRequestMetadata(bean.getRequestMetadata());
+        lensContext.setRequestMetadata(RequestMetadata.fromBean(bean.getRequestMetadata()));
         lensContext.setOwnerOid(bean.getOwnerOid());
 
         for (LensObjectDeltaOperationType eDeltaOperationType : bean.getRottenExecutedDeltas()) {
@@ -2069,5 +2081,43 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
         /** The full authorization was carried out. */
         FULL
+    }
+
+    /**
+     * Metadata recorded when the operation has started. It is not necessary to store requestor comment here,
+     * as it is preserved in context.options field.
+     *
+     * Values are parent-less.
+     */
+    record RequestMetadata(
+            XMLGregorianCalendar requestTimestamp,
+            ObjectReferenceType requestorRef) implements Serializable, Cloneable {
+
+        static RequestMetadata create(XMLGregorianCalendar now, Task task) {
+            return new RequestMetadata(
+                    now,
+                    ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
+        }
+
+        static RequestMetadata fromBean(MetadataType requestMetadata) {
+            if (requestMetadata == null) {
+                return null;
+            } else {
+                return new RequestMetadata(
+                        requestMetadata.getRequestTimestamp(),
+                        CloneUtil.clone(requestMetadata.getRequestorRef()));
+            }
+        }
+
+        MetadataType toBean() {
+            return new MetadataType()
+                    .requestTimestamp(requestTimestamp)
+                    .requestorRef(CloneUtil.clone(requestorRef));
+        }
+
+        @SuppressWarnings("MethodDoesntCallSuperMethod")
+        public RequestMetadata clone() {
+            return new RequestMetadata(requestTimestamp, CloneUtil.clone(requestorRef));
+        }
     }
 }

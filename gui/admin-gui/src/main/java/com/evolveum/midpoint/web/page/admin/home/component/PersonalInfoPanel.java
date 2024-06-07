@@ -6,33 +6,30 @@
  */
 package com.evolveum.midpoint.web.page.admin.home.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
-import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationBehavioralDataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import static com.evolveum.midpoint.schema.util.FocusTypeUtil.getPasswordMetadata;
+import static com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil.getLastChangeTimestamp;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.markup.html.basic.Label;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationBehavioralDataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * @author lazyman
@@ -97,11 +94,9 @@ public class PersonalInfoPanel extends BasePanel<List<PersonalInfoDto>> {
         Duration maxAge = credentialsPolicyType != null && credentialsPolicyType.getPassword() != null ?
                 credentialsPolicyType.getPassword().getMaxAge() : null;
         if (maxAge != null) {
-            MetadataType credentialMetadata = focus.getCredentials() != null && focus.getCredentials().getPassword() != null ?
-                    focus.getCredentials().getPassword().getMetadata() : null;
-            XMLGregorianCalendar changeTimestamp = MiscSchemaUtil.getChangeTimestamp(credentialMetadata);
-            if (changeTimestamp != null) {
-                XMLGregorianCalendar passwordValidUntil = XmlTypeConverter.addDuration(changeTimestamp, maxAge);
+            var lastChange = getLastChangeTimestamp(getPasswordMetadata(focus));
+            if (lastChange != null) {
+                XMLGregorianCalendar passwordValidUntil = XmlTypeConverter.addDuration(lastChange, maxAge);
                 dto.setPasswordExp(MiscUtil.asDate(passwordValidUntil));
             }
         }

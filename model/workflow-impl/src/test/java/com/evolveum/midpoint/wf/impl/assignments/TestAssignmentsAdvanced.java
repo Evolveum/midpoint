@@ -22,6 +22,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.test.TestDir;
 import com.evolveum.midpoint.util.exception.CommonException;
 
@@ -477,14 +478,18 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         assertAssignmentMetadata(jackAfter, ROLE_ROLE29.oid, emptySet(), emptySet(), singleton(USER_ADMINISTRATOR_OID), singleton("administrator :: comment1"));
     }
 
-    private void assertAssignmentMetadata(PrismObject<? extends FocusType> object, String targetOid, Set<String> createApproverOids,
+    private void assertAssignmentMetadata(
+            PrismObject<? extends FocusType> object, String targetOid, Set<String> createApproverOids,
             Set<String> createApprovalComments, Set<String> modifyApproverOids, Set<String> modifyApprovalComments) {
         AssignmentType assignment = findAssignmentByTargetRequired(object, targetOid);
-        MetadataType metadata = assignment.getMetadata();
-        PrismAsserts.assertReferenceOids("Wrong create approvers", createApproverOids, metadata.getCreateApproverRef());
-        PrismAsserts.assertEqualsCollectionUnordered("Wrong create comments", createApprovalComments, metadata.getCreateApprovalComment());
-        PrismAsserts.assertReferenceOids("Wrong modify approvers", modifyApproverOids, metadata.getModifyApproverRef());
-        PrismAsserts.assertEqualsCollectionUnordered("Wrong modify comments", modifyApprovalComments, metadata.getModifyApprovalComment());
+        PrismAsserts.assertReferenceOids(
+                "Wrong create approvers", createApproverOids, ValueMetadataTypeUtil.getCreateApproverRefs(assignment));
+        PrismAsserts.assertEqualsCollectionUnordered(
+                "Wrong create comments", createApprovalComments, ValueMetadataTypeUtil.getCreateApprovalComments(assignment));
+        PrismAsserts.assertReferenceOids(
+                "Wrong modify approvers", modifyApproverOids, ValueMetadataTypeUtil.getModifyApproverRefs(assignment));
+        PrismAsserts.assertEqualsCollectionUnordered(
+                "Wrong modify comments", modifyApprovalComments, ValueMetadataTypeUtil.getModifyApprovalComments(assignment));
     }
 
     @Test

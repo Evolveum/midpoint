@@ -8,6 +8,8 @@ package com.evolveum.midpoint.wf.impl.other;
 
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
+import static com.evolveum.midpoint.util.MiscUtil.extractSingleton;
+
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
@@ -18,6 +20,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.query.*;
+
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -42,7 +48,6 @@ import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.OperationResultRepoSearchAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -201,10 +206,13 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         AssignmentType assignment = assertAssignedRole(USER_JACK.oid, ROLE_SAILOR.oid, result);
         display("assignment after creation", assignment);
-        MetadataType metadata = assignment.getMetadata();
-        assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
-        assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator), metadata.getRequestorRef());
-        assertEquals("Wrong requestorComment in metadata", REQUESTER_COMMENT, metadata.getRequestorComment());
+        assertNotNull("Null request timestamp in metadata", ValueMetadataTypeUtil.getRequestTimestamp(assignment));
+        assertRefEquals("Wrong requestorRef in metadata",
+                ObjectTypeUtil.createObjectRef(userAdministrator),
+                extractSingleton(ValueMetadataTypeUtil.getRequestorRefs(assignment)));
+        assertEquals(
+                "Wrong requestorComment in metadata", REQUESTER_COMMENT,
+                extractSingleton(ValueMetadataTypeUtil.getRequestorComments(assignment)));
     }
 
     @Test
@@ -267,10 +275,12 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         AssignmentType assignment = assertAssignedRole(USER_JACK.oid, ROLE_CAPTAIN.oid, result);
         display("assignment after creation", assignment);
-        MetadataType metadata = assignment.getMetadata();
-        assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
-        assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator), metadata.getRequestorRef());
-        assertEquals("Wrong requestorComment in metadata", REQUESTER_COMMENT, metadata.getRequestorComment());
+        assertNotNull("Null request timestamp in metadata", ValueMetadataTypeUtil.getRequestTimestamp(assignment));
+        assertRefEquals("Wrong requestorRef in metadata",
+                ObjectTypeUtil.createObjectRef(userAdministrator),
+                extractSingleton(ValueMetadataTypeUtil.getRequestorRefs(assignment)));
+        assertEquals("Wrong requestorComment in metadata",
+                REQUESTER_COMMENT, extractSingleton(ValueMetadataTypeUtil.getRequestorComments(assignment)));
     }
 
     @Test

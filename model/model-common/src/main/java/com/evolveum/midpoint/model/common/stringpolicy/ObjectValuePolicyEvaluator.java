@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
@@ -40,8 +41,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.model.api.validator.StringLimitationResult.extractMessages;
+
+import static com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil.getMetadata;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -234,49 +238,37 @@ public class ObjectValuePolicyEvaluator {
         if (oldCredential == null) {
             return;
         }
-        Duration minAge = getMinAge();
-        MetadataType currentCredentialMetadata = oldCredential.getMetadata();
-        if (minAge != null && currentCredentialMetadata != null) {
-            XMLGregorianCalendar lastChangeTimestamp = getLastChangeTimestamp(currentCredentialMetadata);
-            if (lastChangeTimestamp != null) {
-                XMLGregorianCalendar changeAllowedTimestamp = XmlTypeConverter.addDuration(lastChangeTimestamp, minAge);
-                if (changeAllowedTimestamp.compare(now) == DatatypeConstants.GREATER) {
-                    LOGGER.trace("Password minAge violated. lastChange={}, minAge={}, now={}", lastChangeTimestamp, minAge, now);
-                    LocalizableMessage msg = LocalizableMessageBuilder.buildKey("ValuePolicy.minAgeNotReached");
-                    result.addSubresult(new OperationResult("Password minimal age", OperationResultStatus.FATAL_ERROR, msg));
-                    messages.add(msg);
-                }
+        var minAge = getMinAge();
+        var lastChangeTimestamp = getLastChangeTimestamp();
+        if (minAge != null && lastChangeTimestamp != null) {
+            XMLGregorianCalendar changeAllowedTimestamp = XmlTypeConverter.addDuration(lastChangeTimestamp, minAge);
+            if (changeAllowedTimestamp.compare(now) == DatatypeConstants.GREATER) {
+                LOGGER.trace("Password minAge violated. lastChange={}, minAge={}, now={}", lastChangeTimestamp, minAge, now);
+                LocalizableMessage msg = LocalizableMessageBuilder.buildKey("ValuePolicy.minAgeNotReached");
+                result.addSubresult(new OperationResult("Password minimal age", OperationResultStatus.FATAL_ERROR, msg));
+                messages.add(msg);
             }
         }
     }
 
+    private @Nullable XMLGregorianCalendar getLastChangeTimestamp() {
+        return ValueMetadataTypeUtil.getLastChangeTimestamp(getMetadata(oldCredential));
+    }
 
     private boolean isMaxAgeViolated() {
         if (oldCredential == null) {
             return false;
         }
-        Duration maxAge = getMaxAge();
-        MetadataType currentCredentialMetadata = oldCredential.getMetadata();
-        if (maxAge != null && currentCredentialMetadata != null) {
-            XMLGregorianCalendar lastChangeTimestamp = getLastChangeTimestamp(currentCredentialMetadata);
-            if (lastChangeTimestamp != null) {
-                XMLGregorianCalendar changeAllowedTimestamp = XmlTypeConverter.addDuration(lastChangeTimestamp, maxAge);
-                if (changeAllowedTimestamp.compare(now) == DatatypeConstants.LESSER) {
-                    LOGGER.trace("Password maxAge violated. lastChange={}, maxAge={}, now={}", lastChangeTimestamp, maxAge, now);
-                    return true;
-                }
+        var maxAge = getMaxAge();
+        var lastChangeTimestamp = getLastChangeTimestamp();
+        if (maxAge != null && lastChangeTimestamp != null) {
+            XMLGregorianCalendar changeAllowedTimestamp = XmlTypeConverter.addDuration(lastChangeTimestamp, maxAge);
+            if (changeAllowedTimestamp.compare(now) == DatatypeConstants.LESSER) {
+                LOGGER.trace("Password maxAge violated. lastChange={}, maxAge={}, now={}", lastChangeTimestamp, maxAge, now);
+                return true;
             }
         }
         return false;
-    }
-
-    private XMLGregorianCalendar getLastChangeTimestamp(MetadataType currentCredentialMetadata) {
-        XMLGregorianCalendar modifyTimestamp = currentCredentialMetadata.getModifyTimestamp();
-        if (modifyTimestamp != null) {
-            return modifyTimestamp;
-        } else {
-            return currentCredentialMetadata.getCreateTimestamp();
-        }
     }
 
     private void validateStringPolicy(String clearValue, List<LocalizableMessage> messages, OperationResult result)

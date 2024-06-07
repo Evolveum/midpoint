@@ -244,19 +244,19 @@ public class ProvisioningUtil {
         p.setValue(null);
     }
 
-    public static void addPasswordMetadata(PasswordType p, XMLGregorianCalendar now, ObjectReferenceType ownerRef) {
-        MetadataType metadata = p.getMetadata();
-        if (metadata != null) {
+    public static void addPasswordMetadata(PasswordType p, XMLGregorianCalendar now, ObjectReferenceType ownerRef)
+            throws SchemaException {
+        var valueMetadata = p.asPrismContainerValue().getValueMetadata();
+        if (!valueMetadata.isEmpty()) {
             return;
         }
-        // Supply some metadata if they are not present. However the
-        // normal thing is that those metadata are provided by model
-        metadata = new MetadataType();
-        metadata.setCreateTimestamp(now);
-        if (ownerRef != null) {
-            metadata.creatorRef(ownerRef.getOid(), null);
-        }
-        p.setMetadata(metadata);
+        // Supply some metadata if they are not present. However the normal thing is that those metadata are provided by model.
+        var newMetadata = new ValueMetadataType()
+                .storage(new StorageMetadataType()
+                        .createTimestamp(now)
+                        .creatorRef(ObjectTypeUtil.createObjectRefCopy(ownerRef)));
+        valueMetadata.addMetadataValue(
+                newMetadata.asPrismContainerValue());
     }
 
     public static void checkShadowActivationConsistency(RepoShadow shadow) {

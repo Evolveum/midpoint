@@ -22,25 +22,20 @@ import org.jetbrains.annotations.NotNull;
 @Experimental
 public class MidpointValueMetadataFactory implements ValueMetadataFactory {
 
-    @NotNull private final PrismContext prismContext;
-    private final Lazy<PrismContainerDefinition<ValueMetadataType>> metadataType;
-
+    private final Lazy<PrismContainerDefinition<ValueMetadataType>> metadataBeanLazy;
 
     public MidpointValueMetadataFactory(@NotNull PrismContext prismContext) {
-        this.prismContext = prismContext;
-        metadataType = Lazy.from(() -> prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(ValueMetadataType.class));
+        metadataBeanLazy = Lazy.from(
+                () -> prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(ValueMetadataType.class));
     }
 
     @Override
     public @NotNull ValueMetadata createEmpty() {
         try {
-            return ValueMetadataAdapter.holding(metadataType.get().instantiate(PrismConstants.VALUE_METADATA_CONTAINER_NAME));
+            return ValueMetadataAdapter.holding(
+                    metadataBeanLazy.get().instantiate(PrismConstants.VALUE_METADATA_CONTAINER_NAME));
         } catch (SchemaException e) {
             throw new SystemException("Unexpected schema exception while creating value metadata container: " + e.getMessage(), e);
         }
-    }
-
-    public static ValueMetadata createFrom(@NotNull PrismContainer<?> container) {
-        return ValueMetadataAdapter.holding(container);
     }
 }

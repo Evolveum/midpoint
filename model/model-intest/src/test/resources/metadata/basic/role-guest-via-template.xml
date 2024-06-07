@@ -1,0 +1,12 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="bdefc429-304f-4627-b63d-c36de191f989">
+    <name>guest-via-template</name>
+    <documentation>Role that is assigned via object template mapping</documentation>
+</role>
