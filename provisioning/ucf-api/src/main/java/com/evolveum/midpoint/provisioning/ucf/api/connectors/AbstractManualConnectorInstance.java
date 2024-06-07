@@ -51,8 +51,8 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
                 GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException;
 
     protected abstract String createTicketModify(ResourceObjectDefinition objectDefinition,
-                                                 PrismObject<ShadowType> shadow, Collection<? extends ShadowSimpleAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
-                                                 Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
+            PrismObject<ShadowType> shadow, Collection<? extends ShadowSimpleAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
+            Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
             SchemaException, ObjectAlreadyExistsException, ConfigurationException;
 
     protected abstract String createTicketDelete(ResourceObjectDefinition objectDefinition,
@@ -94,7 +94,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public @NotNull UcfModifyReturnValue modifyObject(
-            ResourceObjectIdentification.WithPrimary identification,
+            @NotNull ResourceObjectIdentification.WithPrimary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,

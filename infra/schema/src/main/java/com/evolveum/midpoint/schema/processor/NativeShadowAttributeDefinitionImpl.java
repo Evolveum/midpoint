@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.schema.*;
 
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 
 import org.jetbrains.annotations.NotNull;
@@ -203,6 +204,11 @@ public class NativeShadowAttributeDefinitionImpl<T>
     }
 
     @Override
+    public void setSchemaContextDefinition(SchemaContextDefinition schemaContextDefinition) {
+        unsupported("schemaContextAnnotation", schemaContextDefinition);
+    }
+
+    @Override
     public void setValueEnumerationRef(PrismReferenceValue valueEnumerationRef) {
         unsupported("valueEnumerationRef", valueEnumerationRef);
     }
@@ -350,8 +356,18 @@ public class NativeShadowAttributeDefinitionImpl<T>
     }
 
     @Override
+    public DisplayHint getDisplayHint() {
+        return PrismPresentationDefinition.Delegable.super.getDisplayHint();
+    }
+
+    @Override
     public String getDisplayName() {
         return PrismPresentationDefinition.Delegable.super.getDisplayName();
+    }
+
+    @Override
+    public String getDocumentation() {
+        return PrismPresentationDefinition.Delegable.super.getDocumentation();
     }
 
     @Override

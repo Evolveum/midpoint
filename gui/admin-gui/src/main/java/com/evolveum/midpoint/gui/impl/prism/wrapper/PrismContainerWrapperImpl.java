@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -30,6 +31,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author katka
@@ -158,7 +161,7 @@ public class PrismContainerWrapperImpl<C extends Containerable>
         return null;
     }
 
-    private PrismContainerValueWrapper<C> findValue(Long id) {
+    PrismContainerValueWrapper<C> findValue(Long id) {
         if (isSingleValue()) {
             List<PrismContainerValueWrapper<C>> values = getValues();
             if (values != null && !values.isEmpty()) {
@@ -402,6 +405,11 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     public Class<C> getTypeClass() {
         //noinspection unchecked
         return (Class<C>) super.getTypeClass();
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return null;
     }
 
     @Override

@@ -27,6 +27,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition.PrismPropertyDefinitionMutator;
+import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.processor.ConnectorSchema;
 import com.evolveum.midpoint.schema.processor.ConnectorSchemaFactory;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
@@ -340,7 +341,10 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         String stringID = keyToNamespaceSuffix(key);
         connectorType.setFramework(SchemaConstants.ICF_FRAMEWORK_URI);
         connectorType.setConnectorType(key.getConnectorName());
-        connectorType.setNamespace(ICF_CONFIGURATION_NAMESPACE_PREFIX + stringID);
+        var namespace = ICF_CONFIGURATION_NAMESPACE_PREFIX + stringID;
+        connectorType.setNamespace(namespace);
+        // We register global mapping of connector namespace
+        GlobalDynamicNamespacePrefixMapper.registerPrefixGlobal(namespace, SchemaConstants.CONNECTOR_CONFIGURATION_PREFIX);
         connectorType.setConnectorVersion(key.getBundleVersion());
         connectorType.setConnectorBundle(key.getBundleName());
         if (hostType != null) {

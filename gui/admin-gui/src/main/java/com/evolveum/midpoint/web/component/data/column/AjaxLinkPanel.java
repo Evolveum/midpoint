@@ -49,4 +49,8 @@ public class AjaxLinkPanel extends Panel {
 
     public void onClick(AjaxRequestTarget target) {
     }
+
+    public AjaxLink<String> getLink() {
+        return (AjaxLink<String>) get(ID_LINK);
+    }
 }

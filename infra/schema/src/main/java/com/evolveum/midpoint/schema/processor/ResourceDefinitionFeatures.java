@@ -55,6 +55,16 @@ class ResourceDefinitionFeatures {
                         NativeObjectClassUcfDefinition::isAuxiliary,
                         XsdSerializers.aBoolean(MidPointConstants.RA_AUXILIARY));
 
+        static final DefinitionFeature<Boolean, NativeObjectClassDefinitionBuilder, Object, ?> DF_ASSOCIATION_OBJECT =
+                DefinitionFeature.of(
+                        Boolean.class,
+                        NativeObjectClassDefinitionBuilder.class,
+                        NativeObjectClassDefinitionBuilder::setAssociationObject,
+                        XsomParsers.marker(MidPointConstants.RA_ASSOCIATION_OBJECT),
+                        NativeObjectClassUcfDefinition.class,
+                        NativeObjectClassUcfDefinition::isAssociationObject,
+                        XsdSerializers.aBoolean(MidPointConstants.RA_ASSOCIATION_OBJECT));
+
         static final DefinitionFeature<QName, NativeObjectClassDefinitionBuilder, Object, ?> DF_NAMING_ATTRIBUTE_NAME =
                 DefinitionFeature.of(
                         QName.class,

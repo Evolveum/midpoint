@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinition.PrismContainerDefinitionMutator;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReferencesCapabilityType;
 import com.google.common.base.Preconditions;
@@ -69,7 +70,10 @@ public class ShadowReferenceAttributeDefinitionImpl
     private Integer maxOccurs;
 
     /** TODO */
-    private ShadowAssociationDefinitionType associationDefinitionBean;
+    @Nullable private ShadowAssociationDefinitionType associationDefinitionBean;
+
+    /** TEMPORARY */
+    @Nullable private ShadowAssociationTypeDefinitionType associationTypeDefinitionBean;
 
     private ShadowReferenceAttributeDefinitionImpl(
             @NotNull AbstractShadowReferenceTypeDefinition typeDefinition,
@@ -247,13 +251,23 @@ public class ShadowReferenceAttributeDefinitionImpl
         maxOccurs = value;
     }
 
-    public ShadowAssociationDefinitionType getAssociationDefinitionBean() {
+    public @Nullable ShadowAssociationDefinitionType getAssociationDefinitionBean() {
         return associationDefinitionBean;
     }
 
-    public void setAssociationDefinitionBean(ShadowAssociationDefinitionType associationDefinitionBean) {
+    void setAssociationDefinitionBean(ShadowAssociationDefinitionType associationDefinitionBean) {
         checkMutable();
         this.associationDefinitionBean = associationDefinitionBean;
+    }
+
+    @Override
+    public @Nullable ShadowAssociationTypeDefinitionType getAssociationTypeDefinitionBean() {
+        return associationTypeDefinitionBean;
+    }
+
+    void setAssociationTypeDefinitionBean(@Nullable ShadowAssociationTypeDefinitionType associationTypeDefinitionBean) {
+        checkMutable();
+        this.associationTypeDefinitionBean = associationTypeDefinitionBean;
     }
 
     @Override
@@ -427,7 +441,7 @@ public class ShadowReferenceAttributeDefinitionImpl
     // FIXME fix this method
     public @NotNull ObjectFilter createTargetObjectsFilter() {
         var resourceOid = stateNonNull(getRepresentativeTargetObjectDefinition().getResourceOid(), "No resource OID in %s", this);
-        var targetParticipantTypes = getTargetParticipantTypes();
+        var targetParticipantTypes = getImmediateTargetParticipantTypes();
         assertCheck(!targetParticipantTypes.isEmpty(), "No object type definitions (already checked)");
         var firstObjectType = targetParticipantTypes.iterator().next().getTypeIdentification();
         if (targetParticipantTypes.size() > 1 || firstObjectType == null) {
@@ -478,6 +492,11 @@ public class ShadowReferenceAttributeDefinitionImpl
     @Override
     public @NotNull Class<ShadowAssociationValueType> getTypeClass() {
         return ShadowAssociationValueType.class;
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return null;
     }
 
     @Override
@@ -652,6 +671,10 @@ public class ShadowReferenceAttributeDefinitionImpl
     }
 
     @Override
+    public void setSchemaContextDefinition(SchemaContextDefinition schemaContextDefinition) {
+    }
+
+    @Override
     public void setCanRead(boolean val) {
     }
 
@@ -692,7 +715,7 @@ public class ShadowReferenceAttributeDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<AssociationParticipantType> getTargetParticipantTypes() {
+    public @NotNull Collection<AssociationParticipantType> getImmediateTargetParticipantTypes() {
         // TODO use additional information from the association type definition, if there's any
         return referenceTypeDefinition.getObjectTypes();
     }

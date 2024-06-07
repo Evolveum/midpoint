@@ -47,7 +47,7 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPreviewPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeWizardPreviewPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -322,7 +322,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                                         ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)
                                                 .append(selectedObjectType.asPrismContainerValue().getPath()));
                             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                                LOGGER.error("Couldn't invoke method " + methodName + "in PageResource class");
+                                LOGGER.error("Couldn't invoke method " + methodName + " in PageResource class");
                             }
                         }
                     }

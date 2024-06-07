@@ -79,14 +79,14 @@ class MappedItems<T extends Containerable> {
                     source.getOwningAssociationDefinition(), selfInboundDefinition);
         }
 
-        for (var attributeDef : source.resourceObjectDefinition.getSimpleAttributeDefinitions()) {
-            createMappedItemForAttribute(
-                    attributeDef, source.inboundDefinition.getAttributeInboundDefinition(attributeDef.getItemName()));
+        for (var simpleAttributeDef : source.resourceObjectDefinition.getSimpleAttributeDefinitions()) {
+            createMappedItemForSimpleAttribute(
+                    simpleAttributeDef, source.inboundDefinition.getSimpleAttributeInboundDefinition(simpleAttributeDef.getItemName()));
         }
 
-        for (var associationDef : source.resourceObjectDefinition.getReferenceAttributeDefinitions()) {
-            createMappedItemForAssociation(
-                    associationDef, source.inboundDefinition.getAssociationInboundDefinition(associationDef.getItemName()));
+        for (var refAttributeDef : source.resourceObjectDefinition.getReferenceAttributeDefinitions()) {
+            createMappedItemForReferenceAttribute(
+                    refAttributeDef, source.inboundDefinition.getReferenceAttributeInboundDefinition(refAttributeDef.getItemName()));
         }
 
         // FIXME Remove this temporary check
@@ -107,10 +107,10 @@ class MappedItems<T extends Containerable> {
      * Creates a mapping creation request for mapping(s) for given attribute.
      *
      * @param <TA> type of the attribute
-     * @see #createMappedItemForAssociation(ShadowReferenceAttributeDefinition, ItemInboundDefinition)
+     * @see #createMappedItemForReferenceAttribute(ShadowReferenceAttributeDefinition, ItemInboundDefinition)
      * @see #createMappedItemForAuxObjectClasses()
      */
-    private <TA> void createMappedItemForAttribute(
+    private <TA> void createMappedItemForSimpleAttribute(
             ShadowSimpleAttributeDefinition<TA> attributeDefinition,
             ItemInboundDefinition attributeInboundDefinition)
             throws SchemaException, ConfigurationException {
@@ -177,32 +177,32 @@ class MappedItems<T extends Containerable> {
     /**
      * Creates a {@link MappedItem} for given association.
      *
-     * @see #createMappedItemForAttribute(ShadowSimpleAttributeDefinition, ItemInboundDefinition)
+     * @see #createMappedItemForSimpleAttribute(ShadowSimpleAttributeDefinition, ItemInboundDefinition)
      * @see #createMappedItemForAuxObjectClasses()
      */
-    private void createMappedItemForAssociation(
-            ShadowReferenceAttributeDefinition associationDefinition,
-            ItemInboundDefinition associationInboundDefinition)
+    private void createMappedItemForReferenceAttribute(
+            ShadowReferenceAttributeDefinition attributeDefinition,
+            ItemInboundDefinition attributeInboundDefinition)
             throws SchemaException, ConfigurationException {
 
-        if (associationInboundDefinition == null) {
+        if (attributeInboundDefinition == null) {
             return;
         }
 
         // 1. Definitions
 
-        var inboundMappingBeans = associationInboundDefinition.getInboundMappingBeans();
+        var inboundMappingBeans = attributeInboundDefinition.getInboundMappingBeans();
         if (inboundMappingBeans.isEmpty()) {
             return;
         }
 
-        var associationName = associationDefinition.getItemName();
+        var associationName = attributeDefinition.getItemName();
         ItemPath itemPath = ShadowType.F_ASSOCIATIONS.append(associationName);
         String itemDescription = "association " + associationName;
         List<InboundMappingConfigItem> applicableMappings =
                 source.selectMappingBeansForEvaluationPhase(
                         createMappingCIs(inboundMappingBeans),
-                        associationInboundDefinition.getCorrelatorDefinition() != null,
+                        attributeInboundDefinition.getCorrelatorDefinition() != null,
                         context.getCorrelationItemPaths());
         if (applicableMappings.isEmpty()) {
             LOGGER.trace("No applicable beans for this phase");
@@ -233,9 +233,9 @@ class MappedItems<T extends Containerable> {
                 itemDescription,
                 associationAPrioriDelta,
                 applicableMappings,
-                associationDefinition.isVisible(context),
-                associationDefinition.isIgnored(LayerType.MODEL),
-                associationDefinition.getLimitations(LayerType.MODEL));
+                attributeDefinition.isVisible(context),
+                attributeDefinition.isIgnored(LayerType.MODEL),
+                attributeDefinition.getLimitations(LayerType.MODEL));
         if (processingMode == ProcessingMode.NONE) {
             return;
         }
@@ -251,7 +251,7 @@ class MappedItems<T extends Containerable> {
                         itemPath, // source path (cannot point to specified association name!)
                         itemDescription,
                         associationAPrioriDelta,
-                        associationDefinition,
+                        attributeDefinition,
                         associationProvider,
                         associationPostProcessor,
                         source::getEntitlementVariableProducer, // so-called variable producer
@@ -267,6 +267,8 @@ class MappedItems<T extends Containerable> {
 
     /**
      * Creates a {@link MappedItem} for an association value referenced by "." path.
+     *
+     * FIXME reconsider this
      */
     private void createMappedItemForAssociationValueItself(
             ShadowReferenceAttributeDefinition associationDefinition,
@@ -349,8 +351,8 @@ class MappedItems<T extends Containerable> {
     /**
      * Creates a {@link MappedItem} for "auxiliary object classes" property.
      *
-     * @see #createMappedItemForAttribute(ShadowSimpleAttributeDefinition, ItemInboundDefinition)
-     * @see #createMappedItemForAssociation(ShadowReferenceAttributeDefinition, ItemInboundDefinition)
+     * @see #createMappedItemForSimpleAttribute(ShadowSimpleAttributeDefinition, ItemInboundDefinition)
+     * @see #createMappedItemForReferenceAttribute(ShadowReferenceAttributeDefinition, ItemInboundDefinition)
      */
     private void createMappedItemForAuxObjectClasses() throws SchemaException, ConfigurationException {
 

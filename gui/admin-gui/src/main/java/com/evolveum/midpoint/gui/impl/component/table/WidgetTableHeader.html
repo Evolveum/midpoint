@@ -5,13 +5,16 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:wicket="http://wicket.apache.org">
+        xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <h3 class="card-title">
-        <i class="mr-2" wicket:id="icon"/>
-        <span wicket:id="title"/>
-    </h3>
+    <div class="d-flex flex-column flex-grow-1">
+        <h3 class="card-title">
+            <i class="mr-2" wicket:id="icon"/>
+            <span wicket:id="title"/>
+        </h3>
+        <wicket:child/>
+    </div>
 </wicket:panel>
 </body>
 </html>

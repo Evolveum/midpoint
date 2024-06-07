@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.intest.associations;
 
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
-import static com.evolveum.midpoint.test.AttrName.icfs;
+import static com.evolveum.midpoint.test.AttrName.icfsName;
 import static com.evolveum.midpoint.test.ObjectClassName.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +45,7 @@ public class DummyAdTrivialScenario extends AbstractDummyScenario {
         public static final ObjectClassName OBJECT_CLASS_NAME = custom("account");
 
         public static class AttributeNames {
-            public static final AttrName NAME = icfs("name");
+            public static final AttrName NAME = icfsName();
         }
 
         public static class LinkNames {
@@ -67,7 +67,7 @@ public class DummyAdTrivialScenario extends AbstractDummyScenario {
         public static final ObjectClassName OBJECT_CLASS_NAME = custom("group");
 
         public static class AttributeNames {
-            public static final AttrName NAME = icfs("name");
+            public static final AttrName NAME = icfsName();
         }
 
         public static class LinkNames {

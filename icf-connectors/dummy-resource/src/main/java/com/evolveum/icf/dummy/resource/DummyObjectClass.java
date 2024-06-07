@@ -6,6 +6,8 @@
  */
 package com.evolveum.icf.dummy.resource;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -26,6 +28,30 @@ public class DummyObjectClass {
 
     /** Links relevant to this object class. Maintained by the resource itself. Indexed by (non-null) local link name.*/
     @NotNull private final Map<String, LinkDefinition> linkDefinitionsMap = new ConcurrentHashMap<>();
+
+    /** True if this is an "association object class". */
+    private final boolean associationObject;
+
+    public DummyObjectClass() {
+        this(false);
+    }
+
+    public DummyObjectClass(boolean associationObject) {
+        this.associationObject = associationObject;
+    }
+
+    /**
+     * Creates a standard/standalone object class, i.e. not an association one. The object class can be structural or auxiliary,
+     * depending on how it's used.
+     */
+    public static DummyObjectClass standard() {
+        return new DummyObjectClass();
+    }
+
+    /** Creates an association object class. Should be used as a structural one for now. */
+    public static DummyObjectClass association() {
+        return new DummyObjectClass(true);
+    }
 
     public @NotNull Collection<DummyAttributeDefinition> getAttributeDefinitions() {
         return attributeDefinitions;
@@ -67,9 +93,19 @@ public class DummyObjectClass {
         return linkDefinitionsMap.get(linkName);
     }
 
+    LinkDefinition getLinkDefinitionRequired(@NotNull String linkName) {
+        return MiscUtil.argNonNull(
+                linkDefinitionsMap.get(linkName),
+                "No link '%s' definition in %s", linkName, this);
+    }
+
     synchronized void addLinkDefinition(LinkDefinition definition) {
         var name = argNonNull(definition.getLinkName(), "No link name in %s", definition);
         stateCheck(!linkDefinitionsMap.containsKey(name), "Link definition for %s already exists", name);
         linkDefinitionsMap.put(name, definition);
+    }
+
+    public boolean isAssociationObject() {
+        return associationObject;
     }
 }

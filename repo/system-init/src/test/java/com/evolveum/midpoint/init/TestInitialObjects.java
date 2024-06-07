@@ -56,13 +56,23 @@ public class TestInitialObjects extends AbstractUnitTest {
     }
 
     @Test
+    public void testNaturalKeyDiff() throws Exception {
+        Collection<File> files = FileUtils.listFiles(INITIAL_OBJECTS_DIR, new String[] { "xml" }, true);
+
+        for (File file : files) {
+            PrismObject<?> before = parseObject(file);
+            PrismObject<?> after = before.clone();
+        }
+    }
+
+    @Test
     public void mergeInitialObjects() throws Exception {
         List<FileMergeResult> results = new ArrayList<>();
 
         testMergeOnFiles(INITIAL_OBJECTS_DIR.listFiles(), results);
 
-        int success = results.stream().filter(r -> !r.problem()).toList().size();
-        int failed = results.size() - success;
+        long success = results.stream().filter(r -> !r.problem()).count();
+        long failed = results.size() - success;
 
         LOGGER.info("Success: " + success + ", Failed: " + failed + ", Total: " + results.size());
 
@@ -74,7 +84,7 @@ public class TestInitialObjects extends AbstractUnitTest {
                         + "\ndelta:\n" + r.before().diff(r.after()).debugDump(1)));
 
         Assertions.assertThat(failed)
-                .isEqualTo(0)
+                .isEqualTo(0L)
                 .withFailMessage("Failed merge for " + failed + " files");
     }
 

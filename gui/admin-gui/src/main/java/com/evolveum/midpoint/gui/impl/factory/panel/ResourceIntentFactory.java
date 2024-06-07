@@ -28,7 +28,7 @@ public class ResourceIntentFactory extends AbstractIntentFactory {
             return false;
         }
 
-        if (!wrapper.getPath().lastName().equivalent(ResourceObjectTypeDefinitionType.F_INTENT)) {
+        if (!ResourceObjectTypeDefinitionType.F_INTENT.equivalent(wrapper.getPath().lastName())) {
             return false;
         }
 

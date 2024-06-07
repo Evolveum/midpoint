@@ -11,7 +11,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -19,8 +19,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  */
 @FunctionalInterface
-public interface CollectorValuesConverter<T> {
+public interface CollectorValuesConverter<V extends PrismValue> {
 
-    List<Object> covertAttributeValuesToConnId(Collection<PrismPropertyValue<T>> pvals, QName midPointAttributeName) throws SchemaException;
+    List<Object> covertAttributeValuesToConnId(Collection<V> pvals, QName midPointAttributeName) throws SchemaException;
 
 }

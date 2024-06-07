@@ -54,7 +54,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
-import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
@@ -419,6 +419,32 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         return null;
     }
 
+    protected <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> P showWizardWithoutSave(
+            IModel<PrismContainerValueWrapper<C>> valueModel,
+            AjaxRequestTarget target,
+            Class<P> clazz) {
+
+        setShowedByWizard(true);
+
+        getFeedbackPanel().setVisible(false);
+        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageAssignmentHolderDetails.this);
+        fragment.setOutputMarkupId(true);
+        addOrReplace(fragment);
+
+        try {
+            Constructor<P> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
+            P wizard = constructor.newInstance(ID_WIZARD, createContainerWizardHelperWithoutSave(valueModel));
+            wizard.setOutputMarkupId(true);
+            fragment.add(wizard);
+            target.add(fragment);
+            return wizard;
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            LOGGER.error("Couldn't create panel by constructor for class " + clazz.getSimpleName()
+                    + " with parameters type: String, WizardPanelHelper", e);
+        }
+        return null;
+    }
+
     private <C extends Containerable> WizardPanelHelper<C, AHDM> createContainerWizardHelper(
             IModel<PrismContainerValueWrapper<C>> valueModel) {
         return new WizardPanelHelper<>(getObjectDetailsModels(), valueModel) {
@@ -460,6 +486,25 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         };
     }
 
+    private <C extends Containerable> WizardPanelHelper<C, AHDM> createContainerWizardHelperWithoutSave(
+            IModel<PrismContainerValueWrapper<C>> valueModel) {
+        return new WizardPanelHelper<>(getObjectDetailsModels(), valueModel) {
+
+            @Override
+            public void onExitPerformed(AjaxRequestTarget target) {
+                setShowedByWizard(false);
+                backToDetailsFromWizard(target);
+                getWizardBreadcrumbs().clear();
+                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
+            }
+
+            @Override
+            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
+                return new OperationResult(OPERATION_SAVE);
+            }
+        };
+    }
+
     protected WizardPanelHelper<AH, AHDM> createObjectWizardPanelHelper() {
         return new WizardPanelHelper<>(getObjectDetailsModels()) {
 
@@ -472,7 +517,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
             @Override
             public IModel<PrismContainerValueWrapper<AH>> getValueModel() {
-                return new ContainerValueWrapperFromObjectWrapperModel<>(
+                return PrismContainerValueWrapperModel.fromContainerWrapper(
                         getDetailsModel().getObjectWrapperModel(), ItemPath.EMPTY_PATH);
             }
 

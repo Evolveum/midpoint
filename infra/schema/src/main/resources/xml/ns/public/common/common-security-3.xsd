@@ -180,7 +180,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.1</a:since>
-                <a:naturalKey>identifier</a:naturalKey>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1834,7 +1834,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.1</a:since>
-                <a:naturalKey>identifier</a:naturalKey>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2050,7 +2050,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.1</a:since>
-                <a:naturalKey>identifier</a:naturalKey>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2565,7 +2565,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3152,7 +3152,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:naturalKey>identifier</a:naturalKey>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

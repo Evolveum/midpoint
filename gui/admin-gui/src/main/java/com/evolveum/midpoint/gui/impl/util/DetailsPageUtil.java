@@ -19,12 +19,17 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleA
 
 import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchema;
 
+import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchemas;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.wicket.Component;
+import org.apache.wicket.Page;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
+import org.apache.wicket.request.mapper.parameter.INamedParameters;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
@@ -112,6 +117,7 @@ public final class DetailsPageUtil {
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ResourceType.class, PageResources.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(TaskType.class, PageTasks.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(PageMessageTemplate.class, PageMessageTemplates.class);
+        DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(SchemaType.class, PageSchemas.class);
     }
 
     static {
@@ -252,14 +258,40 @@ public final class DetailsPageUtil {
     }
 
     public static void redirectFromDashboardWidget(GuiActionType action, PageBase pageBase) {
+        redirectFromDashboardWidget(action, null, pageBase);
+    }
+
+    public static void redirectFromDashboardWidget(GuiActionType action, PageParameters params, PageBase pageBase) {
+        if (params == null) {
+            params = new PageParameters();
+        }
+
         RedirectionTargetType redirectionTarget = action.getTarget();
+        if (redirectionTarget == null) {
+            return;
+        }
+
         String url = redirectionTarget.getTargetUrl();
         String pageClass = redirectionTarget.getPageClass();
 
         Class<? extends WebPage> webPageClass = null;
         if (StringUtils.isNotEmpty(url)) {
             if (new UrlValidator().isValid(url)) {
-                throw new RedirectToUrlException(url);
+
+                StringBuilder sb = new StringBuilder(url);
+                if (CollectionUtils.isNotEmpty(params.getAllNamed())) {
+                    sb.append("?");
+
+                    List<INamedParameters.NamedPair> pairs = params.getAllNamed();
+                    for (INamedParameters.NamedPair p : pairs) {
+                        sb.append(p.getKey()).append("=").append(p.getValue());
+                        if (params.getAllNamed().indexOf(p) < params.getAllNamed().size() - 1) {
+                            sb.append("&");
+                        }
+                    }
+                }
+
+                throw new RedirectToUrlException(sb.toString());
             }
             webPageClass = PageMounter.getUrlClassMap().get(url);
         }
@@ -269,7 +301,6 @@ public final class DetailsPageUtil {
                 webPageClass = (Class<? extends WebPage>) Class.forName(pageClass);
             }
 
-            PageParameters params = new PageParameters();
             String panelType = redirectionTarget.getPanelIdentifier();
             if (panelType != null) {
                 params.set(AbstractPageObjectDetails.PARAM_PANEL_ID, panelType);

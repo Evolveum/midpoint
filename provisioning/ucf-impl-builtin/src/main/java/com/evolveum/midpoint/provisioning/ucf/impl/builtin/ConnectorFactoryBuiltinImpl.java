@@ -18,6 +18,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcherAware;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.schema.PrismSchemaBuildingUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.processor.ConnectorSchema;
@@ -143,6 +144,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         connectorType.setConnectorVersion(version);
         connectorType.setFramework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN);
         String namespace = CONFIGURATION_NAMESPACE_PREFIX + bundleName + "/" + type;
+        GlobalDynamicNamespacePrefixMapper.registerPrefixGlobal(namespace, SchemaConstants.CONNECTOR_CONFIGURATION_PREFIX);
         connectorType.setNamespace(namespace);
 
         struct.connectorObject = connectorType;

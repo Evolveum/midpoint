@@ -264,7 +264,7 @@
             <xsd:appinfo>
                 <a:since>4.5</a:since>
                 <a:container>true</a:container>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

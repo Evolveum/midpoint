@@ -127,6 +127,7 @@
                         <assignmentSubtype>groupMembership</assignmentSubtype>
                     </focus>
                     <objectRef>
+                        <correlator/>
                         <outbound>
                             <expression>
                                 <associationFromLink/>
@@ -141,15 +142,6 @@
                             </target>
                         </inbound>
                     </objectRef>
-                    <correlation>
-                        <correlators>
-                            <items>
-                                <item>
-                                    <ref>targetRef</ref>
-                                </item>
-                            </items>
-                        </correlators>
-                    </correlation>
                     <synchronization>
                         <reaction>
                             <situation>unmatched</situation>

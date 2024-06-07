@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.AssignmentsProcessingContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.PathSet;
@@ -32,8 +33,9 @@ public class LimitedContext extends Context {
     public LimitedContext(
             @NotNull PreInboundsContext<?> ctx,
             @NotNull PathSet correlationItemPaths,
-            @NotNull MappingEvaluationEnvironment env) {
-        super(env);
+            @NotNull MappingEvaluationEnvironment env,
+            @NotNull AssignmentsProcessingContext assignmentsProcessingContext) {
+        super(env, assignmentsProcessingContext);
         this.ctx = ctx;
         this.correlationItemPaths = correlationItemPaths;
     }

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
@@ -109,6 +110,11 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     @Override
     public void setRealValue(C realValue) {
         LOGGER.info("######$$$$$$Nothing to do");
+    }
+
+    @Override
+    public void replaceContainerItemValue(PrismContainerValue<C> newValue) {
+        setNewValue(newValue);
     }
 
     @Override
@@ -473,6 +479,35 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
             }
         }
         return null;
+    }
+
+    @Override
+    public <T extends Containerable> PrismContainerValueWrapper<T> findContainerValue(ItemPath path) {
+        try {
+            Object last = path.last();
+            if (ItemPath.isId(last)) {
+                path = path.allExceptLast();
+            }
+            PrismContainerWrapper containerWrapper = findContainer(path);
+
+            if (!(containerWrapper instanceof PrismContainerWrapperImpl)) {
+                throw new UnsupportedOperationException("Cannot find container wrapper for " + path + ". Unsupported parent found: " + containerWrapper);
+            }
+
+            PrismContainerWrapperImpl containerWrapperImpl = (PrismContainerWrapperImpl) containerWrapper;
+            if (ItemPath.isId(last)) {
+                return containerWrapperImpl.findValue((Long) last);
+            } else {
+                if (containerWrapperImpl.isSingleValue()) {
+                    return containerWrapperImpl.findValue(null);
+                }
+                throw new UnsupportedOperationException("Cannot get value from multivalue container without specified container id.");
+            }
+
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while trying to find container value with path {}, parentContainer {}", e, path, this);
+            return null;
+        }
     }
 
     private void addVirtualContainers(List<PrismContainerWrapper<?>> containers) {

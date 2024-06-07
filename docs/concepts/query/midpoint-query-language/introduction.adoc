@@ -56,7 +56,15 @@ Following tables summarizes common property filters:
 | Name | Alias | Description
 
 | `equal` | `=` | Matches if any item is equal to value
-| `not equal` | != | Matches if item is different from value
+
+| `not equal`
+
+`notEqual`
+
+| !=
+| Matches if item is different from value
+
+
 | `less` | `<` | Matches if item is smaller than value
 | `lessOrEqual` | `&lt;=` | Matches if item is smaller or equal to the value
 | `greater` | `>` | Matches if item is greater than value
@@ -401,6 +409,49 @@ All roles and organization units which are organization tree roots.
 | exists | N/A | Matches if item exists (has any value). Filter does not have value.
 | type | object type | Matches if object is of specified type. Usually used in combination with `and` filter for dereferenced objects, or it is needed to match on property defined in more specific type.
 |===
+
+[#_similarity_filters]
+=== Similarity filters
+
+NOTE: Filters are currently supported in midPoint native repository only
+
+To perform fuzzy (not exact) matching, midPoint query language provides 2 filters: `levenshtein` and `similarity`.
+
+Aside from other filters, right side of the query consists of triplet of parameters enclosed in brackets.
+Their meaning is explained in following table:
+
+[options="header",cols="10,10,30,30",width=90]
+|===
+| Name | Value | Description | Parameters
+| levenshtein
+| (value, threshold, inclusive)
+| Matches objects where queried attribute has levenshtein distance *lower than* (or equal - depends on inclusive parameter value) the threshold specified.
+a| * value (string) - string value that is compared with queried attribute.
+* threshold (integer) - the compared distance value. The result must be less than (or equal) the threshold.
+* inclusive (boolean) - whether objects with threshold value would be included in result (true) or not (false).
+
+| similarity
+| (value, threshold, inclusive)
+| Matches objects where queried attribute has similarity *greater than* (or equal - depends on inclusive parameter value) the threshold specified. +
+Similarity of 1 mean exact match, 0 no similarity.
+a| * value (string) - string value that is compared with queried attribute.
+* threshold (float) - the compared distance value. The result must be greater than (or equal) the threshold.
+* inclusive (boolean) - whether objects with threshold value would be included in result (true) or not (false).
+|===
+
+As the filters are implemented using https://www.postgresql.org/docs/current/fuzzystrmatch.html#FUZZYSTRMATCH-LEVENSHTEIN[levenshtein PostgreSQL function] and https://www.postgresql.org/docs/current/pgtrgm.html[similarity PostgreSQL function], they work with native repository only.
+
+`name levenshtein ("ang",2,true)`::
+All users whose name attribute has levenshtein distance 2 or lower from string "ang".
+
+`name levenshtein ("ang",2,false)`::
+All users whose name has levenshtein distance lower than 2 from string "ang".
+
+`name similarity ('gren', 0.5, true)`::
+All users whose name has similarity of 0.5 and lower to 'gren'.
+
+
+NOTE: The Levenshtein distance between two strings is the number of modifications required to transform one string (s1) into the other string (s2). It allows for single-character edits such as deletion, insertion, and substitution. For example, for s1=“helloIndia” and s2=“halloindia,” the Levenshtein distance is 2.
 
 === Filtering all objects of specified type
 

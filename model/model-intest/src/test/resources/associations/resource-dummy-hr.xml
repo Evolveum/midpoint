@@ -128,7 +128,7 @@
                     </focus>
                     <attribute>
                         <ref>icfs:uid</ref>
-                        <!-- The correlation is based on this property. -->
+                        <correlator/>
                         <inbound>
                             <strength>strong</strength>
                             <expression>
@@ -235,15 +235,6 @@
                             <inbound/>
                         </validTo>
                     </activation>
-                    <correlation> <!-- TODO replace with the flag on the attribute -->
-                        <correlators>
-                            <items>
-                                <item>
-                                    <ref>identifier</ref>
-                                </item>
-                            </items>
-                        </correlators>
-                    </correlation>
                     <synchronization>
                         <reaction>
                             <situation>unmatched</situation>

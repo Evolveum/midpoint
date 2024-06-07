@@ -70,7 +70,7 @@ public class TestSearch extends AbstractStoryTest {
                             c.addAttrDef(c.getAccountObjectClass(), attributeName, String.class, false, false);
                         }
                     } else {
-                        DummyObjectClass oc = new DummyObjectClass();
+                        DummyObjectClass oc = DummyObjectClass.standard();
                         for (String attributeName : attributeNames) {
                             oc.addAttributeDefinition(attributeName, String.class, false, false);
                         }

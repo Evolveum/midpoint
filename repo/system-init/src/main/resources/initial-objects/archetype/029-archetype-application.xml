@@ -1,12 +1,14 @@
 <!--
-  ~ Copyright (c) 2019 Evolveum and contributors
+  ~ Copyright (c) 2019-2024 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <archetype oid="00000000-0000-0000-0000-000000000329"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>Application</name>
     <description>
         Applications are basic building blocks for defining access.
@@ -78,6 +80,30 @@
                     </display>
                     <displayOrder>91</displayOrder>
                     <panelType>governanceCards</panelType>
+                </panel>
+                <panel id="15">
+                    <identifier>classifications</identifier>
+                    <display>
+                        <label>Classifications</label>
+                        <tooltip>Information classifications (labels)</tooltip>
+                        <icon>
+                            <cssClass>fa fa-tags</cssClass>
+                        </icon>
+                    </display>
+                    <displayOrder>92</displayOrder>
+                    <panelType>roleAssignments</panelType>
+                    <listView>
+                        <identifier>classifications-view</identifier>
+                        <type>c:AssignmentType</type>
+                        <dataProvider xsi:type="c:RepositoryAssignmentDataProviderType"/>
+                        <collection>
+                            <filter>
+                                <q:text>targetRef/@/archetypeRef matches ( oid = "00000000-0000-0000-0000-000000000330" )</q:text>
+                            </filter>
+<!--                            <collectionRef oid="00000000-0000-0000-0000-000000000330" type="c:ArchetypeType">
+                            </collectionRef> -->
+                        </collection>
+                    </listView>
                 </panel>
                 <panel id="10">
                     <identifier>inducements</identifier>

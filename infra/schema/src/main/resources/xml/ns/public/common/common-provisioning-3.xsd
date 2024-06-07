@@ -380,7 +380,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.6</a:since>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1707,7 +1707,7 @@
                 <a:experimental>true</a:experimental>
                 <a:container/>
                 <a:since>4.9</a:since>
-                <a:naturalKey>identifier</a:naturalKey>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1845,6 +1845,9 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="ref" type="xsd:QName" minOccurs="0">
+                <!-- TODO docs -->
+            </xsd:element>
             <xsd:element name="objectType" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2243,7 +2246,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:naturalKey>ref</a:naturalKey>
+                <a:naturalKey>tns:ref</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -6138,7 +6141,7 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.9</a:since>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -6313,7 +6316,7 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.6</a:since>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

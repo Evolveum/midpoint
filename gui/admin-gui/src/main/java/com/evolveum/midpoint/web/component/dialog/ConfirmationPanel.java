@@ -20,6 +20,8 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 
+import java.io.Serial;
+
 /**
  * Created by Honchar.
  *
@@ -28,7 +30,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
  */
 public class ConfirmationPanel extends BasePanel<String> implements Popupable {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
     private static final String ID_CONFIRM_TEXT = "confirmText";
 
     private static final String ID_BUTTONS = "buttons";
@@ -47,7 +49,7 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
         initLayout();
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         Label label = new Label(ID_CONFIRM_TEXT, getModel());
         label.setEscapeModelStrings(true);
         add(label);

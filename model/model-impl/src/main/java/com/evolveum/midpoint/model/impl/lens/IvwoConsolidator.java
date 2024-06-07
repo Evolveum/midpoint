@@ -366,7 +366,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         Collection<I> values = new ArrayList<>();
         if (strengthSelector.isWeak()) {
             for (I ivwo : ivwos) {
-                if (ivwo.getMapping().getStrength() == MappingStrengthType.WEAK &&
+                if (ivwo.getProducer().getStrength() == MappingStrengthType.WEAK &&
                         (origin == null || origin == ivwo.getItemValue().getOriginType())) {
                     values.add(ivwo);
                 }
@@ -432,7 +432,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
                 addingOrigins.addAll(equivalenceClass.zeroOrigins);
             } else if (addUnchangedValuesExceptForNormalMappings) {
                 for (I zeroIvwo : equivalenceClass.zeroOrigins) {
-                    if (zeroIvwo.isStrong() || zeroIvwo.isNormal() && (zeroIvwo.isSourceless() || zeroIvwo.isPushChanges()) || zeroIvwo.isWeak()) {
+                    if (zeroIvwo.isStrong()
+                            || zeroIvwo.isNormal() && (zeroIvwo.isSourceless() || zeroIvwo.isPushChanges())
+                            || zeroIvwo.isWeak()) {
                         addingOrigins.add(zeroIvwo);
                     }
                 }
@@ -594,7 +596,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
             hasAtLeastOneStrongMapping = false;
             exclusiveMapping = null;
             for (ItemValueWithOrigin<V,D> origin : origins) {
-                PrismValueDeltaSetTripleProducer<V,D> mapping = origin.getMapping();
+                PrismValueDeltaSetTripleProducer<V,D> mapping = origin.getProducer();
                 if (mapping.getStrength() == MappingStrengthType.STRONG) {
                     hasAtLeastOneStrongMapping = true;
                 }
@@ -652,7 +654,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         @Nullable
         private PrismValueDeltaSetTripleProducer<V, D> findStrongMapping(Collection<I> ivwos) {
             for (ItemValueWithOrigin<V,D> pvwo : MiscUtil.emptyIfNull(ivwos)) {
-                PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getMapping();
+                PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getProducer();
                 if (mapping.getStrength() == MappingStrengthType.STRONG) {
                     return mapping;
                 }
@@ -954,7 +956,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
 
     private boolean shouldCategorize(I ivwo, boolean takeValidInvalid) {
         return !ivwo.isWeak() && // experimental
-                !shouldSkipMapping(ivwo.getMapping().getStrength()) &&
+                !shouldSkipMapping(ivwo.getProducer().getStrength()) &&
                 (ivwo.isValid() || takeValidInvalid && ivwo.wasValid());
     }
 

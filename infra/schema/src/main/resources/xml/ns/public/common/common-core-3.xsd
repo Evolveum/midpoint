@@ -2898,6 +2898,7 @@
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
                 <a:merger>AssignmentType</a:merger>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -5395,7 +5396,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:displayName>MappingType.details</a:displayName>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -5813,7 +5814,7 @@
             <xsd:appinfo>
                 <a:since>4.3</a:since>
                 <a:container/>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -7714,7 +7715,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -8092,7 +8093,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:merger>ObjectSelectorType</a:merger>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -9205,7 +9206,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:naturalKey>ref</a:naturalKey>
+                <a:naturalKey>tns:ref</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10213,7 +10214,7 @@
                 <a:container/>
                 <a:relational>true</a:relational>
                 <a:expensive>true</a:expensive>
-                <a:naturalKey>key</a:naturalKey>
+                <a:naturalKey>tns:key</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12041,7 +12042,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
-                <a:naturalKey>identifier</a:naturalKey>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12211,7 +12212,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
-                <a:merger>ScriptLanguageExpressionProfileType</a:merger>
+                <a:naturalKey>tns:language</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12337,7 +12338,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
-                <a:naturalKey>identifier</a:naturalKey>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -12381,7 +12382,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12431,7 +12432,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12490,7 +12491,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12899,6 +12900,10 @@
                                     Domain just adds some kind of perspective when collection is presented to the user.
                                     The domain may also be important for policy rules. E.g. policy rules that trigger a notification when percentage of
                                     active employees gets too low.
+                                </p>
+                                <p>
+                                    No domain definition means that this collection does not have any domain.
+                                    On the other hand, empty domain definition means that all objects of applicable type are part of the domain, e.g. all users or all roles.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -14588,7 +14593,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:displayName>ItemConstraintType.details</a:displayName>
-                <a:naturalKey>path</a:naturalKey>
+                <a:naturalKey>tns:path</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -14948,7 +14953,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:naturalKey>package</a:naturalKey>
+                <a:naturalKey>tns:package</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -14976,7 +14981,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:naturalKey>component</a:naturalKey>
+                <a:naturalKey>tns:component</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -15172,7 +15177,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -16154,7 +16159,7 @@
                 <a:since>3.5</a:since>
                 <a:container>true</a:container>
                 <a:displayName>GlobalPolicyRuleType.details</a:displayName>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -21306,7 +21311,6 @@
                 Schema definition type. Replacement for extension schema defined in midPoint.home
             </xsd:documentation>
             <xsd:appinfo>
-                <!--<a:container>true</a:container>-->
                 <a:since>4.9</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
@@ -21314,17 +21318,10 @@
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
-                    <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                    <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                type which this schema extends
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                xsd schema definition
+                                Xsd schema definition.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

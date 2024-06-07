@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 /**
  * @author semancik
  *
@@ -56,30 +58,27 @@ public class ActivationUtil {
         return activation.getAdministrativeStatus() == ActivationStatusType.ENABLED || activation.getAdministrativeStatus() == null;
     }
 
-    public static boolean hasValidFrom(ShadowType objectType) {
-        ActivationType activation = objectType.getActivation();
-        return activation != null && activation.getValidFrom() != null;
+    public static XMLGregorianCalendar getValidFrom(ShadowType shadow) {
+        var activation = shadow.getActivation();
+        return activation != null ? activation.getValidFrom() : null;
     }
 
-    public static boolean hasValidTo(ShadowType objectType) {
-        ActivationType activation = objectType.getActivation();
-        return activation != null && activation.getValidTo() != null;
+    public static XMLGregorianCalendar getValidTo(ShadowType shadow) {
+        var activation = shadow.getActivation();
+        return activation != null ? activation.getValidTo() : null;
     }
 
-    public static boolean hasLockoutStatus(ShadowType objectType) {
+    public static LockoutStatusType getLockoutStatus(ShadowType objectType) {
         ActivationType activation = objectType.getActivation();
-        return activation != null && activation.getLockoutStatus() != null;
+        return activation != null ? activation.getLockoutStatus() : null;
     }
 
-    public static boolean isLockedOut(ShadowType objectType) {
-        return isLockedOut(objectType.getActivation());
+    public static boolean isLockedOut(LockoutStatusType status) {
+        return status == LockoutStatusType.LOCKED;
     }
 
     public static boolean isLockedOut(ActivationType activation) {
-        if (activation == null) {
-            return false;
-        }
-        return activation.getLockoutStatus() == LockoutStatusType.LOCKED;
+        return activation != null && activation.getLockoutStatus() == LockoutStatusType.LOCKED;
     }
 
     public static ActivationType createDisabled() {

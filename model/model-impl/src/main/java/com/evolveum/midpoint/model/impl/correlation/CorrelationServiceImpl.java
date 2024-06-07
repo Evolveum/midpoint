@@ -222,7 +222,7 @@ public class CorrelationServiceImpl implements CorrelationService {
         } else if (eligibleCandidates.isEmpty()) {
             return SimplifiedCorrelationResult.noOwner();
         } else {
-            return SimplifiedCorrelationResult.uncertain();
+            return SimplifiedCorrelationResult.uncertain(eligibleCandidates);
         }
     }
 
@@ -554,9 +554,8 @@ public class CorrelationServiceImpl implements CorrelationService {
         // and while getting default object template do we consider UserType to be default?
 
         ObjectTemplateType template = determineObjectTemplate(archetypeOid, null, UserType.class, task, result);
-        //TODO //@NotNull correlation definition bean. probably shoudl be changed
         CorrelatorContext<?> ctx = CorrelatorContextCreator.createRootContext(
-                new CorrelationDefinitionType(),
+                null,
                 discriminator,
                 template,
                 systemObjectCache.getSystemConfigurationBean(result));

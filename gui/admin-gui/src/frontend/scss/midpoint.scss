@@ -216,6 +216,11 @@ li.dropdown.user.user-menu {
   vertical-align: middle;
 }
 
+.table-header-chart {
+  max-height: 115px !important;
+  max-width: 115px !important;
+}
+
 // Classes that can be used to change icon styles (enabled, disabled, privileged, etc.)
 
 .icon-style-normal {
@@ -531,6 +536,10 @@ li.dropdown.user.user-menu {
 
   &.info-box-link {
     cursor: pointer;
+
+      &.active {
+        background-color: #dee9f0;
+      }
   }
 }
 
@@ -1621,6 +1630,11 @@ td .prism-property-value {
   .navigation-details {
     display: block;
   }
+}
+
+.navigation-details .active-second-level {
+  background-color: $lightblue;
+  color: $white;
 }
 
 fieldset.objectButtons {

@@ -236,7 +236,8 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
         Fragment previewFragment = new Fragment(ID_DETAILS, ID_PREVIEW_DETAILS, this);
         previewFragment.add(new WidgetTableHeader(ID_HEADER, new PropertyModel<>(getPanelConfiguration(), PreviewContainerPanelConfigurationType.F_DISPLAY.getLocalPart())));
         previewFragment.add(createSingleContainerPanel());
-        previewFragment.add(new ButtonBar(ID_FOOTER, ID_BUTTON_BAR, GenericSingleContainerPanel.this, (PreviewContainerPanelConfigurationType) getPanelConfiguration()));
+        previewFragment.add(new ButtonBar(ID_FOOTER, ID_BUTTON_BAR, GenericSingleContainerPanel.this,
+                (PreviewContainerPanelConfigurationType) getPanelConfiguration(), null));
         return previewFragment;
     }
 

@@ -14,6 +14,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,6 +65,11 @@ public class TransformableContainerDefinition<C extends Containerable>
     @Override
     public Class getTypeClass() {
         return delegate().getTypeClass();
+    }
+
+    @Override
+    public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
+        return delegate().getSchemaContextDefinition();
     }
 
     @Override
@@ -299,5 +306,9 @@ public class TransformableContainerDefinition<C extends Containerable>
     @Override
     protected TransformableContainerDefinition<C> copy() {
         return new TransformableContainerDefinition<>(this);
+    }
+
+    @Override
+    public void setSchemaContextDefinition(SchemaContextDefinition schemaContextDefinition) {
     }
 }

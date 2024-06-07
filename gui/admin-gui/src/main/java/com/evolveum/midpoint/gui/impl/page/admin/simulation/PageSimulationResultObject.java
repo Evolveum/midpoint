@@ -26,6 +26,7 @@ import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
@@ -376,9 +377,11 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
         };
         footer.add(paging);
 
+        DisplayType displayType = new DisplayType()
+                .label(createStringResource("PageSimulationResultObject.details").getString())
+                .icon(new IconType().cssClass("nav-icon fa-solid fa-flask"));
         DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
-                () -> "fa-solid fa-circle-question",
-                createStringResource("PageSimulationResultObject.details"),
+                Model.of(displayType),
                 detailsModel);
         add(details);
 

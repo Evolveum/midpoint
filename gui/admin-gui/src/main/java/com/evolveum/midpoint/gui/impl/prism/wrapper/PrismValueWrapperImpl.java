@@ -215,4 +215,8 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
     public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
         return null;
     }
+
+    protected final void setNewValue(PrismValue newValue) {
+        this.newValue = newValue;
+    }
 }

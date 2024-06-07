@@ -17,12 +17,14 @@ import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPass
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismReferencePanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ProtectedStringTypeWrapperImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -62,6 +64,8 @@ public class WebPrismUtil {
 
     private static final String DOT_CLASS = WebPrismUtil.class.getName() + ".";
     private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
+
+    public static final ItemName PRISM_SCHEMA = new ItemName(PrismSchemaType.F_COMPLEX_TYPE.getNamespaceURI(), "prismSchema");
 
     public static <ID extends ItemDefinition<I>, I extends Item<?, ?>> String getHelpText(ID def, Class<?> containerClass) {
         if (def == null) {
@@ -388,9 +392,9 @@ public class WebPrismUtil {
         return false;
     }
 
-    public static List<ShadowSimpleAttributeDefinition> searchAttributeDefinitions(
+    public static List<ShadowAttributeDefinition> searchAttributeDefinitions(
             ResourceSchema schema, ResourceObjectTypeDefinitionType objectType) {
-        List<ShadowSimpleAttributeDefinition> allAttributes = new ArrayList<>();
+        List<ShadowAttributeDefinition> allAttributes = new ArrayList<>();
         if (objectType != null) {
             @Nullable ResourceObjectTypeDefinition objectTypeDef = null;
             if (objectType.getKind() != null && objectType.getIntent() != null) {

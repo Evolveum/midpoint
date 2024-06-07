@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2021 Evolveum
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -8,10 +8,22 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-
-    <div wicket:id="displayName" />
-
-    <div wicket:id="definitions">
+    <div class="">
+        <div class="p-0 mx-auto w-100 d-flex">
+            <div class="d-flex flex-column card" style="border-right: 0 !important; min-width: auto; border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;">
+                <div class="p-3" style="border-bottom: 1px solid rgba(0, 0, 0, .125);">
+                    <button wicket:id="newValueButton" class="btn btn-default text-nowrap"/>
+                </div>
+                <div>
+                    <ul class="details-menu">
+                        <li class="navigation-details second-level mb-0" wicket:id="listOfValues">
+                            <div wicket:id="value" class="btn w-100 rounded-0" style="text-align: start;"/>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div wicket:id="tabPanel" class="w-100" style="border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important;"/>
+        </div>
     </div>
 </wicket:panel>
 </html>

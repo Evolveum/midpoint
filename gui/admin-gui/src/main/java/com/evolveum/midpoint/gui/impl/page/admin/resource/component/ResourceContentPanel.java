@@ -42,7 +42,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -60,7 +60,7 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentRepositoryPanel;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentResourcePanel;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.ResourceContentSearchDto;
@@ -406,9 +406,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
                 if (valueModel != null && valueModel.getObject() != null) {
-                    getObjectDetailsModels().getPageResource().showSynchronizationWizard(
-                            target,
-                            valueModel.getObject().getPath());
+                    getObjectDetailsModels().getPageResource().showSynchronizationWizard(target, valueModel.getObject().getPath());
                 }
             }
         };
@@ -428,9 +426,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
                         getResourceObjectTypeValue(target);
                 if (valueModel != null && valueModel.getObject() != null) {
-                    getObjectDetailsModels().getPageResource().showCorrelationWizard(
-                            target,
-                            valueModel.getObject().getPath());
+                    getObjectDetailsModels().getPageResource().showCorrelationWizard(target, valueModel.getObject().getPath());
                 }
             }
         };
@@ -452,7 +448,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showCapabilitiesWizard(
                             target,
-                            valueModel.getObject().getPath());
+                            valueModel.getObject().getPath().append(ResourceObjectTypeDefinitionType.F_CONFIGURED_CAPABILITIES));
                 }
             }
         };
@@ -474,7 +470,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showCredentialsWizard(
                             target,
-                            valueModel.getObject().getPath());
+                            valueModel.getObject().getPath().append(ResourceObjectTypeDefinitionType.F_CREDENTIALS));
                 }
             }
         };
@@ -496,7 +492,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 if (valueModel != null && valueModel.getObject() != null) {
                     getObjectDetailsModels().getPageResource().showActivationsWizard(
                             target,
-                            valueModel.getObject().getPath());
+                            valueModel.getObject().getPath().append(ResourceObjectTypeDefinitionType.F_ACTIVATION));
                 }
             }
         };
@@ -588,7 +584,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
             foundValue = defaultValue;
         }
-        return new ContainerValueWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), foundValue.getPath());
+        return PrismContainerValueWrapperModel.fromContainerWrapper(getObjectWrapperModel(), foundValue.getPath());
     }
 
     protected boolean isTopTableButtonsVisible() {

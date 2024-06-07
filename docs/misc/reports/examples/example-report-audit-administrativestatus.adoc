@@ -75,9 +75,9 @@ In object collection for audit events we use sql select command.
 .*Object collection*
 [%collapsible]
 ====
-link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/admin-status-midification.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/objectCollection/admin-status-modification.xml[Git]
 
-sampleRef::samples/objectCollection/admin-status-midification.xml[]
+sampleRef::samples/objectCollection/admin-status-modification.xml[]
 ====
 
 When we have object collection, then import Dashboard object with widget for our object collection.

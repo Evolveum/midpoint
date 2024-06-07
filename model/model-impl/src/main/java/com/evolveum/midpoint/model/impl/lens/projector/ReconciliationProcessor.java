@@ -368,7 +368,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         boolean hasStrongShouldBePValue = false;
         boolean hasOtherNonWeakValues = false;
         for (ItemValueWithOrigin<? extends PrismPropertyValue<T>,PrismPropertyDefinition<T>> shouldBePValue : shouldBePValues) {
-            var mapping = shouldBePValue.getMapping();
+            var mapping = shouldBePValue.getProducer();
             if (mapping != null) {
                 if (mapping.isStrong()) {
                     hasStrongShouldBePValue = true;
@@ -422,7 +422,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         boolean hasRealValueToReplace = false;
         for (ItemValueWithOrigin<? extends PrismPropertyValue<T>,PrismPropertyDefinition<T>> shouldBePvwo : shouldBePValues) {
             PrismPropertyValue<T> shouldBePrismValue = shouldBePvwo.getItemValue();
-            PrismValueDeltaSetTripleProducer<?,?> shouldBeMapping = shouldBePvwo.getMapping();
+            PrismValueDeltaSetTripleProducer<?,?> shouldBeMapping = shouldBePvwo.getProducer();
             if (shouldBeMapping == null) {
                 LOGGER.trace("Skipping reconciliation of value {} of the attribute {}: no origin mapping",
                         shouldBePrismValue, attributeDefinition.getItemName().getLocalPart());
@@ -495,21 +495,16 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     }
 
     private void addContainerValuesFromDelta(
-            Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>> shouldBeCValues,
+            Collection<ItemValueWithOrigin<ShadowAssociationValue, ShadowReferenceAttributeDefinition>> shouldBeCValues,
             ObjectDelta<ShadowType> delta, QName assocName) {
         if (delta == null) {
             return;
         }
         List<PrismValue> values = delta.getNewValuesFor(ShadowType.F_ASSOCIATIONS.append(assocName));
         for (PrismValue value : values) {
-            if (value instanceof PrismContainerValue<?> pcv) {
-                if (pcv.asContainerable() instanceof ShadowAssociationValueType) {
-                    //noinspection unchecked
-                    shouldBeCValues
-                            .add(new ItemValueWithOrigin<>((PrismContainerValue<ShadowAssociationValueType>) pcv, null, null));
-                } else {
-                    throw new IllegalStateException("Unexpected type of prism value. Expected PCV<ShadowAssociationValueType>, got " + value);
-                }
+            if (value instanceof ShadowAssociationValue associationValue) {
+                shouldBeCValues
+                        .add(new ItemValueWithOrigin<>(associationValue, null, null));
             } else if (value != null) {
                 throw new IllegalStateException("Unexpected type of prism value. Expected PCV<ShadowAssociationValueType>, got " + value);
             }
@@ -527,8 +522,8 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         var squeezedAssociations = projCtx.getSqueezedAssociations();
         Collection<QName> associationNames =
                 squeezedAssociations != null ?
-                        MiscUtil.union(squeezedAssociations.keySet(), accountDefinition.getNamesOfAssociations()) :
-                        accountDefinition.getNamesOfAssociations();
+                        MiscUtil.union(squeezedAssociations.keySet(), accountDefinition.getNamesOfReferenceAttributes()) :
+                        accountDefinition.getNamesOfReferenceAttributes();
 
         for (QName assocName : associationNames) {
             LOGGER.trace("Association reconciliation processing association {}", assocName);
@@ -566,7 +561,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 //                }
 //            }
 
-            Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>> shouldBeCValues;
+            Collection<ItemValueWithOrigin<ShadowAssociationValue, ShadowReferenceAttributeDefinition>> shouldBeCValues;
             if (cvwoTriple == null) {
                 shouldBeCValues = new HashSet<>();
             } else {
@@ -585,7 +580,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                     .findContainerDefinitionByCompileTimeClass(ShadowAssociationValueType.class)
                     .instantiate();
             for (var cvwo : shouldBeCValues) {
-                var cvalue = cvwo.getItemValue().clone();
+                var cvalue = (ShadowAssociationValue) cvwo.getItemValue().clone();
                 cvalue.setParent(fakeParent);
                 cvwo.setItemValue(cvalue);
             }
@@ -603,11 +598,11 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                     new HashSet<>(ShadowUtil.getAdoptedAssociationValues(shadowNew, assocName));
 
             for (var shouldBeCvwo : shouldBeCValues) {
-                PrismValueDeltaSetTripleProducer<?, ?> shouldBeMapping = shouldBeCvwo.getMapping();
+                PrismValueDeltaSetTripleProducer<?, ?> shouldBeMapping = shouldBeCvwo.getProducer();
                 if (shouldBeMapping == null) {
                     continue;
                 }
-                PrismContainerValue<ShadowAssociationValueType> shouldBeCValue = shouldBeCvwo.getItemValue();
+                var shouldBeCValue = shouldBeCvwo.getItemValue();
                 if (shouldBeMapping.getStrength() != MappingStrengthType.STRONG
                         && (!areCValues.isEmpty() || hasStrongShouldBeCValue)) {
                     // Weak or normal value and the attribute already has a value. Skip it.
@@ -659,14 +654,13 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                 }
             }
         }
-
     }
 
     private void decideIfTolerateAssociation(
             LensProjectionContext accCtx,
             ShadowReferenceAttributeDefinition assocDef,
             Collection<ShadowAssociationValue> areCValues,
-            Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>> shouldBeCValues,
+            Collection<ItemValueWithOrigin<ShadowAssociationValue, ShadowReferenceAttributeDefinition>> shouldBeCValues,
             Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException, ExpressionEvaluationException {
@@ -823,7 +817,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     private void swallowAssociationDelta(
             LensProjectionContext projCtx, ShadowReferenceAttributeDefinition assocDef, ModificationType changeType,
-            PrismContainerValue<ShadowAssociationValueType> value, ObjectType originObject, String reason) throws SchemaException {
+            ShadowAssociationValue value, ObjectType originObject, String reason) throws SchemaException {
 
         assert changeType == ModificationType.ADD || changeType == ModificationType.DELETE;
 
@@ -838,7 +832,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         if (changeType == ModificationType.ADD) {
             assocDelta.addValueToAdd(valueClone);
         } else {
-            ItemDelta<PrismContainerValue<ShadowAssociationValueType>, ?> existingDelta;
+            ItemDelta<ShadowAssociationValue, ?> existingDelta;
             ObjectDelta<ShadowType> currentDelta = projCtx.getCurrentDelta();
             if (currentDelta != null) {
                 existingDelta = currentDelta.findItemDelta(assocDef.getStandardPath());
@@ -920,7 +914,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     private boolean isInCvwoAssociationValues(
             PrismContainerValue<ShadowAssociationValueType> value,
-            Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>> shouldBeCvwos) {
+            Collection<ItemValueWithOrigin<ShadowAssociationValue, ShadowReferenceAttributeDefinition>> shouldBeCvwos) {
 
         for (ItemValueWithOrigin<? extends PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition> shouldBeCvwo : emptyIfNull(shouldBeCvwos)) {
             if (!shouldBeCvwo.isValid()) {

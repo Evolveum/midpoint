@@ -11,12 +11,12 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ResourceTemplateProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTemplate.TemplateType;
-import com.evolveum.midpoint.prism.CloneStrategy;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -101,7 +101,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
             @Override
             protected Component createTile(String id, IModel<TemplateTile<ResourceTemplate>> model) {
-                return new ResourceTilePanel(id, model) {
+                return new TemplateTilePanel(id, model) {
                     @Override
                     protected void onClick(AjaxRequestTarget target) {
                         onTemplateSelectionPerformed(model.getObject(), target);

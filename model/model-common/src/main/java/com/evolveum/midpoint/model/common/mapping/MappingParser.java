@@ -83,7 +83,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
             outputDefinition = ExpressionUtil.resolveDefinitionPath(
                     targetPath,
                     m.variables,
-                    m.targetContext,
+                    m.targetContextDefinition,
                     "target definition in " + m.getMappingContextDescription());
             if (outputDefinition == null) {
                 throw new SchemaException(
@@ -149,7 +149,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
                 path,
                 m.variables,
                 true,
-                m.getTypedSourceContext(),
+                m.getTypedDefaultSourceContextIdi(),
                 ModelCommonBeans.get().objectResolver,
                 "source definition in " + m.getMappingContextDescription(),
                 m.getTask(),

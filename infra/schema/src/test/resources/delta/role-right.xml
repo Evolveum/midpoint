@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="00000000-0000-0000-0000-000000000008"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Custom end user</name>
+    <description>Role authorizing end users to log in, change their passwords and review assigned accounts.</description>
+    <authorization id="1">
+        <name>gui-self-service-access</name>
+        <description>
+            Updated description by admin
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
+    </authorization>
+</role>

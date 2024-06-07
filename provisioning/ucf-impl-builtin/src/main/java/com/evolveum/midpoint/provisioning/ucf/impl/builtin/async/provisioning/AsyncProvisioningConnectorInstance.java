@@ -200,7 +200,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @Override
     public @NotNull UcfModifyReturnValue modifyObject(
-            ResourceObjectIdentification.WithPrimary identification,
+            @NotNull ResourceObjectIdentification.WithPrimary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,

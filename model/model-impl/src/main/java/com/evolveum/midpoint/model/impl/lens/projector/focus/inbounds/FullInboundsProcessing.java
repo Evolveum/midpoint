@@ -41,13 +41,13 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
 
     private static final String OP_COLLECT_MAPPINGS = FullInboundsProcessing.class.getName() + ".collectMappings";
 
-    @NotNull private final LensContext<F> context;
+    @NotNull private final LensContext<F> lensContext;
 
     public FullInboundsProcessing(
-            @NotNull LensContext<F> context,
+            @NotNull LensContext<F> lensContext,
             @NotNull MappingEvaluationEnvironment env) {
         super(env);
-        this.context = context;
+        this.lensContext = lensContext;
     }
 
     /**
@@ -60,7 +60,7 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
 
-        for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+        for (LensProjectionContext projectionContext : lensContext.getProjectionContexts()) {
 
             OperationResult result = parentResult.subresult(OP_COLLECT_MAPPINGS)
                     .addParam("projectionContext", projectionContext.getHumanReadableName())
@@ -78,19 +78,19 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
                 if (!projectionContext.isCanProject()) {
                     LOGGER.trace("Skipping processing of inbound expressions for projection {}: "
                                     + "there is a limit to propagate changes only from resource {}",
-                            lazy(projectionContext::getHumanReadableName), context.getTriggeringResourceOid());
+                            lazy(projectionContext::getHumanReadableName), lensContext.getTriggeringResourceOid());
                     result.recordNotApplicable("change propagation is limited");
                     continue;
                 }
 
                 try {
-                    PrismObject<F> objectCurrentOrNew = context.getFocusContext().getObjectCurrentOrNew();
+                    PrismObject<F> objectCurrentOrNew = lensContext.getFocusContext().getObjectCurrentOrNew();
                     new FullInboundsPreparation<>(
                             projectionContext,
-                            context,
+                            lensContext,
                             evaluationRequests,
                             itemDefinitionMap,
-                            new FullContext(context, env),
+                            new FullContext(lensContext, env, assignmentsProcessingContext),
                             objectCurrentOrNew,
                             getFocusDefinition(objectCurrentOrNew))
                             .collectOrEvaluate(result);
@@ -108,37 +108,43 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
     }
 
     @Override
+    @Nullable PrismObjectValue<F> getTargetNew() {
+        return lensContext.getFocusContext().getObjectNew().getValue();
+    }
+
+    @Override
     @Nullable PrismObjectValue<F> getTarget() {
-        return context.getFocusContext().getObjectNew().getValue();
+        var current = lensContext.getFocusContext().getObjectCurrent();
+        return current != null ? current.getValue() : null;
     }
 
     @Override
     protected @NotNull APrioriDeltaProvider getFocusAPrioriDeltaProvider() {
         return APrioriDeltaProvider.forDelta(
-                context.getFocusContextRequired().getCurrentDelta());
+                lensContext.getFocusContextRequired().getCurrentDelta());
     }
 
     @Override
     @NotNull
     Function<ItemPath, Boolean> getFocusPrimaryItemDeltaExistsProvider() {
-        return context::primaryFocusItemDeltaExists;
+        return lensContext::primaryFocusItemDeltaExists;
     }
 
     private @NotNull PrismObjectDefinition<F> getFocusDefinition(@Nullable PrismObject<F> focus) {
         if (focus != null && focus.getDefinition() != null) {
             return focus.getDefinition();
         } else {
-            return context.getFocusContextRequired().getObjectDefinition();
+            return lensContext.getFocusContextRequired().getObjectDefinition();
         }
     }
 
     @Override
-    void applyComputedDeltas(Collection<ItemDelta<?, ?>> itemDeltas) throws SchemaException {
-        context.getFocusContextRequired().swallowToSecondaryDelta(itemDeltas);
+    void applyComputedDeltas(Collection<? extends ItemDelta<?, ?>> itemDeltas) throws SchemaException {
+        lensContext.getFocusContextRequired().swallowToSecondaryDelta(itemDeltas);
     }
 
     @Override
     @Nullable LensContext<?> getLensContextIfPresent() {
-        return context;
+        return lensContext;
     }
 }

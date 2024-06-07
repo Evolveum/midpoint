@@ -15,8 +15,7 @@ import java.time.ZonedDateTime;
 
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
-import static com.evolveum.midpoint.test.AttrName.icfs;
-import static com.evolveum.midpoint.test.AttrName.ri;
+import static com.evolveum.midpoint.test.AttrName.*;
 import static com.evolveum.midpoint.test.ObjectClassName.custom;
 
 /**
@@ -57,7 +56,7 @@ public class DummyHrScenario extends AbstractDummyScenario {
         public static final ObjectClassName OBJECT_CLASS_NAME = custom("person");
 
         public static class AttributeNames {
-            public static final AttrName NAME = icfs("name");
+            public static final AttrName NAME = icfsName();
             public static final AttrName FIRST_NAME = ri("firstName");
             public static final AttrName LAST_NAME = ri("lastName");
             public static final AttrName TITLE = ri("title");
@@ -68,7 +67,7 @@ public class DummyHrScenario extends AbstractDummyScenario {
         }
 
         void initialize() {
-            var oc = new DummyObjectClass();
+            var oc = DummyObjectClass.standard();
             controller.addAttrDef(oc, AttributeNames.FIRST_NAME.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.LAST_NAME.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.TITLE.local(), String.class, false, false);
@@ -86,10 +85,10 @@ public class DummyHrScenario extends AbstractDummyScenario {
         public static final ObjectClassName OBJECT_CLASS_NAME = custom("contract");
 
         public static class AttributeNames {
+            public static final AttrName NAME = icfsName();
             public static final AttrName VALID_FROM = ri("validFrom");
             public static final AttrName VALID_TO = ri("validTo");
             public static final AttrName NOTE = ri("note");
-            public static final AttrName ORG_NAME = ri("orgName"); // TEMPORARY (should be treated by "org" link)
         }
 
         public static class LinkNames {
@@ -98,7 +97,7 @@ public class DummyHrScenario extends AbstractDummyScenario {
         }
 
         void initialize() {
-            var oc = new DummyObjectClass();
+            var oc = DummyObjectClass.association();
             controller.addAttrDef(oc, AttributeNames.VALID_FROM.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, AttributeNames.VALID_TO.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, AttributeNames.NOTE.local(), String.class, false, false);
@@ -117,6 +116,7 @@ public class DummyHrScenario extends AbstractDummyScenario {
         public static final ObjectClassName OBJECT_CLASS_NAME = custom("orgUnit");
 
         public static class AttributeNames {
+            public static final AttrName NAME = icfsName();
             public static final AttrName DESCRIPTION = ri("description");
         }
 
@@ -125,7 +125,7 @@ public class DummyHrScenario extends AbstractDummyScenario {
         }
 
         void initialize() {
-            var oc = new DummyObjectClass();
+            var oc = DummyObjectClass.standard();
             controller.addAttrDef(oc, AttributeNames.DESCRIPTION.local(), String.class, false, false);
             controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
         }
