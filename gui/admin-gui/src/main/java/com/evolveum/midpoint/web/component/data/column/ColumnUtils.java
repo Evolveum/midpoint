@@ -994,6 +994,7 @@ public class ColumnUtils {
         column = new ProgressBarColumn<>(createStringResource("PageCertCampaign.progress")) {
             @Serial private static final long serialVersionUID = 1L;
 
+            @Override
             protected @NotNull IModel<List<ProgressBar>> createProgressBarModel(
                     IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
                 List<ProgressBar> progressBars = new ArrayList<>();
@@ -1011,16 +1012,22 @@ public class ColumnUtils {
                     int decidedItems = allOpenItems - openNotDecidedItems;
                     int decidedPercent = allOpenItems != 0 ? (decidedItems * 100) / allOpenItems : 0;
 
-                    progressBars.add(new ProgressBar(openNotDecidedItems,
-                            ProgressBar.State.SECONDARY, new SingleLocalizableMessage(String.valueOf(decidedPercent))));
                     progressBars.add(new ProgressBar(decidedItems,
                             ProgressBar.State.PRIMARY));
+                    progressBars.add(new ProgressBar(openNotDecidedItems,
+                            ProgressBar.State.SECONDARY, new SingleLocalizableMessage(String.valueOf(decidedPercent))));
                 } catch (Exception e) {
                     LOGGER.error("Couldn't count certification work items for certification campaign {}", campaign.getName());
                 }
 
                 return Model.ofList(progressBars);
             }
+
+            @Override
+            protected boolean isPercentageBar() {
+                return false;
+            }
+
 
             protected @NotNull IModel<String> createTextModel(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel,
                     IModel<List<ProgressBar>> model) {

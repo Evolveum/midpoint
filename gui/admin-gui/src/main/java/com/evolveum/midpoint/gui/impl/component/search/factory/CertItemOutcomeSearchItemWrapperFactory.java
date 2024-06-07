@@ -27,7 +27,8 @@ public class CertItemOutcomeSearchItemWrapperFactory  extends
         List<AccessCertificationResponseType> values = Arrays.asList(AccessCertificationResponseType.values());
         List<DisplayableValue<AccessCertificationResponseType>> availableValues = new ArrayList<>();
         values.forEach(value -> {
-            if (!value.equals(AccessCertificationResponseType.DELEGATE)) {
+            if (!value.equals(AccessCertificationResponseType.DELEGATE)
+                    && !value.equals(AccessCertificationResponseType.NO_RESPONSE)) {
                 availableValues.add(new SearchValue<>(value));
             }
         });

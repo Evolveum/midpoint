@@ -161,10 +161,10 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
                 return getPageBase().getSessionStorage().getCertDecisions();
             }
 
-//            @Override
-//            protected ObjectQuery getCustomizeContentQuery() {
-//                return getOpenCertWorkItemsQuery(showOnlyNotDecidedItems());
-//            }
+            @Override
+            protected ObjectQuery getCustomizeContentQuery() {
+                return getOpenCertWorkItemsQuery();
+            }
 
         };
 //        provider.setSort(CaseWorkItemType.F_DEADLINE.getLocalPart(), SortOrder.DESCENDING);
@@ -389,11 +389,11 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         });
     }
 
-    protected ObjectQuery getOpenCertWorkItemsQuery(boolean notDecidedOnly) {
+    protected ObjectQuery getOpenCertWorkItemsQuery() {
         ObjectQuery query;
         if (StringUtils.isNotEmpty(campaignOid)) {
             query = QueryUtils.createQueryForOpenWorkItemsForCampaigns(Collections.singletonList(campaignOid),
-                    getPageBase().getPrincipal(), notDecidedOnly);
+                    getPageBase().getPrincipal(), false);
         } else {
             query = PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
                     .build();
@@ -402,7 +402,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         if (isMyCertItems()) {
             principal = getPageBase().getPrincipal();
         }
-        return QueryUtils.createQueryForOpenWorkItems(query, principal, notDecidedOnly);
+        return QueryUtils.createQueryForOpenWorkItems(query, principal, false);
     }
 
     protected boolean isMyCertItems() {

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -27,10 +26,6 @@ public class CertItemOutcomeSearchItemWrapper  extends ChoicesSearchItemWrapper<
         super(ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME), availableValues);
     }
 
-    @Override
-    public DisplayableValue<AccessCertificationResponseType> getDefaultValue() {
-        return new SearchValue(AccessCertificationResponseType.NO_RESPONSE);
-    }
 
     @Override
     public boolean canRemoveSearchItem() {
@@ -40,7 +35,9 @@ public class CertItemOutcomeSearchItemWrapper  extends ChoicesSearchItemWrapper<
     @Override
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
         if (getValue().getValue() == null) {
-            return null;
+            return PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
+                    .item(getPath()).isNull()
+                    .buildFilter();
         }
         AccessCertificationResponseType response = getValue().getValue();
         return PrismContext.get().queryFor(type)
@@ -48,6 +45,6 @@ public class CertItemOutcomeSearchItemWrapper  extends ChoicesSearchItemWrapper<
     }
 
     public boolean allowNull() {
-        return false;
+        return true;
     }
 }
