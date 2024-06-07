@@ -13,13 +13,13 @@ import com.evolveum.midpoint.prism.impl.EnumerationTypeDefinitionImpl.ValueDefin
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaDomSerializer;
 import com.evolveum.midpoint.prism.impl.schema.SchemaParsingUtil;
+import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayHintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.*;
 import com.evolveum.prism.xml.ns._public.annotation_3.AccessAnnotationType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
@@ -34,6 +34,9 @@ import javax.xml.namespace.QName;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+
+import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 /**
  * Util methods for PrismSchemaTypeUtil for converting xsd schema to PrismSchemaType and PrismSchemaType to xsd schema
@@ -84,7 +87,20 @@ public class PrismSchemaTypeUtil {
         Document doc = serializer.serializeSchema();
         Element schemaElement = DOMUtil.getFirstChildElement(doc);
         if (StringUtils.isNotBlank(prismSchemaBean.getDefaultPrefix())) {
-            serializer.addAnnotationToDefinition(schemaElement, PrismConstants.A_DEFAULT_PREFIX, prismSchemaBean.getDefaultPrefix());
+            DynamicNamespacePrefixMapper namespaceMapper = PrismContext.get().getSchemaRegistry().getNamespacePrefixMapper();
+            Element annotationElement = DOMUtil.getOrCreateSubElement(
+                    doc,
+                    schemaElement,
+                    namespaceMapper.setQNamePrefix(PrismConstants.SCHEMA_ANNOTATION));
+            Element appinfoElement = DOMUtil.getOrCreateSubElement(
+                    doc,
+                    annotationElement,
+                    namespaceMapper.setQNamePrefix(PrismConstants.SCHEMA_APP_INFO));
+            Element defaultPrefix = DOMUtil.createElement(
+                    doc,
+                    namespaceMapper.setQNamePrefix(PrismConstants.A_DEFAULT_PREFIX));
+            appinfoElement.appendChild(defaultPrefix);
+            defaultPrefix.setTextContent(prismSchemaBean.getDefaultPrefix());
         }
         SchemaDefinitionType schemaDefinitionType = new SchemaDefinitionType();
         schemaDefinitionType.setSchema(schemaElement);
@@ -254,6 +270,12 @@ public class PrismSchemaTypeUtil {
         PrismSchemaType prismSchema = new PrismSchemaType();
 
         prismSchema.namespace(parsedSchema.getNamespace());
+        Optional<Element> defaultPrefix = DOMUtil.getElement(
+                schemaElement,
+                PrismConstants.SCHEMA_ANNOTATION, PrismConstants.SCHEMA_APP_INFO, PrismConstants.A_DEFAULT_PREFIX);
+        if(defaultPrefix.isPresent()) {
+            prismSchema.defaultPrefix(defaultPrefix.get().getTextContent());
+        }
 
         parsedSchema.getComplexTypeDefinitions().forEach(complexTypeDef -> {
             ComplexTypeDefinitionType complexTypeBean = new ComplexTypeDefinitionType();

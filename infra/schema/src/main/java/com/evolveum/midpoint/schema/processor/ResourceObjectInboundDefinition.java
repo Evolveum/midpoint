@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -235,6 +236,12 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
                 }
 
                 @Override
+                public QName getAssignmentTargetTypeName() {
+                    var focusBean = definitionBean.getFocus();
+                    return focusBean != null ? focusBean.getAssignmentTargetType() : null;
+                }
+
+                @Override
                 public String getArchetypeOid() {
                     return null; // TODO implement if needed
                 }
@@ -379,6 +386,12 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
                 }
 
                 @Override
+                public QName getAssignmentTargetTypeName() {
+                    var focusBean = definitionBean.getFocus();
+                    return focusBean != null ? focusBean.getAssignmentTargetType() : null;
+                }
+
+                @Override
                 public String getArchetypeOid() {
                     return null; // TODO implement if needed
                 }
@@ -448,6 +461,11 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
                 }
 
                 @Override
+                public QName getAssignmentTargetTypeName() {
+                    return null;
+                }
+
+                @Override
                 public String getArchetypeOid() {
                     return null;
                 }
@@ -455,6 +473,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         }
         ItemPath getFocusItemPath();
         String getAssignmentSubtype();
+        QName getAssignmentTargetTypeName();
         String getArchetypeOid();
     }
 }

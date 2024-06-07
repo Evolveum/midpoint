@@ -35,6 +35,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
+
 /**
  * Responsible for consolidation of a {@link DeltaSetTripleMap} (plus, minus, zero sets for individual items) to item deltas.
  *
@@ -152,8 +154,7 @@ public class DeltaSetTripleMapConsolidation<T extends Containerable> {
             ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
 
         if (outputTripleMap == null || outputTripleMap.isEmpty()) {
-            // Besides other reasons, this is to avoid creating empty operation results,
-            // cluttering the tracing output.
+            // Besides other reasons, this is to avoid creating empty operation results, cluttering the tracing output.
             return;
         }
 
@@ -163,6 +164,7 @@ public class DeltaSetTripleMapConsolidation<T extends Containerable> {
             for (var entry: outputTripleMap.entrySet()) {
                 consolidateItem(entry.getKey(), entry.getValue());
             }
+            LOGGER.trace("Computed deltas in {}:\n{}", env.contextDescription, debugDumpLazily(itemDeltas, 1));
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -172,8 +174,7 @@ public class DeltaSetTripleMapConsolidation<T extends Containerable> {
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition<?>> void consolidateItem(
-            ItemPath itemPath, DeltaSetTriple<ItemValueWithOrigin<?, ?>> deltaSetTriple)
+    private void consolidateItem(ItemPath itemPath, DeltaSetTriple<ItemValueWithOrigin<?, ?>> deltaSetTriple)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         ConsolidationValueMetadataComputer valueMetadataComputer;

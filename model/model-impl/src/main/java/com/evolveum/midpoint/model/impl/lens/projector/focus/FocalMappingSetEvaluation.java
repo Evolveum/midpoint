@@ -304,9 +304,9 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
 
         MappingBuilder<V, D> mappingBuilder = // [EP:M:FM] DONE
                 beans.mappingFactory.<V, D>createMappingBuilder(mappingBean, request.getMappingOrigin(), contextDesc)
-                        .sourceContext(focusOdo)
+                        .defaultSourceContextIdi(focusOdo)
                         .defaultSource(defaultSource)
-                        .targetContext(targetContext.getDefinition())
+                        .targetContextDefinition(targetContext.getDefinition())
                         .variablesFrom(variables)
                         .variablesFrom(LensUtil.getAssignmentPathVariablesMap(assignmentPathVariables))
                         .originalTargetValues(targetValues)
@@ -314,7 +314,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                         .originType(OriginType.USER_POLICY)
                         .originObject(originObject)
                         .valuePolicySupplier(valuePolicySupplier)
-                        .rootNode(focusOdo)
+                        .addRootVariableDefinition(focusOdo)
                         .mappingPreExpression(request.getMappingPreExpression()) // Used to populate auto-assign assignments
                         .mappingSpecification(specification)
                         .now(now);

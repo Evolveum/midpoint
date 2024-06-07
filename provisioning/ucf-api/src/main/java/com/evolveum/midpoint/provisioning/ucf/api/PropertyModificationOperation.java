@@ -8,6 +8,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -52,6 +53,11 @@ public final class PropertyModificationOperation<T> extends Operation {
     @NotNull
     public PropertyDelta<T> getPropertyDelta() {
         return propertyDelta;
+    }
+
+    @Override
+    public @NotNull ItemDelta<?, ?> getItemDelta() {
+        return getPropertyDelta();
     }
 
     @Override

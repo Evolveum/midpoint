@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.common.expression;
 
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
@@ -20,6 +21,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import java.util.List;
 
 /**
  * @author semancik
@@ -64,6 +67,9 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
 
     public void init() throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
         predefinedRange = setDefinitionBean.getPredefined();
+        if (predefinedRange == null &&  setDefinitionBean.getAdditionalMappingSpecification() != null && ! setDefinitionBean.getAdditionalMappingSpecification().isEmpty()) {
+            predefinedRange = ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE;
+        }
         ExpressionType conditionBean = setDefinitionBean.getCondition();
         if (conditionBean != null) {
             condition = ExpressionUtil.createCondition(conditionBean, expressionProfile, expressionFactory, shortDesc, task, result);
@@ -95,11 +101,22 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
         return yieldCondition == null || evalYieldCondition(pval, metadata);
     }
 
-    private boolean isOfMatchingProvenance(IV pval) {
+    public boolean isOfMatchingProvenance(IV pval) {
         if (mappingSpecification == null) {
             throw new UnsupportedOperationException("Mapping-related provenance can be checked only on mapping targets. In: " + shortDesc);
         }
-        return ProvenanceMetadataUtil.valueHasMappingSpec(pval, mappingSpecification);
+        if (ProvenanceMetadataUtil.valueHasMappingSpec(pval, mappingSpecification)) {
+            return true;
+        }
+        List<MappingSpecificationType> additional = setDefinitionBean.getAdditionalMappingSpecification();
+        if (additional != null) {
+            for (var mapping : additional) {
+                if (ProvenanceMetadataUtil.valueHasMappingSpec(pval, mapping)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -199,5 +216,20 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
     @Experimental
     public boolean isYieldSpecific() {
         return predefinedRange == ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE;
+    }
+
+    public boolean hasMappingSpecification(@NotNull ValueMetadataType md) {
+        if (ProvenanceMetadataUtil.hasMappingSpecification(md, mappingSpecification)) {
+            return true;
+        }
+        if (setDefinitionBean != null && setDefinitionBean.getAdditionalMappingSpecification() != null) {
+            for (var additionalMapping : setDefinitionBean.getAdditionalMappingSpecification()) {
+                if (ProvenanceMetadataUtil.hasMappingSpecification(md, additionalMapping)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+
     }
 }

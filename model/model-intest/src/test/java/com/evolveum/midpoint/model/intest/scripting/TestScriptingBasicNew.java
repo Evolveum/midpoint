@@ -12,7 +12,6 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -212,7 +211,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         assertUserAfterByUsername(USER_JACK_USERNAME)
                 .assertAssignments(1)
                 .assignments()
-                    .assertRole(ROLE_SUPERUSER_OID);
+                    .assertRole(ROLE_SUPERUSER.oid);
     }
 
     /**

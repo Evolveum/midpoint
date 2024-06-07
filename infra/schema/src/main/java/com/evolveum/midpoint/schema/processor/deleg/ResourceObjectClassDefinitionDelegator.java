@@ -29,6 +29,11 @@ public interface ResourceObjectClassDefinitionDelegator extends ResourceObjectDe
     }
 
     @Override
+    default boolean isAssociationObject() {
+        return delegate().isAssociationObject();
+    }
+
+    @Override
     default boolean isDefaultAccountDefinition() {
         return delegate().isDefaultAccountDefinition();
     }

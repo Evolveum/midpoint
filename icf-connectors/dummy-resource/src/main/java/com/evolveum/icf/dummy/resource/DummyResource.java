@@ -77,13 +77,13 @@ public class DummyResource implements DebugDumpable {
 
     // Specific stores for the respective standard object types.
     private final ObjectStore<DummyAccount> accountStore =
-            new ObjectStore<>(DummyAccount.class, DummyAccount.OBJECT_CLASS_NAME);
+            new ObjectStore<>(DummyAccount.class, DummyAccount.OBJECT_CLASS_NAME, DummyObjectClass.standard());
     private final ObjectStore<DummyGroup> groupStore =
-            new ObjectStore<>(DummyGroup.class, DummyGroup.OBJECT_CLASS_NAME);
+            new ObjectStore<>(DummyGroup.class, DummyGroup.OBJECT_CLASS_NAME, DummyObjectClass.standard());
     private final ObjectStore<DummyPrivilege> privilegeStore =
-            new ObjectStore<>(DummyPrivilege.class, DummyPrivilege.OBJECT_CLASS_NAME);
+            new ObjectStore<>(DummyPrivilege.class, DummyPrivilege.OBJECT_CLASS_NAME, DummyObjectClass.standard());
     private final ObjectStore<DummyOrg> orgStore =
-            new ObjectStore<>(DummyOrg.class, DummyOrg.OBJECT_CLASS_NAME);
+            new ObjectStore<>(DummyOrg.class, DummyOrg.OBJECT_CLASS_NAME, DummyObjectClass.standard());
 
     private final Map<String, DummyObjectClass> auxiliaryObjectClassMap = new ConcurrentHashMap<>();
     private final Map<String, LinkClassDefinition> linkClassDefinitionMap = new ConcurrentHashMap<>();
@@ -677,11 +677,18 @@ public class DummyResource implements DebugDumpable {
         return allObjects.stream();
     }
 
-    public synchronized void addLink(@NotNull String linkClassName, @NotNull DummyObject first, @NotNull DummyObject second) {
+    public synchronized void addLinkValue(@NotNull String linkClassName, @NotNull DummyObject first, @NotNull DummyObject second) {
         // todo breaking, recording, etc
 
         getLinkStore(linkClassName)
                 .addLink(first, second);
+    }
+
+    synchronized void deleteLinkValue(@NotNull String linkClassName, @NotNull DummyObject first, @NotNull DummyObject second) {
+        // todo breaking, recording, etc
+
+        getLinkStore(linkClassName)
+                .deleteLink(first, second);
     }
 
     private synchronized <T extends DummyObject> String addObject(ObjectStore<T> store, T objectToAdd)
@@ -700,7 +707,7 @@ public class DummyResource implements DebugDumpable {
             objectToAdd.addAttributeValue(DummyAccount.ATTR_INTERNAL_ID, new Random().nextInt());
         }
 
-        objectToAdd.setResource(this);
+        objectToAdd.setPresentOnResource(this);
 
         String normalizedName = objectToAdd.getNormalizedName(); // requires the object being on the resource already
         if (normalizedName != null && forbiddenNames != null && forbiddenNames.contains(normalizedName)) {
@@ -825,6 +832,8 @@ public class DummyResource implements DebugDumpable {
         } else {
             throw new ObjectDoesNotExistException(type.getSimpleName() + " with name '" + normalName + "' does not exist");
         }
+
+        existingObject.setNotPresentOnResource();
 
         if (syncStyle != DummySyncStyle.NONE) {
             deltas.add(

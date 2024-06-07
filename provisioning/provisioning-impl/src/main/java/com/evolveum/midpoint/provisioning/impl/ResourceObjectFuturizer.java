@@ -154,6 +154,11 @@ public class ResourceObjectFuturizer {
                     newBean.getPendingOperation().addAll(
                             CloneUtil.cloneCollectionMembers(
                                     repoShadow.getBean().getPendingOperation()));
+                    // There are some metadata in the pending ADD object; but they may be out of date, and definitely
+                    // not useful, as they have no PCV ID as they did not see the repository yet. So, let's take them from
+                    // the actual repo shadow.
+                    newBean.asPrismContainerValue().setValueMetadata(
+                            repoShadow.getBean().asPrismContainerValue().getValueMetadata().clone());
                     shadowCtx.applyCurrentDefinition(newBean);
                     currentResourceObject = ResourceObject.fromBean(newBean, true, shadowCtx.getObjectDefinitionRequired());
                     // We also ignore the fact that there may be multiple pending ADD operations. We just take the last one.

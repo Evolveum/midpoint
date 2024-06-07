@@ -11,10 +11,13 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard.basic.SchemaWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard.complexType.ComplexTypeBasicWizardPanel;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -28,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -105,5 +109,48 @@ public class PageSchema extends PageAssignmentHolderDetails<SchemaType, Assignme
             }
         };
 
+    }
+
+    @Override
+    protected AssignmentHolderOperationalButtonsPanel<SchemaType> createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<SchemaType>> wrapperModel) {
+        return new AssignmentHolderOperationalButtonsPanel<>(id, wrapperModel) {
+
+            @Override
+            protected void refresh(AjaxRequestTarget target) {
+                PageSchema.this.refresh(target);
+            }
+
+            @Override
+            protected void savePerformed(AjaxRequestTarget target) {
+                PageSchema.this.savePerformed(target);
+            }
+
+            @Override
+            protected void backPerformed(AjaxRequestTarget target) {
+                super.backPerformed(target);
+                onBackPerform(target);
+            }
+
+            @Override
+            protected void addButtons(RepeatingView repeatingView) {
+                addAdditionalButtons(repeatingView);
+            }
+
+            @Override
+            protected void deleteConfirmPerformed(AjaxRequestTarget target) {
+                super.deleteConfirmPerformed(target);
+                PageSchema.this.afterDeletePerformed(target);
+            }
+
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return PageSchema.this.hasUnsavedChanges(target);
+            }
+
+            @Override
+            protected boolean isDeleteButtonVisible() {
+                return false;
+            }
+        };
     }
 }

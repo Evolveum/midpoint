@@ -14,6 +14,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1110,15 +1112,9 @@ public class AssignmentProcessor implements ProjectorProcessor {
      * This also solves the problem for existing deployments.
      */
     private static XMLGregorianCalendar determineAssignmentSinceTimestamp(EvaluatedAssignment evalAssignment) {
-        MetadataType assignmentMetadata = evalAssignment.getAssignment().getMetadata();
-        if (assignmentMetadata != null) {
-            XMLGregorianCalendar createTimestamp = assignmentMetadata.getCreateTimestamp();
-            if (createTimestamp != null) {
-                return createTimestamp;
-            }
-        }
-
-        return MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis());
+        return Objects.requireNonNullElseGet(
+                ValueMetadataTypeUtil.getCreateTimestamp(evalAssignment.getAssignment()),
+                () -> MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis()));
     }
 
     private AssignmentPathMetadataType assignmentPathToMetadata(AssignmentPathType assignmentPath) {
@@ -1213,10 +1209,11 @@ public class AssignmentProcessor implements ProjectorProcessor {
             }
 
             PrismContainerValue<Containerable> originalMetadataValue = originalMetadataValues.stream()
-                    // LITERAL is important here not to ignore "operational" elements.
+                    // We must not ignore "operational" elements. But we must ignore missing ValueMetadataType PCV IDs,
+                    // as they are present in repo, but missing in newly-created values.
                     .filter(m -> provenance.asPrismContainerValue()
                             .equals(((ValueMetadataType) m.asContainerable()).getProvenance().asPrismContainerValue(),
-                                    EquivalenceStrategy.LITERAL))
+                                    EquivalenceStrategy.DATA_ALLOWING_MISSING_IDS))
                     .findFirst()
                     .orElse(null);
             if (originalMetadataValue == null) {

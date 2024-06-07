@@ -258,20 +258,26 @@ public class DeltaFormatter {
         }
     }
 
-    @NotNull
-    private List<ItemDelta<?, ?>> getVisibleModifications(Collection<? extends ItemDelta<?, ?>> modifications,
+    private @NotNull List<ItemDelta<?, ?>> getVisibleModifications(
+            Collection<? extends ItemDelta<?, ?>> modifications,
             Collection<ItemPath> hiddenPaths, boolean showOperational, Object context) {
         List<ItemDelta<?, ?>> toBeDisplayed = new ArrayList<>(modifications.size());
         List<QName> noDefinition = new ArrayList<>();
         for (ItemDelta<?, ?> itemDelta : modifications) {
-            if (itemDelta.getDefinition() != null) {
-                if ((showOperational || !itemDelta.getDefinition().isOperational())
-                        && !TextFormatter.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
-                    toBeDisplayed.add(itemDelta);
-                }
-            } else {
+            if (itemDelta.getDefinition() == null) {
                 noDefinition.add(itemDelta.getElementName());
+                continue;
             }
+            if (!showOperational && itemDelta.getDefinition().isOperational()) {
+                continue;
+            }
+            if (!showOperational && itemDelta.isMetadataRelated()) {
+                continue;
+            }
+            if (TextFormatter.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
+                continue;
+            }
+            toBeDisplayed.add(itemDelta);
         }
         if (!noDefinition.isEmpty()) {
             LOGGER.error("Item deltas for {} without definition - WILL NOT BE INCLUDED IN NOTIFICATION. Context:\n{}",
@@ -280,10 +286,12 @@ public class DeltaFormatter {
         return toBeDisplayed;
     }
 
-    boolean containsVisibleModifiedItems(Collection<? extends ItemDelta<?, ?>> modifications,
-            Collection<ItemPath> hiddenPaths, boolean showOperational) {
-        List<ItemDelta<?, ?>> visibleModifications = getVisibleModifications(modifications, hiddenPaths, showOperational,
-                DebugUtil.debugDumpLazily(modifications));
+    boolean containsVisibleModifiedItems(
+            Collection<? extends ItemDelta<?, ?>> modifications,
+            Collection<ItemPath> hiddenPaths,
+            boolean showOperational) {
+        List<ItemDelta<?, ?>> visibleModifications = getVisibleModifications(
+                modifications, hiddenPaths, showOperational, DebugUtil.debugDumpLazily(modifications));
         return !visibleModifications.isEmpty();
     }
 }

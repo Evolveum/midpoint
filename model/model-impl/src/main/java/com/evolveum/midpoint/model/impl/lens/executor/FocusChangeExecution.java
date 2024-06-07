@@ -14,7 +14,6 @@ import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerables;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.*;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +24,6 @@ import com.evolveum.midpoint.model.impl.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.impl.lens.ConflictDetectedException;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentSpec;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -101,7 +99,6 @@ public class FocusChangeExecution<O extends ObjectType> extends ElementChangeExe
             context.reportProgress(new ProgressInformation(FOCUS_OPERATION, ENTERING));
 
             removeOrHashCredentialsDeltas();
-            applyLastProvisioningTimestamp();
 
             executeDeltaWithConflictResolution(result);
 
@@ -240,27 +237,6 @@ public class FocusChangeExecution<O extends ObjectType> extends ElementChangeExe
             focusDelta = b.credentialsProcessor.transformFocusExecutionDelta(context, focusDelta);
         } catch (EncryptionException e) {
             throw new SystemException(e.getMessage(), e);
-        }
-    }
-
-    private void applyLastProvisioningTimestamp() throws SchemaException, ConfigurationException {
-        if (!context.hasProjectionChange()) {
-            return;
-        }
-        if (focusDelta.isAdd()) {
-
-            PrismObject<O> objectToAdd = focusDelta.getObjectToAdd();
-            PrismContainer<MetadataType> metadataContainer = objectToAdd.findOrCreateContainer(ObjectType.F_METADATA);
-            metadataContainer.getRealValue().setLastProvisioningTimestamp(b.clock.currentTimeXMLGregorianCalendar());
-
-        } else if (focusDelta.isModify()) {
-
-            PropertyDelta<XMLGregorianCalendar> provTimestampDelta = b.prismContext.deltaFactory().property().createModificationReplaceProperty(
-                    ItemPath.create(ObjectType.F_METADATA, MetadataType.F_LAST_PROVISIONING_TIMESTAMP),
-                    context.getFocusContext().getObjectDefinition(),
-                    b.clock.currentTimeXMLGregorianCalendar());
-            focusDelta.addModification(provTimestampDelta);
-
         }
     }
 

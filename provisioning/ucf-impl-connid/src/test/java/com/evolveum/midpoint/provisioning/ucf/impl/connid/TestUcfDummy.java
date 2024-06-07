@@ -20,14 +20,14 @@ import static com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingM
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+import com.evolveum.midpoint.test.AttrName;
 import com.evolveum.midpoint.test.DummyHrScenario.*;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -694,6 +694,203 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 throw new AssertionError("Unknown contract: " + contractName);
             }
         }
+    }
+
+    /** Create account with references via UCF. */
+    @Test
+    public void test320CreateAccountWithReferences() throws Exception {
+        initializeHrScenarioIfNeeded();
+
+        var result = createOperationResult();
+        var ctx = createExecutionContext(hrScenario.getResourceBean());
+        var resourceSchema = hrScenario.getResourceSchemaRequired();
+
+        given("engineering org unit");
+        var engineering = createHrOrgUnit("engineering", result);
+
+        and("ann's account and contract");
+        var contractClassDefinition = resourceSchema.findObjectClassDefinitionRequired(Contract.OBJECT_CLASS_NAME.xsd());
+        var annContractShadow =
+                ShadowBuilder.withDefinition(contractClassDefinition)
+                        .withAttribute(Contract.AttributeNames.NAME.q(), "ann-engineering")
+                        .withReferenceAttribute(Contract.LinkNames.ORG.q(), engineering)
+                        .asAbstractShadow();
+
+        var personClassDefinition = resourceSchema.findObjectClassDefinitionRequired(Person.OBJECT_CLASS_NAME.xsd());
+        var annShadow =
+                ShadowBuilder.withDefinition(personClassDefinition)
+                        .withAttribute(Person.AttributeNames.NAME.q(), "ann")
+                        .withAttribute(Person.AttributeNames.FIRST_NAME.q(), "Ann")
+                        .withAttribute(Person.AttributeNames.LAST_NAME.q(), "Green")
+                        .withReferenceAttribute(Person.LinkNames.CONTRACT.q(), annContractShadow)
+                        .asPrismObject();
+
+        when("ann is created on the resource");
+        hrConnectorInstance.addObject(annShadow, ctx, result);
+
+        then("she's there");
+        displayDumpable("dummy resource", hrScenario.getDummyResource());
+
+        var annShadowAfter = searchHrObjectByName(personClassDefinition, Person.AttributeNames.NAME, "ann", result);
+        displayDumpable("ann's UCF object", annShadowAfter);
+
+        assertThat(annShadowAfter.getAttributeRealValues(Person.AttributeNames.FIRST_NAME.q()))
+                .containsExactlyInAnyOrder("Ann");
+        assertThat(annShadowAfter.getAttributeRealValues(Person.AttributeNames.LAST_NAME.q()))
+                .containsExactlyInAnyOrder("Green");
+
+        var references = annShadowAfter.getAssociations();
+        assertThat(references).as("ann's references").hasSize(1);
+        List<? extends ShadowAssociationValue> contracts = references.iterator().next().getAssociationValues();
+        assertThat(contracts).as("ann's contracts").hasSize(1);
+        var contract = contracts.get(0);
+
+        var contractAttrContainer = contract.getAttributesContainerRequired();
+        assertThat(contractAttrContainer.getNamingAttribute().getRealValue()).isEqualTo("ann-engineering");
+        assertThat(contractAttrContainer.getAttributes()).as("contract attributes").hasSize(2);
+
+        var contractAssocContainer = contract.getAssociationsContainer();
+        assertThat(contractAssocContainer.getAssociations()).as("contract associations").hasSize(1);
+        var orgAssociation = contractAssocContainer.getAssociations().iterator().next();
+        assertThat(orgAssociation.getElementName()).as("association name").isEqualTo(Contract.LinkNames.ORG.q());
+
+        var orgs = orgAssociation.getAssociationValues();
+        assertThat(orgs).as("contract's orgs").hasSize(1);
+
+        var org = orgs.iterator().next();
+        var orgAttrContainer = org.getAttributesContainerRequired();
+        assertThat(orgAttrContainer.getAttributes()).as("org attributes in contract").hasSize(1);
+        var orgName = (String) orgAttrContainer.getAttributes().iterator().next().getRealValue();
+        assertThat(orgName).as("associated org name").isEqualTo("engineering");
+    }
+
+    /** Add and delete references via UCF. */
+    @Test
+    public void test330AddDeleteReference() throws Exception {
+        initializeHrScenarioIfNeeded();
+
+        var result = createOperationResult();
+        var ctx = createExecutionContext(hrScenario.getResourceBean());
+        var resourceSchema = hrScenario.getResourceSchemaRequired();
+        var contractClassDefinition = resourceSchema.findObjectClassDefinitionRequired(Contract.OBJECT_CLASS_NAME.xsd());
+        var personClassDefinition = resourceSchema.findObjectClassDefinitionRequired(Person.OBJECT_CLASS_NAME.xsd());
+
+        given("pharmacy and bob are on the resource");
+        var pharmacy = createHrOrgUnit("pharmacy", result);
+        var bob = createHrPerson("bob", result);
+
+        and("bob's new contract is prepared in memory");
+        var bobContractReferenceValue =
+                ShadowAssociationValue.of(
+                        ShadowBuilder.withDefinition(contractClassDefinition)
+                                .withAttribute(Contract.AttributeNames.NAME.q(), "bob-pharmacy")
+                                .withReferenceAttribute(Contract.LinkNames.ORG.q(), pharmacy)
+                                .asAbstractShadow(),
+                        false);
+
+        when("the contract is created on the resource");
+        var referenceAddDelta =
+                personClassDefinition.findReferenceAttributeDefinition(Person.LinkNames.CONTRACT.q())
+                        .createEmptyDelta();
+        referenceAddDelta.addValueToAdd(bobContractReferenceValue.clone());
+        hrConnectorInstance.modifyObject(
+                Objects.requireNonNull(bob.getPrimaryIdentification()),
+                bob.getPrismObject(),
+                List.of(new ReferenceModificationOperation(referenceAddDelta)),
+                null, ctx, result);
+
+        then("it's there");
+        displayDumpable("dummy resource", hrScenario.getDummyResource());
+
+        displayDumpable("bob's dummy object", hrScenario.person.getByNameRequired("bob"));
+
+        var bobShadowAfter = searchHrObjectByName(personClassDefinition, Person.AttributeNames.NAME, "bob", result);
+        displayDumpable("bob's UCF object", bobShadowAfter);
+
+        var references = bobShadowAfter.getAssociations();
+        assertThat(references).as("bob's references").hasSize(1);
+        List<? extends ShadowAssociationValue> contracts = references.iterator().next().getAssociationValues();
+        assertThat(contracts).as("bob's contracts").hasSize(1);
+        var contract = contracts.get(0);
+
+        var contractAttrContainer = contract.getAttributesContainerRequired();
+        assertThat(contractAttrContainer.getNamingAttribute().getRealValue()).isEqualTo("bob-pharmacy");
+        assertThat(contractAttrContainer.getAttributes()).as("contract attributes").hasSize(2);
+
+        var contractAssocContainer = contract.getAssociationsContainer();
+        assertThat(contractAssocContainer.getAssociations()).as("contract associations").hasSize(1);
+        var orgAssociation = contractAssocContainer.getAssociations().iterator().next();
+        assertThat(orgAssociation.getElementName()).as("association name").isEqualTo(Contract.LinkNames.ORG.q());
+
+        var orgs = orgAssociation.getAssociationValues();
+        assertThat(orgs).as("contract's orgs").hasSize(1);
+
+        var org = orgs.iterator().next();
+        var orgAttrContainer = org.getAttributesContainerRequired();
+        assertThat(orgAttrContainer.getAttributes()).as("org attributes in contract").hasSize(1);
+        var orgName = (String) orgAttrContainer.getAttributes().iterator().next().getRealValue();
+        assertThat(orgName).as("associated org name").isEqualTo("pharmacy");
+
+        when("the contract is deleted from the resource");
+        var referenceDeleteDelta =
+                personClassDefinition.findReferenceAttributeDefinition(Person.LinkNames.CONTRACT.q())
+                        .createEmptyDelta();
+        referenceDeleteDelta.addValueToDelete(bobContractReferenceValue.clone());
+
+        hrConnectorInstance.modifyObject(
+                Objects.requireNonNull(bob.getPrimaryIdentification()),
+                bob.getPrismObject(),
+                List.of(new ReferenceModificationOperation(referenceDeleteDelta)),
+                null, ctx, result);
+
+        then("it's no longer there there");
+        displayDumpable("dummy resource", hrScenario.getDummyResource());
+
+        displayDumpable("bob's dummy object", hrScenario.person.getByNameRequired("bob"));
+
+        var bobShadowAfterDeletion =
+                searchHrObjectByName(personClassDefinition, Person.AttributeNames.NAME, "bob", result);
+        displayDumpable("bob's UCF object", bobShadowAfterDeletion);
+
+        assertThat(bobShadowAfterDeletion.getAssociations()).as("bob's references").isEmpty();
+    }
+
+    private @NotNull UcfResourceObject createHrOrgUnit(String name, OperationResult result) throws Exception {
+        var classDefinition =
+                hrScenario.getResourceSchemaRequired().findObjectClassDefinitionRequired(OrgUnit.OBJECT_CLASS_NAME.xsd());
+        hrConnectorInstance.addObject(
+                ShadowBuilder.withDefinition(classDefinition)
+                        .withAttribute(OrgUnit.AttributeNames.NAME.q(), name)
+                        .asPrismObject(),
+                null, result);
+        return searchHrObjectByName(classDefinition, OrgUnit.AttributeNames.NAME, name, result);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private @NotNull UcfResourceObject createHrPerson(String name, OperationResult result) throws Exception {
+        var classDefinition =
+                hrScenario.getResourceSchemaRequired().findObjectClassDefinitionRequired(Person.OBJECT_CLASS_NAME.xsd());
+        hrConnectorInstance.addObject(
+                ShadowBuilder.withDefinition(classDefinition)
+                        .withAttribute(Person.AttributeNames.NAME.q(), name)
+                        .asPrismObject(),
+                null, result);
+        return searchHrObjectByName(classDefinition, Person.AttributeNames.NAME, name, result);
+    }
+
+    private @NotNull UcfResourceObject searchHrObjectByName(
+            ResourceObjectClassDefinition objectClassDefinition, AttrName nameAttr, String nameAttrValue, OperationResult result)
+            throws Exception {
+        var ctx = createExecutionContext(hrScenario.getResourceBean());
+        var handler = new UcfObjectHandler.Collecting();
+        hrConnectorInstance.search(
+                objectClassDefinition,
+                objectClassDefinition.queryFor()
+                        .item(nameAttr.path()).eq(nameAttrValue)
+                        .build(),
+                handler, null, null,
+                null, null, ctx, result);
+        return MiscUtil.extractSingletonRequired(handler.getCollectedObjects());
     }
 
     /** For test3xx. */

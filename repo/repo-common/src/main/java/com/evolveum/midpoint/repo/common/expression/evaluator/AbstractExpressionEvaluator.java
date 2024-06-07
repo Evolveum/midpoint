@@ -123,10 +123,8 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
             return resultTriple;
         }
 
-        resultTriple.accept(visitable -> {
-            if (visitable instanceof PrismPropertyValue<?>) {
-                //noinspection unchecked
-                PrismPropertyValue<Object> pval = (PrismPropertyValue<Object>) visitable;
+        resultTriple.foreach(value -> {
+            if (value instanceof PrismPropertyValue<?> pval) {
                 Object realVal = pval.getValue();
                 if (realVal != null) {
                     if (Structured.class.isAssignableFrom(resultTripleValueClass)) {
@@ -135,7 +133,8 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
                         }
                     }
                     if (expectedJavaType != null) {
-                        pval.setValue(
+                        //noinspection unchecked
+                        ((PrismPropertyValue<Object>) pval).setValue(
                                 ExpressionUtil.convertValue(expectedJavaType, additionalConvertor, realVal, protector));
                     }
                 }

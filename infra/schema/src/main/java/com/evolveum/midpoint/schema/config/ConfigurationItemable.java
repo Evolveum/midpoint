@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.config;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -132,4 +133,13 @@ interface ConfigurationItemable<T extends Serializable & Cloneable> {
             throw configException(template, arguments);
         }
     }
+
+    default <C extends Containerable> @NotNull OriginProvider<C> originProviderFor(@NotNull ItemPath path) {
+        return item -> originFor(path);
+    }
+
+    default @NotNull ConfigurationItemOrigin originFor(@NotNull ItemPath path) {
+        return origin().child(path);
+    }
+
 }

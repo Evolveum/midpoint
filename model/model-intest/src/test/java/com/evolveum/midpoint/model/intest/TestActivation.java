@@ -514,8 +514,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         var accountShadow = getShadowRepo(accountOid);
         display("Shadow (repo)", accountShadow);
         assertDummyAccountShadowRepo(accountShadow, accountOid, "jack");
-        TestUtil.assertCreateTimestamp(accountShadow.getPrismObject(), start, end);
-        assertEnableTimestampShadow(accountShadow.getPrismObject(), start, end);
+        TestUtil.assertCreateTimestamp(accountShadow, start, end);
+        assertEnableTimestampShadow(accountShadow, start, end);
 
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
@@ -2990,7 +2990,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         UserType user = new UserType()
                 .name("test800")
                 .beginAssignment()
-                .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                .targetRef(ROLE_SUPERUSER.oid, RoleType.COMPLEX_TYPE)
                 .beginActivation()
                 .effectiveStatus(ActivationStatusType.ENABLED)
                 .validFrom(dayBeforeYesterday)

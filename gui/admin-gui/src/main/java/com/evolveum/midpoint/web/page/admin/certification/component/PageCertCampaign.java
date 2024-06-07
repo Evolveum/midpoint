@@ -144,7 +144,7 @@ public class PageCertCampaign extends PageAdmin {
                     }
                 });
                 list.add(new DetailsTableItem(createStringResource("PageCertDefinition.numberOfStages"),
-                        () -> "" + campaignModel.getObject().getStage().size()));
+                        () -> "" + campaignModel.getObject().getStageDefinition().size()));
                 AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaignModel.getObject());
                 list.add(new DetailsTableItem(createStringResource("PageCertCampaign.currentState"),
                         null) {

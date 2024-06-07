@@ -245,8 +245,8 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
                 return false;
             } else if (summarizedDelta.isAdd() || summarizedDelta.isDelete()) {
                 return true;
-            } else if (getTextFormatter().containsVisibleModifiedItems(summarizedDelta.getModifications(),
-                    false, watchAuxiliaryAttributes)) {
+            } else if (getTextFormatter().containsVisibleModifiedItems(
+                    summarizedDelta.getModifications(), false, watchAuxiliaryAttributes)) {
                 return true;
             } else {
                 LOGGER.trace("No relevant attributes in modify delta (watchAux={})", watchAuxiliaryAttributes);

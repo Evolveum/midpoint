@@ -153,8 +153,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
     @Override
     protected String createTicketModify(ResourceObjectDefinition objectDefinition,
-                                        PrismObject<ShadowType> shadow, Collection<? extends ShadowSimpleAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
-                                        Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
+            PrismObject<ShadowType> shadow, Collection<? extends ShadowSimpleAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
+            Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
         LOGGER.debug("Creating case to modify account {}:\n{}", identifiers, DebugUtil.debugDumpLazily(changes, 1));
         if (InternalsConfig.isSanityChecks()) {
             if (MiscUtil.hasDuplicates(changes)) {
@@ -177,7 +177,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
     @Override
     protected String createTicketDelete(ResourceObjectDefinition objectDefinition, PrismObject<ShadowType> shadow,
-                                        Collection<? extends ShadowSimpleAttribute<?>> identifiers, String resourceOid, Task task, OperationResult result)
+            Collection<? extends ShadowSimpleAttribute<?>> identifiers, String resourceOid, Task task, OperationResult result)
             throws SchemaException {
         LOGGER.debug("Creating case to delete account {}", identifiers);
         String shadowName = shadow.getName().toString();

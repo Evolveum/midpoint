@@ -10,6 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ValueMetadata;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
 
@@ -245,21 +246,20 @@ class ShadowedObjectConstruction {
 
     private void transplantRepoPasswordMetadataIfMissing() {
 
-        MetadataType repoPasswordMetadata = getRepoPasswordMetadata();
+        var repoPasswordMetadata = getRepoPasswordMetadata();
         if (repoPasswordMetadata == null) {
             return;
         }
 
-        PasswordType resultPassword = ShadowUtil.getOrCreateShadowPassword(resultingShadowedBean);
-
-        MetadataType resultMetadata = resultPassword.getMetadata();
-        if (resultMetadata == null) {
-            resultPassword.setMetadata(repoPasswordMetadata.clone());
+        var resultPasswordPcv = ShadowUtil.getOrCreateShadowPassword(resultingShadowedBean).asPrismContainerValue();
+        if (resultPasswordPcv.hasValueMetadata()) {
+            return; // would be unexpected, but - in theory - possible, if the connector provides password metadata
         }
+
+        resultPasswordPcv.setValueMetadata(repoPasswordMetadata);
     }
 
-    @Nullable
-    private MetadataType getRepoPasswordMetadata() {
+    private @Nullable ValueMetadata getRepoPasswordMetadata() {
         CredentialsType repoCredentials = repoShadow.getBean().getCredentials();
         if (repoCredentials == null) {
             return null;
@@ -268,7 +268,7 @@ class ShadowedObjectConstruction {
         if (repoPassword == null) {
             return null;
         }
-        return repoPassword.getMetadata();
+        return repoPassword.asPrismContainerValue().getValueMetadataIfExists();
     }
 
     private void copyObjectClassIfMissing() {
@@ -344,7 +344,7 @@ class ShadowedObjectConstruction {
 
         boolean potentialMatch = false;
 
-        for (var targetParticipantType : associationValue.getDefinitionRequired().getTargetParticipantTypes()) {
+        for (var targetParticipantType : associationValue.getDefinitionRequired().getImmediateTargetParticipantTypes()) {
             LOGGER.trace("Checking if target object participant restriction matches: {}", targetParticipantType);
             ResourceObjectDefinition participantObjectDefinition = targetParticipantType.getObjectDefinition();
             ProvisioningContext ctxAssociatedObject = ctx.spawnForDefinition(participantObjectDefinition);

@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.test.asserter.ProcessedObjectAsserter;
 import com.evolveum.midpoint.model.test.asserter.ProcessedObjectsAsserter;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import org.jetbrains.annotations.NotNull;
@@ -644,7 +645,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .delta()
                         .assertModified(
                                 UserType.F_EMPLOYEE_NUMBER, // the effect of the newly added mapping
-                                UserType.F_METADATA)
+                                InfraItemName.METADATA)
                     .end();
         // @formatter:on
 
@@ -1261,7 +1262,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
                     .delta()
-                        .assertNotModifiedExcept(UserType.F_NAME, UserType.F_METADATA)
+                        .assertNotModifiedExcept(UserType.F_NAME, InfraItemName.METADATA)
                         .assertPolyStringModification(UserType.F_NAME, "empNo:1", NAME_JSMITH1)
                     .end()
                 .end()
@@ -1448,7 +1449,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                         .assertModified(
                                 UserType.F_ASSIGNMENT,
                                 UserType.F_LINK_REF,
-                                UserType.F_METADATA)
+                                InfraItemName.METADATA)
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
@@ -1501,7 +1502,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                         .assertModified(
                                 UserType.F_ASSIGNMENT,
                                 UserType.F_LINK_REF,
-                                UserType.F_METADATA)
+                                InfraItemName.METADATA)
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
@@ -1555,7 +1556,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .by().objectType(UserType.class).objectOid(getUserOid(NAME_JSMITH2)).find()
                     .assertName(NAME_JSMITH2)
                     .delta()
-                        .assertModifiedExclusive(UserType.F_METADATA)
+                        .assertModifiedExclusive(InfraItemName.METADATA)
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).objectOid(getHrShadowOid("2")).find()
@@ -1566,14 +1567,14 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .assertName(DN_JSMITH2)
                     .delta()
                         .assertModification(PATH_EMPLOYEE_NUMBER, null, "2")
-                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, ShadowType.F_METADATA)
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, InfraItemName.METADATA)
                     .end()
                 .end()
 
                 .by().objectType(UserType.class).objectOid(getUserOid(NAME_AGREEN3)).find()
                     .assertName(NAME_AGREEN3)
                     .delta()
-                        .assertModifiedExclusive(UserType.F_METADATA)
+                        .assertModifiedExclusive(InfraItemName.METADATA)
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).objectOid(getHrShadowOid("3")).find()
@@ -1585,14 +1586,14 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .delta()
                         .assertModification(PATH_EMPLOYEE_NUMBER, null, "3")
                         .assertModification(PATH_MAIL, null, "agreen3@evolveum.com")
-                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, InfraItemName.METADATA)
                     .end()
                 .end()
 
                 .by().objectType(UserType.class).objectOid(getUserOid(NAME_RBLACK)).find()
                     .assertName(NAME_RBLACK)
                     .delta()
-                        .assertModifiedExclusive(UserType.F_METADATA)
+                        .assertModifiedExclusive(InfraItemName.METADATA)
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).objectOid(getHrShadowOid("4")).find()
@@ -1604,14 +1605,14 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .delta()
                         .assertModification(PATH_EMPLOYEE_NUMBER, null, "4")
                         .assertModification(PATH_MAIL, null, "rblack4@evolveum.com")
-                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, InfraItemName.METADATA)
                     .end()
                 .end()
 
                 .by().objectType(UserType.class).objectOid(getUserOid(NAME_BOB)).find()
                     .assertName(NAME_BOB)
                     .delta()
-                        .assertModifiedExclusive(UserType.F_METADATA)
+                        .assertModifiedExclusive(InfraItemName.METADATA)
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).objectOid(getHrShadowOid("5")).find()
@@ -1625,7 +1626,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                         .assertModification(PATH_MAIL, null, "rblack5@evolveum.com")
                         .assertModification(PATH_GIVEN_NAME, "Bob", "Robert")
                         .assertModification(PATH_CN, "Bob Black", "Robert Black")
-                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, PATH_GIVEN_NAME, PATH_CN, ShadowType.F_METADATA)
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, PATH_GIVEN_NAME, PATH_CN, InfraItemName.METADATA)
                     .end()
                 .end()
 

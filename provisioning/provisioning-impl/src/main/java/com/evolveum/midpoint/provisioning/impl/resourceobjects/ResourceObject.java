@@ -166,8 +166,8 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable, A
     }
 
     void applyOperations(EntitlementConverter.SubjectOperations subjectOperations) throws SchemaException {
-        for (PropertyModificationOperation<?> operation : subjectOperations.getOperations()) {
-            applyDelta(operation.getPropertyDelta());
+        for (var operation : subjectOperations.getOperations()) {
+            applyDelta(operation.getItemDelta());
         }
     }
 }

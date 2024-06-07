@@ -30,9 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -59,7 +57,7 @@ import java.util.function.Function;
 abstract class AbstractInboundsProcessing<T extends Containerable> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractInboundsProcessing.class);
-    public static final String OP_EVALUATE_MAPPINGS = AbstractInboundsProcessing.class.getName() + ".evaluateMappings";
+    private static final String OP_EVALUATE_MAPPINGS = AbstractInboundsProcessing.class.getName() + ".evaluateMappings";
 
     @NotNull final MappingEvaluationEnvironment env;
 
@@ -74,6 +72,8 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
      * They are converted into deltas by consolidation.
      */
     private final DeltaSetTripleMap outputTripleMap = new DeltaSetTripleMap();
+
+    final AssignmentsProcessingContext assignmentsProcessingContext = new AssignmentsProcessingContext();
 
     @NotNull final ModelBeans beans = ModelBeans.get();
 
@@ -160,8 +160,9 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
         }
     }
 
-    private void consolidateTriples(OperationResult result) throws CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SchemaException, SecurityViolationException, ExpressionEvaluationException {
+    private void consolidateTriples(OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, ConfigurationException, SchemaException,
+            SecurityViolationException, ExpressionEvaluationException {
 
         Consumer<IvwoConsolidatorBuilder<?, ?, ?>> customizer = builder ->
                 builder
@@ -171,7 +172,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
 
         DeltaSetTripleMapConsolidation<T> consolidation = new DeltaSetTripleMapConsolidation<>(
                 outputTripleMap,
-                getTarget(),
+                getTargetNew(),
                 getFocusAPrioriDeltaProvider(),
                 getFocusPrimaryItemDeltaExistsProvider(),
                 true,
@@ -182,7 +183,11 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
                 result);
         consolidation.computeItemDeltas();
 
-        applyComputedDeltas(consolidation.getItemDeltas());
+        var consolidatedDeltas =
+                new AssignmentsConsolidation(assignmentsProcessingContext, consolidation.getItemDeltas(), getTarget())
+                        .consolidate();
+
+        applyComputedDeltas(consolidatedDeltas);
     }
 
     @NotNull private ItemDefinition<?> getItemDefinition(@NotNull ItemPath itemPath) {
@@ -197,6 +202,9 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     }
 
     /** For full clockwork mode, this returns the "new" version of the focus. */
+    abstract @Nullable PrismContainerValue<T> getTargetNew() throws SchemaException;
+
+    /** For full clockwork mode, this returns the "current" version of the focus. */
     abstract @Nullable PrismContainerValue<T> getTarget() throws SchemaException;
 
     protected abstract @NotNull APrioriDeltaProvider getFocusAPrioriDeltaProvider();
@@ -205,5 +213,5 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
 
     abstract @Nullable LensContext<?> getLensContextIfPresent();
 
-    abstract void applyComputedDeltas(Collection<ItemDelta<?,?>> itemDeltas) throws SchemaException;
+    abstract void applyComputedDeltas(Collection<? extends ItemDelta<?,?>> itemDeltas) throws SchemaException;
 }

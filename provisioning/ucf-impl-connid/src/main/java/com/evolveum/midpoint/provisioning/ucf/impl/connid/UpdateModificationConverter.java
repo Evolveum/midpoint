@@ -6,42 +6,61 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
+import com.evolveum.midpoint.provisioning.ucf.api.Operation;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
  */
 public class UpdateModificationConverter extends AbstractModificationConverter {
 
+    UpdateModificationConverter(
+            @NotNull Collection<Operation> changes,
+            @NotNull ResourceSchema resourceSchema,
+            @NotNull ResourceObjectDefinition objectDefinition,
+            String connectorDescription,
+            ConnectorOperationOptions options,
+            @NotNull ConnIdObjectConvertor objectConvertor) {
+        super(changes, resourceSchema, objectDefinition, connectorDescription, options, objectConvertor);
+    }
+
     private final Set<Attribute> attributesToAdd = new HashSet<>();
     private final Set<Attribute> attributesToUpdate = new HashSet<>();
     private final Set<Attribute> attributesToRemove = new HashSet<>();
 
-    public Set<Attribute> getAttributesToAdd() {
+    Set<Attribute> getAttributesToAdd() {
         return attributesToAdd;
     }
 
-    public Set<Attribute> getAttributesToUpdate() {
+    Set<Attribute> getAttributesToUpdate() {
         return attributesToUpdate;
     }
 
-    public Set<Attribute> getAttributesToRemove() {
+    Set<Attribute> getAttributesToRemove() {
         return attributesToRemove;
     }
 
     @Override
-    protected <T> void collect(String connIdAttrName, PropertyDelta<T> delta,
-            PlusMinusZero isInModifiedAuxiliaryClass, CollectorValuesConverter<T> valuesConverter)
+    protected <V extends PrismValue> void collect(String connIdAttrName, ItemDelta<V, ?> delta,
+            PlusMinusZero isInModifiedAuxiliaryClass, CollectorValuesConverter<V> valuesConverter)
             throws SchemaException {
 
         if (delta.isAdd()) {

@@ -22,6 +22,8 @@ import java.util.function.Function;
 
 import org.identityconnectors.common.logging.Log;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 /**
  * Connector for the Dummy Resource, abstract superclass.
  *
@@ -200,15 +202,7 @@ public abstract class AbstractModernObjectDummyConnector
 
             } else {
 
-                final DummyObject dummyObject;
-                if (configuration.isUidBoundToName()) {
-                    dummyObject = resource.getObjectByName(objectClassName, uid.getUidValue(), false);
-                } else {
-                    dummyObject = resource.getObjectById(uid.getUidValue(), false);
-                }
-                if (dummyObject == null) {
-                    throw getUnknownUidException(objectClassName, uid);
-                }
+                DummyObject dummyObject = findObjectByUidRequired(objectClassName, uid, false);
                 applyModifyMetadata(dummyObject, options);
 
                 for (AttributeDelta delta : modifications) {
@@ -341,7 +335,8 @@ public abstract class AbstractModernObjectDummyConnector
         }
     }
 
-    private <T> void applyOrdinaryAttributeDelta(DummyObject dummyObject, AttributeDelta delta, Function<List<T>, List<T>> valuesTransformer) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+    private <T> void applyOrdinaryAttributeDelta(DummyObject dummyObject, AttributeDelta delta, Function<List<T>, List<T>> valuesTransformer)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
         String attributeName = delta.getName();
         try {
             List<T> replaceValues = getReplaceValues(delta, null);
@@ -349,21 +344,33 @@ public abstract class AbstractModernObjectDummyConnector
                 if (valuesTransformer != null) {
                     replaceValues = valuesTransformer.apply(replaceValues);
                 }
-                dummyObject.replaceAttributeValues(attributeName, (Collection)replaceValues);
+                if (dummyObject.isLink(attributeName)) {
+                    replaceLinkValues(dummyObject, attributeName, replaceValues);
+                } else {
+                    dummyObject.replaceAttributeValues(attributeName, (Collection) replaceValues);
+                }
             }
             List<T> addValues = getAddValues(delta, null);
             if (addValues != null) {
                 if (valuesTransformer != null) {
                     addValues = valuesTransformer.apply(addValues);
                 }
-                dummyObject.addAttributeValues(attributeName, (Collection)addValues);
+                if (dummyObject.isLink(attributeName)) {
+                    addLinkValues(dummyObject, attributeName, addValues);
+                } else {
+                    dummyObject.addAttributeValues(attributeName, (Collection) addValues);
+                }
             }
             List<T> deleteValues = getRemoveValues(delta, null);
             if (deleteValues != null) {
                 if (valuesTransformer != null) {
                     deleteValues = valuesTransformer.apply(deleteValues);
                 }
-                dummyObject.removeAttributeValues(attributeName, (Collection)deleteValues);
+                if (dummyObject.isLink(attributeName)) {
+                    deleteLinkValues(dummyObject, attributeName, deleteValues);
+                } else {
+                    dummyObject.removeAttributeValues(attributeName, (Collection) deleteValues);
+                }
             }
         } catch (SchemaViolationException e) {
             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -372,7 +379,88 @@ public abstract class AbstractModernObjectDummyConnector
         } catch (InterruptedException e) {
             throw new OperationTimeoutException(e.getMessage(), e);
         }
+    }
 
+    private void replaceLinkValues(DummyObject dummyObject, String linkName, Collection<?> valuesToReplace)
+            throws ConflictException, FileNotFoundException, SchemaViolationException,
+            InterruptedException, ConnectException {
+        dummyObject.deleteAllLinkValues(linkName);
+        addLinkValues(dummyObject, linkName, valuesToReplace);
+    }
+
+    private void addLinkValues(DummyObject dummyObject, String linkName, Collection<?> valuesToAdd)
+            throws ConflictException, FileNotFoundException, SchemaViolationException,
+            InterruptedException, ConnectException {
+        for (Object valueToAdd : valuesToAdd) {
+            var targetObject = convertReferenceAttributeValueWhenAdding(valueToAdd);
+            dummyObject.addLinkValue(linkName, targetObject);
+        }
+    }
+
+    private void deleteLinkValues(DummyObject dummyObject, String linkName, Collection<?> valuesToDelete)
+            throws SchemaViolationException, ConflictException, FileNotFoundException,
+            InterruptedException, ConnectException {
+        for (Object valueToDelete : valuesToDelete) {
+            for (DummyObject linkedObject : dummyObject.getLinkedObjects(linkName)) {
+                if (objectMatches(linkedObject, valueToDelete)) {
+                    dummyObject.deleteLinkValue(linkName, linkedObject);
+                }
+            }
+        }
+    }
+
+    private boolean objectMatches(DummyObject object, Object value) throws SchemaViolationException {
+        if (!(value instanceof ConnectorObjectReference reference)) {
+            throw new SchemaViolationException("Trying to delete non-reference link value: " + value);
+        }
+        for (var icfAttribute : reference.getReferencedValue().getAttributes()) {
+            var attrName = icfAttribute.getName();
+            if (icfAttribute.is(Uid.NAME)) {
+                var currentUidValue = createUid(object).getUidValue();
+                var expectedUidValue = Utils.getAttributeSingleValue(icfAttribute, String.class);
+                if (!Objects.equals(currentUidValue, expectedUidValue)) {
+                    return false;
+                }
+            } else if (icfAttribute.is(Name.NAME)) {
+                var currentName = object.getName();
+                var expectedName = convertIcfName(Utils.getAttributeSingleValue(icfAttribute, String.class));
+                if (!Objects.equals(currentName, expectedName)) {
+                    return false;
+                }
+            } else if (object.isLink(attrName)) {
+                var currentLinkedObjects = object.getLinkedObjects(attrName);
+                var expectedValues = emptyIfNull(icfAttribute.getValue());
+                if (!linkValuesMatch(currentLinkedObjects, expectedValues)) {
+                    return false;
+                }
+            } else {
+                Set<Object> currentValues = new HashSet<>(emptyIfNull(object.getAttributeValues(attrName, Object.class)));
+                Set<Object> expectedValues = new HashSet<>(emptyIfNull(icfAttribute.getValue()));
+                if (!Objects.equals(currentValues, expectedValues)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean linkValuesMatch(Collection<DummyObject> currentLinkedObjects, List<Object> expectedValues)
+            throws SchemaViolationException {
+        var remainingExpectedValues = new ArrayList<>(expectedValues);
+        for (DummyObject currentLinkedObject : currentLinkedObjects) {
+            var matchFound = false;
+            for (Object expectedValue : remainingExpectedValues) {
+                if (objectMatches(currentLinkedObject, expectedValue)) {
+                    matchFound = true;
+                    remainingExpectedValues.remove(expectedValue);
+                    break;
+                }
+            }
+            if (!matchFound) {
+                return false;
+            }
+        }
+        return remainingExpectedValues.isEmpty();
     }
 
     private Boolean getBoolean(AttributeDelta delta) {
@@ -415,17 +503,14 @@ public abstract class AbstractModernObjectDummyConnector
         return (T) valueToReplace;
     }
 
-    @SuppressWarnings("unchecked")
     private <T> List<T> getReplaceValues(AttributeDelta modification, Class<T> extectedClass) {
         return assertTypes(modification, modification.getValuesToReplace(), "replace", extectedClass);
     }
 
-    @SuppressWarnings("unchecked")
     private <T> List<T> getAddValues(AttributeDelta modification, Class<T> extectedClass) {
         return assertTypes(modification, modification.getValuesToAdd(), "add", extectedClass);
     }
 
-    @SuppressWarnings("unchecked")
     private <T> List<T> getRemoveValues(AttributeDelta modification, Class<T> extectedClass) {
         return assertTypes(modification, modification.getValuesToRemove(), "remove", extectedClass);
     }
@@ -479,6 +564,7 @@ public abstract class AbstractModernObjectDummyConnector
         for (Object val: values) {
             newValues.add(StringUtils.upperCase((String)val));
         }
+        //noinspection unchecked
         return (List<T>) newValues;
     }
 

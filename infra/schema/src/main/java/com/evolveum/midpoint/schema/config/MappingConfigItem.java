@@ -33,4 +33,9 @@ public class MappingConfigItem
             @NotNull OriginProvider<? super MappingType> originProvider) {
         return new MappingConfigItem(bean, originProvider.origin(bean));
     }
+
+    public boolean hasRangeSpecified() {
+        var target = value().getTarget();
+        return target != null && target.getSet() != null;
+    }
 }

@@ -11,6 +11,7 @@ import java.io.Serial;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowAssociationsUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -150,6 +151,11 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     }
 
     @Override
+    public ShadowAssociationValue clone() {
+        return (ShadowAssociationValue) super.clone();
+    }
+
+    @Override
     public ShadowAssociationValue cloneComplex(CloneStrategy strategy) {
         ShadowAssociationValue clone = new ShadowAssociationValue(
                 getOriginType(), getOriginObject(), getParent(), null, this.complexTypeDefinition);
@@ -163,6 +169,14 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
 
     public @NotNull ShadowAssociationsContainer getAssociationsContainer() {
         return ShadowUtil.getAssociationsContainerRequired(getShadowBean());
+    }
+
+    public String getShadowOid() {
+        return ShadowAssociationsUtil.getShadowOid(this);
+    }
+
+    public @NotNull String getShadowOidRequired() {
+        return ShadowAssociationsUtil.getShadowOidRequired(this);
     }
 
     /** Target object or its reference. TODO better name. */

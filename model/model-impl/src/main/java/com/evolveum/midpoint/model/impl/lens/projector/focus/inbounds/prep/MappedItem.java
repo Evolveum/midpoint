@@ -18,7 +18,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.VariableProducer;
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
@@ -177,14 +176,14 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
 
             //noinspection unchecked
             MappingBuilder<V, D> builder = beans.mappingFactory.<V, D>createMappingBuilder()
-                    .mapping((ConfigurationItem<MappingType>) mappingCI) // [EP:M:IM] DONE (mapping bean is from the resource, see callers)
+                    .mapping((AbstractMappingConfigItem<MappingType>) mappingCI) // [EP:M:IM] DONE (mapping bean is from the resource, see callers)
                     .mappingKind(MappingKindType.INBOUND)
                     .implicitSourcePath(implicitSourcePath)
                     .targetPathOverride(targetFullPath)
                     .targetPathExecutionOverride(source.determineTargetPathExecutionOverride(targetFullPath))
                     .contextDescription(contextDescription)
                     .defaultSource(defaultSource)
-                    .targetContext(target.targetDefinition)
+                    .targetContextDefinition(target.targetDefinition)
                     .addVariableDefinition(VAR_USER, target.getTargetRealValue(), target.targetDefinition)
                     .addVariableDefinition(ExpressionConstants.VAR_FOCUS, target.getTargetRealValue(), target.targetDefinition)
                     .addAliasRegistration(VAR_USER, ExpressionConstants.VAR_FOCUS)

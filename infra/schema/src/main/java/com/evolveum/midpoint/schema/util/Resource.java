@@ -142,12 +142,12 @@ public class Resource {
         return resourceBean.toString();
     }
 
-    @SuppressWarnings("ClassCanBeRecord")
-    private static class ResourceItemDefinitionResolver implements ItemDefinitionResolver {
+    // TODO move to a better place
+    public static class ResourceItemDefinitionResolver implements ItemDefinitionResolver {
 
         @NotNull private final ResourceObjectDefinition definition;
 
-        private ResourceItemDefinitionResolver(@NotNull ResourceObjectDefinition definition) {
+        public ResourceItemDefinitionResolver(@NotNull ResourceObjectDefinition definition) {
             this.definition = definition;
         }
 

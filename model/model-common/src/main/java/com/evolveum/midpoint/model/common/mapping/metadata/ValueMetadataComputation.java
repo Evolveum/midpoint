@@ -168,7 +168,7 @@ abstract public class ValueMetadataComputation {
                 .createMappingBuilder(mappingBean, mappingCI.origin(), env.contextDescription);
         createSources(builder, mappingBean);
         createCustomMappingVariables(builder, mappingBean);
-        builder.targetContext(metadataDefinition)
+        builder.targetContextDefinition(metadataDefinition)
                 .now(env.now)
                 .conditionMaskOld(false); // We are not interested in old values (deltas are irrelevant in metadata mappings).
         return builder.build();

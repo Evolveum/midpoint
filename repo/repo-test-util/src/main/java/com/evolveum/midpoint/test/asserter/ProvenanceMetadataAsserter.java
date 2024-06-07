@@ -78,4 +78,11 @@ public class ProvenanceMetadataAsserter<RA extends AbstractAsserter<?>>
     private MappingSpecificationType getMappingSpecification() {
         return getProvenance().getMappingSpecification();
     }
+
+    public ProvenanceMetadataAsserter<RA> assertOriginMappingName(String expected) {
+        MappingSpecificationType mappingSpec = getMappingSpecification();
+        assertThat(mappingSpec).as("mapping spec").isNotNull();
+        assertThat(mappingSpec.getMappingName()).as("mapping name").isEqualTo(expected);
+        return this;
+    }
 }

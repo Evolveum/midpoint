@@ -12,6 +12,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +66,7 @@ public class CaseTypeUtil {
     }
 
     public static XMLGregorianCalendar getStartTimestamp(CaseType aCase) {
-        return aCase != null && aCase.getMetadata() != null ? aCase.getMetadata().getCreateTimestamp() : null;
+        return aCase != null ? ValueMetadataTypeUtil.getCreateTimestamp(aCase) : null;
     }
 
     public static String getRequesterComment(CaseType aCase) {

@@ -16,13 +16,10 @@ import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
-import java.io.Serializable;
-
 public abstract class EvaluatorExpressionPanel extends BasePanel<ExpressionType> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_VALUE_INPUT = "valueInput";
     private static final String ID_VALUE_CONTAINER = "valueContainer";
     private static final String ID_FEEDBACK = "feedback";
 

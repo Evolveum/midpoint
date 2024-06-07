@@ -841,7 +841,10 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         // THEN
         roleCoo = getRole(ROLE_COO_OID).asObjectable();
         display("COO", roleCoo);
-        AssignmentType inducement = findInducementByTarget(ROLE_COO_OID, ROLE_SUPERUSER_OID);
-        assertCertificationMetadata(inducement.getMetadata(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_ADMINISTRATOR_OID), singleton("administrator: I'm so procrastinative..."));
+        assertCertificationMetadata(
+                findInducementByTarget(ROLE_COO_OID, ROLE_SUPERUSER_OID),
+                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
+                singleton(USER_ADMINISTRATOR_OID),
+                singleton("administrator: I'm so procrastinative..."));
     }
 }

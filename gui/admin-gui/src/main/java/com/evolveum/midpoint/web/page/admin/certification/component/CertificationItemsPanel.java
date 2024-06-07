@@ -92,7 +92,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     }
 
     private List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createColumns() {
-        return ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems());
+        return ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
     }
 
     @Override
@@ -161,10 +161,10 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
                 return getPageBase().getSessionStorage().getCertDecisions();
             }
 
-            @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                return getOpenCertWorkItemsQuery(true);
-            }
+//            @Override
+//            protected ObjectQuery getCustomizeContentQuery() {
+//                return getOpenCertWorkItemsQuery(showOnlyNotDecidedItems());
+//            }
 
         };
 //        provider.setSort(CaseWorkItemType.F_DEADLINE.getLocalPart(), SortOrder.DESCENDING);
@@ -202,7 +202,8 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     private InlineMenuItem createResponseMenu(int buttonsCount, final AccessCertificationResponseType response) {
         CertificationItemResponseHelper helper = new CertificationItemResponseHelper(response);
         if (buttonsCount < 2) {
-            return new ButtonInlineMenuItem(createStringResource(helper.getLabelKey())) {
+            return new ButtonInlineMenuItem(
+                    Model.of(LocalizationUtil.translatePolyString(helper.getResponseDisplayType().getLabel()))) {
 
                 @Serial private static final long serialVersionUID = 1L;
 
@@ -221,6 +222,11 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
                             responseSelected(response, getRowModel(), target);
                         }
                     };
+                }
+
+                @Override
+                public boolean isLabelVisible() {
+                    return true;
                 }
             };
         } else {
@@ -401,6 +407,10 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
     protected boolean isMyCertItems() {
         return true;
+    }
+
+    protected boolean showOnlyNotDecidedItems() {
+        return false;
     }
 
 }

@@ -81,6 +81,13 @@ public interface AttributeDefinitionStore
         return findAttributeDefinition(name, false);
     }
 
+    default @NotNull <SA extends ShadowAttribute<?, ?>, R> ShadowAttributeDefinition<SA, R> findAttributeDefinitionRequired(
+            @NotNull QName name) throws SchemaException {
+        return MiscUtil.requireNonNull(
+                findAttributeDefinition(name, false),
+                "Unknown attribute '%s' in '%s'", name, this);
+    }
+
     /** TODO ... ignoreCase will be part of the schema, soon ... */
     default ShadowAttributeDefinition<?, ?> findShadowAttributeDefinitionRequired(
             @NotNull ItemName itemName, boolean ignoreCase, Object errorCtx) throws SchemaException {

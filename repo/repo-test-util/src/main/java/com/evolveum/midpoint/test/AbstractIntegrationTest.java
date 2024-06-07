@@ -49,6 +49,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.normalization.Normalizer;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
 import jakarta.annotation.PostConstruct;
@@ -612,9 +613,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected <T extends ObjectType> void addBasicMetadata(PrismObject<T> object) {
         // Add at least the very basic meta-data
-        MetadataType metaData = new MetadataType();
-        metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
-        object.asObjectable().setMetadata(metaData);
+        ValueMetadataTypeUtil.getOrCreateStorageMetadata(object)
+                .createTimestamp(clock.currentTimeXMLGregorianCalendar());
     }
 
     protected <T extends ObjectType> void repoAddObject(
@@ -2182,39 +2182,45 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type).instantiate();
     }
 
-    protected void assertMetadata(String message, MetadataType metadataType, boolean create, boolean assertRequest,
+    protected void assertMetadata(String message, ValueMetadataType metadata, boolean create, boolean assertRequest,
             XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
-        assertNotNull(metadataType, "No metadata in " + message);
+        assertNotNull(metadata, "No metadata in " + message);
         if (create) {
-            assertBetween("Wrong create timestamp in " + message, start, end, metadataType.getCreateTimestamp());
+            var storage = metadata.getStorage();
+            assertThat(storage).as("storage metadata in " + message).isNotNull();
+            assertBetween("Wrong create timestamp in " + message, start, end, storage.getCreateTimestamp());
             if (actorOid != null) {
-                ObjectReferenceType creatorRef = metadataType.getCreatorRef();
+                ObjectReferenceType creatorRef = storage.getCreatorRef();
                 assertNotNull(creatorRef, "No creatorRef in " + message);
                 assertThat(creatorRef.getOid())
                         .as("creatorRef OID in " + message)
                         .isEqualTo(actorOid);
                 if (assertRequest) {
-                    assertBetween("Wrong request timestamp in " + message, start, end, metadataType.getRequestTimestamp());
-                    ObjectReferenceType requestorRef = metadataType.getRequestorRef();
+                    var process = metadata.getProcess();
+                    assertThat(process).as("process metadata in " + message).isNotNull();
+                    assertBetween("Wrong request timestamp in " + message, start, end, process.getRequestTimestamp());
+                    ObjectReferenceType requestorRef = process.getRequestorRef();
                     assertNotNull(requestorRef, "No requestorRef in " + message);
                     assertThat(requestorRef.getOid())
                             .as("requestorRef OID in " + message)
                             .isEqualTo(actorOid);
                 }
             }
-            assertThat(metadataType.getCreateChannel())
+            assertThat(storage.getCreateChannel())
                     .as("create channel in " + message)
                     .isEqualTo(channel);
         } else {
+            var storage = metadata.getStorage();
+            assertThat(storage).as("storage metadata in " + message).isNotNull();
             if (actorOid != null) {
-                ObjectReferenceType modifierRef = metadataType.getModifierRef();
+                ObjectReferenceType modifierRef = storage.getModifierRef();
                 assertNotNull(modifierRef, "No modifierRef in " + message);
                 assertThat(modifierRef.getOid())
                         .as("modifierRef OID in " + message)
                         .isEqualTo(actorOid);
             }
-            assertBetween("Wrong password modify timestamp in " + message, start, end, metadataType.getModifyTimestamp());
-            assertThat(metadataType.getModifyChannel())
+            assertBetween("Wrong password modify timestamp in " + message, start, end, storage.getModifyTimestamp());
+            assertThat(storage.getModifyChannel())
                     .as("modification channel in " + message)
                     .isEqualTo(channel);
         }
@@ -2226,16 +2232,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertNotNull(creds, "No credentials in shadow " + shadow);
         PasswordType password = creds.getPassword();
         assertNotNull(password, "No password in shadow " + shadow);
-        MetadataType metadata = password.getMetadata();
+        ValueMetadataType metadata = ValueMetadataTypeUtil.getMetadata(password);
         assertNotNull(metadata, "No metadata in shadow " + shadow);
-        assertMetadata("Password metadata in " + shadow, metadata, passwordCreated, false, startCal, endCal, actorOid, channel);
-    }
-
-    protected <O extends ObjectType> void assertLastProvisioningTimestamp(
-            PrismObject<O> object, XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        MetadataType metadata = object.asObjectable().getMetadata();
-        assertNotNull(metadata, "No metadata in " + object);
-        assertBetween("Wrong last provisioning timestamp in " + object, start, end, metadata.getLastProvisioningTimestamp());
+        assertMetadata("Password metadata in " + shadow, metadata, passwordCreated, false,
+                startCal, endCal, actorOid, channel);
     }
 
     // Convenience
@@ -3079,10 +3079,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected void waitForThreads(ParallelTestThread[] threads, long timeout) throws InterruptedException {
         TestUtil.waitForThreads(threads, timeout);
-    }
-
-    protected ItemPath getMetadataPath(QName propName) {
-        return ItemPath.create(ObjectType.F_METADATA, propName);
     }
 
     protected boolean isOsUnix() {

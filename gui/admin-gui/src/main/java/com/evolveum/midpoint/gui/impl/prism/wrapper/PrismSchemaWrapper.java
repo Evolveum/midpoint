@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.PrismSchemaTypeUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -47,11 +49,12 @@ public class PrismSchemaWrapper extends PrismContainerWrapperImpl<PrismSchemaTyp
     public <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> Collection<D> getDelta() throws SchemaException {
 
         Collection<D> deltas = new ArrayList<>();
+        PrismObjectWrapper<ObjectType> objectWrapper = findObjectWrapper();
+        @NotNull ItemPath propertyPath = getPath().allExceptLast().append(SchemaType.F_DEFINITION);
+        PrismPropertyDefinition<SchemaDefinitionType> propertyDef = objectWrapper.getItem().getDefinition().findPropertyDefinition(propertyPath);
+
         for (PrismContainerValueWrapper<PrismSchemaType> pVal : getValues()) {
             LOGGER.trace("Processing delta for value:\n {}", pVal);
-            PrismObjectWrapper<ObjectType> objectWrapper = findObjectWrapper();
-            @NotNull ItemPath propertyPath = getPath().allExceptLast().append(SchemaType.F_DEFINITION);
-            PrismPropertyDefinition<SchemaDefinitionType> propertyDef = objectWrapper.getItem().getDefinition().findPropertyDefinition(propertyPath);
             PropertyDelta<SchemaDefinitionType> delta = propertyDef.createEmptyDelta(propertyPath);
             switch (pVal.getStatus()) {
                 case ADDED:
@@ -108,10 +111,6 @@ public class PrismSchemaWrapper extends PrismContainerWrapperImpl<PrismSchemaTyp
         @NotNull ObjectType objectBean = objectWrapper.getObject().asObjectable();
         String lifecycleState = objectBean.getLifecycleState();
         @NotNull PrismSchemaType prismSchemaBean = value.asContainerable();
-        if (objectBean instanceof SchemaType schemaBean) {
-            prismSchemaBean.setNamespace(schemaBean.getNamespace());
-            prismSchemaBean.setDefaultPrefix(schemaBean.getDefaultPrefix());
-        }
         SchemaDefinitionType schemaDefBean = PrismSchemaTypeUtil.convertToSchemaDefinitionType(prismSchemaBean, lifecycleState);
         return PrismContext.get().itemFactory().createPropertyValue(schemaDefBean);
     }
