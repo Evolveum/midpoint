@@ -25,8 +25,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import java.io.Serializable;
 import java.util.List;
 
+//TODO resolve Serializable (move select choices for expression to ExpressionWrapper)
 @Component
-public class AssociationAndExpressionPanelFactory extends AbstractGuiComponentFactory<ExpressionType> {
+public class AssociationAndExpressionPanelFactory extends AbstractGuiComponentFactory<ExpressionType> implements Serializable {
 
     @PostConstruct
     public void register() {
