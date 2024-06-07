@@ -14,16 +14,14 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 
 import java.util.List;
 
 public class CertItemOutcomeSearchItemWrapper  extends ChoicesSearchItemWrapper<AccessCertificationResponseType> {
 
-    public CertItemOutcomeSearchItemWrapper(List<DisplayableValue<AccessCertificationResponseType>> availableValues) {
-        super(ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME), availableValues);
+    public CertItemOutcomeSearchItemWrapper(ItemPath path, List<DisplayableValue<AccessCertificationResponseType>> availableValues) {
+        super(path, availableValues);
     }
 
 
@@ -35,9 +33,7 @@ public class CertItemOutcomeSearchItemWrapper  extends ChoicesSearchItemWrapper<
     @Override
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
         if (getValue().getValue() == null) {
-            return PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
-                    .item(getPath()).isNull()
-                    .buildFilter();
+            return null;
         }
         AccessCertificationResponseType response = getValue().getValue();
         return PrismContext.get().queryFor(type)
