@@ -202,7 +202,8 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     private InlineMenuItem createResponseMenu(int buttonsCount, final AccessCertificationResponseType response) {
         CertificationItemResponseHelper helper = new CertificationItemResponseHelper(response);
         if (buttonsCount < 2) {
-            return new ButtonInlineMenuItem(createStringResource(helper.getLabelKey())) {
+            return new ButtonInlineMenuItem(
+                    Model.of(LocalizationUtil.translatePolyString(helper.getResponseDisplayType().getLabel()))) {
 
                 @Serial private static final long serialVersionUID = 1L;
 
@@ -221,6 +222,11 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
                             responseSelected(response, getRowModel(), target);
                         }
                     };
+                }
+
+                @Override
+                public boolean isLabelVisible() {
+                    return true;
                 }
             };
         } else {

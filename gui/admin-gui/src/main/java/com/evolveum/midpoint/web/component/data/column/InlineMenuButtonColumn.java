@@ -122,11 +122,16 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                         setRowModelToButtonAction(rowModel, buttonMenuItems);
                         buttonMenuItemClickPerformed(index, buttonMenuItems, target);
                     }
+
+                    @Override
+                    protected boolean isHorizontalLayout() {
+                        return true;
+                    }
                 };
 
                 btn.add(AttributeAppender.append("class", "btn btn-default btn-xs"));
                 btn.add(new EnableBehaviour(() -> isButtonMenuItemEnabled(model)));
-
+                btn.titleAsLabel(showButtonLabel(index, buttonMenuItems));
                 return btn;
             }
 
@@ -237,5 +242,12 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
         }
         return false;
+    }
+
+    private boolean showButtonLabel(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
+        if (id >= buttonMenuItems.size()){
+            return false;
+        }
+        return buttonMenuItems.get(id).isLabelVisible();
     }
 }
