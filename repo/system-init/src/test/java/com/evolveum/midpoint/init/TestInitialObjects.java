@@ -56,16 +56,6 @@ public class TestInitialObjects extends AbstractUnitTest {
     }
 
     @Test
-    public void testNaturalKeyDiff() throws Exception {
-        Collection<File> files = FileUtils.listFiles(INITIAL_OBJECTS_DIR, new String[] { "xml" }, true);
-
-        for (File file : files) {
-            PrismObject<?> before = parseObject(file);
-            PrismObject<?> after = before.clone();
-        }
-    }
-
-    @Test
     public void mergeInitialObjects() throws Exception {
         List<FileMergeResult> results = new ArrayList<>();
 

@@ -1188,7 +1188,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.7</a:since>
-                <a:merger>AbstractObjectTypeConfigurationType</a:merger>
+                <a:naturalKey>tns:type</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
