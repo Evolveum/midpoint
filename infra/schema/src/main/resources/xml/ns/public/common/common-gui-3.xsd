@@ -549,7 +549,7 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.6</a:since>
-                <a:naturalKey>identifier</a:naturalKey>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -778,7 +778,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:displayName>RichHyperlinkType.details</a:displayName>
-                <a:naturalKey>targetUrl</a:naturalKey>
+                <a:naturalKey>tns:targetUrl</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1278,8 +1278,8 @@
                 <a:since>4.6</a:since>
                 <a:displayName>GuiResourceDetailsPageType.details</a:displayName>
                 <a:experimental/>
-                <a:naturalKey>type</a:naturalKey>
-                <a:naturalKey>connectorRef</a:naturalKey>
+                <a:naturalKey>tns:type</a:naturalKey>
+                <a:naturalKey>tns:connectorRef</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1495,7 +1495,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.0</a:since>
-                <a:naturalKey>identifier</a:naturalKey>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1543,7 +1543,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.0</a:since>
-                <a:naturalKey>path</a:naturalKey>
+                <a:naturalKey>tns:path</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1573,7 +1573,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.6.1</a:since>
-                <a:naturalKey>identifier</a:naturalKey>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2881,7 +2881,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.6</a:since>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <!-- TODO: maybe we want this to be subtype of UserInterfaceFeatureType? -->
@@ -4645,7 +4645,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.6</a:since>
-                <a:naturalKey>identifier</a:naturalKey>
+                <a:naturalKey>tns:identifier</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -4726,8 +4726,8 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.6</a:since>
-                <a:naturalKey>identifier</a:naturalKey>
-                <a:naturalKey>type</a:naturalKey>
+                <a:naturalKey>tns:identifier</a:naturalKey>
+                <a:naturalKey>tns:type</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
