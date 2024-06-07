@@ -25,6 +25,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils.processOutliersAnalysis;
+
 /**
  * Clustering action.
  * <p>
@@ -164,6 +166,9 @@ public class ClusteringActionExecutor extends BaseAction {
             roleAnalysisService.importCluster(
                     clusterTypePrismObject, session.getDefaultDetectionOption(), sessionRef, task, result
             );
+
+            processOutliersAnalysis(roleAnalysisService, cluster, session, analysisOption, task, result);
+
         }
         result.getSubresults().get(0).close();
 

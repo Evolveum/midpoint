@@ -246,49 +246,6 @@ public class RoleAnalysisAlgorithmUtils {
         clusterStatistic.setRoleAttributeAnalysisStructures(roleAttributeAnalysisStructures);
     }
 
-    private @Nullable ClusterStatistic exactStatisticLoad(
-            @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull DataPoint clusterDataPoints,
-            @NotNull String clusterIndex,
-            int threshold,
-            @NotNull List<DataPoint> dataPointsOutliers,
-            @NotNull QName processedObjectComplexType,
-            @NotNull QName propertiesComplexType,
-            @NotNull Integer sessionTypeObjectCount,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        Set<String> elementsOids = new HashSet<>(clusterDataPoints.getMembers());
-        Set<String> occupiedPoints = new HashSet<>(clusterDataPoints.getProperties());
-
-        if (elementsOids.size() < threshold) {
-            dataPointsOutliers.add(clusterDataPoints);
-            return null;
-        }
-
-        PolyStringType name = PolyStringType.fromOrig(sessionTypeObjectCount + "_cluster_" + clusterIndex);
-
-        Set<ObjectReferenceType> membersObjectsRef = roleAnalysisService.generateObjectReferences(elementsOids,
-                processedObjectComplexType,
-                task, result);
-
-        Set<ObjectReferenceType> propertiesObjectRef = roleAnalysisService.generateObjectReferences(occupiedPoints,
-                propertiesComplexType,
-                task, result);
-
-        double density = 100;
-
-        int membersCount = membersObjectsRef.size();
-        int propertiesCount = propertiesObjectRef.size();
-
-        if (propertiesCount == 0 || membersCount == 0) {
-            return null;
-        }
-
-        return new ClusterStatistic(name, propertiesObjectRef, membersObjectsRef, membersCount, propertiesCount,
-                propertiesCount, propertiesCount, propertiesCount, density);
-    }
-
     private @Nullable PrismObject<RoleAnalysisClusterType> prepareClusters(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull Cluster<DataPoint> cluster,
@@ -469,8 +426,6 @@ public class RoleAnalysisAlgorithmUtils {
             cluster.setDescription(clusterExplanationDescription);
         }
 
-        processOutliersAnalysis(roleAnalysisService, cluster, session, analysisOption, task, result);
-
         return clusterTypePrismObject;
     }
 
@@ -592,7 +547,18 @@ public class RoleAnalysisAlgorithmUtils {
         }
     }
 
-    private void processOutliersAnalysis(
+    /**
+     * Processes the outliers analysis for the specified role analysis session cluster.
+     * This method is used to analyze and import outliers in the role analysis session cluster.
+     *
+     * @param roleAnalysisService The role analysis service for performing role analysis operations.
+     * @param cluster The role analysis cluster to process.
+     * @param session The role analysis session.
+     * @param analysisOption The role analysis option.
+     * @param task The current task.
+     * @param result The operation result.
+     */
+    public static void processOutliersAnalysis(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
             @Nullable RoleAnalysisSessionType session,
