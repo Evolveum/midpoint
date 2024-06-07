@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
+    <adminGuiConfiguration>
+        <objectDetails>
+            <objectDetailsPage>
+                <type>c:TaskType</type>
+                <panel>
+                    <identifier>operational-attributes-panel</identifier>
+                    <display>
+                        <label>Operational attributes</label>
+                    </display>
+                    <panelType>formPanel</panelType>
+                    <container>
+                        <identifier>operational-attributes</identifier>
+                        <displayOrder>900</displayOrder>
+                        <display>
+                            <label>Operational attributes (state)</label>
+                        </display>
+                        <item>
+                            <c:path>executionState</c:path>
+                        </item>
+                        <item>
+                            <c:path>schedulingState</c:path>
+                        </item>
+                        <item>
+                            <c:path>node</c:path>
+                        </item>
+                        <item>
+                            <c:path>nodeAsObserved</c:path>
+                        </item>
+                        <item>
+                            <c:path>resultStatus</c:path>
+                        </item>
+                        <item>
+                            <c:path>result</c:path>
+                        </item>
+                        <item>
+                            <c:path>nextRunStartTimestamp</c:path>
+                        </item>
+                        <item>
+                            <c:path>nextRetryTimestamp</c:path>
+                        </item>
+                        <item>
+                            <c:path>unpauseAction</c:path>
+                        </item>
+                        <item>
+                            <c:path>taskIdentifier</c:path>
+                        </item>
+                        <item>
+                            <c:path>parent</c:path>
+                        </item>
+                        <item>
+                            <c:path>waitingReason</c:path>
+                        </item>
+                        <item>
+                            <c:path>stateBeforeSuspend</c:path>
+                        </item>
+                        <item>
+                            <path>schedulingStateBeforeSuspend</path>
+                        </item>
+                        <item>
+                            <c:path>category</c:path>
+                        </item>
+                        <item>
+                            <c:path>otherHandlersUriStack</c:path>
+                        </item>
+                        <item>
+                            <c:path>channel</c:path>
+                        </item>
+                        <item>
+                            <c:path>subtaskRef</c:path>
+                        </item>
+                        <item>
+                            <c:path>dependentTaskRef</c:path>
+                        </item>
+                        <item>
+                            <c:path>lastRunStartTimestamp</c:path>
+                        </item>
+                        <item>
+                            <c:path>lastRunFinishTimestamp</c:path>
+                        </item>
+                        <item>
+                            <c:path>completionTimestamp</c:path>
+                        </item>
+                    </container>
+                    <container>
+                        <displayOrder>910</displayOrder>
+                        <visibility>hidden</visibility>
+                        <identifier>operation-attributes-progress</identifier>
+                        <display>
+                            <label>Operational attributes (progress)</label>
+                        </display>
+                        <item>
+                            <c:path>progress</c:path>
+                        </item>
+                        <item>
+                            <c:path>expectedTotal</c:path>
+                        </item>
+                        <item>
+                            <c:path>stalledSince</c:path>
+                        </item>
+                    </container>
+                </panel>
+            </objectDetailsPage>
+        </objectDetails>
+    </adminGuiConfiguration>
+</systemConfiguration>
