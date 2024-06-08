@@ -5,6 +5,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismItemAccessDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -40,7 +41,9 @@ public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel
     @Override
     protected List<ResourceObjectTypeDefinition> getListOfSupportedObjectTypeDef() throws SchemaException, ConfigurationException {
         return getDetailsModel().getRefinedSchema().getObjectTypeDefinitions().stream()
-                .filter(def -> !def.getReferenceAttributeDefinitions().isEmpty()).toList();
+                .filter(def -> !def.getReferenceAttributeDefinitions().isEmpty()
+                        && def.getReferenceAttributeDefinitions().stream().anyMatch(PrismItemAccessDefinition::canRead))
+                .toList();
     }
 
     @Override

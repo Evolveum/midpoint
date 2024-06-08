@@ -45,7 +45,7 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
         this.assignment = assignment;
     }
 
-    protected AssignmentType getAssignment() {
+    public AssignmentType getAssignment() {
         return assignment;
     }
 

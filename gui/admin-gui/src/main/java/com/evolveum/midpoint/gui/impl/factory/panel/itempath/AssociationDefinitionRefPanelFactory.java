@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.factory.panel.itempath;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -29,14 +30,19 @@ import java.util.List;
 //FIXME serializable?
 @Component
 public class AssociationDefinitionRefPanelFactory
-        extends AssociationAttributeMappingItemPathPanelFactory implements Serializable {
+        extends AssociationReferenceMappingItemPathPanelFactory implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationDefinitionRefPanelFactory.class);
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        if (wrapper.getParentContainerValue(ShadowAssociationDefinitionType.class) != null
-                && ShadowAssociationDefinitionType.F_REF.equivalent(wrapper.getItemName())) {
+        if (!ShadowAssociationDefinitionType.F_REF.equivalent(wrapper.getItemName())) {
+            return false;
+        }
+
+        if (wrapper.getParent() != null
+                && wrapper.getParent().getParent() != null
+                && ShadowAssociationDefinitionType.class.equals(wrapper.getParent().getParent().getTypeClass())) {
             return true;
         }
         return false;
@@ -48,7 +54,7 @@ public class AssociationDefinitionRefPanelFactory
             return Collections.emptyList();
         }
 
-        ResourceObjectTypeIdentificationType objectTypeOfSubject = getObjectTypeOfSubject(propertyWrapper);
+        ResourceObjectTypeIdentificationType objectTypeOfSubject = AssociationChildWrapperUtil.getObjectTypeOfSubject(propertyWrapper);
         if (objectTypeOfSubject == null) {
             return Collections.emptyList();
         }
@@ -65,7 +71,10 @@ public class AssociationDefinitionRefPanelFactory
 
         List<? extends ShadowReferenceAttributeDefinition> refAttributes = objectTypeDef.getReferenceAttributeDefinitions().stream()
                 .filter(referenceAttributeDef ->
-                        QNameUtil.match(objectClassOfObject, referenceAttributeDef.getRepresentativeTargetObjectDefinition().getObjectClassName()))
+                                referenceAttributeDef.getObjectParticipants((CompleteResourceSchema) schema).values().stream()
+                                        .anyMatch(participant -> QNameUtil.match(
+                                                objectClassOfObject,
+                                                        participant.getObjectDefinition().getObjectClassName())))
                 .toList();
 
         List<DisplayableValue<ItemPathType>> attributes = new ArrayList<>();

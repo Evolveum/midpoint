@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.gui.impl.factory.panel.itempath;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -34,13 +36,15 @@ public class AssociationReferenceMappingItemPathPanelFactory extends Association
 
     @Override
     protected List<DisplayableValue<ItemPathType>> getAttributes(ResourceSchema schema, PrismValueWrapper<ItemPathType> propertyWrapper) {
-        ShadowReferenceAttributeDefinition refAttribute = getShadowReferenceAttribute(schema, propertyWrapper);
+        ShadowReferenceAttributeDefinition refAttribute = AssociationChildWrapperUtil.getShadowReferenceAttribute(schema, propertyWrapper);
         if (refAttribute == null) {
             return Collections.emptyList();
         }
 
         List<DisplayableValue<ItemPathType>> attributes = new ArrayList<>();
-        attributes.add(createDisplayValue(refAttribute));
+        refAttribute.getRepresentativeTargetObjectDefinition().getReferenceAttributeDefinitions()
+                .forEach(attr -> attributes.add(createDisplayValue(attr)));
+
         return attributes;
     }
 }

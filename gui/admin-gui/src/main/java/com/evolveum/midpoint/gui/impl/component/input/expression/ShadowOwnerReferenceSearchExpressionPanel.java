@@ -28,6 +28,8 @@ import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ShadowOwnerReferenceSearchExpressionPanel extends EvaluatorExpressionPanel {
 
@@ -103,7 +105,12 @@ public class ShadowOwnerReferenceSearchExpressionPanel extends EvaluatorExpressi
                 updateEvaluatorValue(expression);
             }
         };
-        ExpressionPanel expressionRelationPanel = new ExpressionPanel(ID_RELATION_EXPRESSION_INPUT, model);
+        ExpressionPanel expressionRelationPanel = new ExpressionPanel(ID_RELATION_EXPRESSION_INPUT, model){
+            @Override
+            protected List<RecognizedEvaluator> getChoices() {
+                return List.of(RecognizedEvaluator.PATH, RecognizedEvaluator.SCRIPT);
+            }
+        };
         expressionRelationPanel.setOutputMarkupId(true);
         return expressionRelationPanel;
     }
@@ -178,8 +185,12 @@ public class ShadowOwnerReferenceSearchExpressionPanel extends EvaluatorExpressi
                 return "";
             }
 
-            return PrismContext.get().jsonSerializer().serialize(
+            String json = PrismContext.get().jsonSerializer().serialize(
                     evaluator.getRelationExpression().getExpressionEvaluator().get(0));
+            if (json.length() > 2) {
+                return json.substring(1, json.length() - 2);
+            }
+            return json;
         } catch (SchemaException ex) {
             LOGGER.error("Couldn't get shadowOwnerReferenceSearch expression value: {}", ex.getLocalizedMessage());
             pageBase.error("Couldn't get shadowOwnerReferenceSearch expression value: " + ex.getLocalizedMessage());

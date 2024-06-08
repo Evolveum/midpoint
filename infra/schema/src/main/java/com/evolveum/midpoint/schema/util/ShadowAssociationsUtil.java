@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationVal
 /** Covers working with the "new" shadow associations (introduced in 4.9). */
 public class ShadowAssociationsUtil {
 
+    // TODO move to ShadowAssociationValue
     private static final EqualsChecker<ShadowAssociationValue> SHADOW_REF_BASED_PCV_EQUALS_CHECKER =
             (o1, o2) -> {
                 if (o1 == null || o2 == null) {

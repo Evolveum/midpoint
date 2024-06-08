@@ -86,7 +86,10 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 null),
         SHADOW_OWNER_REFERENCE_SEARCH(ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH,
                 ShadowOwnerReferenceSearchExpressionPanel.class,
-                "ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH.show.button");
+                "ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH.show.button"),
+        PATH(ExpressionEvaluatorType.PATH,
+                PathExpressionPanel.class,
+                "ExpressionEvaluatorType.PATH.show.button");
 
         private final ExpressionEvaluatorType type;
         private final Class<? extends EvaluatorExpressionPanel> evaluatorPanel;

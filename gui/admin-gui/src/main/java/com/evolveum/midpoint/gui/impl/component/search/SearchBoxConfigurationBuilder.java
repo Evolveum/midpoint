@@ -82,7 +82,7 @@ public class SearchBoxConfigurationBuilder {
                 ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME)
         ));
         FIXED_SEARCH_ITEMS.put(AccessCertificationCaseType.class, List.of(
-                ItemPath.create(AccessCertificationCaseType.F_OUTCOME)
+                ItemPath.create(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME)
         ));
     }
 

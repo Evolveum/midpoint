@@ -42,7 +42,7 @@ public class AssociationAndExpressionPanelFactory extends AbstractGuiComponentFa
             return new ExpressionPanel(panelCtx.getComponentId(), (IModel)panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel()) {
                 @Override
                 protected List<ExpressionPanel.RecognizedEvaluator> getChoices() {
-                    return AssociationAndExpressionPanelFactory.this.getChoices(super.getChoices());
+                    return AssociationAndExpressionPanelFactory.this.getChoices(expressionWrapper, super.getChoices());
                 }
             };
         }
@@ -50,7 +50,7 @@ public class AssociationAndExpressionPanelFactory extends AbstractGuiComponentFa
         return new AssociationExpressionValuePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(), expressionWrapper.getConstruction());
     }
 
-    protected List<ExpressionPanel.RecognizedEvaluator> getChoices(List<ExpressionPanel.RecognizedEvaluator> parentChoices) {
+    protected List<ExpressionPanel.RecognizedEvaluator> getChoices(ExpressionWrapper wrapper, List<ExpressionPanel.RecognizedEvaluator> parentChoices) {
         parentChoices.removeIf(choice ->
                 ExpressionPanel.RecognizedEvaluator.ASSOCIATION_FROM_LINK == choice
                 || ExpressionPanel.RecognizedEvaluator.SHADOW_OWNER_REFERENCE_SEARCH == choice);

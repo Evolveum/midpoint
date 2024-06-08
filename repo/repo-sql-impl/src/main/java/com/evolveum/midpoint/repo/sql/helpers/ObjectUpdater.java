@@ -449,6 +449,15 @@ public class ObjectUpdater {
                     // old implementation end
                 } else {
                     // new implementation start
+                    // What is "real"? There are three types of changes:
+                    // 1) changes that need to be reflected both in XML and in tables
+                    // 2) changes that need to be reflected in XML but not in tables (e.g. adding values with different metadata or operational data)
+                    // 3) changes that need to be reflected in tables but not in XML (index-only items, photo, task result, and so on)
+                    //
+                    // Category-2 changes are to be treated very carefully: we should avoid phantom add+delete in tables.
+                    // Category-3 changes are (hopefully) not narrowed out. [See assumeMissingItems / MID-5280.]
+                    modifications = prismObject.narrowModifications(modifications,
+                            EquivalenceStrategy.DATA, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
                     RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, modifyOptions, em, attemptContext);
 
                     LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
@@ -477,9 +486,9 @@ public class ObjectUpdater {
                     query.executeUpdate();
                     LOGGER.trace("Focus photo for {} was deleted", prismObject.getOid());
                 }
-                rv = new ModifyObjectResult<>(originalObject, prismObject, originalModifications);
+                rv = new ModifyObjectResult<>(originalObject, prismObject, modifications);
             } else {
-                rv = new ModifyObjectResult<>(originalModifications);
+                rv = new ModifyObjectResult<>(modifications);
             }
 
             if (LookupTableType.class.isAssignableFrom(type)) {

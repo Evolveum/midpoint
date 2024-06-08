@@ -1,30 +1,36 @@
 /*
- * Copyright (C) 2020 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.factory.panel;
+package com.evolveum.midpoint.gui.impl.factory.panel.variablebindingdefinition;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.input.SourceMappingProvider;
+import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
+import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.springframework.stereotype.Component;
+import org.wicketstuff.select2.ChoiceProvider;
 
 import java.io.Serializable;
 import java.util.*;
@@ -108,7 +114,7 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
             @Override
             public String getObject() {
                 VariableBindingDefinitionType value = panelCtx.getRealValueModel().getObject();
-                return GuiDisplayNameUtil.getDisplayName(value);
+                return GuiDisplayNameUtil.getDisplayName(value, stripVariableSegment());
             }
 
             @Override
@@ -117,8 +123,11 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
                     panelCtx.getRealValueModel().setObject(null);
                     return;
                 }
+                UniformItemPath path = ItemPathHolder.parseFromString(
+                        object,
+                        PrismContext.get().getSchemaRegistry().getNamespacePrefixMapper().getNamespacesDeclaredByDefault());
                 VariableBindingDefinitionType def = new VariableBindingDefinitionType()
-                        .path(PrismContext.get().itemPathParser().asItemPathType(object));
+                        .path(new ItemPathType(path));
                 panelCtx.getRealValueModel().setObject(def);
             }
         };
@@ -127,16 +136,19 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
                 panelCtx.getComponentId(), valueModel, String.class, true) {
             @Override
             public Iterator<String> getIterator(String input) {
-                SourceMappingProvider provider = createProvider(panelCtx.getItemWrapperModel());
-                return provider.collectAvailableDefinitions(input).iterator();
+                return getAvailableVariables(input, panelCtx.getItemWrapperModel(), panelCtx.getPageBase());
             }
         };
         panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         return panel;
     }
 
-    protected SourceMappingProvider createProvider(IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel) {
-        return new SourceMappingProvider(itemWrapperModel);
+    protected boolean stripVariableSegment() {
+        return true;
+    }
+
+    protected Iterator<String> getAvailableVariables(String input, IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageBase pageBase) {
+        return new FocusDefinitionsMappingProvider(itemWrapperModel).collectAvailableDefinitions(input).iterator();
     }
 
     @Override

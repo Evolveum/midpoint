@@ -255,4 +255,8 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         sb.append(getAssociatedObjectDefinitionIfPresent());
         return true;
     }
+
+    public boolean matches(ShadowAssociationValue deletedValue) {
+        return ShadowAssociationsUtil.shadowRefBasedPcvEqualsChecker().test(this, deletedValue);
+    }
 }

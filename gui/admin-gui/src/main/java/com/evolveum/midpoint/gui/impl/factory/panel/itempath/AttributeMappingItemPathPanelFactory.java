@@ -44,6 +44,7 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -319,13 +320,6 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
         private final String displayName;
         private final String help;
         private final ItemPathType value;
-
-        private AttributeDisplayableValue(ShadowAttributeDefinition attributeDefinition, String labelPrefixKey) {
-            this.displayName = LocalizationUtil.translate(
-                    labelPrefixKey, new Object[] {attributeDefinition.getItemName().getLocalPart()});
-            this.help = attributeDefinition.getHelp();
-            this.value = new ItemPathType(ItemPath.create(attributeDefinition.getItemName()));
-        }
 
         private AttributeDisplayableValue(ShadowAttributeDefinition attributeDefinition) {
             this.displayName = attributeDefinition.getItemName().getLocalPart();

@@ -8,13 +8,15 @@ package com.evolveum.midpoint.gui.impl.factory.panel.itempath;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.input.SourceMappingProvider;
+import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
@@ -28,6 +30,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -42,27 +45,21 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return ItemPathType.COMPLEX_TYPE.equals(wrapper.getTypeName())
-                && (wrapper.getPath().namedSegmentsOnly().equivalent(ItemPath.create(
-                ResourceType.F_SCHEMA_HANDLING,
-                SchemaHandlingType.F_OBJECT_TYPE,
-                ResourceObjectTypeDefinitionType.F_CORRELATION,
-                CorrelationDefinitionType.F_CORRELATORS,
-                CompositeCorrelatorType.F_ITEMS,
-                ItemsSubCorrelatorType.F_ITEM,
-                CorrelationItemType.F_REF
-        )));
+                && wrapper.getParentContainerValue(CorrelationDefinitionType.class) != null
+                && (wrapper.getParentContainerValue(ResourceObjectTypeDefinitionType.class) != null
+                || wrapper.getParentContainerValue(ShadowAssociationDefinitionType.class) != null);
     }
 
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<ItemPathType> panelCtx) {
         PrismPropertyWrapper<ItemPathType> item = panelCtx.unwrapWrapperModel();
-        ResourceObjectTypeDefinitionType objectType = getObjectType(item);
+        List<ResourceAttributeDefinitionType> attributeDefinitions = getAttributeDefinition(item);
 
-        if (objectType == null) {
+        if (attributeDefinitions.isEmpty()) {
             return super.getPanel(panelCtx);
         }
 
-        List<ItemPathType> itemPaths = getTargetsOfInboundMappings(objectType);
+        List<ItemPathType> itemPaths = getTargetsOfInboundMappings(attributeDefinitions);
         if (itemPaths == null || itemPaths.isEmpty()) {
             IModel<String> valueModel = new IModel<>() {
                 @Override
@@ -80,8 +77,7 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
                     panelCtx.getComponentId(), valueModel, String.class, true) {
                 @Override
                 public Iterator<String> getIterator(String input) {
-                    SourceMappingProvider provider = new SourceMappingProvider(null);
-                    return provider.collectAvailableDefinitions(input, objectType).iterator();
+                    return iteratorForAvariableDefinitions(input, item);
                 }
             };
             panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -95,11 +91,30 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
         return typePanel;
     }
 
-    private List<ItemPathType> getTargetsOfInboundMappings(ResourceObjectTypeDefinitionType objectType) {
+    private Iterator<String> iteratorForAvariableDefinitions(String input, PrismPropertyWrapper<ItemPathType> item) {
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectType = item.getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+        if (objectType != null) {
+            FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(null);
+            return provider.collectAvailableDefinitions(input, objectType.getRealValue()).iterator();
+        }
+
+        if (item.getParentContainerValue(ShadowAssociationDefinitionType.class) != null) {
+            FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(null) {
+                @Override
+                protected PrismContainerDefinition<? extends Containerable> getFocusTypeDefinition(ResourceObjectTypeDefinitionType resourceObjectType) {
+                    return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
+                }
+            };
+            return provider.collectAvailableDefinitions(input, null).iterator();
+        }
+
+        return Collections.emptyIterator();
+    }
+
+    private List<ItemPathType> getTargetsOfInboundMappings(List<ResourceAttributeDefinitionType> attributeDefinitions) {
         List<ItemPathType> targets = new ArrayList<>();
-        objectType.getAttribute()
-                .forEach(attributeMapping -> attributeMapping.getInbound()
-                        .forEach( inboundMapping -> {
+        attributeDefinitions.forEach(attributeMapping -> attributeMapping.getInbound()
+                        .forEach(inboundMapping -> {
                             if (inboundMapping.getTarget() != null && inboundMapping.getTarget().getPath() != null) {
                                 targets.add(new ItemPathType(inboundMapping.getTarget().getPath().getItemPath().stripVariableSegment()));
                             }
@@ -107,22 +122,20 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
         return targets;
     }
 
-    private ResourceObjectTypeDefinitionType getObjectType(PrismPropertyWrapper<ItemPathType> item) {
-        if (item.getParent() != null
-                && item.getParent().getParent() != null
-                && item.getParent().getParent().getParent() != null
-                && item.getParent().getParent().getParent().getParent() != null
-                && item.getParent().getParent().getParent().getParent().getParent() != null
-                && item.getParent().getParent().getParent().getParent().getParent().getParent() != null
-                && item.getParent().getParent().getParent().getParent().getParent().getParent().getParent() != null
-                && item.getParent().getParent().getParent().getParent().getParent().getParent().getParent().getParent() != null
-                && item.getParent().getParent().getParent().getParent().getParent().getParent().getParent().getParent().getParent() != null) {
-            Object objectType =
-                    item.getParent().getParent().getParent().getParent().getParent().getParent().getParent().getParent().getParent().getRealValue();
-            if (objectType instanceof ResourceObjectTypeDefinitionType) {
-                return (ResourceObjectTypeDefinitionType) objectType;
-            }
+    private List<ResourceAttributeDefinitionType> getAttributeDefinition(PrismPropertyWrapper<ItemPathType> item) {
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectType = item.getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+        if (objectType != null) {
+            return objectType.getRealValue().getAttribute();
         }
-        return null;
+
+        PrismContainerValueWrapper<ShadowAssociationDefinitionType> association = item.getParentContainerValue(ShadowAssociationDefinitionType.class);
+        if (association != null) {
+            List<ResourceAttributeDefinitionType> attributes = new ArrayList<>();
+            attributes.addAll(association.getRealValue().getAttribute());
+            attributes.addAll(association.getRealValue().getObjectRef());
+            return attributes;
+        }
+
+        return Collections.emptyList();
     }
 }

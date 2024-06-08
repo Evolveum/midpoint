@@ -11,7 +11,7 @@ import jakarta.persistence.EntityManager;
 
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.sql.helpers.ObjectUpdater;
-import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
+import com.evolveum.midpoint.schema.util.cid.ContainerValueIdGenerator;
 
 /**
  * TODO
@@ -20,16 +20,15 @@ class UpdateContext {
 
     final ObjectDeltaUpdater beans;
     final RepoModifyOptions options;
-    final PrismIdentifierGenerator idGenerator;
+    final ContainerValueIdGenerator idGenerator;
     final EntityManager entityManager;
     final ObjectUpdater.AttemptContext attemptContext;
 
     boolean shadowPendingOperationModified;
 
     UpdateContext(
-            ObjectDeltaUpdater beans, RepoModifyOptions options, PrismIdentifierGenerator idGenerator,
+            ObjectDeltaUpdater beans, RepoModifyOptions options, ContainerValueIdGenerator idGenerator,
             EntityManager entityManager, ObjectUpdater.AttemptContext attemptContext) {
-
         this.beans = beans;
         this.options = options;
         this.idGenerator = idGenerator;
