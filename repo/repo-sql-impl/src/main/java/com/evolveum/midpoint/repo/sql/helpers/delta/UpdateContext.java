@@ -10,6 +10,8 @@ package com.evolveum.midpoint.repo.sql.helpers.delta;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.sql.helpers.ObjectUpdater;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
+import com.evolveum.midpoint.schema.util.cid.ContainerValueIdGenerator;
+
 import org.hibernate.Session;
 
 /**
@@ -19,13 +21,13 @@ class UpdateContext {
 
     final ObjectDeltaUpdater beans;
     final RepoModifyOptions options;
-    final PrismIdentifierGenerator idGenerator;
+    final ContainerValueIdGenerator idGenerator;
     final Session session;
     final ObjectUpdater.AttemptContext attemptContext;
 
     boolean shadowPendingOperationModified;
 
-    UpdateContext(ObjectDeltaUpdater beans, RepoModifyOptions options, PrismIdentifierGenerator idGenerator, Session session,
+    UpdateContext(ObjectDeltaUpdater beans, RepoModifyOptions options, ContainerValueIdGenerator idGenerator, Session session,
             ObjectUpdater.AttemptContext attemptContext) {
         this.beans = beans;
         this.options = options;
