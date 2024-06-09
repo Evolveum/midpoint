@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemNameUtil;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 import org.jetbrains.annotations.NotNull;
@@ -145,7 +146,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * Returns {@link ItemSqlMapper} for provided {@link QName} or `null`.
      */
     public @Nullable ItemSqlMapper<Q, R> getItemMapper(QName itemName) {
-        return QNameUtil.getByQName(this.itemMappings, itemName);
+        return ItemNameUtil.getByQName(this.itemMappings, itemName);
     }
 
     /**
@@ -186,7 +187,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
     ItemRelationResolver<Q, R, TQ, TR> getRelationResolver(QName itemName) {
         //noinspection unchecked
         return (ItemRelationResolver<Q, R, TQ, TR>)
-                QNameUtil.getByQName(itemRelationResolvers, itemName);
+                ItemNameUtil.getByQName(itemRelationResolvers, itemName);
     }
 
     /** Returns copy of the map of the item mappings. */
