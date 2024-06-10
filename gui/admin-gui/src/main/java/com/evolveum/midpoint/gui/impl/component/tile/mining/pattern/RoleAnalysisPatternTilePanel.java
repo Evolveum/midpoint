@@ -393,7 +393,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
 
     public List<InlineMenuItem> createMenuItems() {
         List<InlineMenuItem> items = new ArrayList<>();
-        items.add(new InlineMenuItem(createStringResource("Explore pattern")) {
+        items.add(new InlineMenuItem(createStringResource("Explore suggested role")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override

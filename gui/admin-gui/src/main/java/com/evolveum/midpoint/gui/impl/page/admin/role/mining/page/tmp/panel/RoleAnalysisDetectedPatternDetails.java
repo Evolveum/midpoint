@@ -104,7 +104,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
                 "Confidence",
                 confidence.getObject(),
                 pattern.getItemsConfidence(),
-                "Confidence of the pattern");
+                "Confidence of the suggested role");
 
         RoleAnalysisInfoBox confidenceLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxModelConfidence)) {
             @Override
@@ -120,7 +120,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
                 "Roles",
                 roleObjectCount.getObject(),
                 100,
-                "Number of roles in the pattern");
+                "Number of roles in the suggested role");
 
         RoleAnalysisInfoBox roleObjectCountLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxModelRoles)) {
             @Override
@@ -136,7 +136,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
                 "Users",
                 userObjectCount.getObject(),
                 100,
-                "Number of users in the pattern");
+                "Number of users in the suggested role");
 
         RoleAnalysisInfoBox userObjectCountLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxModelUsers)) {
             @Override
@@ -196,7 +196,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
     }
 
     protected IModel<String> getCardTitleModel() {
-        return Model.of("Pattern attributes analysis result");
+        return Model.of("Role suggestion attributes analysis result");
     }
 
     protected String getCssClassForStatisticsPanel() {

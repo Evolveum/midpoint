@@ -121,7 +121,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
             initRoleMiningHeaders(headerItems, sessionClusters, processMode);
 
-            Label cardTitle = new Label(ID_CARD_TITLE, "Top session pattern");
+            Label cardTitle = new Label(ID_CARD_TITLE, "Top session suggested role");
             cardTitle.setOutputMarkupId(true);
             container.add(cardTitle);
 
@@ -306,10 +306,10 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
         InfoBoxModel infoBoxResolvedPattern = new InfoBoxModel(
                 GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " text-white",
-                "Resolved pattern",
+                "Resolved suggestion",
                 String.valueOf(resolvedPatternCount),
                 100,
-                "Number of resolved patterns");
+                "Number of resolved suggestion roles");
 
         RoleAnalysisInfoBox resolvedPatternLabel = new RoleAnalysisInfoBox(
                 headerItems.newChildId(), Model.of(infoBoxResolvedPattern)) {

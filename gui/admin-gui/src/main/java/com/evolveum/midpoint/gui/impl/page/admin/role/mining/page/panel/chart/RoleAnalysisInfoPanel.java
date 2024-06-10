@@ -158,7 +158,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
 
     private void initInfoPatternPanel() {
         RoleAnalysisItemPanel roleAnalysisInfoPatternPanel = new RoleAnalysisItemPanel(ID_PATTERN_PANEL,
-                Model.of("Pattern suggestions")) {
+                Model.of("Role suggestions")) {
             @Override
             protected void addItem(RepeatingView repeatingView) {
                 addPatternItems(repeatingView);

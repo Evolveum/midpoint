@@ -302,7 +302,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
                                 return "Candidate role " + (pattern.getIdentifier());
                             }
 
-                            return "Pattern #" + (patternIndex + 1);
+                            return "Role suggestion #" + (patternIndex + 1);
                         }
                     };
 

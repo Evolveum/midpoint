@@ -162,7 +162,7 @@ public class PageRoleAnalysis extends PageAdmin {
                         @Override
                         protected IModel<String> getLinkModel() {
                             IModel<String> linkModel = super.getLinkModel();
-                            return Model.of(linkModel.getObject() + " pattern #" + (finalI + 1));
+                            return Model.of(linkModel.getObject() + " role suggestion #" + (finalI + 1));
                         }
 
                         @Override
