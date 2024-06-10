@@ -8,15 +8,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateRoleOutlierResultModel;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
 
 import java.io.Serial;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
-
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -25,27 +24,37 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierHeaderResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierItemResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierResultPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.InfoBoxModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.*;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisInfoBox;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 @PanelType(name = "sessionOverView", defaultContainerPath = "empty")
 @PanelInstance(identifier = "sessionOverView",
@@ -62,7 +71,6 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
     private static final String ID_PANEL = "panelId";
     private static final String ID_CARD_TITLE = "card-title";
     private static final String ID_EXPLORE_PATTERN_BUTTON = "explore-pattern-button";
-    private static final String ID_PATTERNS = "patterns";
 
     public RoleAnalysisSessionAnalysisAspectsPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -81,7 +89,25 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         Task task = getPageBase().createSimpleTask("Get top session pattern");
         OperationResult result = task.getResult();
 
-        List<PrismObject<RoleAnalysisClusterType>> sessionClusters = roleAnalysisService.searchSessionClusters(session, task, result);
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+
+        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            initOutlierPart(roleAnalysisService, session, task, result, sessionStatistic, container);
+        } else {
+            initRoleMiningPart(roleAnalysisService, session, task, result, sessionStatistic, container);
+        }
+
+    }
+
+    private void initRoleMiningPart(@NotNull RoleAnalysisService roleAnalysisService,
+            RoleAnalysisSessionType session,
+            Task task,
+            OperationResult result,
+            RoleAnalysisSessionStatisticType sessionStatistic,
+            WebMarkupContainer container) {
+        List<PrismObject<RoleAnalysisClusterType>> sessionClusters = roleAnalysisService.searchSessionClusters(
+                session, task, result);
 
         List<DetectedPattern> topSessionPattern = roleAnalysisService.getTopSessionPattern(session, task, result, true);
 
@@ -92,13 +118,14 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             container.add(headerItems);
             RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
             RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
-            initHeaderPanel(headerItems, sessionClusters, processMode);
+
+            initRoleMiningHeaders(headerItems, sessionClusters, processMode);
 
             Label cardTitle = new Label(ID_CARD_TITLE, "Top session pattern");
             cardTitle.setOutputMarkupId(true);
             container.add(cardTitle);
 
-            AjaxCompositedIconSubmitButton components = buildExploreButton(pattern);
+            AjaxCompositedIconSubmitButton components = buildExplorePatternButton(pattern);
             container.add(components);
 
             RoleAnalysisDetectedPatternDetails statisticsPanel = new RoleAnalysisDetectedPatternDetails(ID_PANEL,
@@ -136,82 +163,53 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             statisticsPanel.setOutputMarkupId(true);
             container.add(statisticsPanel);
 
-            RoleAnalysisItemPanel roleAnalysisInfoPanel = new RoleAnalysisItemPanel(ID_PATTERNS, Model.of("Recent detected")) {
-                @Override
-                public void addItem(RepeatingView repeatingView) {
-                    PageBase pageBase = RoleAnalysisSessionAnalysisAspectsPanel.this.getPageBase();
-                    RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-                    Task task = pageBase.createSimpleTask("loadRoleAnalysisInfo");
-                    OperationResult result = task.getResult();
-                    List<DetectedPattern> topPatters = roleAnalysisService.getTopSessionPattern(session, task, result, false);
-                    for (DetectedPattern pattern : topPatters) {
-                        double reductionFactorConfidence = pattern.getMetric();
-                        String formattedReductionFactorConfidence = String.format("%.0f", reductionFactorConfidence);
-                        double itemsConfidence = pattern.getItemsConfidence();
-                        String formattedItemConfidence = String.format("%.1f", itemsConfidence);
-                        String label = "Detected a potential reduction of " +
-                                formattedReductionFactorConfidence +
-                                "x relationships with a confidence of  " +
-                                formattedItemConfidence + "%";
-                        repeatingView.add(new RoleAnalysisInfoItem(repeatingView.newChildId(), Model.of(label)) {
+        } else {
+            Label label = new Label(ID_PANEL, "No data available");
+            label.setOutputMarkupId(true);
+            container.add(label);
 
-                            @Override
-                            protected String getIconContainerCssClass() {
-                                return "btn btn-outline-dark";
-                            }
+            WebMarkupContainer headerItems = new WebMarkupContainer(ID_HEADER_ITEMS);
+            headerItems.setOutputMarkupId(true);
+            container.add(headerItems);
 
-                            @Override
-                            protected void addDescriptionComponents() {
-                                appendText("Detected a potential reduction from ");
-                                appendIcon("fe fe-assignment", "color: red;");
-                                appendText(" " + formattedReductionFactorConfidence + " assignments, ");
-                                appendText("with a attributes confidence of");
-                                appendIcon("fa fa-leaf", "color: green");
-                                appendText(" " + formattedItemConfidence + "%.");
-                            }
+            Label cardTitle = new Label(ID_CARD_TITLE, "No data available");
+            cardTitle.setOutputMarkupId(true);
+            headerItems.add(cardTitle);
 
-                            @Override
-                            protected void onClickLinkPerform(AjaxRequestTarget target) {
-                                PageParameters parameters = new PageParameters();
-                                String clusterOid = pattern.getClusterRef().getOid();
-                                parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
-                                parameters.add("panelId", "clusterDetails");
-                                parameters.add(PARAM_DETECTED_PATER_ID, pattern.getId());
-                                StringValue fullTableSetting = getPageBase().getPageParameters().get(PARAM_TABLE_SETTING);
-                                if (fullTableSetting != null && fullTableSetting.toString() != null) {
-                                    parameters.add(PARAM_TABLE_SETTING, fullTableSetting.toString());
-                                }
+            WebMarkupContainer exploreButton = new WebMarkupContainer(ID_EXPLORE_PATTERN_BUTTON);
+            exploreButton.setOutputMarkupId(true);
+            container.add(exploreButton);
+        }
+    }
 
-                                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                                        .getObjectDetailsPage(RoleAnalysisClusterType.class);
-                                getPageBase().navigateToNext(detailsPageClass, parameters);
-                            }
+    private void initOutlierPart(@NotNull RoleAnalysisService roleAnalysisService,
+            RoleAnalysisSessionType session,
+            Task task,
+            OperationResult result,
+            RoleAnalysisSessionStatisticType sessionStatistic,
+            WebMarkupContainer container) {
+        List<PrismObject<RoleAnalysisClusterType>> sessionClusters = roleAnalysisService.searchSessionClusters(
+                session, task, result);
 
-                            @Override
-                            protected void onClickIconPerform(AjaxRequestTarget target) {
-                                RoleAnalysisDetectedPatternDetailsPopup component = new RoleAnalysisDetectedPatternDetailsPopup(
-                                        ((PageBase) getPage()).getMainPopupBodyId(),
-                                        Model.of(pattern));
-                                ((PageBase) getPage()).showMainPopup(component, target);
-                            }
-                        });
-                    }
-                }
+        List<DetectedPattern> topSessionPattern = roleAnalysisService.getTopSessionPattern(session, task, result, true);
 
-                @Override
-                public String getCardBodyCssClass() {
-                    return " overflow-auto";
-                }
+        if (topSessionPattern != null && sessionStatistic != null) {
+            RepeatingView headerItems = new RepeatingView(ID_HEADER_ITEMS);
+            headerItems.setOutputMarkupId(true);
+            container.add(headerItems);
+            RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+            RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
 
-                @Override
-                public String getCardBodyStyle() {
-                    return " height:41vh;";
-                }
-            };
-            roleAnalysisInfoPanel.setOutputMarkupId(true);
-            add(roleAnalysisInfoPanel);
+            initOutliersAnalysisHeaders(headerItems, sessionClusters, processMode);
 
-            container.add(roleAnalysisInfoPanel);
+            Label cardTitle = new Label(ID_CARD_TITLE, "Top session outlier");
+            cardTitle.setOutputMarkupId(true);
+            container.add(cardTitle);
+
+            AjaxCompositedIconSubmitButton components = buildExplorePatternOutlier(topOutlier);
+            container.add(components);
+
+            initOutlierPanel(container);
 
         } else {
             Label label = new Label(ID_PANEL, "No data available");
@@ -229,14 +227,12 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             WebMarkupContainer exploreButton = new WebMarkupContainer(ID_EXPLORE_PATTERN_BUTTON);
             exploreButton.setOutputMarkupId(true);
             container.add(exploreButton);
-
-            WebMarkupContainer panel = new WebMarkupContainer(ID_PATTERNS);
-            panel.setOutputMarkupId(true);
-            container.add(panel);
         }
     }
 
-    private void initHeaderPanel(RepeatingView headerItems, List<PrismObject<RoleAnalysisClusterType>> sessionClusters, RoleAnalysisProcessModeType processMode) {
+    private void initRoleMiningHeaders(RepeatingView headerItems,
+            List<PrismObject<RoleAnalysisClusterType>> sessionClusters,
+            RoleAnalysisProcessModeType processMode) {
 
         if (sessionClusters == null) {
             return;
@@ -280,7 +276,8 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                 100,
                 "Possible overall reduction");
 
-        RoleAnalysisInfoBox infoBoxReductionLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxReduction)) {
+        RoleAnalysisInfoBox infoBoxReductionLabel = new RoleAnalysisInfoBox(
+                headerItems.newChildId(), Model.of(infoBoxReduction)) {
             @Override
             protected String getInfoBoxCssClass() {
                 return "bg-primary";
@@ -296,7 +293,8 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                 100,
                 "Number of outliers");
 
-        RoleAnalysisInfoBox outliersLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxOutliers)) {
+        RoleAnalysisInfoBox outliersLabel = new RoleAnalysisInfoBox(
+                headerItems.newChildId(), Model.of(infoBoxOutliers)) {
             @Override
             protected String getInfoBoxCssClass() {
                 return "bg-primary";
@@ -306,13 +304,15 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         outliersLabel.setOutputMarkupId(true);
         headerItems.add(outliersLabel);
 
-        InfoBoxModel infoBoxResolvedPattern = new InfoBoxModel(GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " text-white",
+        InfoBoxModel infoBoxResolvedPattern = new InfoBoxModel(
+                GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " text-white",
                 "Resolved pattern",
                 String.valueOf(resolvedPatternCount),
                 100,
                 "Number of resolved patterns");
 
-        RoleAnalysisInfoBox resolvedPatternLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxResolvedPattern)) {
+        RoleAnalysisInfoBox resolvedPatternLabel = new RoleAnalysisInfoBox(
+                headerItems.newChildId(), Model.of(infoBoxResolvedPattern)) {
             @Override
             protected String getInfoBoxCssClass() {
                 return "bg-primary";
@@ -322,13 +322,15 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         resolvedPatternLabel.setOutputMarkupId(true);
         headerItems.add(resolvedPatternLabel);
 
-        InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " text-white",
+        InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(
+                GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " text-white",
                 "Candidate roles",
                 String.valueOf(candidateRolesCount),
                 100,
                 "Number of candidate roles");
 
-        RoleAnalysisInfoBox candidateRolesLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxCandidateRoles)) {
+        RoleAnalysisInfoBox candidateRolesLabel = new RoleAnalysisInfoBox(
+                headerItems.newChildId(), Model.of(infoBoxCandidateRoles)) {
             @Override
             protected String getInfoBoxCssClass() {
                 return "bg-primary";
@@ -339,7 +341,140 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         headerItems.add(candidateRolesLabel);
     }
 
-    private @NotNull AjaxCompositedIconSubmitButton buildExploreButton(DetectedPattern pattern) {
+    int userOutlierCount = 0;
+    int assignmentAnomalyCount = 0;
+
+    transient RoleAnalysisOutlierType topOutlier = null;
+    int topConfidence = 0;
+
+    private void initOutliersAnalysisHeaders(
+            @NotNull RepeatingView headerItems,
+            List<PrismObject<RoleAnalysisClusterType>> sessionClusters,
+            @NotNull RoleAnalysisProcessModeType processMode) {
+
+        if (sessionClusters == null) {
+            return;
+        }
+
+        int resolvedOutliers = 0;
+
+        int clusterOtliers = 0;
+
+        for (PrismObject<RoleAnalysisClusterType> prismCluster : sessionClusters) {
+            RoleAnalysisClusterType cluster = prismCluster.asObjectable();
+            AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
+
+            RoleAnalysisClusterCategory category = cluster.getCategory();
+            if (category == RoleAnalysisClusterCategory.OUTLIERS) {
+                if (processMode == RoleAnalysisProcessModeType.ROLE) {
+                    clusterOtliers += clusterStatistics.getRolesCount();
+                } else if (processMode == RoleAnalysisProcessModeType.USER) {
+                    clusterOtliers += clusterStatistics.getUsersCount();
+                }
+            }
+        }
+
+        PageBase pageBase = getPageBase();
+        ModelService modelService = pageBase.getModelService();
+
+        Task task = pageBase.createSimpleTask("Search outlier objects");
+        ResultHandler<RoleAnalysisOutlierType> handler = (object, parentResult) -> {
+            userOutlierCount++;
+            RoleAnalysisOutlierType outlier = object.asObjectable();
+            List<RoleAnalysisOutlierDescriptionType> result = outlier.getResult();
+            if (result != null) {
+                assignmentAnomalyCount += result.size();
+
+                Double clusterConfidence = outlier.getClusterConfidence();
+                if (clusterConfidence != null && clusterConfidence > topConfidence) {
+                    topConfidence = clusterConfidence.intValue();
+                    topOutlier = outlier;
+                }
+
+            }
+            return true;
+        };
+
+        try {
+            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, handler, null,
+                    task, task.getResult());
+        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
+                SecurityViolationException | ExpressionEvaluationException e) {
+            throw new RuntimeException(e);
+        }
+
+        InfoBoxModel infoBoxReduction = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-white",
+                "User outliers",
+                String.valueOf(userOutlierCount),
+                100,
+                "Number of user outliers");
+
+        RoleAnalysisInfoBox infoBoxReductionLabel = new RoleAnalysisInfoBox(
+                headerItems.newChildId(), Model.of(infoBoxReduction)) {
+            @Override
+            protected String getInfoBoxCssClass() {
+                return "bg-primary";
+            }
+        };
+        infoBoxReductionLabel.add(AttributeModifier.replace("class", "col-md-6"));
+        infoBoxReductionLabel.setOutputMarkupId(true);
+        headerItems.add(infoBoxReductionLabel);
+
+        InfoBoxModel infoBoxOutliers = new InfoBoxModel(GuiStyleConstants.CLASS_OUTLIER_ICON + " text-white",
+                "Outliers",
+                String.valueOf(clusterOtliers),
+                100,
+                "Number of cluster outliers");
+
+        RoleAnalysisInfoBox outliersLabel = new RoleAnalysisInfoBox(
+                headerItems.newChildId(), Model.of(infoBoxOutliers)) {
+            @Override
+            protected String getInfoBoxCssClass() {
+                return "bg-primary";
+            }
+        };
+        outliersLabel.add(AttributeModifier.replace("class", "col-md-6"));
+        outliersLabel.setOutputMarkupId(true);
+        headerItems.add(outliersLabel);
+
+        InfoBoxModel infoBoxResolvedPattern = new InfoBoxModel(
+                GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " text-white",
+                "Assignment anomalies",
+                String.valueOf(assignmentAnomalyCount),
+                100,
+                "Number of assignment anomalies");
+
+        RoleAnalysisInfoBox resolvedPatternLabel = new RoleAnalysisInfoBox(
+                headerItems.newChildId(), Model.of(infoBoxResolvedPattern)) {
+            @Override
+            protected String getInfoBoxCssClass() {
+                return "bg-primary";
+            }
+        };
+        resolvedPatternLabel.add(AttributeModifier.replace("class", "col-md-6"));
+        resolvedPatternLabel.setOutputMarkupId(true);
+        headerItems.add(resolvedPatternLabel);
+
+        InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(
+                GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " text-white",
+                "Resolved outliers",
+                String.valueOf(resolvedOutliers),
+                100,
+                "Number of resolved outliers");
+
+        RoleAnalysisInfoBox candidateRolesLabel = new RoleAnalysisInfoBox(
+                headerItems.newChildId(), Model.of(infoBoxCandidateRoles)) {
+            @Override
+            protected String getInfoBoxCssClass() {
+                return "bg-primary";
+            }
+        };
+        candidateRolesLabel.add(AttributeModifier.replace("class", "col-md-6"));
+        candidateRolesLabel.setOutputMarkupId(true);
+        headerItems.add(candidateRolesLabel);
+    }
+
+    private @NotNull AjaxCompositedIconSubmitButton buildExplorePatternButton(DetectedPattern pattern) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
                 GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton explorePatternButton = new AjaxCompositedIconSubmitButton(
@@ -351,6 +486,38 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 explorePatternPerform(pattern);
+            }
+
+            @Override
+            protected void onError(@NotNull AjaxRequestTarget target) {
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+        explorePatternButton.titleAsLabel(true);
+        explorePatternButton.setOutputMarkupId(true);
+        explorePatternButton.add(AttributeAppender.append("class", "ml-auto btn btn-primary btn-sm"));
+        explorePatternButton.setOutputMarkupId(true);
+        return explorePatternButton;
+    }
+
+    private @NotNull AjaxCompositedIconSubmitButton buildExplorePatternOutlier(RoleAnalysisOutlierType outlier) {
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton explorePatternButton = new AjaxCompositedIconSubmitButton(
+                ID_EXPLORE_PATTERN_BUTTON,
+                iconBuilder.build(),
+                createStringResource("Explore outlier")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                PageParameters parameters = new PageParameters();
+                String clusterOid = outlier.getOid();
+                parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
+
+                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                        .getObjectDetailsPage(RoleAnalysisOutlierType.class);
+                getPageBase().navigateToNext(detailsPageClass, parameters);
             }
 
             @Override
@@ -379,6 +546,78 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                 .getObjectDetailsPage(RoleAnalysisClusterType.class);
         getPageBase().navigateToNext(detailsPageClass, parameters);
+    }
+
+    public void initOutlierPanel(WebMarkupContainer container) {
+        OutlierObjectModel outlierObjectModel;
+
+        PageBase pageBase = getPageBase();
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        Task task = pageBase.createSimpleTask("loadOutlierDetails");
+        RoleAnalysisOutlierType outlierObject = topOutlier;
+        ObjectReferenceType targetSessionRef = outlierObject.getTargetSessionRef();
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
+                .getSessionTypeObject(targetSessionRef.getOid(), task, task.getResult());
+        assert sessionTypeObject != null;
+        RoleAnalysisSessionType sessionType = sessionTypeObject.asObjectable();
+        RoleAnalysisProcessModeType processMode = sessionType.getAnalysisOption().getProcessMode();
+
+        ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
+        PrismObject<RoleAnalysisClusterType> clusterTypeObject = roleAnalysisService
+                .getClusterTypeObject(targetClusterRef.getOid(), task, task.getResult());
+        assert clusterTypeObject != null;
+        RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
+        if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+            outlierObjectModel = generateUserOutlierResultModel(
+                    roleAnalysisService, outlierObject, task, task.getResult(), cluster);
+        } else {
+            outlierObjectModel = generateRoleOutlierResultModel(
+                    roleAnalysisService, outlierObject, task, task.getResult(), cluster);
+        }
+
+        assert outlierObjectModel != null;
+        String outlierName = outlierObjectModel.getOutlierName();
+        double outlierConfidence = outlierObjectModel.getOutlierConfidence();
+        String outlierDescription = outlierObjectModel.getOutlierDescription();
+        String timeCreated = outlierObjectModel.getTimeCreated();
+
+        OutlierResultPanel detailsPanel = new OutlierResultPanel(
+                ID_PANEL,
+                Model.of("Analyzed members details panel")) {
+
+            @Override
+            public String getCardCssClass() {
+                return "";
+            }
+
+            @Override
+            public Component getCardHeaderBody(String componentId) {
+                OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(componentId, outlierName,
+                        outlierDescription, String.valueOf(outlierConfidence), timeCreated);
+                components.setOutputMarkupId(true);
+                return components;
+            }
+
+            @Override
+            public Component getCardBodyComponent(String componentId) {
+                //TODO just for testing
+                RepeatingView cardBodyComponent = (RepeatingView) super.getCardBodyComponent(componentId);
+                outlierObjectModel.getOutlierItemModels()
+                        .forEach(outlierItemModel
+                                -> cardBodyComponent.add(
+                                new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel)));
+                return cardBodyComponent;
+            }
+
+            @Override
+            public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                super.onClose(ajaxRequestTarget);
+            }
+
+        };
+        detailsPanel.setOutputMarkupId(true);
+        container.add(detailsPanel);
+
     }
 }
 
