@@ -294,7 +294,6 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
                 };
 
                 fragment.add(viewToggle);
-                fragment.add(AttributeModifier.replace("title", createStringResource("Change view")));
                 fragment.add(new TooltipBehavior());
                 fragment.setOutputMarkupId(true);
 
