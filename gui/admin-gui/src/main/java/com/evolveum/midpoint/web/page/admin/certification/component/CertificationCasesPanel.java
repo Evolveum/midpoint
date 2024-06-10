@@ -14,8 +14,7 @@ import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
@@ -24,6 +23,8 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.SearchingUtils;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -133,24 +134,17 @@ public class CertificationCasesPanel extends
                 PrismContext prismContext = PrismContext.get();
                 ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class).build();
                 query.addFilter(prismContext.queryFactory().createOwnerHasOidIn(campaignOid));
+                query.addFilter(createStageFilter());
                 return query;
             }
 
-//            @NotNull
-//            private ObjectQuery createFinalQuery(InOidFilter inOidFilter, PrismContext prismContext) {
-//                ObjectQuery query = getQuery();
-//                if (query != null) {
-//                    query = query.clone();
-//                    if (query.getFilter() == null) {
-//                        query.setFilter(inOidFilter);
-//                    } else {
-//                        query.setFilter(prismContext.queryFactory().createAnd(query.getFilter(), inOidFilter));
-//                    }
-//                } else {
-//                    query = getPrismContext().queryFactory().createQuery(inOidFilter);
-//                }
-//                return query;
-//            }
+            private ObjectFilter createStageFilter() {
+                return getPageBase().getPrismContext().queryFor(AccessCertificationCaseType.class)
+                        .item(AccessCertificationCaseType.F_WORK_ITEM, AccessCertificationWorkItemType.F_STAGE_NUMBER)
+                        .eq(stageNumber)
+                        .build()
+                        .getFilter();
+            }
 
             @NotNull
             @Override
@@ -167,4 +161,5 @@ public class CertificationCasesPanel extends
     public List<AccessCertificationCaseType> getSelectedRealObjects() {
         return getSelectedObjects().stream().map(PrismValueWrapper::getRealValue).collect(Collectors.toList());
     }
+
 }

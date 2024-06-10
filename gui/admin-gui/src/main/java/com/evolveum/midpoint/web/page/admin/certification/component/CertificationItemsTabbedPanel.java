@@ -54,7 +54,7 @@ public class CertificationItemsTabbedPanel extends BasePanel<AccessCertification
 
     private List<ITab> createTabs() {
         List<ITab> tabs = new ArrayList<>();
-        int currentStage = getModelObject().getStageNumber();
+        int currentStage = getModelObject().getStage().size();
         for (int i = 1; i <= currentStage; i++) {
             tabs.add(createCountablePanelTab(i));
         }

@@ -132,8 +132,6 @@ public class PageCertCampaign extends PageAdmin {
                         };
                     }
                 });
-                list.add(new DetailsTableItem(createStringResource("PageCertCampaign.iteration"),
-                        () -> "" + CertCampaignTypeUtil.norm(campaignModel.getObject().getIteration())));
                 list.add(new DetailsTableItem(createStringResource("PageCertCampaign.progress"),
                         () -> "" ) {
                     @Serial private static final long serialVersionUID = 1L;
@@ -176,6 +174,8 @@ public class PageCertCampaign extends PageAdmin {
                         return () -> stage != null ? stage.getDeadline() : null;
                     }
                 });
+                list.add(new DetailsTableItem(createStringResource("PageCertCampaign.iteration"),
+                        () -> "" + CertCampaignTypeUtil.norm(campaignModel.getObject().getIteration())));
 
                 return list;
             }
