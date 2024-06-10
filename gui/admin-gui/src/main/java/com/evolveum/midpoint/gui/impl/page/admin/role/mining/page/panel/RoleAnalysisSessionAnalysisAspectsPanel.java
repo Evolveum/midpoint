@@ -6,13 +6,17 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 
+import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateRoleOutlierResultModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
 
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -21,6 +25,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -39,8 +44,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierResultPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.InfoBoxModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisInfoBox;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -71,6 +74,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
     private static final String ID_PANEL = "panelId";
     private static final String ID_CARD_TITLE = "card-title";
     private static final String ID_EXPLORE_PATTERN_BUTTON = "explore-pattern-button";
+    private static final String ID_PATTERNS = "patterns";
 
     public RoleAnalysisSessionAnalysisAspectsPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -98,6 +102,124 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             initRoleMiningPart(roleAnalysisService, session, task, result, sessionStatistic, container);
         }
 
+        initInfoPatternPanel(container);
+
+    }
+
+    private void initInfoPatternPanel(WebMarkupContainer container) {
+        RoleAnalysisItemPanel roleAnalysisInfoPatternPanel = new RoleAnalysisItemPanel(ID_PATTERNS,
+                Model.of("Top role suggestions for session")) {
+            @Override
+            protected void addItem(RepeatingView repeatingView) {
+                List<DetectedPattern> topPatters = getTopPatterns(getObjectDetailsModels().getObjectType());
+                for (int i = 0; i < topPatters.size(); i++) {
+                    DetectedPattern pattern = topPatters.get(i);
+                    double reductionFactorConfidence = pattern.getMetric();
+                    String formattedReductionFactorConfidence = String.format("%.0f", reductionFactorConfidence);
+                    double itemsConfidence = pattern.getItemsConfidence();
+                    String formattedItemConfidence = String.format("%.1f", itemsConfidence);
+                    String label = "Detected a potential reduction of " +
+                            formattedReductionFactorConfidence +
+                            "x relationships with a confidence of  " +
+                            formattedItemConfidence + "%";
+                    int finalI = i;
+                    repeatingView.add(new RoleAnalysisInfoItem(repeatingView.newChildId(), Model.of(label)) {
+
+                        @Override
+                        protected String getIconBoxText() {
+//                            return "#" + (finalI + 1);
+                            return null;
+                        }
+
+                        @Override
+                        protected String getIconBoxIconStyle() {
+                            return super.getIconBoxIconStyle();
+                        }
+
+                        @Override
+                        protected String getIconContainerCssClass() {
+                            return "btn btn-outline-dark";
+                        }
+
+                        @Override
+                        protected void addDescriptionComponents() {
+                            appendText("A potential reduction has been detected. ");
+                            WebMarkupContainer container = new WebMarkupContainer(getRepeatedView().newChildId());
+                            container.add(AttributeAppender.append("class", "d-flex"));
+                            appendComponent(container);
+                            appendText(" Involves ");
+                            appendIcon("fe fe-assignment", "color: red;");
+                            appendText(" " + formattedReductionFactorConfidence + " relations ");
+                            appendText("and ");
+                            appendIcon("fa fa-leaf", "color: green");
+                            appendText(" " + formattedItemConfidence + "% confidence.");
+                        }
+
+                        @Override
+                        protected IModel<String> getDescriptionModel() {
+                            String description = "A potential reduction has been detected. The reduction involves " +
+                                    formattedReductionFactorConfidence + " assignments and is associated with "
+                                    + "an attribute confidence of " +
+                                    formattedItemConfidence + "%.";
+                            return Model.of(description);
+                        }
+
+                        @Override
+                        protected IModel<String> getLinkModel() {
+                            IModel<String> linkModel = super.getLinkModel();
+                            return Model.of(linkModel.getObject() + " role suggestion #" + (finalI + 1));
+                        }
+
+                        @Override
+                        protected void onClickLinkPerform(AjaxRequestTarget target) {
+                            PageParameters parameters = new PageParameters();
+                            String clusterOid = pattern.getClusterRef().getOid();
+                            parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
+                            parameters.add("panelId", "clusterDetails");
+                            parameters.add(PARAM_DETECTED_PATER_ID, pattern.getId());
+                            StringValue fullTableSetting = getPageBase().getPageParameters().get(PARAM_TABLE_SETTING);
+                            if (fullTableSetting != null && fullTableSetting.toString() != null) {
+                                parameters.add(PARAM_TABLE_SETTING, fullTableSetting.toString());
+                            }
+
+                            Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                                    .getObjectDetailsPage(RoleAnalysisClusterType.class);
+                            getPageBase().navigateToNext(detailsPageClass, parameters);
+                        }
+
+                        @Override
+                        protected void onClickIconPerform(AjaxRequestTarget target) {
+                            RoleAnalysisDetectedPatternDetailsPopup component = new RoleAnalysisDetectedPatternDetailsPopup(
+                                    ((PageBase) getPage()).getMainPopupBodyId(),
+                                    Model.of(pattern));
+                            ((PageBase) getPage()).showMainPopup(component, target);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public String getCardBodyCssClass() {
+                return " overflow-auto ";
+            }
+
+            @Override
+            public String replaceCardCssClass() {
+                return "card p-0";
+            }
+
+            @Override
+            public String getCardBodyStyle() {
+                return " height:58vh;";
+            }
+
+            @Override
+            public String replaceBtnToolCssClass() {
+                return " position-relative  ml-auto btn btn-primary btn-sm";
+            }
+        };
+        roleAnalysisInfoPatternPanel.setOutputMarkupId(true);
+        container.add(roleAnalysisInfoPatternPanel);
     }
 
     private void initRoleMiningPart(@NotNull RoleAnalysisService roleAnalysisService,
@@ -135,6 +257,11 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                 @Override
                 protected @NotNull String getCssClassForCardContainer() {
                     return "m-0 border-0";
+                }
+
+                @Override
+                protected String getIconBoxContainerCssStyle() {
+                    return "width:40px";
                 }
 
                 @Contract(pure = true)
@@ -618,6 +745,36 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         detailsPanel.setOutputMarkupId(true);
         container.add(detailsPanel);
 
+    }
+
+    private @NotNull List<DetectedPattern> getTopPatterns(RoleAnalysisSessionType session) {
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+
+        Task task = getPageBase().createSimpleTask("getTopPatterns");
+        OperationResult result = task.getResult();
+        List<PrismObject<RoleAnalysisClusterType>> prismObjects = roleAnalysisService.searchSessionClusters(session, task, result);
+
+        List<DetectedPattern> topDetectedPatterns = new ArrayList<>();
+        for (PrismObject<RoleAnalysisClusterType> prismObject : prismObjects) {
+            List<DetectedPattern> detectedPatterns = transformDefaultPattern(prismObject.asObjectable());
+
+            double maxOverallConfidence = 0;
+            DetectedPattern topDetectedPattern = null;
+            for (DetectedPattern detectedPattern : detectedPatterns) {
+                double itemsConfidence = detectedPattern.getItemsConfidence();
+                double reductionFactorConfidence = detectedPattern.getReductionFactorConfidence();
+                double overallConfidence = itemsConfidence + reductionFactorConfidence;
+                if (overallConfidence > maxOverallConfidence) {
+                    maxOverallConfidence = overallConfidence;
+                    topDetectedPattern = detectedPattern;
+                }
+            }
+            if (topDetectedPattern != null) {
+                topDetectedPatterns.add(topDetectedPattern);
+            }
+
+        }
+        return topDetectedPatterns;
     }
 }
 

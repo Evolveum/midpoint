@@ -6,25 +6,36 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 
+import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
+
 import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.Contract;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.InfoBoxModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisInfoBox;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.*;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "clusterOverview", defaultContainerPath = "empty")
@@ -40,6 +51,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
     private static final String ID_CONTAINER = "container";
     private static final String ID_HEADER_ITEMS = "header-items";
     private static final String ID_PANEL = "panelId";
+    private static final String ID_PATTERNS = "patterns";
 
     public RoleAnalysisClusterAnalysisAspectsPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -49,6 +61,8 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
         add(container);
+
+        initInfoPatternPanel(container);
 
         ObjectDetailsModels<RoleAnalysisClusterType> objectDetailsModels = getObjectDetailsModels();
         RoleAnalysisClusterType cluster = objectDetailsModels.getObjectType();
@@ -69,11 +83,11 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                     return "height:25vh;";
                 }
 
-                @Contract(pure = true)
-                @Override
-                protected @NotNull String getCssClassForCardContainer() {
-                    return "";
-                }
+//                @Contract(pure = true)
+//                @Override
+//                protected @NotNull String getCssClassForCardContainer() {
+//                    return "";
+//                }
             };
             roleAnalysisAttributePanel.setOutputMarkupId(true);
             container.add(roleAnalysisAttributePanel);
@@ -178,6 +192,122 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         usersLabel.setOutputMarkupId(true);
         headerItems.add(usersLabel);
 
+    }
+
+    private void initInfoPatternPanel(WebMarkupContainer container) {
+        RoleAnalysisItemPanel roleAnalysisInfoPatternPanel = new RoleAnalysisItemPanel(ID_PATTERNS,
+                Model.of("Top role suggestions for cluster")) {
+            @Override
+            protected void addItem(RepeatingView repeatingView) {
+                List<DetectedPattern> topPatters = transformDefaultPattern(getObjectDetailsModels().getObjectType());
+                for (int i = 0; i < topPatters.size(); i++) {
+                    DetectedPattern pattern = topPatters.get(i);
+                    double reductionFactorConfidence = pattern.getMetric();
+                    String formattedReductionFactorConfidence = String.format("%.0f", reductionFactorConfidence);
+                    double itemsConfidence = pattern.getItemsConfidence();
+                    String formattedItemConfidence = String.format("%.1f", itemsConfidence);
+                    String label = "Detected a potential reduction of " +
+                            formattedReductionFactorConfidence +
+                            "x relationships with a confidence of  " +
+                            formattedItemConfidence + "%";
+                    int finalI = i;
+                    repeatingView.add(new RoleAnalysisInfoItem(repeatingView.newChildId(), Model.of(label)) {
+
+                        @Override
+                        protected String getIconBoxText() {
+//                            return "#" + (finalI + 1);
+                            return null;
+                        }
+
+                        @Override
+                        protected String getIconBoxIconStyle() {
+                            return super.getIconBoxIconStyle();
+                        }
+
+                        @Override
+                        protected String getIconContainerCssClass() {
+                            return "btn btn-outline-dark";
+                        }
+
+                        @Override
+                        protected void addDescriptionComponents() {
+                            appendText("A potential reduction has been detected. ");
+                            WebMarkupContainer container = new WebMarkupContainer(getRepeatedView().newChildId());
+                            container.add(AttributeAppender.append("class", "d-flex"));
+                            appendComponent(container);
+                            appendText(" Involves ");
+                            appendIcon("fe fe-assignment", "color: red;");
+                            appendText(" " + formattedReductionFactorConfidence + " relations ");
+                            appendText("and ");
+                            appendIcon("fa fa-leaf", "color: green");
+                            appendText(" " + formattedItemConfidence + "% confidence.");
+                        }
+
+                        @Override
+                        protected IModel<String> getDescriptionModel() {
+                            String description = "A potential reduction has been detected. The reduction involves " +
+                                    formattedReductionFactorConfidence + " assignments and is associated with "
+                                    + "an attribute confidence of " +
+                                    formattedItemConfidence + "%.";
+                            return Model.of(description);
+                        }
+
+                        @Override
+                        protected IModel<String> getLinkModel() {
+                            IModel<String> linkModel = super.getLinkModel();
+                            return Model.of(linkModel.getObject() + " role suggestion #" + (finalI + 1));
+                        }
+
+                        @Override
+                        protected void onClickLinkPerform(AjaxRequestTarget target) {
+                            PageParameters parameters = new PageParameters();
+                            String clusterOid = pattern.getClusterRef().getOid();
+                            parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
+                            parameters.add("panelId", "clusterDetails");
+                            parameters.add(PARAM_DETECTED_PATER_ID, pattern.getId());
+                            StringValue fullTableSetting = getPageBase().getPageParameters().get(PARAM_TABLE_SETTING);
+                            if (fullTableSetting != null && fullTableSetting.toString() != null) {
+                                parameters.add(PARAM_TABLE_SETTING, fullTableSetting.toString());
+                            }
+
+                            Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                                    .getObjectDetailsPage(RoleAnalysisClusterType.class);
+                            getPageBase().navigateToNext(detailsPageClass, parameters);
+                        }
+
+                        @Override
+                        protected void onClickIconPerform(AjaxRequestTarget target) {
+                            RoleAnalysisDetectedPatternDetailsPopup component = new RoleAnalysisDetectedPatternDetailsPopup(
+                                    ((PageBase) getPage()).getMainPopupBodyId(),
+                                    Model.of(pattern));
+                            ((PageBase) getPage()).showMainPopup(component, target);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public String getCardBodyCssClass() {
+                return " overflow-auto ";
+            }
+
+            @Override
+            public String replaceCardCssClass() {
+                return "card p-0";
+            }
+
+            @Override
+            public String getCardBodyStyle() {
+                return " height:58vh;";
+            }
+
+            @Override
+            public String replaceBtnToolCssClass() {
+                return " position-relative  ml-auto btn btn-primary btn-sm";
+            }
+        };
+        roleAnalysisInfoPatternPanel.setOutputMarkupId(true);
+        container.add(roleAnalysisInfoPatternPanel);
     }
 }
 

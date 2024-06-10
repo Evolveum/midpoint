@@ -95,6 +95,11 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
             protected String getInfoBoxCssClass() {
                 return super.getInfoBoxCssClass();
             }
+
+            @Override
+            public String getIconBoxContainerCssStyle() {
+                return RoleAnalysisDetectedPatternDetails.this.getIconBoxContainerCssStyle();
+            }
         };
         reductionLabel.add(AttributeModifier.replace("class", getInfoBoxClass()));
         reductionLabel.setOutputMarkupId(true);
@@ -110,6 +115,11 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
             @Override
             protected String getInfoBoxCssClass() {
                 return super.getInfoBoxCssClass();
+            }
+
+            @Override
+            public String getIconBoxContainerCssStyle() {
+                return RoleAnalysisDetectedPatternDetails.this.getIconBoxContainerCssStyle();
             }
         };
         confidenceLabel.add(AttributeModifier.replace("class", getInfoBoxClass()));
@@ -127,6 +137,11 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
             protected String getInfoBoxCssClass() {
                 return super.getInfoBoxCssClass();
             }
+
+            @Override
+            public String getIconBoxContainerCssStyle() {
+                return RoleAnalysisDetectedPatternDetails.this.getIconBoxContainerCssStyle();
+            }
         };
         roleObjectCountLabel.add(AttributeModifier.replace("class", getInfoBoxClass()));
         roleObjectCountLabel.setOutputMarkupId(true);
@@ -142,6 +157,11 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
             @Override
             protected String getInfoBoxCssClass() {
                 return super.getInfoBoxCssClass();
+            }
+
+            @Override
+            public String getIconBoxContainerCssStyle() {
+                return RoleAnalysisDetectedPatternDetails.this.getIconBoxContainerCssStyle();
             }
         };
         userObjectCountLabel.add(AttributeModifier.replace("class", getInfoBoxClass()));
@@ -200,6 +220,10 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
     }
 
     protected String getCssClassForStatisticsPanel() {
+        return null;
+    }
+
+    protected String getIconBoxContainerCssStyle() {
         return null;
     }
 
