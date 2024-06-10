@@ -219,11 +219,21 @@ public class PageRoleAnalysis extends PageAdmin {
                     Double clusterConfidence = outlierObject.getClusterConfidence();
                     String formattedConfidence = String.format("%.2f", clusterConfidence);
                     String label;
+
+                    ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
+                    PrismObject<RoleAnalysisClusterType> prismCluster = getRoleAnalysisService()
+                            .getClusterTypeObject(targetClusterRef.getOid(), task, result);
+                    String clusterName = "unknown";
+                    if (prismCluster != null && prismCluster.getName() != null) {
+                        clusterName = prismCluster.getName().getOrig();
+                    }
+
                     if (outlierStatResult.size() > 1) {
                         label = "Has been detected outliers with multiple (" + outlierStatResult.size() + ") anomalies "
-                                + "and confidence of " + formattedConfidence + "%";
+                                + "and confidence of " + formattedConfidence + "% (" + clusterName.toLowerCase() + ").";
                     } else {
-                        label = "Has been detected outliers with single anomalies and confidence of " + formattedConfidence + "%";
+                        label = "Has been detected outliers with single anomalies and confidence of " + formattedConfidence
+                                + "% (" + clusterName.toLowerCase() + ").";
                     }
 
                     int finalI = i;
