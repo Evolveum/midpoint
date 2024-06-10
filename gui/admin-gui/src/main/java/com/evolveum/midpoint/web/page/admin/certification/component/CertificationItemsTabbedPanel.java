@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.certification.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -46,19 +47,29 @@ public class CertificationItemsTabbedPanel extends BasePanel<AccessCertification
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 
-        List<ITab> tabs = createTabs();
-        TabbedPanel<ITab> tabbedPanel = WebComponentUtil.createTabPanel(ID_TABBED_PANEL, getPageBase(), tabs, null);
+        IModel<List<ITab>> tabs = createTabsModel();
+        TabbedPanel<ITab> tabbedPanel = WebComponentUtil.createTabPanel(ID_TABBED_PANEL, getPageBase(), tabs.getObject(), null);
         tabbedPanel.add(new VisibleBehaviour(() -> getModelObject().getStageNumber() > 0));
         mainForm.add(tabbedPanel);
     }
 
-    private List<ITab> createTabs() {
-        List<ITab> tabs = new ArrayList<>();
-        int currentStage = getModelObject().getStage().size();
-        for (int i = 1; i <= currentStage; i++) {
-            tabs.add(createCountablePanelTab(i));
-        }
-        return tabs;
+    private LoadableModel<List<ITab>> createTabsModel() {
+        return new LoadableModel<>(true) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<ITab> load() {
+                List<ITab> tabs = new ArrayList<>();
+                int iteration = getModelObject().getIteration();
+                int currentStage = getModelObject().getStage()
+                        .stream().filter(stage -> stage.getIteration() == iteration)
+                        .toList().size();
+                for (int i = 1; i <= currentStage; i++) {
+                    tabs.add(createCountablePanelTab(i));
+                }
+                return tabs;
+            }
+        };
     }
 
     private PanelTab createCountablePanelTab(int stageNumber) {

@@ -25,15 +25,20 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
 import com.evolveum.midpoint.web.page.admin.certification.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.PageAdminCertification;
 
+import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
+import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignStateHelper;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -260,7 +265,43 @@ public class PageCertCampaign extends PageAdmin {
 
             @Override
             protected Component createNextButton(String id, IModel<String> nextTitle) {
-                return new WebMarkupContainer(id);
+                AjaxIconButton next = new AjaxIconButton(id, getActionButtonCssModel(), getActionButtonTitleModel()) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                        CampaignProcessingHelper.campaignActionPerformed(campaignModel.getObject(), getPageBase(), ajaxRequestTarget);
+                        campaignModel.detach();
+                    }
+                };
+                next.showTitleAsLabel(true);
+                next.add(AttributeAppender.append("class", "btn btn-primary"));
+
+                return next;
+            }
+
+            private LoadableModel<String> getActionButtonCssModel() {
+                return new LoadableModel<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected String load() {
+                        CampaignStateHelper campaignStateHelper = new CampaignStateHelper(campaignModel.getObject());
+                        return campaignStateHelper.getNextAction().getActionIcon().getCssClass();
+                    }
+                };
+            }
+
+            private LoadableModel<String> getActionButtonTitleModel() {
+                return new LoadableModel<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected String load() {
+                        CampaignStateHelper campaignStateHelper = new CampaignStateHelper(campaignModel.getObject());
+                        return createStringResource(campaignStateHelper.getNextAction().getActionLabelKey()).getString();
+                    }
+                };
             }
         };
         add(navigation);
