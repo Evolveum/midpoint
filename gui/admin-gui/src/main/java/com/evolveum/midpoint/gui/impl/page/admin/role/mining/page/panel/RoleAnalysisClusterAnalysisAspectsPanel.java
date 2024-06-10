@@ -196,7 +196,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
 
     private void initInfoPatternPanel(WebMarkupContainer container) {
         RoleAnalysisItemPanel roleAnalysisInfoPatternPanel = new RoleAnalysisItemPanel(ID_PATTERNS,
-                Model.of("Cluster ole suggestions")) {
+                Model.of("Cluster role suggestions")) {
             @Override
             protected void addItem(RepeatingView repeatingView) {
                 List<DetectedPattern> topPatters = transformDefaultPattern(getObjectDetailsModels().getObjectType());
