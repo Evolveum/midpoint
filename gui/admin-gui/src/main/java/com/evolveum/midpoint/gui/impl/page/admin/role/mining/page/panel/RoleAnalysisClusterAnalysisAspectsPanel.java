@@ -196,7 +196,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
 
     private void initInfoPatternPanel(WebMarkupContainer container) {
         RoleAnalysisItemPanel roleAnalysisInfoPatternPanel = new RoleAnalysisItemPanel(ID_PATTERNS,
-                Model.of("Top role suggestions for cluster")) {
+                Model.of("Cluster ole suggestions")) {
             @Override
             protected void addItem(RepeatingView repeatingView) {
                 List<DetectedPattern> topPatters = transformDefaultPattern(getObjectDetailsModels().getObjectType());
@@ -298,7 +298,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             public String getCardBodyStyle() {
-                return " height:58vh;";
+                return " height:34vh;";
             }
 
             @Override

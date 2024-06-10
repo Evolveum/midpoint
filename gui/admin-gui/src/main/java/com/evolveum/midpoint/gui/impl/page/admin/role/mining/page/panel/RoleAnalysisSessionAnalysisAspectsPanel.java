@@ -243,7 +243,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
             initRoleMiningHeaders(headerItems, sessionClusters, processMode);
 
-            Label cardTitle = new Label(ID_CARD_TITLE, "Top session suggested role");
+            Label cardTitle = new Label(ID_CARD_TITLE, "Top suggested role");
             cardTitle.setOutputMarkupId(true);
             container.add(cardTitle);
 
