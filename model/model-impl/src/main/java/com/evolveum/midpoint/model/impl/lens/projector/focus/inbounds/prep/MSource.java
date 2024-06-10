@@ -14,6 +14,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
 import com.evolveum.midpoint.schema.processor.*;
@@ -153,10 +154,9 @@ abstract class MSource implements DebugDumpable {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     abstract boolean isProjectionBeingDeleted();
 
-    /**
-     * Do we have the absolute state (i.e. full shadow) available?
-     */
-    abstract boolean isAbsoluteStateAvailable();
+    public abstract boolean isAttributeLoaded(ItemName itemName) throws SchemaException, ConfigurationException;
+    public abstract boolean isFullShadowAvailable();
+    public abstract boolean isAuxiliaryObjectClassPropertyLoaded() throws SchemaException, ConfigurationException;
 
     /**
      * Adds value metadata to values in the current item and in a-priori delta.

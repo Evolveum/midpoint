@@ -113,7 +113,8 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
         return mapper.getTripleProducer();
     }
 
-    public PrismValueDeltaSetTripleProducer<V, D> evaluate() throws CommunicationException, ObjectNotFoundException, SchemaException,
+    public PrismValueDeltaSetTripleProducer<V, D> evaluate()
+            throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         mapper.checkNotYetEvaluated();
 
@@ -233,6 +234,10 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
 
     MappingStrengthType getMapperStrength() {
         return mapper.getStrength();
+    }
+
+    public @NotNull ItemName getItemName() {
+        return itemName;
     }
 
     /** Abstract mapper. */

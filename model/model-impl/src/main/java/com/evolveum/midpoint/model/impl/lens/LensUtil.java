@@ -300,7 +300,7 @@ public class LensUtil {
 
     public static <F extends ObjectType> boolean evaluateIterationCondition(
             LensContext<F> context,
-            LensElementContext<?> accountContext,
+            LensElementContext<?> elementContext,
             IterationSpecificationType iterationSpecification,
             int iteration,
             String iterationToken,
@@ -318,10 +318,10 @@ public class LensUtil {
         String desc;
         if (beforeIteration) {
             expressionType = iterationSpecification.getPreIterationCondition();
-            desc = "pre-iteration expression in "+accountContext.getHumanReadableName();
+            desc = "pre-iteration expression in "+elementContext.getHumanReadableName();
         } else {
             expressionType = iterationSpecification.getPostIterationCondition();
-            desc = "post-iteration expression in "+accountContext.getHumanReadableName();
+            desc = "post-iteration expression in "+elementContext.getHumanReadableName();
         }
         if (expressionType == null) {
             return true;

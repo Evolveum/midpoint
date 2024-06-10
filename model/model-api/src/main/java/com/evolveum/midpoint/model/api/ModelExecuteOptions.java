@@ -138,6 +138,10 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return is(options, ModelExecuteOptionsType.F_FORCE);
     }
 
+    public static boolean isUseCachedShadows(ModelExecuteOptions options) {
+        return is(options, F_USE_CACHED_SHADOWS);
+    }
+
     public Boolean getPushChanges() {
         return content.isPushChanges();
     }

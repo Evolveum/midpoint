@@ -1221,4 +1221,86 @@ public class ShadowUtil {
         }
         return -1;
     }
+
+    public static boolean isActivationCached(
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) {
+        if (!isShadowFresh(shadow, definition, now)) {
+            return false;
+        }
+        var scope = definition.getEffectiveShadowCachingPolicy().getScope();
+        return scope == null || scope.getActivation() != ShadowItemsCachingScopeType.NONE;
+    }
+
+    public static boolean isPasswordValueLoaded(
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) {
+        return isShadowFresh(shadow, definition, now);
+    }
+
+    public static boolean isAuxiliaryObjectClassPropertyLoaded(
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) {
+        return isShadowFresh(shadow, definition, now);
+    }
+
+    public static boolean isAttributeLoaded(
+            @NotNull ItemName attrName,
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) throws SchemaException {
+        if (shadow != null && definition.isIdentifier(attrName)) {
+            return true; // identifiers are supposed to be always up-to-date (is this correct?)
+        }
+        if (!isShadowFresh(shadow, definition, now)) {
+            return false;
+        }
+        return definition
+                .findAttributeDefinitionRequired(attrName)
+                .isEffectivelyCached(definition);
+    }
+
+    public static Collection<QName> getCachedAttributesNames(
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull CompositeObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) {
+        if (!isShadowFresh(shadow, definition, now)) {
+            return Set.of(); // TODO or should we provide at least the identifiers?
+        }
+        return definition.getAttributeDefinitions().stream()
+                .filter(def -> def.isEffectivelyCached(definition))
+                .map(def -> def.getItemName())
+                .collect(Collectors.toSet());
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private static boolean isShadowFresh(
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) {
+        if (shadow == null) {
+            return false;
+        }
+        var policy = definition.getEffectiveShadowCachingPolicy();
+        if (policy.getCachingStrategy() != CachingStrategyType.PASSIVE) {
+            // Caching is disabled. Individual overriding of caching status is not relevant.
+            return false;
+        }
+        var timeToLive = policy.getTimeToLive();
+        if (timeToLive == null) {
+            return false;
+        }
+        var cachingMetadata = shadow.asObjectable().getCachingMetadata();
+        if (cachingMetadata == null) {
+            return false;
+        }
+        var retrievalTimestamp = cachingMetadata.getRetrievalTimestamp();
+        if (retrievalTimestamp == null) {
+            return false;
+        }
+        return !XmlTypeConverter.isAfterInterval(retrievalTimestamp, timeToLive, now);
+    }
 }

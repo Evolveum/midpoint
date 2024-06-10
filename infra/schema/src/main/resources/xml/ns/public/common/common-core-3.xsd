@@ -17744,6 +17744,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="useCachedShadows" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set, then the "reconcile" flag will not cause shadows to be automatically
+                        loaded. Instead, the shadow cache will be used, if applicable.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="reconcileFocus" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

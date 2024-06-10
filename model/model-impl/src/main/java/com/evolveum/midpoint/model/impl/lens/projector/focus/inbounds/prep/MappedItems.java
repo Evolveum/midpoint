@@ -171,6 +171,7 @@ class MappedItems<T extends Containerable> {
                         () -> getCurrentAttribute(attributeName),
                         null, // postprocessor
                         null, // variable producer
+                        () -> source.isAttributeLoaded(attributeDefinition.getItemName()),
                         processingMode));
     }
 
@@ -255,6 +256,7 @@ class MappedItems<T extends Containerable> {
                         associationProvider,
                         associationPostProcessor,
                         source::getEntitlementVariableProducer, // so-called variable producer
+                        () -> source.isAttributeLoaded(associationName),
                         processingMode));
     }
 
@@ -345,6 +347,7 @@ class MappedItems<T extends Containerable> {
                         associationProvider,
                         associationPostProcessor,
                         source::getEntitlementVariableProducer, // so-called variable producer
+                        () -> source.isFullShadowAvailable(),
                         processingMode));
     }
 
@@ -418,7 +421,8 @@ class MappedItems<T extends Containerable> {
                         itemProvider,
                         null, // postprocessor
                         null, // variable producer
-                        ProcessingMode.ABSOLUTE_STATE));
+                        () -> source.isAuxiliaryObjectClassPropertyLoaded(),
+                        ProcessingMode.ABSOLUTE_STATE_IF_KNOWN));
     }
 
     /** Returns a-priori delta for given item. */
@@ -454,14 +458,14 @@ class MappedItems<T extends Containerable> {
         return mappedItems;
     }
 
-    boolean isFullStateRequired() {
-        for (MappedItem<?, ?, ?> mappedItem : mappedItems) {
-            if (mappedItem.doesRequireAbsoluteState()) {
-                LOGGER.trace("The mapping(s) for {} require the absolute state, we'll load it if it will be necessary",
-                        mappedItem.itemDescription);
-                return true;
-            }
-        }
-        return false;
-    }
+//    boolean isFullStateRequired() {
+//        for (MappedItem<?, ?, ?> mappedItem : mappedItems) {
+//            if (mappedItem.doesRequireAbsoluteState()) {
+//                LOGGER.trace("The mapping(s) for {} require the absolute state, we'll load it if it will be necessary",
+//                        mappedItem.itemDescription);
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 }

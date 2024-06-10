@@ -22,14 +22,6 @@ enum ProcessingMode {
      */
     A_PRIORI_DELTA,
 
-    /**
-     * If we do not have a delta then we will proceed in absolute mode. In that mode we will apply the mapping(s)
-     * to the absolute projection state that we got from provisioning. This is a kind of "inbound reconciliation".
-     *
-     * It a shadow was not loaded, we try to do so.
-     */
-    ABSOLUTE_STATE,
-
     /** We will go from the absolute state - but only if it's known. So no loading just for this. */
     ABSOLUTE_STATE_IF_KNOWN,
 

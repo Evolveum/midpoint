@@ -177,7 +177,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
 //            LOGGER.trace("No current/new focus, skipping.");
 //            return;
 //        }
-        if (!projectionContext.isFullShadow()) {
+        if (!projectionContext.isFullShadow()) { // FIXME
             // TODO - is this ok?
             LOGGER.trace("Full shadow not loaded, skipping.");
             return;

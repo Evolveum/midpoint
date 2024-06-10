@@ -511,8 +511,8 @@ public class ProjectionMappingSetEvaluator {
         }
         for (V pval : set) {
             Object val = pval.getRealValue();
-            if (val instanceof ProtectedStringType) {
-                if (!((ProtectedStringType) val).isHashed()) {
+            if (val instanceof ProtectedStringType protectedString) {
+                if (!protectedString.isHashed()) {
                     return false;
                 }
             } else {

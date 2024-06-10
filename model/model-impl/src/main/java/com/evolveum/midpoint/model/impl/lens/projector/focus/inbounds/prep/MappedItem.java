@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequests;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.LoadedStateProvider;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -63,6 +64,7 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
     private final ItemProvider<V, D> itemProvider;
     private final PostProcessor<V, D> postProcessor;
     private final VariableProducer variableProducer;
+    @NotNull private final LoadedStateProvider loadedStateProvider;
     @NotNull private final ProcessingMode processingMode; // Never NONE
 
     @NotNull private final ModelBeans beans = ModelBeans.get();
@@ -79,6 +81,7 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
             ItemProvider<V, D> itemProvider,
             PostProcessor<V, D> postProcessor,
             VariableProducer variableProducer,
+            @NotNull LoadedStateProvider loadedStateProvider,
             @NotNull ProcessingMode processingMode) {
         this.source = source;
         this.target = target;
@@ -91,6 +94,7 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
         this.itemProvider = itemProvider;
         this.postProcessor = postProcessor;
         this.variableProducer = variableProducer;
+        this.loadedStateProvider = loadedStateProvider;
         this.processingMode = processingMode;
         argCheck(processingMode != ProcessingMode.NONE, "Processing mode cannot be NONE");
     }
@@ -102,11 +106,9 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
-        boolean fromAbsoluteState =
-                processingMode == ProcessingMode.ABSOLUTE_STATE
-                        || processingMode == ProcessingMode.ABSOLUTE_STATE_IF_KNOWN;
+        boolean fromAbsoluteState = processingMode == ProcessingMode.ABSOLUTE_STATE_IF_KNOWN;
 
-        if (fromAbsoluteState && !source.isAbsoluteStateAvailable()) {
+        if (fromAbsoluteState && !loadedStateProvider.isLoaded()) {
             LOGGER.trace(
                     "Skipping inbound mapping(s) for {} as they should be processed from absolute state, but we don't have one",
                     itemDescription);
@@ -295,9 +297,9 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
         }
     }
 
-    boolean doesRequireAbsoluteState() {
-        return processingMode == ProcessingMode.ABSOLUTE_STATE;
-    }
+//    boolean doesRequireAbsoluteState() {
+//        return processingMode == ProcessingMode.ABSOLUTE_STATE_IF_KNOWN;
+//    }
 
     private void rememberItemDefinition(MappingImpl<V, D> mapping, ItemPath declaredTargetPath, ItemPath targetPathOverride)
             throws ConfigurationException {

@@ -102,7 +102,7 @@ abstract class InboundsPreparation<T extends Containerable> {
             mappedItems.collectMappedItems();
 
             // Now we load the full shadow, if we need to. We no longer do that at other places.
-            source.loadFullShadowIfNeeded(mappedItems.isFullStateRequired(), context, result);
+            //source.loadFullShadowIfNeeded(mappedItems.isFullStateRequired(), context, result);
 
             // Let's create the mappings and put them to mappingsMap
             for (var mappedItem : mappedItems.getMappedItems()) {

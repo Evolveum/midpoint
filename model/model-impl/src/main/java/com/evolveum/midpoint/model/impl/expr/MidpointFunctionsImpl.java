@@ -483,7 +483,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private void ensureActivationInformationAvailable(LensProjectionContext projCtx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        if (!projCtx.isFullShadow()) {
+        if (!projCtx.isActivationLoaded()) {
             LOGGER.trace("Will load full shadow in order to determine the activation status: {}", projCtx);
             contextLoader.loadFullShadowNoDiscovery(
                     projCtx, "projection activation determination", getCurrentTaskRequired(), getCurrentResult());

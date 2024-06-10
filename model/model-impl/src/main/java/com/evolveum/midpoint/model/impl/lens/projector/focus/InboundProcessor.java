@@ -90,8 +90,9 @@ public class InboundProcessor implements ProjectorProcessor {
         }
     }
 
-    private String getAssociatedObjectsProcessingSkipReason(LensProjectionContext projCtx) throws SchemaException, ConfigurationException {
-        if (!projCtx.isFullShadow()) {
+    private String getAssociatedObjectsProcessingSkipReason(LensProjectionContext projCtx)
+            throws SchemaException, ConfigurationException {
+        if (!projCtx.isFullShadow()) { // TODO
             return "not a full shadow";
         } else if (projCtx.isBroken()) {
             return "broken";

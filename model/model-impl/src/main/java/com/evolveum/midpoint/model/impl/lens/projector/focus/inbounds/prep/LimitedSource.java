@@ -12,6 +12,7 @@ import java.util.List;
 import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
@@ -78,8 +79,18 @@ class LimitedSource extends MSource {
     }
 
     @Override
-    boolean isAbsoluteStateAvailable() {
-        return true; // We hope so ;)
+    public boolean isAttributeLoaded(ItemName itemName) {
+        return true; // FIXME TEMPORARY
+    }
+
+    @Override
+    public boolean isFullShadowAvailable() {
+        return true; // FIXME TEMPORARY
+    }
+
+    @Override
+    public boolean isAuxiliaryObjectClassPropertyLoaded() {
+        return true; // FIXME TEMPORARY
     }
 
     @Override

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -108,7 +109,7 @@ public class ConsolidationProcessor {
                 .setMinor()
                 .build();
         try {
-            if (isDeletion(projCtx) || !projCtx.hasFullShadow()) {
+            if (isDeletion(projCtx)) {
                 return;
             }
             doConsolidation(projCtx, false, task, result);
@@ -123,16 +124,13 @@ public class ConsolidationProcessor {
     private void loadFullShadowIfNeeded(LensProjectionContext projCtx, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        if (projCtx.hasFullShadow()) {
-            return;
-        }
         // Do not automatically load the full projection now. Even if we have weak mapping.
         // That may be a waste of resources if the weak mapping results in no change anyway.
         // Let's be very very lazy about fetching the account from the resource.
-        if (hasActiveWeakMapping(projCtx.getSqueezedAttributes(), projCtx)
-                || hasActiveWeakMapping(projCtx.getSqueezedAssociations(), projCtx)
-                || hasActiveStrongMapping(projCtx.getSqueezedAttributes())
-                || hasActiveStrongMapping(projCtx.getSqueezedAssociations())) {
+        if (hasUnsatisfiedActiveWeakMapping(projCtx.getSqueezedAttributes(), projCtx)
+                || hasUnsatisfiedActiveWeakMapping(projCtx.getSqueezedAssociations(), projCtx)
+                || hasUnsatisfiedActiveStrongMapping(projCtx.getSqueezedAttributes(), projCtx)
+                || hasUnsatisfiedActiveStrongMapping(projCtx.getSqueezedAssociations(), projCtx)) {
             // Full account was not yet loaded. This will cause problems as the weak mapping may be applied even though
             // it should not be applied and also same changes may be discarded because of unavailability of all
             // account's attributes. Therefore load the account now, but with doNotDiscovery options.
@@ -248,7 +246,7 @@ public class ConsolidationProcessor {
                     .equalsChecker(null)
                     .addUnchangedValues(addUnchangedValues(projCtx))
                     .addUnchangedValuesExceptForNormalMappings(true) // todo
-                    .existingItemKnown(projCtx.hasFullShadow())
+                    .existingItemKnown(projCtx.isAuxiliaryObjectClassPropertyLoaded())
                     .isExclusiveStrong(false)
                     .contextDescription(key.toHumanReadableDescription())
                     .strengthSelector(StrengthSelector.ALL_EXCEPT_WEAK)
@@ -284,7 +282,7 @@ public class ConsolidationProcessor {
             StrengthSelector strengthSelector,
             Task task,
             OperationResult result)
-            throws SchemaException, ExpressionEvaluationException {
+            throws SchemaException, ExpressionEvaluationException, ConfigurationException {
         var squeezedAttributes = projCtx.getSqueezedAttributes();
         // Iterate and process each attribute separately. Now that we have squeezed the data we can process each attribute just
         // with the data in ItemValueWithOrigin triples.
@@ -306,7 +304,7 @@ public class ConsolidationProcessor {
             LensProjectionContext projCtx, QName itemName,
             DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<T>, PrismPropertyDefinition<T>>> triple,
             StrengthSelector strengthSelector, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException {
+            throws SchemaException, ExpressionEvaluationException, ConfigurationException {
 
         if (triple == null || triple.isEmpty()) {
             return null;
@@ -343,7 +341,7 @@ public class ConsolidationProcessor {
             StrengthSelector strengthSelector,
             Task task,
             OperationResult result)
-            throws SchemaException, ExpressionEvaluationException {
+            throws SchemaException, ExpressionEvaluationException, ConfigurationException {
         for (var entry : projCtx.getSqueezedAssociations().entrySet()) {
             QName associationName = entry.getKey();
             var triple = entry.getValue();
@@ -366,7 +364,7 @@ public class ConsolidationProcessor {
             DeltaSetTriple<ItemValueWithOrigin<ShadowAssociationValue, ShadowReferenceAttributeDefinition>> triple,
             StrengthSelector strengthSelector,
             Task task,
-            OperationResult result) throws SchemaException, ExpressionEvaluationException {
+            OperationResult result) throws SchemaException, ExpressionEvaluationException, ConfigurationException {
 
         ShadowReferenceAttributeDefinition associationDef = objectDef.findAssociationDefinitionRequired(associationName);
 
@@ -398,7 +396,7 @@ public class ConsolidationProcessor {
             StrengthSelector strengthSelector,
             String itemDesc,
             OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException {
+            throws SchemaException, ExpressionEvaluationException, ConfigurationException {
 
         OperationResult result = parentResult.subresult(OP_CONSOLIDATE_ITEM)
                 .setMinor()
@@ -413,10 +411,11 @@ public class ConsolidationProcessor {
             boolean forceAddUnchangedValues = aprioriDeltaIsReplace;
 
             var addUnchangedValues = addUnchangedValues(projCtx);
-            LOGGER.trace("CONSOLIDATE {}\n  ({}) completeShadow={}, addUnchangedValues={}, forceAddUnchangedValues={}",
-                    itemDesc, key, projCtx.hasFullShadow(), addUnchangedValues, forceAddUnchangedValues);
+            LOGGER.trace("CONSOLIDATE {}\n  ({}) addUnchangedValues={}, forceAddUnchangedValues={}",
+                    itemDesc, key, addUnchangedValues, forceAddUnchangedValues);
 
-            boolean existingItemKnown = projCtx.hasFullShadow() || objectDef.isIdentifier(itemDefinition.getItemName());
+            ItemName itemName = itemDefinition.getItemName();
+            boolean existingItemKnown = projCtx.isAttributeLoaded(itemName);
             ItemDelta<V, D> itemDelta;
             // Use the consolidator to do the computation. It does most of the work.
             try (IvwoConsolidator<V,D,ItemValueWithOrigin<V,D>> consolidator = new IvwoConsolidatorBuilder<V,D,ItemValueWithOrigin<V, D>>()
@@ -486,11 +485,15 @@ public class ConsolidationProcessor {
         }
     }
 
-    private <V extends PrismValue,D extends ItemDefinition<?>> boolean hasActiveWeakMapping(
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedAttributes, LensProjectionContext accCtx) {
+    private <V extends PrismValue,D extends ItemDefinition<?>> boolean hasUnsatisfiedActiveWeakMapping(
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedAttributes, LensProjectionContext projCtx)
+            throws SchemaException, ConfigurationException {
         for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> entry : squeezedAttributes.entrySet()) {
-            DeltaSetTriple<ItemValueWithOrigin<V,D>> ivwoTriple = entry.getValue();
-            boolean hasWeak = false;
+            if (projCtx.isAttributeLoaded(entry.getKey())) { // TODO associations
+                continue;
+            }
+            var ivwoTriple = entry.getValue();
+            var hasWeak = false;
             for (ItemValueWithOrigin<V,D> ivwo: ivwoTriple.getAllValues()) {
                 PrismValueDeltaSetTripleProducer<V,D> mapping = ivwo.getProducer();
                 if (mapping.getStrength() == MappingStrengthType.WEAK) {
@@ -528,7 +531,7 @@ public class ConsolidationProcessor {
                         return true;
                     }
                 }
-                ObjectDelta<ShadowType> projectionDelta = accCtx.getSummaryDelta(); // TODO check this
+                ObjectDelta<ShadowType> projectionDelta = projCtx.getSummaryDelta(); // TODO check this
                 if (projectionDelta != null) {
                     PropertyDelta<?> aPrioriAttributeDelta = projectionDelta.findPropertyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, entry.getKey()));
                     if (aPrioriAttributeDelta != null && aPrioriAttributeDelta.isDelete()) {
@@ -543,11 +546,15 @@ public class ConsolidationProcessor {
         return false;
     }
 
-    private <V extends PrismValue,D extends ItemDefinition<?>> boolean hasActiveStrongMapping(
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedAttributes) {
+    private <V extends PrismValue,D extends ItemDefinition<?>> boolean hasUnsatisfiedActiveStrongMapping(
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedAttributes, LensProjectionContext projCtx)
+            throws SchemaException, ConfigurationException {
         for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> entry : squeezedAttributes.entrySet()) {
-            DeltaSetTriple<ItemValueWithOrigin<V,D>> ivwoTriple = entry.getValue();
-            for (ItemValueWithOrigin<V,D> ivwo: ivwoTriple.getAllValues()) {
+            if (projCtx.isAttributeLoaded(entry.getKey())) { // TODO associations
+                continue;
+            }
+            var ivwoTriple = entry.getValue();
+            for (var ivwo: ivwoTriple.getAllValues()) {
                 if (ivwo.isMappingStrong()) {
                     // Do not optimize for "nothing changed" case here. We want to make
                     // sure that the values of strong mappings are applied even if nothing

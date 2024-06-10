@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public interface MappingLoader<O extends ObjectType> {
 
-    boolean isLoaded();
+    boolean isLoaded() throws SchemaException, ConfigurationException;
 
     PrismObject<O> load(String loadReason, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,

@@ -185,7 +185,7 @@ public class ShadowCreator {
         }
 
         if (ctx.isCachingEnabled()) {
-            CachingMetadataType cachingMetadata = new CachingMetadataType();
+            var cachingMetadata = new CachingMetadataType();
             cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
             repoShadowBean.setCachingMetadata(cachingMetadata);
         } else {

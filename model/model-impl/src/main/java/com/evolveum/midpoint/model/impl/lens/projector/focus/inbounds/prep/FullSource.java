@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
@@ -101,8 +102,8 @@ class FullSource extends MSource {
 
     @Override
     boolean isEligibleForInboundProcessing(OperationResult result) throws SchemaException, ConfigurationException {
-        LOGGER.trace("Starting determination if we should process inbound mappings. Full shadow: {}. A priori delta present: {}.",
-                projectionContext.isFullShadow(), aPrioriDelta != null);
+        LOGGER.trace("Starting determination if we should process inbound mappings. A priori delta present: {}.",
+                aPrioriDelta != null);
 
         if (projectionContext.isInboundSyncDisabled(result)) {
             LOGGER.trace("Skipping processing of inbound mappings because shadow policy marked shadow inbound disabled.");
@@ -121,30 +122,9 @@ class FullSource extends MSource {
             LOGGER.trace("No current projection object and no apriori delta: skipping the inbounds (there's nothing to process)");
             return false;
         }
-        if (projectionContext.isFullShadow()) {
-            LOGGER.trace("Full shadow is present, we'll do the inbound processing (it should be cheap)");
-            return true;
-        }
-        if (projectionContext.isDoReconciliation()) {
-            LOGGER.trace("We'll do the inbounds even we have no apriori delta nor full shadow, because the"
-                    + " projection reconciliation is requested");
-            return true;
-        }
-        if (projectionContext.hasDependentContext()) {
-            LOGGER.trace("We'll do the inbounds even we have no apriori delta nor full shadow, because the"
-                    + " projection has a dependent projection context");
-            return true;
-        }
-        if (projectionContext.isDelete()) {
-            // TODO what's the exact reason for this behavior?
-            LOGGER.trace("We'll do the inbounds even we have no apriori delta nor full shadow, because the"
-                    + " projection is being deleted");
-            return true;
-        }
-        LOGGER.trace("Skipping processing of inbound mappings: no a priori delta, no full shadow,"
-                        + " no reconciliation, no dependent context, and it's not a delete operation:\n{}",
-                projectionContext.debugDumpLazily());
-        return false;
+        // TODO treat dependent contexts - load them fully, perhaps?
+        LOGGER.trace("No reason to skip inbounds, so let's do that");
+        return true;
     }
 
     @Override
@@ -154,8 +134,18 @@ class FullSource extends MSource {
     }
 
     @Override
-    boolean isAbsoluteStateAvailable() {
+    public boolean isAttributeLoaded(ItemName itemName) throws SchemaException, ConfigurationException {
+        return projectionContext.isAttributeLoaded(itemName);
+    }
+
+    @Override
+    public boolean isFullShadowAvailable() {
         return projectionContext.isFullShadow();
+    }
+
+    @Override
+    public boolean isAuxiliaryObjectClassPropertyLoaded() throws SchemaException, ConfigurationException {
+        return projectionContext.isAuxiliaryObjectClassPropertyLoaded();
     }
 
     @Override
@@ -214,18 +204,18 @@ class FullSource extends MSource {
         if (projectionContext.isFullShadow()) {
             LOGGER.trace("Mapping(s) for {}: No item a priori delta present, but we have the full shadow."
                     + " We'll use it for the evaluation.", itemDescription);
-            return ProcessingMode.ABSOLUTE_STATE;
+            return ProcessingMode.ABSOLUTE_STATE_IF_KNOWN;
         }
 
-        if (projectionContext.hasDependentContext()) {
-            LOGGER.trace("Mapping(s) for {}: A dependent context is present. We'll load the shadow.", itemDescription);
-            return ProcessingMode.ABSOLUTE_STATE;
-        }
+//        if (projectionContext.hasDependentContext()) {
+//            LOGGER.trace("Mapping(s) for {}: A dependent context is present. We'll load the shadow.", itemDescription);
+//            return ProcessingMode.ABSOLUTE_STATE; // FIXME
+//        }
 
-        if (mappings.stream().anyMatch(mapping -> mapping.isStrong())) {
-            LOGGER.trace("Mapping(s) for {}: A strong mapping is present. We'll load the shadow.", itemDescription);
-            return ProcessingMode.ABSOLUTE_STATE;
-        }
+//        if (mappings.stream().anyMatch(mapping -> mapping.isStrong())) {
+//            LOGGER.trace("Mapping(s) for {}: A strong mapping is present. We'll load the shadow.", itemDescription);
+//            return ProcessingMode.ABSOLUTE_STATE;
+//        }
 
         LOGGER.trace("Mapping(s) for {}: There is no special reason for loading the shadow. We'll apply them if the shadow"
                 + " is loaded for another reason.", itemDescription);
@@ -240,6 +230,7 @@ class FullSource extends MSource {
         }
         if (projectionContext.isGone()) {
             LOGGER.trace("Not loading {} because the resource object is gone", getProjectionHumanReadableNameLazy());
+            return;
         }
 
         if (fullStateRequired) {

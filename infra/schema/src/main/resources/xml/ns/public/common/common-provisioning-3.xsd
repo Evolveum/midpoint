@@ -5208,6 +5208,41 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:complexType name="ShadowCachingMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CachingMetadataType">
+            <!--    <xsd:sequence>-->
+            <!--        <xsd:element name="item" type="tns:ShadowItemCachingMetadataType" minOccurs="0" maxOccurs="unbounded"/>-->
+            <!--    </xsd:sequence>-->
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <!--<xsd:complexType name="ShadowItemCachingMetadataType">-->
+    <!--    <xsd:annotation>-->
+    <!--        <xsd:documentation>-->
+    <!--            This is only a preliminary version. TODO Optimize this data structure.-->
+    <!--        </xsd:documentation>-->
+    <!--        <xsd:appinfo>-->
+    <!--            <a:container/>-->
+    <!--            <a:since>4.9</a:since>-->
+    <!--        </xsd:appinfo>-->
+    <!--    </xsd:annotation>-->
+    <!--    <xsd:sequence>-->
+    <!--        <xsd:element name="path" type="t:ItemPathType" />-->
+    <!--        <xsd:element name="retrievalTimestamp" type="xsd:dateTime" />-->
+    <!--    </xsd:sequence>-->
+    <!--    <xsd:attribute name="id" type="xsd:long"/>-->
+    <!--</xsd:complexType>-->
+
     <xsd:simpleType name="ShadowKindType">
         <xsd:annotation>
             <xsd:documentation>
@@ -6845,6 +6880,13 @@
                             <xsd:documentation>
                                 Scope of the caching. The default is to cache mapped items, activation, and "protected" flag.
                                 Any exceptions can be marked by "cached" property of individual attributes and associations.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="timeToLive" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                For how long do we consider cached data as usable?
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
