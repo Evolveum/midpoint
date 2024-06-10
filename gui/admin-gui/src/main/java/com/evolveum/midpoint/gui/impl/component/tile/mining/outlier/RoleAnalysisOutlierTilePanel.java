@@ -117,7 +117,7 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
             protected void onClickPerform(AjaxRequestTarget target) {
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, targetClusterRef.getOid());
-                parameters.add("panelId", "clusterDetails");
+                parameters.add("panelId", "clusterOutliers");
                 Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                         .getObjectDetailsPage(RoleAnalysisClusterType.class);
                 getPageBase().navigateToNext(detailsPageClass, parameters);

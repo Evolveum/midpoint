@@ -116,7 +116,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
                 defaultColumns.add(column);
 
                 column = new AbstractExportableColumn<>(
-                        createStringResource("RoleAnalysisOutlierTable.confidence.range")) {
+                        createStringResource("Confidence")) {
 
                     @Override
                     public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
@@ -126,35 +126,15 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
-                        List<RoleAnalysisOutlierDescriptionType> result = model.getObject().getValue().getResult();
 
-                        double min = Double.POSITIVE_INFINITY;
-                        double max = Double.NEGATIVE_INFINITY;
 
-                        for (RoleAnalysisOutlierDescriptionType roleAnalysisOutlierDescriptionType : result) {
-                            Double confidence = roleAnalysisOutlierDescriptionType.getConfidenceDeviation();
-                            if (confidence != null) {
-                                if (confidence < min) {
-                                    min = confidence;
-                                }
-                                if (confidence > max) {
-                                    max = confidence;
-                                }
-                            }
-                        }
+                        RoleAnalysisOutlierType outlier = model.getObject().getValue();
 
-                        double minPercentage = min * 100.0;
-                        double maxPercentage = max * 100.0;
+                        Double clusterConfidence = outlier.getClusterConfidence();
+                        double clusterConfidenceValue = clusterConfidence != null ? clusterConfidence : 0;
 
-                        minPercentage = (minPercentage * 100.0) / 100.0;
-                        maxPercentage = (maxPercentage * 100.0) / 100.0;
-
-                        DecimalFormat decimalFormat = new DecimalFormat("#.##");
-                        decimalFormat.setGroupingUsed(false);
-                        decimalFormat.setRoundingMode(RoundingMode.DOWN);
-
-                        String formattedMinMax = decimalFormat.format(minPercentage) + " - " + decimalFormat.format(maxPercentage);
-                        cellItem.add(new Label(componentId, formattedMinMax + " (%)"));
+                        String formattedClusterConfidence = String.format("%.2f", clusterConfidenceValue);
+                        cellItem.add(new Label(componentId, formattedClusterConfidence + " %"));
 
                     }
 

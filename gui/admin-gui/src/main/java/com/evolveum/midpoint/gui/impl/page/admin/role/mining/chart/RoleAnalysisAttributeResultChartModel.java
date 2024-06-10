@@ -58,7 +58,7 @@ public class RoleAnalysisAttributeResultChartModel extends LoadableModel<ChartCo
             dataset.setStack("stack0");
 
             ChartDataRm datasetCompared = new ChartDataRm();
-            datasetCompared.setLabel(getDatasetRoleLabel());
+            datasetCompared.setLabel("Compared user part");
             datasetCompared.addBackgroudColor("red");
             datasetCompared.setBorderRadius("10");
             datasetCompared.setStack("stack0");

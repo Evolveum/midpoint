@@ -446,34 +446,13 @@ public class OutlierObjectModel implements Serializable {
                 + "%", descriptionOccurInCluster, "fa fa-cubes");
         outlierObjectModel.addOutlierItemModel(occurInClusterItemModel);
 
-        int indirectAssignments = roleTypeObject.asObjectable().getInducement().size();
-        String indirectAssignmentsDescription = "Indirect role assignments of the outlier assignment.";
-
-        OutlierItemModel indirectAssignmentsItemModel = new OutlierItemModel(String.valueOf(indirectAssignments),
-                indirectAssignmentsDescription, "fe fe-role");
-        outlierObjectModel.addOutlierItemModel(indirectAssignmentsItemModel);
-
-        int roleMemberCount;
-        Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
-        roleAnalysisService.extractUserTypeMembers(
-                userExistCache, null,
-                new HashSet<>(Collections.singleton(roleTypeObject.getOid())),
-                task, result);
-        roleMemberCount = userExistCache.size();
-
         Double memberCoverageConfidence = outlierResult.getMemberCoverageConfidence();
         double memberPercentageRepo = memberCoverageConfidence == null ? 0 : memberCoverageConfidence;
-
-        String roleMemberDescription = "Role member count of the outlier assignment.";
-
-        OutlierItemModel roleMemberItemModel = new OutlierItemModel(String.valueOf(roleMemberCount),
-                roleMemberDescription, "fe fe-user");
-        outlierObjectModel.addOutlierItemModel(roleMemberItemModel);
 
         String memberPercentageRepoDescription = "Role member percentage compared to all users in the repository.";
 
         OutlierItemModel memberPercentageRepoItemModel = new OutlierItemModel(String.format("%.2f",
-                memberPercentageRepo) + "%", memberPercentageRepoDescription, "fe fe-user");
+                memberPercentageRepo) + "%", memberPercentageRepoDescription, "fa fa-users");
         outlierObjectModel.addOutlierItemModel(memberPercentageRepoItemModel);
 
         List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
@@ -512,15 +491,28 @@ public class OutlierObjectModel implements Serializable {
                     .append(threshold).append("%.");
         }
 
-        OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(attributeAboveThreshold
-                + " attribute(s)", attributeDescriptionThreshold.toString(), "fa fa-cogs");
-        outlierObjectModel.addOutlierItemModel(attributeItemModelThreshold);
-
         String attributeDescription = "Items factor outlier assignment vs members.";
 
         OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs)
                 + "%", attributeDescription, "fa fa-cogs");
         outlierObjectModel.addOutlierItemModel(attributeItemModel);
+
+        OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(attributeAboveThreshold
+                + " attribute(s)", attributeDescriptionThreshold.toString(), "fa fa-cogs");
+        outlierObjectModel.addOutlierItemModel(attributeItemModelThreshold);
+
+        String roleMemberDescription = "Specifies from which source the assignment was assigned.";
+
+        OutlierItemModel roleMemberItemModel = new OutlierItemModel("Unknown source",
+                roleMemberDescription, "fe fe-user");
+        outlierObjectModel.addOutlierItemModel(roleMemberItemModel);
+
+        int indirectAssignments = roleTypeObject.asObjectable().getInducement().size();
+        String indirectAssignmentsDescription = "Indirect role assignments of the outlier assignment.";
+
+        OutlierItemModel indirectAssignmentsItemModel = new OutlierItemModel(String.valueOf(indirectAssignments),
+                indirectAssignmentsDescription, "fe fe-role");
+        outlierObjectModel.addOutlierItemModel(indirectAssignmentsItemModel);
 
         String deviationDescription = "Unreliability of assignment based on a standard distribution";
 
@@ -530,7 +522,7 @@ public class OutlierObjectModel implements Serializable {
         }
 
         OutlierItemModel deviationItemModel = new OutlierItemModel(String.format("%.2f", deviationConfidence)
-                + "%", deviationDescription, "fa fa-bar-chart");
+                + "%", deviationDescription, "fa fa-key");
         outlierObjectModel.addOutlierItemModel(deviationItemModel);
 
         Double totalConfidence = outlierResult.getConfidence();
