@@ -375,31 +375,7 @@ The other limitations may modify that.
     </limitations>
     ...
 </attribute>
-
 ----
-
-Note for *version 2.1.1 and older*:
-
-Versions prior to 2.2 used older limitation format that is quite limited it its expressive power.
-This format can still be used but it is considered deprecated and it will be not be supported in later releases.
-It also does not have the ability to work with layers.
-
-.Attribute limitation for version 2.1.1 and older
-[source,xml]
-----
-<attribute>
-    <ref>ri:cn</ref>
-    ...
-    <minOccurs>1</minOccurs>
-    <maxOccurs>1</maxOccurs>
-    ...
-    <access>create</access>
-    <access>read</access>
-    ...
-</attribute>
-
-----
-
 
 === Fetch Strategy
 
@@ -462,13 +438,31 @@ BEWARE: READ+REPLACE is currently supported for attributes only - not for subjec
 === Secondary Identifier
 
 Indicated if the attribute should be considered as secondary identifier.
-If set to true, this attribue is stored in repository and user for example by synchronization (correlation rule), consistency mechanism, etc.
+If set to true, this attribute is stored in repository and user for example by synchronization (correlation rule), consistency mechanism, etc.
+
+This can also be used to disable the secondary identifier - for instance when the attribute used as a secondary identifier by default is not unique.
+Normally, `icfs:name` is chosen as a secondary identifier, however ConnId contract for it doesn't mandate its uniqueness.
+If the resource doesn't provide unique name it's better to let midPoint know about it:
+
+[source,xml]
+----
+<attribute>
+    <ref>icfs:name</ref>
+    <!-- Name is not unique, so we need to disable this as a secondary identifier. -->
+    <secondaryIdentifier>false</secondaryIdentifier>
+    ... the rest of the attribute config, mappings, etc.
+</attribute>
+----
+
+[NOTE]
+This may work fine, but the result is not guaranteed.
+Some scenarios may require secondary identifier.
 
 
 === Volatility Trigger
 
 If set to true it indicates that change of this attribute may cause changes in other attributes.
-In that case midPoint re-reads the object after the change of this attributes.
+In that case midPoint re-reads the object after the change of this attribute.
 
 
 === Modification Priority
