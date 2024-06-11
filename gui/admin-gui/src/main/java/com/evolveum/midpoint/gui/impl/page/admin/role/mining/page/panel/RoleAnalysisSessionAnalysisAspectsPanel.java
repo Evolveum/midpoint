@@ -885,6 +885,12 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
         Task task = pageBase.createSimpleTask("loadOutlierDetails");
         RoleAnalysisOutlierType outlierObject = topOutlier;
+        if (outlierObject == null) {
+            Label label = new Label(ID_PANEL, "No data available");
+            label.setOutputMarkupId(true);
+            container.add(label);
+            return;
+        }
         ObjectReferenceType targetSessionRef = outlierObject.getTargetSessionRef();
         PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
                 .getSessionTypeObject(targetSessionRef.getOid(), task, task.getResult());
