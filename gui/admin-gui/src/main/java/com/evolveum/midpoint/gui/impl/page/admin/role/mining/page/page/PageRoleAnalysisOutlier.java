@@ -290,7 +290,7 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
                         + analysisCategory.value().substring(1);
 
                 double averageConfidence = outlier.getClusterConfidence();
-                String formattedConfidence = String.format("%.2f", averageConfidence * 100);
+                String formattedConfidence = String.format("%.2f", averageConfidence);
 
                 List<DetailsTableItem> detailsModel = List.of(
                         new DetailsTableItem(createStringResource("Mode"),
