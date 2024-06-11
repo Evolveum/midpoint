@@ -862,7 +862,12 @@ public class RoleAnalysisUserBasedTable extends Panel {
                         double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
 
                         String value = patternCount + " pattern(s) detected";
-                        int averageRelation = totalRelations / patterns.size();
+                        int patternsCount = patterns.size();
+                        int averageRelation = 0;
+                        if (totalRelations > 0 && patternsCount > 0) {
+                            value = value + " with " + totalRelations + " relations";
+                            averageRelation = totalRelations / patternsCount;
+                        }
                         debugText = value + ", maximum coverage pattern " + String.format("%.2f", topPatternCoverage)
                                 + "% (" + topPatternRelation + "relations) "
                                 + "and average relation per pattern is " + averageRelation + "relations";
