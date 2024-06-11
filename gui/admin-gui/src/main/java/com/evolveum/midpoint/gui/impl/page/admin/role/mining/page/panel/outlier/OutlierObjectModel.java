@@ -172,7 +172,7 @@ public class OutlierObjectModel implements Serializable {
                         + "%", assignmentsFrequencyDescription, "fe fe-role");
         outlierObjectModel.addOutlierItemModel(roleAssignmentsFrequencyItemModel);
 
-        String attributeDescription = "Items factor outlier vs cluster. "
+        String attributeDescription = "Attribute factor difference outlier vs cluster. "
                 + "(average overlap value of outlier attributes with similar objects.)";
 
         OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs) + "%",
@@ -340,7 +340,7 @@ public class OutlierObjectModel implements Serializable {
                         + "%", assignmentsFrequencyDescription, "fe fe-role");
         outlierObjectModel.addOutlierItemModel(roleAssignmentsFrequencyItemModel);
 
-        String attributeDescription = "Items factor outlier vs cluster. "
+        String attributeDescription = "Attribute factor difference outlier vs cluster. "
                 + "(average overlap value of outlier attributes with similar objects.)";
 
         OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs)
@@ -491,7 +491,7 @@ public class OutlierObjectModel implements Serializable {
                     .append(threshold).append("%.");
         }
 
-        String attributeDescription = "Items factor outlier assignment vs members.";
+        String attributeDescription = "Attribute factor difference outlier assignment vs members.";
 
         OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs)
                 + "%", attributeDescription, "fa fa-cogs");

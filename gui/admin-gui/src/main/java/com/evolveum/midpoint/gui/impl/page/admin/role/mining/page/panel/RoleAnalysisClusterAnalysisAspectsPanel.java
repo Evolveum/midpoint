@@ -92,20 +92,21 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         RoleAnalysisSessionType session = sessionTypeObject.asObjectable();
         RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
 
+        RepeatingView headerItems = new RepeatingView(ID_HEADER_ITEMS);
+        headerItems.setOutputMarkupId(true);
+        container.add(headerItems);
+
         if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
             initInfoOutlierPanel(container);
+            initOutlierAnalysisHeaderPanel(headerItems);
         } else {
             initInfoPatternPanel(container);
+            initRoleMiningHeaderPanel(headerItems);
         }
 
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
 
         if (clusterStatistics != null) {
-            RepeatingView headerItems = new RepeatingView(ID_HEADER_ITEMS);
-            headerItems.setOutputMarkupId(true);
-            container.add(headerItems);
-            initHeaderPanel(headerItems);
-
             RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
             RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
             RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_PANEL,
@@ -114,12 +115,6 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                 protected @NotNull String getChartContainerStyle() {
                     return "height:25vh;";
                 }
-
-//                @Contract(pure = true)
-//                @Override
-//                protected @NotNull String getCssClassForCardContainer() {
-//                    return "";
-//                }
             };
             roleAnalysisAttributePanel.setOutputMarkupId(true);
             container.add(roleAnalysisAttributePanel);
@@ -127,14 +122,10 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
             Label label = new Label(ID_PANEL, "No data available");
             label.setOutputMarkupId(true);
             container.add(label);
-
-            WebMarkupContainer headerItems = new WebMarkupContainer(ID_HEADER_ITEMS);
-            headerItems.setOutputMarkupId(true);
-            container.add(headerItems);
         }
     }
 
-    private void initHeaderPanel(RepeatingView headerItems) {
+    private void initRoleMiningHeaderPanel(RepeatingView headerItems) {
         ObjectDetailsModels<RoleAnalysisClusterType> objectDetailsModels = getObjectDetailsModels();
         RoleAnalysisClusterType cluster = objectDetailsModels.getObjectType();
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
@@ -181,6 +172,78 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                 candidateRolesCount,
                 100,
                 "Number of candidate roles for cluster");
+
+        RoleAnalysisInfoBox candidateRolesLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxCandidateRoles)) {
+            @Override
+            protected String getInfoBoxCssClass() {
+                return "bg-primary";
+            }
+        };
+        candidateRolesLabel.add(AttributeModifier.replace("class", "col-md-6"));
+        candidateRolesLabel.setOutputMarkupId(true);
+        headerItems.add(candidateRolesLabel);
+
+        InfoBoxModel infoBoxRoles = new InfoBoxModel(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON + " text-white",
+                "Roles",
+                String.valueOf(clusterStatistics.getRolesCount()),
+                100,
+                "Number of roles in the cluster");
+
+        RoleAnalysisInfoBox rolesLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxRoles)) {
+            @Override
+            protected String getInfoBoxCssClass() {
+                return "bg-primary";
+            }
+        };
+        rolesLabel.add(AttributeModifier.replace("class", "col-md-6"));
+        rolesLabel.setOutputMarkupId(true);
+        headerItems.add(rolesLabel);
+
+        InfoBoxModel infoBoxUsers = new InfoBoxModel(GuiStyleConstants.CLASS_OBJECT_USER_ICON + " text-white",
+                "Users",
+                String.valueOf(clusterStatistics.getUsersCount()),
+                100,
+                "Number of users in the cluster");
+
+        RoleAnalysisInfoBox usersLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxUsers)) {
+            @Override
+            protected String getInfoBoxCssClass() {
+                return "bg-primary";
+            }
+        };
+        usersLabel.add(AttributeModifier.replace("class", "col-md-6"));
+        usersLabel.setOutputMarkupId(true);
+        headerItems.add(usersLabel);
+
+    }
+
+    private void initOutlierAnalysisHeaderPanel(RepeatingView headerItems) {
+        ObjectDetailsModels<RoleAnalysisClusterType> objectDetailsModels = getObjectDetailsModels();
+        RoleAnalysisClusterType cluster = objectDetailsModels.getObjectType();
+        AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
+
+        InfoBoxModel infoBoxResolvedPatterns = new InfoBoxModel(GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " text-white",
+                "User outliers",
+                String.valueOf(outliersCount),
+                100,
+                "Number of user outlier for cluster");
+
+        RoleAnalysisInfoBox resolvedPatternLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxResolvedPatterns)) {
+            @Override
+            protected String getInfoBoxCssClass() {
+                return "bg-primary";
+            }
+
+        };
+        resolvedPatternLabel.add(AttributeModifier.replace("class", "col-md-6"));
+        resolvedPatternLabel.setOutputMarkupId(true);
+        headerItems.add(resolvedPatternLabel);
+
+        InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " text-white",
+                "Assignments anomaly",
+                String.valueOf(anomalyAssignmentCount),
+                100,
+                "Number of assignment anomaly for cluster");
 
         RoleAnalysisInfoBox candidateRolesLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxCandidateRoles)) {
             @Override
@@ -342,6 +405,9 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         container.add(roleAnalysisInfoPatternPanel);
     }
 
+    int outliersCount = 0;
+    int anomalyAssignmentCount = 0;
+
     private void initInfoOutlierPanel(WebMarkupContainer container) {
         RoleAnalysisItemPanel roleAnalysisInfoPatternPanel = new RoleAnalysisItemPanel(ID_PATTERNS,
                 Model.of("Discovered cluster outliers")) {
@@ -366,10 +432,12 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                     return;
                 }
 
+                outliersCount = searchResultList.size();
                 for (int i = 0; i < searchResultList.size(); i++) {
                     PrismObject<RoleAnalysisOutlierType> outlierTypePrismObject = searchResultList.get(i);
                     RoleAnalysisOutlierType outlierObject = outlierTypePrismObject.asObjectable();
                     List<RoleAnalysisOutlierDescriptionType> outlierStatResult = outlierObject.getResult();
+                    anomalyAssignmentCount = outlierStatResult.size();
                     Double clusterConfidence = outlierObject.getClusterConfidence();
                     String formattedConfidence = String.format("%.2f", clusterConfidence);
                     String label;

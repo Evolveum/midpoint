@@ -83,6 +83,11 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
             }
 
             @Override
+            public String getAdditionalBoxCssClasses() {
+                return " m-0";
+            }
+
+            @Override
             protected ISelectableDataProvider<SelectableBean<RoleAnalysisOutlierType>> createProvider() {
                 return createSelectableBeanObjectDataProvider(() -> getQuery(cluster), null, null);
 

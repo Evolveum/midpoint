@@ -289,14 +289,7 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
                         .toUpperCase(analysisCategory.value().charAt(0))
                         + analysisCategory.value().substring(1);
 
-                double averageConfidence = 0.0;
-                for (RoleAnalysisOutlierDescriptionType resultDetails : analysisResult) {
-                    Double confidence = resultDetails.getConfidenceDeviation();
-                    if (confidence != null) {
-                        averageConfidence += confidence;
-                    }
-                }
-                averageConfidence = averageConfidence / analysisResult.size();
+                double averageConfidence = outlier.getClusterConfidence();
                 String formattedConfidence = String.format("%.2f", averageConfidence * 100);
 
                 List<DetailsTableItem> detailsModel = List.of(
@@ -331,7 +324,7 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
                                 return new IconWithLabel(id, getValue()) {
                                     @Override
                                     public String getIconCssClass() {
-                                       return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
+                                        return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
                                     }
 
                                     @Override
