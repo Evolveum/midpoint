@@ -130,7 +130,6 @@ public class ROrgClosure implements Serializable {
         this.descendantOid = descendantOid;
     }
 
-    @Id
     @Column(name = "val")
     public int getVal() {
         return val;
