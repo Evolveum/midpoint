@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -35,6 +37,9 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -42,6 +47,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
@@ -81,10 +87,7 @@ public class PageCertDecisions extends PageAdminCertification {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_DECISIONS_TABLE = "decisionsTable";
-
-    private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_SHOW_NOT_DECIDED_ONLY = "showNotDecidedOnly";
-    private static final String ID_TABLE_HEADER = "tableHeader";
+    private static final String ID_NAVIGATION_PANEL = "navigationPanel";
 
     public static final String CAMPAIGN_OID_PARAMETER = "campaignOid";
 
@@ -103,38 +106,9 @@ public class PageCertDecisions extends PageAdminCertification {
         initLayout();
     }
 
-    //region Data
-//    private CertWorkItemDtoProvider createProvider() {
-//        CertWorkItemDtoProvider provider = new CertWorkItemDtoProvider(PageCertDecisions.this);
-//        provider.setQuery(createCaseQuery());
-//        provider.setCampaignQuery(createCampaignQuery());
-//        provider.setReviewerOid(getCurrentUserOid());
-//        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly());
-//        provider.setAllItems(isDisplayingAllItems());
-//        provider.setSort(SearchingUtils.CURRENT_REVIEW_DEADLINE, SortOrder.ASCENDING);        // default sorting
-//        return provider;
-//    }
-
-//    private ObjectQuery createCaseQuery() {
-//        return getPrismContext().queryFactory().createQuery();
-//    }
-//
-//    private ObjectQuery createCampaignQuery() {
-//        return getPrismContext().queryFactory().createQuery();
-//    }
-//
-//    private String getCurrentUserOid() {
-//        try {
-//            return getSecurityContextManager().getPrincipal().getOid();
-//        } catch (SecurityViolationException e) {
-//            // TODO handle more cleanly
-//            throw new SystemException("Couldn't get currently logged user OID", e);
-//        }
-//    }
-//    //endregion
-
-    //region Layout
     private void initLayout() {
+        initNavigationPanel();
+
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
         CertificationItemsPanel table = new CertificationItemsPanel(ID_DECISIONS_TABLE, getCampaignOid()) {
@@ -154,14 +128,29 @@ public class PageCertDecisions extends PageAdminCertification {
         //addVisibleOnWarningBehavior(getTempFeedbackPanel());
     }
 
-//    private void addVisibleOnWarningBehavior(Component c) {
-//        c.add(new VisibleEnableBehaviour() {
-//            @Override
-//            public boolean isVisible() {
-//                return PageCertDecisions.this.getFeedbackMessages().hasMessage(FeedbackMessage.WARNING);
-//            }
-//        });
-//    }
+    private void initNavigationPanel() {
+        NavigationPanel navigationPanel = new NavigationPanel(ID_NAVIGATION_PANEL) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected IModel<String> createTitleModel() {
+                return getNavigationPanelTitleModel();
+            }
+
+            @Override
+            protected void onBackPerformed(AjaxRequestTarget target) {
+                PageCertDecisions.this.redirectBack();
+            }
+
+            @Override
+            protected Component createNextButton(String id, IModel<String> nextTitle) {
+                //todo work items statistics panel or report button
+                return new WebMarkupContainer(id);
+            }
+
+        };
+        add(navigationPanel);
+    }
 
     protected String getCampaignOid() {
         PageParameters pageParameters = getPageParameters();
@@ -521,58 +510,21 @@ public class PageCertDecisions extends PageAdminCertification {
         }
     }
 
-//    private void searchFilterPerformed(AjaxRequestTarget target) {
-//        ObjectQuery query = createCaseQuery();
-//
-//        Table panel = getDecisionsTable();
-//        DataTable table = panel.getDataTable();
-//        CertWorkItemDtoProvider provider = (CertWorkItemDtoProvider) table.getDataProvider();
-//        provider.setQuery(query);
-//        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly());
-//        provider.setAllItems(isDisplayingAllItems());
-//        table.setCurrentPage(0);
-//
-//        target.add(getFeedbackPanel());
-//        target.add((Component) getDecisionsTable());
-//    }
-
     private CertDecisionsStorage getCertDecisionsStorage() {
         return getSessionStorage().getCertDecisions();
     }
 
-//    private static class SearchFragment extends Fragment {
-//
-//        public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
-//                IModel<Boolean> model) {
-//            super(id, markupId, markupProvider, model);
-//
-//            initLayout();
-//        }
-//
-//        private void initLayout() {
-//            final Form searchForm = new MidpointForm(ID_SEARCH_FORM);
-//            add(searchForm);
-//            searchForm.setOutputMarkupId(true);
-//
-//            final IModel<Boolean> model = (IModel<Boolean>) getDefaultModel();
-//
-//            CheckBox showNotDecidedOnlyBox = new CheckBox(ID_SHOW_NOT_DECIDED_ONLY, model);
-//            showNotDecidedOnlyBox.add(createFilterAjaxBehaviour());
-//            searchForm.add(showNotDecidedOnlyBox);
-//        }
-//
-//        private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour() {
-//            return new AjaxFormComponentUpdatingBehavior("change") {
-//                private static final long serialVersionUID = 1L;
-//
-//                @Override
-//                protected void onUpdate(AjaxRequestTarget target) {
-//                    PageCertDecisions page = (PageCertDecisions) getPage();
-//                    page.getCertDecisionsStorage().setShowNotDecidedOnly((Boolean) getDefaultModelObject());
-//                    page.searchFilterPerformed(target);
-//
-//                }
-//            };
-//        }
-//    }
+    private IModel<String> getNavigationPanelTitleModel() {
+        String campaignName = getCampaignName();
+        return createStringResource("PageMyCertCampaigns.title",
+                StringUtils.isNotEmpty(campaignName) ? "/" + campaignName : "");
+    }
+
+    private String getCampaignName() {
+        ObjectReferenceType campaignRef =
+                new ObjectReferenceType()
+                        .oid(getCampaignOid())
+                        .type(AccessCertificationCampaignType.COMPLEX_TYPE);
+        return WebModelServiceUtils.resolveReferenceName(campaignRef, PageCertDecisions.this, true);
+    }
 }

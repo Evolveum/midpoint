@@ -26,8 +26,7 @@ public class CertificationItemResponseHelper implements Serializable {
                 "bg-success", "AccessCertificationResponseType.ACCEPT.description"),
         REVOKE(GuiStyleConstants.CLASS_CERT_OUTCOME_ICON_REJECTED, "text-danger", "bg-danger", "AccessCertificationResponseType.REVOKE.description"),
         REDUCE(GuiStyleConstants.CLASS_CERT_OUTCOME_ICON_REDUCED, "text-warning", "bg-warning", "AccessCertificationResponseType.REDUCE.description"),
-        NOT_DECIDED(GuiStyleConstants.CLASS_CERT_OUTCOME_ICON_NOT_DECIDED, "text-secondary", "bg-secondary", "AccessCertificationResponseType.NOT_DECIDED.description"),
-//        DELEGATE(GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_FORWARDED_COLORED, "-info"),
+        NOT_DECIDED(GuiStyleConstants.CLASS_CERT_OUTCOME_ICON_NOT_DECIDED, "text-info", "bg-info", "AccessCertificationResponseType.NOT_DECIDED.description"),
         NO_RESPONSE(GuiStyleConstants.CLASS_CERT_OUTCOME_ICON_NO_RESPONSE, "", "bg-light", "AccessCertificationResponseType.NO_RESPONSE.description");
 
         final String iconCssClass;
@@ -88,7 +87,7 @@ public class CertificationItemResponseHelper implements Serializable {
         return Arrays.stream(ProgressBar.State.values())
                 .filter(state -> state.getCssClass().equals(getBackgroundCssClass()))
                 .findFirst()
-                .orElse(ProgressBar.State.INFO);
+                .orElse(ProgressBar.State.SECONDARY);
     }
 
     public String getLabelKey() {

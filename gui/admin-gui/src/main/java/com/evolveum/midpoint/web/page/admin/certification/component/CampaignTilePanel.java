@@ -12,12 +12,14 @@ import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
@@ -25,6 +27,7 @@ import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignStateHelper;
@@ -41,9 +44,12 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serial;
 import java.util.Date;
 import java.util.List;
+
+import static java.awt.SystemColor.menu;
 
 public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> {
 
@@ -63,6 +69,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     private static final String ID_ACTION_BUTTON_LABEL = "actionButtonLabel";
     private static final String ID_ACTION_BUTTON_ICON = "actionButtonIcon";
     private static final String ID_DETAILS = "details";
+    private static final String ID_DETAILS_LABEL = "detailsLabel";
 
     CampaignStateHelper campaignStateHelper;
 
@@ -92,6 +99,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
         BadgePanel status = new BadgePanel(ID_STATUS, getStatusModel());
         status.setOutputMarkupId(true);
+        status.add(new VisibleBehaviour(this::isAuthorizedForCampaignActions));
         add(status);
 
         DropdownButtonPanel menu = new DropdownButtonPanel(ID_MENU, createMenuDropDownButtonModel().getObject()) {
@@ -108,6 +116,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
             }
 
         };
+        menu.add(new VisibleBehaviour(this::isAuthorizedForCampaignActions));
         menu.setOutputMarkupId(true);
         add(menu);
 
@@ -120,11 +129,11 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         add(description);
 
         ProgressBarPanel progressBar = new ProgressBarPanel(ID_PROGRESS_BAR,
-                CertMiscUtil.createCampaignProgressBarModel(getCampaign()));
+                CertMiscUtil.createCampaignProgressBarModel(getCampaign(), getPrincipal()));
         progressBar.setOutputMarkupId(true);
         add(progressBar);
 
-        DateLabelComponent deadline = new DateLabelComponent(ID_DEADLINE, getDeadlineModel(), DateLabelComponent.SHORT_SHORT_STYLE);
+        DeadlinePanel deadline = new DeadlinePanel(ID_DEADLINE, getDeadlineModel());
         deadline.setOutputMarkupId(true);
         add(deadline);
 
@@ -146,6 +155,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         };
         actionButton.add(AttributeModifier.append("class", campaignStateHelper.getNextAction().getActionCssClass()));
         actionButton.setOutputMarkupId(true);
+        actionButton.add(new VisibleBehaviour(this::isAuthorizedForCampaignActions));
         add(actionButton);
 
         Label actionButtonLabel = new Label(ID_ACTION_BUTTON_LABEL, getActionButtonModel());
@@ -162,11 +172,15 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                CampaignProcessingHelper.campaignDetailsPerformed(getCampaign().getOid(), getPageBase());
+                detailsButtonClickPerformed(target);
             }
         };
         details.setOutputMarkupId(true);
         add(details);
+
+        Label detailsLabel = new Label(ID_DETAILS_LABEL, getDetailsButtonLabelModel());
+        details.add(detailsLabel);
+
     }
 
     private LoadableModel<String> getActionButtonModel() {
@@ -263,18 +277,18 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         };
     }
 
-    private AccessCertificationCampaignType getCampaign() {
+    protected AccessCertificationCampaignType getCampaign() {
         return getModelObject().getValue().getValue();
     }
 
-    private LoadableModel<Date> getDeadlineModel() {
+    private LoadableModel<XMLGregorianCalendar> getDeadlineModel() {
         return new LoadableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected Date load() {
+            protected XMLGregorianCalendar load() {
                 AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(getCampaign());
-                return currentStage != null ? XmlTypeConverter.toDate(currentStage.getDeadline()) : null;
+                return currentStage != null ? currentStage.getDeadline() : null;
             }
         };
     }
@@ -304,5 +318,20 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         };
     }
 
+    protected boolean isAuthorizedForCampaignActions() {
+        return true;
+    }
+
+    protected MidPointPrincipal getPrincipal() {
+        return null;
+    }
+
+    protected IModel<String> getDetailsButtonLabelModel() {
+        return createStringResource("CatalogTilePanel.details");
+    }
+
+    protected void detailsButtonClickPerformed(AjaxRequestTarget target) {
+        CampaignProcessingHelper.campaignDetailsPerformed(getCampaign().getOid(), getPageBase());
+    }
 
 }
