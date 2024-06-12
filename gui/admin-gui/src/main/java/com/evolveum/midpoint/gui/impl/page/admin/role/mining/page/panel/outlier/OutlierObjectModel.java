@@ -125,7 +125,10 @@ public class OutlierObjectModel implements Serializable {
             Integer topPatternRelation = patternInfo.getTopPatternRelation();
             Integer totalRelations = patternInfo.getTotalRelations();
             String value = detectedPatternCount + " pattern(s) detected";
-            int averageRelation = totalRelations / detectedPatternCount;
+            int averageRelation = 0;
+            if(totalRelations != 0 && detectedPatternCount != 0){
+                 averageRelation = totalRelations / detectedPatternCount;
+            }
             String patternDescription = "Maximum coverage is " + String.format("%.2f", patternInfo.getConfidence())
                     + "% (" + topPatternRelation + "relations) "
                     + "and average relation per pattern is " + averageRelation;
@@ -288,7 +291,10 @@ public class OutlierObjectModel implements Serializable {
             Integer topPatternRelation = patternInfo.getTopPatternRelation();
             Integer totalRelations = patternInfo.getTotalRelations();
             String value = detectedPatternCount + " pattern(s) detected";
-            int averageRelation = totalRelations / detectedPatternCount;
+            int averageRelation = 0;
+            if(totalRelations != 0 && detectedPatternCount != 0){
+                averageRelation = totalRelations / detectedPatternCount;
+            }
             String patternDescription = "Maximum coverage is " + String.format("%.2f", patternInfo.getConfidence())
                     + "% (" + topPatternRelation + "relations) "
                     + "and average relation per pattern is " + averageRelation;
@@ -430,7 +436,10 @@ public class OutlierObjectModel implements Serializable {
             Integer topPatternRelation = patternInfo.getTopPatternRelation();
             Integer totalRelations = patternInfo.getTotalRelations();
             String value = detectedPatternCount + " pattern(s) detected";
-            int averageRelation = totalRelations / detectedPatternCount;
+            int averageRelation = 0;
+            if(totalRelations != 0 && detectedPatternCount != 0){
+                averageRelation = totalRelations / detectedPatternCount;
+            }
             String patternDescription = "Maximum coverage is " + String.format("%.2f", patternInfo.getConfidence())
                     + "% (" + topPatternRelation + "relations) "
                     + "and average relation per pattern is " + averageRelation;
