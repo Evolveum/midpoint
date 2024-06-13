@@ -1149,7 +1149,8 @@ public class ColumnUtils {
 
            @Override
            public DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-               List<String> comments = CertCampaignTypeUtil.getComments(unwrapRowModel(rowModel).asPrismContainerValue());
+               List<String> comments = CertCampaignTypeUtil.getCommentsForStage(unwrapRowModel(rowModel).asPrismContainerValue(),
+                       stageNumber);
                return new DisplayType()
                        .tooltip(StringUtils.join(comments, "\n"))
                        .icon(new IconType()

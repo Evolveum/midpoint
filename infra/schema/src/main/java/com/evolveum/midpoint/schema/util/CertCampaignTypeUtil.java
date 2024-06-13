@@ -425,6 +425,19 @@ public class CertCampaignTypeUtil {
         return rv;
     }
 
+    public static List<String> getCommentsForStage(PrismContainerValue<AccessCertificationCaseType> pcv, int stageNumber) {
+        List<String> rv = new ArrayList<>();
+        for (AccessCertificationWorkItemType workItem : pcv.asContainerable().getWorkItem()) {
+            if (workItem.getStageNumber() != stageNumber) {
+                continue;
+            }
+            if (!StringUtils.isEmpty(WorkItemTypeUtil.getComment(workItem))) {
+                rv.add(WorkItemTypeUtil.getComment(workItem));
+            }
+        }
+        return rv;
+    }
+
     public static ObjectQuery createCasesForCampaignQuery(String campaignOid) {
         return PrismContext.get().queryFor(AccessCertificationCaseType.class)
                 .ownerId(campaignOid)

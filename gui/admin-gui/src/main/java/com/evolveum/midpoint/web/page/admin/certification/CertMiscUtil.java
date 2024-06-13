@@ -58,7 +58,7 @@ public class CertMiscUtil {
                     return Collections.singletonList(allCasesProgressBar);
                 }
 
-                float completed = CertCampaignTypeUtil.getCasesCompletedPercentageAllStagesAllIterations(campaign);
+                float completed = CertCampaignTypeUtil.getCasesCompletedPercentageCurrStageCurrIteration(campaign);
                 ProgressBar completedProgressBar = new ProgressBar(completed, ProgressBar.State.INFO);
                 return Collections.singletonList(completedProgressBar);
             }

@@ -6,29 +6,22 @@
  */
 package com.evolveum.midpoint.repo.sqale.perf;
 
-import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResource;
 import com.evolveum.midpoint.repo.sqlbase.SqlBaseOperationTracker;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.SqlRecorder;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.tools.testng.PerformanceTestClassMixin;
 import com.evolveum.midpoint.tools.testng.PerformanceTestMethodMixin;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
-import org.jetbrains.annotations.NotNull;
-import org.testng.SkipException;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -46,9 +39,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class GetUserTest extends SqaleRepoBaseTest
         implements PerformanceTestMethodMixin {
 
+
+
+    private  Collection<SelectorOptions<GetOperationOptions>> getOptions = null;
     private final List<String> memInfo = new ArrayList<>();
 
-    boolean skipOriginal = true;
+    boolean skipOriginal = false;
 
 
     public static int USERS = 10;
@@ -224,6 +220,14 @@ public class GetUserTest extends SqaleRepoBaseTest
         this.userBase = PrismContext.get().parserFor(USER_BASE_EXAMPLE).parseRealValue(UserType.class);
         this.operationExecutionBase = PrismContext.get().parserFor(OPERATION_EXECUTION_EXAMPLE).parseRealValue(OperationExecutionType.class);
 
+
+        this.getOptions = GetOperationOptionsBuilder.create()
+                .item(UserType.F_OPERATION_EXECUTION).dontRetrieve()
+                .item(UserType.F_ASSIGNMENT).dontRetrieve()
+                .item(UserType.F_ROLE_MEMBERSHIP_REF).dontRetrieve()
+                .item(UserType.F_LINK_REF).dontRetrieve()
+                .build();
+        this.getOptions = null;
     }
 
 
@@ -395,7 +399,7 @@ public class GetUserTest extends SqaleRepoBaseTest
             var userOid = userOidsToGet.get(i % USERS);
             try (Split ignored = stopwatch.start()) {
                 assertThat(repositoryService.getObject(
-                        UserType.class, userOid, null, operationResult))
+                        UserType.class, userOid, getOptions(), operationResult))
                         .isNotNull();
             }
             if (queryRecorder.isRecording()) {
@@ -406,7 +410,9 @@ public class GetUserTest extends SqaleRepoBaseTest
         queryRecorder.stopRecording();
     }
 
-
+    private Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+        return getOptions;
+    }
 
     private class SimonTrackerFactory extends SqlBaseOperationTracker implements SqlBaseOperationTracker.Factory {
 
