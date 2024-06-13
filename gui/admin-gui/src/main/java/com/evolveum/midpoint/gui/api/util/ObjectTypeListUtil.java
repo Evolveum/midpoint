@@ -85,6 +85,10 @@ public class ObjectTypeListUtil {
         qnameList.add(AuditEventRecordType.COMPLEX_TYPE);
         qnameList.add(AccessCertificationCaseType.COMPLEX_TYPE);
         qnameList.add(CaseWorkItemType.COMPLEX_TYPE);
+        return sortTypesList(qnameList);
+    }
+
+    public static List<QName> sortTypesList(List<QName> qnameList) {
         return qnameList.stream().sorted((type1, type2) -> {
             Validate.notNull(type1);
             Validate.notNull(type2);

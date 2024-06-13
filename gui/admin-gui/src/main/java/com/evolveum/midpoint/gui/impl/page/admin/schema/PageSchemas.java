@@ -12,11 +12,9 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.util.PrismSchemaTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.CollectionInstance;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -24,14 +22,16 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,8 +91,61 @@ public class PageSchemas extends PageAdmin {
             protected String getConfirmMessageKeyForSingleObject() {
                 return "pageUsers.message.confirmationMessageForSingleObject";
             }
+
+            @Override
+            protected List<IColumn<SelectableBean<SchemaType>, String>> createDefaultColumns() {
+                List<IColumn<SelectableBean<SchemaType>, String>> columns = new ArrayList<>();
+                columns.add(new PropertyColumn<>(createStringResource("PrismSchemaType.namespace"), "value." + SchemaType.F_DEFINITION.getLocalPart()){
+                    @Override
+                    public IModel<?> getDataModel(IModel<SelectableBean<SchemaType>> rowModel) {
+                        return () -> {
+                            PrismSchemaType prismSchema = getXsdSchema(rowModel.getObject(), super.getDataModel(rowModel));
+
+                            if (prismSchema == null) {
+                                return null;
+                            } else {
+                                return prismSchema.getNamespace();
+                            }
+                        };
+                    }
+                });
+                columns.add(new PropertyColumn<>(createStringResource("PrismSchemaType.defaultPrefix"), "value." + SchemaType.F_DEFINITION.getLocalPart()){
+                    @Override
+                    public IModel<?> getDataModel(IModel<SelectableBean<SchemaType>> rowModel) {
+                        return () -> {
+                            PrismSchemaType prismSchema = getXsdSchema(rowModel.getObject(), super.getDataModel(rowModel));
+
+                            if (prismSchema == null) {
+                                return null;
+                            } else {
+                                return prismSchema.getDefaultPrefix();
+                            }
+                        };
+                    }
+                });
+                return columns;
+            }
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);
+    }
+
+    private PrismSchemaType getXsdSchema(SelectableBean<SchemaType> schema, IModel<?> dataModel) {
+        if (schema == null || schema.getValue() == null) {
+            return null;
+        }
+
+        SchemaDefinitionType xsdDefinition = (SchemaDefinitionType) dataModel.getObject();
+        if (xsdDefinition == null) {
+            return null;
+        }
+
+        PrismSchemaType prismSchema = null;
+
+        try {
+            prismSchema = PrismSchemaTypeUtil.convertToPrismSchemaType(xsdDefinition, schema.getValue().getLifecycleState());
+        } catch (SchemaException ignored) {
+        }
+        return prismSchema;
     }
 }
