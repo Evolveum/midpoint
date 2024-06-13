@@ -88,12 +88,12 @@ public class SchemaCache implements Cache {
             throw new RuntimeException(e);
         }
 
-        if (!dbSchemaExtensions.isEmpty()) {
+        if (!dbSchemaExtensions.isEmpty() || prismContext.getSchemaRegistry().existDynamicSchemaExtensions()) {
             try {
                 prismContext.getSchemaRegistry().registerDynamicSchemaExtensions(dbSchemaExtensions);
                 prismContext.reload();
             } catch (SchemaException e) {
-                throw new RuntimeException(e);
+                LOGGER.error("Couldn't reload schema", e);
             }
         }
     }

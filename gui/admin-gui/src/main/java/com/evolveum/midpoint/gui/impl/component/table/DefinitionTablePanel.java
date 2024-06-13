@@ -103,7 +103,7 @@ public class DefinitionTablePanel<T extends ItemDefinitionDto> extends BasePanel
         columns.add(new PropertyColumn<>(createStringResource("SchemaListPanel.minMax"), ItemDefinitionDto.F_MIN_MAX_OCCURS));
 //        columns.add(new PropertyColumn<>(createStringResource("SchemaListPanel.minMax"), ItemDefinitionDto.F_MAX_OCCURS));
         columns.add(new PropertyColumn<>(createStringResource("SchemaListPanel.displayOrder"), ItemDefinitionDto.F_DISPLAY_ORDER, ItemDefinitionDto.F_DISPLAY_ORDER));
-        columns.add(new PropertyColumn<>(createStringResource("SchemaListPanel.displayOrder"), ItemDefinitionDto.F_TYPE, ItemDefinitionDto.F_TYPE));
+        columns.add(new PropertyColumn<>(createStringResource("PrismItemDefinitionType.type"), ItemDefinitionDto.F_TYPE, ItemDefinitionDto.F_TYPE));
 
 //        CheckBoxColumn<AttributeDto> check = new CheckBoxColumn<>(createStringResource("SchemaListPanel.returnedByDefault"), AttributeDto.F_RETURNED_BY_DEFAULT);
 //        check.setEnabled(false);
@@ -119,7 +119,7 @@ public class DefinitionTablePanel<T extends ItemDefinitionDto> extends BasePanel
 
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
-        buttonsList.add(createNewDefinitionBUtton(idButton));
+//        buttonsList.add(createNewDefinitionBUtton(idButton));
         return buttonsList;
     }
 

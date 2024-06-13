@@ -12,16 +12,25 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.CollectionInstance;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
 
 import java.util.ArrayList;
@@ -86,6 +95,4 @@ public class PageSchemas extends PageAdmin {
         table.setOutputMarkupId(true);
         mainForm.add(table);
     }
-
-
 }

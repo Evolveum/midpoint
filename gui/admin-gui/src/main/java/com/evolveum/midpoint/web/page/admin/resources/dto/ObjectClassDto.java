@@ -9,7 +9,8 @@ package com.evolveum.midpoint.web.page.admin.resources.dto;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -24,30 +25,30 @@ public class ObjectClassDto extends Selectable<ObjectClassDto>
 
     public static final String F_DISPLAY_NAME = "displayName";
 
-    @NotNull private final ResourceObjectTypeDefinition refinedDefinition;
+    @NotNull private final ResourceObjectClassDefinition objectClassDefinition;
 
-    public ObjectClassDto(@NotNull ResourceObjectTypeDefinition definition) {
+    public ObjectClassDto(@NotNull ResourceObjectClassDefinition definition) {
         Validate.notNull(definition, "Refined object definition must not be null.");
-        this.refinedDefinition = definition;
+        this.objectClassDefinition = definition;
     }
 
     public QName getObjectClassName() {
-        return refinedDefinition.getTypeName();
+        return objectClassDefinition.getTypeName();
     }
 
     public String getDisplayName() {
         StringBuilder builder = new StringBuilder();
-        if (refinedDefinition.getTypeName() != null) {
-            builder.append(refinedDefinition.getTypeName().getLocalPart());
+        if (objectClassDefinition.getTypeName() != null) {
+            builder.append(objectClassDefinition.getTypeName().getLocalPart());
         }
-        if (StringUtils.isNotEmpty(refinedDefinition.getDisplayName())) {
-            builder.append(" (").append(refinedDefinition.getDisplayName()).append(")");
+        if (StringUtils.isNotEmpty(objectClassDefinition.getDisplayName())) {
+            builder.append(" (").append(objectClassDefinition.getDisplayName()).append(")");
         }
         return builder.toString().trim();
     }
 
-    public ResourceObjectTypeDefinition getDefinition() {
-        return refinedDefinition;
+    public ResourceObjectClassDefinition getDefinition() {
+        return objectClassDefinition;
     }
 
     @Override
@@ -62,11 +63,11 @@ public class ObjectClassDto extends Selectable<ObjectClassDto>
 
         ObjectClassDto that = (ObjectClassDto) o;
 
-        return Objects.equals(refinedDefinition, that.refinedDefinition);
+        return Objects.equals(objectClassDefinition, that.objectClassDefinition);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(refinedDefinition);
+        return Objects.hash(objectClassDefinition);
     }
 }
