@@ -12,17 +12,14 @@ import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -46,10 +43,7 @@ import org.apache.wicket.model.Model;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serial;
-import java.util.Date;
 import java.util.List;
-
-import static java.awt.SystemColor.menu;
 
 public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> {
 
@@ -294,28 +288,11 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     }
 
     private LoadableModel<String> getStageModel() {
-        return new LoadableModel<>() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String load() {
-                AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(getCampaign());
-                int stageNumber = stage != null ? stage.getNumber() : 0;
-                int numberOfStages = CertCampaignTypeUtil.getNumberOfStages(getCampaign());
-                return stageNumber + "/" + numberOfStages;
-            }
-        };
+        return CertMiscUtil.getCampaignStageLoadableModel(getCampaign());
     }
 
     private LoadableModel<String> getIterationModel() {
-        return new LoadableModel<>() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String load() {
-                return "" + CertCampaignTypeUtil.norm(getCampaign().getIteration());
-            }
-        };
+        return CertMiscUtil.getCampaignIterationLoadableModel(getCampaign());
     }
 
     protected boolean isAuthorizedForCampaignActions() {

@@ -162,6 +162,9 @@ public abstract class PageableListView<LI extends Serializable, SPI extends Seri
             }
 
             List<LI> list = new ArrayList<>();
+            if (provider.size() == 0) {
+                return list;
+            }
 
             long itemOffset = getCurrentPage() * getItemsPerPage();
             long size = Math.min(getItemsPerPage(), getItemCount() - itemOffset);
