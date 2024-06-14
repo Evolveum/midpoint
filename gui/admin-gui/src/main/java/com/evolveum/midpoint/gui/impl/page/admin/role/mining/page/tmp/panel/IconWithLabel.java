@@ -38,6 +38,7 @@ public class IconWithLabel extends BasePanel<String> {
 
         Label image = new Label(ID_ICON);
         image.add(AttributeModifier.replace("class", getIconCssClass()));
+        image.add(AttributeModifier.replace("style", getIconComponentCssStyle()));
         image.setOutputMarkupId(true);
         add(image);
 
@@ -77,6 +78,10 @@ public class IconWithLabel extends BasePanel<String> {
 
     protected String getIconCssClass() {
         return "";
+    }
+
+    protected String getIconComponentCssStyle() {
+        return null;
     }
 
     protected Component getSubComponent(String id) {

@@ -8,13 +8,18 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.image.CustomImageResource;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -29,6 +34,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
 public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
     private static final String ID_IMAGE = "image";
+    private static final String ID_COLUMN_HEADER = "column-header";
+    private static final String ID_ROW_HEADER = "row-header";
     private static final String DOT_CLASS = ImageDetailsPanel.class.getName() + ".";
     private static final String OP_PREPARE_OBJECT = DOT_CLASS + "prepareObjects";
     String clusterOid;
@@ -54,7 +61,7 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
         PrismObject<RoleAnalysisClusterType> clusterTypePrismObject = roleAnalysisService
                 .getClusterTypeObject(clusterOid, task, result);
 
-        if(clusterTypePrismObject == null) {
+        if (clusterTypePrismObject == null) {
             warn("Cluster with oid " + clusterOid + " not found.");
             return;
         }
@@ -65,7 +72,7 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
         PrismObject<RoleAnalysisSessionType> parentClusterByOid = roleAnalysisService
                 .getSessionTypeObject(oid, task, result);
 
-        if(parentClusterByOid == null) {
+        if (parentClusterByOid == null) {
             warn("Session with oid " + oid + " not found.");
             return;
         }
@@ -73,6 +80,41 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
         RoleAnalysisSessionType session = parentClusterByOid.asObjectable();
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+
+        String columnTitle = "Users";
+        String rowTitle = "Roles";
+        String columnIcon = GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED;
+        String rowIcon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED;
+        if (RoleAnalysisProcessModeType.ROLE.equals(processMode)) {
+            columnTitle = "Roles";
+            rowTitle = "Users";
+            columnIcon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED;
+            rowIcon = GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED;
+        }
+
+        String finalColumnIcon = columnIcon;
+        IconWithLabel columnHeader = new IconWithLabel(ID_COLUMN_HEADER, Model.of(columnTitle)) {
+            @Override
+            protected String getIconCssClass() {
+                return finalColumnIcon;
+            }
+        };
+
+        String finalRowIcon = rowIcon;
+        IconWithLabel rowHeader = new IconWithLabel(ID_ROW_HEADER, Model.of(rowTitle)) {
+            @Override
+            protected String getIconCssClass() {
+                return finalRowIcon;
+            }
+
+            @Override
+            protected String getIconComponentCssStyle() {
+                return "transform: rotate(90deg);";
+            }
+        };
+
+        add(columnHeader);
+        add(rowHeader);
 
         MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareExpandedMiningStructure(cluster,
                 true, processMode, result, task, null);
@@ -121,4 +163,10 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
         return createStringResource("");
     }
 
+    @Override
+    public @NotNull Component getFooter() {
+        Component footer = Popupable.super.getFooter();
+        footer.add(AttributeAppender.append("class", "border-0"));
+        return footer;
+    }
 }
