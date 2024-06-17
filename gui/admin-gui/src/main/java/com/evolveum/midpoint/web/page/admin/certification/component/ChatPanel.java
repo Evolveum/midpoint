@@ -22,7 +22,7 @@ import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.resource.AbstractResource;
+import org.apache.wicket.request.resource.*;
 
 import java.io.Serial;
 import java.util.List;
@@ -100,7 +100,7 @@ public class ChatPanel extends BasePanel<List<ChatMessageItem>> {
             }
 
             private Component initMessageImageComponent(ChatMessageItem message) {
-                AbstractResource messageImageResource = message.getMessageImageResource();
+                IResource messageImageResource = message.getMessageImageResource();
 
                 if (messageImageResource != null) {
                     return new NonCachingImage(ID_MESSAGE_IMAGE, messageImageResource);

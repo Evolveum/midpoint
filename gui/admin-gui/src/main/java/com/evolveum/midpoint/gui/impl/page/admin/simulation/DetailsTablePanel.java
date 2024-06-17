@@ -70,7 +70,7 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
 
         Label title = new Label(ID_TITLE, titleModel);
 //        title.setRenderBodyOnly(true);
-        title.add(AttributeModifier.append("class", display.getObject().getCssClass()));
+        title.add(AttributeModifier.append("class", GuiDisplayTypeUtil.getDisplayCssClass(display.getObject())));
         add(title);
 
         IModel<String> descriptionModel = getDescriptionModel();
