@@ -572,7 +572,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 MidPointPrincipal principal = getPrincipalAsReviewer();
 
                 LoadableDetachableModel<AccessCertificationCampaignType> campaignModel =
-                        getSingleCampaignModel(getCampaignOidParameter());
+                        getSingleCampaignModel();
                 List<DetailsTableItem> items = new ArrayList<>();
 
                 DetailsTableItem chartPanelItem = new DetailsTableItem(getCompletedItemsPercentageModel(campaignsOids)) {
@@ -655,7 +655,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 };
                 items.add(deadlineItem);
 
-                DetailsTableItem stageItem = new DetailsTableItem(getStageModel()) {
+                DetailsTableItem stageItem = new DetailsTableItem(getStageModel(campaignModel.getObject())) {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
@@ -683,7 +683,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 stageItem.setValueComponentBeforeLabel(true);
                 items.add(stageItem);
 
-                DetailsTableItem iterationItem = new DetailsTableItem(getIterationLabelModel()) {
+                DetailsTableItem iterationItem = new DetailsTableItem(getIterationLabelModel(campaignModel.getObject())) {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
@@ -714,8 +714,8 @@ public class PageCertDecisions extends PageAdminCertification {
                 return items;
             }
 
-            private LoadableModel<String> getStageModel() {
-                return CertMiscUtil.getCampaignStageLoadableModel(loadCampaign(getCampaignOidParameter()));
+            private LoadableModel<String> getStageModel(AccessCertificationCampaignType campaign) {
+                return CertMiscUtil.getCampaignStageLoadableModel(campaign);
             }
 
             private LoadableDetachableModel<String> getCompletedItemsPercentageModel(List<String> campaignsOids) {
@@ -739,8 +739,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 };
             }
 
-            private IModel<String> getIterationLabelModel() {
-                AccessCertificationCampaignType campaign = loadCampaign(getCampaignOidParameter());
+            private IModel<String> getIterationLabelModel(AccessCertificationCampaignType campaign) {
                 if (campaign == null) {
                     return () -> "";
                 }
@@ -757,12 +756,22 @@ public class PageCertDecisions extends PageAdminCertification {
         }
     }
 
-    private LoadableDetachableModel<AccessCertificationCampaignType> getSingleCampaignModel(String campaignOid) {
+    private LoadableDetachableModel<AccessCertificationCampaignType> getSingleCampaignModel() {
         return new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected AccessCertificationCampaignType load() {
+                String campaignOid = getCampaignOidParameter();
+                if (StringUtils.isEmpty(campaignOid)) {
+                    List<String> campaignsOids = getCampaignOidsList();
+                    if (campaignsOids.size() == 1) {
+                        return loadCampaign(campaignsOids.get(0));
+                    }
+                }
+                if (StringUtils.isEmpty(campaignOid)) {
+                    return null;
+                }
                 return loadCampaign(campaignOid);
             }
         };

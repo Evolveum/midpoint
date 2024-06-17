@@ -182,12 +182,15 @@ public class CertMiscUtil {
                 .build();
     }
 
-    public static LoadableModel<String> getCampaignStageLoadableModel(@NotNull AccessCertificationCampaignType campaign) {
+    public static LoadableModel<String> getCampaignStageLoadableModel(AccessCertificationCampaignType campaign) {
         return new LoadableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String load() {
+                if (campaign == null) {
+                    return "";
+                }
                 AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
                 int stageNumber = stage != null ? stage.getNumber() : 0;
                 int numberOfStages = CertCampaignTypeUtil.getNumberOfStages(campaign);
@@ -196,12 +199,15 @@ public class CertMiscUtil {
         };
     }
 
-    public static LoadableModel<String> getCampaignIterationLoadableModel(@NotNull AccessCertificationCampaignType campaign) {
+    public static LoadableModel<String> getCampaignIterationLoadableModel(AccessCertificationCampaignType campaign) {
         return new LoadableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String load() {
+                if (campaign == null) {
+                    return "";
+                }
                 return "" + CertCampaignTypeUtil.norm(campaign.getIteration());
             }
         };

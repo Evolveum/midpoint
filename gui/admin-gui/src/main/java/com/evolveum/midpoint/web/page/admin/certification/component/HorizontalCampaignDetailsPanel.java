@@ -50,6 +50,10 @@ public class HorizontalCampaignDetailsPanel extends BasePanel<List<DetailsTableI
                     item.add(new Label(ID_DETAILS_COMPONENT_1, () -> data.getLabel().getObject()));
                     item.add(data.createValueComponent(ID_DETAILS_COMPONENT_2));
                 }
+
+                if (data.isVisible() != null) {
+                    item.add(data.isVisible());
+                }
             }
         };
         add(details);
