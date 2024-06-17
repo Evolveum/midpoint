@@ -17744,11 +17744,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="useCachedShadows" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="cachedShadowsUse" type="tns:CachedShadowsUseType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set, then the "reconcile" flag will not cause shadows to be automatically
-                        loaded. Instead, the shadow cache will be used, if applicable.
+                        How should we use cached shadows during this operation?
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.9</a:since>
@@ -21343,5 +21342,60 @@
     </xsd:complexType>
     <xsd:element name="schema" type="tns:SchemaType" substitutionGroup="c:object"/>
 
-
+    <xsd:simpleType name="CachedShadowsUseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Whether (and how) we use cached shadows during processing.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="useFresh">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When we need the data from the shadow, we will fetch it from the resource.
+                        This is the same behavior as it was before midPoint 4.9.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="USE_FRESH"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="useCachedOrFresh">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When we need the data from the shadow, we will use the cached data, if they are available.
+                        If they are not, we will fetch them from the resource.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="USE_CACHED_OR_FRESH"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="useCachedOrIgnore">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When we need the data from the shadow, we will use the cached data, if they are available.
+                        If they are not, we will skip the respective part of the processing (e.g., a mapping).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="USE_CACHED_OR_IGNORE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="useCachedOrFail">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When we need the data from the shadow, we will use the cached data, if they are available.
+                        If they are not, we will fail.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="USE_CACHED_OR_FAIL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

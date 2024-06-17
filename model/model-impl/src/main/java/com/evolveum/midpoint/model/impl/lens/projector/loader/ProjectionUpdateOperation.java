@@ -423,7 +423,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
         if (projectionContext.isInMaintenance()) {
             LOGGER.trace("Using 'no fetch' mode because of resource maintenance (to avoid errors being reported)");
             builder = builder.noFetch();
-        } else if (reconciliation && !projectionContext.getLensContext().isUseCachedShadows()) {
+        } else if (reconciliation && projectionContext.getLensContext().getCachedShadowsUse() == CachedShadowsUseType.USE_FRESH) {
             builder = builder.forceRefresh();
 
             // We force operation retry "in hard way" only if we do full-scale reconciliation AND we are starting the clockwork.
