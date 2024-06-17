@@ -10,8 +10,6 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import java.util.Objects;
 import jakarta.persistence.*;
 
-import org.hibernate.annotations.ForeignKey;
-
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtPolyStringId;
@@ -48,10 +46,10 @@ public class ROExtPolyString extends ROExtBase<String> {
         }
     }
 
-    @ForeignKey(name = "fk_o_ext_poly_owner")
-    @MapsId("owner")
+    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
+    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_o_ext_poly_owner"))
     public RObject getOwner() {
         return super.getOwner();
     }

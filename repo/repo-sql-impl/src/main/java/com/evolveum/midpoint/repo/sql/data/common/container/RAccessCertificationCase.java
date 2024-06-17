@@ -11,14 +11,13 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Persister;
-import org.hibernate.annotations.Type;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import org.hibernate.annotations.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -83,8 +82,8 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     }
 
     @Override
-    @JoinColumn(foreignKey = @ForeignKey(name = "fk_acc_cert_case_owner"))
-    @MapsId("owner")
+    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_acc_cert_case_owner"))
+    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @OwnerGetter(ownerClass = RAccessCertificationCampaign.class)
     public RAccessCertificationCampaign getOwner() {

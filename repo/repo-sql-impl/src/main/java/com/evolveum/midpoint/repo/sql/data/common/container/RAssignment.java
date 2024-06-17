@@ -9,13 +9,12 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import jakarta.persistence.Entity;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -93,8 +92,8 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
     }
 
     @Override
-    @JoinColumn(foreignKey = @ForeignKey(name = "fk_assignment_owner"))
-    @MapsId("owner")
+    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_assignment_owner"))
+    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     public RObject getOwner() {
@@ -150,10 +149,13 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
     @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
     @OneToOne(orphanRemoval = true)
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
-    @JoinColumns(value = {
-            @JoinColumn(name = "extOid", referencedColumnName = "owner_owner_oid"),
-            @JoinColumn(name = "extId", referencedColumnName = "owner_id")
-    }, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JoinColumns(
+            value = {
+                    @JoinColumn(name = "extOid", referencedColumnName = "owner_owner_oid"),
+                    @JoinColumn(name = "extId", referencedColumnName = "owner_id")
+            },
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT)
+    )
     public RAssignmentExtension getExtension() {
         return extension;
     }

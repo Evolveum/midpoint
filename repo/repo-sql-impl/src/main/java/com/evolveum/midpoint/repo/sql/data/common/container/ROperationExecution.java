@@ -7,9 +7,9 @@
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import java.util.Objects;
-import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Persister;
@@ -67,8 +67,8 @@ public class ROperationExecution implements Container<RObject> {
         this.setOwner(owner);
     }
 
-    @JoinColumn(foreignKey = @ForeignKey(name = "fk_op_exec_owner"))
-    @MapsId("owner")
+    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_op_exec_owner"))
+    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     @Override

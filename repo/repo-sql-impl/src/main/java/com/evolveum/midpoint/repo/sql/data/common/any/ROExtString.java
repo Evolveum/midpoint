@@ -8,9 +8,8 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import java.util.Objects;
-import jakarta.persistence.*;
 
-import org.hibernate.annotations.ForeignKey;
+import jakarta.persistence.*;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtStringId;
@@ -39,10 +38,10 @@ public class ROExtString extends ROExtBase<String> {
         this.value = value;
     }
 
-    @ForeignKey(name = "fk_object_ext_string")
-    @MapsId("owner")
+    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
+    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_object_ext_string_owner"))
     public RObject getOwner() {
         return super.getOwner();
     }
@@ -77,9 +76,9 @@ public class ROExtString extends ROExtBase<String> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (!(o instanceof ROExtString)) { return false; }
-        if (!super.equals(o)) { return false; }
+        if (this == o) {return true;}
+        if (!(o instanceof ROExtString)) {return false;}
+        if (!super.equals(o)) {return false;}
         ROExtString that = (ROExtString) o;
         return Objects.equals(value, that.value);
     }

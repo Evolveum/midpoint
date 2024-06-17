@@ -11,10 +11,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import jakarta.persistence.*;
 
+import jakarta.persistence.*;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -50,10 +49,15 @@ public class RCaseWorkItemReference extends RReference {
     private Integer ownerId;                            // work item ID
     private RCaseWorkItemReferenceOwner referenceType;
 
-    @ForeignKey(name = "fk_case_wi_reference_owner")
-    @MapsId("workItem")
+    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
+    @JoinColumns(
+            value = {
+                    @JoinColumn(name = "owner_owner_oid"),
+                    @JoinColumn(name = "owner_id")
+            },
+            foreignKey = @ForeignKey(name = "fk_case_wi_reference_owner"))
     public RCaseWorkItem getOwner() {
         return owner;
     }
@@ -92,9 +96,12 @@ public class RCaseWorkItemReference extends RReference {
         this.ownerId = ownerId;
     }
 
-    @ForeignKey(name = "none")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false)
+    @JoinColumn(
+            referencedColumnName = "oid",
+            updatable = false,
+            insertable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
     // commented because of The NotFoundAction.IGNORE @ManyToOne and @OneToOne associations are always fetched eagerly. (HHH-12770)
 //    @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable

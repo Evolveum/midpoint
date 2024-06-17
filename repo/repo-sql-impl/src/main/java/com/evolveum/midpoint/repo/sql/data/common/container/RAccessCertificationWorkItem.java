@@ -13,11 +13,11 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import jakarta.persistence.Entity;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Table;
 import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -73,10 +73,16 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     }
 
     @Override
-    @ForeignKey(name = "fk_acc_cert_wi_owner")
-    @MapsId("owner")
+    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
     @OwnerGetter(ownerClass = RAccessCertificationCase.class)
+    @JoinColumns(
+            value = {
+                    @JoinColumn(name = "owner_owner_oid"),
+                    @JoinColumn(name = "owner_id")
+            },
+            foreignKey = @ForeignKey(name = "fk_acc_cert_wi_owner")
+    )
     public RAccessCertificationCase getOwner() {
         return owner;
     }
@@ -137,7 +143,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 
     @JaxbName(localPart = "assigneeRef")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @ForeignKey(name = "none")
+    @org.hibernate.annotations.ForeignKey(name = "none")
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RCertWorkItemReference> getAssigneeRef() {
         return assigneeRef;

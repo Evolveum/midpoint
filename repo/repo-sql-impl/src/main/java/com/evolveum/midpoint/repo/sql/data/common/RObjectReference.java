@@ -75,8 +75,8 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
         this.trans = trans;
     }
 
-    @JoinColumn(foreignKey = @ForeignKey(name = "fk_reference_owner"))
-    @MapsId("owner")
+    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_reference_owner"))
+    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     public RObject getOwner() {

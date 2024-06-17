@@ -8,10 +8,6 @@
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import jakarta.persistence.*;
-
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -39,10 +35,16 @@ public class RAssignmentReference extends RContainerReference {
 
     private RAssignment owner;
 
-    @ForeignKey(name = "fk_assignment_reference")
-    @MapsId("owner")
+    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
+    @JoinColumns(
+            value = {
+                    @JoinColumn(name = "owner_owner_oid"),
+                    @JoinColumn(name = "owner_id")
+            },
+            foreignKey = @ForeignKey(name = "fk_assignment_reference_owner")
+    )
     public RAssignment getOwner() {
         return owner;
     }
@@ -61,7 +63,7 @@ public class RAssignmentReference extends RContainerReference {
         return super.getOwnerId();
     }
 
-    @ForeignKey(name = "none")
+    @org.hibernate.annotations.ForeignKey(name = "none")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false)
     // commented because of The NotFoundAction.IGNORE @ManyToOne and @OneToOne associations are always fetched eagerly. (HHH-12770)
