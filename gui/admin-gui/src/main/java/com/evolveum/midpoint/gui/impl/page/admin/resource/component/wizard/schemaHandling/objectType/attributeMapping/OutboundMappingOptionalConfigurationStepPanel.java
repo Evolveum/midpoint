@@ -89,6 +89,7 @@ public class OutboundMappingOptionalConfigurationStepPanel<ODM extends ObjectDet
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
         super.onSubmitPerformed(target);
+        onExitPreProcessing(target);
         onExitPerformed(target);
     }
 

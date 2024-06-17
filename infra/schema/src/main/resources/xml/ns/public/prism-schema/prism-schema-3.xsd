@@ -133,7 +133,18 @@
         <xsd:complexContent>
             <xsd:extension base="tns:PrismItemDefinitionType">
                 <xsd:sequence>
-                    <xsd:element ref="a:objectReferenceTargetType" minOccurs="0"/>
+                    <xsd:element ref="a:objectReferenceTargetType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>20</a:displayOrder>
+                                <a:displayHint>emphasized</a:displayHint>
+                            </xsd:appinfo>
+                            <xsd:documentation>
+                                Object reference annotation: reference target type. Content of this
+                                annotation specifies the object type that the reference points to.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

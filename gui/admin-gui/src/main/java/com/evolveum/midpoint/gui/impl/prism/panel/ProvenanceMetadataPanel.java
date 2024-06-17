@@ -81,7 +81,7 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ValueMetadataTy
 
             @Override
             protected String createImageModel() {
-                return "fa fa-tag";
+                return "fa fa-tag text-info";
             }
 
             @Override

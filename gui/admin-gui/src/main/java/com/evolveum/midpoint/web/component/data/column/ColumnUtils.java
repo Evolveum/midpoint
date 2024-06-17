@@ -1092,7 +1092,7 @@ public class ColumnUtils {
 
            @Override
            public IModel<List<ObjectReferenceType>> extractDataModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-               return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel));
+               return () -> CertCampaignTypeUtil.getAssignedReviewersForStage(unwrapRowModel(rowModel), stageNumber);
            }
        });
        columns.add(new CompositedIconWithLabelColumn<>(createStringResource("PageCertCampaign.statistics.response")) {
@@ -1149,7 +1149,8 @@ public class ColumnUtils {
 
            @Override
            public DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-               List<String> comments = CertCampaignTypeUtil.getComments(unwrapRowModel(rowModel).asPrismContainerValue());
+               List<String> comments = CertCampaignTypeUtil.getCommentsForStage(unwrapRowModel(rowModel).asPrismContainerValue(),
+                       stageNumber);
                return new DisplayType()
                        .tooltip(StringUtils.join(comments, "\n"))
                        .icon(new IconType()

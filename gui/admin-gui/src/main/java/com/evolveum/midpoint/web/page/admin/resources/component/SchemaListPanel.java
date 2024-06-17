@@ -10,13 +10,10 @@ package com.evolveum.midpoint.web.page.admin.resources.component;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.table.DefinitionTablePanel;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -309,6 +306,10 @@ public class SchemaListPanel extends BasePanel<PrismObjectWrapper<ResourceType>>
         for (ShadowSimpleAttributeDefinition def : selected.getDefinition().getSimpleAttributeDefinitions()) {
             list.add(new AttributeDto(def));
         }
+
+        for (ShadowReferenceAttributeDefinition def : selected.getDefinition().getReferenceAttributeDefinitions()) {
+            list.add(new AttributeDto(def));
+        }
         return list;
     }
 
@@ -338,7 +339,7 @@ public class SchemaListPanel extends BasePanel<PrismObjectWrapper<ResourceType>>
             return list;
         }
 
-        for(ResourceObjectTypeDefinition definition: schema.getObjectTypeDefinitions()){
+        for(ResourceObjectClassDefinition definition: schema.getObjectClassDefinitions()){
             list.add(new ObjectClassDto(definition));
         }
 

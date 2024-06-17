@@ -126,36 +126,9 @@ The metarole above is to be assigned to controlling roles (where subtype is diff
 Thus it is not possible to mix executive and controlling roles.
 
 
-== Legacy Configuration
-
-In midPoint 3.4 and earlier there was no policy rules feature.
-Therefore the role exclusion was defined as:
-
-[source,xml]
-----
-<role>
-    <name>Judge</name>
-    <inducement>
-        <construction>
-            <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="c:ResourceType"/>
-        </construction>
-    </inducement>
-    <exclusion>
-        <targetRef oid="12345678-d34d-b33f-f00d-987987987988" type="c:RoleType"/>
-        <policy>enforce</policy>
-    </exclusion>
-</role>
-
-----
-
-This configuration is currently deprecated.
-However it still works.
-And while currently there are no specific plans to remove it we recommend to migrate to configuration based on xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules] at the earliest convenient moment.
-The policy rules are much more flexible mechanism.
-
 == History
 
-Basic role exclusion with strict enforcement is available in midPoint since version 2.x. The definition based on xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules] is available since midPoint 3.5. However this is still limited to strict enforcement.
+Basic role exclusion with strict enforcement is available in midPoint since version 2.x. The definition based on xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules] is available since midPoint 3.5. However, this is still limited to strict enforcement.
 The other policy actions are available since midPoint 3.6.
 
 == See Also

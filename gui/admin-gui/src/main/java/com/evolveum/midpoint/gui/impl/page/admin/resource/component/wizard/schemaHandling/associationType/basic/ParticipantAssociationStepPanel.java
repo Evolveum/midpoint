@@ -9,8 +9,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -308,5 +310,11 @@ public abstract class ParticipantAssociationStepPanel
     @Override
     public VisibleEnableBehaviour getHeaderBehaviour() {
         return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+    }
+
+    @Override
+    protected Component createTableHeader(String id, Component header) {
+        header.add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
+        return header;
     }
 }

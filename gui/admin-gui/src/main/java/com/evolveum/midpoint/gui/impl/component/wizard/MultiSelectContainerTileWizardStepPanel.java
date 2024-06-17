@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -142,9 +143,18 @@ public abstract class MultiSelectContainerTileWizardStepPanel<E extends Serializ
                     protected boolean skipSearch() {
                         return MultiSelectContainerTileWizardStepPanel.this.skipSearch();
                     }
+
+                    @Override
+                    protected Component createHeader(String id) {
+                        return MultiSelectContainerTileWizardStepPanel.this.createTableHeader(id, super.createHeader(id));
+                    }
                 };
         tilesTable.setOutputMarkupId(true);
         return tilesTable;
+    }
+
+    protected Component createTableHeader(String id, Component header) {
+        return header;
     }
 
     protected void customizeRow(PrismContainerValueWrapper<C> value) {
