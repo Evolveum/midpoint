@@ -8,12 +8,21 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.component.IconComponent;
+import com.evolveum.midpoint.gui.api.component.wizard.BehaviourDelegator;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -24,8 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.*;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -45,9 +53,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.session.CertDecisionsStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 
@@ -57,14 +63,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -102,6 +111,8 @@ public class PageCertDecisions extends PageAdminCertification {
     private static final String OPERATION_RECORD_ACTION = DOT_CLASS + "recordAction";
     private static final String OPERATION_RECORD_ACTION_SELECTED = DOT_CLASS + "recordActionSelected";
     private static final String OPERATION_LOAD_CAMPAIGN = DOT_CLASS + "loadCampaign";
+    private static final String OPERATION_LOAD_REPORT = DOT_CLASS + "loadCertItemsReport";
+    private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runCertItemsReport";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_DECISIONS_TABLE = "decisionsTable";
@@ -161,7 +172,7 @@ public class PageCertDecisions extends PageAdminCertification {
             }
 
             @Override
-            protected Component createNextButton(String id, IModel<String> nextTitle) {
+            protected Component createHeaderContent(String id) {
                 HorizontalCampaignDetailsPanel detailsPanel = new HorizontalCampaignDetailsPanel(id, createCampaignDetailsModel()) {
 
                     @Serial private static final long serialVersionUID = 1L;
@@ -173,8 +184,29 @@ public class PageCertDecisions extends PageAdminCertification {
                     }
                 };
                 detailsPanel.setOutputMarkupId(true);
-                detailsPanel.add(AttributeAppender.append("class", "d-flex"));
+                detailsPanel.add(AttributeAppender.append("class", "d-flex justify-content-end"));
                 return detailsPanel;
+            }
+
+            @Override
+            protected Component createNextButton(String id, IModel<String> nextTitle) {
+                AjaxIconButton button = new AjaxIconButton(id, Model.of("fa fa-chart-pie"),
+                        createStringResource("PageCertDecisions.button.createReport")) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        onNextPerformed(target);
+                    }
+                };
+                button.showTitleAsLabel(true);
+                button.add(AttributeModifier.append("class", "btn btn-secondary"));
+                return button;
+            }
+
+            @Override
+            protected void onNextPerformed(AjaxRequestTarget target) {
+                runCertItemsReport(target);
             }
 
         };
@@ -188,7 +220,6 @@ public class PageCertDecisions extends PageAdminCertification {
         }
         return null;
     }
-
 
     private List<IColumn<CertWorkItemDto, String>> initColumns() {
         List<IColumn<CertWorkItemDto, String>> columns = new ArrayList<>();
@@ -636,16 +667,16 @@ public class PageCertDecisions extends PageAdminCertification {
 
                     @Override
                     public Component createValueComponent(String id) {
-                         DeadlinePanel deadlinePanel = new DeadlinePanel(id, new LoadableModel<XMLGregorianCalendar>() {
-                             @Override
-                             protected XMLGregorianCalendar load() {
-                                 return campaignModel.getObject() != null ? CampaignProcessingHelper.computeDeadline(
-                                         campaignModel.getObject(), PageCertDecisions.this) : null;
-                             }
-                         });
-                         deadlinePanel.add(AttributeAppender.append("title",
-                                 createStringResource("PageCertDecisions.table.deadline")));
-                         return deadlinePanel;
+                        DeadlinePanel deadlinePanel = new DeadlinePanel(id, new LoadableModel<XMLGregorianCalendar>() {
+                            @Override
+                            protected XMLGregorianCalendar load() {
+                                return campaignModel.getObject() != null ? CampaignProcessingHelper.computeDeadline(
+                                        campaignModel.getObject(), PageCertDecisions.this) : null;
+                            }
+                        });
+                        deadlinePanel.add(AttributeAppender.append("title",
+                                createStringResource("PageCertDecisions.table.deadline")));
+                        return deadlinePanel;
                     }
 
                     @Override
@@ -806,5 +837,39 @@ public class PageCertDecisions extends PageAdminCertification {
             XMLGregorianCalendar startDate = campaign != null ? campaign.getStartTimestamp() : null;
             return WebComponentUtil.getLocalizedDate(startDate, DateLabelComponent.SHORT_NOTIME_STYLE);
         };
+    }
+
+    //todo set campaign oid, assigneeRef as parameters
+    private void runCertItemsReport(AjaxRequestTarget target) {
+        Task task = createSimpleTask(OPERATION_RUN_REPORT);
+        OperationResult result = task.getResult();
+
+        try {
+            PrismObject<ReportType> report = loadCertItemsReport();
+            getReportManager().runReport(report, null, task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        showResult(result);
+        target.add(getFeedbackPanel());
+    }
+
+    private PrismObject<ReportType> loadCertItemsReport() {
+        Task task = createSimpleTask(OPERATION_LOAD_REPORT);
+        OperationResult result = task.getResult();
+        PrismObject<ReportType> report = null;
+        try {
+            report = getModelService().getObject(ReportType.class, CommonInitialObjects.REPORT_CERTIFICATION_WORK_ITEMS.oid,
+                    null, task, result);
+        } catch (Exception ex) {
+            LOGGER.error("Couldn't load certification work items report", ex);
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+        return report;
     }
 }
