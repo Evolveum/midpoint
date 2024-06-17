@@ -32,7 +32,6 @@ public class RFocusPhoto implements Serializable, EntityState {
 
     private byte[] photo;
 
-    @Id
     @ForeignKey(name = "fk_focus_photo")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)

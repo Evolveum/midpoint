@@ -57,7 +57,6 @@ public class RTrigger implements Container<RObject> {
     }
 
     @Override
-    @Id
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_trigger_owner"))

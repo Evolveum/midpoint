@@ -39,7 +39,6 @@ public class ROExtLong extends ROExtBase<Long> {
         this.value = value;
     }
 
-    @Id
     @ForeignKey(name = "fk_object_ext_long")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)

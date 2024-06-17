@@ -39,7 +39,6 @@ public class ROExtBoolean extends ROExtBase<Boolean> {
         this.value = value;
     }
 
-    @Id
     @ForeignKey(name = "fk_o_ext_boolean_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)

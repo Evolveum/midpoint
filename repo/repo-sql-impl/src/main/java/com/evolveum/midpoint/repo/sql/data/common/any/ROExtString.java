@@ -39,7 +39,6 @@ public class ROExtString extends ROExtBase<String> {
         this.value = value;
     }
 
-    @Id
     @ForeignKey(name = "fk_object_ext_string")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)

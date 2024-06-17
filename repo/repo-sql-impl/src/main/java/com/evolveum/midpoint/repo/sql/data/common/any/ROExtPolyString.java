@@ -48,7 +48,6 @@ public class ROExtPolyString extends ROExtBase<String> {
         }
     }
 
-    @Id
     @ForeignKey(name = "fk_o_ext_poly_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)

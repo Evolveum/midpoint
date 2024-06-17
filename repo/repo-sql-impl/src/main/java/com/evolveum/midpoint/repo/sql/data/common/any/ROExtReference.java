@@ -46,7 +46,6 @@ public class ROExtReference extends ROExtBase<String> {
     public ROExtReference() {
     }
 
-    @Id
     @ForeignKey(name = "fk_o_ext_reference_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)

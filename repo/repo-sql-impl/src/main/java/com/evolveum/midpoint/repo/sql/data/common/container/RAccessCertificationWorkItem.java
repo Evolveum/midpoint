@@ -73,7 +73,6 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     }
 
     @Override
-    @Id
     @ForeignKey(name = "fk_acc_cert_wi_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)

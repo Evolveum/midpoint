@@ -15,8 +15,6 @@ import jakarta.persistence.*;
 
 import org.apache.commons.lang3.Validate;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -64,7 +62,7 @@ public class RCaseWorkItemReference extends RReference {
         this.owner = owner;
         if (owner != null) {
             this.ownerOwnerOid = owner.getOwnerOid();
-            this.ownerId = owner.getId();
+            this.ownerId = owner.getContainerId();
         }
     }
 
@@ -85,7 +83,7 @@ public class RCaseWorkItemReference extends RReference {
     @NotQueryable
     public Integer getOwnerId() {
         if (ownerId == null && getOwner() != null) {
-            ownerId = getOwner().getId();
+            ownerId = getOwner().getContainerId();
         }
         return ownerId;
     }

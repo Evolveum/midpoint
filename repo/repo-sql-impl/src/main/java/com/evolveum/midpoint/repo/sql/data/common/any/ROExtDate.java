@@ -40,7 +40,6 @@ public class ROExtDate extends ROExtBase<Timestamp> {
         this.value = value;
     }
 
-    @Id
     @ForeignKey(name = "fk_o_ext_date_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)

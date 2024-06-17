@@ -16,14 +16,14 @@ import java.util.Objects;
 public class RCaseWorkItemId implements Serializable {
 
     private String ownerOid;         // case OID
-    private Integer id;
+    private Integer containerId;
 
     public RCaseWorkItemId() {
     }
 
-    public RCaseWorkItemId(String ownerOid, Integer id) {
+    public RCaseWorkItemId(String ownerOid, Integer containerId) {
         this.ownerOid = ownerOid;
-        this.id = id;
+        this.containerId = containerId;
     }
 
     public String getOwnerOid() {
@@ -34,12 +34,12 @@ public class RCaseWorkItemId implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public Integer getId() {
-        return id;
+    public Integer getContainerId() {
+        return containerId;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setContainerId(Integer containerId) {
+        this.containerId = containerId;
     }
 
     @Override
@@ -50,19 +50,19 @@ public class RCaseWorkItemId implements Serializable {
             return false;
         RCaseWorkItemId that = (RCaseWorkItemId) o;
         return Objects.equals(ownerOid, that.ownerOid) &&
-                Objects.equals(id, that.id);
+                Objects.equals(containerId, that.containerId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ownerOid, id);
+        return Objects.hash(ownerOid, containerId);
     }
 
     @Override
     public String toString() {
         return "RCertWorkItemId{" +
                 ", ownerOid=" + ownerOid +
-                ", id=" + id +
+                ", containerId=" + containerId +
                 '}';
     }
 }

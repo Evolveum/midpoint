@@ -83,7 +83,6 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     }
 
     @Override
-    @Id
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_acc_cert_case_owner"))
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)

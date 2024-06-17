@@ -93,7 +93,6 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
     }
 
     @Override
-    @Id
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_assignment_owner"))
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)

@@ -12,11 +12,11 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import jakarta.persistence.Entity;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Table;
 import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -46,7 +46,7 @@ public class RCaseWorkItem implements Container<RCase> {
 
     private RCase owner;
     private String ownerOid;
-    private Integer id;
+    private Integer containerId;
 
     private Integer stageNumber;
     private REmbeddedReference originalAssigneeRef;
@@ -62,9 +62,8 @@ public class RCaseWorkItem implements Container<RCase> {
     }
 
     @Override
-    @Id
-    @ForeignKey(name = "fk_case_wi_owner")
-    @MapsId("owner")
+    @MapsId("ownerOid")
+    @JoinColumn(name = "ownerOid", foreignKey = @ForeignKey(name = "fk_case_wi_owner"))
     @ManyToOne(fetch = FetchType.LAZY)
     @OwnerGetter(ownerClass = RCase.class)
     public RCase getOwner() {
@@ -94,19 +93,29 @@ public class RCaseWorkItem implements Container<RCase> {
         this.ownerOid = ownerOid;
     }
 
-    @Override
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
     @IdQueryProperty
-    public Integer getId() {
-        return id;
+    public Integer getContainerId() {
+        return containerId;
     }
 
+    public void setContainerId(Integer id) {
+        this.containerId = id;
+    }
+
+    @Transient
+    @Override
+    public Integer getId() {
+        return getContainerId();
+    }
+
+    @Transient
     @Override
     public void setId(Integer id) {
-        this.id = id;
+        setContainerId(id);
     }
 
     @Column
@@ -130,7 +139,7 @@ public class RCaseWorkItem implements Container<RCase> {
     @Where(clause = RCaseWorkItemReference.REFERENCE_TYPE + "= 0")
     @JaxbName(localPart = "assigneeRef")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @ForeignKey(name = "none")
+    @org.hibernate.annotations.ForeignKey(name = "none")
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RCaseWorkItemReference> getAssigneeRef() {
         return assigneeRef;
@@ -143,7 +152,7 @@ public class RCaseWorkItem implements Container<RCase> {
     @Where(clause = RCaseWorkItemReference.REFERENCE_TYPE + "= 1")
     @JaxbName(localPart = "candidateRef")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @ForeignKey(name = "none")
+    @org.hibernate.annotations.ForeignKey(name = "none")
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RCaseWorkItemReference> getCandidateRef() {
         return candidateRef;
@@ -208,7 +217,7 @@ public class RCaseWorkItem implements Container<RCase> {
         if (!(o instanceof RCaseWorkItem)) { return false; }
         RCaseWorkItem that = (RCaseWorkItem) o;
         return Objects.equals(getOwnerOid(), that.getOwnerOid()) &&
-                Objects.equals(id, that.id) &&
+                Objects.equals(containerId, that.containerId) &&
                 Objects.equals(stageNumber, that.stageNumber) &&
                 Objects.equals(assigneeRef, that.assigneeRef) &&
                 Objects.equals(performerRef, that.performerRef) &&
@@ -221,7 +230,7 @@ public class RCaseWorkItem implements Container<RCase> {
     @Override
     public int hashCode() {
         return Objects
-                .hash(getOwnerOid(), id, stageNumber, assigneeRef, performerRef, outcome, closeTimestamp, createTimestamp, deadline);
+                .hash(getOwnerOid(), containerId, stageNumber, assigneeRef, performerRef, outcome, closeTimestamp, createTimestamp, deadline);
     }
 
     @Override
@@ -253,7 +262,7 @@ public class RCaseWorkItem implements Container<RCase> {
     private static void toRepo(RCaseWorkItem rWorkItem, CaseWorkItemType workItem, RepositoryContext context) {
         rWorkItem.setTransient(null);       // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
         Integer idInt = RUtil.toInteger(workItem.getId());
-        rWorkItem.setId(idInt);
+        rWorkItem.setContainerId(idInt);
         rWorkItem.setStageNumber(workItem.getStageNumber());
         rWorkItem.setOriginalAssigneeRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getOriginalAssigneeRef(), context.relationRegistry));
         rWorkItem.getAssigneeRef().addAll(RCaseWorkItemReference.safeListReferenceToSet(
@@ -273,7 +282,7 @@ public class RCaseWorkItem implements Container<RCase> {
                 "trans=" + trans +
                 ", owner=" + owner +
                 ", ownerOid='" + ownerOid + '\'' +
-                ", id=" + id +
+                ", id=" + containerId +
                 ", stageNumber=" + stageNumber +
                 ", originalAssigneeRef=" + originalAssigneeRef +
                 ", assigneeRef=" + assigneeRef +
