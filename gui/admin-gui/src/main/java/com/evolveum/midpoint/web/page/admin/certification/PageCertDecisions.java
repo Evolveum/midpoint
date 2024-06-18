@@ -24,6 +24,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.web.application.CollectionInstance;
+import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.*;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.Table;
@@ -93,7 +95,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS,
                         label = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_LABEL,
                         description = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_DESCRIPTION) })
-
+@CollectionInstance(identifier = "allCertDecisions", applicableForType = AccessCertificationWorkItemType.class,
+        display = @PanelDisplay(label = "PageAdmin.menu.top.certification.decisions", singularLabel = ""))
 public class PageCertDecisions extends PageAdminCertification {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCertDecisions.class);

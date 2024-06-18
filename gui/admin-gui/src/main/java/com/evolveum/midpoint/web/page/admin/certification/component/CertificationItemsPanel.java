@@ -28,10 +28,13 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.action.AbstractGuiAction;
+import com.evolveum.midpoint.web.component.action.CertItemAcceptAction;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.page.admin.certification.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
 import com.evolveum.midpoint.web.session.CertDecisionsStorage;
@@ -87,7 +90,21 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     }
 
     private List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createColumns() {
-        return ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
+        List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> columns =
+                ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
+        List<AbstractGuiAction<AccessCertificationWorkItemType>> actions = new ArrayList<>();
+        actions.add(new CertItemAcceptAction());
+
+        columns.add(new GuiActionColumn<>(actions, getPageBase()) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected AccessCertificationWorkItemType unwrapRowModel(
+                    IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
+                return rowModel.getObject().getRealValue();
+            }
+        });
+        return columns;
     }
 
     @Override
@@ -283,18 +300,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         Task task = getPageBase().createSimpleTask(OPERATION_RECORD_ACTION_SELECTED);
         items.stream().forEach(item -> {
             OperationResult resultOne = result.createSubresult(OPERATION_RECORD_ACTION);
-            try {
-                AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(item);
-                AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaign(certCase);
-                getPageBase().getCertificationService().recordDecision(
-                        campaign.getOid(),
-                        certCase.getId(), item.getId(),
-                        response, comment, task, resultOne);
-            } catch (Exception ex) {
-                resultOne.recordFatalError(ex);
-            } finally {
-                resultOne.computeStatusIfUnknown();
-            }
+            CertMiscUtil.recordCertItemResponse(item, response, comment, resultOne, task, getPageBase());
         });
         result.computeStatus();
 

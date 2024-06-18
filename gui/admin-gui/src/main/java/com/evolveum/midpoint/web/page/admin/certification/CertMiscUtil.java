@@ -45,6 +45,8 @@ public class CertMiscUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(CertMiscUtil.class);
     private static final String OPERATION_LOAD_CAMPAIGNS_OIDS = "loadCampaignsOids";
+    private static final String OPERATION_RECORD_ACTION = "recordAction";
+    private static final String OPERATION_RECORD_ACTION_SELECTED = "recordActionSelected";
 
     public static String getStopReviewOnText(List<AccessCertificationResponseType> stopOn, PageBase page) {
         if (stopOn == null) {
@@ -211,6 +213,28 @@ public class CertMiscUtil {
                 return "" + CertCampaignTypeUtil.norm(campaign.getIteration());
             }
         };
+    }
+
+    public static void recordCertItemResponse(@NotNull AccessCertificationWorkItemType item,
+            AccessCertificationResponseType response, String comment, OperationResult result, Task task, PageBase pageBase) {
+        try {
+            AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(item);
+            //todo log error?
+            if (certCase == null) {
+                return;
+            }
+            AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaign(certCase);
+            if (campaign == null) {
+                return;
+            }
+            pageBase.getCertificationService().recordDecision(
+                    campaign.getOid(),
+                    certCase.getId(), item.getId(), response, comment, task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
 }

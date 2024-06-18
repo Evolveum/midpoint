@@ -475,6 +475,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
         MenuItem newCertificationMenu = new MenuItem("PageAdmin.menu.top.certification.newDefinition", GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCertDefinition.class);
         certificationMenu.addMenuItem(newCertificationMenu);
+
+        addCollectionsMenuItems(certificationMenu, AccessCertificationWorkItemType.COMPLEX_TYPE, PageCertDecisions.class);
+
         return certificationMenu;
     }
 
