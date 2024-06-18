@@ -52,6 +52,10 @@ public class DetailsTableItem implements Serializable {
         return label;
     }
 
+    public Component createLabelComponent(String id) {
+       return new Label(id, () -> getLabel().getObject());
+    }
+
     public VisibleBehaviour isVisible() {
         return null;
     }
