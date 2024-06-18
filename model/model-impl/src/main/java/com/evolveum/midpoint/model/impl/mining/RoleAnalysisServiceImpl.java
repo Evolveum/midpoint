@@ -25,8 +25,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.math3.distribution.NormalDistribution;
@@ -57,6 +55,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -337,6 +336,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
             ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
                     .item(RoleAnalysisClusterType.F_DETECTED_PATTERN).replace(collection)
+                    .item(RoleAnalysisClusterType.F_METADATA, F_MODIFY_TIMESTAMP).replace(getCurrentXMLGregorianCalendar())
                     .item(RoleAnalysisClusterType.F_CLUSTER_STATISTICS).replace(analysisClusterStatisticType
                             .asPrismContainerValue())
                     .asObjectDelta(clusterOid);
@@ -2249,6 +2249,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
     @Override
     public void importOutlier(@NotNull RoleAnalysisOutlierType outlier, @NotNull Task task, @NotNull OperationResult result) {
+        MetadataType metadata = new MetadataType();
+        metadata.setCreateTimestamp(getCurrentXMLGregorianCalendar());
+        outlier.setMetadata(metadata);
         modelService.importObject(outlier.asPrismObject(), null, task, result);
     }
 

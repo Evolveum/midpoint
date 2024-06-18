@@ -25,6 +25,7 @@ public class ToggleCheckBoxPanel extends InputPanel {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_CHECK = "check";
+    private static final String ID_LABEL = "label";
     private static final String ID_TITLE = "title";
     private static final String ID_DESCRIPTION = "description";
 
@@ -53,6 +54,9 @@ public class ToggleCheckBoxPanel extends InputPanel {
         check.setOutputMarkupId(true);
         check.add(new EnableBehaviour(this::isCheckboxEnabled));
         add(check);
+
+        Label label = new Label(ID_LABEL, labelModel);
+        add(label);
 
         Component titleComponent = getTitleComponent(ID_TITLE);
         add(titleComponent);
