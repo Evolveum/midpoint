@@ -5140,6 +5140,17 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="referenceAttributes" type="tns:ShadowAttributesType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference attributes. Present only in the repository-level shadows.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ShadowType.referenceAttributes</a:displayName>
+                                <a:since>4.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="associations" type="tns:ShadowAssociationsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

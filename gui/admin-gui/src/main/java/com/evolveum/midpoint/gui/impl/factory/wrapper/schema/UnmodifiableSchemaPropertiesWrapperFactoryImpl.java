@@ -29,6 +29,10 @@ public class UnmodifiableSchemaPropertiesWrapperFactoryImpl<T>
 
     @Override
     public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {
+        if (!super.match(def, parent)) {
+            return false;
+        }
+
         if (parent == null || parent.getCompileTimeClass() == null) {
             return false;
         }
@@ -44,8 +48,7 @@ public class UnmodifiableSchemaPropertiesWrapperFactoryImpl<T>
         }
 
         if (EnumerationTypeDefinitionType.class.isAssignableFrom(parent.getCompileTimeClass())
-                && (def.getItemName().equivalent(EnumerationTypeDefinitionType.F_VALUES)
-                || def.getItemName().equivalent(EnumerationTypeDefinitionType.F_BASE_TYPE))) {
+                && def.getItemName().equivalent(EnumerationTypeDefinitionType.F_BASE_TYPE)) {
             return true;
         }
 

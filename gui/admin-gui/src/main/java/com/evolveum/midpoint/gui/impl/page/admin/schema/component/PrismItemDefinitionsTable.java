@@ -399,4 +399,9 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
     protected boolean isDuplicationSupported() {
         return false;
     }
+
+    @Override
+    protected boolean isHeaderVisible() {
+        return true;
+    }
 }

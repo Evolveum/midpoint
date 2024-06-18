@@ -18,8 +18,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard.CreateComplexOrEnumerationWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard.basic.SchemaWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard.complexType.ComplexTypeBasicWizardPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -90,8 +90,11 @@ public class PageSchema extends PageAssignmentHolderDetails<SchemaType, Assignme
         };
     }
 
-    public ComplexTypeBasicWizardPanel showComplexTypeWizard(AjaxRequestTarget target) {
-        return showWizard(target, ItemPath.create(WebPrismUtil.PRISM_SCHEMA, PrismSchemaType.F_COMPLEX_TYPE), ComplexTypeBasicWizardPanel.class);
+    public CreateComplexOrEnumerationWizardPanel showComplexOrEnumerationTypeWizard(AjaxRequestTarget target) {
+        return showWizard(
+                target,
+                WebPrismUtil.PRISM_SCHEMA,
+                CreateComplexOrEnumerationWizardPanel.class);
     }
 
     @Override

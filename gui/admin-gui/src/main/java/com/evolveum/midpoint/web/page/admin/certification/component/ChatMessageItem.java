@@ -11,7 +11,7 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.resource.AbstractResource;
+import org.apache.wicket.request.resource.IResource;
 
 import java.io.Serializable;
 
@@ -19,14 +19,14 @@ public class ChatMessageItem implements Serializable {
 
     IModel<DisplayType> messageDisplayModel;
     IModel<String> messageTextModel;
-    IModel<AbstractResource> messageImageResourceModel;
+    IModel<IResource> messageImageResourceModel;
 
     public ChatMessageItem(IModel<DisplayType> messageDisplayModel, IModel<String> messageTextModel) {
         this(messageDisplayModel, messageTextModel, null);
     }
 
     public ChatMessageItem(IModel<DisplayType> messageDisplayModel, IModel<String> messageTextModel,
-            IModel<AbstractResource> messageImageResourceModel) {
+            IModel<IResource> messageImageResourceModel) {
         this.messageDisplayModel = messageDisplayModel;
         this.messageTextModel = messageTextModel;
         this.messageImageResourceModel = messageImageResourceModel;
@@ -48,7 +48,7 @@ public class ChatMessageItem implements Serializable {
         return messageDisplayModel != null ? GuiDisplayTypeUtil.getIconCssClass(messageDisplayModel.getObject()) : "";
     }
 
-    public AbstractResource getMessageImageResource() {
+    public IResource getMessageImageResource() {
         return messageImageResourceModel != null ? messageImageResourceModel.getObject() : null;
     }
 }

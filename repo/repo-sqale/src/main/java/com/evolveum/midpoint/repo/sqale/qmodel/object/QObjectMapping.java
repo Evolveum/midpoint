@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.*;
@@ -529,12 +530,25 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                         impl.startStrictModifications();
                     }
                     container.setIncomplete(false);
-                    for (var val : values) {
-                        var containerable = mapping.toSchemaObjectEmbedded(val, alias);
+                    var parsedValues = values.parallelStream().map(v -> {
+                        try {
+                            return mapping.toSchemaObjectEmbedded(v, alias);
+                        } catch (SchemaException e) {
+                            throw new TunnelException(e);
+                        }
+                    }).toList();
+                    for (var val : parsedValues) {
                         // FIXME: Some better addition method should be necessary.
                         // Check if value is present...
-                        ((Item) container).addIgnoringEquivalents(containerable);
+                        ((Item) container).addIgnoringEquivalents(val);
                     }
+                } catch (TunnelException e) {
+                    if (e.getCause() instanceof SchemaException schemaEx) {
+                        throw schemaEx;
+                    } else if (e.getCause() instanceof RuntimeException runtime) {
+                        throw runtime;
+                    }
+                    throw e;
                 } finally {
                     if (container instanceof PrismContainerImpl<?> impl) {
                         impl.stopStrictModifications();

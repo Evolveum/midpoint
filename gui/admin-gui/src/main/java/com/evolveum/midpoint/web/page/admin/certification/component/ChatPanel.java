@@ -16,13 +16,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebComponent;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.resource.AbstractResource;
+import org.apache.wicket.request.resource.*;
 
 import java.io.Serial;
 import java.util.List;
@@ -100,13 +101,22 @@ public class ChatPanel extends BasePanel<List<ChatMessageItem>> {
             }
 
             private Component initMessageImageComponent(ChatMessageItem message) {
-                AbstractResource messageImageResource = message.getMessageImageResource();
+                IResource messageImageResource = message.getMessageImageResource();
 
                 if (messageImageResource != null) {
-                    return new NonCachingImage(ID_MESSAGE_IMAGE, messageImageResource);
+                    return new NonCachingImage(ID_MESSAGE_IMAGE, messageImageResource)  {
+                        @Serial private static final long serialVersionUID = 1L;
+
+                        @Override
+                        protected void onComponentTag(ComponentTag tag) {
+                            tag.setName("img");
+                            super.onComponentTag(tag);
+                        }
+                    };
                 } else {
                     WebComponent messageImage = new WebComponent(ID_MESSAGE_IMAGE);
                     messageImage.add(AttributeAppender.append("class", message.getMessageImageCss()));
+                    messageImage.add(AttributeAppender.append("style", "font-size: 40px;"));
                     messageImage.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(message.getMessageImageCss())));
                     return messageImage;
                 }

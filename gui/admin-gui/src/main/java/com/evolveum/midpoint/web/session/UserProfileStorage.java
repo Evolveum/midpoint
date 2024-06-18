@@ -144,7 +144,8 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PANEL_PROPERTIES_SECRET_PROVIDERS,
         PANEL_ENVIRONMENT_VARIABLES_SECRET_PROVIDERS,
         PANEL_CUSTOM_SECRET_PROVIDERS,
-        PANEL_ASSOCIATION_TYPES
+        PANEL_ASSOCIATION_TYPES,
+        PAGE_SCHEMAS_TABLE
     }
 
     private final Map<String, Integer> tables = new HashMap<>();

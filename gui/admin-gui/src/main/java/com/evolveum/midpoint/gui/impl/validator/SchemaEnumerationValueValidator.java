@@ -22,37 +22,41 @@ import javax.xml.validation.SchemaFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-public class SchemaDefinitionNameValidator implements IValidator<QName> {
+public class SchemaEnumerationValueValidator implements IValidator<String> {
 
 
-    public SchemaDefinitionNameValidator() {
+    public SchemaEnumerationValueValidator() {
     }
 
     @Override
-    public void validate(IValidatable<QName> validatable) {
-        QName value = validatable.getValue();
+    public void validate(IValidatable<String> validatable) {
+        String value = validatable.getValue();
         if (value == null) {
             return;
         }
 
         InputStream is = new ByteArrayInputStream(
-                ("<xsd:schema xmlns:xsd='" + XMLConstants.W3C_XML_SCHEMA_NS_URI + "'><xsd:complexType name='"
-                        + value.getLocalPart()
-                        + "'/></xsd:schema>").getBytes() );
+                ("<xsd:schema xmlns:xsd='" + XMLConstants.W3C_XML_SCHEMA_NS_URI + "'>"
+                        + "    <xsd:simpleType name='Test'>"
+                        + "        <xsd:restriction base='xsd:string'>"
+                        + "            <xsd:enumeration value='" + value + "'/>"
+                        + "        </xsd:restriction>"
+                        + "    </xsd:simpleType>"
+                        + "</xsd:schema>").getBytes() );
         try {
             SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new StreamSource(is));
         } catch (SAXException e) {
 
-            String normalizedName = DOMUtil.escapeInvalidXmlCharsIfPresent(value.getLocalPart());
+            String normalizedName = DOMUtil.escapeInvalidXmlCharsIfPresent(value);
             normalizedName = WordUtils.capitalizeFully(normalizedName);
             normalizedName = StringUtils.uncapitalize(normalizedName);
             normalizedName = StringUtils.deleteWhitespace(normalizedName);
 
             ValidationError error = new ValidationError();
-            error.addKey("SchemaDefinitionNameValidator.invalidName");
-            error.setVariable("0", value.getLocalPart());
+            error.addKey("SchemaEnumerationValueValidator.invalidValue");
+            error.setVariable("0", value);
             error.setVariable("1", normalizedName);
-            error.setMessage("Name '" + value.getLocalPart() + "' is not valid. Try '" + normalizedName + "'.");
+            error.setMessage("Value '" + value + "' is not valid. Try '" + normalizedName + "'.");
             validatable.error(error);
         }
     }

@@ -592,7 +592,7 @@ public class ColumnUtils {
         List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
         columns.add(new AbstractExportableColumn<>(
                 createStringResource("WorkItemsPanel.stage")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,

@@ -15,13 +15,15 @@
         </div>
         <div class="card-body">
             <div class="direct-chat-messages">
-                <div class="direct-chat-msg" wicket:id="messageContainer">
-                    <div class="direct-chat-infos clearfix">
-                        <span class="direct-chat-name float-left" wicket:id="messageTitle"></span>
+                <div class="d-flex flex-row gap-2 direct-chat-msg align-items-center card mb-3 p-2" wicket:id="messageContainer">
+                    <div class="d-flex gap-2 direct-chat-img" wicket:id="messageImage"/>
+                    <div class="d-flex gap-2 flex-column w-100">
+                    <div class=" direct-chat-infos clearfix">
+                        <span class="direct-chat-name float-left font-weight-normal" style="font-size: 18px;" wicket:id="messageTitle"></span>
                         <span class="direct-chat-timestamp float-right" wicket:id="messageDescription"></span>
                     </div>
-                    <img class="direct-chat-img" wicket:id="messageImage"/>
-                    <div class="direct-chat-text" wicket:id="messageText"></div>
+                    <div class="direct-chat-text m-0" wicket:id="messageText"></div>
+                    </div>
                 </div>
             </div>
         </div>
