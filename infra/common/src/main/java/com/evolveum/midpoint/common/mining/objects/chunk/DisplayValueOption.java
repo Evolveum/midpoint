@@ -10,6 +10,7 @@ package com.evolveum.midpoint.common.mining.objects.chunk;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkAction;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
@@ -20,9 +21,12 @@ public class DisplayValueOption implements Serializable {
     RoleAnalysisSortMode sortMode;
     RoleAnalysisProcessModeType processMode;
     RoleAnalysisChunkMode chunkMode;
+
+    RoleAnalysisChunkAction chunkAction = RoleAnalysisChunkAction.SELECTION;
     boolean isPatternToolsPanelMode = true;
     boolean isToolsPanelExpanded = false;
     boolean isFullPage = false;
+    boolean isPanelExpanded = false;
 
     public DisplayValueOption() {
     }
@@ -100,4 +104,19 @@ public class DisplayValueOption implements Serializable {
         isToolsPanelExpanded = toolsPanelExpanded;
     }
 
+    public boolean isPanelExpanded() {
+        return isPanelExpanded;
+    }
+
+    public void setPanelExpanded(boolean panelExpanded) {
+        isPanelExpanded = panelExpanded;
+    }
+
+    public RoleAnalysisChunkAction getChunkAction() {
+        return chunkAction;
+    }
+
+    public void setChunkAction(RoleAnalysisChunkAction chunkAction) {
+        this.chunkAction = chunkAction;
+    }
 }

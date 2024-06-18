@@ -92,6 +92,23 @@ public class ExtractPatternUtils {
         return new DetectedPattern(roles, users, (users.size() * roles.size()) - users.size(), pattern.getId());
     }
 
+    public static @NotNull DetectedPattern transformPatternWithAttributes(@NotNull RoleAnalysisDetectionPatternType pattern) {
+        List<ObjectReferenceType> rolesRef = pattern.getRolesOccupancy();
+        List<ObjectReferenceType> usersRef = pattern.getUserOccupancy();
+
+        Set<String> roles = rolesRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
+        Set<String> users = usersRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
+
+        DetectedPattern detectedPattern = new DetectedPattern(roles, users, (users.size() * roles.size()) - users.size(), pattern.getId());
+        detectedPattern.setRoleAttributeAnalysisResult(pattern.getRoleAttributeAnalysisResult());
+        detectedPattern.setUserAttributeAnalysisResult(pattern.getUserAttributeAnalysisResult());
+        Double itemConfidence = pattern.getItemConfidence();
+        if (itemConfidence != null) {
+            detectedPattern.setItemsConfidence(itemConfidence);
+        }
+        return detectedPattern;
+    }
+
     private static boolean isEmptyDetectionPattern(List<RoleAnalysisDetectionPatternType> defaultDetection) {
 
         if (defaultDetection == null) {

@@ -178,6 +178,10 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
         return (DataTable<?, ?>) get(ID_TABLE_CONTAINER).get(ID_TABLE);
     }
 
+    public Component getHeaderFooter() {
+        return get("headerFooter");
+    }
+
     @Override
     public UserProfileStorage.TableId getTableId() {
         return tableId;
@@ -230,6 +234,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     protected Component createHeader(String headerId) {
         WebMarkupContainer header = new WebMarkupContainer(headerId);
         header.setVisible(false);
+        header.setOutputMarkupId(true);
         return header;
     }
 

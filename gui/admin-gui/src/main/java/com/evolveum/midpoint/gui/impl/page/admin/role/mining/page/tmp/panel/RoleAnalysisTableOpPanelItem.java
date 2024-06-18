@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.OperationPanelModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.AttributeModifier;
@@ -36,12 +37,12 @@ public class RoleAnalysisTableOpPanelItem extends BasePanel<String> {
     private static final String ID_DESCRIPTION_TEXT = "description-text";
     RepeatingView descriptionText;
 
-    public RoleAnalysisTableOpPanelItem(String id, LoadableDetachableModel<Boolean> isExpanded) {
+    public RoleAnalysisTableOpPanelItem(String id, OperationPanelModel operationPanelModel) {
         super(id);
-        initLayout(isExpanded);
+        initLayout(operationPanelModel);
     }
 
-    private void initLayout(LoadableDetachableModel<Boolean> isExpanded) {
+    private void initLayout(OperationPanelModel operationPanelModel) {
 
         add(new Behavior() {
             @Override
@@ -96,7 +97,7 @@ public class RoleAnalysisTableOpPanelItem extends BasePanel<String> {
         descriptionPanel.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return isExpanded.getObject();
+                return operationPanelModel.getDisplayValueOption().isPanelExpanded();
             }
         });
         container.add(descriptionPanel);

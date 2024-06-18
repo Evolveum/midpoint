@@ -34,7 +34,7 @@ public class MiningUserTypeChunk extends MiningBaseTypeChunk implements Serializ
     }
 
     public MiningUserTypeChunk(@NotNull MiningBaseTypeChunk chunk) {
-        super(chunk.getMembers(), chunk.getProperties(), chunk.getChunkName(), chunk.getFrequencyItem(), chunk.getObjectStatus());
+        super(chunk.getProperties(), chunk.getMembers(), chunk.getChunkName(), chunk.getFrequencyItem(), chunk.getObjectStatus());
     }
 
     public MiningUserTypeChunk(
