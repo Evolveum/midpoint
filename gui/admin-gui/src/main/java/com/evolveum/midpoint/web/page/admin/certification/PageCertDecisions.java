@@ -8,21 +8,12 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.component.IconComponent;
-import com.evolveum.midpoint.gui.api.component.wizard.BehaviourDelegator;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
-import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -862,8 +853,8 @@ public class PageCertDecisions extends PageAdminCertification {
         OperationResult result = task.getResult();
         PrismObject<ReportType> report = null;
         try {
-            report = getModelService().getObject(ReportType.class, CommonInitialObjects.REPORT_CERTIFICATION_WORK_ITEMS.oid,
-                    null, task, result);
+            String certItemsReportOid = "00000000-0000-0000-0000-000000000160";
+            report = getModelService().getObject(ReportType.class, certItemsReportOid, null, task, result);
         } catch (Exception ex) {
             LOGGER.error("Couldn't load certification work items report", ex);
             result.recordFatalError(ex);
