@@ -100,28 +100,10 @@ public class SqlRepositoryBeanConfig {
     }
 
     @Bean
-    public MidPointImplicitNamingStrategy midPointImplicitNamingStrategy() {
-        return new MidPointImplicitNamingStrategy();
-    }
-
-    @Bean
-    public MidPointPhysicalNamingStrategy midPointPhysicalNamingStrategy() {
-        return new MidPointPhysicalNamingStrategy();
-    }
-
-    @Bean
-    public EntityStateInterceptor entityStateInterceptor() {
-        return new EntityStateInterceptor();
-    }
-
-    @Bean
     @ConditionalOnMissingBean
     public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(
             DataSource dataSource,
-            SqlRepositoryConfiguration configuration,
-            MidPointImplicitNamingStrategy midPointImplicitNamingStrategy,
-            MidPointPhysicalNamingStrategy midPointPhysicalNamingStrategy,
-            EntityStateInterceptor entityStateInterceptor) {
+            SqlRepositoryConfiguration configuration) {
 
         LocalContainerEntityManagerFactoryBean bean = new LocalContainerEntityManagerFactoryBean();
 
@@ -141,13 +123,12 @@ public class SqlRepositoryBeanConfig {
         hibernateProperties.setProperty(TransactionSettings.TRANSACTION_COORDINATOR_STRATEGY, "jdbc");
         hibernateProperties.setProperty("hibernate.hql.bulk_id_strategy",
                 "org.hibernate.hql.spi.id.inline.InlineIdsOrClauseBulkIdStrategy");
+        hibernateProperties.setProperty(SessionEventSettings.INTERCEPTOR, EntityStateInterceptor.class.getName());
 
         hibernateProperties.setProperty(MappingSettings.IMPLICIT_NAMING_STRATEGY, MidPointImplicitNamingStrategy.class.getName());
         hibernateProperties.setProperty(MappingSettings.PHYSICAL_NAMING_STRATEGY, MidPointPhysicalNamingStrategy.class.getName());
 
         bean.setJpaProperties(hibernateProperties);
-//        bean.setImplicitNamingStrategy(midPointImplicitNamingStrategy);   // todo fix [viliam]
-//        bean.setPhysicalNamingStrategy(midPointPhysicalNamingStrategy);
         bean.setPackagesToScan(
                 "com.evolveum.midpoint.repo.sql.type",
                 "com.evolveum.midpoint.repo.sql.data.common",
@@ -159,7 +140,6 @@ public class SqlRepositoryBeanConfig {
                 "com.evolveum.midpoint.repo.sql.data.common.other",
                 "com.evolveum.midpoint.repo.sql.data.common.type",
                 "com.evolveum.midpoint.repo.sql.data.audit");
-//        bean.setEntityInterceptor(entityStateInterceptor);    // todo fix [viliam]
 
         return bean;
     }

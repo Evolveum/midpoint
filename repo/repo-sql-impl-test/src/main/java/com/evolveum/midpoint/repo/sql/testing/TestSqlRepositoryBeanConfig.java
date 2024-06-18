@@ -15,16 +15,12 @@ import net.ttddyy.dsproxy.support.ProxyDataSource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.*;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryBeanConfig;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor;
-import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
-import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
-
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
 /**
  * Test configuration for repository, adding test query listener and related interceptors.
@@ -40,11 +36,6 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 @ComponentScan
 @Import(SqlRepositoryBeanConfig.class)
 public class TestSqlRepositoryBeanConfig {
-
-    @Bean
-    public TestInterceptor testInterceptor() {
-        return new TestInterceptor();
-    }
 
     /**
      * This conditional on missing bean "ninja" is just nasty hack to fix initialization of ninja spring context in tests.
@@ -104,15 +95,10 @@ public class TestSqlRepositoryBeanConfig {
      */
     @Bean
     @Primary
-    public LocalContainerEntityManagerFactoryBean sessionFactory(
-            DataSource dataSource,
-            SqlRepositoryConfiguration configuration,
-            MidPointImplicitNamingStrategy midPointImplicitNamingStrategy,
-            MidPointPhysicalNamingStrategy midPointPhysicalNamingStrategy,
-            EntityStateInterceptor entityStateInterceptor) {
+    public LocalContainerEntityManagerFactoryBean sessionFactory(DataSource dataSource, SqlRepositoryConfiguration configuration) {
+
         LocalContainerEntityManagerFactoryBean factoryBean = new SqlRepositoryBeanConfig().entityManagerFactoryBean(
-                dataSource, configuration, midPointImplicitNamingStrategy,
-                midPointPhysicalNamingStrategy, entityStateInterceptor);
+                dataSource, configuration);
 
         // These are only test-related changes regarding the session factory.
         Map<String, Object> hibernateProperties = factoryBean.getJpaPropertyMap();
