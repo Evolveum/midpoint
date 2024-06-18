@@ -132,6 +132,7 @@ public class ROperationExecution implements Container<RObject> {
         this.taskRef = taskRef;
     }
 
+    @Column(columnDefinition = "int")
     public ROperationResultStatus getStatus() {
         return status;
     }
@@ -140,6 +141,7 @@ public class ROperationExecution implements Container<RObject> {
         this.status = status;
     }
 
+    @Column(columnDefinition = "int")
     public ROperationExecutionRecordType getRecordType() {
         return recordType;
     }

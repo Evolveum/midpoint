@@ -123,7 +123,7 @@ public class RCaseWorkItemReference extends RReference {
     }
 
     @Id
-    @Column(name = REFERENCE_TYPE, nullable = false)
+    @Column(name = REFERENCE_TYPE, nullable = false, columnDefinition = "int")
     public RCaseWorkItemReferenceOwner getReferenceType() {
         return referenceType;
     }
@@ -132,7 +132,7 @@ public class RCaseWorkItemReference extends RReference {
         this.referenceType = referenceType;
     }
 
-    @Column(name = "targetType")
+    @Column(name = "targetType", columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     @Override
     public RObjectType getTargetType() {

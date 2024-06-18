@@ -104,8 +104,6 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     static final ItemName ATTR_MEMBER = new ItemName(NS_RI, "member");
     static final ItemName ATTR_MANAGER = new ItemName(NS_RI, "manager");
 
-    @Autowired protected LocalSessionFactoryBean sessionFactoryBean;
-
     // We want existing bean "repositoryService" but downcast to access configuration, etc.
     // No, we don't want @Repository or anything else in ctx*.xml that creates SRSI bean twice.
     @Autowired

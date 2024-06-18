@@ -56,6 +56,7 @@ public class REmbeddedReference implements ObjectReference {
     }
 
     @Enumerated(EnumType.ORDINAL)
+    @Column(columnDefinition = "int")
     @Override
     public RObjectType getTargetType() {
         return targetType;

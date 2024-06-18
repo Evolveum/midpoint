@@ -52,6 +52,7 @@ public class RNode extends RObject {
         return nameCopy;
     }
 
+    @Column(columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     public RNodeOperationalState getOperationalState() {
         return operationalState;

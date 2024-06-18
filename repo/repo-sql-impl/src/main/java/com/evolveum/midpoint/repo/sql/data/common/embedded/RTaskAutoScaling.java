@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import java.util.Objects;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -25,6 +27,7 @@ public class RTaskAutoScaling {
 
     private RTaskAutoScalingMode mode;
 
+    @Column(columnDefinition = "int")
     public RTaskAutoScalingMode getMode() {
         return mode;
     }

@@ -107,6 +107,7 @@ public class RObjectDeltaOperation implements ROperationResultFull, EntityState 
         return delta;
     }
 
+    @Column(columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     public RChangeType getDeltaType() {
         return deltaType;
@@ -122,6 +123,7 @@ public class RObjectDeltaOperation implements ROperationResultFull, EntityState 
         return fullResult;
     }
 
+    @Column(columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     public ROperationResultStatus getStatus() {
         return status;

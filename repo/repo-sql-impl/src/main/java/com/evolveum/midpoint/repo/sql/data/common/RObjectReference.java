@@ -118,7 +118,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
     }
 
     @Id
-    @Column(name = REFERENCE_TYPE, nullable = false)
+    @Column(name = REFERENCE_TYPE, nullable = false, columnDefinition = "int")
     public RReferenceType getReferenceType() {
         return referenceType;
     }
@@ -134,7 +134,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
      *
      * @return null if not defined, otherwise value from {@link com.evolveum.midpoint.repo.sql.data.common.other.RObjectType} enum
      */
-    @Column(name = "targetType")
+    @Column(name = "targetType", columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     @Override
     public RObjectType getTargetType() {

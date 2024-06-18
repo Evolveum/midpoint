@@ -54,7 +54,7 @@ public class RResource extends RObject {
     private Boolean template;
 
     @Enumerated(EnumType.ORDINAL)
-    @Column
+    @Column(columnDefinition = "int")
     public RResourceAdministrativeState getAdministrativeState() {
         return administrativeState;
     }

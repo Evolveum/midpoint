@@ -366,6 +366,7 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         return polys;
     }
 
+    @Column(columnDefinition = "int")
     @Enumerated
     @NotQueryable
     public RObjectType getObjectTypeClass() {

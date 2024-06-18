@@ -93,7 +93,7 @@ public class RAccessCertificationCampaign extends RObject {
     @AttributeOverrides({
             @AttributeOverride(name = "relation", column = @Column(name = "ownerRef_relation", length = RUtil.COLUMN_LENGTH_QNAME)),
             @AttributeOverride(name = "targetOid", column = @Column(name = "ownerRef_targetOid", length = RUtil.COLUMN_LENGTH_OID)),
-            @AttributeOverride(name = "targetType", column = @Column(name = "ownerRef_targetType"))
+            @AttributeOverride(name = "targetType", column = @Column(name = "ownerRef_targetType", columnDefinition = "int"))
     })
     public REmbeddedReference getOwnerRefCampaign() {       // name changed because of collision with RAbstractRole.ownerRef
         return ownerRefCampaign;
@@ -117,6 +117,7 @@ public class RAccessCertificationCampaign extends RObject {
         return end;
     }
 
+    @Column(columnDefinition = "int")
     public RAccessCertificationCampaignState getState() {
         return state;
     }

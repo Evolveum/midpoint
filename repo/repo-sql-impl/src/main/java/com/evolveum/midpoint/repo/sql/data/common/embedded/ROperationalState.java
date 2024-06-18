@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import java.util.Objects;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Enumerated;
 
@@ -27,6 +29,7 @@ public class ROperationalState {
 
     RAvailabilityStatus lastAvailabilityStatus;
 
+    @Column(columnDefinition = "int")
     @Enumerated
     public RAvailabilityStatus getLastAvailabilityStatus() {
         return lastAvailabilityStatus;

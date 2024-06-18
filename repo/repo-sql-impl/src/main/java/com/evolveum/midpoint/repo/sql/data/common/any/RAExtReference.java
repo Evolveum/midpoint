@@ -77,6 +77,7 @@ public class RAExtReference extends RAExtBase<String> implements RAExtValue<Stri
         return value;
     }
 
+    @Column(columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     public RObjectType getTargetType() {
         return targetType;

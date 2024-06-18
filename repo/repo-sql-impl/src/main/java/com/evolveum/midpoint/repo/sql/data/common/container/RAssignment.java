@@ -120,6 +120,7 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         return id;
     }
 
+    @Column(columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     public RAssignmentOwner getAssignmentOwner() {
         return assignmentOwner;

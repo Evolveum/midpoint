@@ -52,7 +52,7 @@ public class ROExtLong extends ROExtBase<Long> {
     }
 
     @Id
-    @Column(name = "ownerType")
+    @Column(name = "ownerType", columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     public RObjectExtensionType getOwnerType() {
         return super.getOwnerType();

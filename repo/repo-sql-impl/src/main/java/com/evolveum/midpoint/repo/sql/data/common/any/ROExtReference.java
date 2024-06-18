@@ -60,7 +60,7 @@ public class ROExtReference extends ROExtBase<String> {
     }
 
     @Id
-    @Column(name = "ownerType")
+    @Column(name = "ownerType", columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     public RObjectExtensionType getOwnerType() {
         return super.getOwnerType();
@@ -77,6 +77,7 @@ public class ROExtReference extends ROExtBase<String> {
         return value;
     }
 
+    @Column(columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     public RObjectType getTargetType() {
         return targetType;

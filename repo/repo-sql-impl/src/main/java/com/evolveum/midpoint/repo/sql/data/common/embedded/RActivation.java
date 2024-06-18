@@ -63,19 +63,19 @@ public class RActivation {
         return validityChangeTimestamp;
     }
 
-    @Column
+    @Column(columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     public RTimeIntervalStatus getValidityStatus() {
         return validityStatus;
     }
 
-    @Column
+    @Column(columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     public RActivationStatus getAdministrativeStatus() {
         return administrativeStatus;
     }
 
-    @Column
+    @Column(columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     public RActivationStatus getEffectiveStatus() {
         return effectiveStatus;

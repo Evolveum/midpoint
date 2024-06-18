@@ -99,6 +99,7 @@ public class RExtItem {
         return type;
     }
 
+    @Column(columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     public RItemKind getKind() {
         return kind;

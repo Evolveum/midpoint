@@ -82,7 +82,7 @@ public class RShadow extends RObject implements ROperationResult {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    @Column
+    @Column(columnDefinition = "int")
     public RShadowKind getKind() {
         return kind;
     }
@@ -108,7 +108,7 @@ public class RShadow extends RObject implements ROperationResult {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    @Column
+    @Column(columnDefinition = "int")
     public RFailedOperationType getFailedOperationType() {
         return failedOperationType;
     }
@@ -128,6 +128,7 @@ public class RShadow extends RObject implements ROperationResult {
         this.nameCopy = nameCopy;
     }
 
+    @Column(columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     public RSynchronizationSituation getSynchronizationSituation() {
         return synchronizationSituation;
@@ -153,6 +154,7 @@ public class RShadow extends RObject implements ROperationResult {
 
     @Override
     @Enumerated(EnumType.ORDINAL)
+    @Column(columnDefinition = "int")
     public ROperationResultStatus getStatus() {
         return status;
     }

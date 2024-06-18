@@ -63,7 +63,7 @@ public class RCaseWorkItem implements Container<RCase> {
 
     @Override
     @MapsId("ownerOid")
-    @JoinColumn(name = "ownerOid", foreignKey = @ForeignKey(name = "fk_case_wi_owner"))
+    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_case_wi_owner"))
     @ManyToOne(fetch = FetchType.LAZY)
     @OwnerGetter(ownerClass = RCase.class)
     public RCase getOwner() {

@@ -93,7 +93,7 @@ public class RAssignmentReference extends RContainerReference {
      *
      * @return null if not defined, otherwise value from {@link RObjectType} enum
      */
-    @Column(name = "targetType")
+    @Column(name = "targetType", columnDefinition = "int")
     @Enumerated(EnumType.ORDINAL)
     @Override
     public RObjectType getTargetType() {
@@ -101,7 +101,7 @@ public class RAssignmentReference extends RContainerReference {
     }
 
     @Id
-    @Column(name = REFERENCE_TYPE, nullable = false)
+    @Column(name = REFERENCE_TYPE, nullable = false, columnDefinition = "int")
     public RCReferenceType getReferenceType() {
         return super.getReferenceType();
     }

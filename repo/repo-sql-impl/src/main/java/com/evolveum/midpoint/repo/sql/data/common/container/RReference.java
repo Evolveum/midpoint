@@ -16,6 +16,9 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Enumerated;
+
 public abstract class RReference implements ObjectReference {
 
     //other primary key fields
@@ -38,6 +41,8 @@ public abstract class RReference implements ObjectReference {
         return relation;
     }
 
+    @Enumerated
+    @Column(columnDefinition = "int")
     @Override
     public RObjectType getTargetType() {
         return targetType;
