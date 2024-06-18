@@ -21,7 +21,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 /**
  * Stores all links of given link class.
  */
-public class LinkStore implements DebugDumpable {
+class LinkStore implements DebugDumpable {
 
     @NotNull private final LinkClassDefinition linkClassDefinition;
 
@@ -46,6 +46,10 @@ public class LinkStore implements DebugDumpable {
 
     void addLink(DummyObject first, DummyObject second) {
         links.add(new Link(first, second));
+    }
+
+    void deleteLink(DummyObject first, DummyObject second) {
+        links.removeIf(link -> link.first.equals(first) && link.second.equals(second));
     }
 
     public @NotNull LinkClassDefinition getLinkClassDefinition() {

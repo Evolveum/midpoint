@@ -7,10 +7,12 @@
 
 package com.evolveum.midpoint.test;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
-import javax.xml.namespace.QName;
+import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -21,6 +23,9 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 
 /**
  * Defines a structure of comprehensive dummy-resource-based scenario:
@@ -90,6 +95,18 @@ public class AbstractDummyScenario {
             return object;
         }
 
+        public DummyObject getByName(String name)
+                throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+            return controller.getDummyResource().getObjectByName(getObjectClassName().local(), name);
+        }
+
+        public @NotNull DummyObject getByNameRequired(String name)
+                throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+            return MiscUtil.stateNonNull(
+                    getByName(name),
+                    "No object of type %s with name %s", getObjectClassName(), name);
+        }
+
         public abstract @NotNull ObjectClassName getObjectClassName();
 
         /** Requires the schema be attached first; see {@link #attachResourceSchema(CompleteResourceSchema)}. */
@@ -107,7 +124,7 @@ public class AbstractDummyScenario {
 
         /** Creates the respective link on the resource. */
         public void add(DummyObject first, DummyObject second) {
-            controller.getDummyResource().addLink(getLinkClassName().local(), first, second);
+            controller.getDummyResource().addLinkValue(getLinkClassName().local(), first, second);
         }
 
         public abstract @NotNull ObjectClassName getLinkClassName();

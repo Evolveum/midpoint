@@ -69,7 +69,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
     Model<String> infoLabelModel = Model.of("");
 
-    private enum RecognizedEvaluator {
+    public enum RecognizedEvaluator {
 
         AS_IS(ExpressionEvaluatorType.AS_IS, null, null),
         LITERAL(ExpressionEvaluatorType.LITERAL,
@@ -80,7 +80,16 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 "ExpressionEvaluatorType.SCRIPT.show.button"),
         GENERATE(ExpressionEvaluatorType.GENERATE,
                 GenerateExpressionPanel.class,
-                "ExpressionEvaluatorType.GENERATE.show.button");
+                "ExpressionEvaluatorType.GENERATE.show.button"),
+        ASSOCIATION_FROM_LINK(ExpressionEvaluatorType.ASSOCIATION_FROM_LINK,
+                AssociationFromLinkPanel.class,
+                null),
+        SHADOW_OWNER_REFERENCE_SEARCH(ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH,
+                ShadowOwnerReferenceSearchExpressionPanel.class,
+                "ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH.show.button"),
+        PATH(ExpressionEvaluatorType.PATH,
+                PathExpressionPanel.class,
+                "ExpressionEvaluatorType.PATH.show.button");
 
         private final ExpressionEvaluatorType type;
         private final Class<? extends EvaluatorExpressionPanel> evaluatorPanel;
@@ -95,6 +104,10 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     }
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionPanel.class);
+
+    public ExpressionPanel(String id, IModel<ExpressionType> model) {
+        this(id, null, model);
+    }
 
     public ExpressionPanel(String id, IModel<PrismPropertyWrapper<ExpressionType>> parent, IModel<ExpressionType> model) {
         super(id, model);
@@ -172,7 +185,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     }
 
     private boolean useAsIsForNull() {
-        return parent.getObject() instanceof ExpressionWrapper &&
+        return parent != null && parent.getObject() instanceof ExpressionWrapper &&
                 ((ExpressionWrapper)parent.getObject()).isAttributeExpression();
     }
 
@@ -326,7 +339,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
     private boolean isButtonShow() {
         RecognizedEvaluator type = typeModel.getObject();
-        return type != null && type.evaluatorPanel != null;
+        return type != null && type.evaluatorPanel != null && type.buttonLabelKeyPrefix != null;
     }
 
     private AjaxButton createTypeButton() {
@@ -423,7 +436,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         return isEvaluatorPanelExpanded;
     }
 
-    private List<RecognizedEvaluator> getChoices() {
+    protected List<RecognizedEvaluator> getChoices() {
         List<RecognizedEvaluator> choices = new ArrayList<>(Arrays.asList(RecognizedEvaluator.values()));
         choices.removeIf(choice -> RecognizedEvaluator.AS_IS == choice);
         return choices;

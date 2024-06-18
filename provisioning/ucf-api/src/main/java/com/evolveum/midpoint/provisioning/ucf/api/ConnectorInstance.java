@@ -284,7 +284,7 @@ public interface ConnectorInstance {
      * @throws ObjectAlreadyExistsException in case that the modified object conflicts with another existing object (e.g. while renaming an object)
      */
     @Nullable UcfModifyReturnValue modifyObject(
-            ResourceObjectIdentification.WithPrimary identification,
+            @NotNull ResourceObjectIdentification.WithPrimary identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,

@@ -37,4 +37,8 @@ public abstract class ButtonInlineMenuItem extends InlineMenuItem {
         return false;
     }
 
+    public boolean isLabelVisible() {
+        return false;
+    }
+
 }

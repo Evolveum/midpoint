@@ -422,8 +422,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
             if (isAttributeDelta(itemDelta)
                     || SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
                 if (itemDelta instanceof PropertyDelta<?> propertyDelta) {
-                    PropertyModificationOperation<?> attributeModification =
-                            new PropertyModificationOperation<>(propertyDelta);
+                    var attributeModification = new PropertyModificationOperation<>(propertyDelta);
                     // TODO will this work for passwords as well?
                     ShadowSimpleAttributeDefinition<?> attrDef = objectDefinition.findSimpleAttributeDefinition(itemDelta.getElementName());
                     if (attrDef != null) {

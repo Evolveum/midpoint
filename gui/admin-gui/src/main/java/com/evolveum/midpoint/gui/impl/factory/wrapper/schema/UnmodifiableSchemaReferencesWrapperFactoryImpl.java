@@ -16,10 +16,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.DefinitionType;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.EnumerationTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.EnumerationValueTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.*;
 
 import org.springframework.stereotype.Component;
 

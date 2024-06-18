@@ -199,7 +199,7 @@ public class Resolver {
 
         PrismObject<?> object = ref.asReferenceValue().getObject();
         if (object == null) {
-            object = getObject(ref, task, result);
+            object = resolveObject(ref, task, result);
 
             ref.asReferenceValue().setObject(object);
         }
@@ -249,7 +249,7 @@ public class Resolver {
             return null;
         }
 
-        PrismObject<?> object = getObject(ref, task, result);
+        PrismObject<?> object = resolveObject(ref, task, result);
         if (object != null) {
             return object.getName().getOrig();
         }
@@ -257,7 +257,7 @@ public class Resolver {
         return returnOidIfReferenceUnknown ? ref.getOid() : null;
     }
 
-    private PrismObject<?> getObject(ObjectReferenceType ref, Task task, OperationResult result) {
+    public PrismObject<?> resolveObject(ObjectReferenceType ref, Task task, OperationResult result) {
         try {
             ObjectTypes type = getTypeFromReference(ref);
 

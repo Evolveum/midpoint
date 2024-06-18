@@ -154,12 +154,6 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
                                 ModificationPolicyConstraintType.F_NAME,
                                 ModificationPolicyConstraintType.F_OPERATION)));
         factory.registerMergerSupplier(
-                "AbstractObjectTypeConfigurationType",
-                AbstractObjectTypeConfigurationType.class,
-                m -> new GenericItemMerger(
-                        m,
-                        DefaultNaturalKeyDefinitionImpl.of(AbstractObjectTypeConfigurationType.F_TYPE)));
-        factory.registerMergerSupplier(
                 "GuiShadowDetailsPageType",
                 GuiShadowDetailsPageType.class,
                 m -> new GenericItemMerger(

@@ -34,6 +34,7 @@ import javax.xml.namespace.QName;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
@@ -269,6 +270,12 @@ public class PrismSchemaTypeUtil {
         PrismSchemaType prismSchema = new PrismSchemaType();
 
         prismSchema.namespace(parsedSchema.getNamespace());
+        Optional<Element> defaultPrefix = DOMUtil.getElement(
+                schemaElement,
+                PrismConstants.SCHEMA_ANNOTATION, PrismConstants.SCHEMA_APP_INFO, PrismConstants.A_DEFAULT_PREFIX);
+        if(defaultPrefix.isPresent()) {
+            prismSchema.defaultPrefix(defaultPrefix.get().getTextContent());
+        }
 
         parsedSchema.getComplexTypeDefinitions().forEach(complexTypeDef -> {
             ComplexTypeDefinitionType complexTypeBean = new ComplexTypeDefinitionType();

@@ -194,7 +194,7 @@ public class ContainerValueIdGenerator {
         pcvsWithoutId.clear();
     }
 
-    private long nextId() {
+    public long nextId() {
         maxUsedId++;
         return maxUsedId;
     }

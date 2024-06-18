@@ -23,6 +23,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -538,19 +540,14 @@ class ShadowRefreshOperation {
         Duration expirationPeriod = XmlTypeConverter.longerDuration(gracePeriod, deadRetentionPeriod);
         XMLGregorianCalendar lastActivityTimestamp = null;
 
-        for (PendingOperationType pendingOperation : shadow.getBean().getPendingOperation()) {
+        var shadowBean = shadow.getBean();
+        for (PendingOperationType pendingOperation : shadowBean.getPendingOperation()) {
             lastActivityTimestamp = XmlTypeConverter.laterTimestamp(lastActivityTimestamp, pendingOperation.getRequestTimestamp());
             lastActivityTimestamp = XmlTypeConverter.laterTimestamp(lastActivityTimestamp, pendingOperation.getLastAttemptTimestamp());
             lastActivityTimestamp = XmlTypeConverter.laterTimestamp(lastActivityTimestamp, pendingOperation.getCompletionTimestamp());
         }
         if (lastActivityTimestamp == null) {
-            MetadataType metadata = shadow.getBean().getMetadata();
-            if (metadata != null) {
-                lastActivityTimestamp = metadata.getModifyTimestamp();
-                if (lastActivityTimestamp == null) {
-                    lastActivityTimestamp = metadata.getCreateTimestamp();
-                }
-            }
+            lastActivityTimestamp = ValueMetadataTypeUtil.getLastChangeTimestamp(shadowBean);
         }
 
         var now = b.clock.currentTimeXMLGregorianCalendar();

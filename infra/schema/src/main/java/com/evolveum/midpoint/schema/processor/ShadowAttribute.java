@@ -11,6 +11,8 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import javax.xml.namespace.QName;
+
 /**
  * Access to both {@link ShadowSimpleAttribute} and {@link ShadowReferenceAttribute}.
  *
@@ -19,6 +21,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 @Experimental
 public interface ShadowAttribute<PV, RV> {
+
+    QName getElementName();
+
+    // FIXME the typing here
+    <SA extends ShadowAttribute<PV, RV>> ShadowAttributeDefinition<SA, RV> getDefinition();
 
     ShadowAttribute<PV, RV> clone();
 

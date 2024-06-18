@@ -19,11 +19,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Evaluation of an attribute mapping in resource object construction (assigned/plain).
  */
-class AttributeEvaluation<AH extends AssignmentHolderType, T>
-        extends ItemEvaluation<AH, PrismPropertyValue<T>, ShadowSimpleAttributeDefinition<T>> {
+class AttributeMapper<AH extends AssignmentHolderType, T>
+        extends ItemMapper<AH, PrismPropertyValue<T>, ShadowSimpleAttributeDefinition<T>> {
 
     // [EP:M:OM] DONE 2/2
-    AttributeEvaluation(
+    AttributeMapper(
             ConstructionEvaluation<AH, ?> constructionEvaluation,
             ShadowSimpleAttributeDefinition<T> attributeDefinition,
             MappingConfigItem mappingConfigItem,
@@ -42,11 +42,6 @@ class AttributeEvaluation<AH extends AssignmentHolderType, T>
     @Override
     protected String getItemType() {
         return "attribute";
-    }
-
-    @Override
-    String getLifecycleState() {
-        return itemDefinition.getLifecycleState();
     }
 
     @Override

@@ -45,7 +45,16 @@ public class ShadowBuilder {
         return this;
     }
 
+    public ShadowBuilder withReferenceAttribute(QName attrName, AbstractShadow referencedShadow) throws SchemaException {
+        ShadowUtil.getOrCreateAssociationsContainer(shadow).add(attrName, referencedShadow);
+        return this;
+    }
+
     public PrismObject<ShadowType> asPrismObject() {
         return shadow.asPrismObject();
+    }
+
+    public AbstractShadow asAbstractShadow() {
+        return AbstractShadow.of(shadow);
     }
 }

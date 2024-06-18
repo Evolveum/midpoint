@@ -337,7 +337,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
             ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
                     .item(RoleAnalysisClusterType.F_DETECTED_PATTERN).replace(collection)
-                    .item(RoleAnalysisClusterType.F_METADATA, F_MODIFY_TIMESTAMP).replace(getCurrentXMLGregorianCalendar())
                     .item(RoleAnalysisClusterType.F_CLUSTER_STATISTICS).replace(analysisClusterStatisticType
                             .asPrismContainerValue())
                     .asObjectDelta(clusterOid);
@@ -445,6 +444,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
         try {
 
+            // FIXME
             ObjectDelta<RoleAnalysisSessionType> delta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
                     .item(RoleAnalysisSessionType.F_METADATA, F_MODIFY_TIMESTAMP).replace(getCurrentXMLGregorianCalendar())
                     .asObjectDelta(sessionObject.getOid());

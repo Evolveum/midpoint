@@ -100,7 +100,7 @@ class EntitlementConverter {
      * An example: when a user `ri:privs` association values are added, these values are converted into
      * ADD VALUE operations on `ri:privileges` attribute of the same user.
      */
-    @NotNull Collection<PropertyModificationOperation<?>> transformToSubjectOpsOnModify(
+    @NotNull Collection<Operation> transformToSubjectOpsOnModify(
             @NotNull ShadowAssociationsCollection associationsCollection) throws SchemaException {
         checkNoReplace(associationsCollection);
         return transformToSubjectOps(associationsCollection.getAllValues())
@@ -120,14 +120,26 @@ class EntitlementConverter {
 
         var subjectOperations = new SubjectOperations();
         for (var iterableAssocValue : iterableAssociationValues) {
-            var associationDef = getAssociationDefinition(iterableAssocValue.name());
-            if (!isSimulatedSubjectToObject(associationDef)
-                    || !isVisible(associationDef, subjectCtx)
-                    || !doesMatchSubjectDelineation(associationDef, subjectCtx)) {
+            var refAttrDef = getAssociationDefinition(iterableAssocValue.name());
+            if (!isVisible(refAttrDef, subjectCtx)) {
                 continue;
             }
 
-            var simulationDefinition = associationDef.getSimulationDefinitionRequired();
+            var simulationDefinition = refAttrDef.getSimulationDefinition();
+            if (simulationDefinition == null) {
+                // Native association: just use the value as it is
+                subjectOperations
+                        .findOrCreateOperation(refAttrDef)
+                        .swallowValue(
+                                iterableAssocValue.associationValue().clone(),
+                                iterableAssocValue.isAddNotDelete());
+                continue;
+            }
+
+            if (!isSimulatedSubjectToObject(refAttrDef)
+                    || !doesMatchSubjectDelineation(refAttrDef, subjectCtx)) {
+                continue;
+            }
 
             // Just take the binding attribute value (like privilege name, e.g. "read") ...
             PrismPropertyValue<?> bindingAttributeValue =
@@ -418,21 +430,21 @@ class EntitlementConverter {
     /** Operation to be executed on the _subject_. Keeps modification operations indexed by attribute names. */
     static class SubjectOperations implements DebugDumpable {
 
-        private final Map<QName, PropertyModificationOperation<?>> operationMap = new HashMap<>();
+        private final Map<QName, Operation> operationMap = new HashMap<>();
 
-        public Collection<PropertyModificationOperation<?>> getOperations() {
+        public Collection<Operation> getOperations() {
             return operationMap.values();
         }
 
-        PropertyModificationOperation<?> get(QName attributeName) {
+        Operation get(QName attributeName) {
             return operationMap.get(attributeName);
         }
 
-        void put(QName attributeName, PropertyModificationOperation<?> operation) {
+        void put(QName attributeName, Operation operation) {
             operationMap.put(attributeName, operation);
         }
 
-        <T> @NotNull PropertyModificationOperation<T> findOrCreateOperation(
+        @NotNull <T> PropertyModificationOperation<T> findOrCreateOperation(
                 ShadowSimpleAttributeDefinition<T> assocAttrDef, QName matchingRuleName) {
             ItemName assocAttrName = assocAttrDef.getItemName();
             //noinspection unchecked
@@ -444,6 +456,17 @@ class EntitlementConverter {
             var newOperation = new PropertyModificationOperation<>(emptyDelta);
             newOperation.setMatchingRuleQName(matchingRuleName);
             put(assocAttrName, newOperation);
+            return newOperation;
+        }
+
+        @NotNull ReferenceModificationOperation findOrCreateOperation(ShadowReferenceAttributeDefinition refAttrDef) {
+            ItemName attrName = refAttrDef.getItemName();
+            ReferenceModificationOperation attributeOperation = (ReferenceModificationOperation) get(attrName);
+            if (attributeOperation != null) {
+                return attributeOperation;
+            }
+            var newOperation = new ReferenceModificationOperation(refAttrDef.createEmptyDelta());
+            put(attrName, newOperation);
             return newOperation;
         }
 

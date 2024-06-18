@@ -229,6 +229,13 @@ public class GuiDisplayTypeUtil {
         return displayType;
     }
 
+    public static String getDisplayCssClass(DisplayType displayType) {
+        if (displayType == null) {
+            return "";
+        }
+        return displayType.getCssClass();
+    }
+
     public static String getIconCssClass(DisplayType displayType) {
         if (displayType == null || displayType.getIcon() == null) {
             return "";

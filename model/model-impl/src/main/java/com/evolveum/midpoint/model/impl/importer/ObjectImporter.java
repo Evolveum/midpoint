@@ -241,14 +241,12 @@ public class ObjectImporter {
         }
 
         if (options == null || !isTrue(options.isKeepMetadata())) {
-            MetadataType metaData = new MetadataType();
-            String channel = SchemaConstants.CHANNEL_OBJECT_IMPORT_URI;
-            metaData.setCreateChannel(channel);
-            metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
+            var storage = ValueMetadataTypeUtil.getOrCreateStorageMetadata(object)
+                    .createChannel(SchemaConstants.CHANNEL_OBJECT_IMPORT_URI)
+                    .createTimestamp(clock.currentTimeXMLGregorianCalendar());
             if (task.getOwnerRef() != null) {
-                metaData.setCreatorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
+                storage.setCreatorRef(ObjectTypeUtil.createObjectRefCopy(task.getOwnerRef()));
             }
-            object.asObjectable().setMetadata(metaData);
         }
 
         objectResult.computeStatus();

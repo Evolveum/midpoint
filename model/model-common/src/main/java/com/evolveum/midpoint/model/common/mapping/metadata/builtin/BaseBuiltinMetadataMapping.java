@@ -62,7 +62,7 @@ abstract class BaseBuiltinMetadataMapping implements BuiltinMetadataMapping {
             StringBuilder sb = new StringBuilder();
             for (PrismValue inputValue : inputValues) {
                 if (inputValue != null) {
-                    sb.append("  - ").append(inputValue.toString()).append(" with metadata:\n");
+                    sb.append("  - ").append(inputValue).append(" with metadata:\n");
                     sb.append(inputValue.getValueMetadata().debugDump(2)).append("\n");
                 }
             }

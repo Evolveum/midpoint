@@ -114,6 +114,11 @@ public abstract class QContainerWithFullObjectMapping<S extends Containerable, Q
     }
 
     @Override
+    public boolean useDeltaApplyResults() {
+        return true;
+    }
+
+   @Override
     protected abstract SchemaRegistryState.DerivationKey<ItemDefinition<?>> definitionDerivationKey();
 
     @Override

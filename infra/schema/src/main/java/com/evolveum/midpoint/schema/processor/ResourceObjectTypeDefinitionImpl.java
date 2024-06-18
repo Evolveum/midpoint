@@ -343,6 +343,11 @@ public final class ResourceObjectTypeDefinitionImpl
             }
 
             @Override
+            public QName getAssignmentTargetTypeName() {
+                return null;
+            }
+
+            @Override
             public String getArchetypeOid() {
                 return ResourceObjectTypeDefinitionImpl.this.getArchetypeOid();
             }

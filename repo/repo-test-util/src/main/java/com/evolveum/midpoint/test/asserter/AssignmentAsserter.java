@@ -11,12 +11,12 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.util.List;
-import javax.naming.Referenceable;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -45,7 +45,7 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
         this.assignment = assignment;
     }
 
-    protected AssignmentType getAssignment() {
+    public AssignmentType getAssignment() {
         return assignment;
     }
 
@@ -166,17 +166,23 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
     }
 
     private String getOriginMappingName() {
-        return assignment.getMetadata() != null ? assignment.getMetadata().getOriginMappingName() : null;
+        var metadata = ValueMetadataTypeUtil.getMetadata(assignment);
+        if (metadata == null) {
+            return null;
+        }
+        var provenance = metadata.getProvenance();
+        if (provenance == null) {
+            return null;
+        }
+        var mappingSpec = provenance.getMappingSpecification();
+        if (mappingSpec == null) {
+            return null;
+        }
+        return mappingSpec.getMappingName();
     }
 
     public ActivationAsserter<AssignmentAsserter<R>> activation() {
         ActivationAsserter<AssignmentAsserter<R>> asserter = new ActivationAsserter<>(assignment.getActivation(), this, getDetails());
-        copySetupTo(asserter);
-        return asserter;
-    }
-
-    public MetadataAsserter<AssignmentAsserter<R>> metadata() {
-        MetadataAsserter<AssignmentAsserter<R>> asserter = new MetadataAsserter<>(assignment.getMetadata(), this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }

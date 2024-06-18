@@ -351,7 +351,7 @@ class SearchExecutor {
                 }
 
                 var ucfObject = connectorInstance.connIdObjectConvertor.convertToUcfObject(
-                        connectorObject, resourceObjectDefinition, connectorInstance, errorReportingMethod, result);
+                        connectorObject, resourceObjectDefinition, errorReportingMethod, result);
 
                 return handler.handle(ucfObject, result);
 

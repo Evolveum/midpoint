@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.factory.panel.AbstractInputGuiComponentFac
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 
 import jakarta.annotation.PostConstruct;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -49,7 +50,16 @@ public class DropDownChoicePanelFactory extends AbstractInputGuiComponentFactory
 
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<QName> panelCtx) {
-        List<QName> typesList;
+        List<QName> typesList = getTypesList(panelCtx);
+
+        DropDownChoicePanel<QName> typePanel = new DropDownChoicePanel<QName>(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
+                Model.ofList(typesList), new QNameObjectTypeChoiceRenderer(), true);
+        typePanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        typePanel.setOutputMarkupId(true);
+        return typePanel;
+    }
+
+    protected List<QName> getTypesList(PrismPropertyPanelContext<QName> panelCtx) {
         if (AssignmentType.F_FOCUS_TYPE.equals(panelCtx.getDefinitionName())
                 || ItemPath.create(
                         ResourceType.F_SCHEMA_HANDLING,
@@ -57,21 +67,14 @@ public class DropDownChoicePanelFactory extends AbstractInputGuiComponentFactory
                         ResourceObjectTypeDefinitionType.F_FOCUS,
                         ResourceObjectFocusSpecificationType.F_TYPE)
                 .equivalent(panelCtx.unwrapWrapperModel().getPath().namedSegmentsOnly())) {
-            typesList = ObjectTypeListUtil.createFocusTypeList();
+            return ObjectTypeListUtil.createFocusTypeList();
         } else if ((ObjectCollectionType.F_TYPE.equals(panelCtx.getDefinitionName()) || GuiObjectListViewType.F_TYPE.equals(panelCtx.getDefinitionName()))
                 && panelCtx.unwrapWrapperModel().getParent().getDefinition() != null &&
                 (ObjectCollectionType.class.equals(panelCtx.unwrapWrapperModel().getParent().getDefinition().getTypeClass())
                         || GuiObjectListViewType.class.equals(panelCtx.unwrapWrapperModel().getParent().getDefinition().getTypeClass()))) {
-            typesList = ObjectTypeListUtil.createContainerableTypesQnameList();
-        } else {
-            typesList = ObjectTypeListUtil.createObjectTypeList();
+            return ObjectTypeListUtil.createContainerableTypesQnameList();
         }
-
-        DropDownChoicePanel<QName> typePanel = new DropDownChoicePanel<QName>(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
-                Model.ofList(typesList), new QNameObjectTypeChoiceRenderer(), true);
-        typePanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-        typePanel.setOutputMarkupId(true);
-        return typePanel;
+        return ObjectTypeListUtil.createObjectTypeList();
     }
 
     @Override

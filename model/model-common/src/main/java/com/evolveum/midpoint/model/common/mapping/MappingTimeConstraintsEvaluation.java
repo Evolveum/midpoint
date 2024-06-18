@@ -180,7 +180,7 @@ class MappingTimeConstraintsEvaluation implements Serializable {
                 path,
                 m.variables,
                 false,
-                m.getTypedSourceContext(),
+                m.getTypedDefaultSourceContextIdi(),
                 ModelCommonBeans.get().objectResolver,
                 "reference time definition in " + m.getMappingContextDescription(),
                 m.getTask(),

@@ -394,4 +394,9 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
     protected String getNewButtonCssClass() {
         return "btn btn-primary btn-sm";
     }
+
+    @Override
+    protected boolean isDuplicationSupported() {
+        return false;
+    }
 }

@@ -14,6 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import jakarta.xml.bind.JAXBElement;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,5 +74,9 @@ public interface AbstractMappingConfigItem<M extends AbstractMappingType> extend
                 }
             }
         }
+    }
+
+    default boolean isEnabled() {
+        return BooleanUtils.isNotFalse(value().isEnabled());
     }
 }

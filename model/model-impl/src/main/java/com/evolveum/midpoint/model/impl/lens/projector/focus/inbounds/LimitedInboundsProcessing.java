@@ -72,7 +72,7 @@ public class LimitedInboundsProcessing<T extends Containerable> extends Abstract
             new LimitedInboundsPreparation<>(
                     evaluationRequests,
                     itemDefinitionMap,
-                    new LimitedContext(ctx, getCorrelationItemPaths(result), env),
+                    new LimitedContext(ctx, getCorrelationItemPaths(result), env, assignmentsProcessingContext),
                     preFocusPcv,
                     getFocusDefinition(preFocusPcv))
                     .collectOrEvaluate(result);
@@ -133,7 +133,7 @@ public class LimitedInboundsProcessing<T extends Containerable> extends Abstract
     }
 
     @Override
-    void applyComputedDeltas(Collection<ItemDelta<?, ?>> itemDeltas) throws SchemaException {
+    void applyComputedDeltas(Collection<? extends ItemDelta<?, ?>> itemDeltas) throws SchemaException {
         LOGGER.trace("Applying deltas to the pre-focus:\n{}", DebugUtil.debugDumpLazily(itemDeltas, 1));
         ItemDeltaCollectionsUtil.applyTo(
                 itemDeltas, ctx.getPreFocusAsPcv());
@@ -146,8 +146,13 @@ public class LimitedInboundsProcessing<T extends Containerable> extends Abstract
     }
 
     @Override
-    @Nullable PrismContainerValue<T> getTarget() {
+    @Nullable PrismContainerValue<T> getTargetNew() {
         return ctx.getPreFocusAsPcv();
+    }
+
+    @Override
+    @Nullable PrismContainerValue<T> getTarget() throws SchemaException {
+        return null;
     }
 
     @Override

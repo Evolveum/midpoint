@@ -26,13 +26,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class SourceMappingProvider extends ChoiceProvider<VariableBindingDefinitionType> {
+public class FocusDefinitionsMappingProvider extends ChoiceProvider<VariableBindingDefinitionType> {
 
     private static final long serialVersionUID = 1L;
 
     private final IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> rowModel;
 
-    public <IW extends ItemWrapper> SourceMappingProvider(IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> rowModel) {
+    public <IW extends ItemWrapper> FocusDefinitionsMappingProvider(IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> rowModel) {
         this.rowModel = rowModel;
     }
 

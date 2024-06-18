@@ -31,7 +31,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -120,7 +119,7 @@ public abstract class ResourceObjectConstruction<
                 if (resolvedResource.warning) {
                     result.recordWarning("The resource could not be found");
                 } else {
-                    result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "The resource could not be found");
+                    result.recordNotApplicable("The resource could not be found");
                 }
                 return null;
             }
@@ -189,8 +188,7 @@ public abstract class ResourceObjectConstruction<
         return mapping.getOutputTriple();
     }
 
-    @NotNull
-    private PrismPropertyDefinition<String> createTagDefinition() {
+    private @NotNull PrismPropertyDefinition<String> createTagDefinition() {
         return PrismContext.get().definitionFactory().newPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname(), 0, -1);
     }
@@ -256,7 +254,7 @@ public abstract class ResourceObjectConstruction<
     <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> initializeMappingBuilder(
             MappingBuilder<V, D> builder,
             ItemPath implicitTargetPath,
-            QName mappingQName,
+            QName targetItemName,
             D outputDefinition,
             ShadowReferenceAttributeDefinition associationDefinition,
             Task task) throws SchemaException {
@@ -272,16 +270,15 @@ public abstract class ResourceObjectConstruction<
 
         ObjectDeltaObject<AH> focusOdoAbsolute = getFocusOdoAbsolute();
 
-        builder = builder.mappingQName(mappingQName)
+        builder = builder.targetItemName(targetItemName)
                 .mappingKind(MappingKindType.CONSTRUCTION)
                 .implicitTargetPath(implicitTargetPath)
-                .sourceContext(focusOdoAbsolute)
+                .defaultSourceContextIdi(focusOdoAbsolute)
                 .defaultTargetDefinition(outputDefinition)
                 .defaultTargetPath(implicitTargetPath)
                 .originType(originType)
                 .originObject(source)
-                .resourceObjectDefinition(getResourceObjectDefinition())
-                .rootNode(focusOdoAbsolute)
+                .addRootVariableDefinition(focusOdoAbsolute)
                 .addVariableDefinition(ExpressionConstants.VAR_USER, focusOdoAbsolute)
                 .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdoAbsolute)
                 .addAliasRegistration(ExpressionConstants.VAR_USER, null)

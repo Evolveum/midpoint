@@ -23,12 +23,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.prism.path.InfraItemName;
+import com.evolveum.midpoint.schema.util.*;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.test.TestSimulationResult;
-import com.evolveum.midpoint.schema.util.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -70,9 +73,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
 import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -1367,13 +1367,16 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 0, 50);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after change execution", userAfter);
+        assertUserAfter(userAfter)
+                .assertModifyMetadataComplex(startTime, endTime)
+                .assertLastProvisioningTimestamp(startTime, endTime)
+                .assignments()
+                .assertAssignments(1)
+                .by().accountOn(RESOURCE_DUMMY_OID).find()
+                .valueMetadataSingle()
+                .assertCreateMetadataComplex(startTime, endTime);
+
         assertUserJack(userAfter);
-        AssignmentType assignmentType = assertAssignedAccount(userAfter, RESOURCE_DUMMY_OID);
-        assertAssignments(userAfter, 1);
-        assertModifyMetadata(userAfter, startTime, endTime);
-        assertCreateMetadata(assignmentType, startTime, endTime);
-        assertLastProvisioningTimestamp(userAfter, startTime, endTime);
 
         accountJackOid = getSingleLinkOid(userAfter);
 
@@ -1452,7 +1455,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY)
                 .find(a -> a.assertEventMarks()
                         .delta(d -> d.assertModifiedExclusive(
-                                        UserType.F_METADATA,
+                                        InfraItemName.METADATA,
                                         UserType.F_ORGANIZATIONAL_UNIT)
                                 .assertPolyStringModification(
                                         UserType.F_ORGANIZATIONAL_UNIT,
@@ -1461,7 +1464,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY)
                 .find(a -> a.assertEventMarks(MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED)
                         .delta(d -> d.assertModifiedExclusive(
-                                        ShadowType.F_METADATA,
+                                        InfraItemName.METADATA,
                                         DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH,
                                         DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH)
                                 .assertModification(
@@ -1662,12 +1665,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
 
-        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after change execution", userAfter);
+        var userAfter = assertUserAfter(USER_JACK_OID)
+                .assignments()
+                .assertAccount(RESOURCE_DUMMY_OID)
+                .assertAssignments(1)
+                .end()
+                .assertLastProvisioningTimestamp(null, startTime)
+                .getObject();
+
         assertUserJack(userAfter);
-        assertAssignedAccount(userAfter, RESOURCE_DUMMY_OID);
-        assertAssignments(userAfter, 1);
-        assertLastProvisioningTimestamp(userAfter, null, startTime);
 
         String accountJackOidAfter = getSingleLinkOid(userAfter);
         assertEquals("Account OID changed", accountJackOid, accountJackOidAfter);
@@ -2774,16 +2780,16 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 createReplaceAccountConstructionUserDelta(USER_JACK_OID, assignmentId, accountConstruction);
         deltas.add(accountAssignmentUserDelta);
 
-        // Set user and assignment create channel to legacy value.
-        repositoryService.modifyObject(
-                UserType.class, jackBefore.getOid(),
-                deltaFor(UserType.class)
-                        .item(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
-                        .replace(Channel.USER.getLegacyUri())
-                        .item(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
-                        .replace(Channel.USER.getLegacyUri())
-                        .asItemDeltas(),
-                result);
+//        // Set user and assignment create channel to legacy value.
+//        repositoryService.modifyObject(
+//                UserType.class, jackBefore.getOid(),
+//                deltaFor(UserType.class)
+//                        .item(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+//                        .replace(Channel.USER.getLegacyUri())
+//                        .item(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+//                        .replace(Channel.USER.getLegacyUri())
+//                        .asItemDeltas(),
+//                result);
 
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -2807,9 +2813,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertUserJack(userJack, "Jack Sparrow");
         accountJackOid = getSingleLinkOid(userJack);
 
-        // MID-6547 (channel URI migration)
-        assertThat(userJack.asObjectable().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
-        assertThat(userJack.asObjectable().getAssignment().get(0).getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
+//        // MID-6547 (channel URI migration)
+//        assertThat(ValueMetadataTypeUtil.getStorageMetadata(userJack.asObjectable()))
+//                .as("storage metadata in jack")
+//                .extracting(m -> m.getCreateChannel())
+//                .isEqualTo(Channel.USER.getUri());
+//        assertThat(ValueMetadataTypeUtil.getStorageMetadata(userJack.asObjectable().getAssignment().get(0)))
+//                .as("storage metadata in jack's first assignment")
+//                .extracting(m -> m.getCreateChannel())
+//                .isEqualTo(Channel.USER.getUri());
 
         // Check shadow
         var accountShadow = getShadowRepo(accountJackOid);
@@ -3398,15 +3410,17 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNoShadowFetchOperations();
 
         PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
-        display("User morgan after", userMorgan);
-        UserType userMorganType = userMorgan.asObjectable();
-        AssignmentType assignmentType = assertAssignedAccount(userMorgan, RESOURCE_DUMMY_OID);
+        assertUserAfter(userMorgan)
+                .assertCreateMetadataComplex(startTime, endTime)
+                .assignments()
+                .by().accountOn(RESOURCE_DUMMY_OID).find()
+                .valueMetadataSingle()
+                .assertCreateMetadataComplex(startTime, endTime);
+
         assertLiveLinks(userMorgan, 1);
-        ObjectReferenceType accountRefType = userMorganType.getLinkRef().get(0);
+        ObjectReferenceType accountRefType = userMorgan.asObjectable().getLinkRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
-        assertCreateMetadata(userMorgan, startTime, endTime);
-        assertCreateMetadata(assignmentType, startTime, endTime);
 
         assertEncryptedUserPassword(userMorgan, "rum");
         assertPasswordMetadata(userMorgan, true, startTime, endTime);

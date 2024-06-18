@@ -14,7 +14,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProces
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -313,8 +312,10 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
                 task, result);
 
         approvalCase = modelService.getObject(CaseType.class, approvalCase.getOid(), options, task, result).asObjectable();
-        List<CaseWorkItemType> openWorkItems = approvalCase.getWorkItem().stream().filter(i -> i.getCloseTimestamp() == null)
-                .collect(Collectors.toList());
+        List<CaseWorkItemType> openWorkItems =
+                approvalCase.getWorkItem().stream()
+                        .filter(i -> i.getCloseTimestamp() == null)
+                        .toList();
         assertEquals("wrong # of open work items", 1, openWorkItems.size());
         workItem = openWorkItems.get(0);
         caseService.completeWorkItem(

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstan
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -45,8 +46,8 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
     static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
     protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 
-    static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
-    protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
+    protected static final TestObject<RoleType> ROLE_SUPERUSER = TestObject.file(
+            COMMON_DIR, "role-superuser.xml", "00000000-0000-0000-0000-000000000004");
 
     protected PrismObject<UserType> userAdministrator;
 
@@ -80,7 +81,7 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
 
         // Users
         userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
-        repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
+        repoAdd(ROLE_SUPERUSER, initResult);
         login(userAdministrator);
     }
 

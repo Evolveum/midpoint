@@ -55,9 +55,23 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="namespace" type="xsd:string" minOccurs="1"/>
+            <xsd:element name="namespace" type="xsd:string" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayOrder>5</a:displayOrder>
+                        <a:displayHint>emphasized</a:displayHint>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Namespace for schema.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="defaultPrefix" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayOrder>9</a:displayOrder>
+                        <a:displayHint>emphasized</a:displayHint>
+                    </xsd:appinfo>
                     <xsd:documentation>
                         Defines constant prefix, which should be used for namespace defined in XSD schema.
                     </xsd:documentation>
@@ -119,7 +133,18 @@
         <xsd:complexContent>
             <xsd:extension base="tns:PrismItemDefinitionType">
                 <xsd:sequence>
-                    <xsd:element ref="a:objectReferenceTargetType" minOccurs="0"/>
+                    <xsd:element ref="a:objectReferenceTargetType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayOrder>20</a:displayOrder>
+                                <a:displayHint>emphasized</a:displayHint>
+                            </xsd:appinfo>
+                            <xsd:documentation>
+                                Object reference annotation: reference target type. Content of this
+                                annotation specifies the object type that the reference points to.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

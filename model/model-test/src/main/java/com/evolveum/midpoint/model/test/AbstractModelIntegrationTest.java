@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.model.api.validator.StringLimitationResult.e
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.OPERATION_GET_PRINCIPAL;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ASSIGNEE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ORIGINAL_ASSIGNEE_REF;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.*;
 
@@ -202,7 +204,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected ModelAuditService modelAuditService;
     @Autowired protected ActivityBasedTaskHandler activityBasedTaskHandler;
     @Autowired protected ArchetypeManager archetypeManager;
-
     @Autowired protected RoleAnalysisService roleAnalysisService;
 
     @Autowired
@@ -327,7 +328,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Override
     public DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result)
             throws Exception {
-        resource.controller = dummyResourceCollection.initDummyResource(resource, task, result);
+        resource.controller = dummyResourceCollection.initDummyResourceRepeatable(resource, task, result);
         resource.reload(result); // To have schema, etc
         return resource.controller;
     }
@@ -335,7 +336,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Override
     public void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result)
             throws Exception {
-        resource.controller = dummyResourceCollection.initDummyResource(resource, task, result);
+        resource.controller = dummyResourceCollection.initDummyResourceRepeatable(resource, task, result);
         assertSuccess(
                 modelService.testResource(resource.controller.getResource().getOid(), task, result));
         resource.reload(result); // To have schema, etc
@@ -3869,7 +3870,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     private boolean isSideEffectDelta(ItemDelta<?, ?> modification) {
-        if (modification.getPath().containsNameExactly(ObjectType.F_METADATA)
+        if (modification.getPath().containsNameExactly(ObjectType.F_METADATA) // TODO remove
+                || modification.getPath().containsNameExactly(InfraItemName.METADATA)
                 || (modification.getPath().containsNameExactly(FocusType.F_ASSIGNMENT)
                 && modification.getPath().containsNameExactly(ActivationType.F_EFFECTIVE_STATUS))) {
             return true;
@@ -5505,33 +5507,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertEquals("Wrong password for " + user, expectedClearPassword, actualClearPassword);
     }
 
-    protected void assertPasswordMetadata(PrismObject<UserType> user, QName credentialType, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
-        PrismContainer<MetadataType> metadataContainer = user.findContainer(ItemPath.create(UserType.F_CREDENTIALS, credentialType, PasswordType.F_METADATA));
-        assertNotNull("No password metadata in " + user, metadataContainer);
-        MetadataType metadataType = metadataContainer.getValue().asContainerable();
-        assertMetadata("password metadata in " + user, metadataType, create, false, start, end, actorOid, channel);
-    }
-
-    protected <O extends ObjectType> void assertCreateMetadata(PrismObject<O> object, XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        MetadataType metadataType = object.asObjectable().getMetadata();
-        PrismObject<UserType> defaultActor = getDefaultActor();
-        assertMetadata(object.toString(), metadataType, true, true, start, end,
-                defaultActor == null ? null : defaultActor.getOid(), DEFAULT_CHANNEL);
-    }
-
-    protected <O extends ObjectType> void assertModifyMetadata(PrismObject<O> object, XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        MetadataType metadataType = object.asObjectable().getMetadata();
-        PrismObject<UserType> defaultActor = getDefaultActor();
-        assertMetadata(object.toString(), metadataType, false, false, start, end,
-                defaultActor == null ? null : defaultActor.getOid(), DEFAULT_CHANNEL);
-    }
-
-    protected void assertCreateMetadata(
-            AssignmentType assignmentType, XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        MetadataType metadataType = assignmentType.getMetadata();
-        PrismObject<UserType> defaultActor = getDefaultActor();
-        assertMetadata(assignmentType.toString(), metadataType, true, true, start, end,
-                defaultActor == null ? null : defaultActor.getOid(), DEFAULT_CHANNEL);
+    protected void assertPasswordMetadata(PrismObject<UserType> user, ItemName credentialType, boolean create,
+            XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
+        var credentials = user.asObjectable().getCredentials();
+        assertThat(credentials).isNotNull();
+        //noinspection unchecked
+        PrismContainer<AbstractCredentialType> credentialContainer = credentials.asPrismContainerValue().findContainer(credentialType);
+        assertThat(credentialContainer).isNotNull();
+        var credential = credentialContainer.getRealValue(AbstractCredentialType.class);
+        assertMetadata("password metadata in " + user, ValueMetadataTypeUtil.getMetadata(credential), create,
+                false, start, end, actorOid, channel);
     }
 
     protected void assertDummyPassword(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
@@ -5656,20 +5641,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                         .build(),
                 null, task, result);
         return latestEvent.size() == 1 ? latestEvent.get(0).getRepoId() : 0;
-    }
-
-    protected void checkUserApprovers(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
-        checkApprovers(expectedApprovers, user.asObjectable().getMetadata().getModifyApproverRef());
-    }
-
-    protected void checkApprovers(List<String> expectedApprovers, List<ObjectReferenceType> realApprovers) {
-        HashSet<String> realApproversSet = new HashSet<>();
-        for (ObjectReferenceType approver : realApprovers) {
-            realApproversSet.add(approver.getOid());
-            assertEquals("Unexpected target type in approverRef", UserType.COMPLEX_TYPE, approver.getType());
-        }
-        assertEquals("Mismatch in approvers in metadata", new HashSet<>(expectedApprovers), realApproversSet);
     }
 
     protected <F extends FocusType> void assertFocusModificationSanity(ModelContext<F> context) {
@@ -6173,6 +6144,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return asserter;
     }
 
+    protected <A extends AbstractAsserter<?>> A initializeAsserter(A asserter) {
+        super.initializeAsserter(asserter);
+        asserter.setExpectedActor(
+                asObjectable(getDefaultActor()));
+        return asserter;
+    }
+
     protected void assertNoUserByUsername(String username)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, ObjectNotFoundException {
@@ -6651,7 +6629,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return queryFor(AccessCertificationCaseType.class)
                 .exists(AccessCertificationCaseType.F_WORK_ITEM)
                 .block()
-                    .item(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).eq(outcomeUri)
+                .item(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).eq(outcomeUri)
                 .endBlock()
                 .build();
     }

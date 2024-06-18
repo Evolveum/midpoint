@@ -39,6 +39,8 @@ import org.jetbrains.annotations.VisibleForTesting;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_UID;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
@@ -1177,5 +1179,46 @@ public class ShadowUtil {
         }
         PrismContainer<?> associationsContainer = shadow.findContainer(ShadowType.F_ASSOCIATIONS);
         return associationsContainer != null && !(associationsContainer instanceof ShadowAssociationsContainer);
+    }
+
+    // FIXME improve this method
+    static boolean equalsByContent(@NotNull ShadowType s1, @NotNull ShadowType s2) {
+
+        // HACK We ignore icfs:uid and icfs:name, if they are not present at both sides.
+        // The reason is that they may be artificially added by the connector.
+        var attributes1 = new ArrayList<>(getAttributes(s1));
+        var attributes2 = new ArrayList<>(getAttributes(s2));
+
+        removeIfNeeded(attributes1, attributes2, ICFS_UID);
+        removeIfNeeded(attributes1, attributes2, ICFS_NAME);
+
+        return MiscUtil.unorderedCollectionEquals(attributes1, attributes2)
+                && MiscUtil.unorderedCollectionEquals(getAssociations(s1), getAssociations(s2))
+                && Objects.equals(s1.getActivation(), s2.getActivation()) // TODO less strict comparison
+                && Objects.equals(s1.getCredentials(), s2.getCredentials()); // TODO less strict comparison
+    }
+
+    private static void removeIfNeeded(
+            ArrayList<? extends ShadowAttribute<?, ?>> attributes1,
+            ArrayList<? extends ShadowAttribute<?, ?>> attributes2,
+            ItemName name) {
+        int i1 = find(attributes1, name);
+        int i2 = find(attributes2, name);
+        if (i1 != -1 && i2 == -1) {
+            attributes1.remove(i1);
+        } else if (i1 == -1 && i2 != -1) {
+            attributes2.remove(i2);
+        } else {
+            // either both present or both not present -> keep them
+        }
+    }
+
+    private static int find(List<? extends ShadowAttribute<?, ?>> attributes, QName name) {
+        for (int i = 0; i < attributes.size(); i++) {
+            if (QNameUtil.match(attributes.get(i).getElementName(), name)) {
+                return i;
+            }
+        }
+        return -1;
     }
 }

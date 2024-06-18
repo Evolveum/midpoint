@@ -24,6 +24,10 @@ public class DummyPrivilege extends DummyObject {
         super(username);
     }
 
+    public DummyPrivilege(String username, DummyResource resource) {
+        super(username, resource);
+    }
+
     @Override
     public @NotNull String getObjectClassName() {
         return OBJECT_CLASS_NAME;

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.authentication.evaluator;
 
 import com.evolveum.midpoint.authentication.api.evaluator.context.NonceAuthenticationContext;
 import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -21,7 +22,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
-import javax.xml.namespace.QName;
 import java.util.List;
 
 public class TestNonceAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<String, NonceAuthenticationContext, AuthenticationEvaluator<NonceAuthenticationContext, UsernamePasswordAuthenticationToken>> {
@@ -98,7 +98,7 @@ public class TestNonceAuthenticationEvaluator extends TestAbstractAuthentication
     }
 
     @Override
-    public QName getCredentialType() {
+    public ItemName getCredentialType() {
         return CredentialsType.F_NONCE;
     }
 

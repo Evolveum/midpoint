@@ -47,22 +47,7 @@ public class ShadowDescriptionHandler implements VisualizationDescriptionHandler
 
         ShadowKindType kind = shadow.getKind() != null ? shadow.getKind() : ShadowKindType.UNKNOWN;
 
-        String name = null;
-
-        PolyStringType nameBean = shadow.getName();
-        if (nameBean != null) {
-            if (nameBean.getTranslation() != null && StringUtils.isNotEmpty(nameBean.getTranslation().getKey())) {
-                name = nameBean.getTranslation().getKey();
-            } else if (StringUtils.isNotEmpty(nameBean.getOrig())) {
-                name = nameBean.getOrig();
-            }
-        }
-
-        if (StringUtils.isEmpty(name)) {
-            ShadowSimpleAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute(shadow);
-            Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
-            name = realName != null ? realName.toString() : "ShadowDescriptionHandler.noName";
-        }
+        String name = getShadowName(shadow);
 
         ChangeType change = visualization.getChangeType();
 
@@ -85,5 +70,25 @@ public class ShadowDescriptionHandler implements VisualizationDescriptionHandler
                         resourceName
                 })
         );
+    }
+
+    protected final String getShadowName(ShadowType shadow) {
+        String name = null;
+
+        PolyStringType nameBean = shadow.getName();
+        if (nameBean != null) {
+            if (nameBean.getTranslation() != null && StringUtils.isNotEmpty(nameBean.getTranslation().getKey())) {
+                name = nameBean.getTranslation().getKey();
+            } else if (StringUtils.isNotEmpty(nameBean.getOrig())) {
+                name = nameBean.getOrig();
+            }
+        }
+
+        if (StringUtils.isEmpty(name)) {
+            ShadowSimpleAttribute<?> namingAttribute = ShadowUtil.getNamingAttribute(shadow);
+            Object realName = namingAttribute != null ? namingAttribute.getRealValue() : null;
+            name = realName != null ? realName.toString() : "ShadowDescriptionHandler.noName";
+        }
+        return name;
     }
 }

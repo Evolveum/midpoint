@@ -44,12 +44,6 @@ public class QNameTextPanelFactory extends DropDownChoicePanelFactory implements
             return true;
         }
 
-        if (wrapper.getParentContainerValue(PrismSchemaType.class) != null
-                && (PrismItemDefinitionType.F_NAME.equivalent(wrapper.getItemName())
-                || PrismItemDefinitionType.F_TYPE.equivalent(wrapper.getItemName()))) {
-            return true;
-        }
-
         if (wrapper.getParentContainerValue(SimulatedReferenceTypeParticipantType.class) != null
                 && (SimulatedReferenceTypeParticipantType.F_PRIMARY_BINDING_ATTRIBUTE_REF.equivalent(wrapper.getItemName())
                 || SimulatedReferenceTypeParticipantType.F_SECONDARY_BINDING_ATTRIBUTE_REF.equivalent(wrapper.getItemName())

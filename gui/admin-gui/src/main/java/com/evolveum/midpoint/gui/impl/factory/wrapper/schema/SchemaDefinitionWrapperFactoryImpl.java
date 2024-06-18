@@ -33,10 +33,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author katka
  */
 @Component
-public class SchemaWrapperFactoryImpl
+public class SchemaDefinitionWrapperFactoryImpl
         extends PrismContainerWrapperFactoryImpl<PrismSchemaType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SchemaWrapperFactoryImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SchemaDefinitionWrapperFactoryImpl.class);
 
     @Override
     public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {

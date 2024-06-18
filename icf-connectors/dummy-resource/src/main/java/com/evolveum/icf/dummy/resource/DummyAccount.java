@@ -40,6 +40,10 @@ public class DummyAccount extends DummyObject {
         super(username);
     }
 
+    public DummyAccount(String username, DummyResource dummyResource) {
+        super(username, dummyResource);
+    }
+
     public String getPassword() {
         return password;
     }

@@ -169,8 +169,8 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
             expressionType = ExpressionUtil.updateScriptExpressionValue(expressionType, evaluator);
             getModel().setObject(expressionType);
         } catch (SchemaException ex) {
-            LOGGER.error("Couldn't update generate expression values: {}", ex.getLocalizedMessage());
-            getPageBase().error("Couldn't update generate expression values: " + ex.getLocalizedMessage());
+            LOGGER.error("Couldn't update script expression values: {}", ex.getLocalizedMessage());
+            getPageBase().error("Couldn't update script expression values: " + ex.getLocalizedMessage());
         }
     }
 

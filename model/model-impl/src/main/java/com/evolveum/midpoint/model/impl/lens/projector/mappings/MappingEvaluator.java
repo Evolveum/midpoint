@@ -63,7 +63,7 @@ public class MappingEvaluator {
     /**
      * Evaluates parsed mapping in given lens and projection context (if available - they may be null).
      */
-    public <V extends PrismValue, D extends ItemDefinition<?>, F extends ObjectType> void evaluateMapping(
+    public <V extends PrismValue, D extends ItemDefinition<?>> void evaluateMapping(
             @NotNull MappingImpl<V, D> mapping,
             @NotNull EvaluationContext<V, D> context,
             @NotNull Task task,

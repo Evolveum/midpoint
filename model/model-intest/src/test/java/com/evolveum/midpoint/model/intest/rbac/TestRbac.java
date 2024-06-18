@@ -149,13 +149,22 @@ public class TestRbac extends AbstractRbacTest {
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User jack after", userAfter);
-        assertModifyMetadata(userAfter, startTs, endTs);
+        // @formatter:off
+        var userAfter = assertUserAfter(USER_JACK_OID)
+                .assertModifyMetadataComplex(startTs, endTs)
+                .assignments()
+                    .by().roleOid(ROLE_PIRATE_OID).find()
+                        .activation()
+                            .assertEffectiveStatus(ActivationStatusType.ENABLED)
+                        .end()
+                        .valueMetadataSingle()
+                            .assertCreateMetadataComplex(startTs, endTs)
+                        .end()
+                    .end()
+                .end()
+                .getObject();
+        // @formatter:on
 
-        AssignmentType assignmentType = assertAssignedRole(userAfter, ROLE_PIRATE_OID);
-        assertCreateMetadata(assignmentType, startTs, endTs);
-        assertEffectiveActivation(assignmentType, ActivationStatusType.ENABLED);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
         assertDelegatedRef(userAfter);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -1521,8 +1530,9 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
         when();
-        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, getDefaultOptions(), task, result,
-                PrismTestUtil.createPolyString("PhD."));
+        modifyUserReplace(
+                USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, getDefaultOptions(), task, result,
+                PolyString.fromOrig("PhD."));
 
         // THEN
         then();
@@ -1551,8 +1561,9 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
         when();
-        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, getDefaultOptions(), task, result,
-                PrismTestUtil.createPolyString("captain"));
+        modifyUserReplace(
+                USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, getDefaultOptions(), task, result,
+                PolyString.fromOrig("captain"));
 
         // THEN
         then();

@@ -554,7 +554,7 @@ CREATE TABLE m_assignment_metadata (
     modifyChannelId INTEGER REFERENCES m_uri(id),
     modifyTimestamp TIMESTAMPTZ,
 
-    PRIMARY KEY (ownerOid, cid)
+    PRIMARY KEY (ownerOid, assignmentCid, cid)
 ) INHERITS(m_container);
 
 CREATE INDEX m_assignment_metadata_createTimestamp_idx ON m_assignment (createTimestamp);
@@ -578,6 +578,16 @@ ALTER TABLE "m_assignment_ref_modify_approver" ADD CONSTRAINT "m_assignment_ref_
   UNIQUE ("owneroid", "assignmentcid", "metadatacid", "referencetype", "relationid", "targetoid");
 
 $aa$);
+call apply_change(34, $aa$
+ALTER TABLE "m_assignment_metadata"
+ADD CONSTRAINT "m_assignment_metadata_owneroid_assignmentcid_cid" PRIMARY KEY ("owneroid", "assignmentcid", "cid"),
+DROP CONSTRAINT "m_assignment_metadata_pkey";
+
+ALTER TABLE "m_assignment_metadata"
+ADD FOREIGN KEY ("owneroid", "assignmentcid") REFERENCES "m_assignment" ("owneroid", "cid") ON DELETE CASCADE;
+
+$aa$);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

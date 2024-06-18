@@ -54,6 +54,19 @@ public class ContainerTableDeltaProcessor<
         }
     }
 
+    public void addRealValue(T container) throws SchemaException {
+        if (context.isOverwrittenId(container.asPrismContainerValue().getId())) {
+            deleteContainer(containerTableMapping.defaultAlias(), container);
+        }
+        context.insertOwnedRow(containerTableMapping, container);
+    }
+
+
+    @Override
+    protected void deleteRealValue(T realValue) {
+        deleteContainer(containerTableMapping.defaultAlias(), realValue);
+    }
+
     @Override
     public void deleteValues(Collection<T> values) {
         Q c = containerTableMapping.defaultAlias();
@@ -83,5 +96,10 @@ public class ContainerTableDeltaProcessor<
 
     protected SqaleUpdateContext<?, OQ, OR> getContext() {
         return context;
+    }
+
+    @Override
+    protected boolean useRealDeltaApplyResults() {
+        return containerTableMapping.useDeltaApplyResults();
     }
 }

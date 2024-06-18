@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema.util;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 import java.util.Objects;
@@ -892,18 +894,7 @@ public class ObjectTypeUtil {
     }
 
     public static <O extends ObjectType> XMLGregorianCalendar getLastTouchTimestamp(PrismObject<O> object) {
-        if (object == null) {
-            return null;
-        }
-        MetadataType metadata = object.asObjectable().getMetadata();
-        if (metadata == null) {
-            return null;
-        }
-        XMLGregorianCalendar modifyTimestamp = metadata.getModifyTimestamp();
-        if (modifyTimestamp != null) {
-            return modifyTimestamp;
-        }
-        return metadata.getCreateTimestamp();
+        return object != null ? ValueMetadataTypeUtil.getLastChangeTimestamp(object.asObjectable()) : null;
     }
 
     @NotNull
@@ -1438,5 +1429,21 @@ public class ObjectTypeUtil {
         } else {
             return asObjectable(ref.getObject());
         }
+    }
+
+    public static AssignmentType getAssignment(ObjectType object, long id) {
+        if (!(object instanceof AssignmentHolderType assignmentHolder)) {
+            return null;
+        }
+        return assignmentHolder.getAssignment().stream()
+                .filter(a -> a.getId() != null && a.getId() == id)
+                .findFirst()
+                .orElse(null);
+    }
+
+    public static @NotNull AssignmentType getAssignmentRequired(ObjectType object, long id) {
+        return stateNonNull(
+                getAssignment(object, id),
+                "No assignment with ID %d in %s", id, object);
     }
 }

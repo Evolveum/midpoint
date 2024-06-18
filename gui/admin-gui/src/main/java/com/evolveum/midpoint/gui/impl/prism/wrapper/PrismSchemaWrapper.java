@@ -53,7 +53,6 @@ public class PrismSchemaWrapper extends PrismContainerWrapperImpl<PrismSchemaTyp
         @NotNull ItemPath propertyPath = getPath().allExceptLast().append(SchemaType.F_DEFINITION);
         PrismPropertyDefinition<SchemaDefinitionType> propertyDef = objectWrapper.getItem().getDefinition().findPropertyDefinition(propertyPath);
 
-        Collection<ItemDelta<? extends PrismValue, ? extends ItemDefinition>> predefinedPrefixDeltas = getPredefinedPrefixDelta(objectWrapper);
         for (PrismContainerValueWrapper<PrismSchemaType> pVal : getValues()) {
             LOGGER.trace("Processing delta for value:\n {}", pVal);
             PropertyDelta<SchemaDefinitionType> delta = propertyDef.createEmptyDelta(propertyPath);
@@ -84,7 +83,7 @@ public class PrismSchemaWrapper extends PrismContainerWrapperImpl<PrismSchemaTyp
                     for (ItemWrapper iw : pVal.getItems()) {
                         LOGGER.trace("Start computing modifications for {}", iw);
                         Collection subDeltas = iw.getDelta();
-                        if (CollectionUtils.isNotEmpty(subDeltas) || CollectionUtils.isNotEmpty(predefinedPrefixDeltas)) {
+                        if (CollectionUtils.isNotEmpty(subDeltas)) {
                             LOGGER.trace("Deltas computed for {}", iw);
                             delta.addValueToAdd(
                                     createSchemaValue(
@@ -107,27 +106,11 @@ public class PrismSchemaWrapper extends PrismContainerWrapperImpl<PrismSchemaTyp
         return deltas;
     }
 
-    private Collection<ItemDelta<? extends PrismValue, ? extends ItemDefinition>> getPredefinedPrefixDelta(PrismObjectWrapper<ObjectType> objectWrapper) throws SchemaException {
-        if (!QNameUtil.match(objectWrapper.getTypeName(), SchemaType.COMPLEX_TYPE)) {
-            return Collections.emptyList();
-        }
-
-        PrismPropertyWrapper<Object> predefinedPrefixWrapper = objectWrapper.findProperty(SchemaType.F_DEFAULT_PREFIX);
-        if (predefinedPrefixWrapper == null) {
-            return Collections.emptyList();
-        }
-        return predefinedPrefixWrapper.getDelta();
-    }
-
     private PrismPropertyValue<SchemaDefinitionType> createSchemaValue(
             PrismObjectWrapper<ObjectType> objectWrapper, PrismContainerValue<PrismSchemaType> value) throws SchemaException {
         @NotNull ObjectType objectBean = objectWrapper.getObject().asObjectable();
         String lifecycleState = objectBean.getLifecycleState();
         @NotNull PrismSchemaType prismSchemaBean = value.asContainerable();
-        if (objectBean instanceof SchemaType schemaBean) {
-            prismSchemaBean.setNamespace(schemaBean.getNamespace());
-            prismSchemaBean.setDefaultPrefix(schemaBean.getDefaultPrefix());
-        }
         SchemaDefinitionType schemaDefBean = PrismSchemaTypeUtil.convertToSchemaDefinitionType(prismSchemaBean, lifecycleState);
         return PrismContext.get().itemFactory().createPropertyValue(schemaDefBean);
     }

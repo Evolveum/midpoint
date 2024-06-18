@@ -22,7 +22,6 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -286,10 +285,10 @@ class PolicyRulesCollector<O extends ObjectType> {
                 new ObjectDeltaObject<>(focus, null, focus, focus.getDefinition()) : null;
         PrismObject<?> target = evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null;
 
-        builder = builder.mappingBean(condition.value(), condition.origin()) // [EP:M:PRC] DONE^
+        builder = builder.mapping(condition) // [EP:M:PRC] DONE^
                 .mappingKind(MappingKindType.POLICY_RULE_CONDITION)
                 .contextDescription("condition in global policy rule " + ruleCI.getName())
-                .sourceContext(focusOdo)
+                .defaultSourceContextIdi(focusOdo)
                 .defaultTargetDefinition(LensUtil.createConditionDefinition())
                 .addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
                 .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
@@ -301,7 +300,7 @@ class PolicyRulesCollector<O extends ObjectType> {
                         ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment, EvaluatedAssignment.class)
                 .addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT,
                         evaluatedAssignment != null ? evaluatedAssignment.getAssignment() : null, AssignmentType.class)
-                .rootNode(focusOdo);
+                .addRootVariableDefinition(focusOdo);
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 

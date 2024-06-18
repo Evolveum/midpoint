@@ -1543,7 +1543,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         UserType user = new UserType()
                 .name("user700")
                 .beginAssignment()
-                .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                .targetRef(ROLE_SUPERUSER.oid, RoleType.COMPLEX_TYPE)
                 .end();
 
         addObject(user, task, result);
@@ -1553,7 +1553,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         when();
-        assignRole(user.getOid(), ROLE_SUPERUSER_OID, task, result);
+        assignRole(user.getOid(), ROLE_SUPERUSER.oid, task, result);
 
         then();
         displayDumpable("dummy transport", dummyTransport);

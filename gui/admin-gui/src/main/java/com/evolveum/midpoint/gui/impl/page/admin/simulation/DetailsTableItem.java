@@ -26,6 +26,9 @@ public class DetailsTableItem implements Serializable {
 
     private IModel<String> value;
 
+    // for representation value panel before label panel
+    private boolean valueComponentBeforeLabel = false;
+
     public DetailsTableItem(IModel<String> label) {
         this(label, Model.of());
     }
@@ -51,5 +54,13 @@ public class DetailsTableItem implements Serializable {
 
     public VisibleBehaviour isVisible() {
         return null;
+    }
+
+    public boolean isValueComponentBeforeLabel() {
+        return valueComponentBeforeLabel;
+    }
+
+    public void setValueComponentBeforeLabel(boolean valueComponentBeforeLabel) {
+        this.valueComponentBeforeLabel = valueComponentBeforeLabel;
     }
 }

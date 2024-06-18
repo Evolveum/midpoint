@@ -46,6 +46,9 @@ public interface NativeObjectClassUcfDefinition {
      */
     boolean isAuxiliary();
 
+    /** Is this an association object? These are usually passed "by value" in reference attributes. */
+    boolean isAssociationObject();
+
     /**
      * Indicates whether definition is the default account definition.
      * (This feature is present for "dumb" resource definition that are completely without `schemaHandling` part.)
@@ -114,6 +117,11 @@ public interface NativeObjectClassUcfDefinition {
         }
 
         @Override
+        default boolean isAssociationObject() {
+            return ucfData().isAssociationObject();
+        }
+
+        @Override
         default boolean isDefaultAccountDefinition() {
             return ucfData().isDefaultAccountDefinition();
         }
@@ -148,6 +156,7 @@ public interface NativeObjectClassUcfDefinition {
 
         void setNativeObjectClassName(String value);
         void setAuxiliary(boolean value);
+        void setAssociationObject(boolean value);
         void setDefaultAccountDefinition(boolean value);
         void setNamingAttributeName(QName value);
         void setDisplayNameAttributeName(QName value);
@@ -165,6 +174,10 @@ public interface NativeObjectClassUcfDefinition {
 
             default void setAuxiliary(boolean value) {
                 ucfData().setAuxiliary(value);
+            }
+
+            default void setAssociationObject(boolean value) {
+                ucfData().setAssociationObject(value);
             }
 
             default void setDefaultAccountDefinition(boolean value) {
@@ -203,6 +216,7 @@ public interface NativeObjectClassUcfDefinition {
 
         private String nativeObjectClassName;
         private boolean auxiliary;
+        private boolean associationObject;
         private boolean defaultAccountDefinition;
 
         private QName namingAttributeName;
@@ -232,6 +246,16 @@ public interface NativeObjectClassUcfDefinition {
         public void setAuxiliary(boolean value) {
             checkMutable();
             this.auxiliary = value;
+        }
+
+        @Override
+        public boolean isAssociationObject() {
+            return associationObject;
+        }
+
+        @Override
+        public void setAssociationObject(boolean value) {
+            this.associationObject = value;
         }
 
         @Override
@@ -300,6 +324,7 @@ public interface NativeObjectClassUcfDefinition {
         void copyFrom(NativeObjectClassUcfDefinition source) {
             this.nativeObjectClassName = source.getNativeObjectClassName();
             this.auxiliary = source.isAuxiliary();
+            this.associationObject = source.isAssociationObject();
             this.defaultAccountDefinition = source.isDefaultAccountDefinition();
             this.namingAttributeName = source.getNamingAttributeName();
             this.displayNameAttributeName = source.getDisplayNameAttributeName();
@@ -313,6 +338,7 @@ public interface NativeObjectClassUcfDefinition {
             var sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
             DebugUtil.debugDumpWithLabelLn(sb, "nativeObjectClassName", nativeObjectClassName, indent + 1);
             DebugUtil.debugDumpWithLabelLn(sb, "auxiliary", auxiliary, indent + 1);
+            DebugUtil.debugDumpWithLabelLn(sb, "associationObject", associationObject, indent + 1);
             DebugUtil.debugDumpWithLabelLn(sb, "defaultAccountDefinition", defaultAccountDefinition, indent + 1);
             DebugUtil.debugDumpWithLabelLn(sb, "namingAttributeName", namingAttributeName, indent + 1);
             DebugUtil.debugDumpWithLabelLn(sb, "displayNameAttributeName", displayNameAttributeName, indent + 1);

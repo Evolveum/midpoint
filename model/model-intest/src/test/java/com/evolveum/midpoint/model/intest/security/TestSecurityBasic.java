@@ -92,7 +92,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
     public void test201AutzJackSuperuserRole() throws Exception {
         given();
         cleanupAutzTest(USER_JACK_OID);
-        assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID);
+        assignRole(USER_JACK_OID, ROLE_SUPERUSER.oid);
 
         when();
         login(USER_JACK_USERNAME);
@@ -667,7 +667,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertGetDeny(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
 
-        assertGetDeny(RoleType.class, ROLE_SUPERUSER_OID);
+        assertGetDeny(RoleType.class, ROLE_SUPERUSER.oid);
         assertGetDeny(RoleType.class, ROLE_SELF.oid);
         assertGetDeny(RoleType.class, ROLE_ASSIGN_APPLICATION_ROLES.oid);
 
@@ -705,7 +705,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
     public void test209AutzJackSuperuserAndGuiAccessRole() throws Exception {
         given();
         cleanupAutzTest(USER_JACK_OID);
-        assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID);
+        assignRole(USER_JACK_OID, ROLE_SUPERUSER.oid);
         assignRole(USER_JACK_OID, ROLE_APPROVER.oid);
         login(USER_JACK_USERNAME);
 
@@ -3320,7 +3320,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
 
         cleanupAutzTest(USER_JACK_OID);
 
-        assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID);
+        assignRole(USER_JACK_OID, ROLE_SUPERUSER.oid);
 
         login(USER_JACK_USERNAME);
 

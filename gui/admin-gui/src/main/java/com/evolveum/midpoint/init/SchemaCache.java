@@ -85,15 +85,16 @@ public class SchemaCache implements Cache {
         try {
             repositoryService.searchObjectsIterative(SchemaType.class, null, handler, null, true, result);
         } catch (SchemaException e) {
-            throw new RuntimeException(e);
+            LOGGER.error("Couldn't search schema objects", e);
+            return;
         }
 
-        if (!dbSchemaExtensions.isEmpty()) {
+        if (!dbSchemaExtensions.isEmpty() || prismContext.getSchemaRegistry().existDynamicSchemaExtensions()) {
             try {
                 prismContext.getSchemaRegistry().registerDynamicSchemaExtensions(dbSchemaExtensions);
                 prismContext.reload();
             } catch (SchemaException e) {
-                throw new RuntimeException(e);
+                LOGGER.error("Couldn't reload schema", e);
             }
         }
     }
@@ -116,8 +117,5 @@ public class SchemaCache implements Cache {
 
     @Override
     public void dumpContent() {
-//        if (LOGGER_CONTENT.isInfoEnabled()) {
-//            archetypePolicyCache.forEach((k, v) -> LOGGER_CONTENT.info("Cached archetype policy: {}: {}", k, v));
-//        }
     }
 }

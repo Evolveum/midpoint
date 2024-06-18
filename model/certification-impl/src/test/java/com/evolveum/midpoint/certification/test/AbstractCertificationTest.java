@@ -8,7 +8,10 @@ package com.evolveum.midpoint.certification.test;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 
+import static com.evolveum.midpoint.util.MiscUtil.extractSingleton;
+
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
@@ -23,6 +26,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
+
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -530,10 +535,9 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
             AccessCertificationResponseType outcome) {
         boolean found = false;
         for (CaseEventType event : aCase.getEvent()) {
-            if (!(event instanceof StageCompletionEventType)) {
+            if (!(event instanceof StageCompletionEventType completionEvent)) {
                 continue;
             }
-            StageCompletionEventType completionEvent = (StageCompletionEventType) event;
             if (completionEvent.getStageNumber() == stageNumber && norm(completionEvent.getIteration()) == iteration) {   // TODO sure about iteration check?
                 assertEquals("Wrong outcome stored for stage #" + stageNumber + " in " + aCase, OutcomeUtils.toUri(outcome), completionEvent.getOutcome());
                 if (found) {
@@ -784,12 +788,20 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         }
     }
 
-    protected void assertCertificationMetadata(MetadataType metadata, String expectedOutcome, Set<String> expectedCertifiers,
-            Set<String> expectedComments) {
-        assertNotNull("No metadata", metadata);
-        assertEquals("Wrong outcome", expectedOutcome, metadata.getCertificationOutcome());
-        PrismAsserts.assertReferenceOids("Wrong certifiers", expectedCertifiers, metadata.getCertifierRef());
-        assertEquals("Wrong certifier comments", expectedComments, new HashSet<>(metadata.getCertifierComment()));
+    protected void assertCertificationMetadata(
+            AssignmentType assignment, String expectedOutcome, Set<String> expectedCertifiers, Set<String> expectedComments) {
+        assertThat(ValueMetadataTypeUtil.getMetadataBeans(assignment))
+                .as("metadata for " + assignment)
+                .isNotEmpty();
+        assertEquals("Wrong outcome",
+                expectedOutcome,
+                extractSingleton(ValueMetadataTypeUtil.getCertificationOutcomes(assignment)));
+        PrismAsserts.assertReferenceOids("Wrong certifiers",
+                expectedCertifiers,
+                ValueMetadataTypeUtil.getCertifierRefs(assignment));
+        assertEquals("Wrong certifier comments",
+                expectedComments,
+                ValueMetadataTypeUtil.getCertifierComments(assignment));
     }
 
     @NotNull

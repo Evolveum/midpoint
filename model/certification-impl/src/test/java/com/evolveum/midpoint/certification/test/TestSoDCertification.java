@@ -446,14 +446,25 @@ public class TestSoDCertification extends AbstractCertificationTest {
         // THEN
         userJack = getUser(USER_JACK_OID).asObjectable();
         display("jack", userJack);
-        assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2bOid).getMetadata(),
-                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), emptySet());
-        assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2cOid).getMetadata(),
-                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), emptySet());
-        assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3aOid).getMetadata(),
-                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), singleton("jack: OK"));
-        assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3bOid).getMetadata(),
-                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), singleton("jack: dunno"));
+        assertCertificationMetadata(
+                findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2bOid),
+                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
+                singleton(USER_JACK_OID),
+                emptySet());
+        assertCertificationMetadata(
+                findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2cOid),
+                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
+                singleton(USER_JACK_OID),
+                emptySet());
+        assertCertificationMetadata(
+                findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3aOid),
+                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
+                singleton(USER_JACK_OID),
+                singleton("jack: OK"));
+        assertCertificationMetadata(
+                findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3bOid),
+                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
+                singleton(USER_JACK_OID),
+                singleton("jack: dunno"));
     }
-
 }

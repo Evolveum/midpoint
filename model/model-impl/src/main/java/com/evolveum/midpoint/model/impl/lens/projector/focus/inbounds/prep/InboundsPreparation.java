@@ -133,7 +133,7 @@ abstract class InboundsPreparation<T extends Containerable> {
     abstract void evaluateSpecialInbounds(OperationResult result) throws SchemaException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 
-    /** Complex processing for shadow item values. Only for the full processing case. Currently limited to associations. */
+    /** Complex processing for shadow attributes. Only for the full processing case. Currently limited to reference ones. */
     abstract void executeComplexProcessing(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, StopProcessingProjectionException;

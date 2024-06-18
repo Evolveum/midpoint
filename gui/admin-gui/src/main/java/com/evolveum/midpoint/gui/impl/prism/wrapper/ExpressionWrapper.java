@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -149,6 +150,11 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
     protected <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> void addValueToDelta(
             PrismPropertyValueWrapper<ExpressionType> value, D delta) throws SchemaException {
         if (!ExpressionUtil.isEmpty(value.getRealValue())) {
+            super.addValueToDelta(value, delta);
+            return;
+        }
+        if (value.getOldValue() != null && !ExpressionUtil.isEmpty(value.getOldValue().getRealValue())) {
+            value.setStatus(ValueStatus.DELETED);
             super.addValueToDelta(value, delta);
         }
     }
