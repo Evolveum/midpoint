@@ -636,7 +636,7 @@ breakLongerTextInTableCell(cellId) {
         }
 
         if (containerId === '#tableScaleContainer') {
-            component = div.querySelector('table');
+            component = div.querySelector('div');
         } else if (containerId === '#imageScaleContainer') {
             component = div.querySelector('img');
         } else if (containerId === '#chartScaleContainer') {
@@ -691,9 +691,9 @@ breakLongerTextInTableCell(cellId) {
             if(isChart && scale < 1.0){
                  scale = 1.0;
             }
-            scale += 0.01;
+            scale += 0.05;
 
-            let prevScale = scale - 0.01;
+            let prevScale = scale - 0.05;
             let scaleFactor = scale / prevScale;
             //TODO target to cursor (temporarily disabled because of display rendering issues)
             setTransform(0, 0, scale, rectBefore, scaleFactor);
@@ -701,7 +701,7 @@ breakLongerTextInTableCell(cellId) {
 
         function zoomOut(rectBefore, maxScale) {
             console.log('Zooming out');
-            scale -= 0.01;
+            scale -= 0.05;
             scale = Math.max(maxScale, scale);
 
             setTransform(0, 0, scale, rectBefore, 1);
