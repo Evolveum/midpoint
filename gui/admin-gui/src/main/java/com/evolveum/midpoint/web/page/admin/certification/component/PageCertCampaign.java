@@ -122,28 +122,13 @@ public class PageCertCampaign extends PageAdmin {
             @Override
             protected List<DetailsTableItem> load() {
                 List<DetailsTableItem> list = new ArrayList<>();
-                list.add(new DetailsTableItem(createStringResource("PageCertCampaign.owner"),
-                        () -> "" ) {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public Component createValueComponent(String id) {
-                        return new LinkedReferencePanel<>(id, Model.of(campaignModel.getObject().getOwnerRef())) {
-
-                            @Override
-                            protected String getAdditionalCssStyle() {
-                                return "";
-                            }
-                        };
-                    }
-                });
                 list.add(new DetailsTableItem(createStringResource("PageCertCampaign.progress"),
                         () -> "" ) {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public Component createValueComponent(String id) {
-                        return new ProgressBarPanel(id, CertMiscUtil.createCampaignProgressBarModel(campaignModel.getObject()));
+                        return new ProgressBarPanel(id, CertMiscUtil.createCampaignProgressBarModel(campaignModel.getObject(), null));
                     }
                 });
                 list.add(new DetailsTableItem(createStringResource("PageCertDefinition.numberOfStages"),
@@ -177,6 +162,21 @@ public class PageCertCampaign extends PageAdmin {
 
                     private IModel<XMLGregorianCalendar> getDeadlineModel() {
                         return () -> stage != null ? stage.getDeadline() : null;
+                    }
+                });
+                list.add(new DetailsTableItem(createStringResource("PageCertCampaign.owner"),
+                        () -> "" ) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Component createValueComponent(String id) {
+                        return new LinkedReferencePanel<>(id, Model.of(campaignModel.getObject().getOwnerRef())) {
+
+                            @Override
+                            protected String getAdditionalCssStyle() {
+                                return "";
+                            }
+                        };
                     }
                 });
                 list.add(new DetailsTableItem(createStringResource("PageCertCampaign.iteration"),
@@ -272,6 +272,7 @@ public class PageCertCampaign extends PageAdmin {
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                         CampaignProcessingHelper.campaignActionPerformed(campaignModel.getObject(), getPageBase(), ajaxRequestTarget);
                         campaignModel.detach();
+                        addOrReplaceCertItemsTabbedPanel();
                     }
                 };
                 next.showTitleAsLabel(true);
@@ -338,10 +339,13 @@ public class PageCertCampaign extends PageAdmin {
         responsesPanel.setOutputMarkupId(true);
         responsesContainer.add(responsesPanel);
 
+        addOrReplaceCertItemsTabbedPanel();
+    }
 
+    private void addOrReplaceCertItemsTabbedPanel() {
         CertificationItemsTabbedPanel items = new CertificationItemsTabbedPanel(ID_ITEMS_TABBED_PANEL, campaignModel);
         items.setOutputMarkupId(true);
-        add(items);
+        addOrReplace(items);
     }
 
     private String getDetailsTablePanelIconCssClass() {

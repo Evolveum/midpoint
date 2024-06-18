@@ -317,7 +317,7 @@ public class CampaignProcessingHelper implements Serializable {
                     processed++;
                 } else if (CampaignStateHelper.CampaignAction.REMOVE_CAMPAIGN.equals(action)) {
                     deleteCampaignConfirmation(target, campaign, pageBase);
-                    processed++;
+                    return;
                 } else {
                     throw new IllegalStateException("Unknown action: " + operationName);
                 }

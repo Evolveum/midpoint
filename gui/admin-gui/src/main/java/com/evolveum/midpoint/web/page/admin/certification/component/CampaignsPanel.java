@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SchemaService;
@@ -34,6 +35,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -50,6 +52,8 @@ public class CampaignsPanel extends BasePanel {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_CAMPAIGNS_PANEL = "campaignsPanel";
+    private static final String ID_NAVIGATION_PANEL = "navigationPanel";
+
     private LoadableDetachableModel<Search> searchModel;
     private SelectableBeanObjectDataProvider<AccessCertificationCampaignType> provider;
 
@@ -82,6 +86,10 @@ public class CampaignsPanel extends BasePanel {
     private void initLayout() {
         setOutputMarkupId(true);
 
+        WebMarkupContainer navigationPanel = createNavigationPanel(ID_NAVIGATION_PANEL);
+        navigationPanel.setOutputMarkupId(true);
+        add(navigationPanel);
+
         provider = createProvider();
         MultiSelectObjectTileTablePanel<AccessCertificationCampaignType,
                         AccessCertificationCampaignType> tilesTable =
@@ -112,7 +120,7 @@ public class CampaignsPanel extends BasePanel {
                     @Override
                     public Component createTile(String id,
                             IModel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> model) {
-                        return new CampaignTilePanel(id, model);
+                        return createCampaignTile(id, model);
                     }
 
                     @Override
@@ -152,7 +160,7 @@ public class CampaignsPanel extends BasePanel {
 
                     @Override
                     protected boolean isTogglePanelVisible() {
-                        return true;
+                        return false;
                     }
 
                     @Override
@@ -180,10 +188,10 @@ public class CampaignsPanel extends BasePanel {
                                 .item(AccessCertificationCampaignType.F_CASE).retrieve(RetrieveOption.INCLUDE)
                                 .build();
             }
-//            @Override
-//            protected ObjectQuery getCustomizeContentQuery() {
-//                return getCustomQuery();
-//            }
+            @Override
+            protected ObjectQuery getCustomizeContentQuery() {
+                return getCustomCampaignsQuery();
+            }
 
             @Override
             public void detach() {
@@ -379,5 +387,18 @@ public class CampaignsPanel extends BasePanel {
 
     private List<AccessCertificationCampaignType> getSelectedCampaigns() {
         return new ArrayList<>(provider.getSelected());
+    }
+
+    protected ObjectQuery getCustomCampaignsQuery() {
+        return null;
+    }
+
+    protected Component createCampaignTile(String id,
+            IModel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> model) {
+        return new CampaignTilePanel(id, model);
+    }
+
+    protected WebMarkupContainer createNavigationPanel(String id) {
+        return new WebMarkupContainer(id);
     }
 }

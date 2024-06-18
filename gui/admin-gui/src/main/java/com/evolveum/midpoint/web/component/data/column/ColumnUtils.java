@@ -592,7 +592,7 @@ public class ColumnUtils {
         List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
         columns.add(new AbstractExportableColumn<>(
                 createStringResource("WorkItemsPanel.stage")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
@@ -1092,7 +1092,7 @@ public class ColumnUtils {
 
            @Override
            public IModel<List<ObjectReferenceType>> extractDataModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-               return () -> CertCampaignTypeUtil.getCurrentlyAssignedReviewers(unwrapRowModel(rowModel));
+               return () -> CertCampaignTypeUtil.getAssignedReviewersForStage(unwrapRowModel(rowModel), stageNumber);
            }
        });
        columns.add(new CompositedIconWithLabelColumn<>(createStringResource("PageCertCampaign.statistics.response")) {

@@ -84,7 +84,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationD
         @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS,
                 label = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_LABEL,
                 description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_DESCRIPTION) })
-
 public class PageCertCampaigns extends PageAdminCertification {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCertCampaigns.class);
@@ -131,24 +130,6 @@ public class PageCertCampaigns extends PageAdminCertification {
         return dto != null ? dto : new CertCampaignsSearchDto();
     }
 
-    // region Data management
-    private CertCampaignListItemDtoProvider createProvider() {
-        CertCampaignListItemDtoProvider provider = new CertCampaignListItemDtoProvider(this) {
-            @Override
-            public CertCampaignListItemDto createDataObjectWrapper(
-                    PrismObject<AccessCertificationCampaignType> obj) {
-                CertCampaignListItemDto dto = super.createDataObjectWrapper(obj);
-//                createInlineMenuForItem(dto);
-                return dto;
-            }
-        };
-        provider.setOptions(null);
-        return provider;
-    }
-    // endregion
-
-    // region Layout
-
     @Override
     protected IModel<String> createPageTitleModel() {
         if (definitionOid == null) {
@@ -172,7 +153,7 @@ public class PageCertCampaigns extends PageAdminCertification {
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
-        CampaignsPanel campaignsPanel = new CampaignsPanel(ID_CAMPAIGNS_TABLE);
+        CampaignsPanel campaignsPanel = createCampaignsPanel(ID_CAMPAIGNS_TABLE);
         campaignsPanel.setOutputMarkupId(true);
         mainForm.add(campaignsPanel);
 
@@ -1128,4 +1109,7 @@ public class PageCertCampaigns extends PageAdminCertification {
     }
     // endregion
 
+    protected CampaignsPanel createCampaignsPanel(String id) {
+        return new CampaignsPanel(id);
+    }
 }
