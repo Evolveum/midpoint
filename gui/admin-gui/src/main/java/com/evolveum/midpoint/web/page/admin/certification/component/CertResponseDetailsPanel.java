@@ -12,6 +12,10 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelPanel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTablePanel;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -25,6 +29,7 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -132,18 +137,17 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
                 public Component createValueComponent(String id) {
                     AccessCertificationResponseType response = OutcomeUtils.fromUri(getModelObject().getCurrentStageOutcome());
                     DisplayType responseDisplayType = new CertificationItemResponseHelper(response).getResponseDisplayType();
-                    return new ImagePanel(id, Model.of(responseDisplayType));
+
+                    CompositedIcon icon = new CompositedIconBuilder()
+                            .setBasicIcon(responseDisplayType.getIcon(), IconCssStyle.IN_ROW_STYLE)
+                            .build();
+
+                    CompositedIconWithLabelPanel iconPanel =
+                            new CompositedIconWithLabelPanel(id, Model.of(icon), Model.of(responseDisplayType));
+                    iconPanel.add(AttributeModifier.replace("class", "d-flex flex-wrap gap-2"));
+                    return iconPanel;
                 }
             });
-            //todo the date of the outcome?
-//            list.add(new DetailsTableItem(createStringResource("ResponseViewPopup.respondedAt")) {
-//                @Serial private static final long serialVersionUID = 1L;
-//
-//                @Override
-//                public Component createValueComponent(String id) {
-//                    getModelObject().getReviewFinishedTimestamp()
-//                }
-//            });
             return list;
 
         };
@@ -211,14 +215,19 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
     private IModel<DisplayType> createMessageDisplayTypeModel(PrismObject<UserType> performer,
             AccessCertificationWorkItemType workItem) {
         if (performer == null) {
-            return Model.of(new DisplayType().label("CertResponseDetailsPanel.unavailablePerformer"));
+            return Model.of(new DisplayType()
+                    .label("CertResponseDetailsPanel.unavailablePerformer")
+                    .icon(new IconType()
+                            .cssClass("fa fa-user-circle")));
         }
 
         String label = generateMessageTitle(performer, workItem);
         String description = getMessageDescription(workItem);
         return () -> new DisplayType()
                 .label(label)
-                .help(description);
+                .help(description)
+                .icon(new IconType()
+                        .cssClass("fa fa-user-circle"));
     }
 
     private String generateMessageTitle(PrismObject<UserType> performer, AccessCertificationWorkItemType workItem) {
@@ -262,7 +271,7 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
 
     @Override
     public int getHeight() {
-        return 600;
+        return 800;
     }
 
     @Override
