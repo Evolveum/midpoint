@@ -17,15 +17,14 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard.complexType.BasicSettingComplexTypeStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard.complexType.PrismItemDefinitionsTableWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard.complextype.BasicSettingComplexTypeStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard.complextype.PrismItemDefinitionsTableWizardPanel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDelineationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
