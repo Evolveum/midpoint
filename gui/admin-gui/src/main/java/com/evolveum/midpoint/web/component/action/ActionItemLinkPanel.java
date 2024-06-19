@@ -8,23 +8,14 @@
 package com.evolveum.midpoint.web.component.action;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
-
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import java.io.Serial;
 import java.util.List;
@@ -56,7 +47,7 @@ public class ActionItemLinkPanel<C extends Containerable> extends BasePanel<Abst
             @Override
             public void onClick(AjaxRequestTarget target) {
                 AbstractGuiAction<C> action = ActionItemLinkPanel.this.getModelObject();
-                objectsToProcess.forEach(obj -> action.onActionPerformed(obj, getPageBase()));
+                objectsToProcess.forEach(obj -> action.onActionPerformed(obj, getPageBase(), target));
             }
 
             @Override

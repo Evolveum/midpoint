@@ -13,19 +13,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationR
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 
 @GuiActionType(
-        identifier = "certItemAccept",
+        identifier = "certItemNoResponse",
         applicableForType = AccessCertificationWorkItemType.class,
-        display = @PanelDisplay(label = "PageCertDecisions.menu.accept", icon = "fa fa-check text-success", order = 1),
-        button = true)
-public class CertItemAcceptAction extends AbstractCertItemAction {
+        display = @PanelDisplay(label = "PageCertDecisions.menu.noResponse", icon = "far fa-clock", order = 5))
+public class CertItemNoResponseAction extends AbstractCertItemAction {
 
-    public CertItemAcceptAction() {
+    public CertItemNoResponseAction() {
         super();
     }
 
     @Override
     protected AccessCertificationResponseType getResponse() {
-        return AccessCertificationResponseType.ACCEPT;
+        return AccessCertificationResponseType.NO_RESPONSE;
     }
-
 }

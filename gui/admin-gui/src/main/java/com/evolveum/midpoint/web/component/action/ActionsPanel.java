@@ -8,29 +8,15 @@
 package com.evolveum.midpoint.web.component.action;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
-
-import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
-
-import com.evolveum.midpoint.web.component.data.MenuMultiButtonPanel;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -101,7 +87,7 @@ public class ActionsPanel<C extends Containerable> extends BasePanel<List<Abstra
             @Override
             public void onClick(AjaxRequestTarget target) {
                 AbstractGuiAction<C> action = model.getObject();
-                objectsToProcess.forEach(obj -> action.onActionPerformed(obj, getPageBase()));
+                objectsToProcess.forEach(obj -> action.onActionPerformed(obj, getPageBase(), target));
             }
 
             @Override
@@ -123,7 +109,8 @@ public class ActionsPanel<C extends Containerable> extends BasePanel<List<Abstra
     }
 
     private String getButtonTitle(AbstractGuiAction<C> action) {
-        return GuiDisplayTypeUtil.getHelp(action.getActionDisplayType());
+        //todo in this case button title is used as button label; therefore return label value instead of tooltip
+        return GuiDisplayTypeUtil.getTranslatedLabel(action.getActionDisplayType());
     }
 
 }

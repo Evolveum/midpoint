@@ -39,11 +39,11 @@ public @interface GuiActionType {
     /**
      * If the action should be displayed as a button.
      */
-    boolean isButton() default false;
+    boolean button() default false;
 
     /**
      * If the action can be applied to a group of objects
      */
-    boolean isBulkAction() default false;
+    boolean bulkAction() default false;
 
 }

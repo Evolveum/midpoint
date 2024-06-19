@@ -28,8 +28,7 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.action.AbstractGuiAction;
-import com.evolveum.midpoint.web.component.action.CertItemAcceptAction;
+import com.evolveum.midpoint.web.component.action.*;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -92,8 +91,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     private List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createColumns() {
         List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> columns =
                 ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
-        List<AbstractGuiAction<AccessCertificationWorkItemType>> actions = new ArrayList<>();
-        actions.add(new CertItemAcceptAction());
+        List<AbstractGuiAction<AccessCertificationWorkItemType>> actions = getActions();
 
         columns.add(new GuiActionColumn<>(actions, getPageBase()) {
             @Serial private static final long serialVersionUID = 1L;
@@ -414,4 +412,15 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         return false;
     }
 
+    private List<AbstractGuiAction<AccessCertificationWorkItemType>> getActions() {
+        List<AbstractGuiAction<AccessCertificationWorkItemType>> actions = new ArrayList<>();
+        actions.add(new CertItemAcceptAction());
+        actions.add(new CertItemRevokeAction());
+        actions.add(new CertItemReduceAction());
+        actions.add(new CertItemNotDecidedAction());
+        actions.add(new CertItemNoResponseAction());
+        actions.add(new CertItemResolveAction());
+
+        return actions;
+    }
 }

@@ -14,6 +14,8 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+
 import java.io.Serializable;
 
 public abstract class AbstractGuiAction<C extends Containerable> implements Serializable {
@@ -21,11 +23,11 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
     public AbstractGuiAction() {
     }
 
-    public abstract void onActionPerformed(C obj, PageBase pageBase);
+    public abstract void onActionPerformed(C obj, PageBase pageBase, AjaxRequestTarget target);
 
     public boolean isButton() {
         GuiActionType actionType = AbstractGuiAction.this.getClass().getAnnotation(GuiActionType.class);
-        return actionType != null && actionType.isButton();
+        return actionType != null && actionType.button();
     }
 
     public DisplayType getActionDisplayType() {
