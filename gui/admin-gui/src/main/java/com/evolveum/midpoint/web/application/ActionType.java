@@ -13,7 +13,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
-public @interface GuiActionType {
+public @interface ActionType {
 
     /**
      * Action identifier. It is used to merge configurations in different places.

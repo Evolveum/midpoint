@@ -20,6 +20,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
+import com.evolveum.midpoint.web.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -3830,6 +3831,19 @@ public final class WebComponentUtil {
         } catch (Throwable e) {
             e.printStackTrace();
             LOGGER.trace("No constructor found for (String, ObjectDetailsModels, ContainerPanelConfigurationType). Continue with lookup.", e);
+        }
+        return null;
+    }
+
+    public static <C extends Containerable> AbstractGuiAction<C> instantiateAction(
+            Class<? extends AbstractGuiAction<C>> actionClass) {
+        if (AbstractGuiAction.class.isAssignableFrom(actionClass)) {
+            try {
+                return ConstructorUtils.invokeConstructor(actionClass);
+            } catch (Throwable e) {
+                LOGGER.trace("No constructor found for action.", e);
+                return null;
+            }
         }
         return null;
     }

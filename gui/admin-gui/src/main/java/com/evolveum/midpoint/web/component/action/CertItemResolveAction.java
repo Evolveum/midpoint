@@ -10,7 +10,7 @@ package com.evolveum.midpoint.web.component.action;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.application.GuiActionType;
+import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.page.admin.certification.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.component.ResolveItemPanel;
@@ -21,7 +21,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import java.io.Serial;
 
-@GuiActionType(
+@ActionType(
         identifier = "certItemResolve",
         applicableForType = AccessCertificationWorkItemType.class,
         display = @PanelDisplay(label = "CertificationItemsPanel.action.resolve", order = 6))

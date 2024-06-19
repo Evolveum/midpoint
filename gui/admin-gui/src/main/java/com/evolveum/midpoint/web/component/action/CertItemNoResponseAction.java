@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.web.component.action;
 
-import com.evolveum.midpoint.web.application.GuiActionType;
+import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 
-@GuiActionType(
+@ActionType(
         identifier = "certItemNoResponse",
         applicableForType = AccessCertificationWorkItemType.class,
         display = @PanelDisplay(label = "PageCertDecisions.menu.noResponse", icon = "far fa-clock", order = 5))

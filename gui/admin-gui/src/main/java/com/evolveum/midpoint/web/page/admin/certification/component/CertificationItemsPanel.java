@@ -13,21 +13,23 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.component.action.*;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -137,7 +139,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     protected IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String> createIconColumn() {
         return new IconColumn<>(Model.of("")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
@@ -296,7 +298,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
         OperationResult result = new OperationResult(OPERATION_RECORD_ACTION_SELECTED);
         Task task = getPageBase().createSimpleTask(OPERATION_RECORD_ACTION_SELECTED);
-        items.stream().forEach(item -> {
+        items.forEach(item -> {
             OperationResult resultOne = result.createSubresult(OPERATION_RECORD_ACTION);
             CertMiscUtil.recordCertItemResponse(item, response, comment, resultOne, task, getPageBase());
         });
@@ -365,7 +367,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
                             @Override
                             protected void savePerformed(AjaxRequestTarget target, AccessCertificationResponseType response,
                                     String comment) {
-                                List<AccessCertificationWorkItemType> items = new ArrayList<>();
+                                List<AccessCertificationWorkItemType> items;
                                 if (getRowModel() == null) {
                                     items = getSelectedRealObjects();
                                 } else {
@@ -412,7 +414,37 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         return false;
     }
 
+    //todo move to ContainerableListPanel
     private List<AbstractGuiAction<AccessCertificationWorkItemType>> getActions() {
+        CompiledObjectCollectionView collectionView = getObjectCollectionView();
+        if (collectionView != null && !collectionView.getActions().isEmpty()) {
+            return collectionView
+                    .getActions()
+                    .stream()
+                    .filter(action -> StringUtils.isNotEmpty(action.getIdentifier()))
+                    .map(this::createAction)
+                    .toList();
+        }
+        return getDefaultActions();
+    }
+
+    private AbstractGuiAction<AccessCertificationWorkItemType> createAction(GuiActionType guiAction) {
+        Class<? extends AbstractGuiAction<?>> actionClass = getPageBase().findGuiAction(guiAction.getIdentifier());
+        if (actionClass == null) {
+            error("Unable to find action for identifier: " + guiAction.getIdentifier());
+            return null;
+        }
+        ActionType actionType = actionClass.getAnnotation(ActionType.class);
+        Class<?> applicableFor = actionType.applicableForType();
+        if (AccessCertificationWorkItemType.class != applicableFor) {
+            error("The action with identifier " + guiAction.getIdentifier() + " is not applicable for AccessCertificationWorkItemType");
+            return null;
+        }
+        return WebComponentUtil.instantiateAction(
+                (Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>> ) actionClass);
+    }
+
+    private List<AbstractGuiAction<AccessCertificationWorkItemType>> getDefaultActions() {
         List<AbstractGuiAction<AccessCertificationWorkItemType>> actions = new ArrayList<>();
         actions.add(new CertItemAcceptAction());
         actions.add(new CertItemRevokeAction());
@@ -420,7 +452,6 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         actions.add(new CertItemNotDecidedAction());
         actions.add(new CertItemNoResponseAction());
         actions.add(new CertItemResolveAction());
-
         return actions;
     }
 }
