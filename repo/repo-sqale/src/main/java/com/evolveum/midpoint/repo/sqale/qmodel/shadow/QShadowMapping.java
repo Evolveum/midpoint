@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.PathSet;
+
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
@@ -153,12 +155,12 @@ public class QShadowMapping
         shadowType.asPrismObject().removeContainer(ShadowType.F_ASSOCIATIONS); // temporary
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-        if (GetOperationOptions.isRaw(rootOptions)) {
+        /*if (GetOperationOptions.isRaw(rootOptions)) {
             // If raw=true, we populate attributes with types cached in repository
             Jsonb rowAttributes = row.get(entityPath.attributes);
             applyShadowAttributesDefinitions(shadowType, rowAttributes);
-        }
-
+        }*/
+        addIndexOnlyAttributes(shadowType, row, entityPath);
         List<SelectorOptions<GetOperationOptions>> retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
         if (retrieveOptions.isEmpty()) {
             return shadowType;
@@ -166,7 +168,7 @@ public class QShadowMapping
 
         // FIXME temporarily disabled
 //        if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_ATTRIBUTES, retrieveOptions)) {
-//            addIndexOnlyAttributes(shadowType, row, entityPath);
+
 //        }
         return shadowType;
     }
@@ -206,11 +208,7 @@ public class QShadowMapping
     public @NotNull Path<?>[] selectExpressions(QShadow entity,
             Collection<SelectorOptions<GetOperationOptions>> options) {
         var retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
-        boolean isRaw = GetOperationOptions.isRaw(SelectorOptions.findRootOptions(options));
-        if (isRaw || SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_ATTRIBUTES, retrieveOptions)) {
-            return new Path[] { entity.oid, entity.objectType, entity.fullObject, entity.attributes };
-        }
-        return new Path[] { entity.oid, entity.objectType, entity.fullObject };
+        return new Path[] { entity.oid, entity.objectType, entity.fullObject, entity.attributes };
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -246,5 +244,11 @@ public class QShadowMapping
             }
         }
         return definitions;
+    }
+
+    @Override
+    protected void customizeFullObjectItemsToSkip(PathSet mutableSet) {
+        super.customizeFullObjectItemsToSkip(mutableSet);
+        mutableSet.add(F_ATTRIBUTES);
     }
 }
