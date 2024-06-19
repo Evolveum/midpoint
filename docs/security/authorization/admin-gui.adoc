@@ -559,6 +559,30 @@ use #selfRequestAssignments instead
 
 |===
 
+== Policy actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#schemasAll
+| All actions related to schemas
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#schemas
+| List schemas
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#schema
+| Create schema
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#schemaDetails
+| Details of schema
+|
+
+|===
+
 == Access certification actions
 
 Please see xref:/midpoint/reference/roles-policies/certification/authorization/[Access Certification Security] for detailed list.
