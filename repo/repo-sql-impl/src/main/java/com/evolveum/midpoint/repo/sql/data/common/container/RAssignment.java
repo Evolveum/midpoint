@@ -93,13 +93,14 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
 
     @Override
     @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_assignment_owner"))
-    @MapsId("ownerOid")
+    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     public RObject getOwner() {
         return owner;
     }
 
+    @Id
     @Override
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()

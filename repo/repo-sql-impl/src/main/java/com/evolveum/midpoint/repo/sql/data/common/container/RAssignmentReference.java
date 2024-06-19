@@ -43,7 +43,7 @@ public class RAssignmentReference extends RContainerReference {
                     @JoinColumn(name = "owner_owner_oid"),
                     @JoinColumn(name = "owner_id")
             },
-            foreignKey = @ForeignKey(name = "fk_assignment_reference_owner")
+            foreignKey = @ForeignKey(name = "fk_assignment_reference")
     )
     public RAssignment getOwner() {
         return owner;
@@ -63,9 +63,8 @@ public class RAssignmentReference extends RContainerReference {
         return super.getOwnerId();
     }
 
-    @org.hibernate.annotations.ForeignKey(name = "none")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false)
+    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     // commented because of The NotFoundAction.IGNORE @ManyToOne and @OneToOne associations are always fetched eagerly. (HHH-12770)
 //    @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable

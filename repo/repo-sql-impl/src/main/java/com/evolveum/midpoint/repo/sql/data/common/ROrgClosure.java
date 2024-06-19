@@ -77,12 +77,7 @@ public class ROrgClosure implements Serializable {
 
     @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
-            @JoinColumn(
-                    name = "ancestor_oid",
-                    referencedColumnName = "oid",
-                    foreignKey = @ForeignKey(name = "fk_ancestor"))
-    })
+    @JoinColumn(name = "ancestor_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_ancestor"))
     @NotQueryable
     public RObject getAncestor() {
         return ancestor;
@@ -104,12 +99,7 @@ public class ROrgClosure implements Serializable {
 
     @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
-            @JoinColumn(
-                    name = "descendant_oid",
-                    referencedColumnName = "oid",
-                    foreignKey = @ForeignKey(name = "fk_descendant"))
-    })
+    @JoinColumn(name = "descendant_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_descendant"))
     @NotQueryable
     public RObject getDescendant() {
         return descendant;
