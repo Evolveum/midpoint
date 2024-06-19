@@ -23,6 +23,8 @@ import javax.xml.namespace.QName;
 import com.google.common.base.Strings;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.NonUniqueResultException;
+import jakarta.persistence.Query;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
@@ -480,5 +482,18 @@ public final class RUtil {
         if (value.getSchemaValue() != null) {
             ENUM_MAPPINGS.put(value.getSchemaValue(), value);
         }
+    }
+
+    public static <T> T getSingleResultOrNull(Query query) {
+        List<?> results = query.getResultList();
+        if (results.isEmpty()) {
+            return null;
+        }
+
+        if (results.size() > 1) {
+            throw new NonUniqueResultException("Expected single result, but got " + results.size());
+        }
+
+        return (T) results.get(0);
     }
 }

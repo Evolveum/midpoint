@@ -11,7 +11,6 @@ import java.io.Serializable;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.ForeignKey;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.ROrgClosureId;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
@@ -76,10 +75,14 @@ public class ROrgClosure implements Serializable {
         this.val = val;
     }
 
-    @MapsId("ancestorOid")
+    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({ @JoinColumn(name = "ancestor_oid", referencedColumnName = "oid") })
-    @ForeignKey(name = "fk_ancestor")
+    @JoinColumns({
+            @JoinColumn(
+                    name = "ancestor_oid",
+                    referencedColumnName = "oid",
+                    foreignKey = @ForeignKey(name = "fk_ancestor"))
+    })
     @NotQueryable
     public RObject getAncestor() {
         return ancestor;
@@ -99,10 +102,14 @@ public class ROrgClosure implements Serializable {
         this.ancestor = ancestor;
     }
 
-    @MapsId("descendantOid")
+    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({ @JoinColumn(name = "descendant_oid", referencedColumnName = "oid") })
-    @ForeignKey(name = "fk_descendant")
+    @JoinColumns({
+            @JoinColumn(
+                    name = "descendant_oid",
+                    referencedColumnName = "oid",
+                    foreignKey = @ForeignKey(name = "fk_descendant"))
+    })
     @NotQueryable
     public RObject getDescendant() {
         return descendant;

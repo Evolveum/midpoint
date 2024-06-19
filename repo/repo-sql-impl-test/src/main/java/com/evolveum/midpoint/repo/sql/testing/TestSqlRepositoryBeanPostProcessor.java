@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sql.testing;
 
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
@@ -58,7 +60,7 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
             } else {
                 LOGGER.info("Using truncate function.");
                 query = em.createNativeQuery("select " + TRUNCATE_FUNCTION + "();");
-                query.getSingleResult();
+                RUtil.getSingleResultOrNull(query);
             }
 
             em.getTransaction().commit();

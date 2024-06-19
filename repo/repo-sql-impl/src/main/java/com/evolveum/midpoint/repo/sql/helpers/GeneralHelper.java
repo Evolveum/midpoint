@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.springframework.stereotype.Component;
@@ -20,7 +22,7 @@ public class GeneralHelper {
     public int findLastIdInRepo(EntityManager em, String tableOid, String queryName) {
         Query query = em.createNamedQuery(queryName);
         query.setParameter("oid", tableOid);
-        Integer lastId = (Integer) query.getSingleResult();
+        Integer lastId = RUtil.getSingleResultOrNull(query);
         if (lastId == null) {
             lastId = 0;
         }

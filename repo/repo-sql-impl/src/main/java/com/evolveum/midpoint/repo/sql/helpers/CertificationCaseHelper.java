@@ -244,7 +244,7 @@ public class CertificationCaseHelper {
                 query.setParameter("ownerOid", campaignOid);
                 query.setParameter("id", (int) id);
 
-                byte[] fullObject = (byte[]) query.getSingleResult();
+                byte[] fullObject = RUtil.getSingleResultOrNull(query);
                 if (fullObject == null) {
                     throw new ObjectNotFoundException(
                             String.format(

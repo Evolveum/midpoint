@@ -190,7 +190,7 @@ public class ObjectUpdater {
 
         updateFullObject(rObject, object);
 
-        RObject merged = (RObject) em.merge(rObject);
+        RObject merged = em.merge(rObject);
         lookupTableHelper.addLookupTableRows(em, rObject, oldObject != null);
         caseHelper.addCertificationCampaignCases(em, rObject, oldObject != null);
 
@@ -269,7 +269,7 @@ public class ObjectUpdater {
                     + RUtil.getTableName(hqlType, em) + " where oid=:oid");
             query.setParameter("oid", object.getOid());
 
-            Number count = (Number) query.getSingleResult();
+            Number count = RUtil.getSingleResultOrNull(query);
             if (count != null && count.longValue() > 0) {
                 //noinspection ConstantConditions
                 throw new ObjectAlreadyExistsException("Object '" + object.getCompileTimeClass().getSimpleName()

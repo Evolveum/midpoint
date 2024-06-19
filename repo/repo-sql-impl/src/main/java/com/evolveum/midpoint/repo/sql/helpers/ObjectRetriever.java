@@ -141,7 +141,7 @@ public class ObjectRetriever {
                 long time = System.currentTimeMillis();
                 Query q = em.createNativeQuery("select oid from m_object where oid = ? for update");
                 q.setParameter(1, oid);
-                Object result = q.getSingleResult();
+                Object result = RUtil.getSingleResultOrNull(q);
                 if (result == null) {
                     return throwObjectNotFoundException(type, oid, isAllowNotFound(options));
                 }
@@ -171,7 +171,7 @@ public class ObjectRetriever {
             query.unwrap(org.hibernate.query.Query.class)
                     .setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
-            fullObject = (GetObjectResult) query.getSingleResult();
+            fullObject = RUtil.getSingleResultOrNull(query);
         } else {
             // we're doing update after this get, therefore we load full object right now
             // (it would be loaded during merge anyway)
@@ -187,8 +187,7 @@ public class ObjectRetriever {
             Query query = em.createQuery(cq);
             query.setLockMode(lockMode);
 
-            RObject obj = (RObject) query.getSingleResult();
-
+            RObject obj = RUtil.getSingleResultOrNull(query);
             if (obj != null) {
                 fullObject = new GetObjectResult(obj.getOid(), obj.getFullObject());
             }
@@ -242,7 +241,7 @@ public class ObjectRetriever {
                 // filters uses only properties from concrete entities like RUser, RRole by improving interpreter [lazyman]
                 // note: distinct can be ignored here, as there is no filter, so no joins
                 Query sqlQuery = em.createNativeQuery("SELECT COUNT(*) FROM " + RUtil.getTableName(hqlType, em));
-                longCount = (Number) sqlQuery.getSingleResult();
+                longCount = RUtil.getSingleResultOrNull(sqlQuery);
             } else {
                 RQuery rQuery;
                 QueryEngine engine = new QueryEngine(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
@@ -491,7 +490,7 @@ public class ObjectRetriever {
             if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(FocusType.F_JPEG_PHOTO, options)) {
                 Query query = em.createNamedQuery("get.focusPhoto");
                 query.setParameter("oid", prismObject.getOid());
-                byte[] photo = (byte[]) query.getSingleResult();
+                byte[] photo = RUtil.getSingleResultOrNull(query);
                 if (photo != null) {
                     PrismProperty<byte[]> photoProperty = prismObject.findOrCreateProperty(FocusType.F_JPEG_PHOTO);
                     photoProperty.setRealValue(photo);
@@ -520,7 +519,7 @@ public class ObjectRetriever {
             if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(TaskType.F_RESULT, options)) {
                 Query query = em.createNamedQuery("get.taskResult");
                 query.setParameter("oid", prismObject.getOid());
-                byte[] opResult = (byte[]) query.getSingleResult();
+                byte[] opResult = RUtil.getSingleResultOrNull(query);
                 if (opResult != null) {
                     String serializedResult = RUtil.getSerializedFormFromBytes(opResult);
                     OperationResultType resultType = prismContext.parserFor(serializedResult)
@@ -771,11 +770,12 @@ public class ObjectRetriever {
             Query query = em.createNamedQuery("getVersion");
             query.setParameter("oid", oid);
 
-            Number versionLong = (Number) query.getSingleResult();
+            Number versionLong = RUtil.getSingleResultOrNull(query);
             if (versionLong == null) {
                 throw new ObjectNotFoundException(type, oid, false);
             }
             version = versionLong.toString();
+
             em.getTransaction().commit();
         } catch (RuntimeException ex) {
             baseHelper.handleGeneralRuntimeException(ex, em, result);
@@ -988,7 +988,7 @@ public class ObjectRetriever {
             }
             query.setParameter("aOid", upperOrgOid);
 
-            Number number = (Number) query.getSingleResult();
+            Number number = RUtil.getSingleResultOrNull(query);
             session.getTransaction().commit();
 
             return number != null && number.longValue() != 0L;

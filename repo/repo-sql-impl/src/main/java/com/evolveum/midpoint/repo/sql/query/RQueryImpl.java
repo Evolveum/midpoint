@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sql.query;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+
 import jakarta.persistence.Query;
 import org.hibernate.HibernateException;
 import org.hibernate.ScrollMode;
@@ -39,7 +41,7 @@ public class RQueryImpl implements RQuery {
     @Override
     public <T> T uniqueResult() throws HibernateException {
         //noinspection unchecked
-        return (T) query.getSingleResult();
+        return (T) RUtil.getSingleResultOrNull(query);
     }
 
     @Override

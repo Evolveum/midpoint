@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.springframework.test.annotation.DirtiesContext;
@@ -135,7 +137,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     }
 
     private void assertCount(Query query, int count) {
-        Number number = (Number) query.getSingleResult();
+        Number number = RUtil.getSingleResultOrNull(query);
         AssertJUnit.assertNotNull(number);
         AssertJUnit.assertEquals(count, number.intValue());
     }
@@ -446,7 +448,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             Query sqlOrgClosure = en.createQuery("select count(*) from ROrgClosure where descendantOid=:oid or ancestorOid=:oid");
             sqlOrgClosure.setParameter("oid", DELETE_ORG_OID);
 
-            Number number = (Number) sqlOrgClosure.getSingleResult();
+            Number number = RUtil.getSingleResultOrNull(sqlOrgClosure);
             AssertJUnit.assertEquals(0, (number != null ? number.intValue() : 0));
         } finally {
             close(en);

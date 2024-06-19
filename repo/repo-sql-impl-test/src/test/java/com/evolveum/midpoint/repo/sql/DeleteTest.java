@@ -11,6 +11,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.springframework.test.annotation.DirtiesContext;
@@ -89,7 +91,7 @@ public class DeleteTest extends BaseSQLRepoTest {
             Query query = em.createNativeQuery("select count(*) from m_trigger where owner_oid = ?");
             query.setParameter(1, oid);
 
-            Number count = (Number) query.getSingleResult();
+            Number count = RUtil.getSingleResultOrNull(query);
             AssertJUnit.assertEquals(count.longValue(), 0L);
         }
     }

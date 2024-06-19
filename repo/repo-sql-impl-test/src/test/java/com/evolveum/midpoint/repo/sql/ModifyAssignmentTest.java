@@ -12,6 +12,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.springframework.test.annotation.DirtiesContext;
@@ -249,7 +251,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
                     "select count(*) from m_assignment where owner_oid=:oid and id=:id", Number.class);
             query.setParameter("oid", delta.getOid());
             query.setParameter("id", 4);
-            Number number = (Number) query.getSingleResult();
+            Number number = RUtil.getSingleResultOrNull(query);
             assertEquals(0, number.intValue());
         } finally {
             close(em);
