@@ -2266,11 +2266,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
         try {
 
-            ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
-                    .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF).ref(targetObjectRef.getOid())
-                    .build();
-            SearchResultList<PrismObject<RoleAnalysisOutlierType>> outlierSearch = modelService
-                    .searchObjects(RoleAnalysisOutlierType.class, query, null, task, result);
+            //TODO TARGET OBJECT REF IS NECESSARY
+            SearchResultList<PrismObject<RoleAnalysisOutlierType>> outlierSearch = null;
+//            ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
+//                    .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF).ref(targetObjectRef.getOid())
+//                    .build();
+//            outlierSearch = modelService
+//                    .searchObjects(RoleAnalysisOutlierType.class, query, null, task, result);
 
             if (outlierSearch == null || outlierSearch.isEmpty()) {
                 this.importOutlier(roleAnalysisOutlierType, task, result);

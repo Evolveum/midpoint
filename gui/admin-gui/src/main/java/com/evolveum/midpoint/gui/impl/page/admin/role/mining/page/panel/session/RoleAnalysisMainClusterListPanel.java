@@ -16,14 +16,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
-
-import com.evolveum.midpoint.web.component.data.column.LinkPanel;
-import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
-
-import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -43,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -69,13 +62,15 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.LinkPanel;
+import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.data.mining.CollapsableContainerPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -83,7 +78,9 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @PanelType(name = "clusters")
 @PanelInstance(
@@ -483,10 +480,12 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                             return new Label(componentId, "Outliers count");
                         }
 
+                        int outlierCount = 0;
+
                         @Override
                         public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
                                 String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
-
+                            outlierCount = 0;
                             RoleAnalysisClusterType cluster = model.getObject().getValue();
                             List<ObjectReferenceType> member = cluster.getMember();
 
@@ -503,16 +502,36 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                             Task task = getPageBase().createSimpleTask("countObjects");
                             OperationResult result = task.getResult();
 
-                            int count = 0;
+//                            int count = 0;
+                            //TODO restore after db schema change
+//                            try {
+//                                count = modelService.countObjects(RoleAnalysisOutlierType.class, query, null, task, result);
+//                            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException |
+//                                    ConfigurationException | CommunicationException |
+//                                    ExpressionEvaluationException e) {
+//                                throw new RuntimeException("Couldn't count outliers", e);
+//                            }
+
+                            //TODO remove hack after db schema change
+                            ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
+
+                                RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
+                                ObjectReferenceType targetObjectRef = outlierObject.getTargetObjectRef();
+                                String oid = targetObjectRef.getOid();
+                                if (membersOid.contains(oid)) {
+                                    outlierCount++;
+                                }
+                                return true;
+                            };
+
                             try {
-                                count = modelService.countObjects(RoleAnalysisOutlierType.class, query, null, task, result);
-                            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException |
-                                    ConfigurationException | CommunicationException |
-                                    ExpressionEvaluationException e) {
-                                throw new RuntimeException("Couldn't count outliers", e);
+                                modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
+                                        null, task, result);
+                            } catch (Exception ex) {
+                                throw new RuntimeException("Couldn't count outliers", ex);
                             }
 
-                            cellItem.add(new Label(componentId, Model.of(count)));
+                            cellItem.add(new Label(componentId, Model.of(outlierCount)));
                         }
 
                         @Override

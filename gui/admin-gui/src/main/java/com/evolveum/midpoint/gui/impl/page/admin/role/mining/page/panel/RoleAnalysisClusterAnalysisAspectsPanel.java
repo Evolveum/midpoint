@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.c
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateRoleOutlierResultModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -419,14 +421,38 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                 Task task = pageBase.createSimpleTask("loadRoleAnalysisInfo");
                 RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
                 OperationResult result = task.getResult();
-                SearchResultList<PrismObject<RoleAnalysisOutlierType>> searchResultList;
+                //TODO replace after db schema change
+//                SearchResultList<PrismObject<RoleAnalysisOutlierType>> searchResultList;
+//                try {
+//                    searchResultList = modelService
+//                            .searchObjects(RoleAnalysisOutlierType.class, getQuery(cluster), null, task, result);
+//                } catch (SchemaException | ObjectNotFoundException | SecurityViolationException |
+//                        CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+//                    throw new RuntimeException(e);
+//                }
+
+
+                //TODO remove hack after db schema change
+                List<PrismObject<RoleAnalysisOutlierType>> searchResultList = new ArrayList<>();
+                String clusterOid = cluster.getOid();
+                ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
+
+                    RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
+                    ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
+                    String oid = targetClusterRef.getOid();
+                    if (clusterOid.equals(oid)) {
+                        searchResultList.add(outlier);
+                    }
+                    return true;
+                };
+
                 try {
-                    searchResultList = modelService
-                            .searchObjects(RoleAnalysisOutlierType.class, getQuery(cluster), null, task, result);
-                } catch (SchemaException | ObjectNotFoundException | SecurityViolationException |
-                        CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-                    throw new RuntimeException(e);
+                    modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
+                            null, task, result);
+                } catch (Exception ex) {
+                    throw new RuntimeException("Couldn't search outliers", ex);
                 }
+
 
                 if (searchResultList == null || searchResultList.isEmpty()) {
                     return;

@@ -905,4 +905,5 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result,
             boolean single);
+
 }

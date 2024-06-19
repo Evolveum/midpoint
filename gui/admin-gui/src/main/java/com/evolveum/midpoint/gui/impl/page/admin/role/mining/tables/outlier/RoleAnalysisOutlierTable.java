@@ -10,14 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateRoleOutlierResultModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
 
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -35,17 +28,24 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierHeaderResultPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierItemResultPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierResultPanel;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class RoleAnalysisOutlierTable extends BasePanel<String> {
 
@@ -89,7 +89,8 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
 
             @Override
             protected ISelectableDataProvider<SelectableBean<RoleAnalysisOutlierType>> createProvider() {
-                return createSelectableBeanObjectDataProvider(() -> getQuery(cluster), null, null);
+                return RoleAnalysisOutlierTable.this.createProvider(cluster);
+//                return createSelectableBeanObjectDataProvider(() -> getQuery(cluster), null, null);
 
             }
 
@@ -131,7 +132,6 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
-
 
                         RoleAnalysisOutlierType outlier = model.getObject().getValue();
 
@@ -215,7 +215,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
                         if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
                             outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlier, task, task.getResult(), cluster);
                         } else {
-                            outlierObjectModel = generateRoleOutlierResultModel(roleAnalysisService,outlier, task, task.getResult(), cluster);
+                            outlierObjectModel = generateRoleOutlierResultModel(roleAnalysisService, outlier, task, task.getResult(), cluster);
                         }
 
                         String outlierName = outlierObjectModel.getOutlierName();
@@ -309,4 +309,55 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
 
         return query;
     }
+
+    private SelectableBeanObjectDataProvider<RoleAnalysisOutlierType> createProvider(RoleAnalysisClusterType cluster) {
+        List<RoleAnalysisOutlierType> searchResultList = new ArrayList<>();
+        String clusterOid = cluster.getOid();
+        ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
+
+            RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
+            ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
+            String oid = targetClusterRef.getOid();
+            if (clusterOid.equals(oid)) {
+                searchResultList.add(outlier.asObjectable());
+            }
+            return true;
+        };
+
+        PageBase pageBase = getPageBase();
+        Task task = pageBase.createSimpleTask("Search outliers");
+        OperationResult result = task.getResult();
+
+        try {
+            pageBase.getModelService().searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
+                    null, task, result);
+        } catch (Exception ex) {
+            throw new RuntimeException("Couldn't search outliers", ex);
+        }
+        return new SelectableBeanObjectDataProvider<>(
+                RoleAnalysisOutlierTable.this, Set.of()) {
+
+            @SuppressWarnings("rawtypes")
+            @Override
+            protected List<RoleAnalysisOutlierType> searchObjects(Class type,
+                    ObjectQuery query,
+                    Collection collection,
+                    Task task,
+                    OperationResult result) {
+                Integer offset = query.getPaging().getOffset();
+                Integer maxSize = query.getPaging().getMaxSize();
+                return searchResultList.subList(offset, offset + maxSize);
+            }
+
+            @Override
+            protected Integer countObjects(Class<RoleAnalysisOutlierType> type,
+                    ObjectQuery query,
+                    Collection<SelectorOptions<GetOperationOptions>> currentOptions,
+                    Task task,
+                    OperationResult result) {
+                return searchResultList.size();
+            }
+        };
+    }
+
 }

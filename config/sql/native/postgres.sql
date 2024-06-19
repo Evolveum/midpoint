@@ -1289,13 +1289,7 @@ CREATE TRIGGER m_role_analysis_session_oid_delete_tr AFTER DELETE ON m_role_anal
 CREATE TABLE m_role_analysis_outlier (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_OUTLIER') STORED
-        CHECK (objectType = 'ROLE_ANALYSIS_OUTLIER'),
-        targetObjectRefTargetOid UUID,
-        targetObjectRefTargetType ObjectType,
-        targetObjectRefRelationId INTEGER REFERENCES m_uri(id),
-        targetClusterRefTargetOid UUID,
-        targetClusterRefTargetType ObjectType,
-        targetClusterRefRelationId INTEGER REFERENCES m_uri(id)
+        CHECK (objectType = 'ROLE_ANALYSIS_OUTLIER')
 )
     INHERITS (m_assignment_holder);
 
