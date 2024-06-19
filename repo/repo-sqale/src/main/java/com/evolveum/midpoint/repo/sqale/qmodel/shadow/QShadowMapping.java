@@ -190,6 +190,9 @@ public class QShadowMapping
         }
 
         new ExtensionProcessor(repositoryContext()).extensionsToContainer(attributes, attributeContainer);
+        // Data were loaded, lets mark it as complete.
+        shadowType.asPrismObject().findItem(F_ATTRIBUTES).setIncomplete(false);
+
     }
 
     @Override
