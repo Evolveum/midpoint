@@ -108,7 +108,7 @@ public class OperationPanelModel implements Serializable {
 
         for (DetectedPattern selectedPattern : this.selectedPatterns) {
             String identifier = selectedPattern.getIdentifier();
-            if (identifier.equals(pattern.getIdentifier())) {
+            if (identifier == null || identifier.isEmpty() || identifier.equals(pattern.getIdentifier())) {
                 removeSelectedPattern(selectedPattern);
                 return;
             }
