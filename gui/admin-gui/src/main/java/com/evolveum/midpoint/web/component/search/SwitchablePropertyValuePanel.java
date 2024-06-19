@@ -164,7 +164,7 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
                 List<DisplayableValue> allowedValues = new ArrayList<>();
                 if (((PrismPropertyDefinition) propertyDef).getAllowedValues() != null) {
                     allowedValues.addAll(((PrismPropertyDefinition) propertyDef).getAllowedValues());
-                } else if (propertyDef.getTypeClass().equals(boolean.class) || Boolean.class.isAssignableFrom(propertyDef.getTypeClass())) {
+                } else if (boolean.class.equals(propertyDef.getTypeClass()) || Boolean.class.isAssignableFrom(propertyDef.getTypeClass())) {
                     allowedValues.add(new SearchValue<>(Boolean.TRUE, getString("Boolean.TRUE")));
                     allowedValues.add(new SearchValue<>(Boolean.FALSE, getString("Boolean.FALSE")));
                 }

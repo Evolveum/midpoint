@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard.complexType;
+package com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard.complextype;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
@@ -74,11 +74,6 @@ public abstract class PrismItemDefinitionsTableWizardPanel
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource("PageSchema.wizard.step.complexType.items.subText");
-    }
-
-    @Override
-    public VisibleEnableBehaviour getBackBehaviour() {
-        return new VisibleBehaviour(() -> false);
     }
 
     @Override

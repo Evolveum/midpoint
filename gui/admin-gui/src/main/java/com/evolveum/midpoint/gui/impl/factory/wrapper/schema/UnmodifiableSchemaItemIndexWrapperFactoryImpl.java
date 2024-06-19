@@ -27,6 +27,10 @@ public class UnmodifiableSchemaItemIndexWrapperFactoryImpl<T>
 
     @Override
     public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {
+        if (!super.match(def, parent)) {
+            return false;
+        }
+
         if (parent == null || parent.getCompileTimeClass() == null) {
             return false;
         }

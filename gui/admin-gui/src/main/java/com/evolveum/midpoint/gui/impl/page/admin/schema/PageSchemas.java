@@ -69,7 +69,7 @@ public class PageSchemas extends PageAdmin {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.PANEL_RESOURCE_OBJECT_TYPES; //TODO
+                return UserProfileStorage.TableId.PAGE_SCHEMAS_TABLE;
             }
 
             @Override
@@ -124,6 +124,11 @@ public class PageSchemas extends PageAdmin {
                     }
                 });
                 return columns;
+            }
+
+            @Override
+            protected boolean isDuplicationSupported() {
+                return false;
             }
         };
         table.setOutputMarkupId(true);
