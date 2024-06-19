@@ -1169,6 +1169,6 @@ public class IntegrationTestTools {
     public static PolyString toRepoPoly(String orig, QName matchingRuleName) throws SchemaException {
         var matchingRule = SchemaService.get().matchingRuleRegistry().getMatchingRuleSafe(matchingRuleName, null);
         String norm = matchingRule.getNormalizer().normalizeString(orig);
-        return NormalizationAwareResourceAttributeDefinition.wrap(orig, norm);
+        return new PolyString(orig, norm);
     }
 }

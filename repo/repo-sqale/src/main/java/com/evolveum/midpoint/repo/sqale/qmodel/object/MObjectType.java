@@ -136,4 +136,8 @@ public enum MObjectType {
     public Class<? extends ObjectType> getSchemaType() {
         return schemaType;
     }
+
+    public QName getTypeName() {
+        return ObjectTypes.getObjectType(schemaType).getTypeQName();
+    }
 }
