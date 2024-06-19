@@ -28,7 +28,7 @@ public interface DistanceMeasure extends Serializable {
      * @param valueB The second set of values.
      * @return The computed distance or similarity between the sets.
      */
-    double compute(
+    double computeBalancedDistance(
             @NotNull Set<String> valueA,
             @NotNull Set<String> valueB);
 
@@ -36,8 +36,12 @@ public interface DistanceMeasure extends Serializable {
             @NotNull Set<String> valueA,
             @NotNull Set<String> valueB);
 
-    double compute(
+    double computeRuleDistance(
             @NotNull ExtensionProperties valueA,
             @NotNull ExtensionProperties valueB,
             @NotNull Set<ClusterExplanation> explanation);
+
+    double computeSimpleDistance(
+            @NotNull Set<String> valueA,
+            @NotNull Set<String> valueB);
 }

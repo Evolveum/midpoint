@@ -11,11 +11,13 @@ import java.io.Serial;
 
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
 
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -39,6 +41,7 @@ public class AjaxLinkTruncatePanelAction extends Panel {
     private static final String ID_ICON = "icon";
     private static final String ID_LINK_ICON = "link_icon";
     private static final String ID_IMAGE = "image";
+    private static final String ID_CONTAINER = "container";
 
     public AjaxLinkTruncatePanelAction(String id, IModel<?> labelModel, StringResourceModel popupText,
             DisplayType displayType, LoadableDetachableModel<RoleAnalysisOperationMode> status) {
@@ -80,7 +83,7 @@ public class AjaxLinkTruncatePanelAction extends Panel {
             StringResourceModel popupText,
             CompositedIcon compositedIcon,
             DisplayType displayType) {
-        WebMarkupContainer webMarkupContainer = new WebMarkupContainer("container");
+        WebMarkupContainer webMarkupContainer = new WebMarkupContainer(ID_CONTAINER);
         if (getColor() != null) {
             webMarkupContainer.add(new AttributeAppender("class", getColor()));
         }
@@ -130,12 +133,12 @@ public class AjaxLinkTruncatePanelAction extends Panel {
                 RoleAnalysisOperationMode roleAnalysisOperationMode = onClickPerformedAction(target, status.getObject());
 
                 if (roleAnalysisOperationMode.equals(RoleAnalysisOperationMode.EXCLUDE)) {
-                    image.add(AttributeModifier.replace("class", RoleAnalysisOperationMode.INCLUDE.getDisplayString()));
+                    getImageComponent().add(AttributeModifier.replace("class", RoleAnalysisOperationMode.INCLUDE.getDisplayString()));
                 } else if (roleAnalysisOperationMode.equals(RoleAnalysisOperationMode.INCLUDE)) {
-                    image.add(AttributeModifier.replace("class", RoleAnalysisOperationMode.EXCLUDE.getDisplayString()));
+                    getImageComponent().add(AttributeModifier.replace("class", RoleAnalysisOperationMode.EXCLUDE.getDisplayString()));
                 }
 
-                target.add(image);
+                target.add(getImageComponent());
             }
         };
         actionLink.add(image);
@@ -143,6 +146,10 @@ public class AjaxLinkTruncatePanelAction extends Panel {
 
         webMarkupContainer.add(actionLink);
 
+    }
+
+    private Component getImageComponent() {
+        return get(((PageBase) getPage()).createComponentPath(ID_CONTAINER, ID_LINK_ICON, ID_IMAGE));
     }
 
     protected RoleAnalysisOperationMode onClickPerformedAction(AjaxRequestTarget target, RoleAnalysisOperationMode roleAnalysisOperationMode) {

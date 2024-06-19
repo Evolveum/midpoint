@@ -32,14 +32,14 @@ public class ExtractPatternUtils {
         return new DetectedPattern(
                 roles,
                 users,
-                users.size() * roles.size(), null);
+                (users.size() * roles.size()) - users.size(), null);
     }
 
     public static DetectedPattern prepareDetectedPattern(@NotNull Set<String> roles, @NotNull Set<String> users, Long patternId) {
         return new DetectedPattern(
                 roles,
                 users,
-                users.size() * roles.size(), patternId);
+                (users.size() * roles.size()) - users.size(), patternId);
     }
 
     public static @NotNull List<DetectedPattern> transformDefaultPattern(@NotNull RoleAnalysisClusterType cluster) {
@@ -65,8 +65,15 @@ public class ExtractPatternUtils {
 
             detectedPattern.setRoleAttributeAnalysisResult(roleAnalysisClusterDetectionType.getRoleAttributeAnalysisResult());
             detectedPattern.setUserAttributeAnalysisResult(roleAnalysisClusterDetectionType.getUserAttributeAnalysisResult());
-            detectedPattern.setItemsConfidence(roleAnalysisClusterDetectionType.getItemConfidence());
-            detectedPattern.setReductionFactorConfidence(roleAnalysisClusterDetectionType.getReductionConfidence());
+            Double itemConfidence = roleAnalysisClusterDetectionType.getItemConfidence();
+            if (itemConfidence != null) {
+                detectedPattern.setItemsConfidence(itemConfidence);
+            }
+            Double reductionConfidence = roleAnalysisClusterDetectionType.getReductionConfidence();
+            if (reductionConfidence != null) {
+                detectedPattern.setReductionFactorConfidence(reductionConfidence);
+            }
+
             detectedPattern.setClusterRef(new ObjectReferenceType().oid(cluster.getOid()).type(RoleAnalysisClusterType.COMPLEX_TYPE));
             mergedIntersection.add(detectedPattern);
 
@@ -82,7 +89,24 @@ public class ExtractPatternUtils {
         Set<String> roles = rolesRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
         Set<String> users = usersRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
 
-        return new DetectedPattern(roles, users, users.size() * roles.size(), pattern.getId());
+        return new DetectedPattern(roles, users, (users.size() * roles.size()) - users.size(), pattern.getId());
+    }
+
+    public static @NotNull DetectedPattern transformPatternWithAttributes(@NotNull RoleAnalysisDetectionPatternType pattern) {
+        List<ObjectReferenceType> rolesRef = pattern.getRolesOccupancy();
+        List<ObjectReferenceType> usersRef = pattern.getUserOccupancy();
+
+        Set<String> roles = rolesRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
+        Set<String> users = usersRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
+
+        DetectedPattern detectedPattern = new DetectedPattern(roles, users, (users.size() * roles.size()) - users.size(), pattern.getId());
+        detectedPattern.setRoleAttributeAnalysisResult(pattern.getRoleAttributeAnalysisResult());
+        detectedPattern.setUserAttributeAnalysisResult(pattern.getUserAttributeAnalysisResult());
+        Double itemConfidence = pattern.getItemConfidence();
+        if (itemConfidence != null) {
+            detectedPattern.setItemsConfidence(itemConfidence);
+        }
+        return detectedPattern;
     }
 
     private static boolean isEmptyDetectionPattern(List<RoleAnalysisDetectionPatternType> defaultDetection) {

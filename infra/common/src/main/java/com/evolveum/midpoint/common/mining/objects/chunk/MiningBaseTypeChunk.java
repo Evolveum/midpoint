@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectStatus;
@@ -25,14 +27,14 @@ public abstract class MiningBaseTypeChunk implements Serializable {
     protected final List<String> users;
     protected final List<String> roles;
     protected final String chunkName;
-    protected double frequency;
+    protected FrequencyItem frequency;
     protected RoleAnalysisObjectStatus objectStatus;
 
     public MiningBaseTypeChunk(
             @NotNull List<String> roles,
             @NotNull List<String> users,
             @NotNull String chunkName,
-            double frequency,
+            FrequencyItem frequency,
             @NotNull RoleAnalysisObjectStatus objectStatus) {
         this.roles = new ArrayList<>(roles);
         this.users = new ArrayList<>(users);
@@ -69,11 +71,16 @@ public abstract class MiningBaseTypeChunk implements Serializable {
         return chunkName;
     }
 
-    public double getFrequency() {
+    public FrequencyItem getFrequencyItem() {
         return frequency;
     }
 
-    public void setFrequency(double frequency) {
+    public double getFrequencyValue() {
+        return frequency.getFrequency();
+    }
+
+
+    public void setFrequency(FrequencyItem frequency) {
         this.frequency = frequency;
     }
 

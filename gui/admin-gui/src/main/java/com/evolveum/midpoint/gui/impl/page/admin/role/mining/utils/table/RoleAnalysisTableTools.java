@@ -25,7 +25,7 @@ public class RoleAnalysisTableTools {
      * @param density The density value to determine the color for.
      * @return The CSS class representing the background color.
      */
-    public static String densityBasedColor(double density) {
+    public static @NotNull String densityBasedColorClass(double density) {
 
         if (density >= 60) {
             return "bg-success text-center";
@@ -33,6 +33,18 @@ public class RoleAnalysisTableTools {
             return "bg-info text-center";
         } else {
             return "bg-secondary text-center";
+        }
+
+    }
+
+    public static @NotNull String densityBasedColor(double density) {
+
+        if (density >= 60) {
+            return "#198754";
+        } else if (density > 30) {
+            return "#008099";
+        } else {
+            return "#777";
         }
 
     }
@@ -78,7 +90,8 @@ public class RoleAnalysisTableTools {
         parentContainer.add(AttributeAppender.replace("class", "d-flex"));
         parentContainer.add(AttributeAppender.replace("style", "height:40px"));
 
-        cellItem.add(AttributeAppender.append("style", "width:40px; height:40px; border: 1px solid #f4f4f4;"));
+        cellItem.add(AttributeAppender.append("style", "width:40px; height:40px; "
+                + "border: 1px solid rgb(222, 226, 230)"));
         cellItem.add(AttributeAppender.remove("class"));
     }
 

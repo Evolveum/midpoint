@@ -6,13 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.menu;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-
-import com.evolveum.midpoint.prism.Containerable;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;

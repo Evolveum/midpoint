@@ -620,6 +620,11 @@ breakLongerTextInTableCell(cellId) {
         panel.find("select.resizing-select").width(panel.find("select.width-tmp-select").width());
     }
 
+    /**
+    * Used for scaling tables, images and charts (Role Mining)
+    *
+    * @param containerId
+    */
     initScaleResize(containerId) {
         let div = document.querySelector(containerId);
         let scale = 0.5;
@@ -631,7 +636,7 @@ breakLongerTextInTableCell(cellId) {
         }
 
         if (containerId === '#tableScaleContainer') {
-            component = div.querySelector('table');
+            component = div.querySelector('div');
         } else if (containerId === '#imageScaleContainer') {
             component = div.querySelector('img');
         } else if (containerId === '#chartScaleContainer') {
@@ -674,26 +679,30 @@ breakLongerTextInTableCell(cellId) {
             let rectBefore = component.getBoundingClientRect();
 
             if (e.deltaY < 0) {
-                zoomIn(rectBefore);
+                zoomIn(rectBefore, containerId === '#chartScaleContainer' ? true : false);
             } else if (e.deltaY > 0) {
-                zoomOut(rectBefore);
+                zoomOut(rectBefore, containerId === '#chartScaleContainer' ? 1.0 : 0.1);
             }
         }
 
-        function zoomIn(rectBefore) {
+        function zoomIn(rectBefore, isChart) {
             console.log('Zooming in');
-            scale += 0.01;
 
-            let prevScale = scale - 0.01;
+            if(isChart && scale < 1.0){
+                 scale = 1.0;
+            }
+            scale += 0.05;
+
+            let prevScale = scale - 0.05;
             let scaleFactor = scale / prevScale;
             //TODO target to cursor (temporarily disabled because of display rendering issues)
             setTransform(0, 0, scale, rectBefore, scaleFactor);
         }
 
-        function zoomOut(rectBefore) {
+        function zoomOut(rectBefore, maxScale) {
             console.log('Zooming out');
-            scale -= 0.01;
-            scale = Math.max(0.1, scale);
+            scale -= 0.05;
+            scale = Math.max(maxScale, scale);
 
             setTransform(0, 0, scale, rectBefore, 1);
         }

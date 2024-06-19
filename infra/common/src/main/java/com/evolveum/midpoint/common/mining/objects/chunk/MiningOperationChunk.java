@@ -59,8 +59,10 @@ public class MiningOperationChunk implements Serializable {
             this.miningUserTypeChunks = JaccardSorter.jaccardSorter(miningUserTypeChunks);
         } else if (roleAnalysisSortMode.equals(RoleAnalysisSortMode.FREQUENCY)) {
             this.miningUserTypeChunks = JaccardSorter.frequencyBasedSort(miningUserTypeChunks);
+        } else if (roleAnalysisSortMode.equals(RoleAnalysisSortMode.INCLUDES)) {
+            this.miningUserTypeChunks = sortByIncludeStatusMiningUserTypeChunks();
         }
-        return sortByIncludeStatusMiningUserTypeChunks();
+        return miningUserTypeChunks;
     }
 
     public List<MiningRoleTypeChunk> getMiningRoleTypeChunks(@NotNull RoleAnalysisSortMode roleAnalysisSortMode) {
@@ -69,8 +71,10 @@ public class MiningOperationChunk implements Serializable {
             this.miningRoleTypeChunks = JaccardSorter.jaccardSorter(miningRoleTypeChunks);
         } else if (roleAnalysisSortMode.equals(RoleAnalysisSortMode.FREQUENCY)) {
             this.miningRoleTypeChunks = JaccardSorter.frequencyBasedSort(miningRoleTypeChunks);
+        }else if (roleAnalysisSortMode.equals(RoleAnalysisSortMode.INCLUDES)) {
+            this.miningRoleTypeChunks = sortByStatusIncludeMiningRoleTypeChunks();
         }
-        return sortByStatusIncludeMiningRoleTypeChunks();
+        return miningRoleTypeChunks;
     }
 
     //TODO check it. it should be executed only when pattern or candidate role is selected.
@@ -93,6 +97,7 @@ public class MiningOperationChunk implements Serializable {
             double similarity2 = jacquardSimilarity(propertiesA, propertiesB);
             return Double.compare(similarity2, similarity1);
         };
+
 
         miningRoleTypeChunks.subList(0, Collections.frequency(miningRoleTypeChunks, thisStatusFirst))
                 .sort(jaccardComparator);

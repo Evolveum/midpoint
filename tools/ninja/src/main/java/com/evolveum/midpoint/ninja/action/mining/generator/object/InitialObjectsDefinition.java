@@ -197,11 +197,15 @@ public class InitialObjectsDefinition {
 
     public enum JobInitialBusinessRole implements InitialBusinessRole {
         ASSISTANT("47a627c4-fd0f-42e3-a2d0-3ef0cba09ac1", "Assistant",
-                List.of(BasicAbstractRole.CALENDAR_POWER_USER, BasicAbstractRole.SAP_BASIC)),
+                List.of(BasicAbstractRole.CALENDAR_POWER_USER, BasicAbstractRole.AD_GROUP_EMPLOYEES)),
         SUPERVISOR("ccc98c8d-0313-4961-9957-929aa0336620", "Supervisor",
-                List.of(BasicAbstractRole.HR_APPROVER, BasicAbstractRole.SAP_BASIC)),
+                List.of(BasicAbstractRole.SUPERVISOR, BasicAbstractRole.EXTERNAL)),
         HR_CLERK("ea84c7ca-74d9-43e8-ad2f-535e5f6022ef", "HR Clerk",
                 List.of(BasicAbstractRole.HR_APPROVER, BasicAbstractRole.SAP_BASIC, BasicAbstractRole.SAP_HR)),
+        HQ_CLERK("f1b1b3b4-1b3b-4b3b-8b3b-1b3b3b3b3b3b", "HQ Clerk",
+                List.of(BasicAbstractRole.HQ_APPROVER, BasicAbstractRole.SAP_HQ)),
+        IRREGULAR("f1b1b3b4-1b3b-4b3b-8b3b-1b3b3b3b3b3b", "Irregular",
+                List.of(BasicAbstractRole.PS_ASSISTANT, BasicAbstractRole.DE_Specialist, BasicAbstractRole.TE_COORDINATOR)),
         SECURITY_OFFICER("084b93f5-2f23-4087-83ec-94f4f8f5183a", "Security Officer",
                 List.of(BasicAbstractRole.AD_AUDITOR, BasicAbstractRole.FIREWALL_ADMIN, BasicAbstractRole.NIPPON_DB)),
         SALES("f188128d-5e50-4ea0-9d14-79c10e030cf9", "Sales",
@@ -389,7 +393,6 @@ public class InitialObjectsDefinition {
         }
     }
 
-
     public enum NoiseApplicationBusinessAbstractRole implements InitialAbstractRole {
 
         NOISE_MEDIA_MANAGER("c368b9a1-3c58-4d6f-9f86-a23ccf8a4f06", "Noise Media Manager"),
@@ -438,7 +441,6 @@ public class InitialObjectsDefinition {
         }
     }
 
-
     public enum BasicAbstractRole implements InitialAbstractRole {
 
         AD_GROUP_EMPLOYEES("c112783f-5e01-4b1b-bd5b-f5fe1a091413", "AD Group Employees",
@@ -471,9 +473,24 @@ public class InitialObjectsDefinition {
                 Archetypes.AUX_ROLE.getOidValue()),
         CALENDAR_POWER_USER("03e34489-89ad-4247-ab91-613a184b21f2", "Calendar Power User",
                 Archetypes.JOB_ROLE.getOidValue()),
+        SUPERVISOR("f06c9555-2806-4aec-b730-43e34d932152", "Supervisor",
+                Archetypes.JOB_ROLE.getOidValue()),
+        EXTERNAL("d12fea2a-cec8-47c4-9a08-25615be2bf6a", "External",
+                Archetypes.JOB_ROLE.getOidValue()),
         SAP_BASIC("711c6ee7-8fba-47a6-a6ee-0c2c105d9659", "SAP Basic",
                 Archetypes.JOB_ROLE.getOidValue()),
         HR_APPROVER("5c6d2eb4-23c9-432b-a419-ce4041a92dd7", "HR Approver",
+                Archetypes.JOB_ROLE.getOidValue()),
+
+        TE_COORDINATOR("c1bbe3a7-b724-4e65-9acb-5150df6321c6", "TE Coordinator",
+                Archetypes.JOB_ROLE.getOidValue()),
+        DE_Specialist("15ee62ca-bc2d-40cc-aee7-5a28c1f4e80d", "DE Specialist",
+                Archetypes.JOB_ROLE.getOidValue()),
+        PS_ASSISTANT("95100f69-db68-4195-957f-bb267f38e878", "Project Support Assistant",
+                Archetypes.JOB_ROLE.getOidValue()),
+        HQ_APPROVER("5f6f9c36-d2c5-40c5-99e2-97722bcd12de", "HQ Approver",
+                Archetypes.JOB_ROLE.getOidValue()),
+        SAP_HQ("814a0cf7-50c4-4d6f-b2a7-6724774694a3", "SAP HQ",
                 Archetypes.JOB_ROLE.getOidValue()),
         SAP_HR("a6fdae13-5544-42d7-ba0a-b010ace20446", "SAP HR",
                 Archetypes.JOB_ROLE.getOidValue()),

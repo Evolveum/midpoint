@@ -8,6 +8,24 @@
 .role-mining-no-border {
     border-left: none !important;
     border-right: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+}
+
+.role-mining-no-border-bottom {
+    border-bottom: none !important;
+}
+
+.role-mining-no-border-top {
+    border-top: none !important;
+}
+
+.role-mining-border-bottom {
+    border-bottom: 1px solid #f4f4f4;
+}
+
+.role-mining-border-top {
+    border-top: 1px solid #f4f4f4;
 }
 
 .dark-green {

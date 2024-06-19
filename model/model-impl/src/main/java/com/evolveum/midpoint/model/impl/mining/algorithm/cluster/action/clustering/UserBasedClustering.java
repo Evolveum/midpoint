@@ -12,13 +12,9 @@ import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.u
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.context.ClusteringBehavioralResolver;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -28,9 +24,12 @@ import com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserAnalysisSessionOptionType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Implements clustering of user based process mode.
@@ -94,7 +93,7 @@ public class UserBasedClustering implements Clusterable {
 
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap);
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(similarityDifference,
-                minUsersCount, distanceMeasure, minRolesOverlap, false);
+                minUsersCount, distanceMeasure, minRolesOverlap, ClusteringMode.BALANCED);
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
         return new RoleAnalysisAlgorithmUtils().processClusters(roleAnalysisService, dataPoints, clusters, session,

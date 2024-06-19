@@ -33,7 +33,8 @@ public enum RoleAnalysisObjectState {
     public static boolean isStable(@NotNull String value) {
         return value.equals(STABLE.displayString)
                 || value.contains(CLOSED.displayString.toLowerCase())
-                || value.contains(SUSPENDED.displayString.toLowerCase());
+                || value.contains(SUSPENDED.displayString.toLowerCase())
+                || value.contains("(7/7) runnable");
     }
 
     public static boolean isProcessing(@NotNull String value) {

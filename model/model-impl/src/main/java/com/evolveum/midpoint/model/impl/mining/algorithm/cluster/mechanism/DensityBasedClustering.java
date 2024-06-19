@@ -6,6 +6,8 @@ import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressI
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Performs density-based clustering of data points based on specified parameters and distance measure.
  * This class implements the Density-Based Spatial Clustering of Applications with Noise (DBSCAN) algorithm.
@@ -14,8 +16,6 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
     private double eps;
     private int minPts;
     int minPropertiesOverlap;
-    boolean rule;
-
     private static final Trace LOGGER = TraceManager.getTrace(DensityBasedClustering.class);
 
     /**
@@ -26,8 +26,8 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
      * @param measure The distance measure for clustering.
      * @param minRolesOverlap The minimum properties overlap required for adding a point to a cluster.
      */
-    public DensityBasedClustering(double eps, int minPts, DistanceMeasure measure, int minRolesOverlap, boolean rule) {
-        super(measure);
+    public DensityBasedClustering(double eps, int minPts, @NotNull DistanceMeasure measure, int minRolesOverlap, @NotNull ClusteringMode clusteringMode) {
+        super(measure, clusteringMode);
 
         if (eps < 0.0) {
             LOGGER.warn("Invalid parameter: eps={} is less than 0.0. Parameters not updated.", eps);
@@ -42,9 +42,7 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
                     eps, minPts, this.eps, this.minPts);
         }
 
-        this.rule = rule;
         this.minPropertiesOverlap = minRolesOverlap;
-
     }
 
     /**
@@ -67,7 +65,7 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
             handler.iterateActualStatus();
 
             if (visited.get(point) == null) {
-                List<T> neighbors = this.getNeighbors(point, points, rule, explanation);
+                List<T> neighbors = this.getNeighbors(point, points, explanation, this.eps);
                 int neighborsSize = getNeightborsSize(neighbors);
 
                 if (neighborsSize >= this.minPts
@@ -98,7 +96,7 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
             T current = (T) ((List) seeds).get(index);
             PointStatus pStatus = visited.get(current);
             if (pStatus == null) {
-                List<T> currentNeighbors = this.getNeighbors(current, points, rule, explanation);
+                List<T> currentNeighbors = this.getNeighbors(current, points, explanation, this.eps);
                 int currentNeighborsCount = getNeightborsSize(currentNeighbors);
                 if (currentNeighborsCount >= this.minPts) {
                     this.merge(seeds, currentNeighbors);
@@ -112,39 +110,6 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
         }
 
         return cluster;
-    }
-
-    private List<T> getNeighbors(T point, Collection<T> points, boolean rule, Set<ClusterExplanation> explanation) {
-        if (rule) {
-            return getNeighborsRule(point, points, explanation);
-        } else {
-            return getNeighborsClean(point, points);
-        }
-    }
-
-    private List<T> getNeighborsClean(T point, Collection<T> points) {
-        List<T> neighbors = new ArrayList<>();
-
-        for (T neighbor : points) {
-            if (point != neighbor && this.accessDistance(neighbor, point) <= this.eps) {
-                neighbors.add(neighbor);
-            }
-        }
-
-        return neighbors;
-    }
-
-    private List<T> getNeighborsRule(T point, Collection<T> points, Set<ClusterExplanation> explanation) {
-        List<T> neighbors = new ArrayList<>();
-
-        for (T neighbor : points) {
-            if (point != neighbor && this.accessDistance(neighbor, point) <= this.eps
-                    && this.rulesDistance(neighbor.getExtensionProperties(), point.getExtensionProperties(), explanation) == 0) {
-                neighbors.add(neighbor);
-            }
-        }
-
-        return neighbors;
     }
 
     private int getNeightborsSize(List<T> neighbors) {

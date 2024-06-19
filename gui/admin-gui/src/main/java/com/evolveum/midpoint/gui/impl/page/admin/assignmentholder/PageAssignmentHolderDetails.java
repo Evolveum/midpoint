@@ -333,6 +333,10 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         return wizardBreadcrumbs;
     }
 
+    public boolean isShowByWizard() {
+        return isShowedByWizard();
+    }
+
     protected <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> P showWizard(
             AjaxRequestTarget target,
             ItemPath pathToValue,

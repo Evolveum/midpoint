@@ -1,0 +1,40 @@
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
+    <div class="row gap-1">
+        <div class="card card-light col p-0" id="chartScaleContainer">
+            <div class="card-header">
+                <h3 class="card-title" wicket:id="cardTitle"></h3>
+                <div class="card-tools">
+                    <form wicket:id="toolForm">
+
+                        <button wicket:id="settingPanel" type="button" class="btn btn-tool" id="settingPanel"></button>
+
+                        <button wicket:id="exportButton" type="button" class="btn btn-tool" id="export"></button>
+
+                        <button type="button" class="btn btn-tool" title="Collapse/Expand card" data-toggle="tooltip" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+            <div class="card-body">
+                <div wicket:id="container" class="overflow-auto" style="height:30vh;">
+                    <canvas wicket:id="chart"></canvas>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-3 pr-0" wicket:id="patternPanel"></div>
+        <div class="col-3 pr-0" wicket:id="outlierPanel"></div>
+
+    </div>
+</wicket:panel>
