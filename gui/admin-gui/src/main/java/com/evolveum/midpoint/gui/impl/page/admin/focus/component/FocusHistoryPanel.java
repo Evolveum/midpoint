@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.focus.component;
 import java.io.Serial;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicyHistory;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.application.PanelTypeConstants;
 
@@ -195,6 +196,8 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
             getPageBase().navigateToNext(PageOrgHistory.class, pageParameters);
         } else if (ServiceType.class.equals(type)) {
             getPageBase().navigateToNext(PageServiceHistory.class, pageParameters);
+        } else if (PolicyType.class.equals(type)) {
+            getPageBase().navigateToNext(PagePolicyHistory.class, pageParameters);
         }
     }
 

@@ -382,6 +382,7 @@ public class SearchBoxConfigurationBuilder {
                 return RelationUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, modelServiceLocator);
             case ROLE_MEMBER_GOVERNANCE:
             case SERVICE_MEMBER_GOVERNANCE:
+            case POLICY_MEMBER_GOVERNANCE:
             case ORG_MEMBER_GOVERNANCE:
             case CARDS_GOVERNANCE:
             case ARCHETYPE_MEMBER_GOVERNANCE:
@@ -390,6 +391,7 @@ public class SearchBoxConfigurationBuilder {
                 return Arrays.asList(SchemaConstants.ORG_DEFAULT);
             case ROLE_MEMBER_MEMBER:
             case SERVICE_MEMBER_MEMBER:
+            case POLICY_MEMBER_MEMBER:
             case ORG_MEMBER_MEMBER:
             case MEMBER_WIZARD:
             case ROLE_CATALOG:
@@ -418,6 +420,8 @@ public class SearchBoxConfigurationBuilder {
             case ROLE_MEMBER_GOVERNANCE:
             case SERVICE_MEMBER_MEMBER:
             case SERVICE_MEMBER_GOVERNANCE:
+            case POLICY_MEMBER_MEMBER:
+            case POLICY_MEMBER_GOVERNANCE:
             case ORG_MEMBER_GOVERNANCE:
             case CARDS_GOVERNANCE:
             case ARCHETYPE_MEMBER_GOVERNANCE:

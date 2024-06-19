@@ -156,11 +156,13 @@ public class ColumnUtils {
         if (type.equals(UserType.class)) {
             return getDefaultUserColumns();
         } else if (RoleType.class.equals(type)) {
-            return getDefaultRoleColumns();
+            return getDefaultAbstractRoleColumns();
         } else if (OrgType.class.equals(type)) {
             return getDefaultOrgColumns(pageBase);
         } else if (ServiceType.class.equals(type)) {
-            return getDefaultServiceColumns();
+            return getDefaultAbstractRoleColumns();
+        } else if (PolicyType.class.equals(type)) {
+            return getDefaultAbstractRoleColumns();
         } else if (ArchetypeType.class.equals(type)) {
             return getDefaultArchetypeColumns();
         } else if (type.equals(TaskType.class)) {
@@ -406,15 +408,7 @@ public class ColumnUtils {
         }
     }
 
-    public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultRoleColumns() {
-        List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
-
-        columns.addAll((Collection) getDefaultAbstractRoleColumns(true));
-
-        return columns;
-    }
-
-    public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultServiceColumns() {
+    public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultAbstractRoleColumns() {
         List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
         columns.addAll((Collection) getDefaultAbstractRoleColumns(true));
