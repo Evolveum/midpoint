@@ -57,6 +57,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_ROLE_MEMBER_PANEL = UserProfileStorage.TableId.ROLE_MEMBER_PANEL.name();
     public static final String KEY_ORG_MEMBER_PANEL = UserProfileStorage.TableId.ORG_MEMBER_PANEL.name();
     public static final String KEY_SERVICE_MEMBER_PANEL = UserProfileStorage.TableId.SERVICE_MEMBER_PANEL.name();
+    public static final String KEY_POLICY_MEMBER_PANEL = UserProfileStorage.TableId.POLICY_MEMBER_PANEL.name();
     public static final String KEY_ARCHETYPE_MEMBER_PANEL = UserProfileStorage.TableId.ARCHETYPE_MEMBER_PANEL.name();
 
     public static final String KEY_GOVERNANCE_CARDS_PANEL = UserProfileStorage.TableId.PANEL_GOVERNANCE_CARDS.name();
@@ -259,6 +260,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
         } else if (key.startsWith(KEY_ORG_MEMBER_PANEL)
                 || key.startsWith(KEY_ROLE_MEMBER_PANEL)
                 || key.startsWith(KEY_SERVICE_MEMBER_PANEL)
+                || key.startsWith(KEY_POLICY_MEMBER_PANEL)
                 || key.startsWith(KEY_ARCHETYPE_MEMBER_PANEL)
                 || key.startsWith(KEY_GOVERNANCE_CARDS_PANEL)) {
             pageStorage = new MemberPanelStorage();

@@ -61,8 +61,14 @@ public class IconAndStylesUtil {
             return createRoleAnalysisClusterIcon();
         } else if (type == SchemaType.class) {
             return createSchemaIcon();
+        } else if (type == PolicyType.class) {
+            return createPolicyIcon();
         }
         return "";
+    }
+
+    private static String createPolicyIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_POLICY_ICON);
     }
 
     private static String createSchemaIcon() {
@@ -123,6 +129,8 @@ public class IconAndStylesUtil {
             return GuiStyleConstants.CLASS_OBJECT_ORG_ICON;
         } else if (QNameUtil.match(ServiceType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON;
+        } else if (QNameUtil.match(PolicyType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_OBJECT_POLICY_ICON;
         } else if (QNameUtil.match(TaskType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_OBJECT_TASK_ICON;
         } else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, objectType) || QNameUtil.match(ConstructionType.COMPLEX_TYPE, objectType)) {

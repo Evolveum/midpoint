@@ -18,6 +18,7 @@ public class GuiAuthorizationConstants {
     public static final Map<String, String> ORG_MEMBERS_AUTHORIZATIONS = new HashMap<>();
     public static final Map<String, String> GOVERNANCE_MEMBERS_AUTHORIZATIONS = new HashMap<>();
     public static final Map<String, String> ARCHETYPE_MEMBERS_AUTHORIZATIONS = new HashMap<>();
+    public static final Map<String, String> POLICY_MEMBERS_AUTHORIZATIONS = new HashMap<>();
 
     public static final String MEMBER_OPERATION_ASSIGN = "assign";
     public static final String MEMBER_OPERATION_UNASSIGN = "unassign";
@@ -39,6 +40,14 @@ public class GuiAuthorizationConstants {
         SERVICE_MEMBERS_AUTHORIZATIONS.put(MEMBER_OPERATION_RECOMPUTE, AuthorizationConstants.AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_URI);
         SERVICE_MEMBERS_AUTHORIZATIONS.put(MEMBER_OPERATION_CREATE, AuthorizationConstants.AUTZ_UI_ADMIN_ADD_MEMBER_ACTION_URI);
         SERVICE_MEMBERS_AUTHORIZATIONS.put(MEMBER_OPERATION_DELETE, AuthorizationConstants.AUTZ_UI_ADMIN_DELETE_MEMBER_ACTION_URI);
+    }
+
+    static {
+        POLICY_MEMBERS_AUTHORIZATIONS.put(MEMBER_OPERATION_ASSIGN, AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_MEMBER_ACTION_URI);
+        POLICY_MEMBERS_AUTHORIZATIONS.put(MEMBER_OPERATION_UNASSIGN, AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_MEMBER_ACTION_URI);
+        POLICY_MEMBERS_AUTHORIZATIONS.put(MEMBER_OPERATION_RECOMPUTE, AuthorizationConstants.AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_URI);
+        POLICY_MEMBERS_AUTHORIZATIONS.put(MEMBER_OPERATION_CREATE, AuthorizationConstants.AUTZ_UI_ADMIN_ADD_MEMBER_ACTION_URI);
+        POLICY_MEMBERS_AUTHORIZATIONS.put(MEMBER_OPERATION_DELETE, AuthorizationConstants.AUTZ_UI_ADMIN_DELETE_MEMBER_ACTION_URI);
     }
 
     static {

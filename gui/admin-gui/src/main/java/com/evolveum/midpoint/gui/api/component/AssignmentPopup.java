@@ -431,6 +431,38 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                     });
         }
 
+        if (isTabVisible(ObjectTypes.POLICY, relationSpec)) {
+            tabs.add(
+                    new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.POLICY"),
+                            new VisibleBehaviour(() -> isTabVisible(ObjectTypes.POLICY, relationSpec))) {
+
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public WebMarkupContainer createPanel(String panelId) {
+                            return new FocusTypeAssignmentPopupTabPanel<PolicyType>(panelId, ObjectTypes.POLICY, relationSpec) {
+                                private static final long serialVersionUID = 1L;
+
+                                @Override
+                                protected void onSelectionPerformed(AjaxRequestTarget target, List<IModel<SelectableBean<PolicyType>>> rowModelList, DataTable dataTable) {
+                                    tabLabelPanelUpdate(target);
+                                }
+
+                                @Override
+                                protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+                                    return AssignmentPopup.this.getAssignmentWrapperModel();
+                                }
+
+                            };
+                        }
+
+                        @Override
+                        public String getCount() {
+                            return Integer.toString(getTabPanelSelectedCount(getPanel()));
+                        }
+                    });
+        }
+
         if (isTabVisible(ObjectTypes.RESOURCE, relationSpec)) {
             tabs.add(
                     new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.RESOURCE"),

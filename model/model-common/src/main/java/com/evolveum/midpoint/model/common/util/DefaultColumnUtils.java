@@ -122,6 +122,7 @@ public class DefaultColumnUtils {
         if (type.equals(RoleType.class)
                 || type.equals(OrgType.class)
                 || type.equals(ServiceType.class)
+                || type.equals(PolicyType.class)
                 || type.equals(ArchetypeType.class)) {
             return COLUMNS_DEF.get(AbstractRoleType.class);
         }
@@ -144,6 +145,8 @@ public class DefaultColumnUtils {
         } else if (OrgType.class.equals(type)) {
             return getDefaultOrgView();
         } else if (ServiceType.class.equals(type)) {
+            return getDefaultServiceView();
+        } else if (PolicyType.class.equals(type)) {
             return getDefaultServiceView();
         } else if (ArchetypeType.class.equals(type)) {
             return getDefaultArchetypeView();
@@ -205,6 +208,10 @@ public class DefaultColumnUtils {
 
     public static GuiObjectListViewType getDefaultServiceView() {
         return getDefaultView(ServiceType.COMPLEX_TYPE, "default-service", ServiceType.class);
+    }
+
+    public static GuiObjectListViewType getDefaultPolicyView() {
+        return getDefaultView(PolicyType.COMPLEX_TYPE, "default-policy", PolicyType.class);
     }
 
     public static GuiObjectListViewType getDefaultArchetypeView() {

@@ -47,6 +47,12 @@ public class GuiStyleConstants {
     public static final String CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES = "card-outline object-service-box";
     public static final String CLASS_OBJECT_SERVICE_BOX_THIN_CSS_CLASSES = "object-service-box-thin";
 
+    public static final String CLASS_OBJECT_POLICY_ICON = "fa fa-balance-scale";
+    public static final String CLASS_OBJECT_POLICY_BG = "object-policy-bg";
+    public static final String CLASS_OBJECT_POLICY_ICON_COLORED = CLASS_OBJECT_POLICY_ICON + " object-policy-color";
+    public static final String CLASS_OBJECT_POLICY_BOX_CSS_CLASSES = "card-outline object-policy-box";
+    public static final String CLASS_OBJECT_POLICY_BOX_THIN_CSS_CLASSES = "object-policy-box-thin";
+
     public static final String CLASS_OBJECT_RESOURCE_ICON = "fa fa-database";
     public static final String CLASS_OBJECT_RESOURCE_TEMPLATE_ICON = "fa-regular fa-file";
     public static final String CLASS_OBJECT_RESOURCE_ICON_COLORED = CLASS_OBJECT_RESOURCE_ICON + " object-resource-color";
