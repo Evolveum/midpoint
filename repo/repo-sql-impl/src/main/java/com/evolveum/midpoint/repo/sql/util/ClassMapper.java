@@ -74,6 +74,7 @@ public final class ClassMapper {
                     || type == ObjectTypes.MARK
                     || type == ObjectTypes.ROLE_ANALYSIS_CLUSTER
                     || type == ObjectTypes.ROLE_ANALYSIS_SESSION
+                    || type == ObjectTypes.ROLE_ANALYSIS_OUTLIER
                     || type == ObjectTypes.POLICY
                     || type == ObjectTypes.SCHEMA) {
                 continue; // FIXME ugly hack
