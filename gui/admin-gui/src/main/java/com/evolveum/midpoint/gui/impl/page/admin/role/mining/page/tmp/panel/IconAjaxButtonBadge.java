@@ -23,16 +23,22 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON = "icon";
-
     private static final String ID_TEXT = "label";
-
     private static final String ID_BADGE = "badge";
-    boolean isClicked = false;
 
-    public IconAjaxButtonBadge(String id, IModel<String> model) {
+    boolean isClicked;
+
+    public IconAjaxButtonBadge(String id, IModel<String> model, boolean isClicked) {
         super(id, model);
+        this.isClicked = isClicked;
         initLayout();
         addClickBehavior();
+        onLoadComponent();
+    }
+
+
+    protected void onLoadComponent() {
+
     }
 
     private void addClickBehavior() {
