@@ -588,6 +588,86 @@ ADD FOREIGN KEY ("owneroid", "assignmentcid") REFERENCES "m_assignment" ("ownero
 
 $aa$);
 
+
+call apply_change(35,$aa$
+    ALTER TABLE m_shadow NO INHERIT m_object;
+    ALTER TABLE m_shadow RENAME TO m_shadow_default;
+
+    ALTER TABLE m_shadow_default
+    ALTER resourceRefTargetOid TYPE uuid,
+    ALTER resourceRefTargetOid SET NOT NULL;
+
+    DROP TRIGGER m_shadow_oid_insert_tr ON m_shadow_default;
+    DROP TRIGGER m_shadow_update_tr ON m_shadow_default;
+    DROP TRIGGER m_shadow_oid_insert_tr ON m_shadow_default;
+
+    CREATE TABLE m_shadow (
+        oid UUID NOT NULL REFERENCES m_object_oid(oid),
+        objectType ObjectType
+                GENERATED ALWAYS AS ('SHADOW') STORED
+            CONSTRAINT m_shadow_objecttype_check
+                CHECK (objectType = 'SHADOW'),
+        nameOrig TEXT NOT NULL,
+        nameNorm TEXT NOT NULL,
+        fullObject BYTEA,
+        tenantRefTargetOid UUID,
+        tenantRefTargetType ObjectType,
+        tenantRefRelationId INTEGER REFERENCES m_uri(id),
+        lifecycleState TEXT,
+        cidSeq BIGINT NOT NULL DEFAULT 1, -- sequence for container id, next free cid
+        version INTEGER NOT NULL DEFAULT 1,
+        policySituations INTEGER[], -- soft-references m_uri, only EQ filter
+        subtypes TEXT[], -- only EQ filter
+        fullTextInfo TEXT,
+
+        ext JSONB,
+        creatorRefTargetOid UUID,
+        creatorRefTargetType ObjectType,
+        creatorRefRelationId INTEGER REFERENCES m_uri(id),
+        createChannelId INTEGER REFERENCES m_uri(id),
+        createTimestamp TIMESTAMPTZ,
+        modifierRefTargetOid UUID,
+        modifierRefTargetType ObjectType,
+        modifierRefRelationId INTEGER REFERENCES m_uri(id),
+        modifyChannelId INTEGER REFERENCES m_uri(id),
+        modifyTimestamp TIMESTAMPTZ,
+
+        -- these are purely DB-managed metadata, not mapped to in midPoint
+        db_created TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
+        db_modified TIMESTAMPTZ NOT NULL DEFAULT current_timestamp, -- updated in update trigger
+
+        objectClassId INTEGER REFERENCES m_uri(id),
+        resourceRefTargetOid UUID,
+        resourceRefTargetType ObjectType,
+        resourceRefRelationId INTEGER REFERENCES m_uri(id),
+        intent TEXT,
+        tag TEXT,
+        kind ShadowKindType,
+        dead BOOLEAN,
+        exist BOOLEAN,
+        fullSynchronizationTimestamp TIMESTAMPTZ,
+        pendingOperationCount INTEGER NOT NULL,
+        primaryIdentifierValue TEXT,
+        synchronizationSituation SynchronizationSituationType,
+        synchronizationTimestamp TIMESTAMPTZ,
+        attributes JSONB,
+        -- correlation
+        correlationStartTimestamp TIMESTAMPTZ,
+        correlationEndTimestamp TIMESTAMPTZ,
+        correlationCaseOpenTimestamp TIMESTAMPTZ,
+        correlationCaseCloseTimestamp TIMESTAMPTZ,
+        correlationSituation CorrelationSituationType
+    ) PARTITION BY LIST (resourceRefTargetOid);
+    CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow
+        FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+    CREATE TRIGGER m_shadow_update_tr BEFORE UPDATE ON m_shadow
+        FOR EACH ROW EXECUTE FUNCTION before_update_object();
+    CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
+        FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+    ALTER TABLE m_shadow ATTACH PARTITION m_shadow_default DEFAULT;
+$aa);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

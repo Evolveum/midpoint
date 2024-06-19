@@ -8,7 +8,12 @@ package com.evolveum.midpoint.repo.sqale.mapping;
 
 import java.util.*;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqlbase.SqlBaseOperationTracker;
+
+import com.evolveum.midpoint.util.QNameUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
@@ -66,6 +71,8 @@ public abstract class ReferenceNameResolver {
         private final List<? extends ItemPath> paths;
         private final Map<UUID, PolyString> uuidToName = new HashMap<>();
         private final Set<UUID> oidsToResolve = new HashSet<>();
+        private final Set<UUID> shadowOidsToResolve = new HashSet<>();
+
 
         public Impl(List<? extends ItemPath> paths) {
             super();
@@ -101,12 +108,18 @@ public abstract class ReferenceNameResolver {
         }
 
         private void resolveNames(JdbcSession session) {
-            QObject<MObject> object = new QObject<>(MObject.class, "obj");
+
             // TODO: Add batch processing
+            var object = new QObject<>(MObject.class, "obj");
+            var shadow = new QShadow("s");
+            resolveNames(session, object, oidsToResolve);
+            resolveNames(session, shadow, shadowOidsToResolve);
+
+        }
+        private void resolveNames(JdbcSession session, QObject<?> object, Set<UUID> oidsToResolve) {
             if (oidsToResolve.isEmpty()) {
                 return;
             }
-
             List<Tuple> namesResult = session.newQuery()
                     .from(object)
                     .select(object.oid, object.nameOrig, object.nameNorm)
@@ -140,6 +153,8 @@ public abstract class ReferenceNameResolver {
             PolyString maybe = uuidToName.get(oid);
             if (maybe != null) {
                 value.setTargetName(maybe);
+            } else if (QNameUtil.match(ShadowType.COMPLEX_TYPE,value.getTargetType())) {
+                shadowOidsToResolve.add(oid);
             } else {
                 oidsToResolve.add(oid);
             }
