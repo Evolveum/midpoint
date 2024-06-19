@@ -17,32 +17,37 @@ import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisDetectedPatternTable;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.panel.RoleAnalysisDetectedPatternTable;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
 public class DetectedPatternPopupPanel extends BasePanel<String> implements Popupable {
 
     private static final String ID_PANEL = "panel";
+    PageBase pageBase;
 
     public DetectedPatternPopupPanel(String id, IModel<String> messageModel,
-            RoleAnalysisClusterType cluster,
-            List<DetectedPattern> detectedPatterns) {
+            List<DetectedPattern> detectedPatterns, PageBase pageBase) {
         super(id, messageModel);
+        this.pageBase = pageBase;
 
-        initLayout(cluster, detectedPatterns);
+        initLayout(detectedPatterns);
     }
 
-    public void initLayout(RoleAnalysisClusterType cluster, List<DetectedPattern> detectedPatterns) {
+    public PageBase getPageBase() {
+        return pageBase;
+    }
 
-        RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL,
+    public void initLayout(List<DetectedPattern> detectedPatterns) {
+
+        RoleAnalysisDetectedPatternTable components = new RoleAnalysisDetectedPatternTable(ID_PANEL, DetectedPatternPopupPanel.this.getPageBase(),
                 new LoadableDetachableModel<>() {
                     @Override
                     protected List<DetectedPattern> load() {
                         return detectedPatterns;
                     }
-                }, true);
-
+                }) {
+        };
         components.setOutputMarkupId(true);
         add(components);
     }

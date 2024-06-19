@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+
+<wicket:extend>
+
+    <wicket:fragment wicket:id="fragment">
+
+        <form class="col-lg-12" wicket:id="mainForm">
+
+            <div class="row" wicket:id="buttons"></div>
+
+            <div class="row d-flex align-items-start gap-2 pl-2">
+                <div class="col-auto pr-0" wicket:id="navigationHeader"></div>
+                <div class="col p-0 elevation-1 bg-white rounded" style="
+                align-items: stretch;
+                overflow: hidden;
+                " wicket:id="mainPanel"
+                        wicket:message="aria-label:AbstractPageObjectDetails.detailsPanel" tabindex="0" role="region">
+                </div>
+            </div>
+        </form>
+
+    </wicket:fragment>
+
+</wicket:extend>
+
+
+</body>
+</html>

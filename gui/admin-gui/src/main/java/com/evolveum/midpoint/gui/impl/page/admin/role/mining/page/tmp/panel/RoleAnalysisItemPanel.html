@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div wicket:id="card" class="card card-light overflow-auto">
+        <div class="card-header">
+            <h3 class="card-title" wicket:id="title"></h3>
+            <div class="card-tools">
+                <button wicket:id="remove" type="button" class="btn btn-tool" data-card-widget="remove">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <div wicket:id="cardBody" class="card-body p-0 bg-white">
+            <ul class="products-list product-list-in-card p-2">
+                <div class="overflow-auto rounded elevation-1 p-1" style="margin-bottom:0.4rem; background-color: transparent; display: flex;"
+                        wicket:id="item">
+                </div>
+            </ul>
+        </div>
+    </div>
+
+
+</wicket:panel>
+</html>

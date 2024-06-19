@@ -7,11 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.model;
 
+import java.io.Serializable;
+
 /**
  * The RoleAnalysisModel class stores role analysis data, count of roles and users that are used in the histogram chart.
  * It displays the number of grouped roles with same number of users and the number of users that are assigned to the roles.
  */
-public class RoleAnalysisModel {
+public class RoleAnalysisModel implements Serializable {
 
     int rolesCount;
     int usersCount;

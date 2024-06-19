@@ -51,6 +51,36 @@ public class BaseGeneratorOptions {
     public static final String P_PLANKTON_DISABLE = "-pd";
     public static final String P_PLANKTON_DISABLE_LONG = "--plankton-disable";
 
+    public static final String P_OUTLIER_MATUZALEM = "-oe";
+    public static final String P_OUTLIER_MATUZALEM_LONG = "--outlier-matuzalem";
+
+    public static final String P_OUTLIER_JUMPER = "-oj";
+    public static final String P_OUTLIER_JUMPER_LONG = "--outlier-jumper";
+
+    public static final String P_OUTLIER_MASK = "-om";
+    public static final String P_OUTLIER_MASD_LONG = "--outlier-mask";
+
+    public static final String P_OUTLIER_ZOMBIE = "-oz";
+    public static final String P_OUTLIER_ZOMBIE_LONG = "--outlier-zombie";
+
+    public static final String P_OUTLIER_PROBABILITY = "-op";
+    public static final String P_OUTLIER_PROBABILITY_LONG = "--outlier-probability";
+
+    @Parameter(names = { P_OUTLIER_PROBABILITY, P_OUTLIER_PROBABILITY_LONG }, descriptionKey = "baseGeneratorOptions.outlierProbability")
+    private int outlierProbability = 0;
+
+    @Parameter(names = { P_OUTLIER_ZOMBIE, P_OUTLIER_ZOMBIE_LONG }, descriptionKey = "baseGeneratorOptions.outlierZombie")
+    private int outlierZombieProbability = 0;
+
+    @Parameter(names = { P_OUTLIER_MASK, P_OUTLIER_MASD_LONG }, descriptionKey = "baseGeneratorOptions.outlierMask")
+    private int outlierMaskProbability = 0;
+
+    @Parameter(names = { P_OUTLIER_JUMPER, P_OUTLIER_JUMPER_LONG }, descriptionKey = "baseGeneratorOptions.outlierJumper")
+    private int outlierJumperProbability = 0;
+
+    @Parameter(names = { P_OUTLIER_MATUZALEM, P_OUTLIER_MATUZALEM_LONG }, descriptionKey = "baseGeneratorOptions.outlierMatuzalem")
+    private int outlierMatuzalemProbability = 0;
+
     @Parameter(names = { P_PLANKTON_DISABLE, P_PLANKTON_DISABLE_LONG }, descriptionKey = "baseGeneratorOptions.planktonDisable")
     private boolean isPlanktonDisable = false;
 
@@ -136,6 +166,26 @@ public class BaseGeneratorOptions {
 
     public boolean isPlanktonDisable() {
         return isPlanktonDisable;
+    }
+
+    public int getOutlierZombieProbability() {
+        return outlierZombieProbability;
+    }
+
+    public int getOutlierMaskProbability() {
+        return outlierMaskProbability;
+    }
+
+    public int getOutlierJumperProbability() {
+        return outlierJumperProbability;
+    }
+
+    public int getOutlierMatuzalemProbability() {
+        return outlierMatuzalemProbability;
+    }
+
+    public int getOutlierProbability() {
+        return outlierProbability;
     }
 
 }

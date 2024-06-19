@@ -100,7 +100,7 @@ public class RoleAnalysisClusteringActivityHandler
                 String sessionOid = getWorkDefinition().sessionOid;
                 LOGGER.debug("Running role analysis clustering activity; session OID = {}", sessionOid);
 
-                ClusteringActionExecutor clusteringActionExecutor = new ClusteringActionExecutor(this);
+                ClusteringActionExecutor clusteringActionExecutor = new ClusteringActionExecutor(this, activityState);
                 clusteringActionExecutor.execute(sessionOid, result);
 
             } catch (Throwable t) {

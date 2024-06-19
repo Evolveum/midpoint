@@ -31,9 +31,11 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -77,12 +79,17 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     int columnCount;
     static boolean isRoleMining = false;
 
+    LoadableDetachableModel<DisplayValueOption> displayValueOptionModel;
+
     public RoleAnalysisTable(String id, ISortableDataProvider<T, ?> provider, List<IColumn<T, String>> columns,
-            UserProfileStorage.TableId tableId, boolean isRoleMining, int columnCount) {
+            UserProfileStorage.TableId tableId, boolean isRoleMining, int columnCount,
+            LoadableDetachableModel<DisplayValueOption> displayValueOptionModel) {
         super(id);
         this.tableId = tableId;
         RoleAnalysisTable.isRoleMining = isRoleMining;
         this.columnCount = columnCount;
+        this.displayValueOptionModel = displayValueOptionModel;
+
         initLayout(columns, provider, columnCount);
     }
 
@@ -171,6 +178,10 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
         return (DataTable<?, ?>) get(ID_TABLE_CONTAINER).get(ID_TABLE);
     }
 
+    public Component getHeaderFooter() {
+        return get("headerFooter");
+    }
+
     @Override
     public UserProfileStorage.TableId getTableId() {
         return tableId;
@@ -223,6 +234,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     protected Component createHeader(String headerId) {
         WebMarkupContainer header = new WebMarkupContainer(headerId);
         header.setVisible(false);
+        header.setOutputMarkupId(true);
         return header;
     }
 
@@ -381,8 +393,6 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
         private void initLayout(final RoleAnalysisTable<?> boxedTablePanel) {
 
-            WebMarkupContainer buttonToolbar = boxedTablePanel.createButtonToolbar(ID_BUTTON_TOOLBAR);
-            add(buttonToolbar);
 
             WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
             footerContainer.setOutputMarkupId(true);
@@ -420,9 +430,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
                 @Override
                 protected void onSubmit(AjaxRequestTarget target) {
-
                     onSubmitEditButton(target);
-
                 }
 
                 @Override
@@ -434,12 +442,10 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
             editButton.add(new VisibleBehaviour(RoleAnalysisTable.this::getMigrationButtonVisibility));
             editButton.titleAsLabel(true);
             editButton.setOutputMarkupId(true);
-            editButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+            editButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
 
             formBsProcess.add(editButton);
 
-            Form<?> formCurrentPage = new MidpointForm<>("form_current_page");
-            footerContainer.add(formCurrentPage);
             List<Integer> integers = List.of(new Integer[] { 100, 200, 400 });
             DropDownChoice<Integer> colPerPage = new DropDownChoice<>("colCountOnPage",
                     new Model<>(getColumnPageCount()), integers);
