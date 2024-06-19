@@ -43,6 +43,7 @@ public class ProgressBar extends BasePanel<String> {
     private static final String ID_CONTAINER = "progressBarContainer";
     private static final String ID_BAR = "progressBar";
     private static final String ID_BAR_PERCENTAGE = "progressBarPercentage";
+    private static final String ID_BAR_PERCENTAGE_INLINE = "progressBarPercentageInline";
     private static final String ID_BAR_TITLE = "progressBarTitle";
     private static final String ID_BAR_TITTLE_DATA = "progressBarDetails";
 
@@ -72,9 +73,27 @@ public class ProgressBar extends BasePanel<String> {
 
         setProgressBarParameters(progressBar);
 
-        Label progressBarText = new Label(ID_BAR_PERCENTAGE, () -> String.format("%.2f%%", getActualValue()));
-        progressBarText.setOutputMarkupId(true);
-        add(progressBarText);
+        initProgressValueLabel();
+    }
+
+    private void initProgressValueLabel() {
+        if (isInline()) {
+            Label progressBarText = new Label(ID_BAR_PERCENTAGE_INLINE, () -> String.format("%.2f%%", getActualValue()));
+            progressBarText.setOutputMarkupId(true);
+            add(progressBarText);
+
+            WebMarkupContainer progressBarInline = new WebMarkupContainer(ID_BAR_PERCENTAGE);
+            progressBarInline.setOutputMarkupId(true);
+            add(progressBarInline);
+        } else {
+            Label progressBarText = new Label(ID_BAR_PERCENTAGE, () -> String.format("%.2f%%", getActualValue()));
+            progressBarText.setOutputMarkupId(true);
+            add(progressBarText);
+
+            WebMarkupContainer progressBarInline = new WebMarkupContainer(ID_BAR_PERCENTAGE_INLINE);
+            progressBarInline.setOutputMarkupId(true);
+            add(progressBarInline);
+        }
     }
 
     private void resolveTitleDataLabel() {
@@ -214,5 +233,9 @@ public class ProgressBar extends BasePanel<String> {
 
     public String getInClusterCount() {
         return null;
+    }
+
+    public boolean isInline() {
+        return false;
     }
 }

@@ -56,11 +56,11 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
     }
 
     private void initLayout() {
-        add(AttributeModifier.append("class", "card"));
+        add(AttributeModifier.append("class", initDefaultCssClass()));
 
-        IModel<String> titleModel =  getTitleModel();
+        IModel<String> titleModel = getTitleModel();
 
-        IModel<String> iconCssClassModel =  getIconCssClassModel();
+        IModel<String> iconCssClassModel = getIconCssClassModel();
 
         WebComponent icon = new WebComponent(ID_ICON);
         icon.add(new VisibleBehaviour(() -> iconCssClassModel.getObject() != null));
@@ -70,7 +70,8 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
 
         Label title = new Label(ID_TITLE, titleModel);
 //        title.setRenderBodyOnly(true);
-        title.add(AttributeModifier.append("class", GuiDisplayTypeUtil.getDisplayCssClass(display.getObject())));
+        title.add(AttributeModifier.append("class", GuiDisplayTypeUtil.getDisplayCssClass(
+                display != null ? display.getObject() : null)));
         add(title);
 
         IModel<String> descriptionModel = getDescriptionModel();
@@ -83,7 +84,7 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
             @Override
             protected void populateItem(ListItem<DetailsTableItem> item) {
                 DetailsTableItem data = item.getModelObject();
-                item.add(new Label(ID_LABEL, () -> data.getLabel().getObject()));
+                item.add(data.createLabelComponent(ID_LABEL));
                 item.add(data.createValueComponent(ID_VALUE));
 
                 if (data.isVisible() != null) {
@@ -101,7 +102,7 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
             }
 
             String cssClass = GuiDisplayTypeUtil.getIconCssClass(display.getObject());
-            String iconColor =  GuiDisplayTypeUtil.getIconColor(display.getObject());
+            String iconColor = GuiDisplayTypeUtil.getIconColor(display.getObject());
             if (StringUtils.isNotEmpty(iconColor)) {
                 return cssClass + " bg-" + iconColor;
             }
@@ -115,7 +116,7 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
                 return null;
             }
 
-            String iconColor =  GuiDisplayTypeUtil.getIconColor(display.getObject());
+            String iconColor = GuiDisplayTypeUtil.getIconColor(display.getObject());
             if (StringUtils.isNotEmpty(iconColor)) {
                 return "background-color: " + iconColor + ";";
             }
@@ -141,5 +142,11 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
             return GuiDisplayTypeUtil.getHelp(display.getObject());
         };
 
-    };
+    }
+
+    ;
+
+    protected String initDefaultCssClass() {
+        return "card";
+    }
 }

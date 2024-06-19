@@ -19,7 +19,9 @@ public enum RoleAnalysisOperationMode implements Serializable {
 
     EXCLUDE("fa fa-plus"),
     INCLUDE("fa fa-minus"),
-    DISABLE("fa fa-ban");
+    DISABLE("fa fa-ban"),
+    NEGATIVE_EXCLUDE("fa fa-ban"),
+    POSITIVE_EXCLUDE("fa fa-ban");
 
     private final String displayString;
 
@@ -58,4 +60,13 @@ public enum RoleAnalysisOperationMode implements Serializable {
     public boolean isExclude() {
         return this == EXCLUDE;
     }
+
+    public boolean isNegativeExclude() {
+        return this == NEGATIVE_EXCLUDE;
+    }
+
+    public boolean isPositiveExclude() {
+        return this == POSITIVE_EXCLUDE;
+    }
+
 }

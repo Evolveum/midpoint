@@ -70,7 +70,6 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
             RoleType businessRole = patterns.getBusinessRole().asObjectable();
             Set<RoleType> candidateRoles = patterns.getCandidateRoles();
 
-            Task task = getPageBase().createSimpleTask("Load role");
 
             businessRole.getInducement().clear();
 
@@ -117,6 +116,7 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
 
                     List<RoleType> prepareRoles = new ArrayList<>(candidateRoles);
                     ObjectQuery customQuery = getCustomQuery();
+                    Task task = getPageBase().createSimpleTask("Load roles for migration");
 
                     //TODO fix me. This is not correct way how to do this. Wrong position.
                     roleAnalysisService.loadSearchObjectIterative(getPageBase().getModelService(),

@@ -10,6 +10,7 @@ package com.evolveum.midpoint.common.mining.objects.chunk;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectStatus;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 
@@ -27,16 +28,20 @@ public class MiningUserTypeChunk extends MiningBaseTypeChunk implements Serializ
             @NotNull List<String> users,
             @NotNull List<String> roles,
             @NotNull String chunkName,
-            double frequency,
+            FrequencyItem frequency,
             @NotNull RoleAnalysisObjectStatus objectStatus) {
         super(roles, users, chunkName, frequency, objectStatus);
+    }
+
+    public MiningUserTypeChunk(@NotNull MiningBaseTypeChunk chunk) {
+        super(chunk.getProperties(), chunk.getMembers(), chunk.getChunkName(), chunk.getFrequencyItem(), chunk.getObjectStatus());
     }
 
     public MiningUserTypeChunk(
             @NotNull List<String> users,
             @NotNull List<String> roles,
             @NotNull String chunkName,
-            double frequency,
+            FrequencyItem frequency,
             @NotNull RoleAnalysisOperationMode operationMode) {
         super(roles, users, chunkName, frequency, new RoleAnalysisObjectStatus(operationMode));
     }

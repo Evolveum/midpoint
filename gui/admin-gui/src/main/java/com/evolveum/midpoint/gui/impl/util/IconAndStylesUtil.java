@@ -59,10 +59,18 @@ public class IconAndStylesUtil {
             return createRoleAnalysisSessionIcon();
         } else if (type == RoleAnalysisClusterType.class) {
             return createRoleAnalysisClusterIcon();
+        } else if (type == RoleAnalysisOutlierType.class) {
+            return createRoleAnalysisOutlierIcon();
         } else if (type == SchemaType.class) {
             return createSchemaIcon();
+        } else if (type == PolicyType.class) {
+            return createPolicyIcon();
         }
         return "";
+    }
+
+    private static String createPolicyIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_POLICY_ICON);
     }
 
     private static String createSchemaIcon() {
@@ -106,6 +114,8 @@ public class IconAndStylesUtil {
             return GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON;
         } else if (QNameUtil.match(RoleAnalysisSessionType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
+        } else if (QNameUtil.match(RoleAnalysisOutlierType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_OUTLIER_ICON;
         } else {
             return "";
         }
@@ -123,6 +133,8 @@ public class IconAndStylesUtil {
             return GuiStyleConstants.CLASS_OBJECT_ORG_ICON;
         } else if (QNameUtil.match(ServiceType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON;
+        } else if (QNameUtil.match(PolicyType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_OBJECT_POLICY_ICON;
         } else if (QNameUtil.match(TaskType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_OBJECT_TASK_ICON;
         } else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, objectType) || QNameUtil.match(ConstructionType.COMPLEX_TYPE, objectType)) {
@@ -154,6 +166,8 @@ public class IconAndStylesUtil {
         } else if (QNameUtil.match(MappingType.COMPLEX_TYPE, objectType)) {
             //TODO fix icon style for mapping type
             return "";
+        } else if (QNameUtil.match(RoleAnalysisOutlierType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_ICON_OUTLIER;
         } else {
             return "";
         }
@@ -363,6 +377,10 @@ public class IconAndStylesUtil {
 
     private static String createRoleAnalysisClusterIcon() {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON);
+    }
+
+    private static String createRoleAnalysisOutlierIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_ICON_OUTLIER);
     }
 
     private static String createSimulationResultIcon() {

@@ -236,6 +236,7 @@ public class RoleAnalysisUtils {
             List<ObjectReferenceType> resolvedPattern,
             @NotNull Task task,
             @NotNull OperationResult result) {
+
         double updatedReductionMetric = 0.0;
 
         Iterator<RoleAnalysisDetectionPatternType> patternIterator = detectedPattern.iterator();

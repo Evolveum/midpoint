@@ -95,10 +95,12 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
                     @Override
                     protected IModel<String> getTitleModel() {
                         PrismContainerWrapper<C> container = getModelObject();
-                        if (container == null || !container.isVirtual() || StringUtils.isEmpty(container.getDisplayName())) {
-                            return VerticalFormPanel.this.getTitleModel();
-                        }
-                        return super.getTitleModel();
+                        //TODO why?
+//                        if (container == null || !container.isVirtual() || StringUtils.isEmpty(container.getDisplayName())) {
+//                            return VerticalFormPanel.this.getTitleModel();
+//                        }
+
+                        return VerticalFormPanel.this.getTitleModel();
                     }
 
                     @Override

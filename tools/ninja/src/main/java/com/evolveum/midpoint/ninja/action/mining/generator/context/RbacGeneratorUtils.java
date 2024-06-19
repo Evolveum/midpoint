@@ -51,17 +51,6 @@ public class RbacGeneratorUtils {
     }
 
     /**
-     * Retrieves a randomly selected job business role.
-     *
-     * @return The randomly selected job business role.
-     */
-    protected static @NotNull InitialObjectsDefinition.JobInitialBusinessRole getRandomJobBusinessRole() {
-        InitialObjectsDefinition.JobInitialBusinessRole[] roles = InitialObjectsDefinition.JobInitialBusinessRole.values();
-        Random random = new Random();
-        return roles[random.nextInt(roles.length)];
-    }
-
-    /**
      * Retrieves a randomly selected plankton abstract role.
      *
      * @return The randomly selected plankton abstract role.
@@ -69,6 +58,13 @@ public class RbacGeneratorUtils {
     protected static @NotNull InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole getRandomPlanktonRole() {
         InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole[] roles = InitialObjectsDefinition
                 .PlanktonApplicationBusinessAbstractRole.values();
+        Random random = new Random();
+        return roles[random.nextInt(roles.length)];
+    }
+
+    protected static @NotNull InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole getRandomNoiseRole() {
+        InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole[] roles = InitialObjectsDefinition
+                .NoiseApplicationBusinessAbstractRole.values();
         Random random = new Random();
         return roles[random.nextInt(roles.length)];
     }
@@ -97,6 +93,64 @@ public class RbacGeneratorUtils {
 
         while (selectedRoles.size() < numRoles) {
             InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomRole = getRandomPlanktonRole();
+            selectedRoles.add(randomRole);
+        }
+
+        return new ArrayList<>(selectedRoles);
+    }
+
+    protected static @NotNull List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> getRandomPlanktonRoles(
+            int minRoles, int maxRoles, GeneratorOptions generatorOptions) {
+
+        if (generatorOptions.isPlanktonDisable()) {
+            return new ArrayList<>();
+        }
+
+        int numRoles = minRoles + new Random().nextInt(maxRoles - minRoles + 1);
+
+        Set<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> selectedRoles = EnumSet.noneOf(
+                InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole.class);
+
+        while (selectedRoles.size() < numRoles) {
+            InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomRole = getRandomPlanktonRole();
+            selectedRoles.add(randomRole);
+        }
+
+        return new ArrayList<>(selectedRoles);
+    }
+
+    protected static @NotNull List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> getRandomPlanktonRoles(
+            int minRoles) {
+
+        int maxRoles = InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole.values().length;
+
+        Random random = new Random();
+        int numRoles = minRoles + random.nextInt(maxRoles - minRoles + 1);
+
+        Set<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> selectedRoles = EnumSet.noneOf(
+                InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole.class);
+
+        while (selectedRoles.size() < numRoles) {
+            InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomRole = getRandomPlanktonRole();
+            selectedRoles.add(randomRole);
+        }
+
+        return new ArrayList<>(selectedRoles);
+    }
+
+    protected static @NotNull List<InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole> getRandomNoiseRoles(
+            int minRoles) {
+
+        int maxRoles = InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole.values().length;
+
+        Random random = new Random();
+        int numRoles = minRoles + random.nextInt(maxRoles - minRoles + 1);
+
+        Set<InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole> selectedRoles = EnumSet.noneOf(
+                InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole.class);
+
+        while (selectedRoles.size() < numRoles) {
+            InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole randomRole = getRandomNoiseRole();
             selectedRoles.add(randomRole);
         }
 
@@ -304,5 +358,15 @@ public class RbacGeneratorUtils {
         } else {
             return null;
         }
+    }
+
+    public static boolean isCandidate(int chance) {
+        Random random = new Random();
+        return random.nextInt(100) < chance;
+    }
+
+    public static int getProbabilityPoint() {
+        Random random = new Random();
+        return random.nextInt(100) + 1;
     }
 }
