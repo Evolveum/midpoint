@@ -16,6 +16,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
+import java.util.List;
+
 public abstract class AbstractCertItemAction extends AbstractGuiAction<AccessCertificationWorkItemType> {
 
     private static final String DOT_CLASS = CertItemResolveAction.class.getName() + ".";
@@ -26,11 +28,18 @@ public abstract class AbstractCertItemAction extends AbstractGuiAction<AccessCer
     }
 
     @Override
-    public void onActionPerformed(AccessCertificationWorkItemType workItem, PageBase pageBase, AjaxRequestTarget target) {
+    public void onActionPerformed(List<AccessCertificationWorkItemType> workItems, PageBase pageBase, AjaxRequestTarget target) {
         AccessCertificationResponseType response = getResponse();
         OperationResult result = new OperationResult(OPERATION_RECORD_ACTION + "." + response.value());
         Task task = pageBase.createSimpleTask(OPERATION_RECORD_ACTION + "." + response.value());
-        CertMiscUtil.recordCertItemResponse(workItem, getResponse(), getComment(), result, task, pageBase);
+
+        workItems.forEach(workItem -> {
+            OperationResult oneActionResult = result
+                    .subresult(result.getOperation() + ".workItemId:" + workItem.getId())
+                            .build();
+            CertMiscUtil.recordCertItemResponse(workItem, getResponse(), getComment(), oneActionResult, task, pageBase);
+        });
+        result.computeStatus();
         target.add(pageBase);
     }
 

@@ -32,7 +32,7 @@ import java.io.Serial;
 import java.util.List;
 
 //copy of DropdownButtonPanel, just applied for AbstractGuiAction
-public class ActionDropdownButtonPanel<C extends Containerable> extends BasePanel<List<AbstractGuiAction<C>>> {
+public abstract class ActionDropdownButtonPanel<C extends Containerable> extends BasePanel<List<AbstractGuiAction<C>>> {
 
     @Serial private static final long serialVersionUID = 1L;
     private static final String ID_BUTTON_CONTAINER = "buttonContainer";
@@ -46,13 +46,11 @@ public class ActionDropdownButtonPanel<C extends Containerable> extends BasePane
     private static final String ID_ACTION_ITEM_BODY = "actionItemBody";
 
     IModel<DisplayType> buttonDisplayModel;
-    private final List<C> objectsToProcess;
 
     public ActionDropdownButtonPanel(String id, IModel<DisplayType> buttonDisplayModel,
-            IModel<List<AbstractGuiAction<C>>> itemsModel, List<C> objectsToProcess) {
+            IModel<List<AbstractGuiAction<C>>> itemsModel) {
         super(id, itemsModel);
         this.buttonDisplayModel = buttonDisplayModel;
-        this.objectsToProcess = objectsToProcess;
     }
 
     @Override
@@ -129,7 +127,15 @@ public class ActionDropdownButtonPanel<C extends Containerable> extends BasePane
     protected void populateActionItem(String componentId, ListItem<AbstractGuiAction<C>> actionItem) {
         actionItem.setRenderBodyOnly(true);
 
-        ActionItemLinkPanel<C> actionItemPanel = new ActionItemLinkPanel<>(componentId, actionItem.getModel(), objectsToProcess);
+        ActionItemLinkPanel<C> actionItemPanel = new ActionItemLinkPanel<>(componentId, actionItem.getModel()) {
+
+                @Serial private static final long serialVersionUID = 1L;
+
+                @Override
+                protected List<C> getObjectsToProcess() {
+                    return ActionDropdownButtonPanel.this.getObjectsToProcess();
+                }
+        };
         actionItemPanel.setRenderBodyOnly(true);
         actionItem.add(actionItemPanel);
     }
@@ -141,4 +147,6 @@ public class ActionDropdownButtonPanel<C extends Containerable> extends BasePane
     protected String getSpecialDropdownMenuClass() {
         return "dropdown-menu-right";
     }
+
+    protected abstract List<C> getObjectsToProcess();
 }

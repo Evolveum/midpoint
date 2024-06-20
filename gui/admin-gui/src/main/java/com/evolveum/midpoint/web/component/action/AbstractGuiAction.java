@@ -17,13 +17,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import java.io.Serializable;
+import java.util.List;
 
 public abstract class AbstractGuiAction<C extends Containerable> implements Serializable {
 
     public AbstractGuiAction() {
     }
 
-    public abstract void onActionPerformed(C obj, PageBase pageBase, AjaxRequestTarget target);
+    public abstract void onActionPerformed(List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target);
 
     public boolean isButton() {
         ActionType actionType = AbstractGuiAction.this.getClass().getAnnotation(ActionType.class);

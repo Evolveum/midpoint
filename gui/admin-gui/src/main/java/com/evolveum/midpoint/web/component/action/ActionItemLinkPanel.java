@@ -20,18 +20,15 @@ import org.apache.wicket.model.IModel;
 import java.io.Serial;
 import java.util.List;
 
-public class ActionItemLinkPanel<C extends Containerable> extends BasePanel<AbstractGuiAction<C>> {
+public abstract class ActionItemLinkPanel<C extends Containerable> extends BasePanel<AbstractGuiAction<C>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_ACTION_LINK = "actionLink";
     private static final String ID_ACTION_LABEL = "actionLabel";
 
-    private final List<C> objectsToProcess;
-
-    public ActionItemLinkPanel(String id, IModel<AbstractGuiAction<C>> model, List<C> objectsToProcess) {
+    public ActionItemLinkPanel(String id, IModel<AbstractGuiAction<C>> model) {
         super(id, model);
-        this.objectsToProcess = objectsToProcess;
     }
 
     @Override
@@ -47,7 +44,7 @@ public class ActionItemLinkPanel<C extends Containerable> extends BasePanel<Abst
             @Override
             public void onClick(AjaxRequestTarget target) {
                 AbstractGuiAction<C> action = ActionItemLinkPanel.this.getModelObject();
-                objectsToProcess.forEach(obj -> action.onActionPerformed(obj, getPageBase(), target));
+                action.onActionPerformed(getObjectsToProcess(), getPageBase(), target);
             }
 
             @Override
@@ -71,4 +68,6 @@ public class ActionItemLinkPanel<C extends Containerable> extends BasePanel<Abst
 //    protected void onError(AjaxRequestTarget target, AbstractGuiAction<C> action) {
 //        target.add(getPageBase().getFeedbackPanel());
 //    }
+
+    protected abstract List<C> getObjectsToProcess();
 }

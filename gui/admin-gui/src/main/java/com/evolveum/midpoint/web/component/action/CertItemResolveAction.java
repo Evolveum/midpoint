@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import java.io.Serial;
+import java.util.List;
 
 @ActionType(
         identifier = "certItemResolve",
@@ -35,16 +36,23 @@ public class CertItemResolveAction extends AbstractGuiAction<AccessCertification
     }
 
     @Override
-    public void onActionPerformed(AccessCertificationWorkItemType workItem, PageBase pageBase, AjaxRequestTarget target) {
+    public void onActionPerformed(List<AccessCertificationWorkItemType> workItems, PageBase pageBase, AjaxRequestTarget target) {
         ResolveItemPanel resolveItemPanel = new ResolveItemPanel(pageBase.getMainPopupBodyId()) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void savePerformed(AjaxRequestTarget target, AccessCertificationResponseType response,
                     String comment) {
-                OperationResult result = new OperationResult(OPERATION_RECORD_ACTION);
-                Task task = pageBase.createSimpleTask(OPERATION_RECORD_ACTION);
-                CertMiscUtil.recordCertItemResponse(workItem, response, comment, result, task, pageBase);
+                OperationResult result = new OperationResult(OPERATION_RECORD_ACTION + "." + response.value());
+                Task task = pageBase.createSimpleTask(OPERATION_RECORD_ACTION + "." + response.value());
+
+                workItems.forEach(workItem -> {
+                    OperationResult oneActionResult = result
+                            .subresult(result.getOperation() + ".workItemId:" + workItem.getId())
+                            .build();
+                    CertMiscUtil.recordCertItemResponse(workItem, response, comment, oneActionResult, task, pageBase);
+                });
+                result.computeStatus();
                 target.add(pageBase);
             }
         };

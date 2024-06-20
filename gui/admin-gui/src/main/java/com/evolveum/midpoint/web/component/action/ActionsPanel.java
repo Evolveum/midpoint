@@ -24,7 +24,7 @@ import org.apache.wicket.model.IModel;
 import java.io.Serial;
 import java.util.List;
 
-public class ActionsPanel<C extends Containerable> extends BasePanel<List<AbstractGuiAction<C>>> {
+public abstract class ActionsPanel<C extends Containerable> extends BasePanel<List<AbstractGuiAction<C>>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -32,11 +32,9 @@ public class ActionsPanel<C extends Containerable> extends BasePanel<List<Abstra
     private static final String ID_BUTTON = "button";
     private static final String ID_ACTIONS_DROPDOWN_PANEL = "actionsDropdownPanel";
 
-    List<C> objectsToProcess;
 
-    public ActionsPanel(String id, IModel<List<AbstractGuiAction<C>>> model, List<C> objectsToProcess) {
+    public ActionsPanel(String id, IModel<List<AbstractGuiAction<C>>> model) {
         super(id, model);
-        this.objectsToProcess = objectsToProcess;
     }
 
     @Override
@@ -58,13 +56,18 @@ public class ActionsPanel<C extends Containerable> extends BasePanel<List<Abstra
         add(buttonsPanel);
 
         ActionDropdownButtonPanel<C> actionsDropdownPanel = new ActionDropdownButtonPanel<>(ID_ACTIONS_DROPDOWN_PANEL,
-                null, getModel(), objectsToProcess) {
+                null, getModel()) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String getSpecialButtonClass() {
                 return "btn-xs btn-default";
+            }
+
+            @Override
+            protected List<C> getObjectsToProcess() {
+                return ActionsPanel.this.getObjectsToProcess();
             }
         };
         add(actionsDropdownPanel);
@@ -87,7 +90,7 @@ public class ActionsPanel<C extends Containerable> extends BasePanel<List<Abstra
             @Override
             public void onClick(AjaxRequestTarget target) {
                 AbstractGuiAction<C> action = model.getObject();
-                objectsToProcess.forEach(obj -> action.onActionPerformed(obj, getPageBase(), target));
+                action.onActionPerformed(getObjectsToProcess(), getPageBase(), target);
             }
 
             @Override
@@ -113,4 +116,5 @@ public class ActionsPanel<C extends Containerable> extends BasePanel<List<Abstra
         return GuiDisplayTypeUtil.getTranslatedLabel(action.getActionDisplayType());
     }
 
+    protected abstract List<C> getObjectsToProcess();
 }

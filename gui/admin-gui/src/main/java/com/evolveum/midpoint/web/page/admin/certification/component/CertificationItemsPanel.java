@@ -99,17 +99,17 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected AccessCertificationWorkItemType unwrapRowModel(
-                    IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
-                return rowModel.getObject().getRealValue();
+            protected AccessCertificationWorkItemType unwrapRowModelObject(
+                    PrismContainerValueWrapper<AccessCertificationWorkItemType> rowModelObject) {
+                return rowModelObject.getRealValue();
+            }
+
+            @Override
+            protected List<AccessCertificationWorkItemType> getSelectedItems() {
+                return CertificationItemsPanel.this.getSelectedRealObjects();
             }
         });
         return columns;
-    }
-
-    @Override
-    protected List<InlineMenuItem> createInlineMenu() {
-        return createRowActions();
     }
 
     @Override
@@ -183,110 +183,19 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         return provider;
     }
 
-    private List<InlineMenuItem> createRowActions() {
-        final AvailableResponses availableResponses = new AvailableResponses(getPageBase());
-        List<InlineMenuItem> items = new ArrayList<>();
-        int buttonsCount = 0;
-        if (availableResponses.isAvailable(ACCEPT)) {
-            items.add(createResponseMenu(buttonsCount, ACCEPT));
-            buttonsCount++;
-        }
-        if (availableResponses.isAvailable(REVOKE)) {
-            items.add(createResponseMenu(buttonsCount, REVOKE));
-            buttonsCount++;
-        }
-        if (availableResponses.isAvailable(REDUCE)) {
-            items.add(createResponseMenu(buttonsCount, REDUCE));
-            buttonsCount++;
-        }
-        if (availableResponses.isAvailable(NOT_DECIDED)) {
-            items.add(createResponseMenu(buttonsCount, NOT_DECIDED));
-            buttonsCount++;
-        }
-        if (availableResponses.isAvailable(NO_RESPONSE)) {
-            items.add(createResponseMenu(buttonsCount, NO_RESPONSE));
-        }
-//        addCommentWorkItemAction(items); //todo is it possible just to add comment without any response?
-        addResolveCertItemAction(items);
-        return items;
-    }
-
-    private InlineMenuItem createResponseMenu(int buttonsCount, final AccessCertificationResponseType response) {
-        CertificationItemResponseHelper helper = new CertificationItemResponseHelper(response);
-        if (buttonsCount < 2) {
-            return new ButtonInlineMenuItem(
-                    Model.of(LocalizationUtil.translatePolyString(helper.getResponseDisplayType().getLabel()))) {
-
-                @Serial private static final long serialVersionUID = 1L;
-
-                @Override
-                public CompositedIconBuilder getIconCompositedBuilder() {
-                    return getDefaultCompositedIconBuilder(GuiDisplayTypeUtil.getIconCssClass(helper.getResponseDisplayType()));
-                }
-
-                @Override
-                public InlineMenuItemAction initAction() {
-                    return new ColumnMenuAction<>() {
-                        @Serial private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            responseSelected(response, getRowModel(), target);
-                        }
-                    };
-                }
-
-                @Override
-                public boolean isLabelVisible() {
-                    return true;
-                }
-            };
-        } else {
-            return new InlineMenuItem(createStringResource(helper.getLabelKey())) {
-
-                @Serial private static final long serialVersionUID = 1L;
-
-                @Override
-                public InlineMenuItemAction initAction() {
-                    return new ColumnMenuAction<>() {
-                        @Serial private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            responseSelected(response, getRowModel(), target);
-                        }
-                    };
-                }
-            };
-        }
-    }
-
-    private void responseSelected(AccessCertificationResponseType response,
-            IModel rowModel, AjaxRequestTarget target) {
-        List<AccessCertificationWorkItemType> itemsToProcess = new ArrayList<>();
-        if (rowModel != null && rowModel.getObject() != null) {
-            AccessCertificationWorkItemType item =
-                    ((PrismContainerValueWrapper<AccessCertificationWorkItemType>) rowModel.getObject()).getRealValue();
-            itemsToProcess.add(item);
-        } else {
-            itemsToProcess = getSelectedRealObjects();
-        }
-        confirmAction(response, itemsToProcess, target);
-    }
-
-    private void confirmAction(AccessCertificationResponseType response, List<AccessCertificationWorkItemType> items,
-            AjaxRequestTarget target) {
-        ConfirmationPanelWithComment confirmationPanel = new ConfirmationPanelWithComment(getPageBase().getMainPopupBodyId(),
-                createStringResource("ResponseConfirmationPanel.confirmation", LocalizationUtil.translateEnum(response))) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void yesPerformedWithComment(AjaxRequestTarget target, String comment) {
-                recordActionOnSelected(response, items, comment, target);
-            }
-        };
-        getPageBase().showMainPopup(confirmationPanel, target);
-    }
+//    private void confirmAction(AccessCertificationResponseType response, List<AccessCertificationWorkItemType> items,
+//            AjaxRequestTarget target) {
+//        ConfirmationPanelWithComment confirmationPanel = new ConfirmationPanelWithComment(getPageBase().getMainPopupBodyId(),
+//                createStringResource("ResponseConfirmationPanel.confirmation", LocalizationUtil.translateEnum(response))) {
+//            @Serial private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void yesPerformedWithComment(AjaxRequestTarget target, String comment) {
+//                recordActionOnSelected(response, items, comment, target);
+//            }
+//        };
+//        getPageBase().showMainPopup(confirmationPanel, target);
+//    }
 
     private void recordActionOnSelected(AccessCertificationResponseType response, List<AccessCertificationWorkItemType> items,
             String comment, AjaxRequestTarget target) {
@@ -343,47 +252,6 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
                             }
                         };
                         getPageBase().showMainPopup(commentPanel, target);
-                    }
-                };
-            }
-        });
-    }
-
-    private void addResolveCertItemAction(List<InlineMenuItem> items) {
-        items.add(new InlineMenuItem(createStringResource("CertificationItemsPanel.action.resolve")) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        ResolveItemPanel resolveItemPanel = new ResolveItemPanel(getPageBase().getMainPopupBodyId()) {
-                            @Serial private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected void savePerformed(AjaxRequestTarget target, AccessCertificationResponseType response,
-                                    String comment) {
-                                List<AccessCertificationWorkItemType> items;
-                                if (getRowModel() == null) {
-                                    items = getSelectedRealObjects();
-                                } else {
-                                    PrismContainerValueWrapper<AccessCertificationWorkItemType> wi =
-                                            (PrismContainerValueWrapper<AccessCertificationWorkItemType>) getRowModel().getObject();
-                                    items = Collections.singletonList(wi.getRealValue());
-                                }
-                                if (CollectionUtils.isEmpty(items)) {
-                                    warn(getString("PageCertDecisions.message.noItemSelected"));
-                                    target.add(getFeedbackPanel());
-                                    return;
-                                }
-                                recordActionOnSelected(response, items, comment, target);
-                            }
-                        };
-                        getPageBase().showMainPopup(resolveItemPanel, target);
                     }
                 };
             }
