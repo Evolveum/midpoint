@@ -768,7 +768,8 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
             @NotNull Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
             @NotNull String componentId,
             @NotNull String meanDensity) {
-        String colorClass = densityBasedColor(Double.parseDouble(meanDensity));
+        String colorClass = densityBasedColor(
+                Double.parseDouble(meanDensity.replace(',', '.')));
 
         ProgressBar progressBar = new ProgressBar(componentId) {
 
@@ -779,7 +780,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
 
             @Override
             public double getActualValue() {
-                return Double.parseDouble(meanDensity);
+                return Double.parseDouble(meanDensity.replace(',', '.'));
             }
 
             @Override

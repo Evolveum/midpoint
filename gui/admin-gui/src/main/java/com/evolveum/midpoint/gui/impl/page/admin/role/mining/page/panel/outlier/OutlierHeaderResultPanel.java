@@ -88,7 +88,7 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
     }
 
     public String getProgressValue() {
-        double progressValue = Double.parseDouble(this.progressValue);
+        double progressValue = Double.parseDouble(this.progressValue.replace(',', '.'));
 
         return String.valueOf((int) progressValue);
     }

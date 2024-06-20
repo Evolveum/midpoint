@@ -371,7 +371,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
                             @Override
                             public Component createValueComponent(String id) {
-                                String colorClass = densityBasedColor(Double.parseDouble(getValue().getObject()));
+                                String colorClass = densityBasedColor(Double.parseDouble(getValue().getObject().replace(',', '.')));
                                 ProgressBar progressBar = new ProgressBar(id) {
 
                                     @Override
@@ -381,7 +381,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
                                     @Override
                                     public double getActualValue() {
-                                        return Double.parseDouble(getValue().getObject());
+                                        return Double.parseDouble(getValue().getObject().replace(',', '.'));
                                     }
 
                                     @Override
