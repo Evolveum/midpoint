@@ -151,7 +151,7 @@ public class CampaignsPanel extends BasePanel {
 
                     @Override
                     protected void deselectItem(AccessCertificationCampaignType entry) {
-
+                        getProvider().getSelected().remove(entry);
                     }
 
                     @Override
@@ -169,6 +169,13 @@ public class CampaignsPanel extends BasePanel {
                         return "min-height: 340px;";
                     }
 
+                    @Override
+                    protected void onSelectTableRow(IModel<SelectableBean<AccessCertificationCampaignType>> model,
+                            AjaxRequestTarget target) {
+                        if (model.getObject().isSelected()) {
+                            ((SelectableBeanDataProvider) getProvider()).getSelected().add(model.getObject().getValue());
+                        }
+                    }
                 };
         add(tilesTable);
     }
@@ -313,12 +320,15 @@ public class CampaignsPanel extends BasePanel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<AccessCertificationCampaignType>() {
+                return new ColumnMenuAction<SelectableBean<AccessCertificationCampaignType>>() {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        CampaignProcessingHelper.closeCampaignConfirmation(target, getRowModel().getObject(), getPageBase());
+                        if (getRowModel() == null) {
+                            return;
+                        }
+                        CampaignProcessingHelper.closeCampaignConfirmation(target, getRowModel().getObject().getValue(), getPageBase());
                     }
                 };
             }
@@ -337,12 +347,15 @@ public class CampaignsPanel extends BasePanel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<AccessCertificationCampaignType>() {
+                return new ColumnMenuAction<SelectableBean<AccessCertificationCampaignType>>() {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        CampaignProcessingHelper.reiterateCampaignConfirmation(target, getRowModel().getObject(), getPageBase());
+                        if (getRowModel() == null) {
+                            return;
+                        }
+                        CampaignProcessingHelper.reiterateCampaignConfirmation(target, getRowModel().getObject().getValue(), getPageBase());
                     }
                 };
             }
@@ -360,12 +373,15 @@ public class CampaignsPanel extends BasePanel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<AccessCertificationCampaignType>() {
+                return new ColumnMenuAction<SelectableBean<AccessCertificationCampaignType>>() {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        CampaignProcessingHelper.deleteCampaignConfirmation(target, getRowModel().getObject(), getPageBase());
+                        if (getRowModel() == null) {
+                            return;
+                        }
+                        CampaignProcessingHelper.deleteCampaignConfirmation(target, getRowModel().getObject().getValue(), getPageBase());
                     }
                 };
             }
