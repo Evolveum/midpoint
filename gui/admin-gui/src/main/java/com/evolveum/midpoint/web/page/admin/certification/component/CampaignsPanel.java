@@ -76,8 +76,10 @@ public class CampaignsPanel extends BasePanel {
             @Override
             protected Search load() {
                 CertCampaignsStorage storage = getCampaignsStorage();
-                if (storage == null || storage.getSearch() == null) {
-                    return createSearch();
+                if (storage.getSearch() == null) {
+                    Search search = createSearch();
+                    storage.setSearch(search);
+                    return search;
                 }
                 return storage.getSearch();
             }
