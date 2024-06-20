@@ -7,15 +7,15 @@
 :page-wiki-metadata-modify-date: 2018-09-27T12:33:17.749+02:00
 :page-experimental: true
 :page-upkeep-status: yellow
-:page-upkeep-note:  Is this still experimental? Is the second script still valid? It is not working anymore (v4.8.3)
-
+:page-upkeep-note: See commented part, is there a current configuration for this? Also is this officially supported, still experimental?
 
 Imagine you want to ensure that Task1 will execute before Task2; and that Task2 will start immediately after Task1 finishes.
 
+This is not officially supported yet.
 
 == Using simple task dependencies
 
-It works as this:
+It works like this:
 
 * the dependent Task2 will not start unless the first Task1 is either closed or deleted
 
@@ -30,21 +30,20 @@ So, basically:
 .. of course, after you close, delete the first Task1, the second Task2 will start
 
 
-
 This could work:
 
 *Step 1:* prepare the following two task objects:
 
-.*First task*
-[%collapsible]
-====
-link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/recompute-users.xml[Git]
+*.First task*
 
-sampleRef::samples/tasks/bulk-actions/recompute-users.xml[]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/task-user-recompute-chaining.xml[Git]
+
+sampleRef::samples/tasks/task-user-recompute-chaining.xml[]
 ====
 
-.Second task
-[%collapsible]
+*.Second task*
+
 ====
 link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/task-role-recompute-chaining.xml[Git]
 
@@ -62,9 +61,7 @@ After it's closed the second one should start and execute.
 
 The disadvantage of this solution is that re-execution of the tasks requires the second task to be manually switched from `closed` state back to `waiting` / `otherTasks` one.
 
-
 ////
-
 == Option 2: Using partitioned tasks
 
 This option is available since midPoint 3.8. This version brought so called xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/task-partitioning/[Partitioned tasks]. Although this feature is primarily used for partitioning standard tasks (like Reconciliation or Validity scanning), nothing prevents us from using it for custom tasks as well.
@@ -136,5 +133,5 @@ For example, if any of the subtasks end in a failure, the processing continues -
 So, to see the status in an accurate way, you have to display subtasks along with root tasks.
 
 The advantage is that the re-execution of such composite task is quite simple.
-It can be done either manually, or you can even make the master task recurring.////
-
+It can be done either manually, or you can even make the master task recurring.
+////
