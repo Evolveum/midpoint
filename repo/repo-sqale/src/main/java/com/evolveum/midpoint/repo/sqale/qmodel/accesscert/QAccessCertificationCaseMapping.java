@@ -139,6 +139,7 @@ public class QAccessCertificationCaseMapping
                 Objects.requireNonNull(row.get(entityPath.ownerOid)) + ","
                         + Objects.requireNonNull(row.get(entityPath.cid)));
         attachOwnerOid(ret, row, entityPath);
+        attachContainerIdPath(ret, row, entityPath);
         return ret;
     }
 
