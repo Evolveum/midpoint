@@ -1171,4 +1171,16 @@ public class IntegrationTestTools {
         String norm = matchingRule.getNormalizer().normalizeString(orig);
         return new PolyString(orig, norm);
     }
+
+    // temporary
+    public static PolyString toRepoPolyLegacy(String orig) throws SchemaException {
+        return toRepoPolyLegacy(orig, PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME);
+    }
+
+    // temporary
+    public static PolyString toRepoPolyLegacy(String orig, QName matchingRuleName) throws SchemaException {
+        var matchingRule = SchemaService.get().matchingRuleRegistry().getMatchingRuleSafe(matchingRuleName, null);
+        String norm = matchingRule.getNormalizer().normalizeString(orig);
+        return NormalizationAwareResourceAttributeDefinition.wrap(orig, norm);
+    }
 }

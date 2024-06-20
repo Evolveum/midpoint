@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.toRepoPolyLegacy;
+
 import static org.testng.AssertJUnit.assertEquals;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
@@ -15,6 +17,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.prism.polystring.PolyString;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -689,8 +693,9 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> groupFoolsRepoShadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result);
         display("group fools repo shadow", groupFoolsRepoShadow);
 
-        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_NAME_PATH, toRepoPoly(GROUP_DUMMY_FOOLS_NAME));
-        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_UID_PATH, toRepoPoly(GROUP_DUMMY_FOOLS_NAME));
+        PolyString repoNameValue = isNativeRepository() ? toRepoPoly(GROUP_DUMMY_FOOLS_NAME) : toRepoPolyLegacy(GROUP_DUMMY_FOOLS_NAME);
+        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_NAME_PATH, repoNameValue);
+        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_UID_PATH, repoNameValue);
         assertShadowKindIntent(groupFoolsRepoShadow, ShadowKindType.ENTITLEMENT, INTENT_DUMMY_GROUP);
 
         assertShadows(6);
