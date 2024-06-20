@@ -15,7 +15,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.*;
 
 import org.springframework.stereotype.Component;
@@ -24,7 +23,7 @@ import org.springframework.stereotype.Component;
  * @author skublik
  */
 @Component
-public class UnmodifiableSchemaPropertiesWrapperFactoryImpl<T>
+public class UnmodifiableSchemaPropertiesWrapperFactory<T>
         extends PrismPropertyWrapperFactoryImpl<T> {
 
     @Override

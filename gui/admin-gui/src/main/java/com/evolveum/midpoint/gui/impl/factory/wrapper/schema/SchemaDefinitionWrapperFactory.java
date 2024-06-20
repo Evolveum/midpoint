@@ -33,16 +33,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author katka
  */
 @Component
-public class SchemaDefinitionWrapperFactoryImpl
+public class SchemaDefinitionWrapperFactory
         extends PrismContainerWrapperFactoryImpl<PrismSchemaType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SchemaDefinitionWrapperFactoryImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SchemaDefinitionWrapperFactory.class);
 
     @Override
     public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {
-        return QNameUtil.match(SchemaDefinitionType.COMPLEX_TYPE, def.getTypeName())
-                && parent != null
-                && QNameUtil.match(parent.getTypeName(), SchemaType.COMPLEX_TYPE);
+        return QNameUtil.match(SchemaDefinitionType.COMPLEX_TYPE, def.getTypeName());
+//                && parent != null
+//                && QNameUtil.match(parent.getTypeName(), SchemaType.COMPLEX_TYPE);
     }
 
     @Override
@@ -86,6 +86,6 @@ public class SchemaDefinitionWrapperFactoryImpl
 
     @Override
     protected PrismContainerWrapper<PrismSchemaType> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<PrismSchemaType> childContainer, ItemStatus status) {
-        return new PrismSchemaWrapper(parent, childContainer, status);
+        return new PrismSchemaWrapper(parent, childContainer, status, parent.getPath().append(SchemaType.F_DEFINITION));
     }
 }
