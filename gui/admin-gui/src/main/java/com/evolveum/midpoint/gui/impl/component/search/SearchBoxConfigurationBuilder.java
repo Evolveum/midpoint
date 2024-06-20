@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
 
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionType;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -83,6 +85,9 @@ public class SearchBoxConfigurationBuilder {
         ));
         FIXED_SEARCH_ITEMS.put(AccessCertificationCaseType.class, List.of(
                 ItemPath.create(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME)
+        ));
+        FIXED_SEARCH_ITEMS.put(PrismItemDefinitionType.class, List.of(
+                ItemPath.create(PrismItemDefinitionType.F_DISPLAY_NAME)
         ));
     }
 

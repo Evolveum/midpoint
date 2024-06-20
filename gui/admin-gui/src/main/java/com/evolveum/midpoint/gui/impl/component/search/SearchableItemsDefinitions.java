@@ -30,6 +30,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
 
 public class SearchableItemsDefinitions {
@@ -219,6 +221,14 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME),
                 ItemPath.create(AccessCertificationWorkItemType.F_CREATE_TIMESTAMP),
                 ItemPath.create(AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
+        ));
+
+        SEARCHABLE_OBJECTS.put(PrismItemDefinitionType.class, Arrays.asList(
+                ItemPath.create(PrismItemDefinitionType.F_NAME),
+                ItemPath.create(PrismItemDefinitionType.F_DISPLAY_NAME),
+                ItemPath.create(PrismItemDefinitionType.F_REQUIRED),
+                ItemPath.create(PrismItemDefinitionType.F_MULTIVALUE),
+                ItemPath.create(PrismItemDefinitionType.F_INDEXED)
         ));
     }
 
