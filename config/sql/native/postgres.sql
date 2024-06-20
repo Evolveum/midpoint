@@ -1300,14 +1300,6 @@ CREATE TRIGGER m_role_analysis_outlier_update_tr BEFORE UPDATE ON m_role_analysi
 CREATE TRIGGER m_role_analysis_outlier_oid_delete_tr AFTER DELETE ON m_role_analysis_outlier
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
-CREATE INDEX m_role_analysis_outlier_targetObjectRefTargetOid_idx ON m_role_analysis_outlier (targetObjectRefTargetOid);
-CREATE INDEX m_role_analysis_outlier_targetObjectRefTargetType_idx ON m_role_analysis_outlier (targetObjectRefTargetType);
-CREATE INDEX m_role_analysis_outlier_targetObjectRefRelationId_idx ON m_role_analysis_outlier (targetObjectRefRelationId);
-CREATE INDEX m_role_analysis_outlier_targetClusterRefTargetOid_idx ON m_role_analysis_outlier (targetClusterRefTargetOid);
-CREATE INDEX m_role_analysis_outlier_targetClusterRefTargetType_idx ON m_role_analysis_outlier (targetClusterRefTargetType);
-CREATE INDEX m_role_analysis_outlier_targetClusterRefRelationId_idx ON m_role_analysis_outlier (targetClusterRefRelationId);
-
-
 -- Represents LookupTableType, see https://docs.evolveum.com/midpoint/reference/misc/lookup-tables/
 CREATE TABLE m_lookup_table (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),

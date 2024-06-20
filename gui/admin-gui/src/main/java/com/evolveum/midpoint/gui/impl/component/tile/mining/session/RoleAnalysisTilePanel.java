@@ -208,7 +208,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
         return (WebMarkupContainer) get(ID_ICON);
     }
 
-    private void initDensityProgressPanel(String meanDensity) {
+    private void initDensityProgressPanel(Double meanDensity) {
         if (meanDensity == null) {
             WebMarkupContainer progressBar = new WebMarkupContainer(RoleAnalysisTilePanel.ID_DENSITY);
             progressBar.setVisible(false);
@@ -216,13 +216,13 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
             return;
         }
 
-        String colorClass = densityBasedColor(Double.parseDouble(meanDensity));
+        String colorClass = densityBasedColor(meanDensity);
 
         ProgressBar progressBar = new ProgressBar(RoleAnalysisTilePanel.ID_DENSITY) {
 
             @Override
             public double getActualValue() {
-                return Double.parseDouble(meanDensity);
+                return meanDensity;
             }
 
             @Override
