@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.certification.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
@@ -160,7 +161,7 @@ public class CampaignsPanel extends BasePanel {
 
                     @Override
                     protected boolean isTogglePanelVisible() {
-                        return false;
+                        return true;
                     }
 
                     @Override
