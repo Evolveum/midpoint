@@ -26,7 +26,7 @@ import org.apache.wicket.model.IModel;
 import java.io.Serial;
 import java.util.List;
 
-public class StatisticListBoxPanel extends BasePanel<List<StatisticBoxDto>> {
+public class StatisticListBoxPanel<T> extends BasePanel<List<StatisticBoxDto<T>>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -35,12 +35,12 @@ public class StatisticListBoxPanel extends BasePanel<List<StatisticBoxDto>> {
     private static final String ID_RIGHT_SIDE_HEADER_COMPONENT = "rightSideHeaderComponent";
     private static final String ID_STATISTIC_PANEL = "statisticsPanel";
     private static final String ID_STATISTIC_BOX = "statisticBox";
-    private static final String ID_STATISTIC_CONTAINER = "statisticContainer";
     private static final String ID_VIEW_ALL_LINK = "viewAllLink";
+    private static final String ID_VIEW_ALL_LABEL = "viewAllLabel";
 
-    private IModel<DisplayType> boxDisplayModel;
+    private final IModel<DisplayType> boxDisplayModel;
 
-    public StatisticListBoxPanel(String id, IModel<DisplayType> boxDisplayModel, IModel<List<StatisticBoxDto>> modelObject) {
+    public StatisticListBoxPanel(String id, IModel<DisplayType> boxDisplayModel, IModel<List<StatisticBoxDto<T>>> modelObject) {
         super(id, modelObject);
         this.boxDisplayModel = boxDisplayModel;
     }
@@ -66,10 +66,20 @@ public class StatisticListBoxPanel extends BasePanel<List<StatisticBoxDto>> {
         Component rightSideHeaderComponent = createRightSideHeaderComponent(ID_RIGHT_SIDE_HEADER_COMPONENT);
         add(rightSideHeaderComponent);
 
-        ListView<StatisticBoxDto> statisticPanel = new ListView<>(ID_STATISTIC_PANEL, getModel()) {
+        ListView<StatisticBoxDto<T>> statisticPanel = new ListView<>(ID_STATISTIC_PANEL, getModel()) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
-            protected void populateItem(ListItem<StatisticBoxDto> listItem) {
-                listItem.add(new StatisticBoxPanel(ID_STATISTIC_BOX, listItem.getModel()));
+            protected void populateItem(ListItem<StatisticBoxDto<T>> listItem) {
+                listItem.add(new StatisticBoxPanel(ID_STATISTIC_BOX, listItem.getModel()) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected Component createRightSideComponent(String id) {
+                        return StatisticListBoxPanel.this.createRightSideBoxComponent(id, listItem.getModel());
+                    }
+
+                });
             }
         };
         add(statisticPanel);
@@ -80,10 +90,12 @@ public class StatisticListBoxPanel extends BasePanel<List<StatisticBoxDto>> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                // TODO
+                viewAllActionPerformed(target);
             }
         };
         add(viewAllLink);
+
+        viewAllLink.add(new Label(ID_VIEW_ALL_LABEL, createStringResource("AjaxIconButton.viewAll")));
     }
 
     protected Component createRightSideHeaderComponent(String id) {
@@ -91,5 +103,12 @@ public class StatisticListBoxPanel extends BasePanel<List<StatisticBoxDto>> {
         Label additionalInfoLabel = new Label(id, additionalInfo);
         additionalInfoLabel.add(new VisibleBehaviour(() -> additionalInfo != null && !additionalInfo.isEmpty()));
         return additionalInfoLabel;
+    }
+
+    protected void viewAllActionPerformed(AjaxRequestTarget target) {
+    }
+
+    protected Component createRightSideBoxComponent(String id, IModel<StatisticBoxDto<T>> model) {
+        return new WebMarkupContainer(id);
     }
 }

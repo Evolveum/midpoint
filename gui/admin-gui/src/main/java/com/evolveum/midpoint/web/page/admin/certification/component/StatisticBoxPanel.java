@@ -13,13 +13,14 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import java.io.Serial;
 
-public class StatisticBoxPanel extends BasePanel<StatisticBoxDto> {
+public class StatisticBoxPanel<T> extends BasePanel<StatisticBoxDto<T>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -28,7 +29,7 @@ public class StatisticBoxPanel extends BasePanel<StatisticBoxDto> {
     private static final String ID_DESCRIPTION_ID = "description";
     private static final String ID_RIGHT_SIDE_COMPONENT = "rightSideComponent";
 
-    public StatisticBoxPanel(String id, IModel<StatisticBoxDto> modelObject) {
+    public StatisticBoxPanel(String id, IModel<StatisticBoxDto<T>> modelObject) {
         super(id, modelObject);
     }
 
@@ -41,6 +42,7 @@ public class StatisticBoxPanel extends BasePanel<StatisticBoxDto> {
     private void initLayout() {
         Component image = WebComponentUtil.createPhotoOrDefaultImagePanel(ID_IMAGE, getModelObject().getMessageImageResource(),
                 getDefaultImageIcon());
+        image.add(AttributeAppender.append("style", "font-size: 40px;"));
         add(image);
 
         Label label = new Label(ID_LABEL, getLabelModel());
@@ -67,7 +69,7 @@ public class StatisticBoxPanel extends BasePanel<StatisticBoxDto> {
         return () -> getModelObject().getBoxDescription();
     }
 
-    private Component createRightSideComponent(String id) {
+    protected Component createRightSideComponent(String id) {
         return new WebMarkupContainer(id);
     }
 }

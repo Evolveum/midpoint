@@ -10,15 +10,19 @@ package com.evolveum.midpoint.web.page.admin.certification.component;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
+import com.evolveum.wicket.chartjs.DoughnutChartConfiguration;
+
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.IResource;
 
 import java.io.Serializable;
 
-public class StatisticBoxDto implements Serializable {
+public class StatisticBoxDto<T> implements Serializable {
 
     IModel<DisplayType> displayModel;
     IModel<IResource> messageImageResourceModel;
+
+    IModel<DoughnutChartConfiguration> doughnutChartConfigurationIModel;
 
     public StatisticBoxDto(IModel<DisplayType> displayModel, IModel<IResource> messageImageResourceModel) {
         this.messageImageResourceModel = messageImageResourceModel;
@@ -41,4 +45,15 @@ public class StatisticBoxDto implements Serializable {
         return displayModel != null ? GuiDisplayTypeUtil.getIconCssClass(displayModel.getObject()) : "";
     }
 
+    public IModel<DoughnutChartConfiguration> getDoughnutChartConfigurationIModel() {
+        return doughnutChartConfigurationIModel;
+    }
+
+    public void setDoughnutChartConfigurationIModel(IModel<DoughnutChartConfiguration> doughnutChartConfigurationIModel) {
+        this.doughnutChartConfigurationIModel = doughnutChartConfigurationIModel;
+    }
+
+    public T getStatisticObject() {
+        return null;
+    }
 }
