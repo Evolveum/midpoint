@@ -175,6 +175,19 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="clusterStatistics" type="c:AnalysisClusterStatisticType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    The container consists of statistical data about the cluster.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AnalysisClusterStatisticType.clusterStatistic</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

@@ -608,6 +608,7 @@ public class OutliersDetectionUtil {
                         userOutliers = new RoleAnalysisOutlierType();
                         userOutliers.setTargetObjectRef(new ObjectReferenceType().oid(memberOid).type(UserType.COMPLEX_TYPE));
                     }
+                    userOutliers.setClusterStatistics(roleAnalysisClusterStatisticType);
 
                     userOutliers.setSimilarObjects(jaccardCloseObject.size());
                     userOutliers.setSimilarObjectsDensity(density);
