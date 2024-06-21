@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.Status.*;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -86,13 +87,20 @@ public class RoleAnalysisTableCellFillResolver {
 
     }
 
+    public enum Status {
+        RELATION_INCLUDE,
+        RELATION_EXCLUDE,
+        RELATION_DISABLE,
+        RELATION_NONE;
+    }
+
     /**
      * Resolve the cell color for role analysis table.
      *
      * @param rowModel The row model (properties to compare).
      * @param colModel The column model (members to compare).
      */
-    public static <T extends MiningBaseTypeChunk> boolean resolveCellTypeUserTable(@NotNull String componentId,
+    public static <T extends MiningBaseTypeChunk> Status resolveCellTypeUserTable(@NotNull String componentId,
             Item<ICellPopulator<MiningRoleTypeChunk>> cellItem,
             @NotNull MiningRoleTypeChunk rowModel,
             @NotNull MiningUserTypeChunk colModel,
@@ -124,28 +132,28 @@ public class RoleAnalysisTableCellFillResolver {
         if (rowStatus.isNegativeExclude() || colStatus.isNegativeExclude()) {
             if (isCandidate) {
                 negativeDisabledCell(componentId, cellItem);
-                return false;
+                return RELATION_DISABLE;
             }
             emptyCell(componentId, cellItem);
-            return false;
+            return RELATION_NONE;
         }
 
         if (rowStatus.isPositiveExclude() || colStatus.isPositiveExclude()) {
             if (isCandidate) {
                 positiveDisabledCell(componentId, cellItem);
-                return false;
+                return RELATION_DISABLE;
             }
             emptyCell(componentId, cellItem);
-            return false;
+            return RELATION_NONE;
         }
 
         if (rowStatus.isDisable() || colStatus.isDisable()) {
             if (firstStage) {
                 disabledCell(componentId, cellItem);
-                return false;
+                return RELATION_DISABLE;
             }
             emptyCell(componentId, cellItem);
-            return false;
+            return RELATION_NONE;
         }
         int size = duplicatedElements.size();
 
@@ -153,32 +161,33 @@ public class RoleAnalysisTableCellFillResolver {
             if (isCandidate) {
                 if (size > 1) {
                     reducedDuplicateCell(componentId, cellItem, duplicatedElements);
-                    return false;
+                    return RELATION_EXCLUDE;
                 } else if (size == 1) {
                     reducedCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
-                    return true;
+                    return RELATION_INCLUDE;
                 }
                 reducedCell(componentId, cellItem, "#28A745", duplicatedElements);
-                return true;
+                return RELATION_INCLUDE;
             } else if (secondStage) {
                 if (size > 1) {
                     additionalDuplicateCell(componentId, cellItem, duplicatedElements);
-                    return false;
+                    return RELATION_EXCLUDE;
                 } else if (size == 1) {
                     additionalCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
-                    return true;
+                    return RELATION_INCLUDE;
                 }
                 additionalCell(componentId, cellItem, "#28A745", duplicatedElements);
-                return true;
+                return RELATION_INCLUDE;
             }
         }
 
         if (firstStage) {
             relationCell(componentId, cellItem);
+            return RELATION_INCLUDE;
         } else {
             emptyCell(componentId, cellItem);
+            return RELATION_NONE;
         }
-        return false;
     }
 
     public static <T extends MiningBaseTypeChunk> boolean resolveCellTypeRoleTable(@NotNull String componentId,

@@ -20,6 +20,8 @@ import java.util.*;
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.utils.values.*;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.OutlierAnalyseActionDetailsPopupPanel;
+
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -721,7 +723,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
                     applySquareTableCell(cellItem, styleWidth, styleHeight);
 
-                    boolean isInclude = resolveCellTypeUserTable(componentId, cellItem, rowChunk, colChunk,
+                    Status isInclude = resolveCellTypeUserTable(componentId, cellItem, rowChunk, colChunk,
                             new LoadableDetachableModel<>() {
                                 @Override
                                 protected Map<String, String> load() {
@@ -729,8 +731,18 @@ public class RoleAnalysisUserBasedTable extends Panel {
                                 }
                             });
 
-                    if (isInclude) {
+                    if (isInclude.equals(Status.RELATION_INCLUDE)) {
                         isRelationSelected = true;
+                    }
+
+                    if (!isInclude.equals(Status.RELATION_NONE)) {
+                        Set<String> markMemberObjects = getMarkMemberObjects();
+                        Set<String> markPropertyObjects = getMarkPropertyObjects();
+                        if (markMemberObjects != null && markMemberObjects.containsAll(colChunk.getMembers())) {
+                            cellItem.add(AttributeAppender.append("style", "border: 5px solid #206f9d;"));
+                        } else if (markPropertyObjects != null && markPropertyObjects.containsAll(colChunk.getProperties())) {
+                            cellItem.add(AttributeAppender.append("style", "border: 5px solid #206f9d;"));
+                        }
                     }
 
                     RoleAnalysisChunkAction chunkAction = displayValueOptionModel.getObject().getChunkAction();
@@ -797,14 +809,37 @@ public class RoleAnalysisUserBasedTable extends Panel {
                                 objects.add(getPageBase().getRoleAnalysisService()
                                         .getFocusTypeObject(objectOid, task, result));
                             }
-                            MembersDetailsPopupPanel detailsPanel = new MembersDetailsPopupPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                    Model.of("Analyzed members details panel"), objects, RoleAnalysisProcessModeType.USER) {
-                                @Override
-                                public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                                    super.onClose(ajaxRequestTarget);
+                            if (isOutlierDetection()) {
+
+                                List<String> clusterMembersOid = new ArrayList<>();
+                                List<ObjectReferenceType> member = cluster.asObjectable().getMember();
+                                for (ObjectReferenceType objectReferenceType : member) {
+                                    clusterMembersOid.add(objectReferenceType.getOid());
                                 }
-                            };
-                            ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+
+                                //TODO session option min members
+
+                                OutlierAnalyseActionDetailsPopupPanel detailsPanel = new OutlierAnalyseActionDetailsPopupPanel(
+                                        ((PageBase) getPage()).getMainPopupBodyId(),
+                                        Model.of("Analyzed members details panel"), elements.get(0), cluster.getOid(),10) {
+                                    @Override
+                                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                                        super.onClose(ajaxRequestTarget);
+                                    }
+                                };
+                                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+                            } else {
+                                MembersDetailsPopupPanel detailsPanel = new MembersDetailsPopupPanel(
+                                        ((PageBase) getPage()).getMainPopupBodyId(),
+                                        Model.of("Analyzed members details panel"),
+                                        objects, RoleAnalysisProcessModeType.USER) {
+                                    @Override
+                                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                                        super.onClose(ajaxRequestTarget);
+                                    }
+                                };
+                                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+                            }
                         }
 
                     };
@@ -910,42 +945,45 @@ public class RoleAnalysisUserBasedTable extends Panel {
                 RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
                 ObjectReferenceType roleAnalysisSessionRef = cluster.asObjectable().getRoleAnalysisSessionRef();
-                PrismObject<RoleAnalysisSessionType> session = roleAnalysisService
-                        .getObject(RoleAnalysisSessionType.class, roleAnalysisSessionRef.getOid(), task, task.getResult());
-                if (session == null) {
-                    return;
+                if (roleAnalysisSessionRef != null) {
+                    PrismObject<RoleAnalysisSessionType> session = roleAnalysisService
+                            .getObject(RoleAnalysisSessionType.class, roleAnalysisSessionRef.getOid(), task, task.getResult());
+                    if (session == null) {
+                        return;
+                    }
+                    List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = roleAnalysisService
+                            .resolveAnalysisAttributes(session.asObjectable(), UserType.COMPLEX_TYPE);
+                    List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = roleAnalysisService
+                            .resolveAnalysisAttributes(session.asObjectable(), RoleType.COMPLEX_TYPE);
+
+                    if (userAnalysisAttributeDef == null || roleAnalysisAttributeDef == null) {
+                        return;
+                    }
+                    roleAnalysisService.resolveDetectedPatternsAttributes(Collections.singletonList(pattern), userExistCache,
+                            roleExistCache, task, result, roleAnalysisAttributeDef, userAnalysisAttributeDef);
+
+                    double totalDensity = 0.0;
+                    int totalCount = 0;
+                    RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = pattern.getRoleAttributeAnalysisResult();
+                    RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = pattern.getUserAttributeAnalysisResult();
+
+                    if (roleAttributeAnalysisResult != null) {
+                        totalDensity += calculateDensity(roleAttributeAnalysisResult.getAttributeAnalysis());
+                        totalCount += roleAttributeAnalysisResult.getAttributeAnalysis().size();
+                    }
+                    if (userAttributeAnalysisResult != null) {
+                        totalDensity += calculateDensity(userAttributeAnalysisResult.getAttributeAnalysis());
+                        totalCount += userAttributeAnalysisResult.getAttributeAnalysis().size();
+                    }
+
+                    int itemCount = (roleAttributeAnalysisResult != null
+                            ? roleAttributeAnalysisResult.getAttributeAnalysis().size() : 0)
+                            + (userAttributeAnalysisResult != null ? userAttributeAnalysisResult.getAttributeAnalysis().size() : 0);
+
+                    double itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
+                    pattern.setItemConfidence(itemsConfidence);
                 }
-                List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = roleAnalysisService
-                        .resolveAnalysisAttributes(session.asObjectable(), UserType.COMPLEX_TYPE);
-                List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = roleAnalysisService
-                        .resolveAnalysisAttributes(session.asObjectable(), RoleType.COMPLEX_TYPE);
 
-                if (userAnalysisAttributeDef == null || roleAnalysisAttributeDef == null) {
-                    return;
-                }
-                roleAnalysisService.resolveDetectedPatternsAttributes(Collections.singletonList(pattern), userExistCache,
-                        roleExistCache, task, result, roleAnalysisAttributeDef, userAnalysisAttributeDef);
-
-                double totalDensity = 0.0;
-                int totalCount = 0;
-                RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = pattern.getRoleAttributeAnalysisResult();
-                RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = pattern.getUserAttributeAnalysisResult();
-
-                if (roleAttributeAnalysisResult != null) {
-                    totalDensity += calculateDensity(roleAttributeAnalysisResult.getAttributeAnalysis());
-                    totalCount += roleAttributeAnalysisResult.getAttributeAnalysis().size();
-                }
-                if (userAttributeAnalysisResult != null) {
-                    totalDensity += calculateDensity(userAttributeAnalysisResult.getAttributeAnalysis());
-                    totalCount += userAttributeAnalysisResult.getAttributeAnalysis().size();
-                }
-
-                int itemCount = (roleAttributeAnalysisResult != null
-                        ? roleAttributeAnalysisResult.getAttributeAnalysis().size() : 0)
-                        + (userAttributeAnalysisResult != null ? userAttributeAnalysisResult.getAttributeAnalysis().size() : 0);
-
-                double itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
-                pattern.setItemConfidence(itemsConfidence);
                 DetectedPattern detectedPattern = transformPatternWithAttributes(pattern);
 
                 if (chunkAction.equals(RoleAnalysisChunkAction.DETAILS_DETECTION)) {
@@ -1307,4 +1345,13 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
         return getCandidateRole();
     }
+
+    protected Set<String> getMarkMemberObjects() {
+        return null;
+    }
+
+    protected Set<String> getMarkPropertyObjects() {
+        return null;
+    }
+
 }

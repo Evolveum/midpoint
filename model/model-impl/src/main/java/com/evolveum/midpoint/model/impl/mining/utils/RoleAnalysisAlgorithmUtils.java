@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.mining.utils;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.OutliersDetectionUtil.executeOuterOutliersAnalysis;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.OutliersDetectionUtil.executeOutliersAnalysis;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.ClusterExplanation.getClusterExplanationDescription;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.ClusterExplanation.resolveClusterName;
@@ -200,7 +201,7 @@ public class RoleAnalysisAlgorithmUtils {
         return clusterStatistic;
     }
 
-    private static void extractAttributeStatistics(
+    public static void extractAttributeStatistics(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull QName complexType,
             @NotNull Task task,
@@ -429,7 +430,7 @@ public class RoleAnalysisAlgorithmUtils {
         return clusterTypePrismObject;
     }
 
-    private static void resolveAttributeStatistics(@NotNull ClusterStatistic clusterStatistic,
+    public static void resolveAttributeStatistics(@NotNull ClusterStatistic clusterStatistic,
             @NotNull AnalysisClusterStatisticType roleAnalysisClusterStatisticType) {
         List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = clusterStatistic.getRoleAttributeAnalysisStructures();
         List<AttributeAnalysisStructure> userAttributeAnalysisStructures = clusterStatistic.getUserAttributeAnalysisStructures();
@@ -572,8 +573,16 @@ public class RoleAnalysisAlgorithmUtils {
             if (min == null) {
                 detectionOption.getFrequencyRange().setMin(0.01);
             }
-            Collection<RoleAnalysisOutlierType> roleAnalysisOutlierTypes = executeOutliersAnalysis(
-                    roleAnalysisService, cluster, session, analysisOption, task, result);
+
+            Collection<RoleAnalysisOutlierType> roleAnalysisOutlierTypes;
+
+            if (cluster.getCategory().equals(RoleAnalysisClusterCategory.OUTLIERS)) {
+                roleAnalysisOutlierTypes = executeOuterOutliersAnalysis(
+                        roleAnalysisService, cluster, session, task, result);
+            } else {
+                roleAnalysisOutlierTypes = executeOutliersAnalysis(
+                        roleAnalysisService, cluster, session, analysisOption, task, result);
+            }
 
             for (RoleAnalysisOutlierType roleAnalysisOutlierType : roleAnalysisOutlierTypes) {
                 roleAnalysisOutlierType.setTargetSessionRef(new ObjectReferenceType()
@@ -598,5 +607,4 @@ public class RoleAnalysisAlgorithmUtils {
             }
         }
     }
-
 }

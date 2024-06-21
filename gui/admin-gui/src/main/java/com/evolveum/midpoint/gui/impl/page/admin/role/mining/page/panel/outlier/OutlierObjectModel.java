@@ -136,9 +136,8 @@ public class OutlierObjectModel implements Serializable {
             outlierObjectModel.addOutlierItemModel(patternItemModel);
         }
 
-        AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
-        int similarObjectCount = cluster.getMember().size();
-        Double membershipDensity = clusterStatistics.getMembershipDensity();
+        int similarObjectCount = outlierResult.getSimilarObjects();
+        Double membershipDensity = outlierResult.getSimilarObjectsDensity();
         String clusterDescription = "Detected " + similarObjectCount + " similar objects with membership density "
                 + String.format("%.2f", membershipDensity) + "%";
         OutlierItemModel clusterItemModel = new OutlierItemModel(similarObjectCount + " similar object(s)",
@@ -159,7 +158,7 @@ public class OutlierObjectModel implements Serializable {
         for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysis) {
             Double density = attribute.getDensity();
             if (density != null) {
-                if (density > 0.8) {
+                if (density >= threshold) {
                     attributeAboveThreshold++;
                     attributeDescriptionThreshold.append(attribute.getItemPath()).append(", ");
                 }
@@ -302,9 +301,8 @@ public class OutlierObjectModel implements Serializable {
             outlierObjectModel.addOutlierItemModel(patternItemModel);
         }
 
-        AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
-        int similarObjectCount = cluster.getMember().size();
-        Double membershipDensity = clusterStatistics.getMembershipDensity();
+        int similarObjectCount = outlierResult.getSimilarObjects();
+        Double membershipDensity = outlierResult.getSimilarObjectsDensity();
         String clusterDescription = "Detected " + similarObjectCount + " similar objects with membership density "
                 + String.format("%.2f", membershipDensity) + "%";
         OutlierItemModel clusterItemModel = new OutlierItemModel(similarObjectCount
