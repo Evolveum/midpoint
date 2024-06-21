@@ -485,8 +485,12 @@ public class ProvisioningObjectsUtil {
     }
 
     public static void refreshResourceSchema(@NotNull PrismObject<ResourceType> resource, String operation, AjaxRequestTarget target, PageBase pageBase) {
-        Task task = pageBase.createSimpleTask(operation);
         OperationResult result = new OperationResult(operation);
+        refreshResourceSchema(resource, operation, target, pageBase, result);
+    }
+
+    public static void refreshResourceSchema(@NotNull PrismObject<ResourceType> resource, String operation, AjaxRequestTarget target, PageBase pageBase, OperationResult result) {
+        Task task = pageBase.createSimpleTask(operation);
 
         try {
             ResourceUtils.deleteSchema(resource, pageBase.getModelService(), task, result);
