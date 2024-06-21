@@ -6,7 +6,7 @@
   -->
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="00000000-0000-0000-0000-000000000332">
-    <name>Privileged Access</name>
+    <name>Privileged access</name>
     <description>Classification used to label roles providing privileged access.</description>
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000330" type="ArchetypeType"/>
