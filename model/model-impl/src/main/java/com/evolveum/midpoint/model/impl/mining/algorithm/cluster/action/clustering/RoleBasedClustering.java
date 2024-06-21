@@ -67,7 +67,7 @@ public class RoleBasedClustering implements Clusterable {
         double similarityDifference = 1 - (similarityThreshold / 100);
         int minUsersOverlap = roleModeOptions.getMinPropertiesOverlap();
         int minRolesCount = roleModeOptions.getMinMembersCount();
-        SearchFilterType query = roleModeOptions.getQuery();
+        SearchFilterType query = roleModeOptions.getMemberFilter();
         Boolean isIndirect = roleModeOptions.isIsIndirect();
 
         handler.enterNewStep(LOAD_DATA_STEP);

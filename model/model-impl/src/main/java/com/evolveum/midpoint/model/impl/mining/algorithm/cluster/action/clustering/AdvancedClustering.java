@@ -81,7 +81,7 @@ public class AdvancedClustering implements Clusterable {
                 sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
                 RoleAnalysisProcessModeType.ROLE);
 
-        SearchFilterType query = sessionOptionType.getQuery();
+        SearchFilterType query = sessionOptionType.getMemberFilter();
 
         List<DataPoint> dataPoints = loadInitialData(modelService, roleAnalysisService, handler, isIndirect,
                 RoleAnalysisProcessModeType.ROLE, roleAnalysisAttributeDefConverts,
@@ -124,11 +124,17 @@ public class AdvancedClustering implements Clusterable {
         int minUsersCount = sessionOptionType.getMinMembersCount();
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
 
+        UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+        SearchFilterType memberFilter = userModeOptions.getMemberFilter();
+        SearchFilterType assignmentFilter = userModeOptions.getAssignmentFilter();
+
+
+//        roleAnalysisService.extractByUserAndAssignmentByDoubleCondition(memberFilter,assignmentFilter,task,result);
         List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts = generateMatchingRulesList(
                 sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
                 RoleAnalysisProcessModeType.USER);
 
-        SearchFilterType query = sessionOptionType.getQuery();
+        SearchFilterType query = sessionOptionType.getMemberFilter();
 
         List<DataPoint> dataPoints = loadInitialData(modelService, roleAnalysisService, handler,
                 isIndirect, RoleAnalysisProcessModeType.USER, roleAnalysisAttributeDefConverts,
@@ -202,7 +208,8 @@ public class AdvancedClustering implements Clusterable {
     @NotNull
     public ListMultimap<List<String>, String> loadUserModeData(
             @NotNull ModelService modelService,
-            @NotNull Boolean isIndirect, int minRolesOccupancy,
+            @NotNull Boolean isIndirect,
+            int minRolesOccupancy,
             int maxRolesOccupancy,
             @Nullable SearchFilterType sessionOptionType,
             @NotNull Task task,

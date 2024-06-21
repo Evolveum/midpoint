@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.mining;
 
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getCurrentXMLGregorianCalendar;
+
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
@@ -24,6 +26,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
+import com.evolveum.midpoint.schema.*;
+
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -55,12 +63,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -1601,6 +1604,134 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         return createAssignmentTo(unassignedRole, ObjectTypes.ROLE);
     }
 
+    public ListMultimap<String, String> extractByUserAndAssignmentByDoubleCondition(
+            SearchFilterType userCondition,
+            SearchFilterType assignmentCondition,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) {
+        //Store all suitable assignment oid
+        HashSet<String> assignmentOidSet = new HashSet<>();
+
+        //Map suitable user and their suitable assignment
+        ListMultimap<String, String> userCacheMap = ArrayListMultimap.create();
+
+        //Fixed condition for user
+        ObjectQuery userObjectQuery = PrismContext.get().queryFor(UserType.class)
+                .exists(AssignmentHolderType.F_ASSIGNMENT)
+                .block()
+                .item(AssignmentType.F_FOCUS_TYPE).eq(RoleType.COMPLEX_TYPE)
+                .endBlock().build();
+
+        //Additional configurable condition for user (input parameter
+        if (userCondition != null) {
+            try {
+                ObjectFilter objectFilter = PrismContext.get().getQueryConverter().createObjectFilter(UserType.class, userCondition);
+                userObjectQuery.addFilter(objectFilter);
+            } catch (SchemaException e) {
+                throw new RuntimeException("Something happened during converting object filter", e);
+            }
+        }
+
+        //Fixed condition for assignment
+        ObjectQuery assignmentQueryCondition = PrismContext.get().queryFor(AssignmentType.class)
+                .block()
+                .item(AssignmentType.F_FOCUS_TYPE).eq(RoleType.COMPLEX_TYPE)
+                .endBlock().build();
+
+        //Additional configurable condition for assignment (input parameter)
+
+        if (assignmentCondition != null) {
+            try {
+                ObjectFilter objectFilter = PrismContext.get().getQueryConverter().createObjectFilter(AssignmentType.class, assignmentCondition);
+                assignmentQueryCondition.addFilter(objectFilter);
+            } catch (SchemaException e) {
+                throw new RuntimeException("Something happened during converting object filter", e);
+            }
+        }
+
+        //Load all suitable assignment oid
+        ObjectHandler<AssignmentType> assignmentResultHandler = (assignment, lResult) -> {
+            if (assignment.getTargetRef() != null) {
+                assignmentOidSet.add(assignment.getTargetRef().getOid());
+            }
+            return true;
+        };
+
+        try {
+            repositoryService.searchContainersIterative(AssignmentType.class, assignmentQueryCondition, assignmentResultHandler,
+                    null, parentResult);
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't search assignment by condition {}", AssignmentType.class, e);
+            throw new RuntimeException("Couldn't search assignment by condition", e);
+        }
+
+        //Load all suitable user and their suitable assignment
+        ResultHandler<UserType> userResultHandler = (user, lResult) -> {
+            List<AssignmentType> assignment = user.asObjectable().getAssignment();
+            for (AssignmentType assignmentType : assignment) {
+                if (assignmentType.getTargetRef() != null) {
+                    String oid = assignmentType.getTargetRef().getOid();
+                    if (assignmentOidSet.contains(oid)) {
+                        userCacheMap.put(user.getOid(), oid);
+                    }
+                }
+            }
+            return true;
+        };
+
+        try {
+            modelService.searchObjectsIterative(UserType.class, userObjectQuery, userResultHandler,
+                    null, task, parentResult);
+        } catch (SchemaException | ExpressionEvaluationException | CommunicationException | SecurityViolationException |
+                ConfigurationException | ObjectNotFoundException e) {
+            LOGGER.error("Couldn't search user by condition {}", RoleType.class, e);
+            throw new RuntimeException("Couldn't search user by condition", e);
+        }
+
+        return userCacheMap;
+    }
+
+    public ListMultimap<String, String> extractByUserAndAssignmentByDoubleConditionAndOwnedBy(
+            @Nullable ObjectFilter assignmentCondition,
+            @NotNull Set<String> userOidSet,
+            @NotNull OperationResult parentResult) {
+        //Store all suitable assignment oid
+        HashSet<String> assignmentOidSet = new HashSet<>();
+
+        //Map suitable user and their suitable assignment
+        ListMultimap<String, String> userCacheMap = ArrayListMultimap.create();
+
+        //Fixed condition for assignment
+        ObjectQuery assignmentQueryCondition = PrismContext.get().queryFor(AssignmentType.class)
+                .block()
+                .item(AssignmentType.F_TARGET_REF)
+                .ref(userOidSet.toArray(new String[0]))
+                .endBlock().build();
+
+        //Additional configurable condition for assignment (input parameter)
+        if (assignmentCondition != null) {
+            assignmentQueryCondition.addFilter(assignmentCondition);
+        }
+
+        //Load all suitable assignment oid
+        ObjectHandler<AssignmentType> assignmentResultHandler = (assignment, lResult) -> {
+            if (assignment.getTargetRef() != null) {
+                assignmentOidSet.add(assignment.getTargetRef().getOid());
+            }
+            return true;
+        };
+
+        try {
+            repositoryService.searchContainersIterative(AssignmentType.class, assignmentQueryCondition, assignmentResultHandler,
+                    null, parentResult);
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't search assignment by condition {}", AssignmentType.class, e);
+            throw new RuntimeException("Couldn't search assignment by condition", e);
+        }
+
+        return userCacheMap;
+    }
+
     public <T extends ObjectType> void loadSearchObjectIterative(
             @NotNull ModelService modelService,
             @NotNull Class<T> type,
@@ -2602,6 +2733,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             }
             return Collections.singletonList(detectedPattern);
         }
+    }
+
+    @Override
+    public ModelService getModelService() {
+        return modelService;
     }
 }
 

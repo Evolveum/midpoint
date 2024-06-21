@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -905,5 +907,13 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result,
             boolean single);
+
+    ListMultimap<String, String> extractByUserAndAssignmentByDoubleCondition(
+            SearchFilterType userCondition,
+            SearchFilterType assignmentCondition,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult);
+
+    ModelService getModelService();
 
 }

@@ -174,7 +174,7 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
             setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD, similarityThreshold);
             setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT, minMembersCount);
             setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, minPropertiesOverlap);
-            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_QUERY, query);
+            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_MEMBER_FILTER, query);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }

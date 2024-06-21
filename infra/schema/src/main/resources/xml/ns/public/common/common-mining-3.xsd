@@ -644,11 +644,22 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="query" type="q:SearchFilterType" minOccurs="0">
+            <xsd:element name="memberFilter" type="q:SearchFilterType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
+                            TODO im not sure if we can target to both object like role and user, or we need use targeted filter.
                             Specifies the query or filter applied to the objects.
+                            Only the objects that match the filter are included in the analysis.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="assignmentFilter" type="q:SearchFilterType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies the query or filter applied to the assignment objects.
                             Only the objects that match the filter are included in the analysis.
                         </p>
                     </xsd:documentation>
