@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.ninja.action.mining.generator.context;
 
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGeneratorUtils.*;
+import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacObjectCategoryProcessor.generateRbacData;
 import static com.evolveum.midpoint.ninja.action.mining.generator.object.InitialObjectsDefinition.getNoiseRolesObjects;
 
 import java.io.IOException;
@@ -83,7 +84,7 @@ public class ImportAction {
             importArchetypes(initialObjectsDefinition, repositoryService, result, log);
         }
 
-        if (!generatorOptions.isPlanktonDisable()) {
+        if (!generatorOptions.isPlanktonDisable() || generatorOptions.getOutlierZombieProbability() != 0.0) {
             importPlanktonRoles(initialObjectsDefinition, repositoryService, result, log);
         }
 
@@ -234,9 +235,10 @@ public class ImportAction {
         }
     }
 
-    private void importUserAndResolveAuxRoles(
+    public static void importUserAndResolveAuxRoles(
             @NotNull UserType user,
             @NotNull RepositoryService repositoryService,
+            @NotNull GeneratorOptions generatorOptions,
             @NotNull OperationResult result,
             @NotNull Log log) {
 
@@ -300,287 +302,17 @@ public class ImportAction {
         int contractorsCount = (int) (userCount * (partsInt[6] / 100.0));
 
         RepositoryService repository = context.getRepository();
-        resolveRegularUsers(regularUsersCount, repository);
-        resolveSemiRegularUsers(semiRegularUsersCount, repository);
-        resolveIrregularUsers(irregularUsersCount, repository);
-        resolveManagers(managersCount, repository);
-        resolveSales(salesCount, repository);
-        resolveSecurityOfficers(securityOfficersCount, repository);
-        resolveContractors(contractorsCount, repository);
+        resolveUsers(repository, regularUsersCount, RbacObjectCategoryProcessor.Category.REGULR, names);
+        resolveUsers(repository, semiRegularUsersCount, RbacObjectCategoryProcessor.Category.SEMI_REGULAR, names);
+        resolveUsers(repository, irregularUsersCount, RbacObjectCategoryProcessor.Category.IRREGULAR, names);
+        resolveUsers(repository, managersCount, RbacObjectCategoryProcessor.Category.MANAGERS, names);
+        resolveUsers(repository, salesCount, RbacObjectCategoryProcessor.Category.SALES, names);
+        resolveUsers(repository, securityOfficersCount, RbacObjectCategoryProcessor.Category.SECURITY_OFFICERS, names);
+        resolveUsers(repository, contractorsCount, RbacObjectCategoryProcessor.Category.CONTRACTORS, names);
     }
 
-    /**
-     * Resolves and imports regular users into the system, setting up their attributes based on specified criteria.
-     *
-     * @param regularUsersCount The number of regular users to import.
-     * @param repository The repository service used for importing users.
-     */
-    private void resolveRegularUsers(int regularUsersCount, RepositoryService repository) {
-        log.info("Importing regular users: 0/{}", regularUsersCount);
-        String organizationOid = InitialObjectsDefinition.Organization.REGULAR.getOidValue();
-        String birthEmployeeRole = InitialObjectsDefinition.BirthrightBusinessRole.EMPLOYEE.getOidValue();
-        String archetypeOid = InitialObjectsDefinition.Archetypes.REGULAR_USER.getOidValue();
-
-        for (int i = 0; i < regularUsersCount; i++) {
-            log.info("Importing regular users: {}/{}", i + 1, regularUsersCount);
-            InitialObjectsDefinition.LocationInitialBusinessRole randomLocationBusinessRole = getRandomLocationBusinessRole();
-            String locationBusinessRoleOidValue = randomLocationBusinessRole.getOidValue();
-            PolyStringType locale = PolyStringType.fromOrig(randomLocationBusinessRole.getLocale());
-            InitialObjectsDefinition.JobInitialBusinessRole randomJobBusinessRole = getRandomJobBusinessRole();
-            String randomJobBusinessRoleOidValue = randomJobBusinessRole.getOidValue();
-            String randomlyJobTitleStructure = getRandomlyJobTitles();
-
-            UserType user = new UserType();
-            user.setName(getNameFromSet(PolyStringType.fromOrig("Regular User " + i)));
-            user.setLocality(locale);
-            user.setTitle(PolyStringType.fromOrig(randomlyJobTitleStructure));
-            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
-            user.getAssignment().add(createRoleAssignment(locationBusinessRoleOidValue));
-            user.getAssignment().add(createRoleAssignment(randomJobBusinessRoleOidValue));
-            user.getAssignment().add(createOrgAssignment(organizationOid));
-
-            setUpArchetypeUser(user, archetypeOid);
-
-            importUserAndResolveAuxRoles(user, repository, result, log);
-        }
-    }
-
-    /**
-     * Resolves and imports semi-regular users into the system, setting up their attributes based on specified criteria.
-     *
-     * @param semiRegularUsersCount The number of semi-regular users to import.
-     * @param repository The repository service used for importing users.
-     */
-    private void resolveSemiRegularUsers(int semiRegularUsersCount, RepositoryService repository) {
-        log.info("Importing semi-regular users: 0/{}", semiRegularUsersCount);
-        String organizationOid = InitialObjectsDefinition.Organization.SEMI_REGULAR.getOidValue();
-        String birthEmployeeRole = InitialObjectsDefinition.BirthrightBusinessRole.EMPLOYEE.getOidValue();
-        String archetypeOid = InitialObjectsDefinition.Archetypes.SEMI_REGULAR_USER.getOidValue();
-        int ninetyPercent = (int) (semiRegularUsersCount * 0.9);
-
-        for (int i = 0; i < semiRegularUsersCount; i++) {
-            log.info("Importing semi-regular users: {}/{}", i + 1, semiRegularUsersCount);
-            InitialObjectsDefinition.LocationInitialBusinessRole randomLocationBusinessRole = getRandomLocationBusinessRole();
-            String locationBusinessRoleOidValue = randomLocationBusinessRole.getOidValue();
-            PolyStringType locale = PolyStringType.fromOrig(randomLocationBusinessRole.getLocale());
-            String randomlyJobTitleStructure = getRandomlyJobTitlesWithNone();
-            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(0, generatorOptions);
-
-            UserType user = new UserType();
-            user.setName(getNameFromSet(PolyStringType.fromOrig("Semi-Regular User " + i)));
-            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
-
-            if (i < ninetyPercent) {
-                user.setLocality(locale);
-            }
-
-            if (!randomlyJobTitleStructure.isEmpty()) {
-                user.setTitle(PolyStringType.fromOrig(randomlyJobTitleStructure));
-            }
-
-            for (InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
-                user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
-            }
-
-            user.getAssignment().add(createRoleAssignment(locationBusinessRoleOidValue));
-            user.getAssignment().add(createOrgAssignment(organizationOid));
-
-            setUpArchetypeUser(user, archetypeOid);
-
-            importUserAndResolveAuxRoles(user, repository, result, log);
-        }
-    }
-
-    /**
-     * Resolves and imports irregular users into the system, setting up their attributes based on specified criteria.
-     *
-     * @param irregularUsersCount The number of irregular users to import.
-     * @param repository The repository service used for importing users.
-     */
-    private void resolveIrregularUsers(int irregularUsersCount, RepositoryService repository) {
-        log.info("Importing irregular users: 0/{}", irregularUsersCount);
-        String organizationOid = InitialObjectsDefinition.Organization.IRREGULAR.getOidValue();
-        String birthEmployeeRole = InitialObjectsDefinition.BirthrightBusinessRole.EMPLOYEE.getOidValue();
-        String archetypeOid = InitialObjectsDefinition.Archetypes.IRREGULAR_USER.getOidValue();
-
-        for (int i = 0; i < irregularUsersCount; i++) {
-            log.info("Importing irregular users: {}/{}", i + 1, irregularUsersCount);
-            String randomlyJobTitleStructureWithNone = getRandomlyJobTitlesWithNone();
-            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(7, generatorOptions);
-            UserType user = new UserType();
-            user.setName(getNameFromSet(PolyStringType.fromOrig("Irregular User " + i)));
-            user.getAssignment().add(createOrgAssignment(organizationOid));
-            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
-
-            if (!randomlyJobTitleStructureWithNone.isEmpty()) {
-                user.setTitle(PolyStringType.fromOrig(randomlyJobTitleStructureWithNone));
-            }
-
-            for (InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
-                user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
-            }
-
-            setUpArchetypeUser(user, archetypeOid);
-
-            importUserAndResolveAuxRoles(user, repository, result, log);
-
-        }
-    }
-
-    /**
-     * Resolves and imports managers into the system, setting up their attributes based on specified criteria.
-     *
-     * @param managersCount The number of manager users to import.
-     * @param repository The repository service used for importing users.
-     */
-    private void resolveManagers(int managersCount, RepositoryService repository) {
-        log.info("Importing manager users: 0/{}", managersCount);
-        String organizationOid = InitialObjectsDefinition.Organization.MANAGERS.getOidValue();
-        String birthEmployeeRole = InitialObjectsDefinition.BirthrightBusinessRole.EMPLOYEE.getOidValue();
-        String archetypeOid = InitialObjectsDefinition.Archetypes.MANAGERS_USER.getOidValue();
-        int ninetyPercent = (int) (managersCount * 0.9);
-
-        InitialObjectsDefinition.JobInitialBusinessRole managerRole = InitialObjectsDefinition.JobInitialBusinessRole.MANAGER;
-        String jobTitle = "manager";
-
-        for (int i = 0; i < managersCount; i++) {
-            log.info("Importing manager users: {}/{}", i + 1, managersCount);
-            InitialObjectsDefinition.LocationInitialBusinessRole randomLocationBusinessRole = getRandomLocationBusinessRole();
-            String locationBusinessRoleOidValue = randomLocationBusinessRole.getOidValue();
-            PolyStringType locale = PolyStringType.fromOrig(randomLocationBusinessRole.getLocale());
-            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(0, generatorOptions);
-
-            UserType user = new UserType();
-            user.setName(getNameFromSet(PolyStringType.fromOrig("Manager User " + i)));
-            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
-
-            user.setTitle(PolyStringType.fromOrig(jobTitle));
-            user.getAssignment().add(createRoleAssignment(managerRole.getOidValue()));
-            user.getAssignment().add(createRoleAssignment(locationBusinessRoleOidValue));
-            user.getAssignment().add(createOrgAssignment(organizationOid));
-
-            if (i < ninetyPercent) {
-                user.setLocality(locale);
-            }
-
-            for (InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
-                user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
-            }
-
-            setUpArchetypeUser(user, archetypeOid);
-
-            importUserAndResolveAuxRoles(user, repository, result, log);
-
-        }
-
-    }
-
-    /**
-     * Resolves and imports sales users into the system, setting up their attributes based on specified criteria.
-     *
-     * @param salesCount The number of sales users to import.
-     * @param repository The repository service used for importing users.
-     */
-    private void resolveSales(int salesCount, RepositoryService repository) {
-        log.info("Importing sales users: 0/{}", salesCount);
-        String organizationOid = InitialObjectsDefinition.Organization.SALES.getOidValue();
-        String birthEmployeeRole = InitialObjectsDefinition.BirthrightBusinessRole.EMPLOYEE.getOidValue();
-        String archetypeOid = InitialObjectsDefinition.Archetypes.SALES_USER.getOidValue();
-
-        int ninetyPercent = (int) (salesCount * 0.9);
-        int seventyPercent = (int) (salesCount * 0.7);
-
-        InitialObjectsDefinition.JobInitialBusinessRole salesBr = InitialObjectsDefinition.JobInitialBusinessRole.SALES;
-        InitialObjectsDefinition.LocationInitialBusinessRole locationNewYorkBr = InitialObjectsDefinition.LocationInitialBusinessRole.LOCATION_NEW_YORK;
-        String jobTitle = "salesperson";
-
-        for (int i = 0; i < salesCount; i++) {
-            log.info("Importing sales users: {}/{}", i + 1, salesCount);
-            InitialObjectsDefinition.LocationInitialBusinessRole randomLocationBusinessRole = getRandomLocationBusinessRole();
-
-            UserType user = new UserType();
-            user.setName(getNameFromSet(PolyStringType.fromOrig("Sales User " + i)));
-            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
-            user.getAssignment().add(createOrgAssignment(organizationOid));
-            user.getAssignment().add(createRoleAssignment(salesBr.getOidValue()));
-
-            if (i < ninetyPercent) {
-                user.setTitle(PolyStringType.fromOrig(jobTitle));
-
-                if (i < seventyPercent) {
-                    user.setLocality(PolyStringType.fromOrig(locationNewYorkBr.getLocale()));
-                    user.getAssignment().add(createRoleAssignment(locationNewYorkBr.getOidValue()));
-                } else {
-                    user.setLocality(PolyStringType.fromOrig(randomLocationBusinessRole.getLocale()));
-                    user.getAssignment().add(createRoleAssignment(randomLocationBusinessRole.getOidValue()));
-                }
-
-            }
-
-            setUpArchetypeUser(user, archetypeOid);
-
-            importUserAndResolveAuxRoles(user, repository, result, log);
-
-        }
-    }
-
-    /**
-     * Resolves and imports security officer users into the system, setting up their attributes based on specified criteria.
-     *
-     * @param securityOfficersCount The number of security officer users to import.
-     * @param repository The repository service used for importing users.
-     */
-    private void resolveSecurityOfficers(int securityOfficersCount, RepositoryService repository) {
-        log.info("Importing security officer users: 0/{}", securityOfficersCount);
-        String organizationOid = InitialObjectsDefinition.Organization.SECURITY_OFFICERS.getOidValue();
-        String birthEmployeeRole = InitialObjectsDefinition.BirthrightBusinessRole.EMPLOYEE.getOidValue();
-        InitialObjectsDefinition.JobInitialBusinessRole securityOfficerRole = InitialObjectsDefinition.JobInitialBusinessRole.SECURITY_OFFICER;
-        String securityOfficerRoleOidValue = securityOfficerRole.getOidValue();
-        String archetypeOid = InitialObjectsDefinition.Archetypes.SECURITY_OFFICERS_USER.getOidValue();
-
-        for (int i = 0; i < securityOfficersCount; i++) {
-            log.info("Importing security officer users: {}/{}", i + 1, securityOfficersCount);
-            UserType user = new UserType();
-            user.setName(getNameFromSet(PolyStringType.fromOrig("Security Officer User " + i)));
-            user.getAssignment().add(createRoleAssignment(birthEmployeeRole));
-            user.getAssignment().add(createOrgAssignment(organizationOid));
-            user.getAssignment().add(createRoleAssignment(securityOfficerRoleOidValue));
-
-            setUpArchetypeUser(user, archetypeOid);
-
-            importUserAndResolveAuxRoles(user, repository, result, log);
-        }
-    }
-
-    /**
-     * Resolves and imports contractor users into the system, setting up their attributes based on specified criteria.
-     *
-     * @param contractorsCount The number of contractor users to import.
-     * @param repository The repository service used for importing users.
-     */
-    private void resolveContractors(int contractorsCount, RepositoryService repository) {
-        log.info("Importing contractor users: 0/{}", contractorsCount);
-        String organizationOid = InitialObjectsDefinition.Organization.CONTRACTORS.getOidValue();
-        String birthContractorRole = InitialObjectsDefinition.BirthrightBusinessRole.CONTRACTOR.getOidValue();
-        String archetypeOid = InitialObjectsDefinition.Archetypes.CONTRACTORS_USER.getOidValue();
-
-        for (int i = 0; i < contractorsCount; i++) {
-            log.info("Importing contractor users: {}/{}", i + 1, contractorsCount);
-            List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> randomPlanktonRoles = getRandomPlanktonRoles(0, generatorOptions);
-
-            UserType user = new UserType();
-            user.setName(getNameFromSet(PolyStringType.fromOrig("Contractor User " + i)));
-            user.getAssignment().add(createRoleAssignment(birthContractorRole));
-            user.getAssignment().add(createOrgAssignment(organizationOid));
-
-            for (InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole randomPlanktonRole : randomPlanktonRoles) {
-                user.getAssignment().add(createRoleAssignment(randomPlanktonRole.getOidValue()));
-            }
-
-            setUpArchetypeUser(user, archetypeOid);
-
-            importUserAndResolveAuxRoles(user, repository, result, log);
-        }
+    private void resolveUsers(@NotNull RepositoryService repository, int usersCount, RbacObjectCategoryProcessor.Category category, Set<String> names) {
+        generateRbacData(repository, category, log, generatorOptions, usersCount, names, result);
     }
 
     /**
@@ -701,9 +433,10 @@ public class ImportAction {
      * Gets a name from the set of extracted names from csv and removes it from the set due to objects name collision.
      *
      * @param initialName The initial name to use if the set is empty.
+     * @param names The set of extracted names from csv.
      * @return A PolyStringType representing the name.
      */
-    public PolyStringType getNameFromSet(PolyStringType initialName) {
+    public static PolyStringType getNameFromSet(PolyStringType initialName, Set<String> names) {
         if (names == null || names.isEmpty()) {
             return initialName;
         }

@@ -10,9 +10,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.experim
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.*;
 
 import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkAction;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -47,10 +50,14 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
     private static final String ID_SELECTOR_ROLE_HEADER_LABEL = "roleHeaderLabel";
     private static final String ID_SELECTOR_TABLE_MODE = "tableModeSelector";
     private static final String ID_TABLE_MODE_LABEL = "tableModeLabel";
+    private static final String ID_ACTION_MODE_LABEL = "actionModeLabel";
+    private static final String ID_ACTION_MODE_SELECTOR = "actionModeSelector";
 
     LoadableDetachableModel<DisplayValueOption> option;
     RoleAnalysisSortMode sortMode;
     RoleAnalysisChunkMode selectedTableMode;
+
+    RoleAnalysisChunkAction chunkAction;
 
     boolean isUserExpanded = false;
     boolean isRoleExpanded = false;
@@ -125,6 +132,8 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
 
         initSortingSetting();
 
+        initActionModeSetting();
+
         initTableModeSetting();
 
         initRoleHeaderSelector();
@@ -143,6 +152,7 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
             public void onClick(AjaxRequestTarget target) {
                 option.getObject().setSortMode(sortMode);
                 option.getObject().setChunkMode(selectedTableMode);
+                option.getObject().setChunkAction(chunkAction);
                 performAfterFinish(target);
                 onClose(target);
             }
@@ -292,6 +302,36 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
         add(sortModeSelector);
     }
 
+    public void initActionModeSetting() {
+        LabelWithHelpPanel labelWithHelpPanel = new LabelWithHelpPanel(ID_ACTION_MODE_LABEL,
+                getPageBase().createStringResource("RoleAnalysisTableSettingPanel.selector.actionMode")) {
+            @Override
+            protected IModel<String> getHelpModel() {
+                return getPageBase().createStringResource("RoleAnalysisTableSettingPanel.selector.actionMode.help");
+            }
+        };
+        labelWithHelpPanel.setOutputMarkupId(true);
+        add(labelWithHelpPanel);
+
+        ChoiceRenderer<RoleAnalysisChunkAction> renderer = new ChoiceRenderer<>("displayString");
+        chunkAction = option.getObject().getChunkAction();
+        IModel<RoleAnalysisChunkAction> selectedActionModel = Model.of(chunkAction);
+
+        DropDownChoice<RoleAnalysisChunkAction> chunkActionSelector = new DropDownChoice<>(
+                ID_ACTION_MODE_SELECTOR, selectedActionModel,
+                new ArrayList<>(EnumSet.allOf(RoleAnalysisChunkAction.class)), renderer);
+
+        chunkActionSelector.setOutputMarkupId(true);
+        chunkActionSelector.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                chunkAction = selectedActionModel.getObject();
+            }
+        });
+        chunkActionSelector.setOutputMarkupId(true);
+        add(chunkActionSelector);
+    }
+
     public void initTableModeSetting() {
 
         LabelWithHelpPanel labelWithHelpPanel = new LabelWithHelpPanel(ID_TABLE_MODE_LABEL,
@@ -385,4 +425,5 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
     public StringResourceModel getTitle() {
         return new StringResourceModel("RoleAnalysisTableSettingPanel.title");
     }
+
 }

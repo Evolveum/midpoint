@@ -305,6 +305,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         menu.addMainMenuItem(createOrganizationsMenu());
         menu.addMainMenuItem(createRolesMenu());
         menu.addMainMenuItem(createServicesItems());
+        menu.addMainMenuItem(createPoliciesItems());
         menu.addMainMenuItem(createResourcesItems());
         if (getPageBase().getCaseManager().isEnabled()) {
             menu.addMainMenuItem(createWorkItemsItems());
@@ -409,6 +410,12 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private MainMenuItem createServicesItems() {
         MainMenuItem serviceMenu = createMainMenuItem("PageAdmin.menu.top.services", GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED);
         createBasicAssignmentHolderMenuItems(serviceMenu, PageTypes.SERVICE);
+        return serviceMenu;
+    }
+
+    private MainMenuItem createPoliciesItems() {
+        MainMenuItem serviceMenu = createMainMenuItem("PageAdmin.menu.top.policies", GuiStyleConstants.CLASS_OBJECT_POLICY_ICON_COLORED);
+        createBasicAssignmentHolderMenuItems(serviceMenu, PageTypes.POLICY);
         return serviceMenu;
     }
 

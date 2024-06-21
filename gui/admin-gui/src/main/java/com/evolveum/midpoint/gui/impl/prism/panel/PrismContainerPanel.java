@@ -30,10 +30,6 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
 
     public PrismContainerPanel(String id, IModel<PCW> model, ItemPanelSettings settings) {
         super(id, model, settings);
-
-        if (getModelObject() != null) {
-            getModelObject().setExpanded(true);
-        }
     }
 
     @Override

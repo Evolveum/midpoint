@@ -55,8 +55,5 @@ public class SchemaDefinitionNameValidator implements IValidator<QName> {
             error.setMessage("Name '" + value.getLocalPart() + "' is not valid. Try '" + normalizedName + "'.");
             validatable.error(error);
         }
-
-
-
     }
 }

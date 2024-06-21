@@ -33,6 +33,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
      * */
     public enum TableId {
         TABLE_CLUSTER,
+        TABLE_SESSION,
         PAGE_USER_SELECTION,
         TABLE_ROLES,
         TABLE_CASES,
@@ -54,6 +55,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         ORG_MEMBER_PANEL,
         ARCHETYPE_MEMBER_PANEL,
         SERVICE_MEMBER_PANEL,
+        POLICY_MEMBER_PANEL,
         TREE_TABLE_PANEL_CHILD,
         TREE_TABLE_PANEL_MEMBER,
         TREE_TABLE_PANEL_MANAGER,
@@ -144,7 +146,12 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PANEL_PROPERTIES_SECRET_PROVIDERS,
         PANEL_ENVIRONMENT_VARIABLES_SECRET_PROVIDERS,
         PANEL_CUSTOM_SECRET_PROVIDERS,
-        PANEL_ASSOCIATION_TYPES
+        PANEL_ASSOCIATION_TYPES,
+        PAGE_SCHEMAS_TABLE,
+        PANEL_DETECTED_PATTERN,
+        PANEL_MIGRATED_ROLES,
+        PANEL_CANDIDATE_ROLES,
+        PANEL_OUTLIER_PROPERTIES,
     }
 
     private final Map<String, Integer> tables = new HashMap<>();

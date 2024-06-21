@@ -16,6 +16,8 @@ public enum CollectionPanelType {
     ROLE_MEMBER_MEMBER(true, "roleMembers", true, FocusType.COMPLEX_TYPE),
     SERVICE_MEMBER_GOVERNANCE(true, "serviceGovernance", true, FocusType.COMPLEX_TYPE),
     SERVICE_MEMBER_MEMBER(true, "serviceMembers", true, FocusType.COMPLEX_TYPE),
+    POLICY_MEMBER_GOVERNANCE(true, "policyGovernance", true, FocusType.COMPLEX_TYPE),
+    POLICY_MEMBER_MEMBER(true, "policyMembers", true, FocusType.COMPLEX_TYPE),
     ARCHETYPE_MEMBER_GOVERNANCE(true, "archetypeGovernance", true, FocusType.COMPLEX_TYPE),
     ARCHETYPE_MEMBER_MEMBER(true, "archetypeMembers", true, AssignmentHolderType.COMPLEX_TYPE),
     ORG_MEMBER_GOVERNANCE(true, "orgGovernance", true, FocusType.COMPLEX_TYPE),

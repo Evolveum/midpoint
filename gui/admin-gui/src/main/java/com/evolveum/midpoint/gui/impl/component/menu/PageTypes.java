@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemp
 import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
 import com.evolveum.midpoint.gui.impl.page.admin.objecttemplate.PageObjectTemplate;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
+import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicies;
+import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicy;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
@@ -49,6 +51,7 @@ public enum PageTypes {
     USER("users", GuiStyleConstants.CLASS_OBJECT_USER_ICON, PageUsers.class, PageUser.class, UserType.COMPLEX_TYPE),
     ROLE("roles", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, PageRoles.class, PageRole.class, RoleType.COMPLEX_TYPE),
     SERVICE("services", GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, PageServices.class, PageService.class, ServiceType.COMPLEX_TYPE),
+    POLICY("policies", GuiStyleConstants.CLASS_OBJECT_POLICY_ICON, PagePolicies.class, PagePolicy.class, PolicyType.COMPLEX_TYPE),
     ORG("orgs", GuiStyleConstants.CLASS_OBJECT_ORG_ICON, PageOrgs.class, PageOrg.class, OrgType.COMPLEX_TYPE),
     TASK("tasks", GuiStyleConstants.CLASS_OBJECT_TASK_ICON, PageTasks.class, PageTask.class, TaskType.COMPLEX_TYPE),
     RESOURCE("resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResources.class, PageResource.class, ResourceType.COMPLEX_TYPE),

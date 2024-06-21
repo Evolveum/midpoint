@@ -49,7 +49,7 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
      * @return The computed Jaccard distance between the sets.
      */
     @Override
-    public double compute(
+    public double computeBalancedDistance(
             @NotNull Set<String> valueA,
             @NotNull Set<String> valueB) {
         int intersectionCount = 0;
@@ -133,7 +133,7 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
     }
 
     @Override
-    public double compute(
+    public double computeRuleDistance(
             @NotNull ExtensionProperties valueA,
             @NotNull ExtensionProperties valueB,
             @NotNull Set<ClusterExplanation> explanation) {
@@ -174,6 +174,22 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
         }
 
         return 1;
+    }
+
+    @Override
+    public double computeSimpleDistance(@NotNull Set<String> valueA, @NotNull Set<String> valueB) {
+        int intersectionSize = 0;
+        for (String element : valueA) {
+            if (valueB.contains(element)) {
+                intersectionSize++;
+            }
+        }
+
+        if(intersectionSize < minIntersection) {
+            return 1;
+        }
+
+        return 0;
     }
 
     private double computeSingleValue(

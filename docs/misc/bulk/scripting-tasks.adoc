@@ -5,7 +5,7 @@
 :page-wiki-metadata-create-date: 2018-03-28T14:11:52.623+02:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2020-03-03T13:35:28.883+01:00
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 :page-alias: { "parent" : "/midpoint/reference/tasks/", "slug" : "bulk",  "title" : "Scripting Tasks (Bulk Actions)" }
 
 There are two ways of executing scripts within tasks:
@@ -25,44 +25,15 @@ Therefore, for considerable number of objects (e.g. thousands) the traditional t
 
 === An example
 
-.Traditional bulk action that sets preferredLanguage for all users
-[source,xml]
-----
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <name>Set preferredLanguage for all users</name>
-    <extension>
-        <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-            <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
-                <s:type>c:UserType</s:type>
-                <s:action>
-                    <s:type>modify</s:type>
-                    <s:parameter>
-                        <s:name>delta</s:name>
-                        <c:value xsi:type="t:ObjectDeltaType">
-                            <t:changeType>modify</t:changeType>
-                            <t:itemDelta>
-                                <t:modificationType>replace</t:modificationType>
-                                <t:path>c:preferredLanguage</t:path>
-                                <t:value>sk_SK</t:value>
-                            </t:itemDelta>
-                        </c:value>
-                    </s:parameter>
-                </s:action>
-            </s:search>
-        </scext:executeScript>
-    </extension>
-    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</handlerUri>
-    <recurrence>single</recurrence>
-</task>
-----
+.*Traditional bulk action that sets preferredLanguage for all users*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/set-preferred-language-all-users.xml[Git]
 
-This is a traditional approach: the whole script is present in the `executeScript` extension property.
+sampleRef::samples/tasks/bulk-actions/set-preferred-language-all-users.xml[]
+====
+
+This is a traditional approach: the whole script is present in the `nonIterativeScripting` property.
 The script consists of `search` instruction, followed by the `modify` action.
 
 This approach is more general than the following one: the script can be of any form, not necessarily `search` + something.
@@ -74,43 +45,17 @@ However, the work cannot be segmented into buckets, and therefore cannot be dist
 
 === An example (single-node)
 
-.Iterative bulk action that sets preferredLanguage for all users
-[source,xml]
-----
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <name>Set preferredLanguage for all users (multinode)</name>
-    <extension>
-        <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-            <s:action>
-                <s:type>modify</s:type>
-                <s:parameter>
-                    <s:name>delta</s:name>
-                    <c:value xsi:type="t:ObjectDeltaType">
-                        <t:itemDelta>
-                            <t:modificationType>replace</t:modificationType>
-                            <t:path>c:preferredLanguage</t:path>
-                            <t:value>sk_SK</t:value>
-                        </t:itemDelta>
-                    </c:value>
-                </s:parameter>
-            </s:action>
-        </scext:executeScript>
-        <mext:objectType xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">UserType</mext:objectType>
-    </extension>
-    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>
-    <recurrence>single</recurrence>
-</task>
-----
+.*Iterative bulk action that sets preferredLanguage for all users*
 
-Now the `executeScript` contains only the action(s) to be executed on objects found.
-The objects to be processed are specified using `mext:objectType` and (optionally) `mext:objectQuery` extension properties.
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/set-preferred-language-all-users-singlenode.xml[Git]
+
+sampleRef::samples/tasks/bulk-actions/set-preferred-language-all-users-singlenode.xml[]
+====
+
+Now the `scriptExecutionRequest` contains only the action(s) to be executed on objects found.
+The objects to be processed are specified using `objects` and (optionally) `query` properties.
 
 Although this approach is more limited (it is always a search followed by some processing), it can be easily segmented and thus distributed and resumed after suspension.
 
@@ -120,52 +65,12 @@ An example of distribution on cluster nodes is shown below:
 === An example (multi-node)
 
 .Iterative bulk action that sets preferredLanguage for all users (multi-node)
-[source,xml]
-----
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <name>Set preferredLanguage for all users (multinode)</name>
-    <extension>
-        <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-            <s:action>
-                <s:type>modify</s:type>
-                <s:parameter>
-                    <s:name>delta</s:name>
-                    <c:value xsi:type="t:ObjectDeltaType">
-                        <t:itemDelta>
-                            <t:modificationType>replace</t:modificationType>
-                            <t:path>c:preferredLanguage</t:path>
-                            <t:value>sk_SK</t:value>
-                        </t:itemDelta>
-                    </c:value>
-                </s:parameter>
-            </s:action>
-        </scext:executeScript>
-        <mext:objectType xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">UserType</mext:objectType>
-    </extension>
-    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3</handlerUri>
-    <workManagement>
-        <buckets>
-            <oidSegmentation>
-                <depth>3</depth>
-            </oidSegmentation>
-        </buckets>
-        <workers>
-            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>
-            <workersPerNode>
-                <count>2</count>
-            </workersPerNode>
-        </workers>
-    </workManagement>
-    <recurrence>single</recurrence>
-</task>
-----
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/set-preffered-language-all-users-multinode.xml[Git]
+
+sampleRef::samples/tasks/bulk-actions/set-preffered-language-all-users-multinode.xml[]
+====
 
 Here the work to be done is segmented into 16^3^ = 4096 buckets that are processed by two worker tasks on each node.
 (This number of buckets is appropriate for - let's say - 40.000-400.000 users, having 100-1000 users in one bucket.)

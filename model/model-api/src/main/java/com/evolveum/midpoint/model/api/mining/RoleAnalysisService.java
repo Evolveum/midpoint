@@ -12,18 +12,19 @@ import java.util.Map;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
+import com.evolveum.midpoint.common.mining.utils.values.ZScoreData;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -453,6 +454,7 @@ public interface RoleAnalysisService {
      * @param taskName The name of the task.
      * @param task The task associated with this operation.
      * @param result The operation result.
+     * @param state Cluster operation state
      */
     void executeDetectionTask(
             @NotNull ModelInteractionService modelInteractionService,
@@ -460,7 +462,8 @@ public interface RoleAnalysisService {
             @Nullable String taskOid,
             @Nullable PolyStringType taskName,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            String state);
 
     /**
      * This method is used to execute a clustering task.
@@ -472,6 +475,7 @@ public interface RoleAnalysisService {
      * @param taskName The name of the task.
      * @param task The task associated with this operation.
      * @param result The operation result.
+     * @param processingTask
      */
     void executeClusteringTask(
             @NotNull ModelInteractionService modelInteractionService,
@@ -479,7 +483,8 @@ public interface RoleAnalysisService {
             @Nullable String taskOid,
             @Nullable PolyStringType taskName,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @NotNull TaskType processingTask);
 
     /**
      * This method is used to update the cluster detected patterns.
@@ -502,12 +507,14 @@ public interface RoleAnalysisService {
      * @param clusterOid The cluster for recompute and resolve.
      * @param result The operation result.
      * @param task The task associated with this operation.
+     * @param onlyStatusUpdate If set true pattern detection does not perform
+     * @param modelInteractionService Model interactive service provider
      * @return The cluster operation status.
      */
     @NotNull String recomputeAndResolveClusterOpStatus(
             @NotNull String clusterOid,
             @NotNull OperationResult result,
-            @NotNull Task task);
+            @NotNull Task task, boolean onlyStatusUpdate, @Nullable ModelInteractionService modelInteractionService);
 
     /**
      * Recompute and resolve the cluster operation status.
@@ -678,6 +685,7 @@ public interface RoleAnalysisService {
 
     /**
      * Performs attribute analysis for user roles.
+     *
      * @param attributeRoleDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for role analysis.
      * @param objectOid The OID of the object to analyze.
      * @param task Task used for processing the attribute analysis.
@@ -777,10 +785,125 @@ public interface RoleAnalysisService {
      * @param session The RoleAnalysisSessionType object that contains the analysis options.
      * @param complexType The QName object that represents the complex type of the attribute.
      * @return A list of RoleAnalysisAttributeDef objects that match the provided complex type.
-     *         Returns null if no matching attributes are found or if the analysis option or process mode is not set in the session.
+     * Returns null if no matching attributes are found or if the analysis option or process mode is not set in the session.
      */
     @Nullable List<RoleAnalysisAttributeDef> resolveAnalysisAttributes(
             @NotNull RoleAnalysisSessionType session,
             @NotNull QName complexType);
+
+    /**
+     * Imports a RoleAnalysisOutlierType object into the system.
+     *
+     * @param outlier The outlier for importing.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
+    void importOutlier(
+            @NotNull RoleAnalysisOutlierType outlier,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    RoleAnalysisAttributeAnalysisResult resolveUserAttributes(@NotNull PrismObject<UserType> prismUser, List<RoleAnalysisAttributeDef> attributesForUserAnalysis);
+
+    @Nullable RoleAnalysisAttributeAnalysisResult resolveSimilarAspect(
+            @NotNull RoleAnalysisAttributeAnalysisResult compared,
+            @NotNull RoleAnalysisAttributeAnalysisResult comparison);
+
+    RoleAnalysisAttributeAnalysisResult resolveRoleMembersAttribute(
+            @NotNull String objectOid,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet);
+
+    <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(@NotNull List<T> data, double negativeThreshold, double positiveThreshold);
+
+    <T extends MiningBaseTypeChunk> double calculateZScore(@NotNull T data, ZScoreData zScoreData);
+
+    <T extends MiningBaseTypeChunk> double calculateZScoreConfidence(@NotNull T item, ZScoreData zScoreData);
+
+    List<RoleAnalysisAttributeDef> resolveRoleAttributes(@NotNull RoleAnalysisSessionType session);
+
+    List<RoleAnalysisAttributeDef> resolveUserAttributes(@NotNull RoleAnalysisSessionType session);
+
+    @Nullable Set<String> resolveUserValueToMark(
+            @NotNull PrismObject<UserType> prismUser,
+            @NotNull List<RoleAnalysisAttributeDef> itemDef);
+
+    /**
+     * Resolve object attribute value.
+     *
+     * @param prismRole The role object.
+     * @param itemDef The attribute definition.
+     * @return Set of attribute values that role has.
+     */
+    @Nullable Set<String> resolveRoleValueToMark(
+            @NotNull PrismObject<RoleType> prismRole,
+            @NotNull List<RoleAnalysisAttributeDef> itemDef);
+
+    /**
+     * Resolves outliers for a given role analysis outlier type.
+     * This method retrieves the target object reference from the provided outlier type and performs the following steps:
+     * 1. Searches for existing outliers with the same target object reference.
+     * 2. If no outliers are found, imports the provided outlier.
+     * 3. If outliers are found, updates the existing outlier with new outlier descriptions and removes outdated descriptions.
+     * <p>
+     * This method is responsible for handling exceptions that may occur during the process and logs errors accordingly.
+     *
+     * @param roleAnalysisOutlierType The role analysis outlier type containing the outlier information.
+     * @param task The task associated with the operation.
+     * @param result The operation result.
+     * @param sessionOid The OID of the session associated with the outlier.
+     */
+    void resolveOutliers(
+            @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull String sessionOid);
+
+    /**
+     * Search for the top detected patterns over all clusters
+     *
+     * @param task the task
+     * @param result the operation result
+     */
+    @NotNull List<DetectedPattern> findTopPatters(
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    void replaceSessionMarkRef(
+            @NotNull PrismObject<RoleAnalysisSessionType> session,
+            @NotNull ObjectReferenceType newMarkRef,
+            @NotNull OperationResult result,
+            @NotNull Task task);
+
+    void updateSessionMarkRef(
+            @NotNull PrismObject<RoleAnalysisSessionType> session,
+            @NotNull OperationResult result,
+            @NotNull Task task);
+
+    void deleteSessionTask(
+            @NotNull String sessionOid,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    void deleteSessionTask(
+            @NotNull TaskType taskToDelete,
+            @NotNull OperationResult result);
+
+    @Nullable PrismObject<TaskType> getSessionTask(
+            @NotNull String sessionOid,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    void stopSessionTask(
+            @NotNull String sessionOid,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    List<DetectedPattern> getTopSessionPattern(
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            boolean single);
 
 }

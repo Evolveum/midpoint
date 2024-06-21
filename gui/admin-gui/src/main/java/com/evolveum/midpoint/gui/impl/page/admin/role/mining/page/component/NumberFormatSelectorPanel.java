@@ -37,6 +37,7 @@ public class NumberFormatSelectorPanel extends InputPanel {
 
         ImagePanel preGroup = new ImagePanel(ID_PRE_GROUP, Model.of(getImage()));
         preGroup.setOutputMarkupId(true);
+        preGroup.setVisible(isPreGroupVisible());
         add(preGroup);
 
         NumberTextField<Double> field = new NumberTextField<>(ID_PANEL, getValueModel(), Double.class);
@@ -86,4 +87,7 @@ public class NumberFormatSelectorPanel extends InputPanel {
         return (NumberTextField) get(getPageBase().createComponentPath(ID_PANEL));
     }
 
+    protected boolean isPreGroupVisible() {
+        return true;
+    }
 }

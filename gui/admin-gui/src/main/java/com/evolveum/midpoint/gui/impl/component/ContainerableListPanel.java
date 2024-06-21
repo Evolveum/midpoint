@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -263,6 +264,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
      * @return {@code true} if the table is collapsible, {@code false} otherwise.
      */
     protected boolean isCollapsableTable() {
+        return false;
+    }
+
+    protected boolean isCardTable() {
         return false;
     }
 
@@ -640,6 +645,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                     @Override
                     protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
                         return isMenuItemVisible(rowModel);
+                    }
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<PO>> cellItem, String componentId, IModel<PO> rowModel) {
+//                        cellItem.add(Attr))
+                        super.populateItem(cellItem, componentId, rowModel);
                     }
                 };
                 columns.add(actionsColumn);

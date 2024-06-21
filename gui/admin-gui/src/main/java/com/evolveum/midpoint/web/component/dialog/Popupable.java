@@ -10,8 +10,11 @@ import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface Popupable {
+
+    String ID_TITLE = "title";
 
     String ID_CONTENT = "content";
 
@@ -31,5 +34,10 @@ public interface Popupable {
     @NotNull
     default Component getFooter() {
         return new WebMarkupContainer(ID_FOOTER);
+    }
+
+    @Nullable
+    default Component getTitleComponent() {
+        return null;
     }
 }

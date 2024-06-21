@@ -14,6 +14,7 @@ import java.util.*;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -258,8 +259,9 @@ public abstract class BasePrepareAction implements MiningStructure {
             }
 
             double frequency = Math.min(key.size() / membersCount, 1);
+            FrequencyItem frequencyType = new FrequencyItem(frequency);
 
-            MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(roles, key, chunkName, frequency, RoleAnalysisOperationMode.EXCLUDE);
+            MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(roles, key, chunkName, frequencyType, RoleAnalysisOperationMode.EXCLUDE);
 
             if (iconColor != null) {
                 miningRoleTypeChunk.setIconColor(iconColor);
@@ -301,7 +303,7 @@ public abstract class BasePrepareAction implements MiningStructure {
                 }
             }
 
-            MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(users, key, chunkName, frequency, RoleAnalysisOperationMode.EXCLUDE);
+            MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(users, key, chunkName, new FrequencyItem(frequency), RoleAnalysisOperationMode.EXCLUDE);
 
             if (iconColor != null) {
                 miningUserTypeChunk.setIconColor(iconColor);

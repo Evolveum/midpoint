@@ -9,8 +9,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schema.ResourceSchemaWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.ResourceAssociationTypeWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard.CreateComplexOrEnumerationWizardPanel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -205,6 +208,13 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     public void showAssociationsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
         showContainerWizard(target, pathToValue, AssociationsWizardPanel.class);
+    }
+
+    public ResourceSchemaWizardPanel showComplexOrEnumerationTypeWizard(AjaxRequestTarget target) {
+        return showWizard(
+                target,
+                ItemPath.EMPTY_PATH,
+                ResourceSchemaWizardPanel.class);
     }
 
     private <P extends AbstractWizardPanel> void showContainerWizard(

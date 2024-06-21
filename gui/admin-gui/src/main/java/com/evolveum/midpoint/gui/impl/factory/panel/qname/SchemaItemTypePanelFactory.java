@@ -34,9 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * @author katkav
- */
 @Component
 public class SchemaItemTypePanelFactory extends AbstractQNameWithChoicesPanelFactory implements Serializable {
 
@@ -85,7 +82,7 @@ public class SchemaItemTypePanelFactory extends AbstractQNameWithChoicesPanelFac
 
         List<DisplayableValue<QName>> alltypes = new ArrayList<>();
 
-        XsdTypeMapper.getAllTypes().forEach(type -> alltypes.add(new TypeDisplayableValue(createLabelForType(null, type), type)));
+        XsdTypeMapper.getAllTypes().forEach(type -> alltypes.add(createDisplayValue(createLabelForType(null, type), type)));
 
         alltypes.add(new TypeDisplayableValue("ref.details", ObjectReferenceType.COMPLEX_TYPE));
 
@@ -130,6 +127,10 @@ public class SchemaItemTypePanelFactory extends AbstractQNameWithChoicesPanelFac
         return alltypes;
     }
 
+    protected DisplayableValue<QName> createDisplayValue(String labelForType, QName type) {
+        return new TypeDisplayableValue(labelForType, type);
+    }
+
     private String createLabelForEnum(String displayName, QName typeName) {
         String label = createLabelForType(displayName, typeName);
         label = StringUtils.removeEndIgnoreCase(label, "type");
@@ -137,7 +138,7 @@ public class SchemaItemTypePanelFactory extends AbstractQNameWithChoicesPanelFac
         return LocalizationUtil.translate("SchemaItemTypePanelFactory.enumeration", new Object[] { label });
     }
 
-    private String createLabelForType(String displayName, QName typeName) {
+    String createLabelForType(String displayName, QName typeName) {
         if (StringUtils.isNotEmpty(displayName)) {
             return displayName;
         }

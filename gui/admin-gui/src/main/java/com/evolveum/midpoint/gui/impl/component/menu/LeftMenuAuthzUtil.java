@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicies;
+import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicy;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.cases.PageCases;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
@@ -43,6 +45,9 @@ public class LeftMenuAuthzUtil {
         pageAuthorizationMaps.put(PageServices.class,
                 Arrays.asList(AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
                         AuthorizationConstants.AUTZ_UI_SERVICES_URL));
+        pageAuthorizationMaps.put(PagePolicies.class,
+                Arrays.asList(AuthorizationConstants.AUTZ_UI_POLICIES_ALL_URL,
+                        AuthorizationConstants.AUTZ_UI_POLICIES_URL));
         pageAuthorizationMaps.put(PageResources.class,
                 Arrays.asList(AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
                         AuthorizationConstants.AUTZ_UI_RESOURCES_URL));
@@ -68,6 +73,9 @@ public class LeftMenuAuthzUtil {
         viewsAuthorizationMaps.put(PageServices.class,
                 Arrays.asList(AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
                         AuthorizationConstants.AUTZ_UI_SERVICES_VIEW_URL));
+        viewsAuthorizationMaps.put(PagePolicy.class,
+                Arrays.asList(AuthorizationConstants.AUTZ_UI_POLICIES_ALL_URL,
+                        AuthorizationConstants.AUTZ_UI_POLICIES_VIEW_URL));
         viewsAuthorizationMaps.put(PageResources.class,
                 Arrays.asList(AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
                         AuthorizationConstants.AUTZ_UI_RESOURCES_VIEW_URL));

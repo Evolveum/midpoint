@@ -67,6 +67,6 @@ public class ComplexTypeExtensionTypePanelFactory extends DropDownChoicePanelFac
 
     @Override
     public Integer getOrder() {
-        return 99;
+        return 101;
     }
 }

@@ -86,6 +86,10 @@ public class RoleAnalysisProgressIncrement implements Serializable {
         log();
     }
 
+    public void finish() {
+        this.actualStatus = operationCountToProcess;
+    }
+
     public void enterNewStep(String subTitle) {
         if (progressIncrementer != null) {
             progressIncrementer.run();

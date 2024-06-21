@@ -194,6 +194,7 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:displayOrder>30</a:displayOrder>
+                                <a:displayName>PrismItemDefinitionType.required</a:displayName>
                             </xsd:appinfo>
                             <xsd:documentation>
                                 <p>
@@ -206,6 +207,7 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:displayOrder>40</a:displayOrder>
+                                <a:displayName>PrismItemDefinitionType.multivalue</a:displayName>
                             </xsd:appinfo>
                             <xsd:documentation>
                                 <p>
@@ -218,6 +220,7 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:displayOrder>50</a:displayOrder>
+                                <a:displayName>PrismItemDefinitionType.indexed</a:displayName>
                             </xsd:appinfo>
                             <xsd:documentation>
                                 <p>
@@ -251,6 +254,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="prismItemDef" type="tns:PrismItemDefinitionType"/>
 
     <xsd:complexType name="DefinitionType">
         <xsd:annotation>
@@ -269,6 +273,7 @@
                     <xsd:appinfo>
                         <a:displayOrder>0</a:displayOrder>
                         <a:displayHint>emphasized</a:displayHint>
+                        <a:displayName>DefinitionType.name</a:displayName>
                     </xsd:appinfo>
                     <xsd:documentation>
                         <p>
@@ -277,7 +282,32 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element ref="c:displayName" minOccurs="0"/>
+            <xsd:element ref="c:displayName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Human readable name. This name may be displayed in tools and GUIs
+                            to provide more pleasant user experience, as the XML data type names
+                            or object names may look quite frightening.</p>
+
+                        <p>
+                            The "displayName" should contain a value that is readable for almost any
+                            user. It is never used in the "logic", it is used only for display purposes.
+                        </p>
+
+                        <p>
+                            The use of national characters is in "displayName" is fully supported.
+                        </p>
+
+                        <p>
+                            DisplayName is reused in several location, but the meaning is still the same.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>DefinitionType.displayName</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="help" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

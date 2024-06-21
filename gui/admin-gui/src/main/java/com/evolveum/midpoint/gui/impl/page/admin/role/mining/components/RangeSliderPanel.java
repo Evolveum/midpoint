@@ -51,7 +51,7 @@ public class RangeSliderPanel extends InputPanel {
             public void convertInput() {
                 String input = getInput();
                 if (input != null && !input.isEmpty()) {
-                    Double value = Double.parseDouble(input);
+                    Double value = Double.parseDouble(input.replace(',', '.'));
                     setConvertedInput(value);
                 }
             }

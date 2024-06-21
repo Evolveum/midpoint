@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.mining.outlier.QOutlierObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.*;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -178,6 +179,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.init(repositoryContext))
                 .register(RoleAnalysisClusterType.COMPLEX_TYPE, QClusterObjectMapping.init(repositoryContext))
                 .register(RoleAnalysisSessionType.COMPLEX_TYPE, QSessionObjectMapping.init(repositoryContext))
+                .register(RoleAnalysisOutlierType.COMPLEX_TYPE, QOutlierObjectMapping.init(repositoryContext))
                 .register(ResourceType.COMPLEX_TYPE, QResourceMapping.init(repositoryContext))
                 .register(RoleType.COMPLEX_TYPE, QRoleMapping.init(repositoryContext))
                 .register(SecurityPolicyType.COMPLEX_TYPE,
