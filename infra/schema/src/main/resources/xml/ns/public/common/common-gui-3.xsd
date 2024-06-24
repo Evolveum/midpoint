@@ -2037,7 +2037,8 @@
                     <xsd:element name="multiselect" type="tns:MultiselectOptionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Configures the possibility of selecting multiple objects in the table or view.
+                                Configures the possibility of selecting multiple objects in the table or view
+                                (in case this table or view provides item selection functionality).
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GuiObjectListPanelConfigurationType.multiselect</a:displayName>
