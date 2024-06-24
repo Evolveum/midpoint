@@ -56,17 +56,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -86,15 +83,15 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/certification/decisions", matchUrlForSecurity = "/admin/certification/decisions")
+                @Url(mountUrl = "/admin/certification/decisionsAll", matchUrlForSecurity = "/admin/certification/decisionsAll")
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                         label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
                         description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS,
-                        label = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_LABEL,
-                        description = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_DESCRIPTION) })
+                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DECISIONS,
+                        label = PageAdminCertification.AUTH_CERTIFICATION_DECISIONS_LABEL,
+                        description = PageAdminCertification.AUTH_CERTIFICATION_DECISIONS_DESCRIPTION)})
 @CollectionInstance(identifier = "allCertDecisions", applicableForType = AccessCertificationWorkItemType.class,
         display = @PanelDisplay(label = "PageAdmin.menu.top.certification.decisions", singularLabel = ""))
 public class PageCertDecisions extends PageAdminCertification {
@@ -117,7 +114,7 @@ public class PageCertDecisions extends PageAdminCertification {
     private CertDecisionHelper helper = new CertDecisionHelper();
 
     boolean isDisplayingAllItems() {
-        return false;
+        return true;
     }
 
     public PageCertDecisions() {

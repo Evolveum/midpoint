@@ -475,15 +475,15 @@ public class LeftMenuPanel extends BasePanel<Void> {
         }
 
 //        if (isFullyAuthorized()) {  // workaround for MID-5917
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.allDecisions", PageCertDecisionsAll.class));
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.allDecisions", PageCertDecisions.class));
 
 //        }
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.decisions", PageCertDecisions.class));
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.decisions", PageMyCertDecisions.class));
+
+        addCollectionsMenuItems(certificationMenu, AccessCertificationWorkItemType.COMPLEX_TYPE, PageCertDecisions.class);
 
         MenuItem newCertificationMenu = new MenuItem("PageAdmin.menu.top.certification.newDefinition", GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCertDefinition.class);
         certificationMenu.addMenuItem(newCertificationMenu);
-
-        addCollectionsMenuItems(certificationMenu, AccessCertificationWorkItemType.COMPLEX_TYPE, PageCertDecisions.class);
 
         return certificationMenu;
     }
