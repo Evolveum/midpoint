@@ -115,7 +115,13 @@ public class ComplexTypeDefinitionPanel<AH extends AssignmentHolderType, ADM ext
                         PrismContainerWrapper<ComplexTypeDefinitionType> complexContainerWrapper =
                                 getObjectWrapper().findContainer(ItemPath.create(containerPath, PrismSchemaType.F_COMPLEX_TYPE));
                         if (complexContainerWrapper != null) {
-                            values.addAll(complexContainerWrapper.getValues());
+                            complexContainerWrapper.getValues().forEach(value -> {
+                                if (complexContainerWrapper.isReadOnly() &&
+                                        value.getRealValue().getItemDefinitions().isEmpty()) {
+                                    return;
+                                }
+                                values.add(value);
+                            });
                         }
 
                         PrismContainerWrapper<EnumerationTypeDefinitionType> enumContainerWrapper =
@@ -411,6 +417,10 @@ public class ComplexTypeDefinitionPanel<AH extends AssignmentHolderType, ADM ext
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
+                if (typeValueModel.getObject() == null) {
+                    return new WebMarkupContainer(panelId);
+                }
+
                 if (typeValueModel.getObject().getRealValue() instanceof ComplexTypeDefinitionType) {
                     PrismItemDefinitionsTable table = new PrismItemDefinitionsTable(
                             panelId,
@@ -446,7 +456,7 @@ public class ComplexTypeDefinitionPanel<AH extends AssignmentHolderType, ADM ext
                     return table;
                 }
 
-                return null;
+                return new WebMarkupContainer(panelId);
             }
 
             @Override
@@ -456,6 +466,10 @@ public class ComplexTypeDefinitionPanel<AH extends AssignmentHolderType, ADM ext
 
             @Override
             public String getCount() {
+                if (typeValueModel.getObject() == null) {
+                    return "0";
+                }
+
                 if (typeValueModel.getObject().getRealValue() instanceof ComplexTypeDefinitionType complexType) {
                     return String.valueOf(complexType.getItemDefinitions().size());
                 }
@@ -464,7 +478,7 @@ public class ComplexTypeDefinitionPanel<AH extends AssignmentHolderType, ADM ext
                     return String.valueOf(enumType.getValues().size());
                 }
 
-                return "";
+                return "0";
             }
         };
     }

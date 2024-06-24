@@ -50,10 +50,9 @@ public class ResourceSchemaPanel extends AbstractObjectMainPanel<ResourceType, R
 
             @Override
             protected boolean isNewDefinitionButtonVisible() {
-                return false;
-//                CapabilityCollectionType capabilities
-//                        = ProvisioningObjectsUtil.getNativeCapabilities(getObjectDetailsModels().getObjectType(), getPageBase());
-//                return capabilities.getSchema() != null;
+                CapabilityCollectionType capabilities
+                        = ProvisioningObjectsUtil.getNativeCapabilities(getObjectDetailsModels().getObjectType(), getPageBase());
+                return capabilities.getSchema() != null;
             }
 
             @Override

@@ -39,9 +39,9 @@ public class PrismSchemaWrapper extends PrismContainerWrapperImpl<PrismSchemaTyp
 
     private final ItemPath wrapperPath;
 
-    public PrismSchemaWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<PrismSchemaType> item, ItemStatus status, ItemPath propertyPath) {
+    public PrismSchemaWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<PrismSchemaType> item, ItemStatus status, ItemPath wrapperPath) {
         super(parent, item, status);
-        this.wrapperPath = propertyPath;
+        this.wrapperPath = wrapperPath;
     }
 
     @Override
