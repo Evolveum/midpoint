@@ -12,11 +12,8 @@ import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProv
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ContainerListDataProvider;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
@@ -29,15 +26,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.component.action.*;
 import com.evolveum.midpoint.web.component.data.column.*;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.certification.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
-import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
 import com.evolveum.midpoint.web.session.CertDecisionsStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -52,10 +46,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
@@ -93,7 +84,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     private List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createColumns() {
         List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> columns =
                 ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
-        List<AbstractGuiAction<AccessCertificationWorkItemType>> actions = getActions();
+        List<AbstractGuiAction<AccessCertificationWorkItemType>> actions = getCertItemActions();
 
         columns.add(new GuiActionColumn<>(actions, getPageBase()) {
             @Serial private static final long serialVersionUID = 1L;
@@ -282,44 +273,18 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         return false;
     }
 
-    //todo move to ContainerableListPanel
-    private List<AbstractGuiAction<AccessCertificationWorkItemType>> getActions() {
+    private List<AbstractGuiAction<AccessCertificationWorkItemType>> getCertItemActions() {
+        List<AccessCertificationResponseType> availableResponses = new AvailableResponses(getPageBase()).getResponseValues();   //from sys config
+        if (CollectionUtils.isEmpty(availableResponses)) {
+            availableResponses = Arrays.stream(values()).filter(r -> r != DELEGATE).collect(Collectors.toList());
+        }
+        List<GuiActionType> actions = getCertItemsViewActions();
+        return CertMiscUtil.mergeCertItemsResponses(availableResponses, actions, getPageBase());
+    }
+
+    private List<GuiActionType> getCertItemsViewActions() {
         CompiledObjectCollectionView collectionView = getObjectCollectionView();
-        if (collectionView != null && !collectionView.getActions().isEmpty()) {
-            return collectionView
-                    .getActions()
-                    .stream()
-                    .filter(action -> StringUtils.isNotEmpty(action.getIdentifier()))
-                    .map(this::createAction)
-                    .toList();
-        }
-        return getDefaultActions();
+        return collectionView == null ? new ArrayList<>() : collectionView.getActions();
     }
 
-    private AbstractGuiAction<AccessCertificationWorkItemType> createAction(GuiActionType guiAction) {
-        Class<? extends AbstractGuiAction<?>> actionClass = getPageBase().findGuiAction(guiAction.getIdentifier());
-        if (actionClass == null) {
-            error("Unable to find action for identifier: " + guiAction.getIdentifier());
-            return null;
-        }
-        ActionType actionType = actionClass.getAnnotation(ActionType.class);
-        Class<?> applicableFor = actionType.applicableForType();
-        if (AccessCertificationWorkItemType.class != applicableFor) {
-            error("The action with identifier " + guiAction.getIdentifier() + " is not applicable for AccessCertificationWorkItemType");
-            return null;
-        }
-        return WebComponentUtil.instantiateAction(
-                (Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>> ) actionClass);
-    }
-
-    private List<AbstractGuiAction<AccessCertificationWorkItemType>> getDefaultActions() {
-        List<AbstractGuiAction<AccessCertificationWorkItemType>> actions = new ArrayList<>();
-        actions.add(new CertItemAcceptAction());
-        actions.add(new CertItemRevokeAction());
-        actions.add(new CertItemReduceAction());
-        actions.add(new CertItemNotDecidedAction());
-        actions.add(new CertItemNoResponseAction());
-        actions.add(new CertItemResolveAction());
-        return actions;
-    }
 }

@@ -15,6 +15,7 @@ import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -24,6 +25,9 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.ActionType;
+import com.evolveum.midpoint.web.component.action.*;
+import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.wicket.chartjs.ChartData;
@@ -235,6 +239,73 @@ public class CertMiscUtil {
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    public static List<AbstractGuiAction<AccessCertificationWorkItemType>> mergeCertItemsResponses
+            (List<AccessCertificationResponseType> availableResponses, List<GuiActionType> actions, PageBase pageBase) {
+        if (CollectionUtils.isEmpty(actions)) {
+            return availableResponses.stream()
+                    .map(response -> createAction(response, pageBase))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        }
+        actions.forEach(action -> {
+            boolean isActionVisible = WebComponentUtil.getElementVisibility(action.getVisibility());
+            Class<? extends AbstractGuiAction<?>> actionClass = pageBase.findGuiAction(action.getIdentifier());
+            AccessCertificationResponseType response = CertificationItemResponseHelper.getResponseForGuiAction(actionClass);
+            if (isActionVisible) {
+                addIfNotPresent(availableResponses, response);
+            } else {
+                removeIfPresent(availableResponses, response);
+            }
+        });
+        return availableResponses.stream()
+                .map(response -> createAction(response, pageBase))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private static void addIfNotPresent(List<AccessCertificationResponseType> availableResponses,
+            AccessCertificationResponseType response) {
+        if (availableResponses.stream().noneMatch(r -> r.equals(response))) {
+            availableResponses.add(response);
+        }
+    }
+
+    private static void removeIfPresent(List<AccessCertificationResponseType> availableResponses,
+            AccessCertificationResponseType response) {
+        availableResponses.removeIf(r -> r.equals(response));
+    }
+
+    private static AbstractGuiAction<AccessCertificationWorkItemType> createAction(AccessCertificationResponseType response, PageBase pageBase) {
+        CertificationItemResponseHelper helper = new CertificationItemResponseHelper(response);
+        Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>> actionClass = helper.getGuiActionForResponse();
+        if (actionClass == null) {
+            pageBase.error("Unable to find action for response: " + response);
+            return null;
+        }
+        return instantiateAction(actionClass, pageBase);
+    }
+
+    private static AbstractGuiAction<AccessCertificationWorkItemType> createAction(GuiActionType guiAction, PageBase pageBase) {
+        Class<? extends AbstractGuiAction<?>> actionClass = pageBase.findGuiAction(guiAction.getIdentifier());
+        if (actionClass == null) {
+            pageBase.error("Unable to find action for identifier: " + guiAction.getIdentifier());
+            return null;
+        }
+        return instantiateAction(actionClass, pageBase);
+    }
+
+    private static AbstractGuiAction<AccessCertificationWorkItemType> instantiateAction(
+            Class<? extends AbstractGuiAction<?>> actionClass, PageBase pageBase) {
+        ActionType actionType = actionClass.getAnnotation(ActionType.class);
+        Class<?> applicableFor = actionType.applicableForType();
+        if (AccessCertificationWorkItemType.class != applicableFor) {
+            pageBase.error("The action is not applicable for AccessCertificationWorkItemType");
+            return null;
+        }
+        return WebComponentUtil.instantiateAction(
+                (Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>> ) actionClass);
     }
 
 }

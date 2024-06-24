@@ -10,9 +10,8 @@ package com.evolveum.midpoint.web.page.admin.certification.helpers;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+import com.evolveum.midpoint.web.component.action.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -51,6 +50,17 @@ public class CertificationItemResponseHelper implements Serializable {
         RESPONSES_MAP.put(AccessCertificationResponseType.NOT_DECIDED, CertificationItemResponse.NOT_DECIDED);
 //        RESPONSES_MAP.put(AccessCertificationResponseType.DELEGATE, CertificationItemResponse.DELEGATE);
         RESPONSES_MAP.put(AccessCertificationResponseType.NO_RESPONSE, CertificationItemResponse.NO_RESPONSE);
+    }
+
+    private static final Map<AccessCertificationResponseType, Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>>>
+            RESPONSES_GUI_ACTION_MAP = new HashMap<>();
+
+    static {
+        RESPONSES_GUI_ACTION_MAP.put(AccessCertificationResponseType.ACCEPT, CertItemAcceptAction.class);
+        RESPONSES_GUI_ACTION_MAP.put(AccessCertificationResponseType.REVOKE, CertItemRevokeAction.class);
+        RESPONSES_GUI_ACTION_MAP.put(AccessCertificationResponseType.REDUCE, CertItemReduceAction.class);
+        RESPONSES_GUI_ACTION_MAP.put(AccessCertificationResponseType.NOT_DECIDED, CertItemNotDecidedAction.class);
+        RESPONSES_GUI_ACTION_MAP.put(AccessCertificationResponseType.NO_RESPONSE, CertItemNoResponseAction.class);
     }
 
     AccessCertificationResponseType response;
@@ -104,5 +114,17 @@ public class CertificationItemResponseHelper implements Serializable {
             return null;
         }
         return itemResponse.help;
+    }
+
+    public Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>> getGuiActionForResponse() {
+        return RESPONSES_GUI_ACTION_MAP.get(response);
+    }
+
+    public static AccessCertificationResponseType getResponseForGuiAction(Class<? extends AbstractGuiAction<?>> actionClass) {
+        return RESPONSES_GUI_ACTION_MAP.entrySet().stream()
+                .filter(entry -> entry.getValue().equals(actionClass))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(null);
     }
 }
