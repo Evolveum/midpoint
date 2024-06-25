@@ -14,6 +14,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -194,12 +196,17 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
                         "buttons", getObjectDetailsModels().getObjectWrapperModel()) {
 
                     @Override
-                    protected IModel<String> getDeleteButtonTitleModel() {
+                    protected IModel<String> getDeleteButtonLabelModel(PrismObjectWrapper<RoleAnalysisOutlierType> modelObject) {
                         return Model.of("Remove outlier");
                     }
 
                     @Override
-                    protected void savePerformed(AjaxRequestTarget target) {
+                    protected IModel<String> createSubmitButtonLabelModel(PrismObjectWrapper<RoleAnalysisOutlierType> modelObject) {
+                        return Model.of("Save outlier");
+                    }
+
+                    @Override
+                    protected void submitPerformed(AjaxRequestTarget target) {
                         PageRoleAnalysisOutlier.this.savePerformed(target);
                     }
 

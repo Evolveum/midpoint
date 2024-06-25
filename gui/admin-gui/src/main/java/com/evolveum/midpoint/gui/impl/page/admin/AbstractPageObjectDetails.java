@@ -6,17 +6,23 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
 
+import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
 import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.web.component.ObjectVerticalSummaryPanel;
 import com.evolveum.midpoint.web.page.error.PageError404;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -29,6 +35,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Nullable;
@@ -81,8 +88,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private static final String ID_SUMMARY = "summary";
     private static final String ID_BUTTONS = "buttons";
 
+    private static final String ID_DETAILS_OLD = "detailsOld";
     private static final String ID_DETAILS = "details";
     protected static final String ID_DETAILS_VIEW = "detailsView";
+    private static final String ID_ERROR_VIEW = "errorView";
+    private static final String ID_ERROR= "errorPanel";
 
     private ODM objectDetailsModels;
     private final boolean isAdd;
@@ -183,7 +193,151 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     protected DetailsFragment createDetailsFragment() {
+        if (!supportGenericRepository() && !isNativeRepo()) {
+            return new DetailsFragment(ID_DETAILS_VIEW, ID_ERROR_VIEW, AbstractPageObjectDetails.this) {
+                @Override
+                protected void initFragmentLayout() {
+                    add(new ErrorPanel(ID_ERROR,
+                            createStringResource("AbstractPageObjectDetails.nonNativeRepositoryWarning")));
+                }
+            };
+        }
+
+        if (supportNewDetailsLook()){
+            return createDetailsView();
+        }
+
+        return createOldDetailsLook();
+    }
+
+    protected DetailsFragment createDetailsView() {
         return new DetailsFragment(ID_DETAILS_VIEW, ID_DETAILS, AbstractPageObjectDetails.this) {
+
+            @Override
+            protected void initFragmentLayout() {
+                MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onDetach() {
+                        resetValidatedValue();
+                        super.onDetach();
+                    }
+
+                };
+                form.add(new FormWrapperValidator(AbstractPageObjectDetails.this) {
+
+                    @Override
+                    protected PrismObjectWrapper getObjectWrapper() {
+                        return getModelWrapperObject();
+                    }
+                });
+
+                form.setMultiPart(true);
+                add(form);
+
+                initInlineButtons(form);
+
+                form.add(initVerticalSummaryPanel());
+
+                ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration();
+                initMainPanel(defaultConfiguration, form);
+
+                form.add(initNavigation());
+            }
+        };
+    }
+
+    private Panel initVerticalSummaryPanel() {
+        LoadableDetachableModel<O> summaryModel = objectDetailsModels.getSummaryModel();
+        return createVerticalSummaryPanel(ID_SUMMARY, summaryModel);
+    }
+
+    protected Panel createVerticalSummaryPanel(String id, IModel<O> summaryModel) {
+        return new ObjectVerticalSummaryPanel<>(id, summaryModel) {
+            @Override
+            protected IModel<String> getTitleForNewObject(O modelObject) {
+                return () -> LocalizationUtil.translate(
+                        "AbstractPageObjectDetails.newObject",
+                        new Object[]{WebComponentUtil.getLabelForType(
+                                getModelObject().getClass(),
+                                false)});
+            }
+        };
+    }
+
+    protected void initInlineButtons(MidpointForm<?> form) {
+        InlineOperationalButtonsPanel<O> opButtonPanel = createInlineButtonsPanel(ID_BUTTONS, objectDetailsModels.getObjectWrapperModel());
+        opButtonPanel.setOutputMarkupId(true);
+        form.add(opButtonPanel);
+    }
+
+    protected InlineOperationalButtonsPanel<O> createInlineButtonsPanel(String idButtons, LoadableModel<PrismObjectWrapper<O>> objectWrapperModel) {
+        return new InlineOperationalButtonsPanel<>(idButtons, objectWrapperModel) {
+            @Override
+            protected void submitPerformed(AjaxRequestTarget target) {
+                AbstractPageObjectDetails.this.savePerformed(target);
+            }
+
+            @Override
+            protected IModel<String> getDeleteButtonLabelModel(PrismObjectWrapper<O> modelObject) {
+                return getPageBase().createStringResource(
+                        "AbstractPageObjectDetails.delete",
+                        WebComponentUtil.getLabelForType(
+                                modelObject.getObject().getCompileTimeClass(),
+                                false));
+            }
+
+            @Override
+            protected IModel<String> createSubmitButtonLabelModel(PrismObjectWrapper<O> modelObject) {
+                return getPageBase().createStringResource(
+                        "AbstractPageObjectDetails.save",
+                        WebComponentUtil.getLabelForType(
+                                modelObject.getObject().getCompileTimeClass(),
+                                false));
+            }
+
+            @Override
+            protected IModel<String> getTitle() {
+                return getPageTitleModel();
+            }
+
+            @Override
+            protected void backPerformed(AjaxRequestTarget target) {
+                super.backPerformed(target);
+                onBackPerform(target);
+            }
+
+            @Override
+            protected void deleteConfirmPerformed(AjaxRequestTarget target) {
+                super.deleteConfirmPerformed(target);
+                afterDeletePerformed(target);
+            }
+
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return AbstractPageObjectDetails.this.hasUnsavedChanges(target);
+            }
+        };
+    }
+
+    protected void afterDeletePerformed(AjaxRequestTarget target) {
+    }
+
+    protected void onBackPerform(AjaxRequestTarget target) {
+    }
+
+    protected boolean supportNewDetailsLook() {
+        return false;
+    }
+
+    protected boolean supportGenericRepository() {
+        return true;
+    }
+
+    private DetailsFragment createOldDetailsLook() {
+        return new DetailsFragment(ID_DETAILS_VIEW, ID_DETAILS_OLD, AbstractPageObjectDetails.this) {
 
             @Override
             protected void initFragmentLayout() {
@@ -242,7 +396,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             }
 
             @Override
-            protected void savePerformed(AjaxRequestTarget target) {
+            protected void submitPerformed(AjaxRequestTarget target) {
                 AbstractPageObjectDetails.this.savePerformed(target);
             }
 

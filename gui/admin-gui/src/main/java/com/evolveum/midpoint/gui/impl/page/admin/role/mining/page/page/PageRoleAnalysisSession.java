@@ -14,6 +14,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -230,12 +232,17 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                 InlineOperationalButtonsPanel<RoleAnalysisSessionType> opButtonPanel = new InlineOperationalButtonsPanel<>("buttons", getObjectDetailsModels().getObjectWrapperModel()) {
 
                     @Override
-                    protected IModel<String> getDeleteButtonTitleModel() {
+                    protected IModel<String> getDeleteButtonLabelModel(PrismObjectWrapper<RoleAnalysisSessionType> modelObject) {
                         return Model.of("Remove session");
                     }
 
                     @Override
-                    protected void savePerformed(AjaxRequestTarget target) {
+                    protected IModel<String> createSubmitButtonLabelModel(PrismObjectWrapper<RoleAnalysisSessionType> modelObject) {
+                        return Model.of("Save session");
+                    }
+
+                    @Override
+                    protected void submitPerformed(AjaxRequestTarget target) {
                         PageRoleAnalysisSession.this.savePerformed(target);
                     }
 

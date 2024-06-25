@@ -291,12 +291,17 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
                 InlineOperationalButtonsPanel<RoleAnalysisClusterType> opButtonPanel = new InlineOperationalButtonsPanel<>("buttons", getObjectDetailsModels().getObjectWrapperModel()) {
 
                     @Override
-                    protected IModel<String> getDeleteButtonTitleModel() {
+                    protected IModel<String> getDeleteButtonLabelModel(PrismObjectWrapper<RoleAnalysisClusterType> modelObject) {
                         return Model.of("Remove cluster");
                     }
 
                     @Override
-                    protected void savePerformed(AjaxRequestTarget target) {
+                    protected IModel<String> createSubmitButtonLabelModel(PrismObjectWrapper<RoleAnalysisClusterType> modelObject) {
+                        return Model.of("Save cluster");
+                    }
+
+                    @Override
+                    protected void submitPerformed(AjaxRequestTarget target) {
                         PageRoleAnalysisCluster.this.savePerformed(target);
                     }
 
