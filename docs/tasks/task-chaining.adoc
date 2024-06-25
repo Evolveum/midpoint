@@ -7,17 +7,15 @@
 :page-wiki-metadata-modify-date: 2018-09-27T12:33:17.749+02:00
 :page-experimental: true
 :page-upkeep-status: yellow
+:page-upkeep-note: See commented part, is there a current configuration for this? Also is this officially supported, still experimental?
 
 Imagine you want to ensure that Task1 will execute before Task2; and that Task2 will start immediately after Task1 finishes.
 
-There are two options here.
-None of them is officially supported yet.
-But they usually work, with some limitations.
+This is not officially supported yet.
 
+== Using simple task dependencies
 
-== Option 1: Using simple task dependencies
-
-It works as this:
+It works like this:
 
 * the dependent Task2 will not start unless the first Task1 is either closed or deleted
 
@@ -32,63 +30,25 @@ So, basically:
 .. of course, after you close, delete the first Task1, the second Task2 will start
 
 
-
 This could work:
 
 *Step 1:* prepare the following two task objects:
 
-.First task
-[source,xml]
-----
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      oid="63fa34c4-0498-42a9-99ee-88506c79e975"
-      version="1">
-   <name>Recompute users</name>
-   <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:type="c:ExtensionType">
-      <mext:objectType>c:UserType</mext:objectType>
-   </extension>
-   <taskIdentifier>1494860532840-0-1</taskIdentifier>
-   <ownerRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
-             oid="00000000-0000-0000-0000-000000000002"
-             relation="org:default"
-             type="c:UserType"><!-- administrator --></ownerRef>
-   <dependent>1494860531232132-0-1</dependent>
-   <executionStatus>suspended</executionStatus>
-   <category>Recomputation</category>
-   <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
-   <recurrence>single</recurrence>
-</task>
-----
+*.First task*
 
-.Second task
-[source,xml]
-----
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      oid="465fae8e-8229-4ad8-8c95-9d49fa589b35"
-      version="1">
-   <name>Recompute roles (after users)</name>
-   <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:type="c:ExtensionType">
-      <mext:objectType>c:RoleType</mext:objectType>
-   </extension>
-   <taskIdentifier>1494860531232132-0-1</taskIdentifier>
-   <ownerRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
-             oid="00000000-0000-0000-0000-000000000002"
-             relation="org:default"
-             type="c:UserType"><!-- administrator --></ownerRef>
-   <executionStatus>waiting</executionStatus>
-   <waitingReason>otherTasks</waitingReason>
-   <category>Recomputation</category>
-   <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
-   <recurrence>single</recurrence>
-</task>
-----
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/task-user-recompute-chaining.xml[Git]
+
+sampleRef::samples/tasks/task-user-recompute-chaining.xml[]
+====
+
+*.Second task*
+
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/task-role-recompute-chaining.xml[Git]
+
+sampleRef::samples/tasks/task-role-recompute-chaining.xml[]
+====
 
 Note that the first task is suspended and the second one is in waiting state.
 
@@ -101,7 +61,7 @@ After it's closed the second one should start and execute.
 
 The disadvantage of this solution is that re-execution of the tasks requires the second task to be manually switched from `closed` state back to `waiting` / `otherTasks` one.
 
-
+////
 == Option 2: Using partitioned tasks
 
 This option is available since midPoint 3.8. This version brought so called xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/task-partitioning/[Partitioned tasks]. Although this feature is primarily used for partitioning standard tasks (like Reconciliation or Validity scanning), nothing prevents us from using it for custom tasks as well.
@@ -174,3 +134,4 @@ So, to see the status in an accurate way, you have to display subtasks along wit
 
 The advantage is that the re-execution of such composite task is quite simple.
 It can be done either manually, or you can even make the master task recurring.
+////

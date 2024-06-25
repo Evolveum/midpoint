@@ -172,7 +172,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         return true;
     }
 
-    public MultivalueContainerListPanelWithDetailsPanel getTable() {
-        return (MultivalueContainerListPanelWithDetailsPanel) get(getPageBase().createComponentPath(ID_FORM, ID_TABLE));
+    public MultivalueContainerListPanel getTable() {
+        return (MultivalueContainerListPanel) get(getPageBase().createComponentPath(ID_FORM, ID_TABLE));
     }
 }

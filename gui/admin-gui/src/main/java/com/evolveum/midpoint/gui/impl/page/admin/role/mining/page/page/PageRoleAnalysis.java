@@ -7,65 +7,56 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getSessionOptionType;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateRoleOutlierResultModel;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
 
 import java.io.Serial;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierHeaderResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierItemResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierResultPanel;
+import com.evolveum.midpoint.model.api.ModelService;
 
-import org.apache.wicket.AttributeModifier;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
-import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisChartPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisInfoPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetailsPopup;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisInfoItem;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisSessionTileTable;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 @PageDescriptor(
         urls = {
@@ -80,10 +71,8 @@ import org.jetbrains.annotations.NotNull;
 public class PageRoleAnalysis extends PageAdmin {
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final String DOT_CLASS = PageRoleAnalysis.class.getName() + ".";
-    private static final String OP_DELETE_SESSION = DOT_CLASS + "deleteSession";
-    private static final String OP_UPDATE_STATUS = DOT_CLASS + "updateOperationStatus";
     private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_INFO_FORM = "infoForm";
     private static final String ID_CHART_PANEL = "chartPanel";
     private static final String ID_TABLE = "table";
 
@@ -97,73 +86,10 @@ public class PageRoleAnalysis extends PageAdmin {
         initLayout();
     }
 
-    private InlineMenuItem createDeleteInlineMenu() {
-        return new ButtonInlineMenuItem(createStringResource("MainObjectListPanel.menu.delete")) {
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_TRASH);
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<RoleAnalysisSessionType>>() {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-
-                        PageBase page = (PageBase) getPage();
-                        Task task = page.createSimpleTask(OP_DELETE_SESSION);
-                        RoleAnalysisService roleAnalysisService = page.getRoleAnalysisService();
-
-                        List<SelectableBean<RoleAnalysisSessionType>> selectedObjects = getTable().getSelectedObjects();
-                        OperationResult result = new OperationResult(OP_DELETE_SESSION);
-                        if (selectedObjects.size() == 1 && getRowModel() == null) {
-                            try {
-                                SelectableBean<RoleAnalysisSessionType> selectableSession = selectedObjects.get(0);
-                                roleAnalysisService
-                                        .deleteSession(selectableSession.getValue().getOid(),
-                                                task, result
-                                        );
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                        } else if (getRowModel() != null) {
-                            try {
-                                IModel<SelectableBean<RoleAnalysisSessionType>> rowModel = getRowModel();
-                                String oid = rowModel.getObject().getValue().getOid();
-                                roleAnalysisService
-                                        .deleteSession(oid, task, result
-                                        );
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                        } else {
-                            for (SelectableBean<RoleAnalysisSessionType> selectedObject : selectedObjects) {
-                                try {
-                                    String parentOid = selectedObject.getValue().asPrismObject().getOid();
-                                    roleAnalysisService
-                                            .deleteSession(parentOid,
-                                                    task, result);
-
-                                } catch (Exception e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        }
-
-                        getTable().refreshTable(target);
-                    }
-                };
-            }
-
-            @Override
-            public IModel<String> getConfirmationMessageModel() {
-                String actionName = createStringResource("MainObjectListPanel.message.deleteAction").getString();
-                return getTable().getConfirmationMessageModel((ColumnMenuAction<?>) getAction(), actionName);
-            }
-        };
-    }
-
     protected void initLayout() {
+        Form<?> infoForm = new MidpointForm<>(ID_INFO_FORM);
+        add(infoForm);
+
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
@@ -173,434 +99,280 @@ public class PageRoleAnalysis extends PageAdmin {
             return;
         }
 
-        RoleAnalysisChartPanel roleAnalysisChartPanel = new RoleAnalysisChartPanel(ID_CHART_PANEL);
-        roleAnalysisChartPanel.setOutputMarkupId(true);
-        add(roleAnalysisChartPanel);
-
-        MainObjectListPanel<RoleAnalysisSessionType> table = new MainObjectListPanel<>(ID_TABLE, RoleAnalysisSessionType.class) {
-
+        RoleAnalysisInfoPanel roleAnalysisInfoPanel = new RoleAnalysisInfoPanel(ID_CHART_PANEL) {
             @Override
-            protected List<InlineMenuItem> createInlineMenu() {
-                List<InlineMenuItem> menuItems = new ArrayList<>();
-                menuItems.add(PageRoleAnalysis.this.createDeleteInlineMenu());
-                return menuItems;
-            }
+            public void addPatternItems(RepeatingView repeatingView) {
+                PageBase pageBase = getPageBase();
+                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+                Task task = pageBase.createSimpleTask("loadRoleAnalysisInfo");
+                OperationResult result = task.getResult();
+                List<DetectedPattern> topPatters = roleAnalysisService.findTopPatters(task, result);
+                for (int i = 0; i < topPatters.size(); i++) {
+                    DetectedPattern pattern = topPatters.get(i);
+                    double reductionFactorConfidence = pattern.getMetric();
+                    String formattedReductionFactorConfidence = String.format("%.0f", reductionFactorConfidence);
+                    double itemsConfidence = pattern.getItemsConfidence();
+                    String formattedItemConfidence = String.format("%.1f", itemsConfidence);
+                    String label = "Detected a potential reduction of " +
+                            formattedReductionFactorConfidence +
+                            "x relationships with a confidence of  " +
+                            formattedItemConfidence + "%";
+                    int finalI = i;
+                    repeatingView.add(new RoleAnalysisInfoItem(repeatingView.newChildId(), Model.of(label)) {
 
-            @Override
-            protected boolean isReportObjectButtonVisible() {
-                return false;
-            }
-
-            @Override
-            protected IColumn<SelectableBean<RoleAnalysisSessionType>, String> createIconColumn() {
-                return super.createIconColumn();
-            }
-
-            @Override
-            protected List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> createDefaultColumns() {
-
-                List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> columns = new ArrayList<>();
-
-                LoadableModel<PrismContainerDefinition<RoleAnalysisSessionType>> containerDefinitionModel
-                        = WebComponentUtil.getContainerDefinitionModel(RoleAnalysisSessionType.class);
-
-                LoadableModel<PrismContainerDefinition<RoleAnalysisOptionType>> processModeDefinitionModel
-                        = WebComponentUtil.getContainerDefinitionModel(RoleAnalysisOptionType.class);
-
-                LoadableModel<PrismContainerDefinition<AbstractAnalysisSessionOptionType>> abstractContainerDefinitionModel
-                        = WebComponentUtil.getContainerDefinitionModel(AbstractAnalysisSessionOptionType.class);
-
-                IColumn<SelectableBean<RoleAnalysisSessionType>, String> column = new AbstractExportableColumn<>(createStringResource("RoleAnalysisProcessModeType.processMode")) {
-
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return createColumnHeader(componentId, processModeDefinitionModel, RoleAnalysisOptionType.F_PROCESS_MODE);
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                        cellItem.add(new Label(componentId, extractProcessMode(model)));
-
-                    }
-
-                    @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                        return extractProcessMode(rowModel);
-                    }
-
-                };
-                columns.add(column);
-
-                column = new AbstractExportableColumn<>(createStringResource("AbstractAnalysisSessionOptionType.similarityThreshold")) {
-
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return createColumnHeader(componentId, abstractContainerDefinitionModel,
-                                AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD);
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                        cellItem.add(new Label(componentId, extractSimilarity(model)));
-                    }
-
-                    @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                        return extractSimilarity(rowModel);
-                    }
-
-                };
-                columns.add(column);
-
-                column = new AbstractExportableColumn<>(createStringResource("AbstractAnalysisSessionOptionType.minPropertiesOverlap")) {
-
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return createColumnHeader(componentId, abstractContainerDefinitionModel,
-                                AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP);
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-
-                        cellItem.add(new Label(componentId, extractMinPropertiesOverlap(model)));
-                    }
-
-                    @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                        return extractMinPropertiesOverlap(rowModel);
-                    }
-
-                };
-                columns.add(column);
-
-                column = new AbstractExportableColumn<>(createStringResource("AbstractAnalysisSessionOptionType.propertiesRange")) {
-
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return createColumnHeader(componentId, abstractContainerDefinitionModel,
-                                AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE);
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                        cellItem.add(new Label(componentId, extractPropertiesRange(model)));
-
-                    }
-
-                    @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                        return extractPropertiesRange(rowModel);
-                    }
-
-                };
-                columns.add(column);
-
-                column = new AbstractExportableColumn<>(createStringResource("AbstractAnalysisSessionOptionType.minMembersCount")) {
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return createColumnHeader(componentId, abstractContainerDefinitionModel,
-                                AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT);
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                        cellItem.add(new Label(componentId, extractMinGroupOption(model)));
-                    }
-
-                    @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                        return extractMinGroupOption(rowModel);
-                    }
-
-                };
-                columns.add(column);
-
-                column = new AbstractExportableColumn<>(createStringResource("RoleAnalysisSessionStatisticType.processedObjectCount")) {
-
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return createColumnHeader(componentId, containerDefinitionModel, ItemPath.create(RoleAnalysisSessionType.F_SESSION_STATISTIC,
-                                RoleAnalysisSessionStatisticType.F_PROCESSED_OBJECT_COUNT));
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                        cellItem.add(new Label(componentId, extractProcessedObjectCount(model)));
-
-                    }
-
-                    @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                        return extractProcessedObjectCount(rowModel);
-                    }
-
-                };
-                columns.add(column);
-
-                column = new AbstractExportableColumn<>(createStringResource("RoleAnalysisSessionStatisticType.meanDensity")) {
-
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return createColumnHeader(componentId, containerDefinitionModel, ItemPath.create(RoleAnalysisSessionType.F_SESSION_STATISTIC,
-                                RoleAnalysisSessionStatisticType.F_MEAN_DENSITY));
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-
-                        RoleAnalysisSessionType value = model.getObject().getValue();
-                        if (value != null
-                                && value.getSessionStatistic() != null
-                                && value.getSessionStatistic().getMeanDensity() != null) {
-
-                            Double density = value.getSessionStatistic().getMeanDensity();
-                            String meanDensity = new DecimalFormat("#.###")
-                                    .format(Math.round(density * 1000.0) / 1000.0);
-
-                            String colorClass = densityBasedColor(density);
-
-                            Label label = new Label(componentId, meanDensity + " (%)");
-                            label.setOutputMarkupId(true);
-                            label.add(new AttributeModifier("class", colorClass));
-                            label.add(AttributeModifier.append("style", "width: 100px;"));
-
-                            cellItem.add(label);
-                        } else {
-                            cellItem.add(new EmptyPanel(componentId));
+                        @Override
+                        protected String getIconBoxText() {
+//                            return "#" + (finalI + 1);
+                            return null;
                         }
 
-                    }
+                        @Override
+                        protected String getIconBoxIconStyle() {
+                            return super.getIconBoxIconStyle();
+                        }
 
-                    @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                        return extractMeanDensity(rowModel);
-                    }
+                        @Override
+                        protected String getIconContainerCssClass() {
+                            return "btn btn-outline-dark";
+                        }
 
-                };
-                columns.add(column);
+                        @Override
+                        protected void addDescriptionComponents() {
+                            appendText("A potential reduction has been detected. ");
+                            WebMarkupContainer container = new WebMarkupContainer(getRepeatedView().newChildId());
+                            container.add(AttributeAppender.append("class", "d-flex"));
+                            appendComponent(container);
+                            appendText(" Involves ");
+                            appendIcon("fe fe-assignment", "color: red;");
+                            appendText(" " + formattedReductionFactorConfidence + " relations ");
+                            appendText("and ");
+                            appendIcon("fa fa-leaf", "color: green");
+                            appendText(" " + formattedItemConfidence + "% confidence.");
+                        }
 
-                column = new AbstractExportableColumn<>(
-                        createStringResource("RoleAnalysis.modificationTargetPanel.status")) {
+                        @Override
+                        protected IModel<String> getDescriptionModel() {
+                            String description = "A potential reduction has been detected. The reduction involves " +
+                                    formattedReductionFactorConfidence + " assignments and is associated with "
+                                    + "an attribute confidence of " +
+                                    formattedItemConfidence + "%.";
+                            return Model.of(description);
+                        }
 
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return new LabelWithHelpPanel(componentId,
-                                createStringResource("RoleAnalysis.modificationTargetPanel.status")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysis.modificationTargetPanel.status.tooltip");
+                        @Override
+                        protected IModel<String> getLinkModel() {
+                            IModel<String> linkModel = super.getLinkModel();
+                            return Model.of(linkModel.getObject() + " role suggestion #" + (finalI + 1));
+                        }
+
+                        @Override
+                        protected void onClickLinkPerform(AjaxRequestTarget target) {
+                            PageParameters parameters = new PageParameters();
+                            String clusterOid = pattern.getClusterRef().getOid();
+                            parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
+                            parameters.add("panelId", "clusterDetails");
+                            parameters.add(PARAM_DETECTED_PATER_ID, pattern.getId());
+                            StringValue fullTableSetting = getPageBase().getPageParameters().get(PARAM_TABLE_SETTING);
+                            if (fullTableSetting != null && fullTableSetting.toString() != null) {
+                                parameters.add(PARAM_TABLE_SETTING, fullTableSetting.toString());
                             }
-                        };
-                    }
 
-                    @Override
-                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> iModel) {
-                        return null;
-                    }
-
-                    @Override
-                    public void populateItem(
-                            Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                            String componentId,
-                            IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-
-                        Task task = getPageBase().createSimpleTask(OP_UPDATE_STATUS);
-                        RoleAnalysisSessionType session = rowModel.getObject().getValue();
-                        OperationResult result = task.getResult();
-
-                        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-                        String stateString = roleAnalysisService.recomputeAndResolveSessionOpStatus(
-                                session.asPrismObject(),
-                                result, task);
-
-                        ObjectReferenceType taskRef = null;
-                        RoleAnalysisOperationStatus operationStatus = session.getOperationStatus();
-                        if (operationStatus != null) {
-                            taskRef = operationStatus.getTaskRef();
+                            Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                                    .getObjectDetailsPage(RoleAnalysisClusterType.class);
+                            getPageBase().navigateToNext(detailsPageClass, parameters);
                         }
 
-                        ObjectReferenceType finalTaskRef = taskRef;
-                        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(componentId, Model.of(stateString)) {
-                            @Override
-                            public void onClick(AjaxRequestTarget target) {
-                                super.onClick(target);
-                                if (finalTaskRef != null && finalTaskRef.getOid() != null) {
-                                    DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, finalTaskRef.getOid(),
-                                            this, true);
+                        @Override
+                        protected void onClickIconPerform(AjaxRequestTarget target) {
+                            RoleAnalysisDetectedPatternDetailsPopup component = new RoleAnalysisDetectedPatternDetailsPopup(
+                                    ((PageBase) getPage()).getMainPopupBodyId(),
+                                    Model.of(pattern));
+                            ((PageBase) getPage()).showMainPopup(component, target);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void addOutliersItems(RepeatingView repeatingView) {
+                PageBase pageBase = getPageBase();
+                ModelService modelService = pageBase.getModelService();
+                Task task = pageBase.createSimpleTask("loadRoleAnalysisInfo");
+                OperationResult result = task.getResult();
+                SearchResultList<PrismObject<RoleAnalysisOutlierType>> searchResultList;
+                try {
+                    searchResultList = modelService
+                            .searchObjects(RoleAnalysisOutlierType.class, null, null, task, result);
+                } catch (SchemaException | ObjectNotFoundException | SecurityViolationException |
+                        CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                    throw new RuntimeException(e);
+                }
+
+                if (searchResultList == null || searchResultList.isEmpty()) {
+                    return;
+                }
+
+                for (int i = 0; i < searchResultList.size(); i++) {
+                    PrismObject<RoleAnalysisOutlierType> outlierTypePrismObject = searchResultList.get(i);
+                    RoleAnalysisOutlierType outlierObject = outlierTypePrismObject.asObjectable();
+                    List<RoleAnalysisOutlierDescriptionType> outlierStatResult = outlierObject.getResult();
+                    Double clusterConfidence = outlierObject.getClusterConfidence();
+                    String formattedConfidence = String.format("%.2f", clusterConfidence);
+                    String label;
+
+                    ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
+                    PrismObject<RoleAnalysisClusterType> prismCluster = getRoleAnalysisService()
+                            .getClusterTypeObject(targetClusterRef.getOid(), task, result);
+                    String clusterName = "unknown";
+                    if (prismCluster != null && prismCluster.getName() != null) {
+                        clusterName = prismCluster.getName().getOrig();
+                    }
+
+                    if (outlierStatResult.size() > 1) {
+                        label = "Has been detected outliers with multiple (" + outlierStatResult.size() + ") anomalies "
+                                + "and confidence of " + formattedConfidence + "% (" + clusterName.toLowerCase() + ").";
+                    } else {
+                        label = "Has been detected outliers with single anomalies and confidence of " + formattedConfidence
+                                + "% (" + clusterName.toLowerCase() + ").";
+                    }
+
+                    int finalI = i;
+                    String finalLabel = label;
+                    repeatingView.add(new RoleAnalysisInfoItem(repeatingView.newChildId(), Model.of(finalLabel)) {
+
+                        @Override
+                        protected String getIconBoxText() {
+//                            return "#" + (finalI + 1);
+                            return null;
+                        }
+
+                        @Override
+                        protected String getIconClass() {
+                            return "fa-2x " + GuiStyleConstants.CLASS_OUTLIER_ICON;
+                        }
+
+                        @Override
+                        protected String getIconBoxIconStyle() {
+                            return super.getIconBoxIconStyle();
+                        }
+
+                        @Override
+                        protected String getIconContainerCssClass() {
+                            return "btn btn-outline-dark";
+                        }
+
+                        @Override
+                        protected void addDescriptionComponents() {
+                            appendText(finalLabel);
+                        }
+
+                        @Override
+                        protected IModel<String> getDescriptionModel() {
+                            return Model.of(finalLabel);
+                        }
+
+                        @Override
+                        protected IModel<String> getLinkModel() {
+                            IModel<String> linkModel = super.getLinkModel();
+                            return Model.of(linkModel.getObject() + " outlier #" + (finalI + 1));
+                        }
+
+                        @Override
+                        protected void onClickLinkPerform(AjaxRequestTarget target) {
+                            PageParameters parameters = new PageParameters();
+                            String outlierOid = outlierObject.getOid();
+                            parameters.add(OnePageParameterEncoder.PARAMETER, outlierOid);
+                            StringValue fullTableSetting = getPageBase().getPageParameters().get(PARAM_TABLE_SETTING);
+                            if (fullTableSetting != null && fullTableSetting.toString() != null) {
+                                parameters.add(PARAM_TABLE_SETTING, fullTableSetting.toString());
+                            }
+
+                            Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                                    .getObjectDetailsPage(RoleAnalysisOutlierType.class);
+                            getPageBase().navigateToNext(detailsPageClass, parameters);
+
+                        }
+
+                        @Override
+                        protected void onClickIconPerform(AjaxRequestTarget target) {
+                            OutlierObjectModel outlierObjectModel;
+
+                            PageBase pageBase = getPageBase();
+                            RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+                            Task task = pageBase.createSimpleTask("loadOutlierDetails");
+                            ObjectReferenceType targetSessionRef = outlierObject.getTargetSessionRef();
+                            PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
+                                    .getSessionTypeObject(targetSessionRef.getOid(), task, task.getResult());
+                            assert sessionTypeObject != null;
+                            RoleAnalysisSessionType sessionType = sessionTypeObject.asObjectable();
+                            RoleAnalysisProcessModeType processMode = sessionType.getAnalysisOption().getProcessMode();
+
+                            ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
+                            PrismObject<RoleAnalysisClusterType> clusterTypeObject = roleAnalysisService
+                                    .getClusterTypeObject(targetClusterRef.getOid(), task, task.getResult());
+                            assert clusterTypeObject != null;
+                            RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
+                            if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+                                outlierObjectModel = generateUserOutlierResultModel(
+                                        roleAnalysisService, outlierObject, task, task.getResult(), cluster);
+                            } else {
+                                outlierObjectModel = generateRoleOutlierResultModel(
+                                        roleAnalysisService, outlierObject, task, task.getResult(), cluster);
+                            }
+
+                            assert outlierObjectModel != null;
+                            String outlierName = outlierObjectModel.getOutlierName();
+                            double outlierConfidence = outlierObjectModel.getOutlierConfidence();
+                            String outlierDescription = outlierObjectModel.getOutlierDescription();
+                            String timeCreated = outlierObjectModel.getTimeCreated();
+
+                            OutlierResultPanel detailsPanel = new OutlierResultPanel(
+                                    ((PageBase) getPage()).getMainPopupBodyId(),
+                                    Model.of("Outlier details")) {
+
+                                @Override
+                                public String getCardCssClass() {
+                                    return "";
                                 }
-                            }
-                        };
-                        ajaxLinkPanel.setEnabled(taskRef != null);
-                        ajaxLinkPanel.setOutputMarkupId(true);
-                        cellItem.add(ajaxLinkPanel);
-                    }
-                };
-                columns.add(column);
 
-                return columns;
-            }
+                                @Override
+                                public Component getCardHeaderBody(String componentId) {
+                                    OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(componentId, outlierName,
+                                            outlierDescription, String.valueOf(outlierConfidence), timeCreated);
+                                    components.setOutputMarkupId(true);
+                                    return components;
+                                }
 
-            @Override
-            protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation,
-                    CompiledObjectCollectionView collectionView) {
-                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                        .getObjectDetailsPage(RoleAnalysisSessionType.class);
-                getPageBase().navigateToNext(detailsPageClass);
-            }
+                                @Override
+                                public Component getCardBodyComponent(String componentId) {
+                                    //TODO just for testing
+                                    RepeatingView cardBodyComponent = (RepeatingView) super.getCardBodyComponent(componentId);
+                                    outlierObjectModel.getOutlierItemModels()
+                                            .forEach(outlierItemModel
+                                                    -> cardBodyComponent.add(
+                                                    new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel)));
+                                    return cardBodyComponent;
+                                }
 
-            @Override
-            protected TableId getTableId() {
-                return TableId.TABLE_USERS;
-            }
+                                @Override
+                                public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                                    super.onClose(ajaxRequestTarget);
+                                }
 
-            @Override
-            protected String getNothingSelectedMessage() {
-                return getString("PageMining.message.nothingSelected");
-            }
-
-            @Override
-            protected String getConfirmMessageKeyForMultiObject() {
-                return "PageMining.message.confirmationMessageForMultipleObject";
-            }
-
-            @Override
-            protected String getConfirmMessageKeyForSingleObject() {
-                return "PageMining.message.confirmationMessageForSingleObject";
+                            };
+                            ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+                        }
+                    });
+                }
             }
         };
-        table.setOutputMarkupId(true);
-        mainForm.add(table);
+        roleAnalysisInfoPanel.setOutputMarkupId(true);
+        infoForm.add(roleAnalysisInfoPanel);
+
+        RoleAnalysisSessionTileTable roleAnalysisSessionTileTable = new RoleAnalysisSessionTileTable(ID_TABLE, (PageBase) getPage());
+        roleAnalysisSessionTileTable.setOutputMarkupId(true);
+        mainForm.add(roleAnalysisSessionTileTable);
 
     }
 
-    private <C extends Containerable> PrismPropertyHeaderPanel<?> createColumnHeader(String componentId,
-            LoadableModel<PrismContainerDefinition<C>> containerDefinitionModel,
-            ItemPath itemPath) {
-        return new PrismPropertyHeaderPanel<>(componentId, new PrismPropertyWrapperHeaderModel<>(
-                containerDefinitionModel,
-                itemPath,
-                (PageBase) getPage())) {
-
-            @Override
-            protected boolean isAddButtonVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isButtonEnabled() {
-                return false;
-            }
-        };
-    }
-
-    private static @NotNull IModel<String> extractProcessMode(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-        if (model.getObject() != null) {
-            RoleAnalysisSessionType value = model.getObject().getValue();
-            if (value != null
-                    && value.getAnalysisOption() != null && value.getAnalysisOption().getProcessMode() != null) {
-                return Model.of(value.getAnalysisOption().getProcessMode().value()
-                        + "/" + value.getAnalysisOption().getAnalysisCategory().value());
-            }
-
-        }
-        return Model.of("");
-    }
-
-    private static @NotNull IModel<String> extractSimilarity(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-        AbstractAnalysisSessionOptionType sessionOptionType = null;
-        if (model.getObject().getValue() != null) {
-            sessionOptionType = getSessionOptionType(model.getObject().getValue());
-        }
-
-        if (sessionOptionType != null && sessionOptionType.getSimilarityThreshold() != null) {
-            return Model.of(sessionOptionType.getSimilarityThreshold() + " (%)");
-        } else {
-            return Model.of("");
-        }
-    }
-
-    private static @NotNull IModel<String> extractMinPropertiesOverlap(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-        AbstractAnalysisSessionOptionType sessionOptionType = null;
-        if (model.getObject().getValue() != null) {
-            sessionOptionType = getSessionOptionType(model.getObject().getValue());
-        }
-
-        if (sessionOptionType != null && sessionOptionType.getMinPropertiesOverlap() != null) {
-            return Model.of(sessionOptionType.getMinPropertiesOverlap().toString());
-        } else {
-            return Model.of("");
-        }
-    }
-
-    private static @NotNull IModel<String> extractPropertiesRange(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-        AbstractAnalysisSessionOptionType sessionOptionType = null;
-        if (model.getObject().getValue() != null) {
-            sessionOptionType = getSessionOptionType(model.getObject().getValue());
-        }
-
-        if (sessionOptionType != null && sessionOptionType.getPropertiesRange() != null) {
-            RangeType propertiesRange = sessionOptionType.getPropertiesRange();
-            return Model.of("from " + propertiesRange.getMin()
-                    + " to "
-                    + propertiesRange.getMax());
-        } else {
-            return Model.of("");
-        }
-    }
-
-    private static @NotNull IModel<String> extractMinGroupOption(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-        AbstractAnalysisSessionOptionType sessionOptionType = null;
-        if (model.getObject().getValue() != null) {
-            sessionOptionType = getSessionOptionType(model.getObject().getValue());
-        }
-
-        if (sessionOptionType != null && sessionOptionType.getMinMembersCount() != null) {
-            return Model.of(sessionOptionType.getMinMembersCount().toString());
-        } else {
-            return Model.of("");
-        }
-    }
-
-    private static @NotNull IModel<String> extractProcessedObjectCount(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-        RoleAnalysisSessionType value = model.getObject().getValue();
-        if (value != null
-                && value.getSessionStatistic() != null
-                && value.getSessionStatistic().getProcessedObjectCount() != null) {
-            return Model.of(value.getSessionStatistic().getProcessedObjectCount().toString());
-        } else {
-            return Model.of("");
-        }
-    }
-
-    private static @NotNull IModel<String> extractMeanDensity(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-        RoleAnalysisSessionType value = model.getObject().getValue();
-        if (value != null
-                && value.getSessionStatistic() != null
-                && value.getSessionStatistic().getMeanDensity() != null) {
-
-            String meanDensity = new DecimalFormat("#.###")
-                    .format(Math.round(value.getSessionStatistic().getMeanDensity() * 1000.0) / 1000.0);
-
-            return Model.of(meanDensity + " (%)");
-        } else {
-            return Model.of("");
-        }
-    }
-
-    @Override
-    protected List<String> pageParametersToBeRemoved() {
-        return List.of(PageBase.PARAMETER_SEARCH_BY_NAME);
-    }
-
-    private MainObjectListPanel<RoleAnalysisSessionType> getTable() {
-        return (MainObjectListPanel<RoleAnalysisSessionType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
-    }
 }

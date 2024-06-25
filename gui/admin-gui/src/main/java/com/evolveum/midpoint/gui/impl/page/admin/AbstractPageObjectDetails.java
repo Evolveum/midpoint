@@ -226,7 +226,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         return summaryPanel;
     }
 
-    private void initButtons(MidpointForm form) {
+    protected void initButtons(MidpointForm form) {
         OperationalButtonsPanel opButtonPanel = createButtonsPanel(ID_BUTTONS, objectDetailsModels.getObjectWrapperModel());
         opButtonPanel.setOutputMarkupId(true);
         form.add(opButtonPanel);
@@ -552,7 +552,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         refreshTitle(target);
     }
 
-    private ContainerPanelConfigurationType findDefaultConfiguration() {
+    protected ContainerPanelConfigurationType findDefaultConfiguration() {
         String panelId = WebComponentUtil.getPanelIdentifierFromParams(getPageParameters());
 
         ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject(), panelId);
@@ -615,7 +615,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         return false;
     }
 
-    private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {
+    protected void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {
         if (panelConfig == null) {
             addErrorPanel(false, form, MessagePanel.MessagePanelType.WARN, "AbstractPageObjectDetails.noPanels");
             return;
@@ -664,7 +664,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         form.addOrReplace(panel);
     }
 
-    private DetailsNavigationPanel initNavigation() {
+    protected DetailsNavigationPanel initNavigation() {
         return createNavigationPanel(getPanelConfigurations());
     }
 

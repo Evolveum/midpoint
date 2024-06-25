@@ -136,7 +136,7 @@ public class RangeSimplePanel extends InputPanel {
 
     public boolean isDouble(String value) {
         try {
-            Double.parseDouble(value);
+            Double.parseDouble(value.replace(',', '.'));
             return true;
         } catch (NumberFormatException e) {
             return false;
@@ -145,7 +145,7 @@ public class RangeSimplePanel extends InputPanel {
 
     public boolean isInteger(String value) {
         try {
-            double parsedValue = Double.parseDouble(value);
+            double parsedValue = Double.parseDouble(value.replace(',', '.'));
             return !(parsedValue % 1 > 0.0);
         } catch (NumberFormatException e) {
             return false;

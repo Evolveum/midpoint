@@ -75,6 +75,7 @@ public class AdvancedClustering implements Clusterable {
         int minRolesCount = sessionOptionType.getMinMembersCount();
         double similarityThreshold = sessionOptionType.getSimilarityThreshold();
         double similarityDifference = 1 - (similarityThreshold / 100);
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
 
         List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts = generateMatchingRulesList(
                 sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
@@ -94,9 +95,11 @@ public class AdvancedClustering implements Clusterable {
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(
                 minUsersOverlap, new HashSet<>(roleAnalysisAttributeDefConverts), 0);
 
-        boolean isRule = !roleAnalysisAttributeDefConverts.isEmpty() && roleAnalysisAttributeDefConverts.get(0).getRoleAnalysisItemDef() != null;
+        boolean ruleExist = !roleAnalysisAttributeDefConverts.isEmpty() && roleAnalysisAttributeDefConverts.get(0).getRoleAnalysisItemDef() != null;
+
+        ClusteringMode clusteringMode = getClusteringMode(analysisOption, ruleExist);
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(
-                similarityDifference, minRolesCount, distanceMeasure, minUsersOverlap, isRule);
+                similarityDifference, minRolesCount, distanceMeasure, minUsersOverlap, clusteringMode);
 
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
@@ -119,6 +122,7 @@ public class AdvancedClustering implements Clusterable {
         double similarityDifference = 1 - (similarityThreshold / 100);
         int minRolesOverlap = sessionOptionType.getMinPropertiesOverlap();
         int minUsersCount = sessionOptionType.getMinMembersCount();
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
 
         List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts = generateMatchingRulesList(
                 sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
@@ -138,9 +142,11 @@ public class AdvancedClustering implements Clusterable {
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(
                 minRolesOverlap, new HashSet<>(roleAnalysisAttributeDefConverts), 0);
 
-        boolean isRule = !roleAnalysisAttributeDefConverts.isEmpty() && roleAnalysisAttributeDefConverts.get(0).getRoleAnalysisItemDef() != null;
+        boolean ruleExist = !roleAnalysisAttributeDefConverts.isEmpty() && roleAnalysisAttributeDefConverts.get(0).getRoleAnalysisItemDef() != null;
+        ClusteringMode clusteringMode = getClusteringMode(analysisOption, ruleExist);
+
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(
-                similarityDifference, minUsersCount, distanceMeasure, minRolesOverlap, isRule);
+                similarityDifference, minUsersCount, distanceMeasure, minRolesOverlap, clusteringMode);
 
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
@@ -229,4 +235,19 @@ public class AdvancedClustering implements Clusterable {
                 modelService, minUserOccupancy, maxUserOccupancy, sessionOptionType, task, result);
     }
 
+    @NotNull
+    private static ClusteringMode getClusteringMode(@NotNull RoleAnalysisOptionType analysisOption, boolean ruleExist) {
+        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+        if (!ruleExist) {
+            if (analysisCategory.equals(RoleAnalysisCategoryType.DEPARTMENT)) {
+                return ClusteringMode.UNBALANCED;
+            }
+            return ClusteringMode.BALANCED;
+        } else {
+            if (analysisCategory.equals(RoleAnalysisCategoryType.DEPARTMENT)) {
+                return ClusteringMode.UNBALANCED_RULES;
+            }
+            return ClusteringMode.BALANCED_RULES;
+        }
+    }
 }

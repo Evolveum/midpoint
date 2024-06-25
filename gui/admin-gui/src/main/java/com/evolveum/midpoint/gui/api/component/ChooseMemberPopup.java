@@ -233,6 +233,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
         tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, ServiceType.COMPLEX_TYPE, relationList));
 
+        tabs.add(createCountablePanelTab(objectTypes, archetypeRefList, PolicyType.COMPLEX_TYPE, relationList));
+
         if (archetypeRefList == null || archetypeRefList.isEmpty()) {
             tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"),
                     new VisibleBehaviour(() -> isOrgTreeVisible() && (objectTypes == null || QNameUtil.contains(objectTypes, OrgType.COMPLEX_TYPE)))) {

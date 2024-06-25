@@ -47,6 +47,12 @@ public class GuiStyleConstants {
     public static final String CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES = "card-outline object-service-box";
     public static final String CLASS_OBJECT_SERVICE_BOX_THIN_CSS_CLASSES = "object-service-box-thin";
 
+    public static final String CLASS_OBJECT_POLICY_ICON = "fa fa-balance-scale";
+    public static final String CLASS_OBJECT_POLICY_BG = "object-policy-bg";
+    public static final String CLASS_OBJECT_POLICY_ICON_COLORED = CLASS_OBJECT_POLICY_ICON + " object-policy-color";
+    public static final String CLASS_OBJECT_POLICY_BOX_CSS_CLASSES = "card-outline object-policy-box";
+    public static final String CLASS_OBJECT_POLICY_BOX_THIN_CSS_CLASSES = "object-policy-box-thin";
+
     public static final String CLASS_OBJECT_RESOURCE_ICON = "fa fa-database";
     public static final String CLASS_OBJECT_RESOURCE_TEMPLATE_ICON = "fa-regular fa-file";
     public static final String CLASS_OBJECT_RESOURCE_ICON_COLORED = CLASS_OBJECT_RESOURCE_ICON + " object-resource-color";
@@ -258,7 +264,6 @@ public class GuiStyleConstants {
     public static final String CLASS_LINE_CHART_ICON = "fa fa-line-chart";
     public static final String CLASS_ROLE_ANALYSIS_CLUSTER_ICON = "fa fa-cubes";
 
-
     public static final String GREEN_COLOR = "color-green";
     public static final String YELLOW_COLOR = "color-yellow";
     public static final String RED_COLOR = "color-red";
@@ -313,4 +318,15 @@ public class GuiStyleConstants {
     public static final String CLASS_SCHEMA_BASIC_SETTINGS_PANEL_ICON = "fa fa-cog";
     public static final String CLASS_SCHEMA_COMPLEX_TYPE_ICON = "fa fa-cubes";
     public static final String CLASS_SCHEMA_ENUM_TYPE_ICON = "fa fa-cube";
+    public static final String CLASS_REFRESH = "fa fa-refresh";
+    public static final String CLASS_OPTIONS_COGS = "fa fa-cogs";
+    public static final String CLASS_OPTIONS_COG = "fa fa-cog";
+    public static final String CLASS_INFO_CIRCLE = "fa fa-info-circle";
+    public static final String ARROW_LONG_DOWN = "fa fa-long-arrow-down";
+    public static final String CLASS_DETECTED_PATTERN_ICON = "fa fa-cube";
+    public static final String CLASS_CANDIDATE_ROLE_ICON = "fe fe-role";
+    public static final String THUMBS_UP = "fa fa-thumbs-up";
+
+    public static final String CLASS_OUTLIER_ICON = "fa fa-id-badge";
+    public static final String CLASS_ICON_OUTLIER = "fa fa-user-circle";
 }

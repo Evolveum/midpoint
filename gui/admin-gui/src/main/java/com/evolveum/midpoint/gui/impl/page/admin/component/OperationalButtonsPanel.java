@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import java.io.Serial;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -17,9 +17,10 @@ import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -43,7 +44,6 @@ import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DetailsPageSaveMethodType;
@@ -56,7 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @param <O>
  */
 public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<PrismObjectWrapper<O>> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(OperationalButtonsPanel.class);
 
@@ -77,21 +77,15 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
         RepeatingView repeatingView = new RepeatingView(ID_BUTTONS);
         add(repeatingView);
-        createBackButton(repeatingView);
-        createSaveButton(repeatingView);
-
-        addButtons(repeatingView);
-
-        createDeleteButton(repeatingView);
-        createEditRawButton(repeatingView);
+        buildInitialRepeatingView(repeatingView);
 
         repeatingView.streamChildren()
                 .forEach(button -> {
                     String title = null;
                     if (button instanceof AjaxIconButton) {
-                        title = ((AjaxIconButton)button).getTitle().getObject();
-                    } else if (button instanceof AjaxCompositedIconSubmitButton){
-                        title = ((AjaxCompositedIconSubmitButton)button).getTitle().getObject();
+                        title = ((AjaxIconButton) button).getTitle().getObject();
+                    } else if (button instanceof AjaxCompositedIconSubmitButton) {
+                        title = ((AjaxCompositedIconSubmitButton) button).getTitle().getObject();
                     }
 
                     if (StringUtils.isNotEmpty(title)) {
@@ -103,7 +97,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                     if (button instanceof AbstractLink) {
                         button.add(new Behavior() {
 
-                            private static final long serialVersionUID = 1L;
+                            @Serial private static final long serialVersionUID = 1L;
 
                             @Override
                             public void bind(Component component) {
@@ -128,10 +122,20 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         addStateButtons(stateButtonsView);
     }
 
-    private void createEditRawButton(RepeatingView repeatingView) {
+    protected void buildInitialRepeatingView(RepeatingView repeatingView) {
+        createBackButton(repeatingView);
+        createSaveButton(repeatingView);
+
+        addButtons(repeatingView);
+
+        createDeleteButton(repeatingView);
+        createEditRawButton(repeatingView);
+    }
+
+    protected void createEditRawButton(@NotNull RepeatingView repeatingView) {
         AjaxIconButton edit = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_EDIT_MENU_ITEM),
                 getPageBase().createStringResource("AbstractObjectMainPanel.editXmlButton")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -153,10 +157,10 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUGS_URL, AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL);
     }
 
-    private void createBackButton(RepeatingView repeatingView) {
+    protected void createBackButton(@NotNull RepeatingView repeatingView) {
         AjaxIconButton back = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.ARROW_LEFT),
                 getPageBase().createStringResource("pageAdminFocus.button.back")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -169,10 +173,10 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         repeatingView.add(back);
     }
 
-    private void createDeleteButton(RepeatingView repeatingView) {
+   protected void createDeleteButton(@NotNull RepeatingView repeatingView) {
         AjaxIconButton remove = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_REMOVE),
-                getPageBase().createStringResource("OperationalButtonsPanel.delete")) {
-            private static final long serialVersionUID = 1L;
+                getDeleteButtonTitleModel()) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -183,6 +187,10 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         remove.showTitleAsLabel(true);
         remove.add(AttributeAppender.append("class", "btn btn-danger btn-sm"));
         repeatingView.add(remove);
+    }
+
+    protected IModel<String> getDeleteButtonTitleModel() {
+        return getPageBase().createStringResource("OperationalButtonsPanel.delete");
     }
 
     protected boolean isDeleteButtonVisible() {
@@ -201,11 +209,11 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
     }
 
-    private void createSaveButton(RepeatingView repeatingView) {
+    protected void createSaveButton(@NotNull RepeatingView repeatingView) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_ICON_SAVE, LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton save = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),
                 getPageBase().createStringResource("PageBase.button.save")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
@@ -259,7 +267,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         ConfirmationPanel confirmationPanel = new ConfirmationPanel(page.getMainPopupBodyId(),
                 page.createStringResource("OperationalButtonsPanel.confirmBack")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
@@ -286,7 +294,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         ConfirmationPanel confirmationPanel = new ConfirmationPanel(page.getMainPopupBodyId(),
                 getPageBase().createStringResource("AbstractObjectMainPanel.confirmEditXmlRedirect")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
@@ -310,7 +318,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
     private void deletePerformed(AjaxRequestTarget target) {
         ConfirmationPanel confirmationPanel = new DeleteConfirmationPanel(getPageBase().getMainPopupBodyId(),
                 createStringResource("OperationalButtonsPanel.deletePerformed", WebComponentUtil.getDisplayNameOrName(getPrismObject()))) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
