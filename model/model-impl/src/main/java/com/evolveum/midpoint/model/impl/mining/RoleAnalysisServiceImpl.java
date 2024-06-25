@@ -2406,7 +2406,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull Task task, @NotNull OperationResult result) {
         PrismObject<UserType> userTypeObject = this.getUserTypeObject(userOid, task, result);
         if (userTypeObject == null) {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
 
         ListMultimap<Double, String> similarityStats = ArrayListMultimap.create();
@@ -2436,7 +2436,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             }
         }
 
-        return Collections.emptyList();
+        return new ArrayList<>();
     }
 
     @Override

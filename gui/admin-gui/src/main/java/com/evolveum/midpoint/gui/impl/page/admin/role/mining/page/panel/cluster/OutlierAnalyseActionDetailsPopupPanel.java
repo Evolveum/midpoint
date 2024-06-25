@@ -334,4 +334,6 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         headerItems.add(outlierTypeLabel);
     }
 
+
+
 }
