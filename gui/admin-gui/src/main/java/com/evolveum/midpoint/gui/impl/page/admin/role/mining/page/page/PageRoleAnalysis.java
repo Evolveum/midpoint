@@ -95,7 +95,7 @@ public class PageRoleAnalysis extends PageAdmin {
 
         if (!isNativeRepo()) {
             mainForm.add(new ErrorPanel(ID_TABLE, createStringResource("RoleAnalysis.menu.nonNativeRepositoryWarning")));
-            add(new EmptyPanel(ID_CHART_PANEL));
+            infoForm.add(new EmptyPanel(ID_CHART_PANEL));
             return;
         }
 
