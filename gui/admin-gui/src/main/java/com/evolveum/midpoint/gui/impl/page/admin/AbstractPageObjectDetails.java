@@ -83,7 +83,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private static final String ID_MAIN_PANEL = "mainPanel";
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_SUMMARY = "summary";
-    private static final String ID_BASIC_MENU = "basicMenu";
+    private static final String ID_DETAILS_NAVIGATION_PANEL = "detailsNavigationPanel";
     private static final String ID_BUTTONS = "buttons";
 
     private static final String ID_DETAILS_OLD = "detailsOld";
@@ -95,7 +95,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private ODM objectDetailsModels;
     private final boolean isAdd;
     private boolean isShowedByWizard;
-    private boolean isBasicPanelVisible = true;
+    private boolean isDetailsNavigationPanelVisible = true;
 
     public AbstractPageObjectDetails() {
         this(null, null);
@@ -238,7 +238,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
                 initInlineButtons(form);
 
-                form.add(initBasicPanel());
+                form.add(initDetailsNavigationPanel());
 
                 ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration();
                 initMainPanel(defaultConfiguration, form);
@@ -247,12 +247,12 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         };
     }
 
-    private @NotNull WebMarkupContainer initBasicPanel() {
-        WebMarkupContainer container = new WebMarkupContainer(ID_BASIC_MENU);
+    private @NotNull WebMarkupContainer initDetailsNavigationPanel() {
+        WebMarkupContainer container = new WebMarkupContainer(ID_DETAILS_NAVIGATION_PANEL);
         container.setOutputMarkupId(true);
         container.add(initVerticalSummaryPanel());
         container.add(initNavigation());
-        container.add(new VisibleBehaviour(() -> isBasicPanelVisible));
+        container.add(new VisibleBehaviour(() -> isDetailsNavigationPanelVisible));
         return container;
     }
 
@@ -951,7 +951,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     protected Component getBasicMenuPanel() {
-        return get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM, ID_BASIC_MENU));
+        return get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM, ID_DETAILS_NAVIGATION_PANEL));
     }
 
     public PrismObject<O> getPrismObject() {
@@ -970,18 +970,18 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         iws.stream().filter(Objects::nonNull).forEach(iw -> iw.setValidated(false));
     }
 
-    public void hideBasicPanel(@NotNull AjaxRequestTarget target) {
-        isBasicPanelVisible = false;
+    public void hideDetailsNavigationPanel(@NotNull AjaxRequestTarget target) {
+        isDetailsNavigationPanelVisible = false;
         target.add(getMainForm());
     }
 
-    public void showBasicPanel(@NotNull AjaxRequestTarget target) {
-        isBasicPanelVisible = true;
+    public void showDetailsNavigationPanel(@NotNull AjaxRequestTarget target) {
+        isDetailsNavigationPanelVisible = true;
         target.add(getMainForm());
     }
 
-    public void toggleBasicPanelVisibility(@NotNull AjaxRequestTarget target) {
-        isBasicPanelVisible = !isBasicPanelVisible;
+    public void toggleDetailsNavigationPanelVisibility(@NotNull AjaxRequestTarget target) {
+        isDetailsNavigationPanelVisible = !isDetailsNavigationPanelVisible;
         target.add(getMainForm());
     }
 }

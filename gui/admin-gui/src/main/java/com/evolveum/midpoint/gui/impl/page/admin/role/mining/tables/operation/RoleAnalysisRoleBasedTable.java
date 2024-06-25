@@ -165,7 +165,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                     @Override
                     protected void performOnClick(AjaxRequestTarget target) {
                         showAsExpandCard = !showAsExpandCard;
-                        toggleBasicPanelVisibility(target);
+                        toggleDetailsNavigationPanelVisibility(target);
                     }
 
                     @Contract(pure = true)
@@ -1240,11 +1240,11 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
     }
 
     @SuppressWarnings("rawtypes")
-    protected void toggleBasicPanelVisibility(AjaxRequestTarget target) {
+    protected void toggleDetailsNavigationPanelVisibility(AjaxRequestTarget target) {
         Page page = getPage();
         if (page instanceof AbstractPageObjectDetails) {
             AbstractPageObjectDetails<?,?> pageObjectDetails = ((AbstractPageObjectDetails) page);
-            pageObjectDetails.toggleBasicPanelVisibility(target);
+            pageObjectDetails.toggleDetailsNavigationPanelVisibility(target);
         }
     }
 
