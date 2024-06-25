@@ -359,7 +359,7 @@ public class PrismSchemaTypeUtil {
 
         processDefinitionType(itemBean, itemDef, lifecycleState);
         itemBean.type(itemDef.getTypeName())
-                .name(itemDef.getItemName())
+                .name(new QName(itemDef.getItemName().getLocalPart()))
                 .indexed(itemDef.isIndexed())
                 .required(itemDef.isMandatory())
                 .multivalue(itemDef.isMultiValue());

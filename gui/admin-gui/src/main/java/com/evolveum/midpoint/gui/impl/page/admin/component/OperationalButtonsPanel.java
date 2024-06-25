@@ -70,10 +70,10 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initLayout();
+        initButtons();
     }
 
-    private void initLayout() {
+    protected void initButtons() {
 
         RepeatingView repeatingView = new RepeatingView(ID_BUTTONS);
         add(repeatingView);
@@ -169,13 +169,17 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         };
 
         back.showTitleAsLabel(true);
-        back.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        back.add(AttributeAppender.append("class", getBackCssClass()));
         repeatingView.add(back);
     }
 
-   protected void createDeleteButton(@NotNull RepeatingView repeatingView) {
+    protected String getBackCssClass() {
+        return "btn btn-default btn-sm";
+    }
+
+    protected void createDeleteButton(@NotNull RepeatingView repeatingView) {
         AjaxIconButton remove = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_REMOVE),
-                getDeleteButtonTitleModel()) {
+                getDeleteButtonLabelModel(getModelObject())) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -185,11 +189,15 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         };
         remove.add(new VisibleBehaviour(this::isDeleteButtonVisible));
         remove.showTitleAsLabel(true);
-        remove.add(AttributeAppender.append("class", "btn btn-danger btn-sm"));
+        remove.add(AttributeAppender.append("class", getDeleteButtonCssClass()));
         repeatingView.add(remove);
     }
 
-    protected IModel<String> getDeleteButtonTitleModel() {
+    protected String getDeleteButtonCssClass() {
+        return "btn btn-danger btn-sm";
+    }
+
+    protected IModel<String> getDeleteButtonLabelModel(PrismObjectWrapper<O> modelObject) {
         return getPageBase().createStringResource("OperationalButtonsPanel.delete");
     }
 
@@ -212,12 +220,12 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
     protected void createSaveButton(@NotNull RepeatingView repeatingView) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_ICON_SAVE, LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton save = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),
-                getPageBase().createStringResource("PageBase.button.save")) {
+                createSubmitButtonLabelModel(getModelObject())) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-                savePerformed(target);
+                submitPerformed(target);
             }
 
             @Override
@@ -238,7 +246,11 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         }
     }
 
-    protected void savePerformed(AjaxRequestTarget target) {
+    protected IModel<String> createSubmitButtonLabelModel(PrismObjectWrapper<O> modelObject) {
+        return getPageBase().createStringResource("PageBase.button.save");
+    }
+
+    protected void submitPerformed(AjaxRequestTarget target) {
 
     }
 

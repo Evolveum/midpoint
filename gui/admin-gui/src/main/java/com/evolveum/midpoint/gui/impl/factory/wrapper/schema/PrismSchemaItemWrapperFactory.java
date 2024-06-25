@@ -13,11 +13,6 @@ import com.evolveum.midpoint.prism.*;
 
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismPropertyWrapperFactoryImpl;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.*;
 
 import java.util.List;
@@ -26,7 +21,7 @@ import java.util.List;
  * @author skublik
  */
 @Component
-public class PrismSchemaItemWrapperFactoryImpl
+public class PrismSchemaItemWrapperFactory
         extends NoEmptyValueContainerWrapperFactoryImpl<PrismItemDefinitionType> {
 
     @Override

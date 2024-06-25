@@ -127,8 +127,8 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
             }
 
             @Override
-            protected void savePerformed(AjaxRequestTarget target) {
-                super.savePerformed(target);
+            protected void submitPerformed(AjaxRequestTarget target) {
+                super.submitPerformed(target);
                 PageTask.this.savePerformed(target);
             }
 

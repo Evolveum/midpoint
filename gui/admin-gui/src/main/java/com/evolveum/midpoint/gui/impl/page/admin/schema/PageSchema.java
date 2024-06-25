@@ -18,12 +18,16 @@ import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard.CreateComplexOrEnumerationWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard.basic.SchemaWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
+import com.evolveum.midpoint.web.component.ObjectVerticalSummaryPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 
@@ -33,7 +37,12 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @PageDescriptor(
         urls = {
@@ -71,23 +80,17 @@ public class PageSchema extends PageAssignmentHolderDetails<SchemaType, Assignme
 
     @Override
     protected Panel createSummaryPanel(String id, IModel<SchemaType> summaryModel) {
-        return new ObjectSummaryPanel<>(id, summaryModel, getSummaryPanelSpecification()) {
+        return null;
+    }
 
-            @Override
-            protected String getDefaultIconCssClass() {
-                return GuiStyleConstants.CLASS_OBJECT_SCHEMA_TEMPLATE_ICON;
-            }
-
-            @Override
-            protected String getIconBoxAdditionalCssClass() {
-                return "summary-panel-icon-box-md summary-panel-shadow"; //todo
-            }
-
-            @Override
-            protected String getBoxAdditionalCssClass() {
-                return "summary-panel-box-md"; //todo
-            }
-        };
+    @Override
+    protected Panel createVerticalSummaryPanel(String id, IModel<SchemaType> summaryModel) {
+            return new ObjectVerticalSummaryPanel<>(id, summaryModel) {
+                @Override
+                protected IModel<String> getTitleForNewObject(SchemaType modelObject) {
+                    return createStringResource("PageSchema.new");
+                }
+            };
     }
 
     public CreateComplexOrEnumerationWizardPanel showComplexOrEnumerationTypeWizard(AjaxRequestTarget target) {
@@ -111,38 +114,14 @@ public class PageSchema extends PageAssignmentHolderDetails<SchemaType, Assignme
                 add(new SchemaWizardPanel(ID_TEMPLATE, createObjectWizardPanelHelper()));
             }
         };
-
     }
 
     @Override
-    protected AssignmentHolderOperationalButtonsPanel<SchemaType> createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<SchemaType>> wrapperModel) {
-        return new AssignmentHolderOperationalButtonsPanel<>(id, wrapperModel) {
-
+    protected InlineOperationalButtonsPanel<SchemaType> createInlineButtonsPanel(String id, LoadableModel<PrismObjectWrapper<SchemaType>> wrapperModel) {
+        return new InlineOperationalButtonsPanel<>(id, wrapperModel) {
             @Override
-            protected void refresh(AjaxRequestTarget target) {
-                PageSchema.this.refresh(target);
-            }
-
-            @Override
-            protected void savePerformed(AjaxRequestTarget target) {
+            protected void submitPerformed(AjaxRequestTarget target) {
                 PageSchema.this.savePerformed(target);
-            }
-
-            @Override
-            protected void backPerformed(AjaxRequestTarget target) {
-                super.backPerformed(target);
-                onBackPerform(target);
-            }
-
-            @Override
-            protected void addButtons(RepeatingView repeatingView) {
-                addAdditionalButtons(repeatingView);
-            }
-
-            @Override
-            protected void deleteConfirmPerformed(AjaxRequestTarget target) {
-                super.deleteConfirmPerformed(target);
-                PageSchema.this.afterDeletePerformed(target);
             }
 
             @Override
@@ -154,6 +133,36 @@ public class PageSchema extends PageAssignmentHolderDetails<SchemaType, Assignme
             protected boolean isDeleteButtonVisible() {
                 return false;
             }
+
+            @Override
+            protected IModel<String> getDeleteButtonLabelModel(PrismObjectWrapper<SchemaType> modelObject) {
+                return Model.of();
+            }
+
+            @Override
+            protected IModel<String> createSubmitButtonLabelModel(PrismObjectWrapper<SchemaType> modelObject) {
+                return createStringResource("PageSchema.save");
+            }
+
+            @Override
+            protected IModel<String> getTitle() {
+                return getPageTitleModel();
+            }
         };
+    }
+
+    @Override
+    protected boolean supportGenericRepository() {
+        return false;
+    }
+
+    @Override
+    protected boolean supportNewDetailsLook() {
+        return true;
+    }
+
+    @Override
+    protected VisibleEnableBehaviour getPageTitleBehaviour() {
+        return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
     }
 }

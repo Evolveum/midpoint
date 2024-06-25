@@ -22,6 +22,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
+import org.w3c.dom.Attr;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -46,6 +48,7 @@ public class RoundedImagePanel extends BasePanel<DisplayType> {
     private void initLayout() {
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
         icon.add(new VisibleBehaviour(() -> isCssIconVisible()));
+        icon.add(AttributeAppender.append("class", getCssClassesIconContainer()));
         add(icon);
 
         Label cssIcon = new Label(ID_CSS_ICON);
@@ -56,6 +59,10 @@ public class RoundedImagePanel extends BasePanel<DisplayType> {
         NonCachingImage image = new NonCachingImage(ID_IMAGE, preferredImage);
         image.add(new VisibleBehaviour(() -> preferredImage.getObject() != null));
         add(image);
+    }
+
+    protected String getCssClassesIconContainer() {
+        return null;
     }
 
     private IconType getIcon() {

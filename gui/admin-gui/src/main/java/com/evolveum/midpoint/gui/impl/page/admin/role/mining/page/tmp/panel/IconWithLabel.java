@@ -65,7 +65,7 @@ public class IconWithLabel extends BasePanel<String> {
     }
 
     protected String getComponentCssClass() {
-        return "d-flex align-items-center gap-1";
+        return "d-flex align-items-center";
     }
 
     protected void onClickPerform(AjaxRequestTarget target) {
@@ -85,6 +85,8 @@ public class IconWithLabel extends BasePanel<String> {
     }
 
     protected Component getSubComponent(String id) {
-        return new WebMarkupContainer(id);
+        WebMarkupContainer container = new WebMarkupContainer(id);
+        container.add(AttributeModifier.remove("class"));
+        return container;
     }
 }
