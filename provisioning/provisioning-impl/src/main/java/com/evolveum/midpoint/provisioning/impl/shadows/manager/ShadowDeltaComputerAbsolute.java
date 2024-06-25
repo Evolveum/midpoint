@@ -29,7 +29,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsLocalBeans;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -57,7 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * These two situations are discriminated by {@link #fromResource} flag.
  *
  * @see ShadowDeltaComputerRelative
- * @see ShadowUpdater#updateShadowInRepository(ProvisioningContext, RepoShadow, ResourceObject, ObjectDelta,
+ * @see ShadowUpdater#updateShadowInRepository(ProvisioningContext, RepoShadow, ResourceObjectShadow, ObjectDelta,
  * ResourceObjectClassification, OperationResult)
  */
 class ShadowDeltaComputerAbsolute {
@@ -67,7 +67,7 @@ class ShadowDeltaComputerAbsolute {
     @NotNull private final ProvisioningContext ctx;
     @NotNull private final RepoShadow repoShadow;
     @NotNull private final RawRepoShadow rawRepoShadow;
-    @NotNull private final ResourceObject resourceObject;
+    @NotNull private final ResourceObjectShadow resourceObject;
     @Nullable private final ObjectDelta<ShadowType> resourceObjectDelta;
     @NotNull private final RepoShadowModifications computedModifications = new RepoShadowModifications();
     private final boolean cachingEnabled; // FIXME partial caching?!
@@ -83,7 +83,7 @@ class ShadowDeltaComputerAbsolute {
     private ShadowDeltaComputerAbsolute(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
-            @NotNull ResourceObject resourceObject,
+            @NotNull ResourceObjectShadow resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
             boolean fromResource) {
         this.ctx = ctx;
@@ -98,7 +98,7 @@ class ShadowDeltaComputerAbsolute {
     static @NotNull RepoShadowModifications computeShadowModifications(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
-            @NotNull ResourceObject resourceObject,
+            @NotNull ResourceObjectShadow resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
             boolean fromResource)
             throws SchemaException, ConfigurationException {
@@ -250,7 +250,7 @@ class ShadowDeltaComputerAbsolute {
 
         Collection<QName> expectedRepoAttributes = new ArrayList<>();
 
-        for (ShadowSimpleAttribute<?> resourceObjectAttribute : resourceObjectAttributesContainer.getAttributes()) {
+        for (ShadowSimpleAttribute<?> resourceObjectAttribute : resourceObjectAttributesContainer.getSimpleAttributes()) {
             ShadowSimpleAttributeDefinition<?> attrDef = resourceObjectAttribute.getDefinitionRequired();
             ItemName attrName = attrDef.getItemName();
             if (ctx.shouldStoreAttributeInShadow(ocDef, attrDef)) {
@@ -268,7 +268,7 @@ class ShadowDeltaComputerAbsolute {
         for (Item<?, ?> oldRepoItem : rawRepoShadowAttributesPcv.getItems()) {
             ItemName oldRepoItemName = oldRepoItem.getElementName();
             if (!expectedRepoAttributes.contains(oldRepoItemName)) {
-                removeAttribute(oldRepoItem, resourceObjectAttributesContainer.findAttribute(oldRepoItemName));
+                removeAttribute(oldRepoItem, resourceObjectAttributesContainer.findSimpleAttribute(oldRepoItemName));
             }
         }
 

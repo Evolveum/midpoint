@@ -233,7 +233,7 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
             PrismReference shadowAss = fillInShadowReference(def, item);
 
             PrismReferenceWrapper shadowReference = (PrismReferenceWrapper) referenceWrapperFactory.createWrapper(shadowValueWrapper, shadowAss, shadowAss.isEmpty() ? ItemStatus.ADDED : ItemStatus.NOT_CHANGED, context);
-            shadowReference.setFilter(def.createTargetObjectsFilter());
+            shadowReference.setFilter(def.getAssociationDefinition().createTargetObjectsFilter());
             shadowReferences.add(shadowReference);
         }
 

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.common.expression.evaluator.caching;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
+
 import org.apache.commons.lang3.Validate;
 
 import com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator.ObjectFound;
@@ -18,13 +20,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationVal
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-public class AssociationSearchQueryResult extends QueryResult<PrismContainerValue<ShadowAssociationValueType>> {
+public class AssociationSearchQueryResult extends QueryResult<ShadowReferenceAttributeValue> {
 
     private final String resourceOid;
     private final ShadowKindType kind;
 
     AssociationSearchQueryResult(
-            Collection<? extends ObjectFound<ShadowType, PrismContainerValue<ShadowAssociationValueType>>> objectsFound) {
+            Collection<? extends ObjectFound<ShadowType, ShadowReferenceAttributeValue>> objectsFound) {
         super(objectsFound);
 
         // TODO this is quite suspicious ... but it's here for ages, let us keep it for now

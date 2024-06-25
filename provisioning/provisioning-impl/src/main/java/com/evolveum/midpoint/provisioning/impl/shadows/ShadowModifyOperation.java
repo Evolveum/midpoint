@@ -64,6 +64,9 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
     /** Modifications whose execution was (originally) requested. */
     @NotNull private final ImmutableList<? extends ItemDelta<?, ?>> requestedModifications;
 
+    /** The same as modifications in {@link ShadowProvisioningOperation#resourceDelta}. Just for code clarity. */
+    @NotNull private final Collection<? extends ItemDelta<?, ?>> resourceDeltaModifications;
+
     /** Requested modifications, later updated with known ones obtained from the {@link ResourceObjectConverter}. */
     @NotNull private final Collection<? extends ItemDelta<?, ?>> effectiveModifications;
 
@@ -86,6 +89,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
                 createModificationDelta(opState, modifications),
                 createModificationDelta(opState, getResourceModifications(modifications)));
         this.requestedModifications = ImmutableList.copyOf(modifications);
+        this.resourceDeltaModifications = resourceDelta.getModifications();
         // TODO To be discussed: should we append the executed modifications to the original list of requested modifications?
         //  This has an interesting side effect: when auditing, midPoint stores not only computed (requested) modifications,
         //  but also the ones induced by the connector/resource. For example (TestModelServiceContract.test212) we audit
@@ -147,7 +151,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
         // should the execution fail. (Because the shadow OIDs may be volatile.) Before 4.7, the inclusion to the pending
         // list was automatic, because the list of modifications was shared throughout the operation. However, now it is
         // no longer the case: we have separate "requested delta", "resource delta", and "executed delta" there.
-        ShadowsLocalBeans.get().entitlementsHelper.provideEntitlementsIdentifiers(
+        ShadowsLocalBeans.get().entitlementsHelper.provideEntitlementsIdentifiersToDelta(
                 ctx, modifications, "delta for shadow " + repoShadow.getOid(), result);
 
         return new ShadowModifyOperation(ctx, modifications, options, scripts, opState, false)
@@ -245,6 +249,8 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
 
                 refreshBeforeExecution(result); // Will be skipped in maintenance mode
                 if (wasRefreshOperationSuccessful()) {
+                    associationsHelper.convertAssociationDeltasToReferenceAttributeDeltas(
+                            ctx, resourceDeltaModifications, result);
                     executeModifyOperationDirectly(result);
                 } else {
                     opState.markAsPostponed(
@@ -317,11 +323,13 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
         try {
             ctx.checkNotInMaintenance();
 
+            assert resourceDeltaModifications == resourceDelta.getModifications();
+
             ConnectorOperationOptions connOptions = createConnectorOperationOptions(result);
             ResourceObjectModifyReturnValue modifyOpResult =
                     resourceObjectConverter
                             .modifyResourceObject(
-                                    ctx, repoShadow, scripts, connOptions, resourceDelta.getModifications(), now, result);
+                                    ctx, repoShadow, scripts, connOptions, resourceDeltaModifications, now, result);
             opState.recordRealAsynchronousResult(modifyOpResult);
 
             // TODO should we mark the resource as UP here, as we do for ADD and DELETE?

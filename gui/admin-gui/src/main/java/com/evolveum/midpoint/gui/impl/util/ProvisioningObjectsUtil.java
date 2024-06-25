@@ -303,7 +303,7 @@ public class ProvisioningObjectsUtil {
             if (association != null && !shadowReferenceAttributeDefinition.getItemName().equivalent(association)) {
                 continue;
             }
-            ObjectFilter filter = shadowReferenceAttributeDefinition.createTargetObjectsFilter();
+            ObjectFilter filter = shadowReferenceAttributeDefinition.getAssociationDefinition().createTargetObjectsFilter();
             query.setFilter(filter);        // TODO this overwrites existing filter (created in previous cycle iteration)... is it OK? [med]
         }
         return query.getFilter();
@@ -313,7 +313,7 @@ public class ProvisioningObjectsUtil {
     public static ObjectFilter createAssociationShadowRefFilter(
             ShadowReferenceAttributeDefinition shadowReferenceAttributeDefinition,
             PrismContext prismContext, String resourceOid) {
-        return shadowReferenceAttributeDefinition.createTargetObjectsFilter();
+        return shadowReferenceAttributeDefinition.getAssociationDefinition().createTargetObjectsFilter();
     }
 
     public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?> itemWrapper,

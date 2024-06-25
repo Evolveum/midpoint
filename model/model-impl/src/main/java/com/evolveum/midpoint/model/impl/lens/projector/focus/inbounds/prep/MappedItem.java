@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.common.expression.VariableProducer;
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -240,7 +240,7 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
         if (values.size() != 1) {
             return null;
         }
-        return ((ShadowAssociationValue) values.get(0)).getShadowBean().asPrismObject();
+        return ((ShadowReferenceAttributeValue) values.get(0)).getShadowBean().asPrismObject();
     }
 
     private @NotNull ItemPath getTargetFullPath(AbstractMappingType mappingBean, String errorCtxDesc)

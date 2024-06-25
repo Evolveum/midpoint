@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 /** Temporary class, to be decided what to do with this. */
-public interface ShadowItemDefinitionTemp {
+public interface ShadowItemDefinition {
 
     default  <D extends ItemDefinition<?>> D findItemDefinition(@NotNull ItemPath path, @NotNull Class<D> clazz) {
         if (path.isEmpty()) {

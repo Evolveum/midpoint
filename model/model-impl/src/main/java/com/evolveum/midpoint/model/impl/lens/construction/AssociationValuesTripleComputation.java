@@ -24,6 +24,10 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
@@ -45,7 +49,6 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
@@ -63,7 +66,7 @@ class AssociationValuesTripleComputation {
     private static final Trace LOGGER = TraceManager.getTrace(AssociationValuesTripleComputation.class);
 
     private final boolean hasAssociationObject;
-    @NotNull private final ShadowReferenceAttributeDefinition associationDefinition;
+    @NotNull private final ShadowAssociationDefinition associationDefinition;
     @NotNull private final ShadowAssociationDefinitionType associationDefinitionBean;
     @NotNull private final LensProjectionContext projectionContext;
     @NotNull private final MappingEvaluationEnvironment env;
@@ -72,7 +75,7 @@ class AssociationValuesTripleComputation {
     @NotNull private final ModelBeans b = ModelBeans.get();
 
     private AssociationValuesTripleComputation(
-            @NotNull ShadowReferenceAttributeDefinition associationDefinition,
+            @NotNull ShadowAssociationDefinition associationDefinition,
             @NotNull ShadowAssociationDefinitionType associationDefinitionBean,
             @NotNull LensProjectionContext projectionContext,
             @NotNull MappingEvaluationEnvironment env,
@@ -88,7 +91,7 @@ class AssociationValuesTripleComputation {
 
     /** Assumes the existence of the projection context and association definition with a bean. */
     public static PrismValueDeltaSetTriple<ShadowAssociationValue> compute(
-            @NotNull ShadowReferenceAttributeDefinition associationDefinition,
+            @NotNull ShadowAssociationDefinition associationDefinition,
             @NotNull ConstructionEvaluation<?, ?> constructionEvaluation)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
@@ -216,9 +219,11 @@ class AssociationValuesTripleComputation {
                 for (ResourceAttributeDefinitionType attrDefBean : associationDefinitionBean.getObjectRef()) {
                     evaluateAttribute(attrDefBean, true);
                 }
-                var shadow = consolidate();
-
-                var associationValue = ShadowAssociationValue.of(AbstractShadow.of(shadow), false);
+                var associationObject = consolidate();
+                var associationValue =
+                        ShadowAssociationValue.fromAssociationObject(
+                                AbstractShadow.of(associationObject),
+                                associationDefinition);
                 var resultingTriple = PrismContext.get().deltaFactory().<ShadowAssociationValue>createPrismValueDeltaSetTriple();
                 resultingTriple.addAllToSet(mode, List.of(associationValue));
                 return resultingTriple;

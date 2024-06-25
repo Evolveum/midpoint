@@ -200,19 +200,27 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
                 "No attributes container in %s", this);
     }
 
-    default @NotNull Collection<ShadowSimpleAttribute<?>> getAttributes() {
+    default @NotNull Collection<ShadowAttribute<?, ?, ?, ?>> getAttributes() {
         return ShadowUtil.getAttributes(getBean());
     }
 
+    default @NotNull Collection<ShadowSimpleAttribute<?>> getSimpleAttributes() {
+        return ShadowUtil.getSimpleAttributes(getBean());
+    }
+
+    default @NotNull Collection<ShadowAssociation> getAssociations() {
+        return ShadowUtil.getAssociations(getBean());
+    }
+
     /** Should correspond to {@link #getObjectDefinition()}. */
-    default @NotNull ResourceAttributeContainerDefinition getAttributesContainerDefinition() {
+    default @NotNull ShadowAttributesContainerDefinition getAttributesContainerDefinition() {
         return Objects.requireNonNull(
                 getAttributesContainer().getDefinition(),
                 () -> "No attributes container definition in " + this);
     }
 
     default @Nullable <X> ShadowSimpleAttribute<X> findAttribute(@NotNull QName name) {
-        return getAttributesContainer().findAttribute(name);
+        return getAttributesContainer().findSimpleAttribute(name);
     }
 
     default <X> @NotNull Collection<PrismPropertyValue<X>> getAttributeValues(@NotNull QName name) {
@@ -241,11 +249,11 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
 
     default void checkAttributeDefinitions() {
         ResourceObjectDefinition objectDefinition = getObjectDefinition();
-        for (ShadowSimpleAttribute<?> attribute : getAttributes()) {
+        for (var attribute : getAttributes()) {
             var attrDef = MiscUtil.stateNonNull(
                     attribute.getDefinition(),
                     "Attribute %s with no definition in %s", attribute, this);
-            var attrDefFromObjectDef = objectDefinition.findSimpleAttributeDefinitionStrictlyRequired(attribute.getElementName());
+            var attrDefFromObjectDef = objectDefinition.findAttributeDefinitionStrictlyRequired(attribute.getElementName());
             if (!attrDef.equals(attrDefFromObjectDef)) {
                 // FIXME This is too harsh. See e.g. TestModelServiceContract#test350, where we provide our own account delta
                 //  that gets processed as part of inbound processing. The attribute definition was provided by the caller
@@ -265,7 +273,7 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
         // This causes problems with embedded associations
         //getPrismObject().applyDefinition(newDefinition.getPrismObjectDefinition(), false);
         getAttributesContainer().applyDefinition(
-                newDefinition.toResourceAttributeContainerDefinition());
+                newDefinition.toShadowAttributesContainerDefinition());
         checkConsistence();
     }
 
@@ -281,13 +289,22 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
         return MiscUtil.extractSingleton(getAttributeRealValues(attrName));
     }
 
-    default @Nullable <T> ShadowSimpleAttribute<T> getAttribute(QName attrName) {
-        return ShadowUtil.getAttribute(getPrismObject(), attrName);
+    default @Nullable <T> ShadowSimpleAttribute<T> getSimpleAttribute(QName attrName) {
+        return ShadowUtil.getSimpleAttribute(getPrismObject(), attrName);
     }
 
-    default @NotNull <T> ShadowSimpleAttribute<T> getAttributeRequired(QName attrName) {
+    default @Nullable ShadowReferenceAttribute getReferenceAttribute(QName attrName) {
+        return ShadowUtil.getReferenceAttribute(getPrismObject(), attrName);
+    }
+
+    default @Nullable ShadowReferenceAttributeValue getReferenceAttributeSingleValue(QName attrName) {
+        var attr = getReferenceAttribute(attrName);
+        return attr != null ? attr.getSingleValueRequired() : null;
+    }
+
+    default @NotNull <T> ShadowSimpleAttribute<T> getSimpleAttributeRequired(QName attrName) {
         return MiscUtil.stateNonNull(
-                getAttribute(attrName),
+                getSimpleAttribute(attrName),
                 "No '%s' in %s", attrName, this);
     }
 
@@ -302,13 +319,12 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
         return ShadowUtil.getOrCreateAssociationsContainer(getBean());
     }
 
-    /**
-     * Similar to {@link #getAssociationsContainer()} but never returns `null`.
-     *
-     * @see ShadowUtil#getAssociations(ShadowType)
-     */
-    default @NotNull Collection<ShadowReferenceAttribute> getAssociations() {
-        return ShadowUtil.getAssociations(getBean());
+    default @NotNull Collection<ShadowReferenceAttribute> getReferenceAttributes() {
+        return ShadowUtil.getReferenceAttributes(getBean());
+    }
+
+    default @NotNull ShadowReferenceAttributesCollection getReferenceAttributesCollection() {
+        return ShadowReferenceAttributesCollection.ofShadow(getBean());
     }
 
     default @Nullable ShadowKindType getKind() {

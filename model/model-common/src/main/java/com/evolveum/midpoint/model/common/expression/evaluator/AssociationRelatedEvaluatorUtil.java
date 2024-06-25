@@ -16,17 +16,17 @@ import org.jetbrains.annotations.NotNull;
 
 class AssociationRelatedEvaluatorUtil {
 
-    static @NotNull ShadowReferenceAttributeDefinition getAssociationDefinition(ExpressionEvaluationContext context)
+    static @NotNull ShadowReferenceAttributeDefinition getReferenceAttributeDefinition(ExpressionEvaluationContext context)
             throws ExpressionEvaluationException {
         var associationDefinitionTypedValue = context.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_DEFINITION);
-        var associationDefinition = associationDefinitionTypedValue != null ?
+        var refAttrDef = associationDefinitionTypedValue != null ?
                 (ShadowReferenceAttributeDefinition) associationDefinitionTypedValue.getValue() : null;
-        if (associationDefinition == null) {
+        if (refAttrDef == null) {
             throw new ExpressionEvaluationException(
                     ("No association definition variable in %s; the expression may be used in a wrong place. "
                             + "It is only supposed to create an association.").formatted(
                                     context.getContextDescription()));
         }
-        return associationDefinition;
+        return refAttrDef;
     }
 }

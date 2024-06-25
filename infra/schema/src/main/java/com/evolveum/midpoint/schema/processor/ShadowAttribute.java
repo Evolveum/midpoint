@@ -7,27 +7,27 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.prism.CloneStrategy;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
-import javax.xml.namespace.QName;
 
 /**
  * Access to both {@link ShadowSimpleAttribute} and {@link ShadowReferenceAttribute}.
- *
- * Currently, it cannot extend {@link Item} because of the clash on many methods, like {@link Item#getValue()}.
- * (To be researched further.)
  */
-@Experimental
-public interface ShadowAttribute<PV, RV> {
+public interface ShadowAttribute<
+        V extends PrismValue,
+        D extends ShadowAttributeDefinition<V, D, RV, SA>,
+        RV,
+        SA extends ShadowAttribute<V, D, RV, SA>> {
 
-    QName getElementName();
+    ItemName getElementName();
 
-    // FIXME the typing here
-    <SA extends ShadowAttribute<PV, RV>> ShadowAttributeDefinition<SA, RV> getDefinition();
+    D getDefinition();
 
-    ShadowAttribute<PV, RV> clone();
+    ShadowAttribute<V, D, RV, SA> clone();
 
     void setIncomplete(boolean incomplete);
 
@@ -35,5 +35,13 @@ public interface ShadowAttribute<PV, RV> {
 
     boolean hasNoValues();
 
-    void addValueSkipUniquenessCheck(PV value) throws SchemaException;
+    void addValueSkipUniquenessCheck(V value) throws SchemaException;
+
+    SA createImmutableClone();
+
+    ItemDelta<?, ?> createDelta();
+
+    ItemDelta<?, ?> createDelta(ItemPath path);
+
+    SA cloneComplex(CloneStrategy strategy);
 }

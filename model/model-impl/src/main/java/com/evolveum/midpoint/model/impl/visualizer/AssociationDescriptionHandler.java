@@ -7,33 +7,23 @@
 
 package com.evolveum.midpoint.model.impl.visualizer;
 
-import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationItemImpl;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationItemValueImpl;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.xml.bind.JAXBElement;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,7 +55,7 @@ public class AssociationDescriptionHandler extends ShadowDescriptionHandler {
 
         String association = visualization.getSourceDefinition().getItemName().getLocalPart();
 
-        ShadowAssociationValue value = (ShadowAssociationValue) visualization.getSourceValue();
+        ShadowReferenceAttributeValue value = (ShadowReferenceAttributeValue) visualization.getSourceValue();
 
 
 

@@ -269,7 +269,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * - Target: ReconciliationProcessor
      */
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes;
-    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<ShadowAssociationValue, ShadowReferenceAttributeDefinition>>> squeezedAssociations;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<ShadowReferenceAttributeValue, ShadowReferenceAttributeDefinition>>> squeezedAssociations;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses;
 
     /** Dependency-defining beans *with the defaults filled-in*. All of resource OID, kind, and intent are not null. */
@@ -898,12 +898,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.squeezedAttributes = squeezedAttributes;
     }
 
-    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<ShadowAssociationValue, ShadowReferenceAttributeDefinition>>> getSqueezedAssociations() {
+    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<ShadowReferenceAttributeValue, ShadowReferenceAttributeDefinition>>> getSqueezedAssociations() {
         return squeezedAssociations;
     }
 
     public void setSqueezedAssociations(
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<ShadowAssociationValue, ShadowReferenceAttributeDefinition>>> squeezedAssociations) {
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<ShadowReferenceAttributeValue, ShadowReferenceAttributeDefinition>>> squeezedAssociations) {
         this.squeezedAssociations = squeezedAssociations;
     }
 
@@ -1276,7 +1276,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (attributesContainer != null) {
             ResourceType resource = getResource();
             if (resource != null) {
-                for (ShadowSimpleAttribute<?> attribute : attributesContainer.getAttributes()) {
+                for (var attribute : attributesContainer.getAttributes()) {
                     QName attrName = attribute.getElementName();
                     if (SchemaConstants.NS_ICF_SCHEMA.equals(attrName.getNamespaceURI())) {
                         continue;

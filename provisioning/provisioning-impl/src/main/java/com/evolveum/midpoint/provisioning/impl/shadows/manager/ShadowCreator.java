@@ -12,7 +12,7 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.toPolyStringType
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ShadowAuditHelper;
 import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
@@ -64,7 +64,7 @@ public class ShadowCreator {
      * Used when searching for objects or when completing entitlements.
      */
     public @NotNull RepoShadow addShadowForDiscoveredResourceObject(
-            ProvisioningContext ctx, ExistingResourceObject resourceObject, OperationResult result)
+            ProvisioningContext ctx, ExistingResourceObjectShadow resourceObject, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, ConfigurationException {
 
         LOGGER.trace("Adding new shadow from resource object:\n{}", resourceObject.debugDumpLazily(1));
@@ -88,7 +88,7 @@ public class ShadowCreator {
      * The new shadow is recorded into the `opState`.
      */
     public void addNewProposedShadow(
-            ProvisioningContext ctx, ResourceObject objectToAdd, AddOperationState opState, OperationResult result)
+            ProvisioningContext ctx, ResourceObjectShadow objectToAdd, AddOperationState opState, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
 
         if (!ctx.shouldUseProposedShadows()) {
@@ -174,7 +174,7 @@ public class ShadowCreator {
         repoShadowBean.setPrimaryIdentifierValue(primaryIdentifierValue != null ? primaryIdentifierValue.toString() : null);
 
         var repoAttributesContainer = repoShadowBean.asPrismObject().findOrCreateContainer(ShadowType.F_ATTRIBUTES);
-        for (ShadowSimpleAttribute<?> attribute : originalAttributesContainer.getAttributes()) {
+        for (ShadowSimpleAttribute<?> attribute : originalAttributesContainer.getSimpleAttributes()) {
             // TODO or should we use attribute.getDefinition()?
             var attrDef = objectDef.findSimpleAttributeDefinitionRequired(attribute.getElementName());
             if (ctx.shouldStoreAttributeInShadow(objectDef, attrDef)) {

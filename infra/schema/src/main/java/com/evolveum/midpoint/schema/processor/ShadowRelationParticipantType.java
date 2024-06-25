@@ -18,12 +18,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * What kinds of objects can participate in given association?
+ * What kinds of objects can participate in given {@link ShadowReferenceAttribute} or {@link ShadowAssociation}?
  *
  * Some participants are object types, others are object classes. The former is obligatory for legacy simulated associations.
  * Modern simulated associations and native associations can have class-scoped participants.
  */
-public class AssociationParticipantType implements Serializable {
+public class ShadowRelationParticipantType implements Serializable {
 
     /** Identification of the object type of the participant, if it's type-scoped. Null for class-scoped ones. */
     @Nullable private final ResourceObjectTypeIdentification typeIdentification;
@@ -34,24 +34,24 @@ public class AssociationParticipantType implements Serializable {
      */
     @NotNull final ResourceObjectDefinition objectDefinition;
 
-    private AssociationParticipantType(
+    private ShadowRelationParticipantType(
             @Nullable ResourceObjectTypeIdentification typeIdentification,
             @NotNull ResourceObjectDefinition objectDefinition) {
         this.typeIdentification = typeIdentification;
         this.objectDefinition = objectDefinition;
     }
 
-    static AssociationParticipantType forObjectClass(@NotNull ResourceObjectDefinition definition) {
-        return new AssociationParticipantType(null, definition);
+    static ShadowRelationParticipantType forObjectClass(@NotNull ResourceObjectDefinition definition) {
+        return new ShadowRelationParticipantType(null, definition);
     }
 
-    static AssociationParticipantType forObjectType(@NotNull ResourceObjectTypeDefinition definition) {
-        return new AssociationParticipantType(
+    static ShadowRelationParticipantType forObjectType(@NotNull ResourceObjectTypeDefinition definition) {
+        return new ShadowRelationParticipantType(
                 definition.getTypeIdentification(),
                 definition);
     }
 
-    static Collection<AssociationParticipantType> forObjectTypes(Collection<? extends ResourceObjectTypeDefinition> definitions) {
+    static Collection<ShadowRelationParticipantType> forObjectTypes(Collection<? extends ResourceObjectTypeDefinition> definitions) {
         return definitions.stream()
                 .map(def -> forObjectType(def))
                 .toList();
@@ -99,7 +99,7 @@ public class AssociationParticipantType implements Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        AssociationParticipantType that = (AssociationParticipantType) o;
+        ShadowRelationParticipantType that = (ShadowRelationParticipantType) o;
         return Objects.equals(typeIdentification, that.typeIdentification)
                 && Objects.equals(objectDefinition, that.objectDefinition);
     }

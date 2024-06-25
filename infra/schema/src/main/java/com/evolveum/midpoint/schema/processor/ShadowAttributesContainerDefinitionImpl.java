@@ -40,13 +40,13 @@ import org.jetbrains.annotations.NotNull;
  * @author Radovan Semancik
  *
  */
-public class ResourceAttributeContainerDefinitionImpl
+public class ShadowAttributesContainerDefinitionImpl
         extends PrismContainerDefinitionImpl<ShadowAttributesType>
-        implements ResourceAttributeContainerDefinition {
+        implements ShadowAttributesContainerDefinition {
 
     @Serial private static final long serialVersionUID = 3943909626639924429L;
 
-    ResourceAttributeContainerDefinitionImpl(QName name, @NotNull ComplexTypeDefinition complexTypeDefinition) {
+    ShadowAttributesContainerDefinitionImpl(QName name, @NotNull ComplexTypeDefinition complexTypeDefinition) {
         super(name, complexTypeDefinition);
         super.setCompileTimeClass(ShadowAttributesType.class);
         isRuntimeSchema = true;
@@ -93,15 +93,15 @@ public class ResourceAttributeContainerDefinitionImpl
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @NotNull
     @Override
-    public ResourceAttributeContainerDefinitionImpl clone() {
-        ResourceAttributeContainerDefinitionImpl clone =
-                new ResourceAttributeContainerDefinitionImpl(itemName, complexTypeDefinition);
+    public ShadowAttributesContainerDefinitionImpl clone() {
+        ShadowAttributesContainerDefinitionImpl clone =
+                new ShadowAttributesContainerDefinitionImpl(itemName, complexTypeDefinition);
         clone.copyDefinitionDataFrom(this);
         return clone;
     }
 
     @SuppressWarnings("WeakerAccess") // open for subclassing
-    protected void copyDefinitionDataFrom(ResourceAttributeContainerDefinition source) {
+    protected void copyDefinitionDataFrom(ShadowAttributesContainerDefinition source) {
         super.copyDefinitionDataFrom(source);
     }
 

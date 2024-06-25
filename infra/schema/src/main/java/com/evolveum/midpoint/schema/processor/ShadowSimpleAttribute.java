@@ -11,12 +11,10 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -45,7 +43,14 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  * @author Radovan Semancik
  */
 public interface ShadowSimpleAttribute<T>
-        extends ShadowAttribute<PrismPropertyValue<T>, T>, PrismProperty<T> {
+        extends
+        PrismProperty<T>,
+        ShadowAttribute<
+                PrismPropertyValue<T>,
+                ShadowSimpleAttributeDefinition<T>,
+                T,
+                ShadowSimpleAttribute<T>
+                > {
 
     /** Converts the {@link PrismProperty} into {@link ShadowSimpleAttribute}, if needed. */
     static <T> ShadowSimpleAttribute<T> of(@NotNull Item<?, ?> item) {
@@ -138,10 +143,6 @@ public interface ShadowSimpleAttribute<T>
                 PolyStringType.COMPLEX_TYPE);
     }
 
-    /** There must be no duplicates or nulls among the real values. {@link RawType} values are tried to be converted. */
-    void addNormalizedValues(@NotNull Collection<?> realValues, @NotNull ShadowSimpleAttributeDefinition<T> newDefinition)
-            throws SchemaException;
-
     default @NotNull ItemPath getStandardPath() {
         return ItemPath.create(ShadowType.F_ATTRIBUTES, getElementName());
     }
@@ -204,8 +205,19 @@ public interface ShadowSimpleAttribute<T>
                 this, actualDefinition, expectedDefinition);
     }
 
-    @Override
     default boolean hasNoValues() {
         return PrismProperty.super.hasNoValues();
     }
+
+    @Override
+    PropertyDelta<T> createDelta();
+
+    @Override
+    PropertyDelta<T> createDelta(ItemPath path);
+
+     @Override
+     ShadowSimpleAttribute<T> createImmutableClone();
+
+     @Override
+     ShadowSimpleAttribute<T> cloneComplex(CloneStrategy strategy);
 }

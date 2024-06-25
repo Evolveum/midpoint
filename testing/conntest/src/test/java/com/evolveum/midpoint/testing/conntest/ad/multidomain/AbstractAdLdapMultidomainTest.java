@@ -501,7 +501,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME));
         jackAccountOid = shadow.getOid();
 
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupPiratesOid);
 
         assertAttribute(shadow, "dn", "CN=Jack Sparrow," + getPeopleLdapSuffix());
         assertAttribute(shadow, "cn", ACCOUNT_JACK_FULL_NAME);
@@ -809,7 +809,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         assertAttribute(entry, ATTRIBUTE_OBJECT_CATEGORY_NAME, getObjectCategoryPerson());
 
         // MID-4624
-        ShadowSimpleAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
+        ShadowSimpleAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getSimpleAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in " + shadow, createTimestampAttribute);
         XMLGregorianCalendar createTimestamp = createTimestampAttribute.getRealValue();
         long createTimestampMillis = XmlTypeConverter.toMillis(createTimestamp);
@@ -1412,7 +1412,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         String shadowOid = getSingleLinkOid(user);
 
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupPiratesOid);
         assertAccountDisabled(shadow);
 
 //        try {
@@ -1565,7 +1565,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupPiratesOid);
 
         assertLdapConnectorReasonableInstances();
     }
@@ -1733,7 +1733,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
 
         assertLdapGroupMember(entry, GROUP_MELEE_ISLAND_NAME);
 
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeIslandOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupMeleeIslandOid);
 
 //        assertLdapConnectorInstances(2);
     }
@@ -1835,7 +1835,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
 
         assertLdapGroupMember(entryGuybrush, GROUP_MELEE_ISLAND_ALT_NAME);
 
-        IntegrationTestTools.assertAssociation(shadowAccount, getAssociationGroupQName(), groupMeleeIslandOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadowAccount, getAssociationGroupQName(), groupMeleeIslandOid);
 
 //        assertLdapConnectorInstances(2);
     }
@@ -2006,7 +2006,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
         // MID-4624
-        ShadowSimpleAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
+        ShadowSimpleAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getSimpleAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in " + shadow, createTimestampAttribute);
         XMLGregorianCalendar createTimestamp = createTimestampAttribute.getRealValue();
         long createTimestampMillis = XmlTypeConverter.toMillis(createTimestamp);

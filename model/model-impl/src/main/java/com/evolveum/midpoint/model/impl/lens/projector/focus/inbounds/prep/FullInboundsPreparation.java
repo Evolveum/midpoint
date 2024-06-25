@@ -51,7 +51,7 @@ import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ItemSynchronizationReactionDefinition;
@@ -389,7 +389,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                 ConfigurationException, StopProcessingProjectionException, ObjectNotFoundException {
 
             // Processing individual values of the reference attribute
-            values: for (var refAttributeValue : referenceAttribute.getAssociationValues()) {
+            values: for (var refAttributeValue : referenceAttribute.getReferenceValues()) {
 
                 // FIXME EXTRA HACK: we check if the association value was not removed by a-priori delta
                 //  (normal delta application does not work here)
@@ -398,7 +398,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                             associationDefinition.getStandardPath());
                     if (associationDelta != null) {
                         for (var deletedValue : emptyIfNull(associationDelta.getValuesToDelete())) {
-                            if (refAttributeValue.matches((ShadowAssociationValue) deletedValue)) {
+                            if (refAttributeValue.matches((ShadowReferenceAttributeValue) deletedValue)) {
                                 LOGGER.trace("Ignoring association value that was already deleted: {}", refAttributeValue);
                                 continue values;
                             }
@@ -453,10 +453,10 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
          */
         private class ValueProcessing {
 
-            @NotNull private final ShadowAssociationValue associationValue;
+            @NotNull private final ShadowReferenceAttributeValue associationValue;
             @NotNull private final ResourceType resource = projectionContext.getResourceRequired();
 
-            ValueProcessing(@NotNull ShadowAssociationValue associationValue) {
+            ValueProcessing(@NotNull ShadowReferenceAttributeValue associationValue) {
                 this.associationValue = associationValue;
             }
 
@@ -508,7 +508,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                         new CorrelationContext.Shadow(
                                 associationValue.getShadowBean(),
                                 projectionContext.getResourceRequired(),
-                                associationValue.getAssociatedObjectDefinition(),
+                                associationValue.getTargetObjectDefinition(),
                                 assignmentForCorrelation,
                                 candidateAssignments,
                                 context.getSystemConfigurationBean(),
@@ -626,7 +626,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                 MSource childSource = new FullSource(
                         associationValue.getShadow().getPrismObject(),
                         null, // TODO
-                        associationValue.getAssociatedObjectDefinition(),
+                        associationValue.getTargetObjectDefinition(),
                         inboundDefinition,
                         projectionContext,
                         context,

@@ -159,25 +159,25 @@ public abstract class AbstractAdLdapTest extends AbstractLdapTest
     @Override
     protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException, ConfigurationException {
         super.assertAccountShadow(shadow, dn);
-        ShadowSimpleAttribute<String> primaryIdAttr = ShadowUtil.getAttribute(shadow, getPrimaryIdentifierAttributeQName());
+        ShadowSimpleAttribute<String> primaryIdAttr = ShadowUtil.getSimpleAttribute(shadow, getPrimaryIdentifierAttributeQName());
         assertNotNull("No primary identifier (" + getPrimaryIdentifierAttributeQName() + " in " + shadow, primaryIdAttr);
         String primaryId = primaryIdAttr.getRealValue();
         assertTrue("Unexpected chars in primary ID: '" + primaryId + "'", primaryId.matches("[a-z0-9\\-]+"));
 
-        ShadowSimpleAttribute<String> objectSidAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_SID_NAME));
+        ShadowSimpleAttribute<String> objectSidAttr = ShadowUtil.getSimpleAttribute(shadow, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_SID_NAME));
         assertNotNull("No SID in " + shadow, objectSidAttr);
         display("SID of " + dn + ": " + objectSidAttr);
     }
 
     protected void assertSid(PrismObject<ShadowType> shadow, String expectedSid) {
-        ShadowSimpleAttribute<String> objectSidAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_SID_NAME));
+        ShadowSimpleAttribute<String> objectSidAttr = ShadowUtil.getSimpleAttribute(shadow, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_SID_NAME));
         assertNotNull("No SID in " + shadow, objectSidAttr);
         display("SID of " + shadow + ": " + objectSidAttr);
         assertEquals("Wrong SID in " + shadow, expectedSid, objectSidAttr.getRealValue());
     }
 
     protected void assertObjectCategory(PrismObject<ShadowType> shadow, String expectedObjectCategory) {
-        ShadowSimpleAttribute<String> objectCategoryAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_CATEGORY_NAME));
+        ShadowSimpleAttribute<String> objectCategoryAttr = ShadowUtil.getSimpleAttribute(shadow, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_CATEGORY_NAME));
         assertNotNull("No objectCategory in " + shadow, objectCategoryAttr);
         display("objectCategory of " + shadow + ": " + objectCategoryAttr);
         assertEquals("Wrong objectCategory in " + shadow, expectedObjectCategory, objectCategoryAttr.getRealValue());

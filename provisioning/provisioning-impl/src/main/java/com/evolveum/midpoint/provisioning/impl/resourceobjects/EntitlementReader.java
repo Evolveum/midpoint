@@ -31,12 +31,12 @@ class EntitlementReader {
     private static final Trace LOGGER = TraceManager.getTrace(EntitlementReader.class);
 
     /** The resource object for which we are trying to obtain the entitlements. */
-    @NotNull private final ResourceObject subject;
+    @NotNull private final ResourceObjectShadow subject;
 
     /** {@link ProvisioningContext} of the subject fetch/search/whatever operation. */
     @NotNull private final ProvisioningContext subjectCtx;
 
-    private EntitlementReader(@NotNull ResourceObject subject, @NotNull ProvisioningContext subjectCtx) {
+    private EntitlementReader(@NotNull ResourceObjectShadow subject, @NotNull ProvisioningContext subjectCtx) {
         this.subject = subject;
         this.subjectCtx = subjectCtx;
     }
@@ -46,7 +46,7 @@ class EntitlementReader {
      * Note that for "object to subject" entitlements this involves a search operation.
      */
     public static void read(
-            @NotNull ResourceObject subject,
+            @NotNull ResourceObjectShadow subject,
             @NotNull ProvisioningContext subjectCtx,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
@@ -75,7 +75,7 @@ class EntitlementReader {
             } else if (secondaryBinding != null) {
                 convertSubjectAttributeToAssociation(secondaryBinding, simulationDefinition);
             } else {
-                searchForAssociationTargetObjects(primaryBinding, simulationDefinition, result);
+                searchForTargetObjects(primaryBinding, simulationDefinition, result);
             }
         }
         LOGGER.trace("Finished simulated associations read operation");
@@ -107,24 +107,25 @@ class EntitlementReader {
             @NotNull AttributeBinding bindingToUse,
             @NotNull SimulatedShadowReferenceTypeDefinition simulationDefinition) throws SchemaException {
 
-        // The "referencing" attribute, present on subject, e.g. isMemberOf.
-        var subjectAttrValues = subject.<T>getAttributeValues(bindingToUse.subjectSide());
-        if (subjectAttrValues.isEmpty()) {
-            return; // ending here, to avoid e.g. creating the association if there are no values
+        // The "referencing" binding attribute, present on subject, e.g. isMemberOf.
+        var subjectBindingAttrValues = subject.<T>getAttributeValues(bindingToUse.subjectSide());
+        if (subjectBindingAttrValues.isEmpty()) {
+            return; // ending here, to avoid e.g. creating the reference if there are no values
         }
 
-        // The "referenced" attribute, present on object, e.g. dn (Group DN).
-        var objectAttrDef = simulationDefinition.<T>getObjectAttributeDefinition(bindingToUse);
+        // The "referenced" binding attribute, present on object, e.g. dn (Group DN).
+        var objectBindingAttrDef = simulationDefinition.<T>getObjectAttributeDefinition(bindingToUse);
 
-        var association = subject
-                .getOrCreateAssociationsContainer()
-                .findOrCreateAssociation(simulationDefinition.getLocalSubjectItemName());
+        // The simulated reference attribute being filled-in.
+        var subjectReferenceAttr = subject
+                .getAttributesContainer()
+                .findOrCreateReferenceAttribute(simulationDefinition.getLocalSubjectItemName());
 
-        for (var subjectAttrValue : subjectAttrValues) {
-            var newAssociationValue =
-                    association.createNewValueWithIdentifier(
-                            objectAttrDef.instantiateFromValue(subjectAttrValue.clone()));
-            LOGGER.trace("Association attribute value resolved to association value {}", newAssociationValue);
+        for (var subjectBindingAttrValue : subjectBindingAttrValues) {
+            var newReferenceAttrValue =
+                    subjectReferenceAttr.createNewValueWithIdentifier(
+                            objectBindingAttrDef.instantiateFromRealValue(subjectBindingAttrValue.clone().getRealValueRequired()));
+            LOGGER.trace("Binding attribute value resolved to reference value {}", newReferenceAttrValue);
         }
     }
 
@@ -139,7 +140,7 @@ class EntitlementReader {
      * NOTE: Just as {@link #convertSubjectAttributeToAssociation(AttributeBinding, SimulatedShadowReferenceTypeDefinition)},
      * this method does not filter the results according object types specified in the association type definition.
      */
-    private void searchForAssociationTargetObjects(
+    private void searchForTargetObjects(
             @NotNull AttributeBinding primaryBinding,
             @NotNull SimulatedShadowReferenceTypeDefinition simulationDefinition,
             @NotNull OperationResult result)
@@ -157,9 +158,9 @@ class EntitlementReader {
         searchOp.execute((objectFound, lResult) -> {
             objectFound.initialize(subjectCtx.getTask(), lResult);
             if (objectFound.isOk()) {
-                ExistingResourceObject resourceObject = objectFound.getResourceObject();
+                ExistingResourceObjectShadow resourceObject = objectFound.getResourceObject();
                 try {
-                    addAssociationValueFromEntitlementObject(simulationDefinition, resourceObject);
+                    addRefAttrValueFromEntitlementObject(simulationDefinition, resourceObject);
                 } catch (SchemaException e) {
                     throw new EntitlementObjectSearch.LocalTunnelException(e);
                 }
@@ -189,11 +190,12 @@ class EntitlementReader {
      *     ri:groups:
      *       PCV: shadowRef: object: attributes: { dn: "cn=wheel,ou=Groups,dc=example,dc=com" }
      */
-    private void addAssociationValueFromEntitlementObject(
+    private void addRefAttrValueFromEntitlementObject(
             @NotNull SimulatedShadowReferenceTypeDefinition simulationDefinition,
-            @NotNull ExistingResourceObject entitlementObject) throws SchemaException {
-        subject.getOrCreateAssociationsContainer()
-                .findOrCreateAssociation(simulationDefinition.getLocalSubjectItemName())
+            @NotNull ExistingResourceObjectShadow entitlementObject) throws SchemaException {
+        var value = subject.getAttributesContainer()
+                .findOrCreateReferenceAttribute(simulationDefinition.getLocalSubjectItemName())
                 .createNewValueWithFullObject(entitlementObject);
+        value.setFullObject(true);
     }
 }

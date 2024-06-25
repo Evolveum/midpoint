@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
@@ -43,20 +43,20 @@ class ShadowPostProcessor {
 
     @NotNull private ProvisioningContext ctx;
     @NotNull private RepoShadow repoShadow;
-    @NotNull private final ExistingResourceObject resourceObject;
+    @NotNull private final ExistingResourceObjectShadow resourceObject;
     @Nullable private final ObjectDelta<ShadowType> resourceObjectDelta;
 
     /** The new classification (if applicable). */
     private ResourceObjectClassification newClassification;
 
-    private ExistingResourceObject combinedObject;
+    private ExistingResourceObjectShadow combinedObject;
 
     @NotNull private final ShadowsLocalBeans b = ShadowsLocalBeans.get();
 
     ShadowPostProcessor(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
-            @NotNull ExistingResourceObject resourceObject,
+            @NotNull ExistingResourceObjectShadow resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta) {
         // We force the resource object definition into the context - just to relieve the caller from this responsibility.
         this.ctx = ctx.spawnForDefinition(resourceObject.getObjectDefinition());
@@ -65,7 +65,7 @@ class ShadowPostProcessor {
         this.resourceObjectDelta = resourceObjectDelta;
     }
 
-    ExistingResourceObject execute(OperationResult result)
+    ExistingResourceObjectShadow execute(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, EncryptionException {
 
@@ -119,7 +119,7 @@ class ShadowPostProcessor {
         combinedObject = ShadowedObjectConstruction.construct(ctx, repoShadow, resourceObject, result);
     }
 
-    ExistingResourceObject getCombinedObject() {
+    ExistingResourceObjectShadow getCombinedObject() {
         return combinedObject;
     }
 

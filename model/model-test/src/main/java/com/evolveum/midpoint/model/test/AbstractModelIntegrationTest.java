@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.model.api.validator.StringLimitationResult.e
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.OPERATION_GET_PRINCIPAL;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ASSIGNEE_REF;
@@ -7701,5 +7702,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 openWorkItems,
                 () -> new AssertionError("More than one open work item: " + openWorkItems),
                 () -> new AssertionError("No open work items in: " + aCase));
+    }
+
+    protected ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, String objectOid)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        var subject = AbstractShadow.of(
+                provisioningService.getObject(
+                        ShadowType.class, subjectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
+        var object = AbstractShadow.of(
+                provisioningService.getObject(
+                        ShadowType.class, objectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
+        var assocDef = subject.getObjectDefinition().findAssociationDefinitionRequired(assocName);
+        return deltaFor(ShadowType.class)
+                .item(ShadowType.F_ASSOCIATIONS.append(assocName), assocDef)
+                .add(assocDef.createValueFromDefaultObject(assocName, object))
+                .asObjectDelta(subjectOid);
     }
 }

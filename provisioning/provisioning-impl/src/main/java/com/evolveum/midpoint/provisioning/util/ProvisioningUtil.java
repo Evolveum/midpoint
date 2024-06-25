@@ -32,7 +32,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
@@ -100,7 +100,7 @@ public class ProvisioningUtil {
 
     public static <T> PropertyDelta<T> narrowPropertyDelta(
             @NotNull PropertyDelta<T> propertyDelta,
-            @NotNull ResourceObject currentObject,
+            @NotNull ResourceObjectShadow currentObject,
             QName overridingMatchingRuleQName,
             MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         ItemDefinition<?> propertyDef = propertyDelta.getDefinition();
@@ -140,17 +140,8 @@ public class ProvisioningUtil {
         return filteredDelta;
     }
 
-    public static @NotNull ResourceSchema getResourceSchema(@NotNull ResourceType resource)
-            throws SchemaException, ConfigurationException {
-        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        if (refinedSchema == null) {
-            throw new ConfigurationException("No schema for " + resource);
-        }
-        return refinedSchema;
-    }
-
     public static boolean isAddShadowEnabled(
-            Collection<ResourceObjectPattern> protectedAccountPatterns, ResourceObject object, OperationResult result)
+            Collection<ResourceObjectPattern> protectedAccountPatterns, ResourceObjectShadow object, OperationResult result)
             throws SchemaException {
         return getEffectiveProvisioningPolicy(protectedAccountPatterns, object, result).getAdd().isEnabled();
     }

@@ -24,10 +24,10 @@
     },
     "associations" : {
       "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#group" : {
-        "@type" : "c:ShadowAssociationValueType",
-        "shadowRef" : {
-          "oid" : "93c53b24-a95a-40a7-bab5-18a1e5528435",
-          "type" : "c:ShadowType"
+        "objects" : {
+          "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3#default" : {
+            "oid" : "93c53b24-a95a-40a7-bab5-18a1e5528435"
+          }
         }
       }
     },

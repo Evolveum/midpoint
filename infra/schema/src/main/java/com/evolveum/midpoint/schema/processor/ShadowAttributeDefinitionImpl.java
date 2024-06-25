@@ -13,6 +13,7 @@ import java.io.Serial;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemMerger;
 import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -44,11 +45,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @see NativeShadowAttributeDefinition
  */
 public abstract class ShadowAttributeDefinitionImpl<
-        SA extends ShadowAttribute<?, ?>,
-        R,
+        V extends PrismValue,
+        D extends ShadowAttributeDefinition<V, D, RV, SA>,
+        RV,
+        SA extends ShadowAttribute<V, D, RV, SA>,
         ND extends NativeShadowAttributeDefinition>
         extends AbstractFreezable
-        implements ShadowAttributeDefinition<SA, R>, ShadowItemLifecycleDefinitionDefaults {
+        implements ShadowAttributeDefinition<V, D, RV, SA>, ShadowItemLifecycleDefinitionDefaults {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -607,7 +610,7 @@ public abstract class ShadowAttributeDefinitionImpl<
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ShadowAttributeDefinitionImpl<?, ?, ?> that)) {
+        if (!(o instanceof ShadowAttributeDefinitionImpl<?, ?, ?, ?, ?> that)) {
             return false;
         }
         return currentLayer == that.currentLayer
@@ -728,5 +731,5 @@ public abstract class ShadowAttributeDefinitionImpl<
     }
 
     @Override
-    public abstract @NotNull ShadowAttributeDefinitionImpl<SA, R, ND> clone();
+    public abstract @NotNull ShadowAttributeDefinitionImpl<V, D, RV, SA, ND> clone();
 }

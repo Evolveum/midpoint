@@ -233,7 +233,7 @@ public abstract class AbstractAdLdapBigTest extends AbstractAdLdapTest {
         String shadowOid = getSingleLinkOid(user);
 
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupBigShadowOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupBigShadowOid);
 
         assertLdapConnectorReasonableInstances();
     }

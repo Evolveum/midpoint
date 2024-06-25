@@ -1271,7 +1271,7 @@ public class TestOrgSync extends AbstractStoryTest {
         String accountDn = IntegrationTestTools.getSecondaryIdentifier(accountShadow);
         openDJController.assertUniqueMember(groupEntry, accountDn);
 
-        IntegrationTestTools.assertAssociation(accountShadow, OPENDJ_ASSOCIATION_GROUP_NAME, shadow.getOid());
+        IntegrationTestTools.assertAssociationObjectRef(accountShadow, OPENDJ_ASSOCIATION_GROUP_NAME, shadow.getOid());
 
         return respRole.getOid();
     }

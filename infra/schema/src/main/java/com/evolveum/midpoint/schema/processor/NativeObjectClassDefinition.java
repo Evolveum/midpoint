@@ -107,6 +107,11 @@ public interface NativeObjectClassDefinition extends NativeObjectClassUcfDefinit
         }
 
         @Override
+        default void setDefaultReferenceTargetTypeName(QName value) {
+            unsupported("defaultReferenceTargetTypeName", value);
+        }
+
+        @Override
         default void setDefaultNamespace(String value) {
             unsupported("defaultItemTypeName", value);
         }

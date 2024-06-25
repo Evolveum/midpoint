@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
 import com.evolveum.midpoint.provisioning.util.ErrorState;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -42,11 +41,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * @see #checkConsistence()
  */
-public class ExistingResourceObject extends ResourceObject {
+public class ExistingResourceObjectShadow extends ResourceObjectShadow {
 
     @NotNull private final ErrorState errorState;
 
-    private ExistingResourceObject(
+    private ExistingResourceObjectShadow(
             @NotNull ShadowType bean,
             @NotNull Object primaryIdentifierValue,
             @NotNull ErrorState errorState) {
@@ -54,24 +53,24 @@ public class ExistingResourceObject extends ResourceObject {
         this.errorState = errorState;
     }
 
-    /** To be used only by informed clients. */
-    public static ExistingResourceObject of(
+    /** To be used only by informed clients. Avoid it if at all possible. */
+    public static ExistingResourceObjectShadow of(
             @NotNull ShadowType bean,
             @NotNull Object primaryIdentifierValue,
             @NotNull ErrorState errorState) {
-        return new ExistingResourceObject(bean, primaryIdentifierValue, errorState);
+        return new ExistingResourceObjectShadow(bean, primaryIdentifierValue, errorState);
     }
 
-    static ExistingResourceObject fromUcf(
+    static ExistingResourceObjectShadow fromUcf(
             @NotNull UcfResourceObject ucfResourceObject, @NotNull ObjectReferenceType resourceRef) {
         return fromUcf(ucfResourceObject, resourceRef, true);
     }
 
-    static ExistingResourceObject fromUcf(
+    static ExistingResourceObjectShadow fromUcf(
             @NotNull UcfResourceObject ucfResourceObject, @NotNull ObjectReferenceType resourceRef, boolean exists) {
         ShadowType bean = ucfResourceObject.getBean();
         putRequiredInformationToShadows(bean, resourceRef, exists);
-        return new ExistingResourceObject(
+        return new ExistingResourceObjectShadow(
                 bean,
                 ucfResourceObject.getPrimaryIdentifierValue(),
                 ErrorState.fromUcfErrorState(ucfResourceObject.getErrorState()));
@@ -88,32 +87,30 @@ public class ExistingResourceObject extends ResourceObject {
             @NotNull ShadowType shadowBean, @NotNull ObjectReferenceType resourceRef, boolean exists) {
         shadowBean.setResourceRef(resourceRef);
         shadowBean.setExists(exists);
-        for (var value : ShadowUtil.getAssociationsCollection(shadowBean).getAllAssociationValues()) {
-            if (value.hasFullObject()) {
-                putRequiredInformationToShadows(value.getShadowBean(), resourceRef, exists);
-            }
+        for (var value : ShadowUtil.getReferenceAttributesCollection(shadowBean).getAllValues()) {
+            putRequiredInformationToShadows(value.getShadowBean(), resourceRef, exists);
         }
     }
 
     /** TODO we should perhaps indicate that the source is repo! OR REMOVE THIS BRUTAL HACK SOMEHOW! */
-    public static ExistingResourceObject fromRepoShadow(
+    public static ExistingResourceObjectShadow fromRepoShadow(
             @NotNull RepoShadow repoShadow,
             Object primaryIdentifierValue) {
-        return new ExistingResourceObject(repoShadow.getBean(), primaryIdentifierValue, ErrorState.ok());
+        return new ExistingResourceObjectShadow(repoShadow.getBean(), primaryIdentifierValue, ErrorState.ok());
     }
 
     /** TODO we should perhaps indicate that the source is repo! OR REMOVE THIS BRUTAL HACK SOMEHOW! */
-    public static ExistingResourceObject fromRepoShadow(
+    public static ExistingResourceObjectShadow fromRepoShadow(
             @NotNull RepoShadow repoShadow) throws SchemaException {
-        return new ExistingResourceObject(
+        return new ExistingResourceObjectShadow(
                 repoShadow.getBean(),
                 Objects.requireNonNull(repoShadow.getPrimaryIdentifierValueFromAttributes()),
                 ErrorState.ok());
     }
 
     /** Only for informed clients! */
-    public static ExistingResourceObject fromShadow(@NotNull AbstractShadow shadow) {
-        return new ExistingResourceObject(
+    public static ExistingResourceObjectShadow fromShadow(@NotNull AbstractShadow shadow) {
+        return new ExistingResourceObjectShadow(
                 shadow.getBean(),
                 Objects.requireNonNull(shadow.getPrimaryIdentifierAttributeRequired().getRealValue()),
                 ErrorState.ok());
@@ -136,31 +133,31 @@ public class ExistingResourceObject extends ResourceObject {
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
-    public ExistingResourceObject clone() {
-        return new ExistingResourceObject(bean.clone(), primaryIdentifierValue, errorState);
+    public ExistingResourceObjectShadow clone() {
+        return new ExistingResourceObjectShadow(bean.clone(), primaryIdentifierValue, errorState);
     }
 
-    public @NotNull ExistingResourceObject withNewContent(@NotNull ShadowType newData) {
+    public @NotNull ExistingResourceObjectShadow withNewContent(@NotNull ShadowType newData) {
         // TODO shouldn't we check the consistence of new data vs. old metadata?
-        return new ExistingResourceObject(newData, primaryIdentifierValue, errorState);
+        return new ExistingResourceObjectShadow(newData, primaryIdentifierValue, errorState);
     }
 
     /** For creating shadows in emergency situations. */
-    public @NotNull ExistingResourceObject withIdentifiersOnly() {
+    public @NotNull ExistingResourceObjectShadow withIdentifiersOnly() {
         var clone = clone();
         clone.removeAttributesExcept(getObjectDefinition().getAllIdentifiersNames());
         return clone;
     }
 
     /** For creating shadows in ultra emergency situations. */
-    public @NotNull ExistingResourceObject withPrimaryIdentifierOnly() {
+    public @NotNull ExistingResourceObjectShadow withPrimaryIdentifierOnly() {
         var clone = clone();
         clone.removeAttributesExcept(getObjectDefinition().getPrimaryIdentifiersNames());
         return clone;
     }
 
     private void removeAttributesExcept(Collection<? extends QName> attributesToKeep) {
-        for (ShadowSimpleAttribute<?> attribute : List.copyOf(getAttributesContainer().getAttributes())) {
+        for (var attribute : List.copyOf(getAttributesContainer().getAttributes())) {
             if (!QNameUtil.matchAny(attribute.getElementName(), attributesToKeep)) {
                 getAttributesContainer().remove(attribute);
             }

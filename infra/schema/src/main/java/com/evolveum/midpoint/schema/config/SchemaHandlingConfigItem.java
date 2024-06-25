@@ -97,14 +97,15 @@ public class SchemaHandlingConfigItem
         return "schema handling";
     }
 
+    /** Returns association type definition beans for associations based on the specified reference attribute in given subject. */
     public @NotNull Collection<ShadowAssociationTypeDefinitionConfigItem> getAssociationTypesFor(
-            @NotNull ResourceObjectTypeIdentification typeIdentification, @NotNull ItemName itemName)
+            @NotNull ResourceObjectTypeIdentification subjectTypeId, @NotNull ItemName refAttrName)
             throws ConfigurationException {
         List<ShadowAssociationTypeDefinitionConfigItem> matching = new ArrayList<>();
         for (ShadowAssociationTypeDefinitionConfigItem at : getAssociationTypes()) {
             var subject = at.getSubject();
-            if (subject.getTypeIdentifiers().contains(typeIdentification)
-                    && subject.isRelevantForItem(itemName)) {
+            if (subject.getTypeIdentifiers().contains(subjectTypeId)
+                    && subject.isBasedOnReferenceAttribute(refAttrName)) {
                 matching.add(at);
             }
         }

@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.util.EqualsChecker;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 
@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationVal
 public class ShadowAssociationsUtil {
 
     // TODO move to ShadowAssociationValue
-    private static final EqualsChecker<ShadowAssociationValue> SHADOW_REF_BASED_PCV_EQUALS_CHECKER =
+    private static final EqualsChecker<ShadowReferenceAttributeValue> SHADOW_REF_BASED_PCV_EQUALS_CHECKER =
             (o1, o2) -> {
                 if (o1 == null || o2 == null) {
                     return o1 == null && o2 == null;
@@ -48,16 +48,11 @@ public class ShadowAssociationsUtil {
                 return s1.equalsByContent(s2);
             };
 
-    public static @NotNull EqualsChecker<ShadowAssociationValue> shadowRefBasedPcvEqualsChecker() {
+    public static @NotNull EqualsChecker<ShadowReferenceAttributeValue> shadowRefBasedPcvEqualsChecker() {
         return SHADOW_REF_BASED_PCV_EQUALS_CHECKER;
     }
 
-    public static @NotNull String getShadowOidRequired(@NotNull PrismContainerValue<ShadowAssociationValueType> pcv) {
-        return stateNonNull(getShadowOid(pcv), "No shadow OID in association: %s", pcv);
-    }
-
-    public static String getShadowOid(@NotNull PrismContainerValue<ShadowAssociationValueType> pcv) {
-        return getOid(
-                pcv.asContainerable().getShadowRef());
+    public static String getShadowOid(@NotNull ShadowReferenceAttributeValue refValue) {
+        return getOid(refValue.asReferencable());
     }
 }

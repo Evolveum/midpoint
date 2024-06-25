@@ -24,11 +24,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType
  *
  * Being enhanced (relative to {@link PrismContainerDefinition}) means that it provides additional functionality
  * specific to shadows, like {@link #getAllIdentifiers()} and similar methods. Overall, it works with enhanced variants
- * of prism objects, like {@link ShadowSimpleAttribute}, {@link ShadowSimpleAttributeDefinition}, and so on.
+ * of prism objects, like {@link ShadowAttribute}, {@link ShadowAttributeDefinition}, and so on.
  *
  * @author Radovan Semancik
  */
-public interface ResourceAttributeContainerDefinition extends PrismContainerDefinition<ShadowAttributesType> {
+public interface ShadowAttributesContainerDefinition extends PrismContainerDefinition<ShadowAttributesType> {
 
     @Override
     ShadowAttributesComplexTypeDefinition getComplexTypeDefinition();
@@ -79,7 +79,7 @@ public interface ResourceAttributeContainerDefinition extends PrismContainerDefi
     ShadowAttributesContainer instantiate(QName name);
 
     @NotNull
-    ResourceAttributeContainerDefinition clone();
+    ShadowAttributesContainerDefinition clone();
 
     <T> ShadowSimpleAttributeDefinition<T> findAttributeDefinition(ItemPath elementPath);
 

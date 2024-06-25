@@ -17,7 +17,7 @@ import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProduc
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.config.ConstructionConfigItem;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -74,7 +74,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
     /**
      * Mappings for the resource object associations.
      */
-    @NotNull private final Collection<PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowReferenceAttributeDefinition>>
+    @NotNull private final Collection<PrismValueDeltaSetTripleProducer<ShadowReferenceAttributeValue, ShadowReferenceAttributeDefinition>>
             associationTripleProducers = new ArrayList<>();
 
     /**
@@ -224,12 +224,12 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
         }
     }
 
-    public @NotNull Collection<PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowReferenceAttributeDefinition>> getAssociationTripleProducers() {
+    public @NotNull Collection<PrismValueDeltaSetTripleProducer<ShadowReferenceAttributeValue, ShadowReferenceAttributeDefinition>> getAssociationTripleProducers() {
         return associationTripleProducers;
     }
 
     void addAssociationTripleProducer(
-            PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowReferenceAttributeDefinition> mapping) {
+            PrismValueDeltaSetTripleProducer<ShadowReferenceAttributeValue, ShadowReferenceAttributeDefinition> mapping) {
         if (mapping != null) {
             associationTripleProducers.add(mapping);
         }

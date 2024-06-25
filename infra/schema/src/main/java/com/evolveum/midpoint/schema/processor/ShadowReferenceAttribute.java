@@ -8,33 +8,43 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.io.Serial;
-import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
-import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
+import com.evolveum.midpoint.prism.impl.PrismReferenceImpl;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
- * Object representing a specific shadow association (like `ri:group`). Similar to a {@link ShadowSimpleAttribute}.
- * Contained in {@link ShadowAssociationsContainer}.
+ * Represents a shadow reference attribute (like `ri:group` or `ri:access`). It is a reference to another shadow.
+ *
+ * It is a regular attribute, just like {@link ShadowSimpleAttribute}.
+ *
+ * The reference can be _native_ or _simulated_. The former is provided by the connector, while the latter is simulated
+ * by the midPoint provisioning module.
+ *
+ * NOTE: This is a lower-level concept, present in resource-facing shadows and shadows stored in the repository.
+ * For model-visible shadows, each such attribute is converted into a {@link ShadowAssociation}.
+ * (Whether the value of this attribute will be kept in the shadow, is an open question.)
+ *
+ * @see ShadowReferenceAttributeDefinition
  */
-@Experimental
 public class ShadowReferenceAttribute
-        extends PrismContainerImpl<ShadowAssociationValueType>
-        implements ShadowAttribute<ShadowAssociationValue, ShadowAssociationValueType> {
+        extends PrismReferenceImpl
+        implements ShadowAttribute<
+        ShadowReferenceAttributeValue,
+        ShadowReferenceAttributeDefinition,
+        Referencable,
+        ShadowReferenceAttribute
+        > {
 
     @Serial private static final long serialVersionUID = 0L;
 
@@ -66,53 +76,53 @@ public class ShadowReferenceAttribute
     }
 
     /**
-     * This method will clone the item and convert it to a {@link ShadowReferenceAttribute}.
-     * (A typical use case is that the provided item is not a {@link ShadowReferenceAttribute}.)
+     * This method will clone the {@link Item} and convert it to a {@link ShadowReferenceAttribute} (if not already one).
      */
     static ShadowReferenceAttribute convertFromPrismItem(
-            @NotNull Item<?, ?> item, @NotNull ShadowReferenceAttributeDefinition associationDef) {
-        var association = new ShadowReferenceAttribute(item.getElementName(), associationDef);
-        for (PrismValue value : item.getValues()) {
-            if (value instanceof PrismContainerValue<?> pcv) {
-                try {
-                    association.addIgnoringEquivalents(
-                            ShadowAssociationValue.of(
-                                    ((ShadowAssociationValueType) pcv.asContainerable()).clone(),
-                                    associationDef));
-                } catch (SchemaException e) {
-                    throw new IllegalArgumentException("Couldn't add PCV: " + value, e);
-                }
-            } else {
-                throw new IllegalArgumentException("Not a PCV: " + value);
-            }
-        }
-        return association;
+            @NotNull Item<?, ?> item, @NotNull ShadowReferenceAttributeDefinition attrDef) {
+//        var attr = new ShadowReferenceAttribute(item.getElementName(), attrDef);
+//        for (PrismValue value : item.getValues()) {
+//            if (value instanceof PrismReferenceValue refVal) {
+//                try {
+//                    attr.addIgnoringEquivalents(
+//                            ShadowReferenceAttributeValue.of(
+//                                    ((ShadowAssociationValueType) refVal.asContainerable()).clone()
+//                            ));
+//                } catch (SchemaException e) {
+//                    throw new IllegalArgumentException("Couldn't add PCV: " + value, e);
+//                }
+//            } else {
+//                throw new IllegalArgumentException("Not a PCV: " + value);
+//            }
+//        }
+//        return attr;
+        throw new UnsupportedOperationException("FIXME");
     }
 
-    @Override
-    protected boolean addInternalExecution(@NotNull PrismContainerValue<ShadowAssociationValueType> newValue) {
-//        argCheck(newValue instanceof ShadowAssociationValue,
-//                "Trying to add a value which is not a ShadowAssociationValue: %s", newValue);
-        if (newValue instanceof ShadowAssociationValue) {
-            return super.addInternalExecution(newValue);
-        } else {
-            // FIXME we should have resolved this (for deltas) in applyDefinition call, but that's not possible now
-            return super.addInternalExecution(ShadowAssociationValue.of(
-                    newValue.asContainerable(),
-                    getDefinitionRequired()));
-        }
-    }
+//    @Override
+//    protected boolean addInternalExecution(@NotNull PrismContainerValue<ShadowAssociationValueType> newValue) {
+////        argCheck(newValue instanceof ShadowAssociationValue,
+////                "Trying to add a value which is not a ShadowAssociationValue: %s", newValue);
+//        if (newValue instanceof ShadowReferenceAttributeValue) {
+//            return super.addInternalExecution(newValue);
+//        } else {
+//            // FIXME we should have resolved this (for deltas) in applyDefinition call, but that's not possible now
+//            return super.addInternalExecution(ShadowReferenceAttributeValue.of(
+//                    newValue.asContainerable(),
+//                    getDefinitionRequired()));
+//        }
+//    }
 
-    @Override
-    public ShadowAssociationValue createNewValue() {
-        // Casting is safe here, as "createNewValueInternal" provides this type.
-        return (ShadowAssociationValue) super.createNewValue();
-    }
+//    @Override
+//    public ShadowReferenceAttributeValue createNewValue() {
+//        // Casting is safe here, as "createNewValueInternal" provides this type.
+//        return (ShadowReferenceAttributeValue) super.createNewValue();
+//    }
 
-    @Override
-    protected @NotNull PrismContainerValueImpl<ShadowAssociationValueType> createNewValueInternal() {
-        return ShadowAssociationValue.empty();
-    }
+//    @Override
+//    protected @NotNull PrismContainerValueImpl<ShadowAssociationValueType> createNewValueInternal() {
+//        return ShadowReferenceAttributeValue.empty();
+//    }
 
     public int size() {
         return values.size();
@@ -124,51 +134,63 @@ public class ShadowReferenceAttribute
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public @NotNull ShadowAssociationValue createNewValueWithIdentifiers(@NotNull AbstractShadow shadow) throws SchemaException {
-        var value = ShadowAssociationValue.of(shadow, true);
+    public @NotNull ShadowReferenceAttributeValue createNewValueWithIdentifiers(@NotNull AbstractShadow shadow) throws SchemaException {
+        var value = ShadowReferenceAttributeValue.fromShadow(shadow);
         add(value);
         return value;
     }
 
-    public @NotNull ShadowAssociationValue createNewValueWithIdentifier(@NotNull ShadowSimpleAttribute<?> identifier) throws SchemaException {
+    public @NotNull ShadowReferenceAttributeValue createNewValueWithIdentifier(@NotNull ShadowSimpleAttribute<?> identifier)
+            throws SchemaException {
         var blankShadow = getDefinitionRequired()
                 .getRepresentativeTargetObjectDefinition()
                 .createBlankShadow();
-        blankShadow.getAttributesContainer().add(identifier);
+        blankShadow.getAttributesContainer().add((ShadowAttribute<?, ?, ?, ?>) identifier);
         return createNewValueWithIdentifiers(blankShadow);
     }
 
     /** Creates a value holding the full object. Its definition must correspond to the one of the association. */
-    @SuppressWarnings("UnusedReturnValue")
-    public @NotNull ShadowAssociationValue createNewValueWithFullObject(@NotNull AbstractShadow target)
+    public @NotNull ShadowReferenceAttributeValue createNewValueWithFullObject(@NotNull AbstractShadow target)
             throws SchemaException {
         // TODO check the definition
-        var value = ShadowAssociationValue.of(target, false);
+        var value = ShadowReferenceAttributeValue.fromShadow(target);
         add(value);
         return value;
     }
 
-    /** Adds only the target shadow ref. */
-    @SuppressWarnings("UnusedReturnValue")
-    public @NotNull PrismContainerValue<ShadowAssociationValueType> createNewValueForTargetRef(@NotNull ObjectReferenceType ref) {
-        var value = createNewValue();
-        value.getValue().setShadowRef(ref);
-        return value;
-    }
+//    /** Adds only the target shadow ref. */
+//    @SuppressWarnings("UnusedReturnValue")
+//    public @NotNull ShadowReferenceAttributeValue createNewValueForTargetRef(@NotNull ObjectReferenceType ref) {
+//        var value = createNewValue();
+//        value.getValue().setShadowRef(ref);
+//        return value;
+//    }
 
-    public @NotNull List<? extends ShadowAssociationValue> getAssociationValues() {
+    public @NotNull List<ShadowReferenceAttributeValue> getReferenceValues() {
         // IDE accepts the version without cast to List, but the compiler doesn't.
         //noinspection unchecked,rawtypes,RedundantCast
-        return Collections.unmodifiableList(
-                (List<? extends ShadowAssociationValue>) (List) getValues());
+        return List.copyOf(
+                (List<? extends ShadowReferenceAttributeValue>) (List) getValues());
     }
 
     @Override
-    public void addValueSkipUniquenessCheck(ShadowAssociationValue value) throws SchemaException {
+    public void addValueSkipUniquenessCheck(ShadowReferenceAttributeValue value) throws SchemaException {
         addIgnoringEquivalents(value);
     }
 
     public boolean hasNoValues() {
         return getValues().isEmpty();
+    }
+
+    @Override
+    public ShadowReferenceAttribute createImmutableClone() {
+        return (ShadowReferenceAttribute) super.createImmutableClone();
+    }
+
+    public @NotNull ShadowReferenceAttributeValue getSingleValueRequired() {
+        return MiscUtil.extractSingletonRequired(
+                getReferenceValues(),
+                () -> new IllegalStateException("Multiple values where only a single one was expected: " + this),
+                () -> new IllegalStateException("Missing attribute value in " + this));
     }
 }

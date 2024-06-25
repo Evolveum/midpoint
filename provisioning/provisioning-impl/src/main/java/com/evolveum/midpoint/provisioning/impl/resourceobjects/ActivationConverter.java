@@ -65,7 +65,7 @@ class ActivationConverter {
     /**
      * Completes activation for fetched object by determining simulated values if necessary.
      */
-    void completeActivation(ResourceObject resourceObject, OperationResult result) throws ObjectNotFoundException,
+    void completeActivation(ResourceObjectShadow resourceObject, OperationResult result) throws ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ShadowType resourceObjectBean = resourceObject.getBean();
 
@@ -97,7 +97,7 @@ class ActivationConverter {
      * Determines activation status for resource object. Uses either native or simulated value.
      */
     private ActivationStatusType determineActivationStatus(
-            ResourceObject resourceObject, ActivationCapabilityType activationCapability, OperationResult result)
+            ResourceObjectShadow resourceObject, ActivationCapabilityType activationCapability, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
 
@@ -141,7 +141,7 @@ class ActivationConverter {
      * Determines lockout status for resource object. Uses either native or simulated value.
      */
     private LockoutStatusType determineLockoutStatus(
-            ResourceObject resourceObject, ActivationCapabilityType activationCapability, OperationResult result)
+            ResourceObjectShadow resourceObject, ActivationCapabilityType activationCapability, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
 
@@ -182,14 +182,14 @@ class ActivationConverter {
     }
 
     @Nullable
-    private Collection<Object> getSimulatingAttributeValues(ResourceObject resourceObject, QName attributeName) {
+    private Collection<Object> getSimulatingAttributeValues(ResourceObjectShadow resourceObject, QName attributeName) {
         ShadowAttributesContainer attributesContainer = resourceObject.getAttributesContainer();
-        ShadowSimpleAttribute<?> simulatingAttribute = attributesContainer.findAttribute(attributeName);
+        ShadowSimpleAttribute<?> simulatingAttribute = attributesContainer.findSimpleAttribute(attributeName);
         return simulatingAttribute != null ?
                 simulatingAttribute.getRealValues(Object.class) : null;
     }
 
-    private void removeSimulatingAttribute(ResourceObject resourceObject, QName attributeName) {
+    private void removeSimulatingAttribute(ResourceObjectShadow resourceObject, QName attributeName) {
         ShadowAttributesContainer attributesContainer = resourceObject.getAttributesContainer();
         attributesContainer.removeProperty(ItemPath.create(attributeName));
     }
@@ -199,7 +199,7 @@ class ActivationConverter {
     /**
      * Transforms activation information when an object is being added.
      */
-    void transformOnAdd(ResourceObject object, OperationResult result) throws SchemaException, CommunicationException {
+    void transformOnAdd(ResourceObjectShadow object, OperationResult result) throws SchemaException, CommunicationException {
         ActivationType activation = object.getBean().getActivation();
         if (activation == null) {
             return;

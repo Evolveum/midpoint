@@ -10,42 +10,35 @@ package com.evolveum.midpoint.schema.processor;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-/**
- * Provides information about definitions of associations.
- *
- * Note that these are real
- */
+/** Provides {@link ShadowAssociationDefinition}s. */
 public interface AssociationDefinitionStore {
 
-    ShadowReferenceAttributeDefinition findReferenceAttributeDefinition(QName name);
+    ShadowAssociationDefinition findAssociationDefinition(QName name);
 
-    @NotNull List<? extends ShadowReferenceAttributeDefinition> getReferenceAttributeDefinitions();
+    @NotNull List<? extends ShadowAssociationDefinition> getAssociationDefinitions();
 
-    default ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName name) throws SchemaException {
-        return findAssociationDefinitionRequired(name, () -> "");
+    default ShadowAssociationDefinition findAssociationDefinitionRequired(QName name) throws SchemaException {
+        return findAssociationDefinitionRequired(name, "");
     }
 
-    default ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName name, Supplier<String> contextSupplier)
+    default ShadowAssociationDefinition findAssociationDefinitionRequired(QName name, Object context)
             throws SchemaException {
-        ShadowReferenceAttributeDefinition def = findReferenceAttributeDefinition(name);
-        if (def == null) {
-            throw new SchemaException("No definition of association (reference attribute) named '%s' in %s%s".formatted(
-                    name, this, contextSupplier.get()));
-        }
-        return def;
+        return MiscUtil.requireNonNull(
+                findAssociationDefinition(name),
+                "No definition of association (reference attribute) named '%s' in %s%s", name, this, context);
     }
 
-    default @NotNull Collection<QName> getNamesOfReferenceAttributes() {
-        return getReferenceAttributeDefinitions().stream()
-                .map(ShadowReferenceAttributeDefinition::getItemName)
+    default @NotNull Collection<QName> getNamesOfAssociations() {
+        return getAssociationDefinitions().stream()
+                .map(ShadowAssociationDefinition::getItemName)
                 .collect(Collectors.toCollection(HashSet::new));
     }
 }

@@ -204,7 +204,8 @@ abstract class ResourceObjectProvisioningOperation {
         }
     }
 
-    @Nullable ExistingResourceObject preOrPostRead(
+    @Nullable
+    ExistingResourceObjectShadow preOrPostRead(
             ProvisioningContext ctx,
             ResourceObjectIdentification.WithPrimary identification,
             Collection<Operation> operations,
@@ -227,7 +228,7 @@ abstract class ResourceObjectProvisioningOperation {
         try {
             if (ctx.isReadingCachingOnly() && repoShadow != null) {
                 resourceObject = b.resourceObjectConverter.completeResourceObject(
-                        ctx, ExistingResourceObject.fromRepoShadow(repoShadow.clone()), fetchEntitlements, result);
+                        ctx, ExistingResourceObjectShadow.fromRepoShadow(repoShadow.clone()), fetchEntitlements, result);
             } else {
                 resourceObject = b.resourceObjectConverter.fetchResourceObject(
                         ctx, identification, shadowItemsToReturn, fetchEntitlements, result);

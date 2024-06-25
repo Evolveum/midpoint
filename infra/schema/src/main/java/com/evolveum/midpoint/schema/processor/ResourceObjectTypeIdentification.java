@@ -34,6 +34,9 @@ import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
  */
 public class ResourceObjectTypeIdentification implements Serializable {
 
+    public static final ResourceObjectTypeIdentification ACCOUNT_DEFAULT =
+            ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+
     @NotNull private final ShadowKindType kind;
     @NotNull private final String intent;
 

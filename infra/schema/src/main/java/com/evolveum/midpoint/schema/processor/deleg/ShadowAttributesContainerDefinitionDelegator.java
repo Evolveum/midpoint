@@ -12,11 +12,11 @@ import com.evolveum.midpoint.prism.deleg.ContainerDefinitionDelegator;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
-public interface ResourceAttributeContainerDefinitionDelegator
-        extends ContainerDefinitionDelegator<ShadowAttributesType>, ResourceAttributeContainerDefinition {
+public interface ShadowAttributesContainerDefinitionDelegator
+        extends ContainerDefinitionDelegator<ShadowAttributesType>, ShadowAttributesContainerDefinition {
 
     @Override
-    ResourceAttributeContainerDefinition delegate();
+    ShadowAttributesContainerDefinition delegate();
 
     @Override
     default Collection<? extends ShadowSimpleAttributeDefinition<?>> getPrimaryIdentifiers() {

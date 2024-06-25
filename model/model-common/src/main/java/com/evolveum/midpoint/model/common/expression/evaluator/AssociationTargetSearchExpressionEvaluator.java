@@ -6,27 +6,26 @@
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
-import static com.evolveum.midpoint.model.common.expression.evaluator.AssociationRelatedEvaluatorUtil.getAssociationDefinition;
+import static com.evolveum.midpoint.model.common.expression.evaluator.AssociationRelatedEvaluatorUtil.getReferenceAttributeDefinition;
 
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.common.expression.evaluator.transformation.ValueTransformationContext;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -34,9 +33,10 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Creates an association (or associations) based on specified condition for the associated object.
@@ -44,11 +44,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  * @author Radovan Semancik
  */
 class AssociationTargetSearchExpressionEvaluator
-        extends AbstractSearchExpressionEvaluator<
-                PrismContainerValue<ShadowAssociationValueType>,
-                ShadowType,
-        ShadowReferenceAttributeDefinition,
-                SearchObjectExpressionEvaluatorType> {
+        extends AbstractSearchExpressionEvaluator<ShadowReferenceAttributeValue, ShadowType, ShadowReferenceAttributeDefinition, SearchObjectExpressionEvaluatorType> {
 
     AssociationTargetSearchExpressionEvaluator(
             QName elementName,
@@ -78,38 +74,26 @@ class AssociationTargetSearchExpressionEvaluator
             }
 
             @Override
-            protected @NotNull PrismContainerValue<ShadowAssociationValueType> createResultValue(
-                    String oid,
-                    @NotNull QName objectTypeName,
-                    PrismObject<ShadowType> object,
-                    List<ItemDelta<PrismContainerValue<ShadowAssociationValueType>, ShadowReferenceAttributeDefinition>> newValueDeltas)
+            protected @NotNull ShadowReferenceAttributeValue createResultValue(
+                    String targetOid,
+                    @NotNull QName targetTypeName,
+                    @Nullable PrismObject<ShadowType> target,
+                    List<ItemDelta<ShadowReferenceAttributeValue, ShadowReferenceAttributeDefinition>> newValueDeltasIgnored)
                     throws SchemaException {
 
-                var newAssociation = outputDefinition.instantiate();
-
-                var targetRef = ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SHADOW);
-                targetRef.asReferenceValue().setObject(object); // may be null
-                var newAssociationValue = newAssociation.createNewValueForTargetRef(targetRef);
-
-                if (newValueDeltas != null) {
-                    ItemDeltaCollectionsUtil.applyTo(newValueDeltas, newAssociationValue);
-                }
-
-                if (InternalsConfig.consistencyChecks) {
-                    newAssociationValue.assertDefinitions(() -> "associationCVal in assignment expression in " + vtCtx);
-                }
-                return newAssociationValue.clone(); // It needs to be parent-less when included in the output triple
+                var targetRef = ObjectTypeUtil.createObjectRef(targetOid, ObjectTypes.SHADOW, target);
+                return ShadowReferenceAttributeValue.fromRefValue(targetRef.asReferenceValue());
             }
 
             @Override
             protected ObjectQuery extendQuery(ObjectQuery query)
                     throws ExpressionEvaluationException {
 
-                var associationDefinition = getAssociationDefinition(vtCtx.getExpressionEvaluationContext());
+                var refAttrDef = getReferenceAttributeDefinition(vtCtx.getExpressionEvaluationContext());
                 query.setFilter(
                         prismContext.queryFactory()
                                 .createAnd(
-                                        associationDefinition.createTargetObjectsFilter(),
+                                        refAttrDef.createTargetObjectsFilter(),
                                         query.getFilter()));
                 return query;
             }
@@ -117,7 +101,7 @@ class AssociationTargetSearchExpressionEvaluator
             @Override
             protected ObjectQuery createRawQuery(SearchFilterType filter) throws SchemaException, ExpressionEvaluationException {
                 var concreteShadowDef =
-                        getAssociationDefinition(vtCtx.getExpressionEvaluationContext())
+                        getReferenceAttributeDefinition(vtCtx.getExpressionEvaluationContext())
                                 .getRepresentativeTargetObjectDefinition()
                                 .getPrismObjectDefinition();
                 var objFilter = prismContext.getQueryConverter().createObjectFilter(concreteShadowDef, filter);

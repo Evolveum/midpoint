@@ -12,8 +12,11 @@ import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -58,6 +61,7 @@ public class ResourceCache implements Cache {
     private static final Trace LOGGER = TraceManager.getTrace(ResourceCache.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ResourceCache.class.getName() + ".content");
 
+    @Autowired private ResourceSchemaRegistry resourceSchemaRegistry;
     @Autowired private CacheRegistry cacheRegistry;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
@@ -93,7 +97,7 @@ public class ResourceCache implements Cache {
      */
     synchronized void put(
             @NotNull ResourceType resource,
-            @NotNull Collection<String> ancestorsOids) throws SchemaException {
+            @NotNull Collection<String> ancestorsOids) throws SchemaException, ConfigurationException {
         String oid = resource.getOid();
         schemaCheck(oid != null, "Attempt to cache %s without an OID", resource);
 
@@ -113,6 +117,7 @@ public class ResourceCache implements Cache {
         } else {
             LOGGER.debug("Caching(replace): {}", resource);
             cache.put(oid, resource.asPrismObject().createImmutableClone());
+            resourceSchemaRegistry.putSchema(oid, ResourceSchemaFactory.getCompleteSchema(resource));
         }
     }
 

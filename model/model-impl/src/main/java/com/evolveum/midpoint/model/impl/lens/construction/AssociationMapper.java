@@ -9,7 +9,9 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -23,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * Evaluation of an association mapping in resource object construction (assigned/plain).
  */
 class AssociationMapper<AH extends AssignmentHolderType>
-        extends ItemMapper<AH, ShadowAssociationValue, ShadowReferenceAttributeDefinition> {
+        extends ItemMapper<AH, ShadowAssociationValue, ShadowAssociationDefinition> {
 
     /**
      * Traditional/legacy association evaluation by a single mapping (just like an attribute is evaluated).
@@ -35,7 +37,7 @@ class AssociationMapper<AH extends AssignmentHolderType>
      */
     AssociationMapper(
             ConstructionEvaluation<AH, ?> constructionEvaluation,
-            ShadowReferenceAttributeDefinition associationDefinition,
+            ShadowAssociationDefinition associationDefinition,
             MappingConfigItem mappingConfigItem,
             OriginType originType,
             MappingKindType mappingKind) {
@@ -56,7 +58,7 @@ class AssociationMapper<AH extends AssignmentHolderType>
      */
     AssociationMapper(
             @NotNull ConstructionEvaluation<AH, ?> constructionEvaluation,
-            @NotNull ShadowReferenceAttributeDefinition associationDefinition) {
+            @NotNull ShadowAssociationDefinition associationDefinition) {
         super(
                 constructionEvaluation,
                 associationDefinition.getItemName(),
@@ -70,7 +72,7 @@ class AssociationMapper<AH extends AssignmentHolderType>
     }
 
     @Override
-    ShadowReferenceAttributeDefinition getAssociationDefinition() {
+    ShadowAssociationDefinition getAssociationDefinition() {
         return itemDefinition;
     }
 }

@@ -11,6 +11,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -46,22 +47,21 @@ public final class ShadowAttributesContainerImpl
      * The constructors should be used only occasionally (if used at all).
      * Use the factory methods in the {@link ResourceObjectDefinition} instead.
      */
-    ShadowAttributesContainerImpl(QName name, ResourceAttributeContainerDefinition definition) {
+    ShadowAttributesContainerImpl(QName name, ShadowAttributesContainerDefinition definition) {
         super(name, definition);
     }
 
     @Override
-    public ResourceAttributeContainerDefinition getDefinition() {
+    public ShadowAttributesContainerDefinition getDefinition() {
         PrismContainerDefinition prismContainerDefinition = super.getDefinition();
         if (prismContainerDefinition == null) {
             return null;
-        }
-        if (prismContainerDefinition instanceof ResourceAttributeContainerDefinition resourceAttributeContainerDefinition) {
-            return resourceAttributeContainerDefinition;
+        } else if (prismContainerDefinition instanceof ShadowAttributesContainerDefinition shadowAttributesContainerDefinition) {
+            return shadowAttributesContainerDefinition;
         } else {
             throw new IllegalStateException(
                     "Definition should be %s but it is %s instead; definition = %s".formatted(
-                            ResourceAttributeContainerDefinition.class,
+                            ShadowAttributesContainerDefinition.class,
                             prismContainerDefinition.getClass(),
                             prismContainerDefinition.debugDump(0)));
         }
@@ -69,14 +69,30 @@ public final class ShadowAttributesContainerImpl
 
     @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public @NotNull Collection<ShadowSimpleAttribute<?>> getAttributes() {
+    public @NotNull Collection<ShadowAttribute<?, ?, ?, ?>> getAttributes() {
         // TODO: Iterate over the list to assert correct types
         return (Collection) getValue().getItems();
     }
 
     @Override
-    public void add(ShadowSimpleAttribute<?> attribute) throws SchemaException {
-        super.add(attribute);
+    public @NotNull Collection<ShadowSimpleAttribute<?>> getSimpleAttributes() {
+        return getValue().getItems().stream()
+                .filter(item -> item instanceof ShadowSimpleAttribute)
+                .map(item -> (ShadowSimpleAttribute<?>) item)
+                .collect(Collectors.toUnmodifiableList());
+    }
+
+    @Override
+    public @NotNull Collection<ShadowReferenceAttribute> getReferenceAttributes() {
+        return getValue().getItems().stream()
+                .filter(item -> item instanceof ShadowReferenceAttribute)
+                .map(item -> (ShadowReferenceAttribute) item)
+                .toList();
+    }
+
+    @Override
+    public void add(ShadowAttribute<?, ?, ?, ?> attribute) throws SchemaException {
+        super.add((Item<?, ?>) attribute);
     }
 
     @Override
@@ -88,28 +104,28 @@ public final class ShadowAttributesContainerImpl
 
     @Override
     public @NotNull Collection<ShadowSimpleAttribute<?>> getPrimaryIdentifiers() {
-        return extractAttributesByDefinitions(getDefinitionRequired().getPrimaryIdentifiers());
+        return extractSimpleAttributesByDefinitions(getDefinitionRequired().getPrimaryIdentifiers());
     }
 
     @Override
     public @NotNull Collection<ShadowSimpleAttribute<?>> getSecondaryIdentifiers() {
-        return extractAttributesByDefinitions(getDefinitionRequired().getSecondaryIdentifiers());
+        return extractSimpleAttributesByDefinitions(getDefinitionRequired().getSecondaryIdentifiers());
     }
 
     @Override
     public @NotNull Collection<ShadowSimpleAttribute<?>> getAllIdentifiers() {
-        return extractAttributesByDefinitions(getDefinitionRequired().getAllIdentifiers());
+        return extractSimpleAttributesByDefinitions(getDefinitionRequired().getAllIdentifiers());
     }
 
-    private @NotNull Collection<ShadowSimpleAttribute<?>> extractAttributesByDefinitions(
+    private @NotNull Collection<ShadowSimpleAttribute<?>> extractSimpleAttributesByDefinitions(
             Collection<? extends ShadowSimpleAttributeDefinition> definitions) {
         Collection<ShadowSimpleAttribute<?>> attributes = new ArrayList<>(definitions.size());
-        for (ShadowSimpleAttributeDefinition attrDef : definitions) {
-            for (ShadowSimpleAttribute<?> property : getAttributes()) {
-                if (attrDef.getItemName().equals(property.getElementName())) {
+        for (var simpleAttribute : getSimpleAttributes()) {
+            for (var attrDef : definitions) {
+                if (attrDef.getItemName().equals(simpleAttribute.getElementName())) {
                     //noinspection unchecked
-                    property.setDefinition(attrDef);
-                    attributes.add(property);
+                    simpleAttribute.setDefinition(attrDef); // TODO Is this really necessary?
+                    attributes.add(simpleAttribute);
                 }
             }
         }
@@ -118,7 +134,7 @@ public final class ShadowAttributesContainerImpl
 
     @Override
     public ShadowSimpleAttribute<String> getNamingAttribute() {
-        ResourceAttributeContainerDefinition containerDef = getDefinition();
+        ShadowAttributesContainerDefinition containerDef = getDefinition();
         if (containerDef == null) {
             return null;
         }
@@ -126,31 +142,42 @@ public final class ShadowAttributesContainerImpl
         if (namingAttrDef == null) {
             return null;
         }
-        return findAttribute(namingAttrDef);
+        return findSimpleAttribute(namingAttrDef);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <X> ShadowSimpleAttribute<X> findAttribute(QName attributeQName) {
+    public <X> ShadowSimpleAttribute<X> findSimpleAttribute(QName attributeQName) {
         return (ShadowSimpleAttribute<X>) super.findProperty(ItemName.fromQName(attributeQName));
     }
 
     @Override
-    public <X> ShadowSimpleAttribute<X> findAttribute(ShadowSimpleAttributeDefinition attributeDefinition) {
+    public ShadowReferenceAttribute findReferenceAttribute(QName attributeQName) {
+        return (ShadowReferenceAttribute) super.findReference(ItemName.fromQName(attributeQName));
+    }
+
+    @Override
+    public <X> ShadowSimpleAttribute<X> findSimpleAttribute(ShadowSimpleAttributeDefinition attributeDefinition) {
         //noinspection unchecked
         return (ShadowSimpleAttribute<X>) getValue().findProperty(attributeDefinition);
     }
 
     @Override
-    public <X> ShadowSimpleAttribute<X> findOrCreateAttribute(ShadowSimpleAttributeDefinition attributeDefinition) throws SchemaException {
+    public <X> ShadowSimpleAttribute<X> findOrCreateSimpleAttribute(ShadowSimpleAttributeDefinition attributeDefinition)
+            throws SchemaException {
         //noinspection unchecked
         return (ShadowSimpleAttribute<X>) getValue().findOrCreateProperty(attributeDefinition);
     }
 
     @Override
-    public <X> ShadowSimpleAttribute<X> findOrCreateAttribute(QName attributeName) throws SchemaException {
+    public <X> ShadowSimpleAttribute<X> findOrCreateSimpleAttribute(QName attributeName) throws SchemaException {
         //noinspection unchecked
         return (ShadowSimpleAttribute<X>) getValue().findOrCreateProperty(ItemName.fromQName(attributeName));
+    }
+
+    @Override
+    public ShadowReferenceAttribute findOrCreateReferenceAttribute(QName attributeName) throws SchemaException {
+        return (ShadowReferenceAttribute) getValue().findOrCreateReference(ItemName.fromQName(attributeName));
     }
 
     @Override
@@ -162,6 +189,11 @@ public final class ShadowAttributesContainerImpl
     @Override
     public ShadowAttributesContainer clone() {
         return cloneComplex(CloneStrategy.LITERAL);
+    }
+
+    @Override
+    public void remove(ShadowAttribute<?, ?, ?, ?> item) {
+        super.remove((Item<?, ?>) item);
     }
 
     @Override
@@ -187,11 +219,11 @@ public final class ShadowAttributesContainerImpl
         if (values.size() > 1) {
             throw new IllegalStateException(values.size()+" values in ResourceAttributeContainer, expected just one");
         }
-        PrismContainerValue<ShadowAttributesType> value = values.get(0);
-        Collection<Item<?,?>> items = value.getItems();
-        for (Item item : items) {
-            if (!(item instanceof ShadowSimpleAttribute)) {
-                throw new IllegalStateException("Found illegal item in ResourceAttributeContainer: "+item+" ("+item.getClass()+")");
+        for (var item : values.get(0).getItems()) {
+            if (!(item instanceof ShadowAttribute<?, ?, ?, ?>)) {
+                throw new IllegalStateException(
+                        "Found illegal item in %s: %s (%s)".formatted(
+                                getClass().getSimpleName(), item, item.getClass()));
             }
         }
     }
@@ -200,9 +232,9 @@ public final class ShadowAttributesContainerImpl
     protected void checkDefinition(@NotNull PrismContainerDefinition<ShadowAttributesType> def) {
         super.checkDefinition(def);
         Preconditions.checkArgument(
-                def instanceof ResourceAttributeContainerDefinition,
+                def instanceof ShadowAttributesContainerDefinition,
                 "Definition should be %s not %s" ,
-                ResourceAttributeContainerDefinition.class.getSimpleName(), def.getClass().getName());
+                ShadowAttributesContainerDefinition.class.getSimpleName(), def.getClass().getName());
     }
 
     @Override

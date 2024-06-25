@@ -16,7 +16,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectIdentifier;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -33,7 +33,7 @@ public class ShadowManagerMiscUtil {
 
     public static <T> T determinePrimaryIdentifierValue(
             @NotNull ProvisioningContext ctx,
-            @NotNull ResourceObject resourceObject) throws SchemaException {
+            @NotNull ResourceObjectShadow resourceObject) throws SchemaException {
         //noinspection unchecked
         return (T) determinePrimaryIdentifierValue(
                 resourceObject,

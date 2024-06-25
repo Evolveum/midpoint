@@ -103,7 +103,11 @@ public class ShadowUtil {
         return attributesContainer.getNamingAttribute();
     }
 
-    public static @NotNull Collection<ShadowSimpleAttribute<?>> getAttributes(ShadowType shadowType) {
+    public static @NotNull Collection<ShadowSimpleAttribute<?>> getSimpleAttributes(ShadowType shadowType) {
+        return getSimpleAttributes(shadowType.asPrismObject());
+    }
+
+    public static @NotNull Collection<ShadowAttribute<?, ?, ?, ?>> getAttributes(ShadowType shadowType) {
         return getAttributes(shadowType.asPrismObject());
     }
 
@@ -112,7 +116,12 @@ public class ShadowUtil {
         return container != null ? container.getValue().getItems() : List.of();
     }
 
-    public static @NotNull Collection<ShadowSimpleAttribute<?>> getAttributes(PrismObject<? extends ShadowType> shadow) {
+    public static @NotNull Collection<ShadowSimpleAttribute<?>> getSimpleAttributes(PrismObject<? extends ShadowType> shadow) {
+        ShadowAttributesContainer attributesContainer = getAttributesContainer(shadow);
+        return attributesContainer != null ? attributesContainer.getSimpleAttributes() : List.of();
+    }
+
+    public static @NotNull Collection<ShadowAttribute<?, ?, ?, ?>> getAttributes(PrismObject<? extends ShadowType> shadow) {
         ShadowAttributesContainer attributesContainer = getAttributesContainer(shadow);
         return attributesContainer != null ? attributesContainer.getAttributes() : List.of();
     }
@@ -127,12 +136,16 @@ public class ShadowUtil {
         }
     }
 
-    public static <T> ShadowSimpleAttribute<T> getAttribute(ShadowType shadow, QName attrName) {
-        return getAttributesContainer(shadow).findAttribute(attrName);
+    public static <T> ShadowSimpleAttribute<T> getSimpleAttribute(ShadowType shadow, QName attrName) {
+        return getAttributesContainer(shadow).findSimpleAttribute(attrName);
     }
 
-    public static <T> ShadowSimpleAttribute<T> getAttribute(PrismObject<? extends ShadowType> shadow, QName attrName) {
-        return getAttributesContainer(shadow).findAttribute(attrName);
+    public static <T> ShadowSimpleAttribute<T> getSimpleAttribute(PrismObject<? extends ShadowType> shadow, QName attrName) {
+        return getAttributesContainer(shadow).findSimpleAttribute(attrName);
+    }
+
+    public static ShadowReferenceAttribute getReferenceAttribute(PrismObject<? extends ShadowType> shadow, QName attrName) {
+        return getAttributesContainer(shadow).findReferenceAttribute(attrName);
     }
 
     public static ShadowAttributesContainer getAttributesContainer(ShadowType shadowType) {
@@ -182,7 +195,7 @@ public class ShadowUtil {
                 shadow.asObjectable().asPrismContainerValue(), ShadowType.F_ASSOCIATIONS, ShadowAssociationsContainer.class);
     }
 
-    private static <T> T castShadowContainer(
+    public static <T> T castShadowContainer(
             @NotNull PrismContainerValue<?> parent, QName containerName, Class<T> expectedClass) {
         PrismContainer<?> container = parent.findContainer(containerName);
         if (container == null) {
@@ -315,7 +328,7 @@ public class ShadowUtil {
 
     public static <T> @Nullable PrismPropertyValue<T> getSingleValue(ShadowType shadow, QName attrName, Object errorCtx)
             throws SchemaException {
-        ShadowSimpleAttribute<T> attribute = getAttribute(shadow, attrName);
+        ShadowSimpleAttribute<T> attribute = getSimpleAttribute(shadow, attrName);
         if (attribute == null || attribute.isEmpty()) {
             return null;
         } else if (attribute.size() > 1) {
@@ -410,7 +423,7 @@ public class ShadowUtil {
                 .applyDefinition(
                         resourceSchema
                                 .findDefinitionForObjectClassRequired(objectClass)
-                                .toResourceAttributeContainerDefinition());
+                                .toShadowAttributesContainerDefinition());
     }
 
     public static PrismObjectDefinition<ShadowType> applyObjectDefinition(
@@ -418,7 +431,7 @@ public class ShadowUtil {
             ResourceObjectDefinition objectClassDefinition) throws SchemaException {
         // FIXME eliminate double cloning!
         return shadowDefinition.cloneWithNewDefinition(
-                        ShadowType.F_ATTRIBUTES, objectClassDefinition.toResourceAttributeContainerDefinition())
+                        ShadowType.F_ATTRIBUTES, objectClassDefinition.toShadowAttributesContainerDefinition())
                 .cloneWithNewDefinition(
                         ShadowType.F_ASSOCIATIONS, objectClassDefinition.toShadowAssociationsContainerDefinition());
     }
@@ -456,7 +469,7 @@ public class ShadowUtil {
         if (attributesContainer == null) {
             return null;
         }
-        ShadowSimpleAttribute<T> attribute = attributesContainer.findAttribute(attributeQname);
+        ShadowSimpleAttribute<T> attribute = attributesContainer.findSimpleAttribute(attributeQname);
         if (attribute == null) {
             return null;
         }
@@ -518,7 +531,7 @@ public class ShadowUtil {
         if (attributesDefinition == null) {
             throw new IllegalStateException("No definition for <attributes> in "+desc);
         }
-        if (!(attributesDefinition instanceof ResourceAttributeContainerDefinition)) {
+        if (!(attributesDefinition instanceof ShadowAttributesContainerDefinition)) {
             throw new IllegalStateException("The attributes element definition expected to be ResourceAttributeContainerDefinition but it is "
                     +attributesDefinition.getClass()+" instead in "+desc);
         }
@@ -766,7 +779,7 @@ public class ShadowUtil {
                 }
             } else {
                 // We could also try secondary identifiers...
-                ShadowSimpleAttribute<String> nameAttribute = attributesContainer.findAttribute(SchemaConstants.ICFS_NAME);
+                ShadowSimpleAttribute<String> nameAttribute = attributesContainer.findSimpleAttribute(SchemaConstants.ICFS_NAME);
                 if (nameAttribute == null) { // this is suspicious
                     throw new SchemaException("Could not determine shadow name.");
                 }
@@ -820,7 +833,7 @@ public class ShadowUtil {
     public static void validateAttributeSchema(ShadowType shadow, ResourceObjectDefinition objectDefinition)
             throws SchemaException {
         ShadowAttributesContainer attributesContainer = getAttributesContainer(shadow);
-        for (ShadowSimpleAttribute<?> attribute: attributesContainer.getAttributes()) {
+        for (ShadowSimpleAttribute<?> attribute: attributesContainer.getSimpleAttributes()) {
             validateAttribute(attribute, objectDefinition);
         }
     }
@@ -1086,7 +1099,7 @@ public class ShadowUtil {
      *
      * Does not assume that shadow has a definition.
      */
-    public static @NotNull Collection<ShadowAssociationValueType> getAssociationValues(
+    public static @NotNull Collection<ShadowAssociationValueType> getAssociationValuesRaw(
             @NotNull PrismObject<ShadowType> shadow, QName assocName) {
         PrismContainer<ShadowAssociationValueType> association =
                 shadow.findContainer(ItemPath.create(ShadowType.F_ASSOCIATIONS, assocName));
@@ -1094,6 +1107,19 @@ public class ShadowUtil {
             return List.of();
         } else {
             return association.getRealValues();
+        }
+    }
+
+    /**
+     * Returns the values of given association. The values are connected to the shadow. The list itself is not.
+     */
+    public static @NotNull Collection<? extends ShadowAssociationValue> getAssociationValues(
+            @NotNull PrismObject<ShadowType> shadow, QName assocName) {
+        var container = getAssociationsContainer(shadow);
+        if (container == null) {
+            return List.of();
+        } else {
+            return container.getAssociationValues(assocName);
         }
     }
 
@@ -1116,12 +1142,23 @@ public class ShadowUtil {
         }
     }
 
+    public static @NotNull Collection<ShadowReferenceAttribute> getReferenceAttributes(@NotNull ShadowType shadow) {
+        var container = getAttributesContainer(shadow);
+        if (container != null) {
+            return container.getReferenceAttributes();
+        } else {
+            return List.of();
+        }
+    }
+
+    public static @NotNull Collection<ShadowReferenceAttribute> getReferenceAttributes(@NotNull PrismObject<ShadowType> shadow) {
+        return getReferenceAttributes(shadow.asObjectable());
+    }
+
     /**
-     * Similar to {@link #getAssociationsContainer(ShadowType)} but has the advantage of never returning `null`.
-     * The collection itself is immutable. The values, however, are connected to ones in the shadow, so can be changed
-     * if needed.
+     * TODO
      */
-    public static @NotNull Collection<ShadowReferenceAttribute> getAssociations(@NotNull ShadowType shadow) {
+    public static @NotNull Collection<ShadowAssociation> getAssociations(@NotNull ShadowType shadow) {
         var container = getAssociationsContainer(shadow);
         if (container != null) {
             return List.copyOf(container.getAssociations());
@@ -1130,7 +1167,7 @@ public class ShadowUtil {
         }
     }
 
-    public static @NotNull Collection<ShadowReferenceAttribute> getAssociations(@NotNull PrismObject<ShadowType> shadow) {
+    public static @NotNull Collection<ShadowAssociation> getAssociations(@NotNull PrismObject<ShadowType> shadow) {
         return getAssociations(shadow.asObjectable());
     }
 
@@ -1138,18 +1175,18 @@ public class ShadowUtil {
     public static void addPrimaryIdentifierValue(ShadowType shadow, Object primaryIdentifierValue) throws SchemaException {
         var attributes = getOrCreateAttributesContainer(shadow);
         attributes.add(
-                attributes
+                (ShadowAttribute<?, ?, ?, ?>) attributes
                         .getResourceObjectDefinitionRequired()
                         .getPrimaryIdentifierRequired()
                         .instantiateFromRealValue(primaryIdentifierValue));
     }
 
-    public static ShadowReferenceAttribute getAssociation(PrismObject<ShadowType> shadow, QName associationName) {
+    public static ShadowAssociation getAssociation(PrismObject<ShadowType> shadow, QName associationName) {
         var container = getAssociationsContainer(shadow);
         return container != null ? container.findAssociation(associationName) : null;
     }
 
-    public static void addAttribute(ShadowType shadow, ShadowSimpleAttribute<?> attribute) throws SchemaException {
+    public static void addAttribute(ShadowType shadow, ShadowAttribute<?, ?, ?, ?> attribute) throws SchemaException {
         getOrCreateAttributesContainer(shadow).add(attribute);
     }
 
@@ -1157,18 +1194,12 @@ public class ShadowUtil {
         getOrCreateAssociationsContainer(shadow).add(association);
     }
 
-    public static void addShadowAttribute(ShadowType shadow, ShadowAttribute<?, ?> item) throws SchemaException {
-        if (item instanceof ShadowSimpleAttribute<?> attribute) {
-            addAttribute(shadow, attribute);
-        } else if (item instanceof ShadowReferenceAttribute association) {
-            addAssociation(shadow, association);
-        } else {
-            throw new IllegalArgumentException("Neither attribute nor association: " + item);
-        }
-    }
-
     public static @NotNull ShadowAssociationsCollection getAssociationsCollection(@NotNull ShadowType shadowBean) {
         return ShadowAssociationsCollection.ofShadow(shadowBean);
+    }
+
+    public static @NotNull ShadowReferenceAttributesCollection getReferenceAttributesCollection(@NotNull ShadowType shadowBean) {
+        return ShadowReferenceAttributesCollection.ofShadow(shadowBean);
     }
 
     public static boolean isRaw(@NotNull ShadowType shadowBean) {
@@ -1186,8 +1217,8 @@ public class ShadowUtil {
 
         // HACK We ignore icfs:uid and icfs:name, if they are not present at both sides.
         // The reason is that they may be artificially added by the connector.
-        var attributes1 = new ArrayList<>(getAttributes(s1));
-        var attributes2 = new ArrayList<>(getAttributes(s2));
+        var attributes1 = new ArrayList<>(getSimpleAttributes(s1));
+        var attributes2 = new ArrayList<>(getSimpleAttributes(s2));
 
         removeIfNeeded(attributes1, attributes2, ICFS_UID);
         removeIfNeeded(attributes1, attributes2, ICFS_NAME);
@@ -1199,8 +1230,8 @@ public class ShadowUtil {
     }
 
     private static void removeIfNeeded(
-            ArrayList<? extends ShadowAttribute<?, ?>> attributes1,
-            ArrayList<? extends ShadowAttribute<?, ?>> attributes2,
+            ArrayList<? extends ShadowAttribute<?, ?, ?, ?>> attributes1,
+            ArrayList<? extends ShadowAttribute<?, ?, ?, ?>> attributes2,
             ItemName name) {
         int i1 = find(attributes1, name);
         int i2 = find(attributes2, name);
@@ -1213,7 +1244,7 @@ public class ShadowUtil {
         }
     }
 
-    private static int find(List<? extends ShadowAttribute<?, ?>> attributes, QName name) {
+    private static int find(List<? extends ShadowAttribute<?, ?, ?, ?>> attributes, QName name) {
         for (int i = 0; i < attributes.size(); i++) {
             if (QNameUtil.match(attributes.get(i).getElementName(), name)) {
                 return i;

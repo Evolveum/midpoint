@@ -97,16 +97,15 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
         List<AssociationMapper<AH>> mappers = new ArrayList<>();
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
-        for (var associationDefinition : objectDefinition.getReferenceAttributeDefinitions()) {
-            // legacy outbound mapping
-            var outboundMappingBean = associationDefinition.getOutboundMappingBean();
-            if (outboundMappingBean != null) {
+        for (var associationDefinition : objectDefinition.getAssociationDefinitions()) {
+            var legacyOutboundMappingBean = associationDefinition.getLegacyOutboundMappingBean();
+            if (legacyOutboundMappingBean != null) {
                 if (associationDefinition.isVisible(constructionEvaluation.task)) {
                     var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
                     mappers.add(
                             new AssociationMapper<>(
                                     constructionEvaluation, associationDefinition,
-                                    MappingConfigItem.of(outboundMappingBean, origin),
+                                    MappingConfigItem.of(legacyOutboundMappingBean, origin),
                                     OriginType.OUTBOUND, MappingKindType.OUTBOUND));
                 } else {
                     LOGGER.trace("Skipping processing outbound mapping for association {} because it is not visible in current "

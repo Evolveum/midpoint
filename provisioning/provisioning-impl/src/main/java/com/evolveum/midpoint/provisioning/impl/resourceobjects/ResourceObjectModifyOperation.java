@@ -21,7 +21,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
 
-import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection;
+import com.evolveum.midpoint.schema.util.ShadowReferenceAttributesCollection;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -125,7 +125,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
         Collection<Operation> ucfOperations = convertToUcfOperations(result);
 
         boolean hasVolatileAttributeModification = hasVolatileAttributeModification();
-        ExistingResourceObject preReadObject = doPreReadIfNeeded(ucfOperations, hasVolatileAttributeModification, result);
+        ExistingResourceObjectShadow preReadObject = doPreReadIfNeeded(ucfOperations, hasVolatileAttributeModification, result);
 
         UcfModifyReturnValue modifyResult;
         if (!ucfOperations.isEmpty()) {
@@ -144,7 +144,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
                     modifyResult.getExecutedOperationsAsPropertyDeltas());
         }
 
-        ExistingResourceObject postReadObject;
+        ExistingResourceObjectShadow postReadObject;
         if (hasVolatileAttributeModification && preReadObject != null) {
             // In rare cases, the object could not be pre-read even if tried to do so. Hence the nullity check.
             postReadObject = doPostReadIfNeeded(ucfOperations, knownExecutedDeltas, preReadObject, result);
@@ -178,7 +178,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
                 modifyResult != null ? modifyResult.getOperationType() : null);
     }
 
-    private @Nullable ExistingResourceObject doPreReadIfNeeded(
+    private @Nullable ExistingResourceObjectShadow doPreReadIfNeeded(
             Collection<Operation> ucfOperations, boolean hasVolatileAttributeModification, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
@@ -189,7 +189,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
 
         LOGGER.trace("Pre-reading resource object");
         // yes, we need associations here (but why?)
-        ExistingResourceObject resourceObject =
+        ExistingResourceObjectShadow resourceObject =
                 preOrPostRead(ctx, identification, ucfOperations, true, repoShadow, result);
         if (resourceObject == null) {
             return null;
@@ -201,8 +201,8 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
         // account is enabled, then disabled and then enabled again. If backing store still
         // has the account as enabled, then the last enable operation would be ignored.
         // No case is created to re-enable the account. And the account stays disabled at the end.
-        ExistingResourceObject futurized = ResourceObjectFuturizer.futurizeResourceObject(
-                ctx, repoShadow, resourceObject, true, null, now);
+        ExistingResourceObjectShadow futurized = ResourceObjectFuturizer.futurizeResourceObject(
+                ctx, repoShadow, resourceObject, true, now);
         LOGGER.trace("Pre-read object (applied pending operations):\n{}", DebugUtil.debugDumpLazily(futurized, 1));
         return futurized;
     }
@@ -223,10 +223,10 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
         }
     }
 
-    private @Nullable ExistingResourceObject doPostReadIfNeeded(
+    private @Nullable ExistingResourceObjectShadow doPostReadIfNeeded(
             @NotNull Collection<Operation> ucfOperations,
             @NotNull Collection<PropertyDelta<?>> knownExecutedDeltas, // in-out parameter
-            ExistingResourceObject preReadObject,
+            ExistingResourceObjectShadow preReadObject,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
@@ -234,7 +234,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
 
         // There may be other changes that were not detected by the connector. Re-read the object and compare.
         LOGGER.trace("Post-reading resource shadow");
-        ExistingResourceObject postReadObject = preOrPostRead(
+        ExistingResourceObjectShadow postReadObject = preOrPostRead(
                 ctx, identification, ucfOperations, true, repoShadow, result);
         LOGGER.trace("Post-read object:\n{}", DebugUtil.debugDumpLazily(postReadObject));
         if (postReadObject == null) {
@@ -259,9 +259,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
             QName firstPathName = path.firstName();
             if (ShadowUtil.isAttributeModification(firstPathName)) {
                 QName attrName = path.rest().firstNameOrFail();
-                ShadowSimpleAttributeDefinition<?> attrDef =
-                        ctx.getObjectDefinitionRequired().findSimpleAttributeDefinitionRequired(attrName);
-                if (attrDef.isVolatilityTrigger()) {
+                if (ctx.findAttributeDefinitionRequired(attrName).isVolatilityTrigger()) {
                     LOGGER.trace("Volatility trigger attribute {} is being changed", attrName);
                     return true;
                 }
@@ -281,12 +279,12 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
      * In the second and the third case, we have to determine the expected subject state by applying the deltas.
      */
     private void determineAndExecuteEntitlementObjectsOperations(
-            @Nullable ExistingResourceObject subjectBefore,
-            @Nullable ExistingResourceObject subjectAfter,
+            @Nullable ExistingResourceObjectShadow subjectBefore,
+            @Nullable ExistingResourceObjectShadow subjectAfter,
             @NotNull Collection<? extends ItemDelta<?, ?>> subjectDeltas,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 
         EntitlementObjectsOperations objectsOperations = new EntitlementObjectsOperations();
         EntitlementConverter entitlementConverter = new EntitlementConverter(ctx);
@@ -313,7 +311,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
             subjectShadowAfter = repoShadowAfter.getBean();
         }
 
-        var associations = ShadowUtil.getAssociations(subjectShadowBefore);
+        var referenceAttributes = ShadowUtil.getReferenceAttributes(subjectShadowBefore);
 
         LOGGER.trace("determineAndExecuteEntitlementObjectsOperations, old subject state:\n{}",
                 subjectShadowBefore.debugDumpLazily(1));
@@ -322,12 +320,12 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
 
             ItemPath itemDeltaPath = subjectDelta.getPath();
 
-            if (itemDeltaPath.startsWith(ShadowType.F_ASSOCIATIONS)) {
+            if (itemDeltaPath.startsWith(ShadowType.F_ATTRIBUTES)) {
 
                 // Directly manipulating the associations. We need to update the target objects, e.g. by adding/removing members.
-                var associationCollection = ShadowAssociationsCollection.ofDelta(subjectDelta);
+                var attributesCollection = ShadowReferenceAttributesCollection.ofDelta(subjectDelta);
                 entitlementConverter.transformToObjectOpsOnModify(
-                        objectsOperations, associationCollection, subjectShadowBefore, subjectShadowAfter, result);
+                        objectsOperations, attributesCollection, subjectShadowBefore, subjectShadowAfter, result);
 
             } else {
 
@@ -335,44 +333,45 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
                 // we (for resources without the referential integrity) have to adapt the association targets, e.g. groups.
                 // This is done by simulating DELETE/ADD of association value.
 
-                if (associations.isEmpty()) {
-                    LOGGER.trace("No associations in old shadow. Skipping processing entitlements change for {}.", itemDeltaPath);
+                if (referenceAttributes.isEmpty()) {
+                    LOGGER.trace("No references in old shadow. Skipping processing entitlements change for {}.", itemDeltaPath);
                     continue;
                 }
                 LOGGER.trace("Processing associations in old shadow for {}:\n{}",
-                        itemDeltaPath, DebugUtil.debugDumpLazily(associations, 1));
+                        itemDeltaPath, DebugUtil.debugDumpLazily(referenceAttributes, 1));
 
                 // Update explicit-ref-integrity associations if the subject binding attribute (e.g. a DN) is being changed.
-                for (ShadowReferenceAttribute association : associations) {
-                    ItemName associationName = association.getElementName();
-                    var associationDefinition =
-                            ctx.getObjectDefinitionRequired().findAssociationDefinitionRequired(
-                                    associationName, () -> ctx.getExceptionDescription());
-                    if (!EntitlementUtils.isSimulatedObjectToSubject(associationDefinition) // subject rename does not matter here
-                            || !EntitlementUtils.isVisible(associationDefinition, ctx)
-                            || !EntitlementUtils.requiresExplicitReferentialIntegrity(associationDefinition)) { // the resource takes care of this
+                for (ShadowReferenceAttribute refAttr : referenceAttributes) {
+                    ItemName refAttrName = refAttr.getElementName();
+                    var refAttrDef =
+                            ctx.getObjectDefinitionRequired().findReferenceAttributeDefinitionRequired(
+                                    refAttrName, () -> ctx.getExceptionDescription());
+                    if (!EntitlementUtils.isSimulatedObjectToSubject(refAttrDef) // subject rename does not matter here
+                            || !EntitlementUtils.isVisible(refAttrDef, ctx)
+                            || !EntitlementUtils.requiresExplicitReferentialIntegrity(refAttrDef)) { // the resource takes care of this
                         continue;
                     }
-                    var simulationDefinition = associationDefinition.getSimulationDefinitionRequired();
+                    var simulationDefinition = refAttrDef.getSimulationDefinitionRequired();
                     var subjectBindingAttrName = simulationDefinition.getPrimarySubjectBindingAttributeName();
                     if (!ShadowUtil.matchesAttribute(itemDeltaPath, subjectBindingAttrName)) {
                         continue; // this delta is not concerned with the binding attribute
                     }
-                    for (var associationValue : association.getRealValues()) {
+                    for (var refAttrValue : refAttr.getValues()) {
                         if (!isChangeReal(subjectShadowBefore, subjectShadowAfter, itemDeltaPath)) {
-                            LOGGER.trace("NOT processing association {} because the related attribute ({}) change is phantom",
-                                    associationName, subjectBindingAttrName);
+                            // TODO WHY HERE?!
+                            LOGGER.trace("NOT processing reference attribute {} because the related attribute ({}) change is phantom",
+                                    refAttrName, subjectBindingAttrName);
                             continue;
                         }
-                        LOGGER.trace("Processing association {} on association-binding attribute ({}) change",
-                                associationName, subjectBindingAttrName);
-                        var associationDelta = associationDefinition.createEmptyDelta();
-                        associationDelta.addValuesToDelete(associationValue.asPrismContainerValue().clone());
-                        associationDelta.addValuesToAdd(associationValue.asPrismContainerValue().clone());
-                        LOGGER.trace("Add-delete association delta for {} and {}:\n{}",
-                                itemDeltaPath, associationName, associationDelta.debugDumpLazily(1));
+                        LOGGER.trace("Processing reference attribute {} on reference-binding attribute ({}) change",
+                                refAttrName, subjectBindingAttrName);
+                        var refAttrDelta = refAttrDef.createEmptyDelta();
+                        refAttrDelta.addValuesToDelete(refAttrValue.clone());
+                        refAttrDelta.addValuesToAdd(refAttrValue.clone());
+                        LOGGER.trace("Add-delete reference delta for {} and {}:\n{}",
+                                itemDeltaPath, refAttrName, refAttrDelta.debugDumpLazily(1));
                         entitlementConverter.transformToObjectOpsOnModify(
-                                objectsOperations, ShadowAssociationsCollection.ofDelta(associationDelta),
+                                objectsOperations, ShadowReferenceAttributesCollection.ofDelta(refAttrDelta),
                                 subjectShadowBefore, subjectShadowAfter, result);
                     }
                 }
@@ -435,6 +434,11 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
                     ucfOperations.add(attributeModification);
                 } else if (itemDelta instanceof ContainerDelta) {
                     // skip the container delta - most probably password change - it is processed earlier (??)
+                } else if (itemDelta instanceof ReferenceDelta) {
+                    var attributesCollection = ShadowReferenceAttributesCollection.ofDelta(itemDelta);
+                    ucfOperations.addAll(
+                            new EntitlementConverter(ctx)
+                                    .transformToSubjectOpsOnModify(attributesCollection));
                 } else {
                     throw unsupported(itemDelta);
                 }
@@ -445,11 +449,6 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
                             .transformOnModify(repoShadow, requestedDeltas, result));
                     activationProcessed = true;
                 }
-            } else if (itemDelta.getPath().startsWith(ShadowType.F_ASSOCIATIONS)) {
-                ShadowAssociationsCollection associationCollections = ShadowAssociationsCollection.ofDelta(itemDelta);
-                ucfOperations.addAll(
-                        new EntitlementConverter(ctx)
-                                .transformToSubjectOpsOnModify(associationCollections));
             } else if (ShadowType.F_AUXILIARY_OBJECT_CLASS.equivalent(itemDelta.getPath())) {
                 if (itemDelta instanceof PropertyDelta<?> propertyDelta) {
                     ucfOperations.add(
@@ -458,8 +457,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
                     throw unsupported(itemDelta);
                 }
             } else {
-                LOGGER.trace(
-                        "Skip converting item delta: {}. It's not resource object change, but it is shadow change.", itemDelta);
+                LOGGER.trace("Skip converting item delta: {}. It's not a resource object change", itemDelta);
             }
         }
         LOGGER.trace("Converted to UCF operations:\n{}", DebugUtil.debugDumpLazily(ucfOperations, 1));

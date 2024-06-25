@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.Resource;
@@ -169,7 +169,7 @@ public class TestDummyAssociations extends AbstractDummyTest {
         var johnLawContract = AbstractShadow.of(shadow)
                 .getAssociationValues(Person.LinkNames.CONTRACT.q())
                 .stream()
-                .map(val -> val.getShadow())
+                .map(val -> val.getSingleObjectShadowRequired())
                 .filter(s -> s.getName().getOrig().equals("john-law"))
                 .findFirst().orElseThrow();
         var def = johnLawContract.getObjectDefinition();
@@ -192,7 +192,7 @@ public class TestDummyAssociations extends AbstractDummyTest {
                 .findObjectClassDefinitionRequired(hrScenario.contract.getObjectClassName().xsd())
                 .createBlankShadow();
         annContractShadow.getAttributesContainer()
-                .add(ICFS_NAME, "ann-sciences");
+                .addSimpleAttribute(ICFS_NAME, "ann-sciences");
         annContractShadow.getOrCreateAssociationsContainer()
                 .add(Contract.LinkNames.ORG.q(), AbstractShadow.of(sciencesShadow));
 
@@ -201,9 +201,9 @@ public class TestDummyAssociations extends AbstractDummyTest {
                 .findObjectClassDefinitionRequired(hrScenario.person.getObjectClassName().xsd())
                 .createBlankShadow();
         annShadow.getAttributesContainer()
-                .add(Person.AttributeNames.NAME.q(), "ann")
-                .add(Person.AttributeNames.FIRST_NAME.q(), "Ann")
-                .add(Person.AttributeNames.LAST_NAME.q(), "Green");
+                .addSimpleAttribute(Person.AttributeNames.NAME.q(), "ann")
+                .addSimpleAttribute(Person.AttributeNames.FIRST_NAME.q(), "Ann")
+                .addSimpleAttribute(Person.AttributeNames.LAST_NAME.q(), "Green");
         annShadow.getOrCreateAssociationsContainer()
                 .add(Person.LinkNames.CONTRACT.q(), annContractShadow);
 
@@ -224,7 +224,7 @@ public class TestDummyAssociations extends AbstractDummyTest {
         var annContractsAfter = AbstractShadow.of(annShadowAfter)
                 .getAssociationValues(Person.LinkNames.CONTRACT.q())
                 .stream()
-                .map(val -> val.getShadowBean())
+                .map(val -> val.getSingleObjectShadowBeanRequired())
                 .toList();
 
         assertThat(annContractsAfter)
@@ -241,7 +241,7 @@ public class TestDummyAssociations extends AbstractDummyTest {
         var contractOrgsAfter = AbstractShadow.of(annContractAfter)
                 .getAssociationValues(Contract.LinkNames.ORG.q())
                 .stream()
-                .map(val -> val.getShadowBean())
+                .map(val -> val.getSingleObjectShadowBeanRequired())
                 .toList();
 
         assertThat(contractOrgsAfter)
@@ -269,9 +269,9 @@ public class TestDummyAssociations extends AbstractDummyTest {
                 .findObjectClassDefinitionRequired(hrScenario.person.getObjectClassName().xsd())
                 .createBlankShadow();
         bobShadow.getAttributesContainer()
-                .add(Person.AttributeNames.NAME.q(), "bob")
-                .add(Person.AttributeNames.FIRST_NAME.q(), "Bob")
-                .add(Person.AttributeNames.LAST_NAME.q(), "Black");
+                .addSimpleAttribute(Person.AttributeNames.NAME.q(), "bob")
+                .addSimpleAttribute(Person.AttributeNames.FIRST_NAME.q(), "Bob")
+                .addSimpleAttribute(Person.AttributeNames.LAST_NAME.q(), "Black");
 
         provisioningService.addObject(bobShadow.getPrismObject(), null, null, task, result);
 
@@ -282,7 +282,7 @@ public class TestDummyAssociations extends AbstractDummyTest {
                 .findObjectClassDefinitionRequired(hrScenario.contract.getObjectClassName().xsd())
                 .createBlankShadow();
         bobContractShadow.getAttributesContainer()
-                .add(ICFS_NAME, "bob-sciences");
+                .addSimpleAttribute(ICFS_NAME, "bob-sciences");
         bobContractShadow.getOrCreateAssociationsContainer()
                 .add(Contract.LinkNames.ORG.q(), AbstractShadow.of(sciencesShadow));
 
@@ -292,7 +292,7 @@ public class TestDummyAssociations extends AbstractDummyTest {
                 Resource.of(resource)
                         .deltaFor(Person.OBJECT_CLASS_NAME.xsd())
                         .item(Person.LinkNames.CONTRACT.path())
-                        .add(ShadowAssociationValue.of(bobContractShadow.clone(), false))
+                        .add(ShadowReferenceAttributeValue.fromShadow(bobContractShadow.clone()))
                         .asItemDeltas(),
                 null, null, task, result);
 
@@ -310,7 +310,7 @@ public class TestDummyAssociations extends AbstractDummyTest {
         var contractsAfterAdding = AbstractShadow.of(bobShadowAfterAdding)
                 .getAssociationValues(Person.LinkNames.CONTRACT.q())
                 .stream()
-                .map(val -> val.getShadowBean())
+                .map(val -> val.getSingleObjectShadowBeanRequired())
                 .toList();
 
         assertThat(contractsAfterAdding)
@@ -327,7 +327,7 @@ public class TestDummyAssociations extends AbstractDummyTest {
         var contractOrgsAfter = AbstractShadow.of(contractAfterAdding)
                 .getAssociationValues(Contract.LinkNames.ORG.q())
                 .stream()
-                .map(val -> val.getShadowBean())
+                .map(val -> val.getSingleObjectShadowBeanRequired())
                 .toList();
 
         assertThat(contractOrgsAfter)
@@ -349,7 +349,7 @@ public class TestDummyAssociations extends AbstractDummyTest {
                 Resource.of(resource)
                         .deltaFor(Person.OBJECT_CLASS_NAME.xsd())
                         .item(Person.LinkNames.CONTRACT.path())
-                        .delete(ShadowAssociationValue.of(bobContractShadow.clone(), false))
+                        .delete(ShadowReferenceAttributeValue.fromShadow(bobContractShadow.clone()))
                         .asItemDeltas(),
                 null, null, task, result);
 

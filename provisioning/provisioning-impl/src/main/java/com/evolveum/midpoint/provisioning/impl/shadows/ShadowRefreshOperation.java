@@ -48,7 +48,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -311,7 +311,7 @@ class ShadowRefreshOperation {
                 if (pendingDelta.isModify()) {
 
                     // Apply shadow naming attribute modification
-                    ResourceAttributeContainerDefinition resourceAttrDefinition = shadow.getAttributesContainerDefinition();
+                    ShadowAttributesContainerDefinition resourceAttrDefinition = shadow.getAttributesContainerDefinition();
 
                     // If naming attribute is present in delta...
                     ShadowSimpleAttributeDefinition<?> namingAttribute =
@@ -501,7 +501,7 @@ class ShadowRefreshOperation {
 
     private @NotNull RepoShadow retryOperation(
             @NotNull ObjectDelta<ShadowType> pendingDelta,
-            PendingOperationType pendingOperation,
+            @NotNull PendingOperationType pendingOperation,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,

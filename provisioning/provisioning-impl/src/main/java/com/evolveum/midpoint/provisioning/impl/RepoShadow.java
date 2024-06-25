@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.util.*;
@@ -169,8 +169,8 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
                 && pendingOperation.getAttemptNumber() != null;
     }
 
-    public ResourceObject asResourceObject() throws SchemaException {
-        return ResourceObject.fromRepoShadow(this);
+    public ResourceObjectShadow asResourceObject() throws SchemaException {
+        return ResourceObjectShadow.fromRepoShadow(this);
     }
 
     public @NotNull ShadowKindType getKind() {

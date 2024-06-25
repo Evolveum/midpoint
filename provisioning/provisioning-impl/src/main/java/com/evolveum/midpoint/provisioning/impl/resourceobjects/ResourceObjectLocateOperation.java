@@ -10,7 +10,6 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -22,7 +21,6 @@ import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
@@ -112,7 +110,7 @@ class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOpera
 
             var ucfResourceObject = objectHolder.getValue();
             return complete(
-                    ExistingResourceObject.fromUcf(ucfResourceObject, ctx.getResourceRef()),
+                    ExistingResourceObjectShadow.fromUcf(ucfResourceObject, ctx.getResourceRef()),
                     result);
 
         } catch (GenericFrameworkException e) {

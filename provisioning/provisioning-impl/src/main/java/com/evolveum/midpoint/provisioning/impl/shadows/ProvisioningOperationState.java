@@ -338,7 +338,7 @@ public abstract class ProvisioningOperationState<RV extends AsynchronousOperatio
         }
 
         /** This is a shadow that was created on the resource by the operation. */
-        ResourceObject getCreatedObject() {
+        ResourceObjectShadow getCreatedObject() {
             var aResult = getAsyncResult();
             return aResult != null ? aResult.getReturnValue() : null;
         }

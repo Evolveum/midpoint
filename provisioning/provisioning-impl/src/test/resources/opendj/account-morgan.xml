@@ -22,7 +22,9 @@
     </attributes>
     <associations>
         <ri:group>
-            <shadowRef oid="3d96846e-c570-11e3-a80f-001e8c717e5b"/>
+            <objects>
+                <ri:group oid="3d96846e-c570-11e3-a80f-001e8c717e5b"/>
+            </objects>
         </ri:group>
     </associations>
 </shadow>

@@ -31,7 +31,7 @@ public class SimulatedAssociationClassParticipantDefinition implements Serializa
      * The type or class of the participant. Although the type information belongs to the upper layers, it's convenient
      * to have it here as well.
      */
-    @NotNull private final AssociationParticipantType participantType;
+    @NotNull private final ShadowRelationParticipantType participantType;
 
     /** Supported only for subject. */
     @Nullable private final QName auxiliaryObjectClassName;
@@ -40,7 +40,7 @@ public class SimulatedAssociationClassParticipantDefinition implements Serializa
             @NotNull QName objectClassName,
             @Nullable ResourceObjectReferenceType baseContext,
             @Nullable SearchHierarchyScope searchHierarchyScope,
-            @NotNull AssociationParticipantType participantType,
+            @NotNull ShadowRelationParticipantType participantType,
             @Nullable QName auxiliaryObjectClassName) {
         this.delineation = new ResourceObjectSetDelineation(objectClassName, baseContext, searchHierarchyScope, List.of());
         this.participantType = participantType;
@@ -54,11 +54,12 @@ public class SimulatedAssociationClassParticipantDefinition implements Serializa
                 typeDefinition.getTypeName(),
                 typeDefinition.getDelineation().getBaseContext(),
                 typeDefinition.getDelineation().getSearchHierarchyScope(),
-                AssociationParticipantType.forObjectType(typeDefinition),
+                ShadowRelationParticipantType.forObjectType(typeDefinition),
                 auxiliaryObjectClassName);
     }
 
-    @NotNull AssociationParticipantType getParticipantType() {
+    @NotNull
+    ShadowRelationParticipantType getParticipantType() {
         return participantType;
     }
 

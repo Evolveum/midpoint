@@ -53,9 +53,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * - UCF {@link UcfResourceObject}
  * - or UCF {@link UcfResourceObjectIdentification}
  *
- * Calls itself recursively: when converting an object, its associations (with embedded objects or references)
+ * Calls itself recursively: when converting an object, its references (with embedded objects or references)
  * are converted using the very same mechanism as the containing object.
- * See {@link Conversion#convertReferenceToAssociationValue(ConnectorObjectReference)}.
+ * See {@link Conversion#convertReferenceToReferenceAttributeValue(ConnectorObjectReference)}.
  */
 class ConnIdToUcfObjectConversion {
 
@@ -100,7 +100,7 @@ class ConnIdToUcfObjectConversion {
         return (UcfResourceObject) conversion.getResourceObjectFragmentIfSuccess();
     }
 
-    /** As {@link #getUcfResourceObjectIfSuccess()} but for fragments, i.e., association values. */
+    /** As {@link #getUcfResourceObjectIfSuccess()} but for fragments, i.e., reference values. */
     private @NotNull UcfResourceObjectFragment getUcfResourceObjectFragmentIfSuccess() throws SchemaException {
         return conversion.getResourceObjectFragmentIfSuccess();
     }
@@ -210,7 +210,7 @@ class ConnIdToUcfObjectConversion {
         }
 
         private void convertPassword(Attribute connIdAttr) throws SchemaException {
-            ProtectedStringType password = getSingleConvertedValue(connIdAttr, ProtectedStringType.class);
+            ProtectedStringType password = getSingleConvertedSimpleValue(connIdAttr, ProtectedStringType.class);
             if (password != null) {
                 ShadowUtil.setPassword(convertedObject, password);
                 LOGGER.trace("Converted password: {}", password);
@@ -224,7 +224,7 @@ class ConnIdToUcfObjectConversion {
         }
 
         private void convertEnable(Attribute connIdAttr) throws SchemaException {
-            Boolean enabled = getSingleConvertedValue(connIdAttr, Boolean.class);
+            Boolean enabled = getSingleConvertedSimpleValue(connIdAttr, Boolean.class);
             if (enabled == null) {
                 return;
             }
@@ -236,7 +236,7 @@ class ConnIdToUcfObjectConversion {
         }
 
         private void convertEnableDate(Attribute connIdAttr) throws SchemaException {
-            Long millis = getSingleConvertedValue(connIdAttr, Long.class);
+            Long millis = getSingleConvertedSimpleValue(connIdAttr, Long.class);
             if (millis == null) {
                 return;
             }
@@ -245,7 +245,7 @@ class ConnIdToUcfObjectConversion {
         }
 
         private void convertDisableDate(Attribute connIdAttr) throws SchemaException {
-            Long millis = getSingleConvertedValue(connIdAttr, Long.class);
+            Long millis = getSingleConvertedSimpleValue(connIdAttr, Long.class);
             if (millis == null) {
                 return;
             }
@@ -254,7 +254,7 @@ class ConnIdToUcfObjectConversion {
         }
 
         private void convertLockOut(Attribute connIdAttr) throws SchemaException {
-            Boolean lockOut = getSingleConvertedValue(connIdAttr, Boolean.class);
+            Boolean lockOut = getSingleConvertedSimpleValue(connIdAttr, Boolean.class);
             if (lockOut == null) {
                 return;
             }
@@ -286,8 +286,7 @@ class ConnIdToUcfObjectConversion {
             }
         }
 
-        // Assuming this is a genuine attribute, not an association.
-        private <T> T getSingleConvertedValue(Attribute connIdAttribute, Class<T> type) throws SchemaException {
+        private <T> T getSingleConvertedSimpleValue(Attribute connIdAttribute, Class<T> type) throws SchemaException {
             Object valueInConnId = ConnIdAttributeUtil.getSingleValue(connIdAttribute);
             Object valueInUcf = getRealValue((PrismPropertyValue<?>) convertAttributeValueFromConnId(valueInConnId));
             return MiscUtil.castSafely(valueInUcf, type, lazy(() -> " in attribute " + connIdAttribute.getName()));
@@ -312,7 +311,7 @@ class ConnIdToUcfObjectConversion {
                 return ps != null ? itemFactory.createPropertyValue(ps) : null;
             }
             if (connIdValue instanceof ConnectorObjectReference reference) {
-                return convertReferenceToAssociationValue(reference);
+                return convertReferenceToReferenceAttributeValue(reference);
             }
             return itemFactory.createPropertyValue(connIdValue);
         }
@@ -361,15 +360,13 @@ class ConnIdToUcfObjectConversion {
                 throws SchemaException {
             var convertedAttrName = connIdAttributeNameToUcf(connIdAttrName, null, resourceObjectDefinition);
 
-            // We have no ConnId definition at hand to distinguish between attributes and associations.
-            // We could do something with the value(s) but in theory, there can be no values.
             var mpDefinition = resourceObjectDefinition.findShadowAttributeDefinitionRequired(
                     convertedAttrName,
                     getResourceSchema().isCaseIgnoreAttributeNames(),
                     lazy(() -> "original ConnId name: '%s' in resource object identified by %s".formatted(
                             connIdAttrName, connectorObjectFragment.getIdentification())));
 
-            ShadowAttribute<?, ?> convertedAttr = mpDefinition.instantiate();
+            var convertedAttr = mpDefinition.instantiate();
             var expectedClass = resolvePrimitiveIfNecessary(mpDefinition.getTypeClass());
 
             // Note: we skip uniqueness checks here because the attribute in the resource object is created from scratch.
@@ -386,19 +383,18 @@ class ConnIdToUcfObjectConversion {
                     schemaCheck(realClass == null || expectedClass.isAssignableFrom(realClass),
                             "The value '%s' does not conform to the definition %s: expected type: %s, actual type: %s",
                             convertedValue, mpDefinition, expectedClass, realClass);
-                    //noinspection unchecked,rawtypes
-                    ((ShadowAttribute) convertedAttr).addValueSkipUniquenessCheck(convertedValue);
+                    convertedAttr.addValueSkipUniquenessCheck(convertedValue);
                 }
             }
 
             convertedAttr.setIncomplete(ConnIdAttributeUtil.isIncomplete(connIdAttr));
             if (!convertedAttr.hasNoValues() || convertedAttr.isIncomplete()) {
-                LOGGER.trace("Converted attribute/association {}", convertedAttr);
-                ShadowUtil.addShadowAttribute(convertedObject, convertedAttr);
+                LOGGER.trace("Converted attribute {}", convertedAttr);
+                ShadowUtil.addAttribute(convertedObject, convertedAttr);
             }
         }
 
-        private @NotNull ShadowAssociationValue convertReferenceToAssociationValue(ConnectorObjectReference reference)
+        private @NotNull ShadowReferenceAttributeValue convertReferenceToReferenceAttributeValue(ConnectorObjectReference reference)
                 throws SchemaException {
             BaseConnectorObject targetObjectOrIdentification = reference.getReferencedValue();
             var targetObjectClassName =
@@ -409,11 +405,10 @@ class ConnIdToUcfObjectConversion {
                     new ConnIdToUcfObjectConversion(
                             targetObjectOrIdentification, targetObjectDefinition, connectorContext);
             embeddedConversion.execute();
-            // If the conversion is not successful, the conversion of the particular association - as a whole - fails
+            // If the conversion is not successful, the conversion of the particular reference attribute - as a whole - fails
             // (and the error is handled just as if any attribute conversion failed).
-            return ShadowAssociationValue.of(
-                    embeddedConversion.getUcfResourceObjectFragmentIfSuccess(),
-                    targetObjectOrIdentification instanceof ConnectorObjectIdentification);
+            return ShadowReferenceAttributeValue.fromShadow(
+                    embeddedConversion.getUcfResourceObjectFragmentIfSuccess());
         }
 
         @NotNull UcfResourceObjectFragment getResourceObjectFragmentIfSuccess() throws SchemaException {

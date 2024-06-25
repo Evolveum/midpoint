@@ -228,7 +228,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     }
 
     private boolean existsEquivalentValue(PrismObject<ShadowType> shadowOld, IterableAssociationValue iterableAssociationValue) {
-        for (var existing : ShadowUtil.getAssociationValues(shadowOld, iterableAssociationValue.name())) {
+        for (var existing : ShadowUtil.getAssociationValuesRaw(shadowOld, iterableAssociationValue.name())) {
             if (existing.equals(iterableAssociationValue.value())) { // TODO better check
                 return true;
             }

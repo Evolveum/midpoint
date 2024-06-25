@@ -49,7 +49,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.normalization.Normalizer;
-import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
 import jakarta.annotation.PostConstruct;
@@ -1524,12 +1523,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             if (uid != null) {
                 var uidAttrDef = objectDef.findSimpleAttributeDefinitionRequired(ICFS_UID);
                 attrContainer.add(
-                        uidAttrDef.instantiateFromRealValue(uid));
+                        (ShadowAttribute<?, ?, ?, ?>) uidAttrDef.instantiateFromRealValue(uid));
             }
             if (name != null) {
                 var nameAttrDef = objectDef.findSimpleAttributeDefinitionRequired(ICFS_NAME);
                 attrContainer.add(
-                        nameAttrDef.instantiateFromRealValue(name));
+                        (ShadowAttribute<?, ?, ?, ?>) nameAttrDef.instantiateFromRealValue(name));
             }
         }
         return shadowObject;
@@ -1546,10 +1545,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         ResourceObjectDefinition objectClassDefinition = refinedSchema.findDefaultDefinitionForKindRequired(shadowBean.getKind());
         shadowBean.setObjectClass(objectClassDefinition.getTypeName());
         ShadowAttributesContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-        ShadowSimpleAttributeDefinition<T> attrDef = objectClassDefinition.findSimpleAttributeDefinitionRequired(attributeName);
-        ShadowSimpleAttribute<T> attr = attrDef.instantiate();
-        attr.addRealValues(values);
-        attrContainer.add(attr);
+        attrContainer.add(
+                (ShadowAttribute<?, ?, ?, ?>) objectClassDefinition
+                        .<T>findSimpleAttributeDefinitionRequired(attributeName)
+                        .instantiateFromRealValues(List.of(values)));
     }
 
     protected RawRepoShadow findAccountShadowByUsername(
@@ -2920,7 +2919,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertAssociation(AbstractShadow shadow, QName associationName, String entitlementOid) {
-        IntegrationTestTools.assertAssociation(shadow.getPrismObject(), associationName, entitlementOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow.getPrismObject(), associationName, entitlementOid);
     }
 
     protected void assertNoAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {

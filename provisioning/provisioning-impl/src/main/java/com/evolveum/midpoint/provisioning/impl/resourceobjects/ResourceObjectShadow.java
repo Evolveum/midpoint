@@ -9,8 +9,6 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import java.io.Serializable;
 
-import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * A resource object: either actually residing on a resource (i.e., something that we learned about by calling UCF),
+ * A resource object shadow: either actually residing on a resource (i.e., something that we learned about by calling UCF),
  * or just created or to-be created on a resource. In some cases (e.g., when dealing with resource object changes),
  * it may be almost empty, containing only selected identifiers.
  *
@@ -44,10 +42,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * TODO
  *  - `exists` flag
  *
- * @see ExistingResourceObject
+ * @see ExistingResourceObjectShadow
  * @see RepoShadow
  */
-public class ResourceObject implements Serializable, Cloneable, DebugDumpable, AbstractShadow {
+public class ResourceObjectShadow implements Serializable, Cloneable, DebugDumpable, AbstractShadow {
 
     /**
      * TODO specify various levels of guarantees: what is there and what is not, like activation, associations, and so on.
@@ -66,25 +64,25 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable, A
      */
     final Object primaryIdentifierValue;
 
-    ResourceObject(@NotNull ShadowType bean, Object primaryIdentifierValue) {
+    ResourceObjectShadow(@NotNull ShadowType bean, Object primaryIdentifierValue) {
         this.bean = bean;
         this.primaryIdentifierValue = primaryIdentifierValue;
         this.checkConsistence();
     }
 
     /** To be used only by informed clients! */
-    public static ResourceObject fromBean(
+    public static ResourceObjectShadow fromBean(
             @NotNull ShadowType bean,
             boolean exists,
             @NotNull ResourceObjectDefinition objectDefinition)
             throws SchemaException {
         bean.setExists(exists);
-        return new ResourceObject(bean, ShadowUtil.getPrimaryIdentifierValue(bean, objectDefinition));
+        return new ResourceObjectShadow(bean, ShadowUtil.getPrimaryIdentifierValue(bean, objectDefinition));
     }
 
-    public static ResourceObject fromRepoShadow(RepoShadow repoShadow) throws SchemaException {
+    public static ResourceObjectShadow fromRepoShadow(RepoShadow repoShadow) throws SchemaException {
         // TODO what about the "exists" flag?
-        return new ResourceObject(
+        return new ResourceObjectShadow(
                 repoShadow.getBean(),
                 repoShadow.getPrimaryIdentifierValueFromAttributes());
     }
@@ -97,16 +95,16 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable, A
         return primaryIdentifierValue;
     }
 
-    public @NotNull ResourceObject withNewContent(@NotNull ShadowType newData) {
-        return new ResourceObject(
+    public @NotNull ResourceObjectShadow withNewContent(@NotNull ShadowType newData) {
+        return new ResourceObjectShadow(
                 newData,
                 primaryIdentifierValue);
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
-    public ResourceObject clone() {
-        return new ResourceObject(
+    public ResourceObjectShadow clone() {
+        return new ResourceObjectShadow(
                 bean.clone(),
                 primaryIdentifierValue);
     }
@@ -153,11 +151,11 @@ public class ResourceObject implements Serializable, Cloneable, DebugDumpable, A
         return Shadow.of(bean, Resource.of(resource));
     }
 
-    public static @Nullable ShadowType getBean(@Nullable ResourceObject resourceObject) {
+    public static @Nullable ShadowType getBean(@Nullable ResourceObjectShadow resourceObject) {
         return resourceObject != null ? resourceObject.getBean() : null;
     }
 
-    public static @Nullable PrismObject<ShadowType> getPrismObject(@Nullable ResourceObject resourceObject) {
+    public static @Nullable PrismObject<ShadowType> getPrismObject(@Nullable ResourceObjectShadow resourceObject) {
         return resourceObject != null ? resourceObject.getPrismObject() : null;
     }
 

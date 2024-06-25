@@ -503,20 +503,14 @@ public abstract class ResourceObjectConstruction<
         return null;
     }
 
-    @NotNull ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName associationName, Object errorCtx)
+    @NotNull ShadowAssociationDefinition findAssociationDefinitionRequired(QName associationName, Object errorCtx)
             throws ConfigurationException {
         if (resourceObjectDefinition == null) {
             throw new IllegalStateException("Construction " + this + " was not evaluated:\n" + this.debugDump());
         }
-        var inMain = resourceObjectDefinition.findReferenceAttributeDefinition(associationName);
+        var inMain = resourceObjectDefinition.findAssociationDefinition(associationName);
         if (inMain != null) {
             return inMain;
-        }
-        for (var auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
-            var inAux = auxiliaryObjectClassDefinition.findReferenceAttributeDefinition(associationName);
-            if (inAux != null) {
-                return inAux;
-            }
         }
         throw new ConfigurationException(
                 "Association '%s' not found in schema for resource object %s; as defined in %s".formatted(

@@ -24,28 +24,33 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Information about a resource attribute.
+ * Definition of a {@link ShadowAttribute}.
  *
- * . It is based on a "native" part, available from the connector (or from simulated associations capability definition);
+ * . It is based on a "native" part, available from the connector (or from simulated references capability definition);
  * see {@link NativeShadowAttributeDefinition}.
  * . This part is then optionally refined by the configuration in resource `schemaHandling` section.
  *
  * For the time being, it does not extend {@link ItemDefinition} because of typing complications:
- * {@link ShadowAttribute} cannot extend {@link Item}.
+ * {@link ShadowAttribute} cannot extend {@link Item} (see its javadoc).
  *
  * @see ShadowSimpleAttributeDefinition
  * @see ShadowReferenceAttributeDefinition
  *
  * @param <SA> item that is created by the instantiation of this definition
- * @param <R> real value stored in SA
+ * @param <RV> real value stored in SA
  */
-public interface ShadowAttributeDefinition<SA extends ShadowAttribute<?, ?>, R>
+public interface ShadowAttributeDefinition<
+        V extends PrismValue,
+        D extends ShadowAttributeDefinition<V, D, RV, SA>,
+        RV,
+        SA extends ShadowAttribute<V, D, RV, SA>
+        >
         extends
         PrismItemBasicDefinition,
         PrismItemAccessDefinition,
         PrismItemMiscDefinition,
         PrismPresentationDefinition,
-        ShadowItemUcfDefinition,
+        ShadowAttributeUcfDefinition,
         ShadowItemLayeredDefinition,
         LayeredDefinition,
         ResourceObjectInboundDefinition.ItemInboundDefinition,
@@ -136,8 +141,7 @@ public interface ShadowAttributeDefinition<SA extends ShadowAttribute<?, ?>, R>
      * Creates a view of the current definition for a given layer.
      * (May return even the original object e.g. if the layer matches the current one.)
      */
-    @NotNull
-    ShadowAttributeDefinition<SA, R> forLayer(@NotNull LayerType layer);
+    @NotNull ShadowAttributeDefinition<V, D, RV, SA> forLayer(@NotNull LayerType layer);
 
     /**
      * Provides a value that will override {@link #canRead(LayerType)} return values (for all layers).
@@ -232,7 +236,7 @@ public interface ShadowAttributeDefinition<SA extends ShadowAttribute<?, ?>, R>
     }
 
     /** Note that attributes must always have static Java type. */
-    @NotNull Class<R> getTypeClass();
+    @NotNull Class<RV> getTypeClass();
 
     /**
      * Is this attribute returned by default? (I.e. if no specific options are sent to the connector?)
@@ -253,14 +257,50 @@ public interface ShadowAttributeDefinition<SA extends ShadowAttribute<?, ?>, R>
     @NotNull
     SA instantiate(QName itemName) throws SchemaException;
 
+    /**
+     * Creates a new {@link ShadowAttribute} from given (compatible) {@link Item}.
+     * Used in the process of "definition application" in `applyDefinitions` and similar methods.
+     *
+     * Assumes that the original item is correctly constructed, i.e. it has no duplicate values.
+     */
+    default @NotNull SA instantiateFrom(@NotNull Item<?, ?> item) throws SchemaException {
+        //noinspection unchecked
+        SA attribute = instantiateFromRealValues((Collection<RV>) item.getRealValues());
+        attribute.setIncomplete(item.isIncomplete());
+        return attribute;
+    }
+
+    default @NotNull SA instantiateFromRealValue(@NotNull RV realValue) throws SchemaException {
+        return instantiateFromRealValues(List.of(realValue));
+    }
+
+    /**
+     * Creates a new {@link ShadowAttribute} from given real values, cloning and converting them if necessary.
+     *
+     * Assumes that the values contain no duplicates and no nulls.
+     */
+    default @NotNull SA instantiateFromRealValues(@NotNull Collection<RV> realValues) throws SchemaException {
+        SA attribute = instantiate();
+        for (RV realValue : realValues) {
+            attribute.addValueSkipUniquenessCheck(
+                    createPrismValueFromRealValue(realValue));
+        }
+        return attribute;
+    }
+
+    V createPrismValueFromRealValue(@NotNull RV realValue) throws SchemaException;
+
     String getHumanReadableDescription();
 
-    ItemPath getStandardPath();
+    /** Returns the standard path where this attribute can be found in shadows. E.g. for searching. */
+    default ItemPath getStandardPath() {
+        return ItemPath.create(ShadowType.F_ATTRIBUTES, getItemName());
+    }
 
     /** If `true`, the item does not exist on the resource, but is simulated by midPoint. */
     boolean isSimulated();
 
-    @NotNull ShadowAttributeDefinition<SA, R> clone();
+    @NotNull ShadowAttributeDefinition<V, D, RV, SA> clone();
 
     /**
      * Provides a debug dump respective to the given layer.

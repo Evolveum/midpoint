@@ -122,7 +122,7 @@ public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel 
         }
 
         referenceAttributes.forEach(referenceAttribute -> {
-            referenceAttribute.getObjectParticipants(schema).values().forEach(associationParticipantType -> {
+            referenceAttribute.getAssociationDefinition().getObjectParticipants(schema).values().forEach(associationParticipantType -> {
                 ResourceObjectDefinition targetDef = associationParticipantType.getObjectDefinition();
 
                 if (targetDef.getTypeIdentification() != null) {

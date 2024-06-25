@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -78,7 +78,7 @@ public class PreMappingsEvaluation<T extends Containerable> {
 
     // FIXME TEMPORARY
     public static <C extends Containerable> void computePreFocusForAssociationValue(
-            @NotNull ShadowAssociationValue associationValue,
+            @NotNull ShadowReferenceAttributeValue associationValue,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
             @NotNull ResourceType resource,
             @NotNull C targetObject,
@@ -92,7 +92,7 @@ public class PreMappingsEvaluation<T extends Containerable> {
                 targetObject,
                 ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                 task,
-                associationValue.getAssociatedObjectDefinition(),
+                associationValue.getTargetObjectDefinition(),
                 inboundDefinition,
                 (ShadowReferenceAttributeDefinition) associationValue.getDefinition());
         new PreMappingsEvaluation<>(preInboundsContext)

@@ -7,13 +7,8 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import java.util.Collection;
-import java.util.List;
-
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -23,56 +18,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Full prism definition of a {@link ShadowSimpleAttribute}: has a native part and a refined part from `schemaHandling`.
  *
- * TODO rename to ShadowAttributeDefinition (too many occurrences!)
- *
  * @see ShadowSimpleAttribute
  */
 public interface ShadowSimpleAttributeDefinition<T>
         extends
         PrismPropertyDefinition<T>,
-        ShadowAttributeDefinition<ShadowSimpleAttribute<T>, T> {
+        ShadowAttributeDefinition<
+                PrismPropertyValue<T>,
+                ShadowSimpleAttributeDefinition<T>,
+                T,
+                ShadowSimpleAttribute<T>
+                > {
 
     @Override
     default @NotNull Class<T> getTypeClass() {
         return PrismPropertyDefinition.super.getTypeClass();
     }
 
-    /**
-     * Creates a new {@link ShadowSimpleAttribute} from given {@link PrismProperty}.
-     * Used in the process of "definition application" in `applyDefinitions` and similar methods.
-     *
-     * Assumes that the original property is correctly constructed, i.e. it has no duplicate values.
-     */
-    default @NotNull ShadowSimpleAttribute<T> instantiateFrom(@NotNull PrismProperty<?> property) throws SchemaException {
-        //noinspection unchecked
-        ShadowSimpleAttribute<T> attribute = instantiateFromRealValues((Collection<T>) property.getRealValues());
-        attribute.setIncomplete(property.isIncomplete());
-        return attribute;
-    }
-
-    default @NotNull ShadowSimpleAttribute<T> instantiateFromValue(PrismPropertyValue<T> value) throws SchemaException {
-        ShadowSimpleAttribute<T> attribute = instantiate();
-        attribute.add(value);
-        return attribute;
-    }
-
-    /**
-     * Creates a new {@link ShadowSimpleAttribute} from given real values, converting them if necessary.
-     *
-     * Assumes that the values contain no duplicates and no nulls.
-     */
-    default @NotNull ShadowSimpleAttribute<T> instantiateFromRealValues(@NotNull Collection<T> realValues) throws SchemaException {
-        ShadowSimpleAttribute<T> attribute = instantiate();
-        attribute.addNormalizedValues(realValues, this); // FIXME SKIP NORMALIZATION!!!
-        return attribute;
-    }
-
-    default @NotNull ShadowSimpleAttribute<T> instantiateFromRealValue(@NotNull T realValue) throws SchemaException {
-        return instantiateFromRealValues(List.of(realValue));
-    }
-
     default @NotNull PrismPropertyValue<T> convertPrismValue(@NotNull PrismPropertyValue<?> srcValue) {
-        return PrismUtil.convertPropertyValue(srcValue, this);
+        return ShadowAttributeValueConvertor.convertPropertyValue(srcValue, this);
     }
 
     @NotNull
@@ -118,11 +82,6 @@ public interface ShadowSimpleAttributeDefinition<T>
     /** Creates a normalization-aware version of this definition. */
     default <N> @NotNull NormalizationAwareResourceAttributeDefinition<N> toNormalizationAware() {
         return new NormalizationAwareResourceAttributeDefinition<>(this);
-    }
-
-    /** Returns the standard path where this attribute can be found in shadows. E.g. for searching. */
-    default @NotNull ItemPath getStandardPath() {
-        return ItemPath.create(ShadowType.F_ATTRIBUTES, getItemName());
     }
 
     /** Creates an empty delta for this attribute against its standard path. */

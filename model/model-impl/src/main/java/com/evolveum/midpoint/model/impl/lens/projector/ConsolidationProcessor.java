@@ -363,7 +363,7 @@ public class ConsolidationProcessor {
             ObjectDelta<ShadowType> existingDelta,
             LensProjectionContext projCtx,
             QName associationName,
-            DeltaSetTriple<ItemValueWithOrigin<ShadowAssociationValue, ShadowReferenceAttributeDefinition>> triple,
+            DeltaSetTriple<ItemValueWithOrigin<ShadowReferenceAttributeValue, ShadowReferenceAttributeDefinition>> triple,
             StrengthSelector strengthSelector,
             Task task,
             OperationResult result) throws SchemaException, ExpressionEvaluationException {

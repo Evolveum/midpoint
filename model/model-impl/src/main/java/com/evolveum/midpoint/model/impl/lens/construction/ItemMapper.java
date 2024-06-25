@@ -17,6 +17,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -144,7 +145,7 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
         return mapper.isEnabled();
     }
 
-    abstract ShadowReferenceAttributeDefinition getAssociationDefinition();
+    abstract ShadowAssociationDefinition getAssociationDefinition();
 
     private @NotNull Collection<V> getOriginalTargetValues() {
         LensProjectionContext projCtx = constructionEvaluation.projectionContext;
@@ -215,7 +216,7 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
     protected abstract String getItemType();
 
     public boolean isVisible(Task task) {
-        var lifecycleState = ((ShadowAttributeDefinition<?, ?>) itemDefinition).getLifecycleState();
+        var lifecycleState = ((ShadowAttributeDefinition<?, ?, ?, ?>) itemDefinition).getLifecycleState();
         return SimulationUtil.isVisible(lifecycleState, task.getExecutionMode());
     }
 

@@ -465,6 +465,13 @@ public class ObjectTypeUtil {
         return createObjectRef(oid, null, type);
     }
 
+    public static ObjectReferenceType createObjectRef(
+            @NotNull String oid, @NotNull ObjectTypes type, @Nullable PrismObject<?> object) {
+        var ref = createObjectRef(oid, null, type);
+        ref.asReferenceValue().setObject(object);
+        return ref;
+    }
+
     @Contract("null, _ -> null; !null, _ -> !null")
     public static ObjectReferenceType createObjectRefNullSafe(@Nullable String oid, @NotNull ObjectTypes type) {
         return oid != null ?

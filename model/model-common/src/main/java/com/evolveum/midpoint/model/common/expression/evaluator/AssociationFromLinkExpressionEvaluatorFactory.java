@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 
 import jakarta.xml.bind.JAXBElement;

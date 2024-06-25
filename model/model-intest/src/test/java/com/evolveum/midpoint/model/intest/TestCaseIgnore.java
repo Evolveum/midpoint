@@ -445,7 +445,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, "title", "JoKeR");
         assertDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_JOKER_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
 
-        IntegrationTestTools.assertAssociation(accountModelShadow, RESOURCE_DUMMY_UPCASE_ASSOCIATION_GROUP_QNAME,
+        IntegrationTestTools.assertAssociationObjectRef(accountModelShadow, RESOURCE_DUMMY_UPCASE_ASSOCIATION_GROUP_QNAME,
                 GROUP_SHADOW_JOKER_DUMMY_UPCASE_OID);
 
         assertShadows(6);

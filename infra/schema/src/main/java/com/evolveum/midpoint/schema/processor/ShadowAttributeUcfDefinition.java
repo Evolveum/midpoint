@@ -16,11 +16,11 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * Getter interface to "UCF" part of resource attribute and association definitions.
+ * Getter interface to "UCF" part of shadow attribute definitions.
  *
  * Supports delegation to real data store.
  */
-public interface ShadowItemUcfDefinition extends Serializable, ShortDumpable {
+public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpable {
 
     /**
      * Returns native attribute name.
@@ -56,9 +56,9 @@ public interface ShadowItemUcfDefinition extends Serializable, ShortDumpable {
      */
     @Nullable Boolean getReturnedByDefault();
 
-    interface Delegable extends ShadowItemUcfDefinition {
+    interface Delegable extends ShadowAttributeUcfDefinition {
 
-        ShadowItemUcfDefinition ucfData();
+        ShadowAttributeUcfDefinition ucfData();
 
         default @Nullable Boolean getReturnedByDefault() {
             return ucfData().getReturnedByDefault();
@@ -84,7 +84,7 @@ public interface ShadowItemUcfDefinition extends Serializable, ShortDumpable {
 
         interface Delegable extends Mutable {
 
-            ShadowItemUcfDefinition.Mutable ucfData();
+            ShadowAttributeUcfDefinition.Mutable ucfData();
 
             default void setReturnedByDefault(Boolean returnedByDefault) {
                 ucfData().setReturnedByDefault(returnedByDefault);
@@ -100,10 +100,10 @@ public interface ShadowItemUcfDefinition extends Serializable, ShortDumpable {
         }
     }
 
-    /** Contains real data for UCF aspect of resource attribute/association definition. */
+    /** Contains real data for UCF aspect of shadow attribute definition. */
     class Data
             extends AbstractFreezable
-            implements ShadowItemUcfDefinition, ShadowItemUcfDefinition.Mutable, Serializable {
+            implements ShadowAttributeUcfDefinition, ShadowAttributeUcfDefinition.Mutable, Serializable {
 
         /** Name that is native on the resource. It is provided e.g. as part of ConnId attribute information. */
         private String nativeAttributeName;
