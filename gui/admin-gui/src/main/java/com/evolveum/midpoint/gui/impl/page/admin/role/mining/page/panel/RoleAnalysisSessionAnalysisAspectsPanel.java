@@ -504,7 +504,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
             Label cardTitle = new Label(ID_CARD_TITLE, "No data available");
             cardTitle.setOutputMarkupId(true);
-            headerItems.add(cardTitle);
+            container.add(cardTitle);
 
             WebMarkupContainer exploreButton = new WebMarkupContainer(ID_EXPLORE_PATTERN_BUTTON);
             exploreButton.setOutputMarkupId(true);
@@ -552,7 +552,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
             Label cardTitle = new Label(ID_CARD_TITLE, "No data available");
             cardTitle.setOutputMarkupId(true);
-            headerItems.add(cardTitle);
+            container.add(cardTitle);
 
             WebMarkupContainer exploreButton = new WebMarkupContainer(ID_EXPLORE_PATTERN_BUTTON);
             exploreButton.setOutputMarkupId(true);
