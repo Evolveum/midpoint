@@ -317,6 +317,7 @@ public abstract class PageBase extends PageAdminLTE {
         pageTitle.add(deploymentName);
 
         Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, createPageTitleModel());
+        pageTitleReal.add(getPageTitleBehaviour());
         pageTitleReal.setRenderBodyOnly(true);
         pageTitle.add(pageTitleReal);
 

@@ -122,7 +122,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
             }
 
             @Override
-            protected void savePerformed(AjaxRequestTarget target) {
+            protected void submitPerformed(AjaxRequestTarget target) {
                 PageResource.this.savePerformed(target);
             }
 

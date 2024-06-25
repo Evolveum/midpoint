@@ -48,7 +48,7 @@ public class DetailsTableItem implements Serializable {
 
     public Component createValueComponent(String id) {
         Label label = new Label(id, value);
-        label.setRenderBodyOnly(true);
+//        label.setRenderBodyOnly(true);
         return label;
     }
 
