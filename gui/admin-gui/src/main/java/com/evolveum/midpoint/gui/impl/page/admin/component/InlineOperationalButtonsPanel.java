@@ -20,6 +20,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -33,6 +34,7 @@ public abstract class InlineOperationalButtonsPanel<O extends ObjectType> extend
     private static final String ID_LEFT_BUTTONS = "leftButtons";
     private static final String ID_TITLE = "title";
     private static final String ID_RIGHT_BUTTONS = "rightButtons";
+    private static final String ID_DELETE_BUTTON_CONTAINER = "deleteButtonContainer";
     private static final String ID_DELETE_BUTTON = "deleteButton";
 
     public InlineOperationalButtonsPanel(String id, LoadableModel<PrismObjectWrapper<O>> wrapperModel) {
@@ -49,8 +51,12 @@ public abstract class InlineOperationalButtonsPanel<O extends ObjectType> extend
         Label title = new Label(ID_TITLE, getTitle());
         add(title);
 
+        WebMarkupContainer deleteButtonContainer = new WebMarkupContainer(ID_DELETE_BUTTON_CONTAINER);
+        deleteButtonContainer.setOutputMarkupId(true);
+        add(deleteButtonContainer);
+
         RepeatingView deleteButtonView = new RepeatingView(ID_DELETE_BUTTON);
-        add(deleteButtonView);
+        deleteButtonContainer.add(deleteButtonView);
         createDeleteButton(deleteButtonView);
         applyWcagRules(deleteButtonView);
 
@@ -61,7 +67,7 @@ public abstract class InlineOperationalButtonsPanel<O extends ObjectType> extend
         applyWcagRules(rightButtonsView);
 
         if (rightButtonsView.size() > 1) {
-            deleteButtonView.add(AttributeAppender.append("class", "objectButtons"));
+            deleteButtonContainer.add(AttributeAppender.append("class", "objectButtons"));
         }
     }
 
@@ -120,8 +126,11 @@ public abstract class InlineOperationalButtonsPanel<O extends ObjectType> extend
     }
 
     @Override
-    protected void addButtons(RepeatingView repeatingView) {
+    protected final void addButtons(RepeatingView repeatingView) {
         super.addButtons(repeatingView);
+    }
+
+    protected void addRightButtons(@NotNull RepeatingView rightButtonsView) {
     }
 
     protected void addLefButtons(@NotNull RepeatingView leftButtonsView) {
@@ -129,7 +138,7 @@ public abstract class InlineOperationalButtonsPanel<O extends ObjectType> extend
 
     @Override
     protected void buildInitialRepeatingView(RepeatingView repeatingView) {
-        addButtons(repeatingView);
+        addRightButtons(repeatingView);
         createSaveButton(repeatingView);
     }
 
