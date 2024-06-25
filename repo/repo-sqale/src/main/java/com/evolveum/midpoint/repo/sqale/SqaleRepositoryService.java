@@ -882,17 +882,22 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throws ObjectNotFoundException {
 
         QueryTableMapping<T, Q, R> mapping = sqlRepoContext.getMappingBySchemaType(type);
-        Q entityPath = mapping.defaultAlias();
-        byte[] fullObject = jdbcSession.newQuery()
-                .select(entityPath.fullObject)
+        QObject<?> entityPath = mapping.defaultAlias();
+        Tuple result = jdbcSession.newQuery()
+                .select(entityPath.objectType, entityPath.fullObject)
                 .forUpdate()
                 .from(entityPath)
                 .where(entityPath.oid.eq(oid))
                 .fetchOne();
-        if (fullObject == null) {
+        if (result == null) {
             throw new ObjectNotFoundException(type, oid.toString(), false);
         }
+        var fullObject = result.get(entityPath.fullObject);
 
+        if (ObjectType.class.equals(type)) {
+            mapping = (QueryTableMapping) sqlRepoContext.getMappingBySchemaType(result.get(entityPath.objectType).getSchemaType());
+            entityPath = mapping.defaultAlias();
+        }
         // object delete cascades to all owned related rows
         jdbcSession.newDelete(entityPath)
                 .where(entityPath.oid.eq(oid))
