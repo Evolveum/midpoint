@@ -90,12 +90,16 @@ public abstract class ObjectVerticalSummaryPanel<O extends ObjectType> extends B
 
                 OperationResult result =  new OperationResult("getIcon");
                 DisplayType type =  GuiDisplayTypeUtil.getDisplayTypeForObject(object, result, getPageBase());
-                if (type == null || type.getIcon() == null) {
-                    return type;
+                if (type == null ) {
+                    type = new DisplayType();
+                } else {
+                    // clone to avoid immutable property modification
+                    type = type.clone();
                 }
 
-                // clone to avoid immutable property modification
-                type = type.clone();
+                if (type.getIcon() == null) {
+                    type.icon(new IconType());
+                }
 
                 IconType icon = type.getIcon();
                 icon.setCssClass(StringUtils.joinWith(" ", icon.getCssClass(), "fa-inverse fa-2x"));
