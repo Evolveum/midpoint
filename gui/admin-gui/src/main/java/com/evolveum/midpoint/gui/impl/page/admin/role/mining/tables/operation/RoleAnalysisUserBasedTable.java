@@ -17,13 +17,9 @@ import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.create
 import java.io.Serial;
 import java.util.*;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-import com.evolveum.midpoint.common.mining.utils.values.*;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.OutlierAnalyseActionDetailsPopupPanel;
-
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
+import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -45,12 +41,14 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.utils.values.*;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
@@ -58,10 +56,12 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPopupPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.OutlierAnalyseActionDetailsPopupPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.experimental.RoleAnalysisTableSettingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.OperationPanelModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisTableOpPanelItem;
@@ -166,19 +166,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                     @Override
                     protected void performOnClick(AjaxRequestTarget target) {
                         showAsExpandCard = !showAsExpandCard;
-
-                        boolean visible = getNavigationComponent().isVisible();
-                        if (showAsExpandCard) {
-                            if (visible) {
-                                getNavigationComponent().setVisible(false);
-                                target.add(getNavigationComponent().getParent());
-                            }
-                        } else {
-                            if (!visible) {
-                                getNavigationComponent().setVisible(true);
-                                target.add(getNavigationComponent().getParent());
-                            }
-                        }
+                        toggleBasicPanelVisibility(target);
                     }
 
                     @Contract(pure = true)
@@ -821,7 +809,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
 
                                 OutlierAnalyseActionDetailsPopupPanel detailsPanel = new OutlierAnalyseActionDetailsPopupPanel(
                                         ((PageBase) getPage()).getMainPopupBodyId(),
-                                        Model.of("Analyzed members details panel"), elements.get(0), cluster.getOid(),10) {
+                                        Model.of("Analyzed members details panel"), elements.get(0), cluster.getOid(), 10) {
                                     @Override
                                     public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                                         super.onClose(ajaxRequestTarget);
@@ -1317,8 +1305,13 @@ public class RoleAnalysisUserBasedTable extends Panel {
         return new ArrayList<>();
     }
 
-    protected Component getNavigationComponent() {
-        return getPageBase().get(getPageBase().createComponentPath("detailsView", "mainForm", "navigationHeader"));
+    @SuppressWarnings("rawtypes")
+    protected void toggleBasicPanelVisibility(AjaxRequestTarget target) {
+        Page page = getPage();
+        if (page instanceof AbstractPageObjectDetails) {
+            AbstractPageObjectDetails<?,?> pageObjectDetails = ((AbstractPageObjectDetails) page);
+            pageObjectDetails.toggleBasicPanelVisibility(target);
+        }
     }
 
     public List<DetectedPattern> getSelectedPatterns() {
