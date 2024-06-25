@@ -33,6 +33,7 @@
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
 
+    <!--NOTE this is just experimental schema, many things is not needed.-->
     <xsd:complexType name="RoleAnalysisOutlierType">
         <xsd:annotation>
             <xsd:documentation>
@@ -171,6 +172,31 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>RoleAnalysisOutlierType.similarObjectsDensity</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="similarObjectsThreshold" type="xsd:double" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Similar objects density.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RoleAnalysisOutlierType.similarObjectsDensity</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="outlierNoiseCategory" type="tns:RoleAnalysisOutlierNoiseCategoryType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Describe category of noise.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.9</a:since>
+                                <a:displayName>RoleAnalysisOutlierNoiseCategoryType.outlierNoiseCategory</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2070,6 +2096,77 @@
     </xsd:complexType>
     <xsd:element name="roleAnalysisOptionType" type="tns:RoleAnalysisOptionType"/>
 
+
+    <xsd:simpleType name="RoleAnalysisOutlierNoiseCategoryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Category classification.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+
+            <xsd:enumeration value="part_of_cluster">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        There is detected cluster/group that meet business definition.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PART_OF_CLUSTER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+
+            <xsd:enumeration value="members_noise">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Not required members that meet business definition.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MEMBERS_NOISE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+
+            <xsd:enumeration value="access_noise">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Not required members count that meet access definition.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ACCESS_NOISE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+
+            <xsd:enumeration value="rule_noise">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Not required members count that meet rule definition.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RULE_NOISE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+
+            <xsd:enumeration value="overal_noise">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Not required members count that meet business definition.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OVERAL_NOISE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:simpleType name="RoleAnalysisCategoryType">
         <xsd:annotation>
             <xsd:documentation>
@@ -2153,4 +2250,5 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
 </xsd:schema>

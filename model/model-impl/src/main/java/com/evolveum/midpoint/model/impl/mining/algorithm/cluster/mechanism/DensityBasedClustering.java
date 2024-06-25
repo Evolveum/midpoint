@@ -6,6 +6,8 @@ import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressI
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierNoiseCategoryType;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -54,7 +56,7 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
      */
     public List<Cluster<T>> cluster(Collection<T> points, RoleAnalysisProgressIncrement handler) {
         List<Cluster<T>> clusters = new ArrayList<>();
-        Map<Clusterable, PointStatus> visited = new HashMap<>();
+        Map<Clusterable, RoleAnalysisOutlierNoiseCategoryType> visited = new HashMap<>();
 
         Set<ClusterExplanation> explanation = new HashSet<>();
 
@@ -65,21 +67,34 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
             handler.iterateActualStatus();
 
             if (visited.get(point) == null) {
-                List<T> neighbors = this.getNeighbors(point, points, explanation, this.eps);
-                int neighborsSize = getNeightborsSize(neighbors);
+                PointStatusWrapper pStatusWrapper = new PointStatusWrapper(RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER);
 
-                if (neighborsSize >= this.minPts
-                        || (point.getMembersCount() >= this.minPts
-                        && point.getPoint().size() >= minPropertiesOverlap)) {
+                List<T> neighbors = this.getNeighbors(point, points, explanation, this.eps, this.minPts, pStatusWrapper);
+
+                if(pStatusWrapper.pStatus == RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER){
                     Cluster<T> cluster = new Cluster<>();
                     Cluster<T> tCluster = this.expandCluster(cluster, point, neighbors, points, visited, explanation);
                     tCluster.setExplanations(explanation);
                     clusters.add(tCluster);
-                    explanation = new HashSet<>();
-                } else {
-                    visited.put(point, PointStatus.NOISE);
-                    explanation = new HashSet<>();
+                }else {
+                    point.setPointStatus(pStatusWrapper.pStatus);
+                    visited.put(point, pStatusWrapper.pStatus);
                 }
+
+                explanation = new HashSet<>();
+
+//                int neighborsSize = getNeightborsSize(neighbors);
+//                if (neighborsSize >= this.minPts
+//                        || (point.getMembersCount() >= this.minPts && point.getPoint().size() >= minPropertiesOverlap)) {
+//                    Cluster<T> cluster = new Cluster<>();
+//                    Cluster<T> tCluster = this.expandCluster(cluster, point, neighbors, points, visited, explanation);
+//                    tCluster.setExplanations(explanation);
+//                    clusters.add(tCluster);
+//                    explanation = new HashSet<>();
+//                } else {
+//                    visited.put(point, pStatusWrapper.pStatus);
+//                    explanation = new HashSet<>();
+//                }
             }
         }
 
@@ -87,24 +102,25 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
     }
 
     private Cluster<T> expandCluster(Cluster<T> cluster, T point, List<T> neighbors, Collection<T> points,
-            Map<Clusterable, PointStatus> visited, Set<ClusterExplanation> explanation) {
+            Map<Clusterable, RoleAnalysisOutlierNoiseCategoryType> visited, Set<ClusterExplanation> explanation) {
         cluster.addPoint(point);
-        visited.put(point, PointStatus.PART_OF_CLUSTER);
+        visited.put(point, RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER);
         List<T> seeds = new ArrayList<>(neighbors);
 
         for (int index = 0; index < seeds.size(); ++index) {
             T current = (T) ((List) seeds).get(index);
-            PointStatus pStatus = visited.get(current);
+            RoleAnalysisOutlierNoiseCategoryType pStatus = visited.get(current);
             if (pStatus == null) {
-                List<T> currentNeighbors = this.getNeighbors(current, points, explanation, this.eps);
+                PointStatusWrapper pStatusWrapper = new PointStatusWrapper(RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER);
+                List<T> currentNeighbors = this.getNeighbors(current, points, explanation, this.eps, this.minPts, pStatusWrapper);
                 int currentNeighborsCount = getNeightborsSize(currentNeighbors);
                 if (currentNeighborsCount >= this.minPts) {
                     this.merge(seeds, currentNeighbors);
                 }
             }
 
-            if (pStatus != PointStatus.PART_OF_CLUSTER) {
-                visited.put(current, PointStatus.PART_OF_CLUSTER);
+            if (pStatus != RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER) {
+                visited.put(current, RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER);
                 cluster.addPoint(current);
             }
         }
@@ -131,11 +147,12 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
 
     }
 
-    private enum PointStatus {
-        NOISE,
-        PART_OF_CLUSTER;
 
-        PointStatus() {
+    class PointStatusWrapper {
+        public RoleAnalysisOutlierNoiseCategoryType pStatus;
+
+        public PointStatusWrapper(RoleAnalysisOutlierNoiseCategoryType pStatus) {
+            this.pStatus = pStatus;
         }
     }
 }

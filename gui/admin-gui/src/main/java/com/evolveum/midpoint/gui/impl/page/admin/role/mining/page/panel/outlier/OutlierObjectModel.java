@@ -126,8 +126,8 @@ public class OutlierObjectModel implements Serializable {
             Integer totalRelations = patternInfo.getTotalRelations();
             String value = detectedPatternCount + " pattern(s) detected";
             int averageRelation = 0;
-            if(totalRelations != 0 && detectedPatternCount != 0){
-                 averageRelation = totalRelations / detectedPatternCount;
+            if (totalRelations != 0 && detectedPatternCount != 0) {
+                averageRelation = totalRelations / detectedPatternCount;
             }
             String patternDescription = "Maximum coverage is " + String.format("%.2f", patternInfo.getConfidence())
                     + "% (" + topPatternRelation + "relations) "
@@ -139,7 +139,8 @@ public class OutlierObjectModel implements Serializable {
         int similarObjectCount = outlierResult.getSimilarObjects();
         Double membershipDensity = outlierResult.getSimilarObjectsDensity();
         String clusterDescription = "Detected " + similarObjectCount + " similar objects with membership density "
-                + String.format("%.2f", membershipDensity) + "%";
+                + String.format("%.2f", membershipDensity) + "%"
+                + " and threshold above " + outlierResult.getSimilarObjectsThreshold() + "%. ";
         OutlierItemModel clusterItemModel = new OutlierItemModel(similarObjectCount + " similar object(s)",
                 clusterDescription, "fa fa-cubes");
         outlierObjectModel.addOutlierItemModel(clusterItemModel);
@@ -184,6 +185,13 @@ public class OutlierObjectModel implements Serializable {
         OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(attributeAboveThreshold + " attribute(s)",
                 attributeDescriptionThreshold.toString(), "fa fa-cogs");
         outlierObjectModel.addOutlierItemModel(attributeItemModelThreshold);
+
+        String outlierNoiseCategoryDescription = "Outlier noise category of the outlier object.";
+
+        RoleAnalysisOutlierNoiseCategoryType outlierNoiseCategory = outlierResult.getOutlierNoiseCategory();
+        OutlierItemModel noiseCategoryItemModel = new OutlierItemModel(outlierNoiseCategory.value(),
+                outlierNoiseCategoryDescription, "fa fa-cogs");
+        outlierObjectModel.addOutlierItemModel(noiseCategoryItemModel);
 
         List<String> rolesOid = getRolesOidAssignment(userTypeObject.asObjectable());
 
@@ -291,7 +299,7 @@ public class OutlierObjectModel implements Serializable {
             Integer totalRelations = patternInfo.getTotalRelations();
             String value = detectedPatternCount + " pattern(s) detected";
             int averageRelation = 0;
-            if(totalRelations != 0 && detectedPatternCount != 0){
+            if (totalRelations != 0 && detectedPatternCount != 0) {
                 averageRelation = totalRelations / detectedPatternCount;
             }
             String patternDescription = "Maximum coverage is " + String.format("%.2f", patternInfo.getConfidence())
@@ -435,7 +443,7 @@ public class OutlierObjectModel implements Serializable {
             Integer totalRelations = patternInfo.getTotalRelations();
             String value = detectedPatternCount + " pattern(s) detected";
             int averageRelation = 0;
-            if(totalRelations != 0 && detectedPatternCount != 0){
+            if (totalRelations != 0 && detectedPatternCount != 0) {
                 averageRelation = totalRelations / detectedPatternCount;
             }
             String patternDescription = "Maximum coverage is " + String.format("%.2f", patternInfo.getConfidence())

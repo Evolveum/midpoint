@@ -331,17 +331,28 @@ public class RoleAnalysisAlgorithmUtils {
 
         Set<String> elementsOid = new HashSet<>();
         Set<String> pointsSet = new HashSet<>();
+        Set<ObjectReferenceType> processedObjectsRef = new HashSet<>();
         for (DataPoint dataPoint : dataPoints) {
             handler.iterateActualStatus();
 
             Set<String> points = dataPoint.getProperties();
             pointsSet.addAll(points);
-            elementsOid.addAll(dataPoint.getMembers());
+
+            Set<String> members = dataPoint.getMembers();
+            elementsOid.addAll(members);
 
             int pointsSize = points.size();
             sumPoints += pointsSize;
             minVectorPoint = Math.min(minVectorPoint, pointsSize);
             maxVectorPoint = Math.max(maxVectorPoint, pointsSize);
+
+            for (String member : members) {
+                ObjectReferenceType objectReferenceType = new ObjectReferenceType();
+                objectReferenceType.setType(complexType);
+                objectReferenceType.setOid(member);
+                objectReferenceType.setDescription(dataPoint.getPointStatusIdentificator());
+                processedObjectsRef.add(objectReferenceType);
+            }
         }
 
         double meanPoints = (double) sumPoints / totalDataPoints;
@@ -351,15 +362,6 @@ public class RoleAnalysisAlgorithmUtils {
         double density = (sumPoints / (double) (elementSize * pointsSize)) * 100;
 
         PolyStringType name = PolyStringType.fromOrig(sessionTypeObjectCount + "_outliers");
-
-        Set<ObjectReferenceType> processedObjectsRef = new HashSet<>();
-        ObjectReferenceType objectReferenceType;
-        for (String element : elementsOid) {
-            objectReferenceType = new ObjectReferenceType();
-            objectReferenceType.setType(complexType);
-            objectReferenceType.setOid(element);
-            processedObjectsRef.add(objectReferenceType);
-        }
 
         ClusterStatistic clusterStatistic = new ClusterStatistic(name, processedObjectsRef, elementSize,
                 pointsSize, minVectorPoint, maxVectorPoint, meanPoints, density);

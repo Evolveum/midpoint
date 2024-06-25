@@ -249,11 +249,17 @@ public class AdvancedClustering implements Clusterable {
             if (analysisCategory.equals(RoleAnalysisCategoryType.DEPARTMENT)) {
                 return ClusteringMode.UNBALANCED;
             }
+
             return ClusteringMode.BALANCED;
         } else {
             if (analysisCategory.equals(RoleAnalysisCategoryType.DEPARTMENT)) {
                 return ClusteringMode.UNBALANCED_RULES;
             }
+
+            if(analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)){
+                return ClusteringMode.BALANCED_RULES_OUTLIER;
+            }
+
             return ClusteringMode.BALANCED_RULES;
         }
     }

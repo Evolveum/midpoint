@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
-import static com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter.jacquardSimilarity;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.LOGGER;
 
 import java.util.*;
 
+import com.google.common.collect.ListMultimap;
+import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,21 +37,16 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.InfoBoxModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisInfoBox;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.RoleAnalysisUserBasedTable;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> implements Popupable {
 
-    List<PrismObject<UserType>> elements;
-
+    List<String> elements;
     Map<String, RoleAnalysisAttributeStatistics> map;
     String userOid;
     String clusterOid;
@@ -69,28 +64,59 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         this.minMembers = minMembers;
     }
 
+    //TODO just for testing case (remove later)
     @Override
     protected void onInitialize() {
         super.onInitialize();
 
         PageBase pageBase = getPageBase();
-        ModelService modelService = pageBase.getModelService();
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
         Task task = pageBase.createSimpleTask("Idk");
         OperationResult result = task.getResult();
 
-        PrismObject<RoleAnalysisClusterType> clusterTypeObject = roleAnalysisService.getClusterTypeObject(clusterOid, task, result);
+        PrismObject<RoleAnalysisClusterType> originalCluster = roleAnalysisService.getClusterTypeObject(clusterOid, task, result);
         List<String> outliersMembers = new ArrayList<>();
-        List<ObjectReferenceType> member = clusterTypeObject.asObjectable().getMember();
+
+        if (originalCluster == null) {
+            LOGGER.error("Cluster with oid {} not found", clusterOid);
+            return;
+        }
+
+        ObjectReferenceType roleAnalysisSessionRef = originalCluster.asObjectable().getRoleAnalysisSessionRef();
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(roleAnalysisSessionRef.getOid(), task, result);
+
+        if (sessionTypeObject == null) {
+            LOGGER.error("Session with oid {} not found", roleAnalysisSessionRef.getOid());
+            return;
+        }
+
+        RoleAnalysisSessionType session = sessionTypeObject.asObjectable();
+        UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+        RangeType propertiesRange = userModeOptions.getPropertiesRange();
+        Integer minMembersCount = userModeOptions.getMinMembersCount();
+
+        List<ObjectReferenceType> member = originalCluster.asObjectable().getMember();
         for (ObjectReferenceType objectReferenceType : member) {
             outliersMembers.add(objectReferenceType.getOid());
         }
 
-        Double jaccardFrequencyMetric = getJaccardFrequencyMetric(userOid, roleAnalysisService,
-                modelService, null, task, result, outliersMembers, 0.5, 10);
+        double minThreshold = 0.5;
 
-        elements = getJaccardCloseObject(userOid, roleAnalysisService,
-                modelService, null, task, result, outliersMembers, jaccardFrequencyMetric);
+        ListMultimap<List<String>, String> chunkMap = roleAnalysisService.loadUserForOutlierComparison(
+                roleAnalysisService,
+                outliersMembers,
+                propertiesRange.getMin().intValue(), propertiesRange.getMax().intValue(),
+                userModeOptions.getMemberFilter(), result, task);
+
+        MutableDouble usedFrequency = new MutableDouble(minThreshold);
+
+        elements = roleAnalysisService.findJaccardCloseObject(userOid,
+                chunkMap,
+                usedFrequency,
+                outliersMembers, minThreshold, minMembersCount, task,
+                result
+        );
+        elements.add(userOid);
 
         DisplayValueOption displayValueOption = new DisplayValueOption();
         displayValueOption.setProcessMode(RoleAnalysisProcessModeType.USER);
@@ -98,9 +124,9 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         displayValueOption.setSortMode(RoleAnalysisSortMode.JACCARD);
         displayValueOption.setChunkAction(RoleAnalysisChunkAction.EXPLORE_DETECTION);
         RoleAnalysisClusterType cluster = new RoleAnalysisClusterType();
-        for (PrismObject<UserType> element : elements) {
+        for (String element : elements) {
             cluster.getMember().add(new ObjectReferenceType()
-                    .oid(element.getOid()).type(UserType.COMPLEX_TYPE).targetName(element.getName().getOrig()));
+                    .oid(element).type(UserType.COMPLEX_TYPE));
         }
 
         RoleAnalysisDetectionOptionType detectionOption = new RoleAnalysisDetectionOptionType();
@@ -132,6 +158,21 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
             }
         }
 
+        RoleAnalysisUserBasedTable table = loadTable(miningOperationChunk, displayValueOption, cluster);
+        add(table);
+
+        RepeatingView headerItems = new RepeatingView("header-items");
+        headerItems.setOutputMarkupId(true);
+        add(headerItems);
+
+        initOutlierAnalysisHeaderPanel(headerItems, userOid, usedFrequency, originalCluster.asObjectable());
+    }
+
+    @NotNull
+    private RoleAnalysisUserBasedTable loadTable(
+            MiningOperationChunk miningOperationChunk,
+            DisplayValueOption displayValueOption,
+            @NotNull RoleAnalysisClusterType cluster) {
         RoleAnalysisUserBasedTable table = new RoleAnalysisUserBasedTable(
                 "table",
                 miningOperationChunk,
@@ -157,13 +198,7 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         };
 
         table.setOutputMarkupId(true);
-        add(table);
-
-        RepeatingView headerItems = new RepeatingView("header-items");
-        headerItems.setOutputMarkupId(true);
-        add(headerItems);
-
-        initOutlierAnalysisHeaderPanel(headerItems);
+        return table;
     }
 
     public void onClose(AjaxRequestTarget ajaxRequestTarget) {
@@ -197,10 +232,6 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
 
     @Override
     public StringResourceModel getTitle() {
-//        if (processModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
-//            return new StringResourceModel("RoleMining.members.details.panel.title.roles");
-//        }
-//        return new StringResourceModel("RoleMining.members.details.panel.title.users");
         return null;
     }
 
@@ -212,131 +243,32 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         this.map = map;
     }
 
-    int counterHandlet = 0;
-    double foundThreshold = 0;
-
-    public List<PrismObject<UserType>> getJaccardCloseObject(double threshold,
+    private void initOutlierAnalysisHeaderPanel(RepeatingView headerItems,
             String userOid,
-            RoleAnalysisService roleAnalysisService,
-            ModelService modelService,
-            ObjectQuery query,
-            Task task,
-            OperationResult result) {
-        List<PrismObject<UserType>> elements = new ArrayList<>();
-        PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(userOid, task, result);
-        if (userTypeObject == null) {
-            return elements;
-        }
-        elements.add(userTypeObject);
+            MutableDouble usedFrequency,
+            RoleAnalysisClusterType cluster) {
+        int similarObjectCount = elements.size() - 1;
 
-        PrismObject<RoleAnalysisClusterType> clusterTypeObject = roleAnalysisService.getClusterTypeObject(clusterOid, task, result);
-        if (clusterTypeObject == null) {
-            return elements;
-        }
-        List<String> outliersMembers = new ArrayList<>();
-        List<ObjectReferenceType> member = clusterTypeObject.asObjectable().getMember();
-        for (ObjectReferenceType objectReferenceType : member) {
-            outliersMembers.add(objectReferenceType.getOid());
-        }
+        List<ObjectReferenceType> clusterMembers = cluster.getMember();
 
-        List<String> similarUserOidSet = new ArrayList<>();
-        Map<Double, Integer> similarityStats = new TreeMap<>(Collections.reverseOrder());
-
-        UserType userObject = userTypeObject.asObjectable();
-        List<String> userRolesToCompare = getRolesOidAssignment(userObject);
-
-        //TODO store assignments and user oid? whats about heap? Search takes a lot of time
-        //TODO it is not nessesary to search all users, and is not nessesary to search twice
-        ResultHandler<UserType> resultHandler = (user, lResult) -> {
-            try {
-                //TODO think about this ignore outliers?
-                // Whats if we want to compare with them?
-                // Whats if cluster is not generated because missing one object?
-                // Im not sure about it
-                if (!outliersMembers.contains(user.getOid()) && !user.getOid().equals(userOid)) {
-                    List<String> rolesOidAssignment = getRolesOidAssignment(user.asObjectable());
-                    double jacquardSimilarity = jacquardSimilarity(userRolesToCompare, rolesOidAssignment);
-                    jacquardSimilarity = Math.floor(jacquardSimilarity * 10) / 10.0;
-
-                    if (similarityStats.containsKey(jacquardSimilarity)) {
-                        similarityStats.put(jacquardSimilarity, similarityStats.get(jacquardSimilarity) + 1);
-                    } else {
-                        similarityStats.put(jacquardSimilarity, 1);
-                    }
-                }
-            } catch (Exception e) {
-                String errorMessage = "Cannot resolve role members: " + toShortString(user.asObjectable())
-                        + ": " + e.getMessage();
-                throw new SystemException(errorMessage, e);
-            }
-
-            return true;
-        };
-
-        ResultHandler<UserType> resultHandler2 = (user, lResult) -> {
-            try {
-                //TODO think about this ignore outliers?
-                // Whats if we want to compare with them?
-                // Whats if cluster is not generated because missing one object?
-                // Im not sure about it
-                if (!outliersMembers.contains(user.getOid()) && !user.getOid().equals(userOid)) {
-                    List<String> rolesOidAssignment = getRolesOidAssignment(user.asObjectable());
-                    double jacquardSimilarity = jacquardSimilarity(userRolesToCompare, rolesOidAssignment);
-                    if (jacquardSimilarity >= foundThreshold) {
-                        elements.add(user);
-                        similarUserOidSet.add(user.getOid());
-                    }
-                }
-            } catch (Exception e) {
-                String errorMessage = "Cannot resolve role members: " + toShortString(user.asObjectable())
-                        + ": " + e.getMessage();
-                throw new SystemException(errorMessage, e);
-            }
-
-            return true;
-        };
-
-        try {
-            modelService.searchObjectsIterative(UserType.class, query, resultHandler, null,
-                    task, result);
-        } catch (Exception ex) {
-            throw new RuntimeException("Cannot resolve role members: " + userOid + ": " + ex.getMessage(), ex);
-        } finally {
-            result.recomputeStatus();
-        }
-
-        for (Map.Entry<Double, Integer> entry : similarityStats.entrySet()) {
-            Integer value = entry.getValue();
-            if (value >= minMembers) {
-                foundThreshold = entry.getKey();
+        String outlierTypeIdentification = "unknown";
+        for (ObjectReferenceType clusterMember : clusterMembers) {
+            String oid = clusterMember.getOid();
+            if (oid.equals(userOid)) {
+                outlierTypeIdentification = clusterMember.getDescription();
                 break;
             }
         }
 
-        try {
-            modelService.searchObjectsIterative(UserType.class, query, resultHandler2, null,
-                    task, result);
-        } catch (Exception ex) {
-            throw new RuntimeException("Cannot resolve role members: " + userOid + ": " + ex.getMessage(), ex);
-        } finally {
-            result.recomputeStatus();
-        }
-
-        return elements;
-    }
-
-    private void initOutlierAnalysisHeaderPanel(RepeatingView headerItems) {
-
-        int similarObjectCount = elements.size() - 1;
-        double usedThreshold = foundThreshold;
-
-        InfoBoxModel infoBoxResolvedPatterns = new InfoBoxModel(GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " text-white",
+        InfoBoxModel infoBoxResolvedPatterns = new InfoBoxModel(
+                GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " text-white",
                 "Similar users",
                 String.valueOf(similarObjectCount),
                 100,
                 "Number of similar users");
 
-        RoleAnalysisInfoBox resolvedPatternLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxResolvedPatterns)) {
+        RoleAnalysisInfoBox resolvedPatternLabel = new RoleAnalysisInfoBox(
+                headerItems.newChildId(), Model.of(infoBoxResolvedPatterns)) {
             @Override
             protected String getInfoBoxCssClass() {
                 return "bg-primary";
@@ -347,13 +279,15 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         resolvedPatternLabel.setOutputMarkupId(true);
         headerItems.add(resolvedPatternLabel);
 
-        InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " text-white",
+        InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(
+                GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " text-white",
                 "Threshold",
-                String.valueOf(usedThreshold),
+                String.valueOf(usedFrequency.doubleValue()),
                 100,
                 "Threshold for similarity between users");
 
-        RoleAnalysisInfoBox candidateRolesLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxCandidateRoles)) {
+        RoleAnalysisInfoBox candidateRolesLabel = new RoleAnalysisInfoBox(
+                headerItems.newChildId(), Model.of(infoBoxCandidateRoles)) {
             @Override
             protected String getInfoBoxCssClass() {
                 return "bg-primary";
@@ -363,13 +297,15 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         candidateRolesLabel.setOutputMarkupId(true);
         headerItems.add(candidateRolesLabel);
 
-        InfoBoxModel anomalyAssignmentLabelModel = new InfoBoxModel(GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " text-white",
+        InfoBoxModel anomalyAssignmentLabelModel = new InfoBoxModel(
+                GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " text-white",
                 "Assignment anomalies",
                 String.valueOf(anomalyAssignmentCount),
                 100,
                 "Number of users with assignment anomalies");
 
-        RoleAnalysisInfoBox anomalyAssignmentLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(anomalyAssignmentLabelModel)) {
+        RoleAnalysisInfoBox anomalyAssignmentLabel = new RoleAnalysisInfoBox(
+                headerItems.newChildId(), Model.of(anomalyAssignmentLabelModel)) {
             @Override
             protected String getInfoBoxCssClass() {
                 return "bg-primary";
@@ -378,134 +314,24 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         anomalyAssignmentLabel.add(AttributeModifier.replace("class", "col-md-6"));
         anomalyAssignmentLabel.setOutputMarkupId(true);
         headerItems.add(anomalyAssignmentLabel);
-    }
 
-    public static List<PrismObject<UserType>> getJaccardCloseObject(String userOid,
-            RoleAnalysisService roleAnalysisService,
-            ModelService modelService,
-            ObjectQuery query,
-            Task task,
-            OperationResult result,
-            List<String> outliersMembers, Double jaccardFrequencyMetric) {
+        InfoBoxModel outlierType = new InfoBoxModel(
+                GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " text-white",
+                "Outlier type",
+                String.valueOf(outlierTypeIdentification),
+                100,
+                "Reason for outlier identification");
 
-        List<PrismObject<UserType>> elements = new ArrayList<>();
-        PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(userOid, task, result);
-        if (userTypeObject == null) {
-            return elements;
-        }
-        elements.add(userTypeObject);
-
-        List<String> similarUserOidSet = new ArrayList<>();
-
-        UserType userObject = userTypeObject.asObjectable();
-        List<String> userRolesToCompare = getRolesOidAssignment(userObject);
-
-        //TODO store assignments and user oid? whats about heap? Search takes a lot of time
-        //TODO it is not nessesary to search all users, and is not nessesary to search twice
-
-        ResultHandler<UserType> resultHandler2 = (user, lResult) -> {
-            try {
-                //TODO think about this ignore outliers?
-                // Whats if we want to compare with them?
-                // Whats if cluster is not generated because missing one object?
-                // Im not sure about it
-                if (!outliersMembers.contains(user.getOid()) && !user.getOid().equals(userOid)) {
-                    List<String> rolesOidAssignment = getRolesOidAssignment(user.asObjectable());
-                    double jacquardSimilarity = jacquardSimilarity(userRolesToCompare, rolesOidAssignment);
-                    if (jacquardSimilarity >= jaccardFrequencyMetric) {
-                        elements.add(user);
-                        similarUserOidSet.add(user.getOid());
-                    }
-                }
-            } catch (Exception e) {
-                String errorMessage = "Cannot resolve role members: " + toShortString(user.asObjectable())
-                        + ": " + e.getMessage();
-                throw new SystemException(errorMessage, e);
+        RoleAnalysisInfoBox outlierTypeLabel = new RoleAnalysisInfoBox(
+                headerItems.newChildId(), Model.of(outlierType)) {
+            @Override
+            protected String getInfoBoxCssClass() {
+                return "bg-primary";
             }
-
-            return true;
         };
-
-        try {
-            modelService.searchObjectsIterative(UserType.class, query, resultHandler2, null,
-                    task, result);
-        } catch (Exception ex) {
-            throw new RuntimeException("Cannot resolve role members: " + userOid + ": " + ex.getMessage(), ex);
-        } finally {
-            result.recomputeStatus();
-        }
-
-        return elements;
-    }
-
-    public static Double getJaccardFrequencyMetric(String userOid,
-            @NotNull RoleAnalysisService roleAnalysisService,
-            ModelService modelService,
-            ObjectQuery query,
-            Task task,
-            OperationResult result,
-            List<String> outliersMembers,
-            double minThreshold,
-            int minMembers) {
-
-        List<PrismObject<UserType>> elements = new ArrayList<>();
-        PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(userOid, task, result);
-        if (userTypeObject == null) {
-            return 1.0;
-        }
-        elements.add(userTypeObject);
-
-        Map<Double, Integer> similarityStats = new TreeMap<>(Collections.reverseOrder());
-
-        UserType userObject = userTypeObject.asObjectable();
-        List<String> userRolesToCompare = getRolesOidAssignment(userObject);
-
-        //TODO store assignments and user oid? whats about heap? Search takes a lot of time
-        //TODO it is not nessesary to search all users, and is not nessesary to search twice
-        ResultHandler<UserType> resultHandler = (user, lResult) -> {
-            try {
-                //TODO think about this ignore outliers?
-                // Whats if we want to compare with them?
-                // Whats if cluster is not generated because missing one object?
-                // Im not sure about it
-                if (!outliersMembers.contains(user.getOid()) && !user.getOid().equals(userOid)) {
-                    List<String> rolesOidAssignment = getRolesOidAssignment(user.asObjectable());
-                    double jacquardSimilarity = jacquardSimilarity(userRolesToCompare, rolesOidAssignment);
-                    jacquardSimilarity = Math.floor(jacquardSimilarity * 10) / 10.0;
-                    if (jacquardSimilarity >= minThreshold) {
-                        if (similarityStats.containsKey(jacquardSimilarity)) {
-                            similarityStats.put(jacquardSimilarity, similarityStats.get(jacquardSimilarity) + 1);
-                        } else {
-                            similarityStats.put(jacquardSimilarity, 1);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                String errorMessage = "Cannot resolve role members: " + toShortString(user.asObjectable())
-                        + ": " + e.getMessage();
-                throw new SystemException(errorMessage, e);
-            }
-
-            return true;
-        };
-
-        try {
-            modelService.searchObjectsIterative(UserType.class, query, resultHandler, null,
-                    task, result);
-        } catch (Exception ex) {
-            throw new RuntimeException("Cannot resolve role members: " + userOid + ": " + ex.getMessage(), ex);
-        } finally {
-            result.recomputeStatus();
-        }
-
-        for (Map.Entry<Double, Integer> entry : similarityStats.entrySet()) {
-            Integer value = entry.getValue();
-            if (value >= minMembers) {
-                return entry.getKey();
-            }
-        }
-
-        return 1.0;
+        outlierTypeLabel.add(AttributeModifier.replace("class", "col-md-6"));
+        outlierTypeLabel.setOutputMarkupId(true);
+        headerItems.add(outlierTypeLabel);
     }
 
 }
