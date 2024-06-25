@@ -9,34 +9,34 @@ package com.evolveum.midpoint.model.impl.misc;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * A place for tests that fit nowhere else.
@@ -60,6 +60,18 @@ public class TestMiscellaneous extends AbstractInternalModelIntegrationTest {
             TestObject.file(TEST_DIR, "template-b2a.xml", "0ec39991-6ba7-4025-8470-8f8d09687f8c");
     private static final TestObject<ObjectTemplateType> TEMPLATE_B2B =
             TestObject.file(TEST_DIR, "template-b2b.xml", "c0726932-4cd1-42b8-ace3-0fb08c6ac83d");
+
+    private static final DummyTestResource RESOURCE_DUMMY_GENERATE_OBJECT_CLASSES = new DummyTestResource(
+            TEST_DIR, "resource-dummy-generate-object-classes.xml", "2946f0b6-c39e-4ded-8128-e5b0914c7ae3",
+            "generate-object-classes");
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+
+        // TODO reenable
+        //initTestObjects(initTask, initResult, RESOURCE_DUMMY_GENERATE_OBJECT_CLASSES);
+    }
 
     @Test
     public void test100CyclicTemplateReferences() throws CommonException, EncryptionException, IOException {
@@ -143,5 +155,37 @@ public class TestMiscellaneous extends AbstractInternalModelIntegrationTest {
         String secondSegmentNamespace = ItemPath.toName(refValueSegments.get(1)).getNamespaceURI();
         assertThat(firstSegmentNamespace).as("first segment namespace").isEqualTo(SchemaConstants.NS_C);
         assertThat(secondSegmentNamespace).as("second segment namespace").isEqualTo(NS_PIRACY);
+    }
+
+    /**
+     * Changing `generateObjectClass` information should have an immediate effect.
+     * This method is here, as it uses aux method from model-api (the same that our GUI uses).
+     */
+    @Test(enabled = false)
+    public void testFetchSchema() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("resource is initialized (in class init code); and 1 object class is present in the schema");
+        var resourceBefore = getObject(ResourceType.class, RESOURCE_DUMMY_GENERATE_OBJECT_CLASSES.oid);
+        var schemaBefore = ResourceSchemaFactory.getCompleteSchemaRequired(resourceBefore);
+        assertThat(schemaBefore.getObjectClassNames()).containsExactlyInAnyOrder(RI_ACCOUNT_OBJECT_CLASS);
+
+        when("object class information is changed and resource is fetched again");
+        executeChanges(
+                deltaFor(ResourceType.class)
+                        .item(ResourceType.F_SCHEMA,
+                                XmlSchemaType.F_GENERATION_CONSTRAINTS,
+                                SchemaGenerationConstraintsType.F_GENERATE_OBJECT_CLASS)
+                        .add(RI_GROUP_OBJECT_CLASS)
+                        .asObjectDelta(RESOURCE_DUMMY_GENERATE_OBJECT_CLASSES.oid),
+                null, task, result);
+        ResourceUtils.deleteSchema(resourceBefore, modelService, task, result);
+
+        var resourceAfter = getObject(ResourceType.class, RESOURCE_DUMMY_GENERATE_OBJECT_CLASSES.oid);
+
+        then("there should be two object classes");
+        var schemaAfter = ResourceSchemaFactory.getCompleteSchemaRequired(resourceAfter);
+        assertThat(schemaAfter.getObjectClassNames()).containsExactlyInAnyOrder(RI_ACCOUNT_OBJECT_CLASS, RI_GROUP_OBJECT_CLASS);
     }
 }
