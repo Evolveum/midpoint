@@ -1099,6 +1099,70 @@ CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation);
 CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);
 */
 
+
+-- We can now create m_object_view which will join m_shadow and m_object into single view
+-- Necessary for .. in queries and searches by ObjectType
+
+CREATE VIEW m_object_view
+AS SELECT
+	oid,
+	objectType,
+	nameOrig,
+	nameNorm,
+	fullObject,
+	tenantRefTargetOid,
+	tenantRefTargetType,
+	tenantRefRelationId,
+	lifecycleState,
+	cidSeq,
+	version,
+	policySituations,
+	subtypes,
+	fullTextInfo,
+	ext,
+	creatorRefTargetOid,
+	creatorRefTargetType,
+	creatorRefRelationId,
+	createChannelId,
+	createTimestamp,
+	modifierRefTargetOid,
+	modifierRefTargetType,
+	modifierRefRelationId,
+	modifyChannelId,
+	modifyTimestamp,
+	db_created,
+	db_modified
+from m_object
+UNION SELECT
+	oid,
+	objectType,
+	nameOrig,
+	nameNorm,
+	fullObject,
+	tenantRefTargetOid,
+	tenantRefTargetType,
+	tenantRefRelationId,
+	lifecycleState,
+	cidSeq,
+	version,
+	policySituations,
+	subtypes,
+	fullTextInfo,
+	ext,
+	creatorRefTargetOid,
+	creatorRefTargetType,
+	creatorRefRelationId,
+	createChannelId,
+	createTimestamp,
+	modifierRefTargetOid,
+	modifierRefTargetType,
+	modifierRefRelationId,
+	modifyChannelId,
+	modifyTimestamp,
+	db_created,
+	db_modified
+from m_shadow;
+
 -- Represents NodeType, see https://docs.evolveum.com/midpoint/reference/deployment/clustering-ha/managing-cluster-nodes/
 CREATE TABLE m_node (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),

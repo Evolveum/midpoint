@@ -666,7 +666,68 @@ call apply_change(35,$aa$
         FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
     ALTER TABLE m_shadow ATTACH PARTITION m_shadow_default DEFAULT;
-$aa);
+
+    DROP VIEW IF EXISTS m_object_view ;
+    CREATE VIEW m_object_view
+    AS SELECT
+        oid,
+        objectType,
+        nameOrig,
+        nameNorm,
+        fullObject,
+        tenantRefTargetOid,
+        tenantRefTargetType,
+        tenantRefRelationId,
+        lifecycleState,
+        cidSeq,
+        version,
+        policySituations,
+        subtypes,
+        fullTextInfo,
+        ext,
+        creatorRefTargetOid,
+        creatorRefTargetType,
+        creatorRefRelationId,
+        createChannelId,
+        createTimestamp,
+        modifierRefTargetOid,
+        modifierRefTargetType,
+        modifierRefRelationId,
+        modifyChannelId,
+        modifyTimestamp,
+        db_created,
+        db_modified
+    from m_object
+    UNION SELECT
+        oid,
+        objectType,
+        nameOrig,
+        nameNorm,
+        fullObject,
+        tenantRefTargetOid,
+        tenantRefTargetType,
+        tenantRefRelationId,
+        lifecycleState,
+        cidSeq,
+        version,
+        policySituations,
+        subtypes,
+        fullTextInfo,
+        ext,
+        creatorRefTargetOid,
+        creatorRefTargetType,
+        creatorRefRelationId,
+        createChannelId,
+        createTimestamp,
+        modifierRefTargetOid,
+        modifierRefTargetType,
+        modifierRefRelationId,
+        modifyChannelId,
+        modifyTimestamp,
+        db_created,
+        db_modified
+    from m_shadow;
+$aa$);
 
 ---
 -- WRITE CHANGES ABOVE ^^
