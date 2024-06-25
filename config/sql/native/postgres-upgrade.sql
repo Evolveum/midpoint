@@ -589,6 +589,10 @@ ADD FOREIGN KEY ("owneroid", "assignmentcid") REFERENCES "m_assignment" ("ownero
 $aa$);
 
 call apply_change(35, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_OUTLIER' AFTER 'ROLE_ANALYSIS_SESSION';
+$aa$);
+
+call apply_change(36, $aa$
 CREATE TABLE m_role_analysis_outlier (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_OUTLIER') STORED
