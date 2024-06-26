@@ -449,26 +449,31 @@ public class ImportAction {
         return PolyStringType.fromOrig(name);
     }
 
-    public static   <V> void addExtensionValue(
-            Containerable extContainer, String itemName, V... values) throws SchemaException {
+    public static <V> void addExtensionValue(
+            Containerable extContainer, String itemName, V... values) {
         PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
         ItemDefinition<?> itemDefinition =
                 pcv.getDefinition().findItemDefinition(new ItemName(itemName));
 
-        if (itemDefinition instanceof PrismReferenceDefinition) {
-            PrismReference ref = (PrismReference) itemDefinition.instantiate();
-            for (V value : values) {
-                ref.add(value instanceof PrismReferenceValue
-                        ? (PrismReferenceValue) value
-                        : ((Referencable) value).asReferenceValue());
+        try {
+            if (itemDefinition instanceof PrismReferenceDefinition) {
+                PrismReference ref = (PrismReference) itemDefinition.instantiate();
+                for (V value : values) {
+                    ref.add(value instanceof PrismReferenceValue
+                            ? (PrismReferenceValue) value
+                            : ((Referencable) value).asReferenceValue());
+                }
+                pcv.add(ref);
+            } else {
+                //noinspection unchecked
+                PrismProperty<V> property = (PrismProperty<V>) itemDefinition.instantiate();
+                property.setRealValues(values);
+                pcv.add(property);
             }
-            pcv.add(ref);
-        } else {
-            //noinspection unchecked
-            PrismProperty<V> property = (PrismProperty<V>) itemDefinition.instantiate();
-            property.setRealValues(values);
-            pcv.add(property);
+        } catch (SchemaException e) {
+            throw new RuntimeException("Cloud not add extension value", e);
         }
+
     }
 
 }

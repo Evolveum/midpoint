@@ -72,6 +72,8 @@ public abstract class RbacUserType implements RbacBasicStructure {
             }
         }
 
+        additionalChanges(user);
+
         InitialBusinessRole primaryRole = getPrimaryRole(true);
         if (primaryRole != null) {
             user.getAssignment().add(createRoleAssignment(primaryRole.getOidValue()));

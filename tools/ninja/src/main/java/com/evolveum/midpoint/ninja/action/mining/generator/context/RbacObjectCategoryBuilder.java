@@ -6,6 +6,17 @@
  */
 package com.evolveum.midpoint.ninja.action.mining.generator.context;
 
+import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.importUserAndResolveAuxRoles;
+import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGeneratorUtils.*;
+import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacObjectCategoryProcessor.*;
+import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacObjectCategoryProcessor.Category.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.ninja.action.mining.generator.GeneratorOptions;
 import com.evolveum.midpoint.ninja.action.mining.generator.object.InitialBusinessRole;
 import com.evolveum.midpoint.ninja.action.mining.generator.object.InitialObjectsDefinition;
@@ -14,18 +25,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
-import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.importUserAndResolveAuxRoles;
-import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGeneratorUtils.*;
-import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGeneratorUtils.createRoleAssignment;
-import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacObjectCategoryProcessor.*;
-import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacObjectCategoryProcessor.Category.*;
 
 public class RbacObjectCategoryBuilder {
 
@@ -110,6 +109,13 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
+        public void additionalChanges(UserType user) {
+//            user.extension(new ExtensionType());
+//            ExtensionType ext = user.getExtension();
+//            addExtensionValue(ext, "hatSize", "Mike");
+        }
+
+        @Override
         protected String getDisplayName() {
             return REGULR.getDisplayName();
         }
@@ -180,6 +186,13 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
+        public void additionalChanges(UserType user) {
+//            user.extension(new ExtensionType());
+//            ExtensionType ext = user.getExtension();
+//            addExtensionValue(ext, "hatSize", "Jan");
+        }
+
+        @Override
         protected String getDisplayName() {
             return SEMI_REGULAR.getDisplayName();
         }
@@ -214,6 +227,13 @@ public class RbacObjectCategoryBuilder {
         @Override
         public String getTitle() {
             return getRandomlyJobTitlesWithNone();
+        }
+
+        @Override
+        public void additionalChanges(UserType user) {
+//            user.extension(new ExtensionType());
+//            ExtensionType ext = user.getExtension();
+//            addExtensionValue(ext, "hatSize", "Jozef");
         }
 
         @Override
@@ -309,6 +329,13 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
+        public void additionalChanges(UserType user) {
+//            user.extension(new ExtensionType());
+//            ExtensionType ext = user.getExtension();
+//            addExtensionValue(ext, "hatSize", "Peter");
+        }
+
+        @Override
         protected String getDisplayName() {
             return MANAGERS.getDisplayName();
         }
@@ -388,6 +415,13 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
+        public void additionalChanges(UserType user) {
+//            user.extension(new ExtensionType());
+//            ExtensionType ext = user.getExtension();
+//            addExtensionValue(ext, "hatSize", "Slavo");
+        }
+
+        @Override
         protected String getDisplayName() {
             return SALES.getDisplayName();
         }
@@ -450,6 +484,13 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
+        public void additionalChanges(UserType user) {
+//            user.extension(new ExtensionType());
+//            ExtensionType ext = user.getExtension();
+//            addExtensionValue(ext, "hatSize", "Karol");
+        }
+
+        @Override
         protected String getDisplayName() {
             return SECURITY_OFFICERS.getDisplayName();
         }
@@ -509,6 +550,13 @@ public class RbacObjectCategoryBuilder {
         @Override
         public String getTitle() {
             return null;
+        }
+
+        @Override
+        public void additionalChanges(UserType user) {
+//            user.extension(new ExtensionType());
+//            ExtensionType ext = user.getExtension();
+//            addExtensionValue(ext, "hatSize", "Clark");
         }
 
         @Override
