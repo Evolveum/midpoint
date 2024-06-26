@@ -17,6 +17,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleA
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 
+import com.evolveum.midpoint.web.page.admin.certification.component.PageMyCertCampaigns;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -475,10 +477,11 @@ public class LeftMenuPanel extends BasePanel<Void> {
         }
 
 //        if (isFullyAuthorized()) {  // workaround for MID-5917
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.allDecisions", PageCertDecisions.class));
+        //todo should we show all decisions in new cert ui?
+//        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.allDecisions", PageCertCampaigns.class));
 
 //        }
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.decisions", PageMyCertDecisions.class));
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.decisions", PageMyCertCampaigns.class));
 
         addCollectionsMenuItems(certificationMenu, AccessCertificationWorkItemType.COMPLEX_TYPE, PageCertDecisions.class);
 

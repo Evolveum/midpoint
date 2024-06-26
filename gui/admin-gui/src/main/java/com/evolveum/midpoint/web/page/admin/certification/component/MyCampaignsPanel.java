@@ -31,6 +31,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serial;
+import java.util.List;
 
 public class MyCampaignsPanel extends CampaignsPanel {
 
@@ -43,10 +44,17 @@ public class MyCampaignsPanel extends CampaignsPanel {
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initMyCampaignsLayout();
     }
 
-    private void initMyCampaignsLayout() {
+    @Override
+    protected void onAfterRender() {
+        super.onAfterRender();
+        var campaignsProvider = getCampaignsProvider();
+        List<?> campaignsList = campaignsProvider != null ? campaignsProvider.getAvailableData() : List.of();
+        if (campaignsList.size() == 1) {
+            // if user has 1 active campaign, they are automatically redirected to the cert items page
+            getPageBase().navigateToNext(PageCertDecisions.class);
+        }
     }
 
     protected ObjectQuery getCustomCampaignsQuery() {

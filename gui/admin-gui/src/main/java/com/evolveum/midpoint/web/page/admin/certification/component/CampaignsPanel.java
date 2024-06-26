@@ -46,8 +46,6 @@ import java.util.Collection;
 import java.util.List;
 import java.io.Serial;
 
-import static com.evolveum.midpoint.gui.api.page.PageAdminLTE.createStringResourceStatic;
-
 public class CampaignsPanel extends BasePanel {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -419,5 +417,9 @@ public class CampaignsPanel extends BasePanel {
 
     protected WebMarkupContainer createNavigationPanel(String id) {
         return new WebMarkupContainer(id);
+    }
+
+    protected SelectableBeanObjectDataProvider<AccessCertificationCampaignType> getCampaignsProvider() {
+        return provider;
     }
 }
