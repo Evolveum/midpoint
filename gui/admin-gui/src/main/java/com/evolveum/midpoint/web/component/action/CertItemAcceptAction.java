@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.component.action;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
@@ -21,6 +22,10 @@ public class CertItemAcceptAction extends AbstractCertItemAction {
 
     public CertItemAcceptAction() {
         super();
+    }
+
+    public CertItemAcceptAction(AbstractGuiAction<AccessCertificationWorkItemType> preAction) {
+        super(preAction);
     }
 
     @Override

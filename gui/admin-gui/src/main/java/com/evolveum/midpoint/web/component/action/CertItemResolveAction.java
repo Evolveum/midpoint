@@ -35,8 +35,12 @@ public class CertItemResolveAction extends AbstractGuiAction<AccessCertification
         super();
     }
 
+    public CertItemResolveAction(AbstractGuiAction<AccessCertificationWorkItemType> preAction) {
+        super(preAction);
+    }
+
     @Override
-    public void onActionPerformed(List<AccessCertificationWorkItemType> workItems, PageBase pageBase, AjaxRequestTarget target) {
+    protected void executeAction(List<AccessCertificationWorkItemType> workItems, PageBase pageBase, AjaxRequestTarget target) {
         ResolveItemPanel resolveItemPanel = new ResolveItemPanel(pageBase.getMainPopupBodyId()) {
             @Serial private static final long serialVersionUID = 1L;
 

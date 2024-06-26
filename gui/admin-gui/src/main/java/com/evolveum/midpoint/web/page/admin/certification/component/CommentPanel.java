@@ -53,7 +53,7 @@ public class CommentPanel extends BasePanel<String> implements Popupable {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                savePerformed(target, getModelObject());
+                savePerformed(target, CommentPanel.this.getModelObject());
             }
         };
         add(saveButton);

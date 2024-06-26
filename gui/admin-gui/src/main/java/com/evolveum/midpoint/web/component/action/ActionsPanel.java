@@ -14,6 +14,8 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.prism.Containerable;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -50,6 +52,7 @@ public abstract class ActionsPanel<C extends Containerable> extends BasePanel<Li
             protected void populateItem(ListItem<AbstractGuiAction<C>> listItem) {
                 Component buttonPanel = createButtonComponent(ID_BUTTON, listItem.getModel());
                 listItem.add(buttonPanel);
+                listItem.add(new VisibleBehaviour(() -> listItem.getModelObject().isVisible()));
             }
         } ;
         buttonsPanel.setOutputMarkupId(true);

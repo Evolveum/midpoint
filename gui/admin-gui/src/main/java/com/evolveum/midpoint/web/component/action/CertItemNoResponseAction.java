@@ -22,6 +22,10 @@ public class CertItemNoResponseAction extends AbstractCertItemAction {
         super();
     }
 
+    public CertItemNoResponseAction(AbstractGuiAction<AccessCertificationWorkItemType> preAction) {
+        super(preAction);
+    }
+
     @Override
     protected AccessCertificationResponseType getResponse() {
         return AccessCertificationResponseType.NO_RESPONSE;

@@ -23,6 +23,10 @@ public class CertItemRevokeAction extends AbstractCertItemAction {
         super();
     }
 
+    public CertItemRevokeAction(AbstractGuiAction<AccessCertificationWorkItemType> preAction) {
+        super(preAction);
+    }
+
     @Override
     protected AccessCertificationResponseType getResponse() {
         return AccessCertificationResponseType.REVOKE;

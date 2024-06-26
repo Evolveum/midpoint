@@ -22,6 +22,10 @@ public class CertItemReduceAction extends AbstractCertItemAction {
         super();
     }
 
+    public CertItemReduceAction(AbstractGuiAction<AccessCertificationWorkItemType> preAction) {
+        super(preAction);
+    }
+
     @Override
     protected AccessCertificationResponseType getResponse() {
         return AccessCertificationResponseType.REDUCE;

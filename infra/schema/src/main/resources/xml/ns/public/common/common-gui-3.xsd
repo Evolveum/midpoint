@@ -4060,6 +4060,18 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="preActionIdentifier" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines an identifier of the additional action which should be executed before the current action.
+                                Can be used for example to define a confirmation dialog or adding a comment.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiActionType.preAction</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <!-- TODO later: expression, reference to java class, etc. -->
                 </xsd:sequence>
             </xsd:extension>

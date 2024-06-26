@@ -243,26 +243,27 @@ public class CertMiscUtil {
 
     public static List<AbstractGuiAction<AccessCertificationWorkItemType>> mergeCertItemsResponses
             (List<AccessCertificationResponseType> availableResponses, List<GuiActionType> actions, PageBase pageBase) {
-        if (CollectionUtils.isEmpty(actions)) {
-            return availableResponses.stream()
-                    .map(response -> createAction(response, pageBase))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        }
-        actions.forEach(action -> {
-            boolean isActionVisible = WebComponentUtil.getElementVisibility(action.getVisibility());
-            Class<? extends AbstractGuiAction<?>> actionClass = pageBase.findGuiAction(action.getIdentifier());
-            AccessCertificationResponseType response = CertificationItemResponseHelper.getResponseForGuiAction(actionClass);
-            if (isActionVisible) {
-                addIfNotPresent(availableResponses, response);
-            } else {
-                removeIfPresent(availableResponses, response);
-            }
-        });
-        return availableResponses.stream()
+        List<AbstractGuiAction<AccessCertificationWorkItemType>> availableActions =
+                availableResponses.stream()
                 .map(response -> createAction(response, pageBase))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(actions)) {
+            return availableActions;
+        }
+        actions.forEach(action -> {
+            AbstractGuiAction<AccessCertificationWorkItemType> actionInstance = createAction(action, pageBase);
+            addOrReplaceAction(availableActions, actionInstance);
+        });
+        return availableActions;
+    }
+
+    private static void addOrReplaceAction(List<AbstractGuiAction<AccessCertificationWorkItemType>> availableActions,
+            AbstractGuiAction<AccessCertificationWorkItemType> action) {
+        availableActions.stream()
+                .filter(a -> a.getClass().equals(action.getClass()))
+                .findFirst().ifPresent(availableActions::remove);
+        availableActions.add(action);
     }
 
     private static void addIfNotPresent(List<AccessCertificationResponseType> availableResponses,
@@ -293,19 +294,43 @@ public class CertMiscUtil {
             pageBase.error("Unable to find action for identifier: " + guiAction.getIdentifier());
             return null;
         }
-        return instantiateAction(actionClass, pageBase);
+        String preActionIdentifier = guiAction.getPreActionIdentifier();
+        AbstractGuiAction<AccessCertificationWorkItemType> preActionInstance = null;
+        if (StringUtils.isNotEmpty(preActionIdentifier)) {
+            Class<? extends AbstractGuiAction<?>> preActionClass = pageBase.findGuiAction(preActionIdentifier);
+            if (preActionClass != null) {
+                preActionInstance = instantiateAction(preActionClass, pageBase);
+            }
+        }
+        AbstractGuiAction<AccessCertificationWorkItemType> actionInstance = instantiateAction(actionClass,
+                preActionInstance, pageBase);
+        if (actionInstance != null && guiAction.getVisibility() != null) {
+            actionInstance.setVisible(WebComponentUtil.getElementVisibility(guiAction.getVisibility()));
+        }
+        return actionInstance;
     }
 
     private static AbstractGuiAction<AccessCertificationWorkItemType> instantiateAction(
             Class<? extends AbstractGuiAction<?>> actionClass, PageBase pageBase) {
+        return instantiateAction(actionClass, null, pageBase);
+    }
+
+    private static AbstractGuiAction<AccessCertificationWorkItemType> instantiateAction(
+            Class<? extends AbstractGuiAction<?>> actionClass, AbstractGuiAction<AccessCertificationWorkItemType> preAction,
+            PageBase pageBase) {
         ActionType actionType = actionClass.getAnnotation(ActionType.class);
         Class<?> applicableFor = actionType.applicableForType();
-        if (AccessCertificationWorkItemType.class != applicableFor) {
+        if (!applicableFor.isAssignableFrom(AccessCertificationWorkItemType.class)) {
             pageBase.error("The action is not applicable for AccessCertificationWorkItemType");
             return null;
         }
-        return WebComponentUtil.instantiateAction(
-                (Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>> ) actionClass);
+        if (preAction == null) {
+            return WebComponentUtil.instantiateAction(
+                    (Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>>) actionClass);
+        } else {
+            return WebComponentUtil.instantiateAction(
+                    (Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>>) actionClass, preAction);
+        }
     }
 
 }

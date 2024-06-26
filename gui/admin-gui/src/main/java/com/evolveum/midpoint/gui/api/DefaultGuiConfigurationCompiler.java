@@ -130,7 +130,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         return getClassesForAnnotation(PanelType.class, additionalPackagesToScan);
     }
 
-    private Collection<Class<?>> getGuiActionTypeClasses() {
+    private Collection<Class<?>> getActionTypeClasses() {
         return getClassesForAnnotation(ActionType.class, additionalPackagesToScan);
     }
 
@@ -379,7 +379,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
         if (!ACTIONS_MAP.isEmpty()) {
             return;
         }
-        for (Class<?> clazz : getGuiActionTypeClasses()) {
+        for (Class<?> clazz : getActionTypeClasses()) {
             ActionType actionType = clazz.getAnnotation(ActionType.class);
             if (actionType != null && StringUtils.isNotEmpty(actionType.identifier())) {
                 ACTIONS_MAP.put(actionType.identifier(), (Class<? extends AbstractGuiAction<?>>) clazz);

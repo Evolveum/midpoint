@@ -17,18 +17,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractCertItemAction extends AbstractGuiAction<AccessCertificationWorkItemType> {
 
     private static final String DOT_CLASS = CertItemResolveAction.class.getName() + ".";
     private static final String OPERATION_RECORD_ACTION = DOT_CLASS + "recordCertItemAction";
 
+    String comment;
+
     public AbstractCertItemAction() {
         super();
     }
 
+    public AbstractCertItemAction(AbstractGuiAction<AccessCertificationWorkItemType> preAction) {
+        super(preAction);
+    }
+
     @Override
-    public void onActionPerformed(List<AccessCertificationWorkItemType> workItems, PageBase pageBase, AjaxRequestTarget target) {
+    protected void executeAction(List<AccessCertificationWorkItemType> workItems, PageBase pageBase, AjaxRequestTarget target) {
         AccessCertificationResponseType response = getResponse();
         OperationResult result = new OperationResult(OPERATION_RECORD_ACTION + "." + response.value());
         Task task = pageBase.createSimpleTask(OPERATION_RECORD_ACTION + "." + response.value());
@@ -44,8 +51,15 @@ public abstract class AbstractCertItemAction extends AbstractGuiAction<AccessCer
     }
 
     protected String getComment() {
-        return null;
+        return comment;
     }
 
     protected abstract AccessCertificationResponseType getResponse();
+
+    @Override
+    protected void processPreActionParametersValues(Map<String, Object> preActionParametersMap) {
+        if (preActionParametersMap != null && preActionParametersMap.containsKey("comment")) {
+            comment = (String) preActionParametersMap.get("comment");
+        }
+    }
 }

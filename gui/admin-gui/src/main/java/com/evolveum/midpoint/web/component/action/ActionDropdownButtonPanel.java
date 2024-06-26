@@ -138,6 +138,7 @@ public abstract class ActionDropdownButtonPanel<C extends Containerable> extends
         };
         actionItemPanel.setRenderBodyOnly(true);
         actionItem.add(actionItemPanel);
+        actionItem.add(new VisibleEnableBehaviour(() -> actionItem.getModelObject().isVisible()));
     }
 
     protected String getSpecialButtonClass() {

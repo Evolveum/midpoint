@@ -3835,11 +3835,24 @@ public final class WebComponentUtil {
         return null;
     }
 
-    public static <C extends Containerable> AbstractGuiAction<C> instantiateAction(
+    public static <C extends Containerable, AGA extends AbstractGuiAction<C>> AbstractGuiAction<C> instantiateAction(
             Class<? extends AbstractGuiAction<C>> actionClass) {
         if (AbstractGuiAction.class.isAssignableFrom(actionClass)) {
             try {
                 return ConstructorUtils.invokeConstructor(actionClass);
+            } catch (Throwable e) {
+                LOGGER.trace("No constructor found for action.", e);
+                return null;
+            }
+        }
+        return null;
+    }
+
+    public static <C extends Containerable, AGA extends AbstractGuiAction<C>> AbstractGuiAction<C> instantiateAction(
+            Class<? extends AbstractGuiAction<C>> actionClass, AGA preAction) {
+        if (AbstractGuiAction.class.isAssignableFrom(actionClass)) {
+            try {
+                return ConstructorUtils.invokeConstructor(actionClass, preAction);
             } catch (Throwable e) {
                 LOGGER.trace("No constructor found for action.", e);
                 return null;
