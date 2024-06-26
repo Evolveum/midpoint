@@ -145,10 +145,10 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         return getSession().getSessionStorage().getCertDecisions();
     }
 
-    @Override
-    protected String getStorageKey() {
-        return SessionStorage.KEY_CERT_DECISIONS;
-    }
+//    @Override
+//    protected String getStorageKey() {
+//        return SessionStorage.KEY_CERT_DECISIONS;
+//    }
 
     private ContainerListDataProvider<AccessCertificationWorkItemType> createProvider(IModel<Search<AccessCertificationWorkItemType>> searchModel) {
         Collection<SelectorOptions<GetOperationOptions>> options = CertificationItemsPanel.this.getPageBase()
