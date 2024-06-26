@@ -66,6 +66,18 @@ public class RoleAnalysisSessionSummaryPanel extends ObjectVerticalSummaryPanel<
         String formattedDensity = new DecimalFormat("#.###")
                 .format(Math.round(density * 1000.0) / 1000.0);
 
+        Integer clusterCount = sessionStatistic.getClusterCount();
+
+        if(clusterCount == null) {
+            clusterCount = 0;
+        }
+
+        Integer processedObjectCount = sessionStatistic.getProcessedObjectCount();
+
+        if(processedObjectCount == null) {
+            processedObjectCount = 0;
+        }
+
         List<DetailsTableItem> detailsModel = List.of(
                 new DetailsTableItem(createStringResource("Mode"),
                         Model.of(mode)) {
@@ -74,8 +86,9 @@ public class RoleAnalysisSessionSummaryPanel extends ObjectVerticalSummaryPanel<
                         return new Label(id, getValue());
                     }
                 },
+
                 new DetailsTableItem(createStringResource("Cluster count"),
-                        Model.of(sessionStatistic.getClusterCount().toString())) {
+                        Model.of(clusterCount.toString())) {
                     @Override
                     public Component createValueComponent(String id) {
                         return new IconWithLabel(id, getValue()) {
@@ -92,7 +105,7 @@ public class RoleAnalysisSessionSummaryPanel extends ObjectVerticalSummaryPanel<
                     }
                 },
                 new DetailsTableItem(createStringResource("Processed objects"),
-                        Model.of(sessionStatistic.getProcessedObjectCount().toString())) {
+                        Model.of(processedObjectCount.toString())) {
                     @Override
                     public Component createValueComponent(String id) {
                         return new IconWithLabel(id, getValue()) {
