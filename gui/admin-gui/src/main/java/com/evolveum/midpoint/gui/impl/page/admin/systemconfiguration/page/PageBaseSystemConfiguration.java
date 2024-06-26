@@ -155,7 +155,7 @@ public abstract class PageBaseSystemConfiguration extends PageAssignmentHolderDe
             }
 
             @Override
-            protected void savePerformed(AjaxRequestTarget target) {
+            protected void submitPerformed(AjaxRequestTarget target) {
                 PageBaseSystemConfiguration.this.savePerformed(target);
             }
 

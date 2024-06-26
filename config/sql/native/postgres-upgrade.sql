@@ -588,8 +588,27 @@ ADD FOREIGN KEY ("owneroid", "assignmentcid") REFERENCES "m_assignment" ("ownero
 
 $aa$);
 
+call apply_change(35, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_OUTLIER' AFTER 'ROLE_ANALYSIS_SESSION';
+$aa$);
 
-call apply_change(35,$aa$
+call apply_change(36, $aa$
+CREATE TABLE m_role_analysis_outlier (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_OUTLIER') STORED
+        CHECK (objectType = 'ROLE_ANALYSIS_OUTLIER')
+)
+    INHERITS (m_assignment_holder);
+
+CREATE TRIGGER m_role_analysis_outlier_oid_insert_tr BEFORE INSERT ON m_role_analysis_outlier
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_role_analysis_outlier_update_tr BEFORE UPDATE ON m_role_analysis_outlier
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_role_analysis_outlier_oid_delete_tr AFTER DELETE ON m_role_analysis_outlier
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+$aa$);
+
+call apply_change(37,$aa$
     ALTER TABLE m_shadow NO INHERIT m_object;
     ALTER TABLE m_shadow RENAME TO m_shadow_default;
 

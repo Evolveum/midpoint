@@ -65,8 +65,20 @@ public class IconAndStylesUtil {
             return createSchemaIcon();
         } else if (type == PolicyType.class) {
             return createPolicyIcon();
+        } else if (type == AccessCertificationCampaignType.class) {
+            return createCertCampaignIcon();
+        } else if (type == AccessCertificationDefinitionType.class) {
+            return createCertCampaignDefinitionIcon();
         }
         return "";
+    }
+
+    private static String createCertCampaignDefinitionIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_CERT_DEF_ICON);
+    }
+
+    private static String createCertCampaignIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON);
     }
 
     private static String createPolicyIcon() {

@@ -2174,3 +2174,38 @@ div.show > a > div > i.fas {
 .navidation-panel {
   height: 35px !important;
 }
+
+.vertical-navigation-panel {
+  width: 20%;
+}
+
+.summary-panel {
+  & > .logo {
+    min-width: 84px;
+    width: 84px;
+    height: 84px;
+    min-height: 84px;
+    border-radius: 108px;
+    background-color: rgba(60, 141, 188, 0.1);
+  }
+
+  & > .description, & > .title {
+    display: -webkit-box;
+    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+  }
+
+& > .description {
+    -webkit-line-clamp: 2;
+  }
+
+& > .title {
+    -webkit-line-clamp: 1;
+  }
+
+& > .details-item {
+  height: 35px;
+  }
+}
