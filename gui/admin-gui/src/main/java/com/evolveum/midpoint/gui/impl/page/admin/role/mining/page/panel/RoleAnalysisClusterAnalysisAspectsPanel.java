@@ -101,7 +101,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         RoleAnalysisSessionType session = sessionTypeObject.asObjectable();
         RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
 
-        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+        if (RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
             initInfoOutlierPanel(container);
             initOutlierAnalysisHeaderPanel(headerItems);
         } else {

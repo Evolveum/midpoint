@@ -387,7 +387,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                 };
                 columns.add(column);
 
-                if (!analysisOption.getAnalysisCategory().equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                if (!RoleAnalysisCategoryType.OUTLIERS.equals(analysisOption.getAnalysisCategory())) {
                     column = new AbstractExportableColumn<>(
                             createStringResource("AnalysisClusterStatisticType.detectedReductionMetric")) {
 

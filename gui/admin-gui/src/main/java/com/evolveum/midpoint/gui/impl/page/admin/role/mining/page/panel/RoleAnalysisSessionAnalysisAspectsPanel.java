@@ -96,7 +96,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
 
-        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+        if (RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
             initOutlierPart(roleAnalysisService, session, task, result, sessionStatistic, container);
             initInfoOutlierPanel(container);
         } else {

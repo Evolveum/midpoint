@@ -502,6 +502,11 @@ public class RoleAnalysisAttributeDefUtils {
         ItemPath itemName = prismPropertyDefinition.getItemName();
         String attributeName = itemName + " extension";
 
+        //TODO in some cases typeClass might be null, e.g. enumeration extension
+        if (typeClass == null) {
+            return null;
+        }
+
         if (isSupportedPropertyType(typeClass)) {
 
             return new RoleAnalysisAttributeDef(
@@ -587,6 +592,11 @@ public class RoleAnalysisAttributeDefUtils {
 
         ItemPath itemName = prismPropertyDefinition.getItemName();
         String attributeName = itemName + " extension";
+
+        //TODO in some cases typeClass might be null, e.g. enumeration extension
+        if (typeClass == null) {
+            return null;
+        }
 
         if (isSupportedPropertyType(typeClass)) {
             return new RoleAnalysisAttributeDef(
