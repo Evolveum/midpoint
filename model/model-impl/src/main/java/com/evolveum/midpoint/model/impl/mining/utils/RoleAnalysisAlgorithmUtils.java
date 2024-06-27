@@ -586,10 +586,10 @@ public class RoleAnalysisAlgorithmUtils {
 
             if (cluster.getCategory().equals(RoleAnalysisClusterCategory.OUTLIERS) && detailedAnalysis) {
                 roleAnalysisOutlierTypes = executeOuterOutliersAnalysis(
-                        roleAnalysisService, cluster, session, task, result);
+                        roleAnalysisService, cluster, session, task);
             } else {
                 roleAnalysisOutlierTypes = executeOutliersAnalysis(
-                        roleAnalysisService, cluster, session, analysisOption, task, result);
+                        roleAnalysisService, cluster, session, analysisOption, task);
             }
 
             for (RoleAnalysisOutlierType roleAnalysisOutlierType : roleAnalysisOutlierTypes) {

@@ -7,8 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidInducement;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils.resolveAttributeStatistics;
 
 import java.util.*;
@@ -45,9 +44,9 @@ public class OutliersDetectionUtil {
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisOptionType analysisOption,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
+            @NotNull Task task) {
+        //TODO replace result
+        OperationResult result = new OperationResult("executeOutliersAnalysis");
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
 
         MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareCompressedMiningStructure(cluster, true,
@@ -461,9 +460,10 @@ public class OutliersDetectionUtil {
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisSessionType session,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull Task task) {
 
+        //TODO replace result
+        OperationResult result = new OperationResult("executeOuterOutliersAnalysis");
         UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
         Integer minMembersCount = userModeOptions.getMinMembersCount();
         HashMap<String, RoleAnalysisOutlierType> map = new HashMap<>();
@@ -494,6 +494,9 @@ public class OutliersDetectionUtil {
         for (ObjectReferenceType analyzedObjectRef : member) {
             String memberOid = analyzedObjectRef.getOid();
 
+            if(result.isError()){
+                LOGGER.warn("Error during outlier detection for user: {}", result.getMessage());
+            }
             MutableDouble usedFrequency = new MutableDouble(minThreshold);
 
             List<String> jaccardCloseObject = roleAnalysisService.findJaccardCloseObject(memberOid,
