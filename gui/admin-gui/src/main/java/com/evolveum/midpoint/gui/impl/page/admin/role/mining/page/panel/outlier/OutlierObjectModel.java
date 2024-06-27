@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.LOGGER;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 
 import java.io.Serializable;
@@ -470,51 +470,64 @@ public class OutlierObjectModel implements Serializable {
                 memberPercentageRepo) + "%", memberPercentageRepoDescription, "fa fa-users");
         outlierObjectModel.addOutlierItemModel(memberPercentageRepoItemModel);
 
-        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = getAttributesForUserAnalysis();
-        RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService
-                .resolveRoleMembersAttribute(roleTypeObject.getOid(), task, result, attributesForUserAnalysis);
+        ObjectReferenceType sessionRef = outlierResult.getSession();
+        PrismObject<RoleAnalysisSessionType> session = roleAnalysisService.getSessionTypeObject(sessionRef.getOid(), task, result);
 
-        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(
-                userTypeObject, attributesForUserAnalysis);
+        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = null;
+        if (session == null) {
+            LOGGER.warn("Session object is null");
+        } else {
+            attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
+                    session.asObjectable(), UserType.COMPLEX_TYPE);
+        }
 
-        RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService
-                .resolveSimilarAspect(userAttributes, roleAnalysisAttributeAnalysisResult);
+        if (attributesForUserAnalysis != null) {
+            RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService
+                    .resolveRoleMembersAttribute(roleTypeObject.getOid(), task, result, attributesForUserAnalysis);
 
-        double averageItemsOccurs = 0;
-        assert compareAttributeResult != null;
-        int attributeAboveThreshold = 0;
-        int threshold = 80;
-        StringBuilder attributeDescriptionThreshold = new StringBuilder();
-        attributeDescriptionThreshold.append("Attributes with occurrence above ").append(threshold).append("%: ");
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
-        for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
-            Double density = analysis.getDensity();
-            if (density != null) {
+            RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(
+                    userTypeObject, attributesForUserAnalysis);
 
-                if (density >= threshold) {
-                    attributeAboveThreshold++;
-                    attributeDescriptionThreshold.append(analysis.getItemPath()).append(", ");
+            RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService
+                    .resolveSimilarAspect(userAttributes, roleAnalysisAttributeAnalysisResult);
+
+            double averageItemsOccurs = 0;
+            assert compareAttributeResult != null;
+            int attributeAboveThreshold = 0;
+            int threshold = 80;
+            StringBuilder attributeDescriptionThreshold = new StringBuilder();
+            attributeDescriptionThreshold.append("Attributes with occurrence above ").append(threshold).append("%: ");
+            List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
+            for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
+                Double density = analysis.getDensity();
+                if (density != null) {
+
+                    if (density >= threshold) {
+                        attributeAboveThreshold++;
+                        attributeDescriptionThreshold.append(analysis.getItemPath()).append(", ");
+                    }
+                    averageItemsOccurs += density;
                 }
-                averageItemsOccurs += density;
             }
+
+            averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
+
+            if (attributeAboveThreshold == 0) {
+                attributeDescriptionThreshold = new StringBuilder("No attributes with occurrence above ")
+                        .append(threshold).append("%.");
+            }
+
+            String attributeDescription = "Attribute factor difference outlier assignment vs members.";
+
+            OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs)
+                    + "%", attributeDescription, "fa fa-cogs");
+            outlierObjectModel.addOutlierItemModel(attributeItemModel);
+
+            OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(attributeAboveThreshold
+                    + " attribute(s)", attributeDescriptionThreshold.toString(), "fa fa-cogs");
+            outlierObjectModel.addOutlierItemModel(attributeItemModelThreshold);
+
         }
-
-        averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
-
-        if (attributeAboveThreshold == 0) {
-            attributeDescriptionThreshold = new StringBuilder("No attributes with occurrence above ")
-                    .append(threshold).append("%.");
-        }
-
-        String attributeDescription = "Attribute factor difference outlier assignment vs members.";
-
-        OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs)
-                + "%", attributeDescription, "fa fa-cogs");
-        outlierObjectModel.addOutlierItemModel(attributeItemModel);
-
-        OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(attributeAboveThreshold
-                + " attribute(s)", attributeDescriptionThreshold.toString(), "fa fa-cogs");
-        outlierObjectModel.addOutlierItemModel(attributeItemModelThreshold);
 
         String roleMemberDescription = "Specifies from which source the assignment was assigned.";
 

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.ninja.action.mining.generator.context;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.mining.generator.GeneratorOptions;
@@ -47,4 +49,6 @@ public interface RbacBasicStructure {
             @NotNull GeneratorOptions generatorOptions,
             int total, Set<String> names,
             @NotNull OperationResult result);
+
+    void additionalChanges(UserType user);
 }
