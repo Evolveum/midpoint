@@ -136,7 +136,10 @@ public class OutlierObjectModel implements Serializable {
             outlierObjectModel.addOutlierItemModel(patternItemModel);
         }
 
-        int similarObjectCount = outlierResult.getSimilarObjects();
+        int similarObjectCount = 0;
+        if(outlierResult.getSimilarObjects() != null){
+            similarObjectCount = outlierResult.getSimilarObjects();
+        }
         Double membershipDensity = outlierResult.getSimilarObjectsDensity();
         String clusterDescription = "Detected " + similarObjectCount + " similar objects with membership density "
                 + String.format("%.2f", membershipDensity) + "%"
@@ -189,9 +192,11 @@ public class OutlierObjectModel implements Serializable {
         String outlierNoiseCategoryDescription = "Outlier noise category of the outlier object.";
 
         RoleAnalysisOutlierNoiseCategoryType outlierNoiseCategory = outlierResult.getOutlierNoiseCategory();
-        OutlierItemModel noiseCategoryItemModel = new OutlierItemModel(outlierNoiseCategory.value(),
-                outlierNoiseCategoryDescription, "fa fa-cogs");
-        outlierObjectModel.addOutlierItemModel(noiseCategoryItemModel);
+        if(outlierNoiseCategory != null && outlierNoiseCategory.value() != null) {
+            OutlierItemModel noiseCategoryItemModel = new OutlierItemModel(outlierNoiseCategory.value(),
+                    outlierNoiseCategoryDescription, "fa fa-cogs");
+            outlierObjectModel.addOutlierItemModel(noiseCategoryItemModel);
+        }
 
         List<String> rolesOid = getRolesOidAssignment(userTypeObject.asObjectable());
 
