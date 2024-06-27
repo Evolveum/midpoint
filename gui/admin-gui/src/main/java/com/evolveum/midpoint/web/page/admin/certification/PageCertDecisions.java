@@ -104,6 +104,7 @@ public class PageCertDecisions extends PageAdminCertification {
     private static final String OPERATION_LOAD_CAMPAIGN = DOT_CLASS + "loadCampaign";
     private static final String OPERATION_LOAD_REPORT = DOT_CLASS + "loadCertItemsReport";
     private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runCertItemsReport";
+    private static final String OPERATION_LOAD_ACCESS_CERT_DEFINITION = DOT_CLASS + "loadAccessCertificationDefinition";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_DECISIONS_TABLE = "decisionsTable";
@@ -111,7 +112,11 @@ public class PageCertDecisions extends PageAdminCertification {
 
     public static final String CAMPAIGN_OID_PARAMETER = "campaignOid";
 
-    private CertDecisionHelper helper = new CertDecisionHelper();
+    private final CertDecisionHelper helper = new CertDecisionHelper();
+
+    //model is initialized with a campaign object in case when campaign oid
+    // comes as a parameter or in case the user has only one active campaign
+    LoadableDetachableModel<AccessCertificationCampaignType> singleCampaignModel;
 
     boolean isDisplayingAllItems() {
         return true;
@@ -123,7 +128,12 @@ public class PageCertDecisions extends PageAdminCertification {
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        initModels();
         initLayout();
+    }
+
+    private void initModels() {
+        singleCampaignModel = initSingleCampaignModel();
     }
 
     private void initLayout() {
@@ -131,7 +141,8 @@ public class PageCertDecisions extends PageAdminCertification {
 
         Form<?> mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
-        CertificationItemsPanel table = new CertificationItemsPanel(ID_DECISIONS_TABLE, getCampaignOidParameter()) {
+        CertificationItemsPanel table = new CertificationItemsPanel(ID_DECISIONS_TABLE, createPanelConfig(),
+                getCampaignOidParameter()) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -146,6 +157,31 @@ public class PageCertDecisions extends PageAdminCertification {
         // adding this on outer feedback panel prevents displaying the error messages
         //addVisibleOnWarningBehavior(getMainFeedbackPanel());
         //addVisibleOnWarningBehavior(getTempFeedbackPanel());
+    }
+
+    private ContainerPanelConfigurationType createPanelConfig() {
+        ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
+        config.setListView(loadCampaignView());
+        return config;
+    }
+
+    private GuiObjectListViewType loadCampaignView() {
+        AccessCertificationCampaignType campaign = singleCampaignModel.getObject();
+        if (campaign == null) {
+            return null;
+        }
+        var definitionRef = campaign.getDefinitionRef();
+        if (definitionRef == null) {
+            return null;
+        }
+        Task task = createSimpleTask(OPERATION_LOAD_ACCESS_CERT_DEFINITION);
+        OperationResult result = task.getResult();
+        var definitionObj = WebModelServiceUtils.loadObject(definitionRef, PageCertDecisions.this, task, result);
+        if (definitionObj == null) {
+            return null;
+        }
+        AccessCertificationDefinitionType definition = (AccessCertificationDefinitionType) definitionObj.asObjectable();
+        return definition.getView();
     }
 
     private void initNavigationPanel() {
@@ -593,9 +629,8 @@ public class PageCertDecisions extends PageAdminCertification {
                 List<String> campaignsOids = getCampaignOidsList();
                 MidPointPrincipal principal = getPrincipalAsReviewer();
 
-                LoadableDetachableModel<AccessCertificationCampaignType> campaignModel =
-                        getSingleCampaignModel();
                 List<DetailsTableItem> items = new ArrayList<>();
+                AccessCertificationCampaignType singleCampaign = singleCampaignModel.getObject();
 
                 DetailsTableItem chartPanelItem = new DetailsTableItem(getCompletedItemsPercentageModel(campaignsOids)) {
                     @Serial private static final long serialVersionUID = 1L;
@@ -624,7 +659,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 chartPanelItem.setValueComponentBeforeLabel(true);
                 items.add(chartPanelItem);
 
-                DetailsTableItem startDateItem = new DetailsTableItem(getCampaignStartDateModel(campaignModel.getObject())) {
+                DetailsTableItem startDateItem = new DetailsTableItem(getCampaignStartDateModel(singleCampaign)) {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
@@ -661,8 +696,8 @@ public class PageCertDecisions extends PageAdminCertification {
                         DeadlinePanel deadlinePanel = new DeadlinePanel(id, new LoadableModel<XMLGregorianCalendar>() {
                             @Override
                             protected XMLGregorianCalendar load() {
-                                return campaignModel.getObject() != null ? CampaignProcessingHelper.computeDeadline(
-                                        campaignModel.getObject(), PageCertDecisions.this) : null;
+                                return singleCampaign != null ? CampaignProcessingHelper.computeDeadline(
+                                        singleCampaign, PageCertDecisions.this) : null;
                             }
                         });
                         deadlinePanel.add(AttributeAppender.append("title",
@@ -677,7 +712,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 };
                 items.add(deadlineItem);
 
-                DetailsTableItem stageItem = new DetailsTableItem(getStageModel(campaignModel.getObject())) {
+                DetailsTableItem stageItem = new DetailsTableItem(getStageModel(singleCampaign)) {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
@@ -705,7 +740,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 stageItem.setValueComponentBeforeLabel(true);
                 items.add(stageItem);
 
-                DetailsTableItem iterationItem = new DetailsTableItem(getIterationLabelModel(campaignModel.getObject())) {
+                DetailsTableItem iterationItem = new DetailsTableItem(getIterationLabelModel(singleCampaign)) {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
@@ -778,7 +813,7 @@ public class PageCertDecisions extends PageAdminCertification {
         }
     }
 
-    private LoadableDetachableModel<AccessCertificationCampaignType> getSingleCampaignModel() {
+    private LoadableDetachableModel<AccessCertificationCampaignType> initSingleCampaignModel() {
         return new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 

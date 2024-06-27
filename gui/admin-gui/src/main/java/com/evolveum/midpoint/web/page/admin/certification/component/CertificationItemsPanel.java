@@ -34,7 +34,6 @@ import com.evolveum.midpoint.web.page.admin.certification.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.session.CertDecisionsStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -63,13 +62,13 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
     private String campaignOid;
 
-    public CertificationItemsPanel(String id, String campaignOid) {
-        super(id, AccessCertificationWorkItemType.class);
-        this.campaignOid = campaignOid;
-    }
-
     public CertificationItemsPanel(String id, ContainerPanelConfigurationType configurationType) {
         super(id, AccessCertificationWorkItemType.class, configurationType);
+    }
+
+    public CertificationItemsPanel(String id, ContainerPanelConfigurationType configurationType, String campaignOid) {
+        super(id, AccessCertificationWorkItemType.class, configurationType);
+        this.campaignOid = campaignOid;
     }
 
     public CertificationItemsPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
@@ -144,11 +143,6 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     public CertDecisionsStorage getPageStorage() {
         return getSession().getSessionStorage().getCertDecisions();
     }
-
-//    @Override
-//    protected String getStorageKey() {
-//        return SessionStorage.KEY_CERT_DECISIONS;
-//    }
 
     private ContainerListDataProvider<AccessCertificationWorkItemType> createProvider(IModel<Search<AccessCertificationWorkItemType>> searchModel) {
         Collection<SelectorOptions<GetOperationOptions>> options = CertificationItemsPanel.this.getPageBase()

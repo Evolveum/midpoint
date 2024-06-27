@@ -477,11 +477,10 @@ public class LeftMenuPanel extends BasePanel<Void> {
         }
 
 //        if (isFullyAuthorized()) {  // workaround for MID-5917
-        //todo should we show all decisions in new cert ui?
-//        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.allDecisions", PageCertCampaigns.class));
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.certificationItems", PageCertCampaigns.class));
 
 //        }
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.decisions", PageMyCertCampaigns.class));
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.myCertificationItems", PageMyCertCampaigns.class));
 
         addCollectionsMenuItems(certificationMenu, AccessCertificationWorkItemType.COMPLEX_TYPE, PageCertDecisions.class);
 

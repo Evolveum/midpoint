@@ -4063,8 +4063,14 @@
                     <xsd:element name="preAction" type="tns:GuiActionType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Defines the additional action which should be executed before the current action.
-                                Can be used for example to define a confirmation dialog or adding a comment.
+                                <p>
+                                    Defines the additional action which should be executed before the current action.
+                                    Can be used for example to define a confirmation dialog or adding a comment.
+                                </p>
+                                <p>
+                                    For now, pre-action is implemented only for certification items collection view
+                                    when the view is defined within certification definition.
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GuiActionType.preAction</a:displayName>
