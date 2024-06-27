@@ -950,7 +950,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         return (DetailsNavigationPanel) get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM, ID_NAVIGATION));
     }
 
-    protected Component getBasicMenuPanel() {
+    protected Component getDetailsNavigationPanel() {
         return get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM, ID_DETAILS_NAVIGATION_PANEL));
     }
 
