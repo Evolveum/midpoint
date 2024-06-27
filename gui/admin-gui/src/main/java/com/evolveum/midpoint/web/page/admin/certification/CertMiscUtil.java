@@ -294,7 +294,8 @@ public class CertMiscUtil {
             pageBase.error("Unable to find action for identifier: " + guiAction.getIdentifier());
             return null;
         }
-        String preActionIdentifier = guiAction.getPreActionIdentifier();
+        GuiActionType preAction = guiAction.getPreAction();
+        String preActionIdentifier = preAction != null ? preAction.getIdentifier() : null;
         AbstractGuiAction<AccessCertificationWorkItemType> preActionInstance = null;
         if (StringUtils.isNotEmpty(preActionIdentifier)) {
             Class<? extends AbstractGuiAction<?>> preActionClass = pageBase.findGuiAction(preActionIdentifier);
