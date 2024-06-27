@@ -81,7 +81,7 @@ public class AdvancedClustering implements Clusterable {
                 sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
                 RoleAnalysisProcessModeType.ROLE);
 
-        SearchFilterType query = sessionOptionType.getMemberFilter();
+        SearchFilterType query = sessionOptionType.getQuery();
 
         List<DataPoint> dataPoints = loadInitialData(modelService, roleAnalysisService, handler, isIndirect,
                 RoleAnalysisProcessModeType.ROLE, roleAnalysisAttributeDefConverts,
@@ -124,17 +124,11 @@ public class AdvancedClustering implements Clusterable {
         int minUsersCount = sessionOptionType.getMinMembersCount();
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
 
-        UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
-        SearchFilterType memberFilter = userModeOptions.getMemberFilter();
-        SearchFilterType assignmentFilter = userModeOptions.getAssignmentFilter();
-
-
-//        roleAnalysisService.extractByUserAndAssignmentByDoubleCondition(memberFilter,assignmentFilter,task,result);
         List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts = generateMatchingRulesList(
                 sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
                 RoleAnalysisProcessModeType.USER);
 
-        SearchFilterType query = sessionOptionType.getMemberFilter();
+        SearchFilterType query = sessionOptionType.getQuery();
 
         List<DataPoint> dataPoints = loadInitialData(modelService, roleAnalysisService, handler,
                 isIndirect, RoleAnalysisProcessModeType.USER, roleAnalysisAttributeDefConverts,

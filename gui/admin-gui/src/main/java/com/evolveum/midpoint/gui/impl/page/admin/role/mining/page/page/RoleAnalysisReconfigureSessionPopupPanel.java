@@ -176,7 +176,7 @@ public class RoleAnalysisReconfigureSessionPopupPanel
                 return wrapper -> {
                     ItemName itemName = wrapper.getItemName();
 
-                    if (itemName.equals(AbstractAnalysisSessionOptionType.F_MEMBER_FILTER)
+                    if (itemName.equals(AbstractAnalysisSessionOptionType.F_QUERY)
                             || itemName.equals(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)
                             || itemName.equals(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE)) {
                         return ItemVisibility.HIDDEN;
@@ -235,7 +235,7 @@ public class RoleAnalysisReconfigureSessionPopupPanel
             @Override
             protected boolean checkMandatory(@NotNull ItemWrapper itemWrapper) {
                 ItemName itemName = itemWrapper.getItemName();
-                return itemName.equivalent(AbstractAnalysisSessionOptionType.F_MEMBER_FILTER)
+                return itemName.equivalent(AbstractAnalysisSessionOptionType.F_QUERY)
                         || itemName.equivalent(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)
                         || itemName.equivalent(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE);
             }

@@ -472,7 +472,7 @@ public class OutliersDetectionUtil {
         RangeType propertiesRange = userModeOptions.getPropertiesRange();
         ListMultimap<List<String>, String> chunkMap = roleAnalysisService.loadUserForOutlierComparison(roleAnalysisService, outliersMembers,
                 propertiesRange.getMin().intValue(), propertiesRange.getMax().intValue(),
-                userModeOptions.getMemberFilter(), result, task);
+                userModeOptions.getQuery(), result, task);
         double minThreshold = 0.5;
         for (ObjectReferenceType analyzedObjectRef : member) {
             String memberOid = analyzedObjectRef.getOid();

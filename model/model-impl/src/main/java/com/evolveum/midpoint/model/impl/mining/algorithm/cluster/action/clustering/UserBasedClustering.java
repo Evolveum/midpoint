@@ -68,7 +68,7 @@ public class UserBasedClustering implements Clusterable {
         int minRolesOverlap = userModeOptions.getMinPropertiesOverlap();
         int minUsersCount = userModeOptions.getMinMembersCount();
         Boolean isIndirect = userModeOptions.isIsIndirect();
-        SearchFilterType query = userModeOptions.getMemberFilter();
+        SearchFilterType query = userModeOptions.getQuery();
 
         handler.enterNewStep(LOAD_DATA_STEP);
         handler.setOperationCountToProcess(1);

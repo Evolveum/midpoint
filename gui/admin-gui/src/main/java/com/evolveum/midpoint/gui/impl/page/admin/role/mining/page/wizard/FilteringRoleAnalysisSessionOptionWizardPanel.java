@@ -63,7 +63,7 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
 
     protected boolean checkMandatory(ItemWrapper itemWrapper) {
         ItemName itemName = itemWrapper.getItemName();
-        return itemName.equivalent(AbstractAnalysisSessionOptionType.F_MEMBER_FILTER)
+        return itemName.equivalent(AbstractAnalysisSessionOptionType.F_QUERY)
                 || itemName.equivalent(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)
                 || itemName.equivalent(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE);
     }

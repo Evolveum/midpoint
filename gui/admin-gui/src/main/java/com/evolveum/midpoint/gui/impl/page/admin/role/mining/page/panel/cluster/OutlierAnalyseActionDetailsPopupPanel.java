@@ -106,7 +106,7 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
                 roleAnalysisService,
                 outliersMembers,
                 propertiesRange.getMin().intValue(), propertiesRange.getMax().intValue(),
-                userModeOptions.getMemberFilter(), result, task);
+                userModeOptions.getQuery(), result, task);
 
         MutableDouble usedFrequency = new MutableDouble(minThreshold);
 
