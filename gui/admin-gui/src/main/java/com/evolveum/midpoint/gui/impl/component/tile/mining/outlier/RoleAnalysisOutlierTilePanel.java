@@ -346,20 +346,29 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
 
                 RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
 
-                RoleAnalysisAttributeAnalysisResult clusterAttributes = cluster.getClusterStatistics().getUserAttributeAnalysisResult();
-                RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService.resolveSimilarAspect(userAttributes, clusterAttributes);
+                AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
+                RoleAnalysisAttributeAnalysisResult clusterAttributes = null;
+                if (clusterStatistics == null || clusterStatistics.getUserAttributeAnalysisResult() == null) {
+                    AnalysisClusterStatisticType outlierParentClusterStatistics = outlierParent.getClusterStatistics();
+                    if (outlierParentClusterStatistics != null && outlierParentClusterStatistics.getUserAttributeAnalysisResult() != null) {
+                        clusterAttributes = outlierParentClusterStatistics.getUserAttributeAnalysisResult();
+                    }
+                } else {
+                    clusterAttributes = clusterStatistics.getUserAttributeAnalysisResult();
+                }
 
+                RoleAnalysisAttributeAnalysisResult compareAttributeResult = null;
+                if (clusterAttributes != null) {
+                    compareAttributeResult = roleAnalysisService.resolveSimilarAspect(userAttributes, clusterAttributes);
+                }
                 if (compareAttributeResult == null) {
                     return;
                 }
 
-                AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
-                RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
-
                 //TODO Support role mode
                 RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(((PageBase) getPage()).getMainPopupBodyId(),
                         Model.of("Role analysis attribute panel"),
-                        null, userAttributeAnalysisResult,
+                        null, clusterAttributes,
                         null, compareAttributeResult) {
                     @Override
                     protected @NotNull String getChartContainerStyle() {

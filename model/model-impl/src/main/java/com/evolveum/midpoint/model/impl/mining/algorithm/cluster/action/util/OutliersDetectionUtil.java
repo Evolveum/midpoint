@@ -619,8 +619,9 @@ public class OutliersDetectionUtil {
 
                     String description = analyzedObjectRef.getDescription();
 
-                    if (description != null) {
-                        RoleAnalysisOutlierNoiseCategoryType roleAnalysisOutlierNoiseCategoryType = RoleAnalysisOutlierNoiseCategoryType.fromValue(description);
+                    if (description != null &&  !description.equals("unknown") ) {
+                        RoleAnalysisOutlierNoiseCategoryType roleAnalysisOutlierNoiseCategoryType =
+                                RoleAnalysisOutlierNoiseCategoryType.fromValue(description);
                         userOutliers.setOutlierNoiseCategory(roleAnalysisOutlierNoiseCategoryType);
                     }
 
