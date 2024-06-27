@@ -1601,8 +1601,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
             @NotNull Task task,
             @NotNull OperationResult result,
-            @NotNull List<RoleAnalysisAttributeDef> attributeRoleDefSet,
-            @NotNull List<RoleAnalysisAttributeDef> attributeUserDefSet) {
+            @Nullable List<RoleAnalysisAttributeDef> attributeRoleDefSet,
+            @Nullable List<RoleAnalysisAttributeDef> attributeUserDefSet) {
 
         for (RoleAnalysisDetectionPatternType detectedPattern : detectedPatterns) {
 
@@ -1619,51 +1619,61 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                             .cacheRoleTypeObject(roleExistCache, objectReferenceType.getOid(), task, result, null))
                     .filter(Objects::nonNull).collect(Collectors.toSet());
 
-            List<AttributeAnalysisStructure> userAttributeAnalysisStructures = this
-                    .userTypeAttributeAnalysis(users, 100.0, task, result, attributeUserDefSet);
-            List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = this
-                    .roleTypeAttributeAnalysis(roles, 100.0, task, result, attributeRoleDefSet);
-
-            RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
-            for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
-                double density = userAttributeAnalysisStructure.getDensity();
-                if (density == 0) {
-                    continue;
-                }
-                RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
-                roleAnalysisAttributeAnalysis.setDensity(density);
-                roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
-                roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
-                roleAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
-                List<RoleAnalysisAttributeStatistics> attributeStatistics = userAttributeAnalysisStructure.getAttributeStatistics();
-                for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
-                    roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
-                }
-
-                userAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
+            List<AttributeAnalysisStructure> userAttributeAnalysisStructures = null;
+            if (attributeUserDefSet != null) {
+                userAttributeAnalysisStructures = this
+                        .userTypeAttributeAnalysis(users, 100.0, task, result, attributeUserDefSet);
             }
 
-            detectedPattern.setUserAttributeAnalysisResult(userAnalysis);
+            List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = null;
+            if (attributeRoleDefSet != null) {
+                roleAttributeAnalysisStructures = this
+                        .roleTypeAttributeAnalysis(roles, 100.0, task, result, attributeRoleDefSet);
+            }
+            if (userAttributeAnalysisStructures != null) {
+                RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
+                for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
+                    double density = userAttributeAnalysisStructure.getDensity();
+                    if (density == 0) {
+                        continue;
+                    }
+                    RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+                    roleAnalysisAttributeAnalysis.setDensity(density);
+                    roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
+                    roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
+                    roleAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
+                    List<RoleAnalysisAttributeStatistics> attributeStatistics = userAttributeAnalysisStructure.getAttributeStatistics();
+                    for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+                        roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
+                    }
 
-            RoleAnalysisAttributeAnalysisResult roleAnalysis = new RoleAnalysisAttributeAnalysisResult();
-            for (AttributeAnalysisStructure roleAttributeAnalysisStructure : roleAttributeAnalysisStructures) {
-                double density = roleAttributeAnalysisStructure.getDensity();
-                if (density == 0) {
-                    continue;
+                    userAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
                 }
-                RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
-                roleAnalysisAttributeAnalysis.setDensity(density);
-                roleAnalysisAttributeAnalysis.setItemPath(roleAttributeAnalysisStructure.getItemPath());
-                roleAnalysisAttributeAnalysis.setIsMultiValue(roleAttributeAnalysisStructure.isMultiValue());
-                roleAnalysisAttributeAnalysis.setDescription(roleAttributeAnalysisStructure.getDescription());
-                List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAttributeAnalysisStructure.getAttributeStatistics();
-                for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
-                    roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
-                }
-                roleAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
+
+                detectedPattern.setUserAttributeAnalysisResult(userAnalysis);
             }
 
-            detectedPattern.setRoleAttributeAnalysisResult(roleAnalysis);
+            if (roleAttributeAnalysisStructures != null) {
+                RoleAnalysisAttributeAnalysisResult roleAnalysis = new RoleAnalysisAttributeAnalysisResult();
+                for (AttributeAnalysisStructure roleAttributeAnalysisStructure : roleAttributeAnalysisStructures) {
+                    double density = roleAttributeAnalysisStructure.getDensity();
+                    if (density == 0) {
+                        continue;
+                    }
+                    RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+                    roleAnalysisAttributeAnalysis.setDensity(density);
+                    roleAnalysisAttributeAnalysis.setItemPath(roleAttributeAnalysisStructure.getItemPath());
+                    roleAnalysisAttributeAnalysis.setIsMultiValue(roleAttributeAnalysisStructure.isMultiValue());
+                    roleAnalysisAttributeAnalysis.setDescription(roleAttributeAnalysisStructure.getDescription());
+                    List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAttributeAnalysisStructure.getAttributeStatistics();
+                    for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+                        roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
+                    }
+                    roleAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
+                }
+
+                detectedPattern.setRoleAttributeAnalysisResult(roleAnalysis);
+            }
         }
     }
 

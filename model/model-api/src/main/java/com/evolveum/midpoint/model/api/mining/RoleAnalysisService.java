@@ -705,8 +705,8 @@ public interface RoleAnalysisService {
             @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
             @NotNull Task task,
             @NotNull OperationResult result,
-            @NotNull List<RoleAnalysisAttributeDef> attributeRoleDefSet,
-            @NotNull List<RoleAnalysisAttributeDef> attributeUserDefSet);
+            @Nullable List<RoleAnalysisAttributeDef> attributeRoleDefSet,
+            @Nullable List<RoleAnalysisAttributeDef> attributeUserDefSet);
 
     /**
      * Searches for clusters associated with a specific role analysis session.
@@ -789,7 +789,9 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    RoleAnalysisAttributeAnalysisResult resolveUserAttributes(@NotNull PrismObject<UserType> prismUser, List<RoleAnalysisAttributeDef> attributesForUserAnalysis);
+    RoleAnalysisAttributeAnalysisResult resolveUserAttributes(
+            @NotNull PrismObject<UserType> prismUser,
+            @NotNull List<RoleAnalysisAttributeDef> attributesForUserAnalysis);
 
     @Nullable RoleAnalysisAttributeAnalysisResult resolveSimilarAspect(
             @NotNull RoleAnalysisAttributeAnalysisResult compared,
@@ -891,7 +893,7 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-     ListMultimap<List<String>, String> loadUserForOutlierComparison(
+    ListMultimap<List<String>, String> loadUserForOutlierComparison(
             @NotNull RoleAnalysisService roleAnalysisService,
             List<String> outliersMembers,
             int minRolesOccupancy,

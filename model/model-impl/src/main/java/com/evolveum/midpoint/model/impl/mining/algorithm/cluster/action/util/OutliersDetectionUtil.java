@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidInducement;
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils.resolveAttributeStatistics;
 
 import java.util.*;
@@ -33,6 +34,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 //TODO this is experimental
 public class OutliersDetectionUtil {
@@ -122,6 +125,13 @@ public class OutliersDetectionUtil {
                             userOutliers.setTargetObjectRef(new ObjectReferenceType().oid(user).type(UserType.COMPLEX_TYPE));
                         }
 
+                        if (userOutliers.getDuplicatedRoleAssignment() == null
+                                || userOutliers.getDuplicatedRoleAssignment().isEmpty()) {
+                            Set<ObjectReferenceType> duplicateAssignment = resolveUserDuplicateAssignment(
+                                    roleAnalysisService, userTypeObject.asObjectable(), task, result);
+                            userOutliers.getDuplicatedRoleAssignment().addAll(duplicateAssignment);
+                        }
+
                         userOutliers.setOutlierNoiseCategory(RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER);
 
                         userOutliers.setSimilarObjectsThreshold(similarityThreshold);
@@ -138,16 +148,20 @@ public class OutliersDetectionUtil {
                         RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics
                                 .getUserAttributeAnalysisResult();
 
-                        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService
-                                .resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
+                        RoleAnalysisAttributeAnalysisResult compareAttributeResult = null;
+                        if (userAttributeAnalysisResult != null && attributesForUserAnalysis != null) {
 
-                        RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService
-                                .resolveSimilarAspect(userAttributes, userAttributeAnalysisResult);
+                            RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService
+                                    .resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
 
-                        AttributeAnalysis attributeAnalysis = new AttributeAnalysis();
-                        attributeAnalysis.setUserAttributeAnalysisResult(userAttributeAnalysisResult);
-                        attributeAnalysis.setUserClusterCompare(compareAttributeResult);
-                        userOutliers.setAttributeAnalysis(attributeAnalysis);
+                            compareAttributeResult = roleAnalysisService
+                                    .resolveSimilarAspect(userAttributes, userAttributeAnalysisResult);
+
+                            AttributeAnalysis attributeAnalysis = new AttributeAnalysis();
+                            attributeAnalysis.setUserAttributeAnalysisResult(userAttributeAnalysisResult);
+                            attributeAnalysis.setUserClusterCompare(compareAttributeResult);
+                            userOutliers.setAttributeAnalysis(attributeAnalysis);
+                        }
 
                         double assignmentFrequencyConfidence = calculateOutlierRoleAssignmentFrequencyConfidence(
                                 userTypeObject, countOfRoles);
@@ -265,19 +279,22 @@ public class OutliersDetectionUtil {
         return map.values();
     }
 
-    private static double getAverageItemFactor(RoleAnalysisAttributeAnalysisResult compareAttributeResult) {
-        double averageItemFactor = 0;
-        if (compareAttributeResult != null) {
-            List<RoleAnalysisAttributeAnalysis> attributeAnalysisCompare = compareAttributeResult.getAttributeAnalysis();
-            for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysisCompare) {
-                Double density = attribute.getDensity();
-                if (density != null) {
-                    averageItemFactor += density;
-                }
-            }
+    private static double getAverageItemFactor(@Nullable RoleAnalysisAttributeAnalysisResult compareAttributeResult) {
 
-            averageItemFactor = averageItemFactor / attributeAnalysisCompare.size();
+        if (compareAttributeResult == null) {
+            return 0;
         }
+
+        double averageItemFactor = 0;
+        List<RoleAnalysisAttributeAnalysis> attributeAnalysisCompare = compareAttributeResult.getAttributeAnalysis();
+        for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysisCompare) {
+            Double density = attribute.getDensity();
+            if (density != null) {
+                averageItemFactor += density;
+            }
+        }
+
+        averageItemFactor = averageItemFactor / attributeAnalysisCompare.size();
         return averageItemFactor;
     }
 
@@ -553,10 +570,16 @@ public class OutliersDetectionUtil {
 
             Double userDensity = 0.0;
             Double roleDensity = 0.0;
-            List<AttributeAnalysisStructure> userAttributeAnalysisStructures = roleAnalysisService
-                    .userTypeAttributeAnalysis(clusterUsers, userDensity, task, result, userAnalysisAttributeDef);
-            List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = roleAnalysisService
-                    .roleTypeAttributeAnalysis(clusterRoles, roleDensity, task, result, roleAnalysisAttributeDef);
+            List<AttributeAnalysisStructure> userAttributeAnalysisStructures = null;
+            if (userAnalysisAttributeDef != null) {
+                userAttributeAnalysisStructures = roleAnalysisService
+                        .userTypeAttributeAnalysis(clusterUsers, userDensity, task, result, userAnalysisAttributeDef);
+            }
+            List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = null;
+            if (roleAnalysisAttributeDef != null) {
+                roleAttributeAnalysisStructures = roleAnalysisService
+                        .roleTypeAttributeAnalysis(clusterRoles, roleDensity, task, result, roleAnalysisAttributeDef);
+            }
 
             AnalysisClusterStatisticType roleAnalysisClusterStatisticType = new AnalysisClusterStatisticType();
 
@@ -617,9 +640,14 @@ public class OutliersDetectionUtil {
                         userOutliers.setTargetObjectRef(new ObjectReferenceType().oid(memberOid).type(UserType.COMPLEX_TYPE));
                     }
 
+                    Set<ObjectReferenceType> duplicateAssignment = resolveUserDuplicateAssignment(
+                            roleAnalysisService, userTypeObject.asObjectable(), task, result);
+
+                    userOutliers.getDuplicatedRoleAssignment().addAll(duplicateAssignment);
+
                     String description = analyzedObjectRef.getDescription();
 
-                    if (description != null &&  !description.equals("unknown") ) {
+                    if (description != null && !description.equals("unknown")) {
                         RoleAnalysisOutlierNoiseCategoryType roleAnalysisOutlierNoiseCategoryType =
                                 RoleAnalysisOutlierNoiseCategoryType.fromValue(description);
                         userOutliers.setOutlierNoiseCategory(roleAnalysisOutlierNoiseCategoryType);
@@ -635,19 +663,24 @@ public class OutliersDetectionUtil {
                             session, UserType.COMPLEX_TYPE);
 
                     AnalysisClusterStatisticType clusterStatistics = tempCluster.getClusterStatistics();
-                    RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics
-                            .getUserAttributeAnalysisResult();
+                    RoleAnalysisAttributeAnalysisResult compareAttributeResult = null;
+                    if (clusterStatistics != null
+                            && clusterStatistics.getUserAttributeAnalysisResult() != null
+                            && attributesForUserAnalysis != null) {
+                        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics
+                                .getUserAttributeAnalysisResult();
 
-                    RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService
-                            .resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
+                        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService
+                                .resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
 
-                    RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService
-                            .resolveSimilarAspect(userAttributes, userAttributeAnalysisResult);
+                        compareAttributeResult = roleAnalysisService
+                                .resolveSimilarAspect(userAttributes, userAttributeAnalysisResult);
 
-                    AttributeAnalysis attributeAnalysis = new AttributeAnalysis();
-                    attributeAnalysis.setUserAttributeAnalysisResult(userAttributeAnalysisResult);
-                    attributeAnalysis.setUserClusterCompare(compareAttributeResult);
-                    userOutliers.setAttributeAnalysis(attributeAnalysis);
+                        AttributeAnalysis attributeAnalysis = new AttributeAnalysis();
+                        attributeAnalysis.setUserAttributeAnalysisResult(userAttributeAnalysisResult);
+                        attributeAnalysis.setUserClusterCompare(compareAttributeResult);
+                        userOutliers.setAttributeAnalysis(attributeAnalysis);
+                    }
 
                     double assignmentFrequencyConfidence = calculateOutlierRoleAssignmentFrequencyConfidence(
                             userTypeObject, countOfRoles);
@@ -708,6 +741,27 @@ public class OutliersDetectionUtil {
         }
 
         return map.values();
+    }
+
+    private static @NotNull Set<ObjectReferenceType> resolveUserDuplicateAssignment(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull UserType user,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        List<String> rolesOidAssignment = getRolesOidAssignment(user);
+        Set<ObjectReferenceType> duplicatedRoleAssignments = new HashSet<>();
+        for (String roleOid : rolesOidAssignment) {
+            PrismObject<RoleType> roleAssignment = roleAnalysisService.getRoleTypeObject(roleOid, task, result);
+            if (roleAssignment != null) {
+                List<String> rolesOidInducement = getRolesOidInducement(roleAssignment.asObjectable());
+                for (String roleOidInducement : rolesOidInducement) {
+                    if (rolesOidAssignment.contains(roleOidInducement)) {
+                        duplicatedRoleAssignments.add(new ObjectReferenceType().oid(roleOidInducement).type(RoleType.COMPLEX_TYPE));
+                    }
+                }
+            }
+        }
+        return duplicatedRoleAssignments;
     }
 
 }

@@ -56,7 +56,7 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
     public OutlierAnalyseActionDetailsPopupPanel(String id,
             IModel<String> messageModel,
             String userOid,
-            String clusterOid,
+            @NotNull String clusterOid,
             int minMembers) {
         super(id, messageModel);
         this.userOid = userOid;
@@ -333,7 +333,5 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         outlierTypeLabel.setOutputMarkupId(true);
         headerItems.add(outlierTypeLabel);
     }
-
-
 
 }

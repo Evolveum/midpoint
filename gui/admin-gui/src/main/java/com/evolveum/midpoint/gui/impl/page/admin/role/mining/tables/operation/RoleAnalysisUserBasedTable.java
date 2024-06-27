@@ -797,13 +797,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                                 objects.add(getPageBase().getRoleAnalysisService()
                                         .getFocusTypeObject(objectOid, task, result));
                             }
-                            if (isOutlierDetection()) {
-
-                                List<String> clusterMembersOid = new ArrayList<>();
-                                List<ObjectReferenceType> member = cluster.asObjectable().getMember();
-                                for (ObjectReferenceType objectReferenceType : member) {
-                                    clusterMembersOid.add(objectReferenceType.getOid());
-                                }
+                            if (isOutlierDetection() && cluster.getOid() != null && !elements.isEmpty()) {
 
                                 //TODO session option min members
 
@@ -944,9 +938,6 @@ public class RoleAnalysisUserBasedTable extends Panel {
                     List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = roleAnalysisService
                             .resolveAnalysisAttributes(session.asObjectable(), RoleType.COMPLEX_TYPE);
 
-                    if (userAnalysisAttributeDef == null || roleAnalysisAttributeDef == null) {
-                        return;
-                    }
                     roleAnalysisService.resolveDetectedPatternsAttributes(Collections.singletonList(pattern), userExistCache,
                             roleExistCache, task, result, roleAnalysisAttributeDef, userAnalysisAttributeDef);
 
@@ -1309,7 +1300,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
     protected void toggleDetailsNavigationPanelVisibility(AjaxRequestTarget target) {
         Page page = getPage();
         if (page instanceof AbstractPageObjectDetails) {
-            AbstractPageObjectDetails<?,?> pageObjectDetails = ((AbstractPageObjectDetails) page);
+            AbstractPageObjectDetails<?, ?> pageObjectDetails = ((AbstractPageObjectDetails) page);
             pageObjectDetails.toggleDetailsNavigationPanelVisibility(target);
         }
     }

@@ -680,7 +680,6 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
                             return;
                         }
 
-
                         List<AttributeAnalysisStructure> attributeAnalysisStructures = roleAnalysisService
                                 .roleMembersAttributeAnalysis(attributesForUserAnalysis, prismRole.getOid(), task, operationResult);
 
@@ -767,7 +766,6 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
                             return;
                         }
 
-
                         List<AttributeAnalysisStructure> attributeAnalysisStructures = roleAnalysisService
                                 .userRolesAttributeAnalysis(attributesForRoleAnalysis, userRef.getOid(), task, operationResult);
 
@@ -829,7 +827,8 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
                     return;
                 }
 
-                OutlierObjectModel outlierObjectModel = generateAssignmentOutlierResultModel(roleAnalysisService, rowModel.getObject(), task, task.getResult(), userTypeObject);
+                OutlierObjectModel outlierObjectModel = generateAssignmentOutlierResultModel(
+                        roleAnalysisService, rowModel.getObject(), task, task.getResult(), userTypeObject, outlierParent);
 
                 String outlierName = outlierObjectModel.getOutlierName();
                 Double outlierConfidence = outlierObjectModel.getOutlierConfidence();
