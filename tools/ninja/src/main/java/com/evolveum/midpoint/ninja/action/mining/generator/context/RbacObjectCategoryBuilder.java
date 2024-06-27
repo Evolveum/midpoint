@@ -114,14 +114,7 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
-            user.extension(new ExtensionType());
-            ExtensionType ext = user.getExtension();
-            ObjectReferenceType type1 = new ObjectReferenceType().oid("9962c8f7-4361-4f56-b10d-5cc11f12f233").type(UserType.COMPLEX_TYPE);
-            ObjectReferenceType type2 = new ObjectReferenceType().oid("c4538400-1e33-477b-af04-003e17c63509").type(UserType.COMPLEX_TYPE);
-            ObjectReferenceType type3 = new ObjectReferenceType().oid("4ec99470-60da-4019-afef-a5fc71163951").type(UserType.COMPLEX_TYPE);
-            ObjectReferenceType type4 = new ObjectReferenceType().oid("e21d407f-6bbc-41d5-a0be-263541567f40").type(UserType.COMPLEX_TYPE);
-            addExtensionValue(ext, "new",type1,type2,type4);
-            addExtensionValue(ext, "new2",type3);
+            additionalChangesOnAllUsers(user);
         }
 
         @Override
@@ -196,14 +189,7 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
-            user.extension(new ExtensionType());
-            ExtensionType ext = user.getExtension();
-            ObjectReferenceType type1 = new ObjectReferenceType().oid("9962c8f7-4361-4f56-b10d-5cc11f12f233").type(UserType.COMPLEX_TYPE);
-            ObjectReferenceType type2 = new ObjectReferenceType().oid("c4538400-1e33-477b-af04-003e17c63509").type(UserType.COMPLEX_TYPE);
-            ObjectReferenceType type3 = new ObjectReferenceType().oid("4ec99470-60da-4019-afef-a5fc71163951").type(UserType.COMPLEX_TYPE);
-            ObjectReferenceType type4 = new ObjectReferenceType().oid("e21d407f-6bbc-41d5-a0be-263541567f40").type(UserType.COMPLEX_TYPE);
-            addExtensionValue(ext, "new",type1,type2,type4);
-            addExtensionValue(ext, "new2",type3);
+            additionalChangesOnAllUsers(user);
         }
 
         @Override
@@ -245,14 +231,7 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
-            user.extension(new ExtensionType());
-            ExtensionType ext = user.getExtension();
-            ObjectReferenceType type1 = new ObjectReferenceType().oid("9962c8f7-4361-4f56-b10d-5cc11f12f233").type(UserType.COMPLEX_TYPE);
-            ObjectReferenceType type2 = new ObjectReferenceType().oid("c4538400-1e33-477b-af04-003e17c63509").type(UserType.COMPLEX_TYPE);
-            ObjectReferenceType type3 = new ObjectReferenceType().oid("4ec99470-60da-4019-afef-a5fc71163951").type(UserType.COMPLEX_TYPE);
-            ObjectReferenceType type4 = new ObjectReferenceType().oid("e21d407f-6bbc-41d5-a0be-263541567f40").type(UserType.COMPLEX_TYPE);
-            addExtensionValue(ext, "new",type1,type2,type4);
-            addExtensionValue(ext, "new2",type3);
+            additionalChangesOnAllUsers(user);
         }
 
         @Override
@@ -349,9 +328,7 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
-//            user.extension(new ExtensionType());
-//            ExtensionType ext = user.getExtension();
-//            addExtensionValue(ext, "hatSize", "Peter");
+            additionalChangesOnAllUsers(user);
         }
 
         @Override
@@ -435,9 +412,7 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
-//            user.extension(new ExtensionType());
-//            ExtensionType ext = user.getExtension();
-//            addExtensionValue(ext, "hatSize", "Slavo");
+            additionalChangesOnAllUsers(user);
         }
 
         @Override
@@ -504,9 +479,10 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
+            additionalChangesOnAllUsers(user);
 //            user.extension(new ExtensionType());
 //            ExtensionType ext = user.getExtension();
-//            addExtensionValue(ext, "hatSize", "Karol");
+//            addExtensionValue(ext, "itemPath", "value");
         }
 
         @Override
@@ -573,9 +549,7 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
-//            user.extension(new ExtensionType());
-//            ExtensionType ext = user.getExtension();
-//            addExtensionValue(ext, "hatSize", "Clark");
+            additionalChangesOnAllUsers(user);
         }
 
         @Override
@@ -708,5 +682,9 @@ public class RbacObjectCategoryBuilder {
             importUserAndResolveAuxRoles(user, repository, generatorOptions, result, log);
 
         }
+    }
+
+    protected static void additionalChangesOnAllUsers(UserType user){
+
     }
 }
