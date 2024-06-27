@@ -19,15 +19,15 @@ import java.util.Map;
 
 public interface PreAction<C extends Containerable, AGA extends AbstractGuiAction<C>> {
 
-    Map<String, Object> actionResultParametersMap = new HashMap<>();
+    Map<String, Object> ACTION_RESULT_PARAMETERS_MAP = new HashMap<>();
 
     public void executePreActionAndMainAction(AGA mainAction, List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target);
 
     default void addActionResultParameter(String key, Object value) {
-        actionResultParametersMap.put(key, value);
+        ACTION_RESULT_PARAMETERS_MAP.put(key, value);
     }
 
     default Map<String, Object> getActionResultParametersMap() {
-        return actionResultParametersMap;
+        return ACTION_RESULT_PARAMETERS_MAP;
     }
 }
