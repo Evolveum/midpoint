@@ -578,6 +578,7 @@ public class RoleAnalysisAlgorithmUtils {
 
             Collection<RoleAnalysisOutlierType> roleAnalysisOutlierTypes;
 
+            //TODO
             if (cluster.getCategory().equals(RoleAnalysisClusterCategory.OUTLIERS)) {
                 roleAnalysisOutlierTypes = executeOuterOutliersAnalysis(
                         roleAnalysisService, cluster, session, task, result);

@@ -346,24 +346,15 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
 
                 RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
 
-
-                //TODO change for all outlier object (temporary)
-                AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
-
-                //TODO If is outer/cluster outlier then we must use cluster statistics stored inside outlier object (temporary)
-                if(clusterStatistics == null || clusterStatistics.getUserAttributeAnalysisResult() == null){
-                    clusterStatistics = outlierParent.getClusterStatistics();
-                }
-
-                RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
-
-                RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService.resolveSimilarAspect(
-                        userAttributes, userAttributeAnalysisResult);
+                RoleAnalysisAttributeAnalysisResult clusterAttributes = cluster.getClusterStatistics().getUserAttributeAnalysisResult();
+                RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService.resolveSimilarAspect(userAttributes, clusterAttributes);
 
                 if (compareAttributeResult == null) {
                     return;
                 }
 
+                AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
+                RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
 
                 //TODO Support role mode
                 RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(((PageBase) getPage()).getMainPopupBodyId(),

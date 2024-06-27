@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.model.impl.mining;
 
+import static com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter.jacquardSimilarity;
+
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.loadUserBasedMultimapData;
+
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
@@ -25,8 +29,11 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -908,120 +915,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                         .item(fClusterUserBasedStatistic, fMember).replace(memberCount + 1)
                         .asItemDelta());
             }
-
-            repositoryService.modifyObject(RoleAnalysisClusterType.class, clusterRefOid, modifications, result);
-        } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
-            LOGGER.error("Couldn't execute migration recompute RoleAnalysisClusterDetectionOptions {}", clusterRefOid, e);
-        }
-    }
-
-    @Override
-    public void updateClusterPatterns(
-            @NotNull String clusterRefOid,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        //TODO not necessary after candidate role functionality implementation
-        PrismObject<RoleAnalysisClusterType> cluster = getClusterTypeObject(clusterRefOid,
-                task, result);
-        if (cluster == null) {
-            LOGGER.error("Failed to resolve RoleAnalysisCluster OBJECT from UUID: {}", clusterRefOid);
-            return;
-        }
-        RoleAnalysisClusterType clusterObject = cluster.asObjectable();
-
-        RoleAnalysisProcessModeType processMode = resolveClusterOptionType(cluster, task, result).getProcessMode();
-
-        if (processMode == null) {
-            LOGGER.error("Failed to resolve processMode from RoleAnalysisCluster object: {}", clusterRefOid);
-            return;
-        }
-
-        List<ObjectReferenceType> clusterMember = clusterObject.getMember();
-        Set<String> clusterMembersOid = clusterMember.stream()
-                .map(ObjectReferenceType::getOid)
-                .collect(Collectors.toSet());
-
-        Double reductionMetric = 0.0;
-
-        Collection<RoleAnalysisDetectionPatternType> detectedPattern = clusterObject.getDetectedPattern();
-
-        Set<String> clusterPropertiesOid = new HashSet<>();
-
-        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
-            List<ObjectReferenceType> resolvedPattern = clusterObject.getResolvedPattern();
-
-            ListMultimap<String, String> map = extractUserTypeMembers(userExistCache,
-                    null, clusterMembersOid, task, result);
-
-            clusterPropertiesOid.addAll(userExistCache.keySet());
-
-            reductionMetric = removeRedundantPatterns(
-                    this,
-                    detectedPattern,
-                    clusterPropertiesOid,
-                    clusterMembersOid,
-                    map,
-                    resolvedPattern,
-                    task,
-                    result);
-
-        } else if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-            for (String userOid : clusterMembersOid) {
-                PrismObject<UserType> userTypeObject = getUserTypeObject(userOid, task, result);
-
-                if (userTypeObject == null) {
-                    continue;
-                }
-
-                UserType user = userTypeObject.asObjectable();
-                List<AssignmentType> assignment = user.getAssignment();
-                for (AssignmentType assignmentType : assignment) {
-                    if (assignmentType.getTargetRef() != null) {
-                        clusterPropertiesOid.add(assignmentType.getTargetRef().getOid());
-                    }
-                }
-            }
-
-            Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
-
-            List<ObjectReferenceType> resolvedPattern = clusterObject.getResolvedPattern();
-            Set<String> resolvedPatternOid = resolvedPattern.stream()
-                    .map(ObjectReferenceType::getOid)
-                    .collect(Collectors.toSet());
-
-            ListMultimap<String, String> map = extractUserTypeMembers(userExistCache,
-                    null, resolvedPatternOid, task, result);
-
-            reductionMetric = removeRedundantPatterns(this,
-                    detectedPattern,
-                    clusterMembersOid,
-                    clusterPropertiesOid,
-                    map,
-                    resolvedPattern,
-                    task,
-                    result);
-
-        }
-
-        Collection<PrismContainerValue<?>> collection = new ArrayList<>();
-
-        for (RoleAnalysisDetectionPatternType clusterDetectionType : detectedPattern) {
-            collection.add(clusterDetectionType.asPrismContainerValue().clone());
-        }
-
-        try {
-
-            List<ItemDelta<?, ?>> modifications = new ArrayList<>();
-
-            modifications.add(PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
-                    .item(RoleAnalysisClusterType.F_DETECTED_PATTERN).replace(collection)
-                    .asItemDelta());
-
-            modifications.add(PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
-                    .item(RoleAnalysisClusterType.F_CLUSTER_STATISTICS, AnalysisClusterStatisticType.F_DETECTED_REDUCTION_METRIC)
-                    .replace(reductionMetric)
-                    .asItemDelta());
 
             repositoryService.modifyObject(RoleAnalysisClusterType.class, clusterRefOid, modifications, result);
         } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
@@ -2155,11 +2048,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
     }
 
-    @Override
-    public <T extends MiningBaseTypeChunk> double calculateZScore(@NotNull T item, ZScoreData zScoreData) {
-        return ((item.getFrequencyValue()) - zScoreData.getMean()) / zScoreData.getStdDev();
-    }
-
     /**
      * Calculate the confidence of the Z-Score
      *
@@ -2179,16 +2067,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         double cumulativeProbability = normalDistribution.cumulativeProbability(zScore);
         cumulativeProbability = Math.min(100, Math.max(0.0, cumulativeProbability));
         return 1 - cumulativeProbability;
-    }
-
-    @Override
-    public List<RoleAnalysisAttributeDef> resolveRoleAttributes(@NotNull RoleAnalysisSessionType session) {
-        return null;
-    }
-
-    @Override
-    public List<RoleAnalysisAttributeDef> resolveUserAttributes(@NotNull RoleAnalysisSessionType session) {
-        return null;
     }
 
     @Override
