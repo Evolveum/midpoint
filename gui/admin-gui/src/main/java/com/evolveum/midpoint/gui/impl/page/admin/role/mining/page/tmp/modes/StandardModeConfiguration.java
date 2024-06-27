@@ -50,7 +50,8 @@ public class StandardModeConfiguration extends AbstractRoleAnalysisConfiguration
                 null,
                 80.,
                 10,
-                5);
+                5,
+                false);
 
         updateDetectionOptions(5,
                 5,

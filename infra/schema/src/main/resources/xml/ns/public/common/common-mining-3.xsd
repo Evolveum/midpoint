@@ -798,6 +798,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+
+            <xsd:element name="detailedAnalysis" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies whether the clustering runs in overal mode
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractAnalysisSessionOptionType.detailedAnalysis</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

@@ -49,9 +49,9 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
         RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
         PrismContainerWrapperModel<RoleAnalysisSessionType, AbstractAnalysisSessionOptionType> containerWrapperModel;
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-             containerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
+            containerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
                     ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS));
-        }else {
+        } else {
             containerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
                     ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS));
         }
@@ -79,15 +79,19 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
                 return ItemVisibility.HIDDEN;
             }
 
-            if (itemName.equals(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING)
-                    || itemName.equals(AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING)) {
-                LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
-                RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
-                RoleAnalysisCategoryType analysisCategory = processModeObject.getAnalysisCategory();
-//                if (analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)) {
-//                    return ItemVisibility.HIDDEN;
-//                }
+            if (itemName.equals(AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS)) {
+                if (getDetailsModel().getObjectType() == null) {
+                    return ItemVisibility.HIDDEN;
+                }
+                RoleAnalysisOptionType analysisOption = getDetailsModel().getObjectType().getAnalysisOption();
+                if (analysisOption == null || analysisOption.getAnalysisCategory() == null) {
+                    return ItemVisibility.HIDDEN;
+                }
+                if (!analysisOption.getAnalysisCategory().equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                    return ItemVisibility.HIDDEN;
+                }
             }
+
             return ItemVisibility.AUTO;
         };
     }
