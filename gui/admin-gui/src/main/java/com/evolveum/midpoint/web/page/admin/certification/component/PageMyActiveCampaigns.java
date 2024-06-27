@@ -20,7 +20,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/certification/myCampaigns", matchUrlForSecurity = "/admin/certification/myCampaigns")
+                @Url(mountUrl = "/admin/certification/myActiveCampaigns", matchUrlForSecurity = "/admin/certification/myActiveCampaigns")
         },
         encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
@@ -29,15 +29,15 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
         @AuthorizationAction(actionUri = PageAdminCertification.AUTH_MY_CERTIFICATION_CAMPAIGNS,
                 label = PageAdminCertification.AUTH_MY_CERTIFICATION_CAMPAIGNS_LABEL,
                 description = PageAdminCertification.AUTH_MY_CERTIFICATION_CAMPAIGNS_DESCRIPTION) })
-public class PageMyCertCampaigns extends PageCertCampaigns {
+public class PageMyActiveCampaigns extends PageCertCampaigns {
 
-    public PageMyCertCampaigns() {
+    public PageMyActiveCampaigns() {
         super(new PageParameters());
     }
 
     @Override
     protected CampaignsPanel createCampaignsPanel(String id) {
-        return new MyCampaignsPanel(id);
+        return new MyActiveCampaignsPanel(id);
     }
 
     @Override
