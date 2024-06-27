@@ -16,10 +16,6 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.*;
-
-import com.evolveum.midpoint.schema.SearchResultList;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -46,11 +42,13 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierResultPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.InfoBoxModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.*;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -108,7 +106,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
     }
 
-    private void initInfoPatternPanel(WebMarkupContainer container) {
+    private void initInfoPatternPanel(@NotNull WebMarkupContainer container) {
         RoleAnalysisItemPanel roleAnalysisInfoPatternPanel = new RoleAnalysisItemPanel(ID_PATTERNS,
                 Model.of("Top role suggestions for session")) {
             @Override
@@ -338,14 +336,18 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                             ObjectReferenceType targetSessionRef = outlierObject.getTargetSessionRef();
                             PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
                                     .getSessionTypeObject(targetSessionRef.getOid(), task, task.getResult());
-                            assert sessionTypeObject != null;
+                            if (sessionTypeObject == null) {
+                                return;
+                            }
                             RoleAnalysisSessionType sessionType = sessionTypeObject.asObjectable();
                             RoleAnalysisProcessModeType processMode = sessionType.getAnalysisOption().getProcessMode();
 
                             ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
                             PrismObject<RoleAnalysisClusterType> clusterTypeObject = roleAnalysisService
                                     .getClusterTypeObject(targetClusterRef.getOid(), task, task.getResult());
-                            assert clusterTypeObject != null;
+                            if (clusterTypeObject == null) {
+                                return;
+                            }
                             RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
                             if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
                                 outlierObjectModel = generateUserOutlierResultModel(
@@ -355,7 +357,9 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                         roleAnalysisService, outlierObject, task, task.getResult(), cluster);
                             }
 
-                            assert outlierObjectModel != null;
+                            if (outlierObjectModel == null) {
+                                return;
+                            }
                             String outlierName = outlierObjectModel.getOutlierName();
                             double outlierConfidence = outlierObjectModel.getOutlierConfidence();
                             String outlierDescription = outlierObjectModel.getOutlierDescription();
@@ -446,9 +450,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
             initRoleMiningHeaders(headerItems, sessionClusters, processMode);
 
-            Label cardTitle = new Label(ID_CARD_TITLE, "Top suggested role");
-            cardTitle.setOutputMarkupId(true);
-            container.add(cardTitle);
+            emptyPanel(ID_CARD_TITLE, "Top suggested role", container);
 
             AjaxCompositedIconSubmitButton components = buildExplorePatternButton(pattern);
             container.add(components);
@@ -494,17 +496,13 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             container.add(statisticsPanel);
 
         } else {
-            Label label = new Label(ID_PANEL, "No data available");
-            label.setOutputMarkupId(true);
-            container.add(label);
+            emptyPanel(ID_PANEL, "No data available", container);
 
             WebMarkupContainer headerItems = new WebMarkupContainer(ID_HEADER_ITEMS);
             headerItems.setOutputMarkupId(true);
             container.add(headerItems);
 
-            Label cardTitle = new Label(ID_CARD_TITLE, "No data available");
-            cardTitle.setOutputMarkupId(true);
-            container.add(cardTitle);
+            emptyPanel(ID_CARD_TITLE, "No data available", container);
 
             WebMarkupContainer exploreButton = new WebMarkupContainer(ID_EXPLORE_PATTERN_BUTTON);
             exploreButton.setOutputMarkupId(true);
@@ -532,9 +530,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
             initOutliersAnalysisHeaders(headerItems, sessionClusters, processMode);
 
-            Label cardTitle = new Label(ID_CARD_TITLE, "Top session outlier");
-            cardTitle.setOutputMarkupId(true);
-            container.add(cardTitle);
+            emptyPanel(ID_CARD_TITLE, "Top session outlier", container);
 
             AjaxCompositedIconSubmitButton components = buildExplorePatternOutlier(topOutlier);
             container.add(components);
@@ -542,17 +538,13 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             initOutlierPanel(container);
 
         } else {
-            Label label = new Label(ID_PANEL, "No data available");
-            label.setOutputMarkupId(true);
-            container.add(label);
+            emptyPanel(ID_PANEL, "No data available", container);
 
             WebMarkupContainer headerItems = new WebMarkupContainer(ID_HEADER_ITEMS);
             headerItems.setOutputMarkupId(true);
             container.add(headerItems);
 
-            Label cardTitle = new Label(ID_CARD_TITLE, "No data available");
-            cardTitle.setOutputMarkupId(true);
-            container.add(cardTitle);
+            emptyPanel(ID_CARD_TITLE, "No data available", container);
 
             WebMarkupContainer exploreButton = new WebMarkupContainer(ID_EXPLORE_PATTERN_BUTTON);
             exploreButton.setOutputMarkupId(true);
@@ -841,6 +833,9 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
+                if(outlier == null) {
+                    return;
+                }
                 PageParameters parameters = new PageParameters();
                 String clusterOid = outlier.getOid();
                 parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
@@ -886,22 +881,27 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         Task task = pageBase.createSimpleTask("loadOutlierDetails");
         RoleAnalysisOutlierType outlierObject = topOutlier;
         if (outlierObject == null) {
-            Label label = new Label(ID_PANEL, "No data available");
-            label.setOutputMarkupId(true);
-            container.add(label);
+            emptyPanel(ID_PANEL, "No data available", container);
             return;
         }
         ObjectReferenceType targetSessionRef = outlierObject.getTargetSessionRef();
         PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
                 .getSessionTypeObject(targetSessionRef.getOid(), task, task.getResult());
-        assert sessionTypeObject != null;
+
+        if (sessionTypeObject == null) {
+            emptyPanel(ID_PANEL, "No data available", container);
+            return;
+        }
         RoleAnalysisSessionType sessionType = sessionTypeObject.asObjectable();
         RoleAnalysisProcessModeType processMode = sessionType.getAnalysisOption().getProcessMode();
 
         ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
         PrismObject<RoleAnalysisClusterType> clusterTypeObject = roleAnalysisService
                 .getClusterTypeObject(targetClusterRef.getOid(), task, task.getResult());
-        assert clusterTypeObject != null;
+        if (clusterTypeObject == null) {
+            emptyPanel(ID_PANEL, "No data available", container);
+            return;
+        }
         RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
         if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
             outlierObjectModel = generateUserOutlierResultModel(
@@ -911,7 +911,12 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     roleAnalysisService, outlierObject, task, task.getResult(), cluster);
         }
 
-        assert outlierObjectModel != null;
+
+        if (outlierObjectModel == null) {
+            emptyPanel(ID_PANEL, "No data available", container);
+            return;
+        }
+
         String outlierName = outlierObjectModel.getOutlierName();
         double outlierConfidence = outlierObjectModel.getOutlierConfidence();
         String outlierDescription = outlierObjectModel.getOutlierDescription();
@@ -954,6 +959,12 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         detailsPanel.setOutputMarkupId(true);
         container.add(detailsPanel);
 
+    }
+
+    private static void emptyPanel(String idPanel, String No_data_available, WebMarkupContainer container) {
+        Label label = new Label(idPanel, No_data_available);
+        label.setOutputMarkupId(true);
+        container.add(label);
     }
 
     private @NotNull List<DetectedPattern> getTopPatterns(RoleAnalysisSessionType session) {

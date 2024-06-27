@@ -13,23 +13,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.o
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierHeaderResultPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierItemResultPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierResultPanel;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -37,6 +21,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -49,9 +34,19 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierHeaderResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierItemResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierResultPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.InfoBoxModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.*;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -88,15 +83,23 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         PageBase pageBase = RoleAnalysisClusterAnalysisAspectsPanel.this.getPageBase();
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
         Task task = pageBase.createSimpleTask("Load session type object");
-        PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
-                .getSessionTypeObject(targetSessionRef.getOid(), task, task.getResult());
-        assert sessionTypeObject != null;
-        RoleAnalysisSessionType session = sessionTypeObject.asObjectable();
-        RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
 
         RepeatingView headerItems = new RepeatingView(ID_HEADER_ITEMS);
         headerItems.setOutputMarkupId(true);
         container.add(headerItems);
+
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
+                .getSessionTypeObject(targetSessionRef.getOid(), task, task.getResult());
+        if (sessionTypeObject == null) {
+            Label label = new Label(ID_PANEL, "No session found");
+            container.add(label);
+            EmptyPanel emptyPanel = new EmptyPanel(ID_PATTERNS);
+            container.add(emptyPanel);
+            return;
+        }
+
+        RoleAnalysisSessionType session = sessionTypeObject.asObjectable();
+        RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
 
         if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
             initInfoOutlierPanel(container);
@@ -551,14 +554,18 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             ObjectReferenceType targetSessionRef = outlierObject.getTargetSessionRef();
                             PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
                                     .getSessionTypeObject(targetSessionRef.getOid(), task, task.getResult());
-                            assert sessionTypeObject != null;
+                            if (sessionTypeObject == null) {
+                                return;
+                            }
                             RoleAnalysisSessionType sessionType = sessionTypeObject.asObjectable();
                             RoleAnalysisProcessModeType processMode = sessionType.getAnalysisOption().getProcessMode();
 
                             ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
                             PrismObject<RoleAnalysisClusterType> clusterTypeObject = roleAnalysisService
                                     .getClusterTypeObject(targetClusterRef.getOid(), task, task.getResult());
-                            assert clusterTypeObject != null;
+                            if (clusterTypeObject == null) {
+                                return;
+                            }
                             RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
                             if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
                                 outlierObjectModel = generateUserOutlierResultModel(
@@ -568,7 +575,9 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                                         roleAnalysisService, outlierObject, task, task.getResult(), cluster);
                             }
 
-                            assert outlierObjectModel != null;
+                            if (outlierObjectModel == null) {
+                                return;
+                            }
                             String outlierName = outlierObjectModel.getOutlierName();
                             double outlierConfidence = outlierObjectModel.getOutlierConfidence();
                             String outlierDescription = outlierObjectModel.getOutlierDescription();
@@ -636,19 +645,6 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         };
         roleAnalysisInfoPatternPanel.setOutputMarkupId(true);
         container.add(roleAnalysisInfoPatternPanel);
-    }
-
-    ObjectQuery getQuery(RoleAnalysisClusterType cluster) {
-
-        List<ObjectReferenceType> member = cluster.getMember();
-        Set<String> membersOid = new HashSet<>();
-        for (ObjectReferenceType objectReferenceType : member) {
-            membersOid.add(objectReferenceType.getOid());
-        }
-
-        return getPrismContext().queryFor(RoleAnalysisOutlierType.class)
-                .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF).ref(membersOid.toArray(new String[0]))
-                .build();
     }
 
 }

@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.o
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 
@@ -64,14 +65,22 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
         ObjectReferenceType targetSessionRef = outlierObject.getTargetSessionRef();
         PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
                 .getSessionTypeObject(targetSessionRef.getOid(), task, task.getResult());
-        assert sessionTypeObject != null;
+        if (sessionTypeObject == null) {
+            Label label = new Label(ID_HEADER_ITEMS, "No session found");
+            container.add(label);
+            return;
+        }
         RoleAnalysisSessionType sessionType = sessionTypeObject.asObjectable();
         RoleAnalysisProcessModeType processMode = sessionType.getAnalysisOption().getProcessMode();
 
         ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
         PrismObject<RoleAnalysisClusterType> clusterTypeObject = roleAnalysisService
                 .getClusterTypeObject(targetClusterRef.getOid(), task, task.getResult());
-        assert clusterTypeObject != null;
+        if (clusterTypeObject == null) {
+            Label label = new Label(ID_HEADER_ITEMS, "No cluster found");
+            container.add(label);
+            return;
+        }
         RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
         if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
             outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlierObject, task, task.getResult(), cluster);
@@ -79,7 +88,11 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
             outlierObjectModel = generateRoleOutlierResultModel(roleAnalysisService,outlierObject, task, task.getResult(), cluster);
         }
 
-        assert outlierObjectModel != null;
+        if (outlierObjectModel == null) {
+            Label label = new Label(ID_HEADER_ITEMS, "No outlier model found");
+            container.add(label);
+            return;
+        }
         String outlierName = outlierObjectModel.getOutlierName();
         double outlierConfidence = outlierObjectModel.getOutlierConfidence();
         String outlierDescription = outlierObjectModel.getOutlierDescription();
