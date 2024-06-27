@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.ninja.action.mining.generator.context;
 
+import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.addExtensionValue;
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.importUserAndResolveAuxRoles;
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGeneratorUtils.*;
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacObjectCategoryProcessor.*;
@@ -14,6 +15,9 @@ import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacOb
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -110,9 +114,14 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
-//            user.extension(new ExtensionType());
-//            ExtensionType ext = user.getExtension();
-//            addExtensionValue(ext, "hatSize", "Mike");
+            user.extension(new ExtensionType());
+            ExtensionType ext = user.getExtension();
+            ObjectReferenceType type1 = new ObjectReferenceType().oid("9962c8f7-4361-4f56-b10d-5cc11f12f233").type(UserType.COMPLEX_TYPE);
+            ObjectReferenceType type2 = new ObjectReferenceType().oid("c4538400-1e33-477b-af04-003e17c63509").type(UserType.COMPLEX_TYPE);
+            ObjectReferenceType type3 = new ObjectReferenceType().oid("4ec99470-60da-4019-afef-a5fc71163951").type(UserType.COMPLEX_TYPE);
+            ObjectReferenceType type4 = new ObjectReferenceType().oid("e21d407f-6bbc-41d5-a0be-263541567f40").type(UserType.COMPLEX_TYPE);
+            addExtensionValue(ext, "new",type1,type2,type4);
+            addExtensionValue(ext, "new2",type3);
         }
 
         @Override
@@ -187,9 +196,14 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
-//            user.extension(new ExtensionType());
-//            ExtensionType ext = user.getExtension();
-//            addExtensionValue(ext, "hatSize", "Jan");
+            user.extension(new ExtensionType());
+            ExtensionType ext = user.getExtension();
+            ObjectReferenceType type1 = new ObjectReferenceType().oid("9962c8f7-4361-4f56-b10d-5cc11f12f233").type(UserType.COMPLEX_TYPE);
+            ObjectReferenceType type2 = new ObjectReferenceType().oid("c4538400-1e33-477b-af04-003e17c63509").type(UserType.COMPLEX_TYPE);
+            ObjectReferenceType type3 = new ObjectReferenceType().oid("4ec99470-60da-4019-afef-a5fc71163951").type(UserType.COMPLEX_TYPE);
+            ObjectReferenceType type4 = new ObjectReferenceType().oid("e21d407f-6bbc-41d5-a0be-263541567f40").type(UserType.COMPLEX_TYPE);
+            addExtensionValue(ext, "new",type1,type2,type4);
+            addExtensionValue(ext, "new2",type3);
         }
 
         @Override
@@ -231,9 +245,14 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
-//            user.extension(new ExtensionType());
-//            ExtensionType ext = user.getExtension();
-//            addExtensionValue(ext, "hatSize", "Jozef");
+            user.extension(new ExtensionType());
+            ExtensionType ext = user.getExtension();
+            ObjectReferenceType type1 = new ObjectReferenceType().oid("9962c8f7-4361-4f56-b10d-5cc11f12f233").type(UserType.COMPLEX_TYPE);
+            ObjectReferenceType type2 = new ObjectReferenceType().oid("c4538400-1e33-477b-af04-003e17c63509").type(UserType.COMPLEX_TYPE);
+            ObjectReferenceType type3 = new ObjectReferenceType().oid("4ec99470-60da-4019-afef-a5fc71163951").type(UserType.COMPLEX_TYPE);
+            ObjectReferenceType type4 = new ObjectReferenceType().oid("e21d407f-6bbc-41d5-a0be-263541567f40").type(UserType.COMPLEX_TYPE);
+            addExtensionValue(ext, "new",type1,type2,type4);
+            addExtensionValue(ext, "new2",type3);
         }
 
         @Override
