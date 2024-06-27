@@ -141,17 +141,17 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     private void saveAndRunPerformed(AjaxRequestTarget target) {
         runEnabled = true;
         try {
-            savePerformed(target);
+            submitPerformed(target);
         } finally {
             runEnabled = false;
         }
     }
 
     @Override
-    protected void savePerformed(AjaxRequestTarget target) {
+    protected void submitPerformed(AjaxRequestTarget target) {
 
         WebComponentUtil.setTaskStateBeforeSave(getModelObject(), runEnabled, getPageBase(), target);
-        super.savePerformed(target);
+        super.submitPerformed(target);
     }
 
     private void initLayout() {

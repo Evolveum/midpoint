@@ -135,7 +135,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             RoleAnalysisSessionType session = getParent.asObjectable();
             RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
             RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
-            if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            if (RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
                 isOutlierDetection = true;
             }
             mode = analysisOption.getProcessMode();

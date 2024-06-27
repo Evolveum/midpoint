@@ -75,7 +75,7 @@ public class UnmodifiableSchemaPropertiesWrapperFactory<T>
 
         if (parent.getRealValue() instanceof PrismItemDefinitionType itemDef) {
             if (def.getItemName().equivalent(PrismItemDefinitionType.F_MULTIVALUE)) {
-                return Boolean.TRUE.equals(itemDef.getRequired());
+                return Boolean.TRUE.equals(itemDef.getMultivalue());
             }
         }
 

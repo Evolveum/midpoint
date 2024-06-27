@@ -86,6 +86,10 @@ public class RoleAnalysisCandidateTileModel<T extends Serializable> extends Tile
 
     public @NotNull String resolveDateAndTime(@NotNull RoleType role) {
 
+        if(role.getMetadata() == null || role.getMetadata().getCreateTimestamp() == null){
+            return "";
+        }
+
         XMLGregorianCalendar createTimestamp = role.getMetadata().getCreateTimestamp();
         int year = createTimestamp.getYear();
         int month = createTimestamp.getMonth();

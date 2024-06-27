@@ -101,6 +101,9 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
             if (category.equals(AnalysisCategory.DEPARTMENT)) {
                 isVisible = false;
             }
+            if(category.equals(AnalysisCategory.OUTLIER)){
+                isVisible = false;
+            }
         }
         Component tilePanel = super.createTilePanel(id, tileModel);
         tilePanel.setVisible(isVisible);

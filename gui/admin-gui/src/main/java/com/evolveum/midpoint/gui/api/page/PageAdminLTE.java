@@ -35,6 +35,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
@@ -297,11 +298,16 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         add(body);
 
         Label title = new Label(ID_TITLE, createPageTitleModel());
+        title.add(getPageTitleBehaviour());
         title.setRenderBodyOnly(true);
         add(title);
 
         addFooter();
         initDebugBarLayout();
+    }
+
+    protected VisibleEnableBehaviour getPageTitleBehaviour() {
+        return VisibleBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     protected void addDefaultBodyStyle(TransparentWebMarkupContainer body) {

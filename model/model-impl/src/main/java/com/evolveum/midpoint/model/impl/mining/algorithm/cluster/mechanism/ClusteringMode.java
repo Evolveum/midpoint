@@ -30,5 +30,10 @@ public enum ClusteringMode {
     /**
      * Represents an unbalanced clustering mode with rules.
      */
-    UNBALANCED_RULES
+    UNBALANCED_RULES,
+
+    /**
+     * Represents a balanced clustering mode with rules for outlier detection.
+     */
+    BALANCED_RULES_OUTLIER
 }

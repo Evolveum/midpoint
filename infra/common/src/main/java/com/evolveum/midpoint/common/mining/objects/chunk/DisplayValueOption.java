@@ -18,9 +18,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessM
 public class DisplayValueOption implements Serializable {
     RoleAnalysisAttributeDef roleAnalysisAttributeDef;
     RoleAnalysisAttributeDef userAnalysisAttributeDef;
-    RoleAnalysisSortMode sortMode;
+    RoleAnalysisSortMode sortMode = RoleAnalysisSortMode.NONE;
     RoleAnalysisProcessModeType processMode;
-    RoleAnalysisChunkMode chunkMode;
+    RoleAnalysisChunkMode chunkMode = RoleAnalysisChunkMode.COMPRESS;
 
     RoleAnalysisChunkAction chunkAction = RoleAnalysisChunkAction.SELECTION;
     boolean isPatternToolsPanelMode = true;

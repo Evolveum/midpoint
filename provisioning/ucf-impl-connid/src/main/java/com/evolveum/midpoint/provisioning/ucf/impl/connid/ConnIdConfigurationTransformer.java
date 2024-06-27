@@ -443,7 +443,7 @@ private boolean determineResultHandlerConfiguration(PrismContainer<?> resultsHan
                 throw new ConfigurationException(
                         "Expected protected string as value of configuration property "
                                 + pval.getParent().getElementName().getLocalPart() + " but got "
-                                + midPointRealValue.getClass());
+                                + (midPointRealValue == null ? null : midPointRealValue.getClass()));
             }
 
         } else if (expectedType.equals(GuardedByteArray.class)) {

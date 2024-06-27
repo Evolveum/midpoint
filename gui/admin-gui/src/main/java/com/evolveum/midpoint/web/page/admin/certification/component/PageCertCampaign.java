@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
@@ -102,8 +103,6 @@ public class PageCertCampaign extends PageAdmin {
     private IModel<AccessCertificationCampaignType> campaignModel;
     private LoadableModel<AccessCertificationCasesStatisticsType> statisticsModel;
 
-    private IModel<List<DetailsTableItem>> detailsModel;
-
     public PageCertCampaign() {
         this(new PageParameters());
     }
@@ -122,77 +121,6 @@ public class PageCertCampaign extends PageAdmin {
             @Override
             protected AccessCertificationCampaignType load() {
                 return loadCampaign();
-            }
-        };
-
-        detailsModel = new LoadableModel<>(false) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<DetailsTableItem> load() {
-                List<DetailsTableItem> list = new ArrayList<>();
-                list.add(new DetailsTableItem(createStringResource("PageCertCampaign.progress"),
-                        () -> "") {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public Component createValueComponent(String id) {
-                        return new ProgressBarPanel(id, CertMiscUtil.createCampaignProgressBarModel(campaignModel.getObject(), null));
-                    }
-                });
-                list.add(new DetailsTableItem(createStringResource("PageCertDefinition.numberOfStages"),
-                        () -> "" + campaignModel.getObject().getStageDefinition().size()));
-                AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaignModel.getObject());
-                list.add(new DetailsTableItem(createStringResource("PageCertCampaign.currentState"),
-                        null) {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public Component createValueComponent(String id) {
-                        BadgePanel status = new BadgePanel(id, createBadgeModel());
-                        status.setOutputMarkupId(true);
-                        return status;
-                    }
-
-                    private IModel<Badge> createBadgeModel() {
-                        Badge badge = new Badge("colored-form-info", resolveCurrentStateName());
-                        return Model.of(badge);
-                    }
-                });
-                list.add(new DetailsTableItem(createStringResource("PageCertCampaign.table.deadline"),
-                        null) {
-
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public Component createValueComponent(String id) {
-                        return new DeadlinePanel(id, getDeadlineModel());
-                    }
-
-                    private IModel<XMLGregorianCalendar> getDeadlineModel() {
-                        return () -> stage != null ? stage.getDeadline() : null;
-                    }
-                });
-                list.add(new DetailsTableItem(createStringResource("PageCertCampaign.owner"),
-                        () -> "") {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public Component createValueComponent(String id) {
-                        return new LinkedReferencePanel<>(id, Model.of(campaignModel.getObject().getOwnerRef())) {
-
-                            @Override
-                            protected String getAdditionalCssStyle() {
-                                return "";
-                            }
-                        };
-                    }
-                });
-                list.add(new DetailsTableItem(createStringResource("PageCertCampaign.iteration"),
-                        () -> "" + CertCampaignTypeUtil.norm(campaignModel.getObject().getIteration())));
-
-                return list;
             }
         };
 
@@ -319,12 +247,7 @@ public class PageCertCampaign extends PageAdmin {
         };
         add(navigation);
 
-        DisplayType displayType = new DisplayType()
-                .label(WebComponentUtil.getName(campaignModel.getObject()))
-                .help(campaignModel.getObject().getDescription())
-                .icon(new IconType()
-                        .cssClass(getDetailsTablePanelIconCssClass()));
-        DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS, Model.of(displayType), detailsModel);
+        CertCampaignSummaryPanel details = new CertCampaignSummaryPanel(ID_DETAILS, campaignModel);
         details.setOutputMarkupId(true);
         add(details);
 
@@ -391,10 +314,6 @@ public class PageCertCampaign extends PageAdmin {
         addOrReplace(items);
     }
 
-    private String getDetailsTablePanelIconCssClass() {
-        return IconAndStylesUtil.createDefaultColoredIcon(AccessCertificationCampaignType.COMPLEX_TYPE);
-    }
-
     private void onBackPerformed() {
         redirectBack();
     }
@@ -411,30 +330,6 @@ public class PageCertCampaign extends PageAdmin {
     @Override
     protected void createBreadcrumb() {
         addBreadcrumb(new Breadcrumb(createTitleModel(), this.getClass(), getPageParameters()));
-    }
-
-    private String resolveCurrentStateName() {
-        int stageNumber = campaignModel.getObject().getStageNumber();
-        AccessCertificationCampaignStateType state = campaignModel.getObject().getState();
-        switch (state) {
-            case CREATED:
-            case IN_REMEDIATION:
-            case CLOSED:
-                return createStringResourceStatic(PageCertCampaign.this, state).getString();
-            case IN_REVIEW_STAGE:
-            case REVIEW_STAGE_DONE:
-                AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaignModel.getObject());
-                String stageName = stage != null ? stage.getName() : null;
-                if (stageName != null) {
-                    String key = createEnumResourceKey(state) + "_FULL";
-                    return createStringResourceStatic(key, stageNumber, stageName).getString();
-                } else {
-                    String key = createEnumResourceKey(state);
-                    return createStringResourceStatic(key).getString() + " " + stageNumber;
-                }
-            default:
-                return null;        // todo warning/error?
-        }
     }
 
     private @NotNull LoadableModel<List<ProgressBar>> createResponseStatisticsModel() {

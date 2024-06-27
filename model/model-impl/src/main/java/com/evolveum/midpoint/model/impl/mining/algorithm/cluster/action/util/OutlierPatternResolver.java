@@ -36,6 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessM
  * This class plays a crucial role in identifying patterns within the analyzed data, assisting
  * in making informed decisions about role and user assignments.
  */
+
+//NOTE this class is not used (just experiment)
 public class OutlierPatternResolver implements Serializable {
 
     public static class Connection {
@@ -305,7 +307,7 @@ public class OutlierPatternResolver implements Serializable {
         //last inner intersection that was found (tmp variable for innerIntersections calculation)
         List<List<String>> result = new ArrayList<>(outerIntersections);
 
-        //TODO proof (if true we are champions)
+        //TODO proof
         //there we identify all intersections that can be found in the data (this is true if remainsOperation is disabled)
         boolean calculate = true;
         int remainsOperation = 10;

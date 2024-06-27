@@ -22,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionTy
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -159,6 +160,14 @@ public class SchemaItemTypePanelFactory extends AbstractQNameWithChoicesPanelFac
     @Override
     protected boolean isStrictForPossibleValues() {
         return true;
+    }
+
+    @Override
+    public void configure(PrismPropertyPanelContext<QName> panelCtx, org.apache.wicket.Component component) {
+        super.configure(panelCtx, component);
+        if (component instanceof Label) {
+            panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(component));
+        }
     }
 
     private class TypeDisplayableValue implements DisplayableValue<QName>, Serializable {

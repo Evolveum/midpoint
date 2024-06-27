@@ -6,13 +6,13 @@
  */
 package com.evolveum.midpoint.model.api.mining;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import com.google.common.collect.ListMultimap;
+import org.apache.commons.lang3.mutable.MutableDouble;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -475,7 +475,7 @@ public interface RoleAnalysisService {
      * @param taskName The name of the task.
      * @param task The task associated with this operation.
      * @param result The operation result.
-     * @param processingTask
+     * @param processingTask The processing task.
      */
     void executeClusteringTask(
             @NotNull ModelInteractionService modelInteractionService,
@@ -485,20 +485,6 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull TaskType processingTask);
-
-    /**
-     * This method is used to update the cluster detected patterns.
-     * Currently, it is used to update the cluster detected patterns
-     * after the migration task in the cluster.
-     *
-     * @param clusterRefOid The cluster OID.
-     * @param task The task associated with this operation.
-     * @param result The operation result.
-     */
-    void updateClusterPatterns(
-            @NotNull String clusterRefOid,
-            @NotNull Task task,
-            @NotNull OperationResult result);
 
     /**
      * Recompute and resolve the cluster operation status.
@@ -719,8 +705,8 @@ public interface RoleAnalysisService {
             @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
             @NotNull Task task,
             @NotNull OperationResult result,
-            @NotNull List<RoleAnalysisAttributeDef> attributeRoleDefSet,
-            @NotNull List<RoleAnalysisAttributeDef> attributeUserDefSet);
+            @Nullable List<RoleAnalysisAttributeDef> attributeRoleDefSet,
+            @Nullable List<RoleAnalysisAttributeDef> attributeUserDefSet);
 
     /**
      * Searches for clusters associated with a specific role analysis session.
@@ -803,7 +789,9 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    RoleAnalysisAttributeAnalysisResult resolveUserAttributes(@NotNull PrismObject<UserType> prismUser, List<RoleAnalysisAttributeDef> attributesForUserAnalysis);
+    RoleAnalysisAttributeAnalysisResult resolveUserAttributes(
+            @NotNull PrismObject<UserType> prismUser,
+            @NotNull List<RoleAnalysisAttributeDef> attributesForUserAnalysis);
 
     @Nullable RoleAnalysisAttributeAnalysisResult resolveSimilarAspect(
             @NotNull RoleAnalysisAttributeAnalysisResult compared,
@@ -816,14 +804,7 @@ public interface RoleAnalysisService {
             @NotNull List<RoleAnalysisAttributeDef> attributeDefSet);
 
     <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(@NotNull List<T> data, double negativeThreshold, double positiveThreshold);
-
-    <T extends MiningBaseTypeChunk> double calculateZScore(@NotNull T data, ZScoreData zScoreData);
-
     <T extends MiningBaseTypeChunk> double calculateZScoreConfidence(@NotNull T item, ZScoreData zScoreData);
-
-    List<RoleAnalysisAttributeDef> resolveRoleAttributes(@NotNull RoleAnalysisSessionType session);
-
-    List<RoleAnalysisAttributeDef> resolveUserAttributes(@NotNull RoleAnalysisSessionType session);
 
     @Nullable Set<String> resolveUserValueToMark(
             @NotNull PrismObject<UserType> prismUser,
@@ -895,15 +876,32 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    void stopSessionTask(
-            @NotNull String sessionOid,
-            @NotNull Task task,
-            @NotNull OperationResult result);
-
     List<DetectedPattern> getTopSessionPattern(
             @NotNull RoleAnalysisSessionType session,
             @NotNull Task task,
             @NotNull OperationResult result,
             boolean single);
+
+    //TODO: replace this method (experiment)
+    List<String> findJaccardCloseObject(
+            @NotNull String userOid,
+            @NotNull ListMultimap<List<String>, String> chunkMap,
+            @NotNull MutableDouble usedFrequency,
+            @NotNull List<String> outliersMembers,
+            double minThreshold,
+            int minMembers,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    ListMultimap<List<String>, String> loadUserForOutlierComparison(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            List<String> outliersMembers,
+            int minRolesOccupancy,
+            int maxRolesOccupancy,
+            @Nullable SearchFilterType query,
+            @NotNull OperationResult result,
+            @NotNull Task task);
+
+    ModelService getModelService();
 
 }

@@ -128,7 +128,7 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
                 PageUser.this.refresh(target);
             }
             @Override
-            protected void savePerformed(AjaxRequestTarget target) {
+            protected void submitPerformed(AjaxRequestTarget target) {
                 PageUser.this.savePerformed(target);
             }
 

@@ -7,8 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.createAnalysisAttributeChoiceSet;
+
 import java.util.*;
-import javax.xml.namespace.QName;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -19,12 +20,13 @@ import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2MultiChoice;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AnalysisAttributeRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AnalysisAttributeSettingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class AnalysisAttributeSelectorPanel extends InputPanel {
     private static final String ID_MULTISELECT = "multiselect";
@@ -40,7 +42,7 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
         super(id);
         this.model = model;
         this.processModeType = processModeType;
-        this.objectToChooseFrom = createChoiceSet();
+        this.objectToChooseFrom = createAnalysisAttributeChoiceSet();
         initSelectedModel(model);
     }
 
@@ -198,38 +200,6 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
             prefix = "(Role) ";
         }
         return prefix + analysisAttributeRuleType.getAttributeIdentifier();
-    }
-
-    private @NotNull List<AnalysisAttributeRuleType> createChoiceSet() {
-
-        List<AnalysisAttributeRuleType> result = new ArrayList<>();
-        List<RoleAnalysisAttributeDef> roleAttributesForRoleAnalysis = new ArrayList<>(
-                RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis());
-        List<RoleAnalysisAttributeDef> userAttributesForUserAnalysis = new ArrayList<>(
-                RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis());
-
-        addAttributesToResult(roleAttributesForRoleAnalysis, result, RoleType.COMPLEX_TYPE);
-        addAttributesToResult(userAttributesForUserAnalysis, result, UserType.COMPLEX_TYPE);
-
-        return result;
-    }
-
-    private void addAttributesToResult(
-            @NotNull List<RoleAnalysisAttributeDef> attributeDef,
-            @NotNull List<AnalysisAttributeRuleType> result,
-            @NotNull QName complexType) {
-        for (RoleAnalysisAttributeDef def : attributeDef) {
-            result.add(createAnalysisAttributeRule(def, complexType));
-        }
-    }
-
-    private @NotNull AnalysisAttributeRuleType createAnalysisAttributeRule(
-            @NotNull RoleAnalysisAttributeDef def,
-            @NotNull QName complexType) {
-        AnalysisAttributeRuleType rule = new AnalysisAttributeRuleType();
-        rule.setAttributeIdentifier(def.getDisplayValue());
-        rule.setPropertyType(complexType);
-        return rule;
     }
 
     private @NotNull List<AnalysisAttributeRuleType> performSearch(String term) {

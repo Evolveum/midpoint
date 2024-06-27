@@ -9,6 +9,7 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierNoiseCategoryType;
 
 import java.util.Set;
 
@@ -21,4 +22,6 @@ public interface Clusterable {
     void addCloseNeighbor(String neighbor);
     ExtensionProperties getExtensionProperties();
     int getMembersCount();
+    RoleAnalysisOutlierNoiseCategoryType getPointStatus();
+    void setPointStatus(RoleAnalysisOutlierNoiseCategoryType pointStatus);
 }

@@ -10,7 +10,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.experim
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.*;
 
 import java.io.Serial;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -189,16 +188,12 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
 
         ChoiceRenderer<RoleAnalysisAttributeDef> renderer = new ChoiceRenderer<>("displayValue");
 
-        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = new ArrayList<>(getAttributesForRoleAnalysis());
-        attributesForUserAnalysis.removeIf(RoleAnalysisAttributeDef::isContainer);
-
-        RoleAnalysisAttributeDef objectNameDef = getObjectNameDef();
-        attributesForUserAnalysis.add(0, objectNameDef);
+        List<RoleAnalysisAttributeDef> attributesForRoleAnalysis = createSimpleRoleAttributeChoiceSet();
         IModel<RoleAnalysisAttributeDef> selectedModel = Model.of(roleAnalysisAttributeDef.getObject());
 
         DropDownChoice<RoleAnalysisAttributeDef> dropDownChoice = new DropDownChoice<>(
                 ID_SELECTOR_ROLE, selectedModel,
-                attributesForUserAnalysis, renderer);
+                attributesForRoleAnalysis, renderer);
 
         dropDownChoice.setOutputMarkupId(true);
         dropDownChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -243,11 +238,8 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
 
         ChoiceRenderer<RoleAnalysisAttributeDef> renderer = new ChoiceRenderer<>("displayValue");
 
-        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = new ArrayList<>(getAttributesForUserAnalysis());
-        attributesForUserAnalysis.removeIf(RoleAnalysisAttributeDef::isContainer);
-
-        RoleAnalysisAttributeDef objectNameDef = getObjectNameDef();
-        attributesForUserAnalysis.add(0, objectNameDef);
+        //TODO mark good
+        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = createSimpleUserAttributeChoiceSet();
         IModel<RoleAnalysisAttributeDef> selectedModel = Model.of(userAnalysisAttributeDef.getObject());
 
         DropDownChoice<RoleAnalysisAttributeDef> dropDownChoice = new DropDownChoice<>(

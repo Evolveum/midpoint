@@ -236,7 +236,6 @@ public class RoleAnalysisAttributeDefUtils {
     }
 
     public static @NotNull List<RoleAnalysisAttributeDef> getAttributesForRoleAnalysis() {
-
         List<RoleAnalysisAttributeDef> analysisAttributeDefs = new ArrayList<>(List.of(
                 lifecycleState,
                 locale,
@@ -343,11 +342,25 @@ public class RoleAnalysisAttributeDefUtils {
         Set<String> resolvedValues = new HashSet<>();
         Collection<Item<?, ?>> allItems = prismObject.getAllItems(itemPath);
         for (Item<?, ?> item : allItems) {
-            Object realValue = item.getRealValue();
-            if (realValue instanceof ObjectReferenceType objectReference) {
-                QName refTargetType = objectReference.getType();
-                if (refTargetType.equals(targetType)) {
-                    resolvedValues.add(objectReference.getOid());
+            boolean isMultiValue = !item.isSingleValue();
+
+            if (isMultiValue) {
+                Collection<?> realValues = item.getRealValues();
+                for (Object realValue : realValues) {
+                    if (realValue instanceof ObjectReferenceType objectReference) {
+                        QName refTargetType = objectReference.getType();
+                        if (refTargetType.equals(targetType)) {
+                            resolvedValues.add(objectReference.getOid());
+                        }
+                    }
+                }
+            } else {
+                Object realValue = item.getRealValue();
+                if (realValue instanceof ObjectReferenceType objectReference) {
+                    QName refTargetType = objectReference.getType();
+                    if (refTargetType.equals(targetType)) {
+                        resolvedValues.add(objectReference.getOid());
+                    }
                 }
             }
         }
@@ -362,9 +375,20 @@ public class RoleAnalysisAttributeDefUtils {
         Set<String> resolvedValues = new HashSet<>();
         Collection<Item<?, ?>> allItems = prismObject.getAllItems(itemPath);
         for (Item<?, ?> item : allItems) {
-            Object realValue = item.getRealValue();
-            if (realValue instanceof ObjectReferenceType objectReference) {
-                resolvedValues.add(objectReference.getOid());
+            boolean isMultiValue = !item.isSingleValue();
+
+            if (isMultiValue) {
+                Collection<?> realValues = item.getRealValues();
+                for (Object realValue : realValues) {
+                    if (realValue instanceof ObjectReferenceType objectReference) {
+                        resolvedValues.add(objectReference.getOid());
+                    }
+                }
+            } else {
+                Object realValue = item.getRealValue();
+                if (realValue instanceof ObjectReferenceType objectReference) {
+                    resolvedValues.add(objectReference.getOid());
+                }
             }
         }
 
@@ -378,7 +402,7 @@ public class RoleAnalysisAttributeDefUtils {
 
         try {
             itemDefinitionByFullPath = PrismContext.get().getSchemaRegistry()
-                    .findItemDefinitionByFullPath(UserType.class, PrismContainerDefinition.class, UserType.F_EXTENSION);
+                    .findItemDefinitionByFullPath(RoleType.class, PrismContainerDefinition.class, RoleType.F_EXTENSION);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
@@ -438,14 +462,14 @@ public class RoleAnalysisAttributeDefUtils {
 
     private static @NotNull RoleAnalysisAttributeDef createUserAttribute(
             @NotNull PrismReferenceDefinition prismReferenceDefinition) {
-        boolean isSingleValue = prismReferenceDefinition.isSingleValue();
+        boolean isContainer = !prismReferenceDefinition.isSingleValue();
 
         ItemPath itemName = prismReferenceDefinition.getItemName();
         String attributeName = itemName + " extension";
 
         return new RoleAnalysisAttributeDef(
                 ItemPath.create(UserType.F_EXTENSION, itemName),
-                isSingleValue,
+                isContainer,
                 attributeName,
                 UserType.class,
                 RoleAnalysisAttributeDef.IdentifierType.OID) {
@@ -473,16 +497,21 @@ public class RoleAnalysisAttributeDefUtils {
             @NotNull PrismPropertyDefinition<?> prismPropertyDefinition) {
 
         Class<?> typeClass = prismPropertyDefinition.getTypeClass();
-        boolean isSingleValue = prismPropertyDefinition.isSingleValue();
+        boolean isContainer = !prismPropertyDefinition.isSingleValue();
 
         ItemPath itemName = prismPropertyDefinition.getItemName();
         String attributeName = itemName + " extension";
+
+        //TODO in some cases typeClass might be null, e.g. enumeration extension
+        if (typeClass == null) {
+            return null;
+        }
 
         if (isSupportedPropertyType(typeClass)) {
 
             return new RoleAnalysisAttributeDef(
                     ItemPath.create(UserType.F_EXTENSION, prismPropertyDefinition.getItemName()),
-                    isSingleValue,
+                    isContainer,
                     attributeName,
                     UserType.class,
                     RoleAnalysisAttributeDef.IdentifierType.FINAL) {
@@ -497,7 +526,7 @@ public class RoleAnalysisAttributeDefUtils {
         } else if (typeClass.equals(ObjectReferenceType.class)) {
             return new RoleAnalysisAttributeDef(
                     ItemPath.create(UserType.F_EXTENSION, prismPropertyDefinition.getItemName()),
-                    isSingleValue,
+                    isContainer,
                     attributeName,
                     UserType.class,
                     RoleAnalysisAttributeDef.IdentifierType.OID) {
@@ -524,14 +553,14 @@ public class RoleAnalysisAttributeDefUtils {
 
     private static @NotNull RoleAnalysisAttributeDef createRoleAttribute(
             @NotNull PrismReferenceDefinition prismReferenceDefinition) {
-        boolean isSingleValue = prismReferenceDefinition.isSingleValue();
+        boolean isContainer = !prismReferenceDefinition.isSingleValue();
 
         ItemPath itemName = prismReferenceDefinition.getItemName();
         String attributeName = itemName + " extension";
 
         return new RoleAnalysisAttributeDef(
                 ItemPath.create(RoleType.F_EXTENSION, itemName),
-                isSingleValue,
+                isContainer,
                 attributeName,
                 RoleType.class,
                 RoleAnalysisAttributeDef.IdentifierType.OID) {
@@ -559,15 +588,20 @@ public class RoleAnalysisAttributeDefUtils {
             @NotNull PrismPropertyDefinition<?> prismPropertyDefinition) {
 
         Class<?> typeClass = prismPropertyDefinition.getTypeClass();
-        boolean isSingleValue = prismPropertyDefinition.isSingleValue();
+        boolean isContainer = !prismPropertyDefinition.isSingleValue();
 
         ItemPath itemName = prismPropertyDefinition.getItemName();
         String attributeName = itemName + " extension";
 
+        //TODO in some cases typeClass might be null, e.g. enumeration extension
+        if (typeClass == null) {
+            return null;
+        }
+
         if (isSupportedPropertyType(typeClass)) {
             return new RoleAnalysisAttributeDef(
                     ItemPath.create(RoleType.F_EXTENSION, itemName),
-                    isSingleValue,
+                    isContainer,
                     attributeName,
                     RoleType.class,
                     RoleAnalysisAttributeDef.IdentifierType.FINAL) {
@@ -581,7 +615,7 @@ public class RoleAnalysisAttributeDefUtils {
         } else if (typeClass.equals(ObjectReferenceType.class)) {
             return new RoleAnalysisAttributeDef(
                     ItemPath.create(RoleType.F_EXTENSION, prismPropertyDefinition.getItemName()),
-                    isSingleValue,
+                    isContainer,
                     attributeName,
                     RoleType.class,
                     RoleAnalysisAttributeDef.IdentifierType.OID) {
@@ -614,7 +648,7 @@ public class RoleAnalysisAttributeDefUtils {
     @Nullable
     private static String resolveRef(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
         Item<PrismValue, ItemDefinition<?>> property = prismObject.findItem(itemPath);
-        if (property != null) {
+        if (property != null && property.isSingleValue()) {
             Object object = property.getRealValue();
             if (object instanceof ObjectReferenceType objectReference) {
                 return objectReference.getOid();
@@ -623,4 +657,96 @@ public class RoleAnalysisAttributeDefUtils {
         }
         return null;
     }
+
+    public static @NotNull List<AnalysisAttributeRuleType> createAnalysisAttributeChoiceSet() {
+
+        List<AnalysisAttributeRuleType> result = new ArrayList<>();
+        //TODO good
+        List<RoleAnalysisAttributeDef> roleAttributesForRoleAnalysis = new ArrayList<>(
+                RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis());
+        List<RoleAnalysisAttributeDef> userAttributesForUserAnalysis = new ArrayList<>(
+                RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis());
+
+        addAttributesToResult(roleAttributesForRoleAnalysis, result, RoleType.COMPLEX_TYPE);
+        addAttributesToResult(userAttributesForUserAnalysis, result, UserType.COMPLEX_TYPE);
+
+        return result;
+    }
+
+    private static void addAttributesToResult(
+            @NotNull List<RoleAnalysisAttributeDef> attributeDef,
+            @NotNull List<AnalysisAttributeRuleType> result,
+            @NotNull QName complexType) {
+        for (RoleAnalysisAttributeDef def : attributeDef) {
+            result.add(createAnalysisAttributeRule(def, complexType));
+        }
+    }
+
+    private static @NotNull AnalysisAttributeRuleType createAnalysisAttributeRule(
+            @NotNull RoleAnalysisAttributeDef def,
+            @NotNull QName complexType) {
+        AnalysisAttributeRuleType rule = new AnalysisAttributeRuleType();
+        rule.setAttributeIdentifier(def.getDisplayValue());
+        rule.setPropertyType(complexType);
+        return rule;
+    }
+
+    public static @NotNull List<AnalysisAttributeRuleType> createChoiceUserRoleAttributeSet() {
+        //TODO mark good
+        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = new ArrayList<>(
+                RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis());
+
+        attributesForUserAnalysis.addAll(RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis());
+
+        List<AnalysisAttributeRuleType> result = new ArrayList<>();
+        for (RoleAnalysisAttributeDef def : attributesForUserAnalysis) {
+            AnalysisAttributeRuleType rule = new AnalysisAttributeRuleType();
+            rule.setAttributeIdentifier(def.getDisplayValue());
+            rule.setPropertyType(def.getComplexType());
+            result.add(rule);
+        }
+        return result;
+    }
+
+    @NotNull
+    public static List<RoleAnalysisAttributeDef> createSimpleUserAttributeChoiceSet() {
+        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = new ArrayList<>(getAttributesForUserAnalysis());
+        attributesForUserAnalysis.removeIf(RoleAnalysisAttributeDef::isContainer);
+
+        RoleAnalysisAttributeDef objectNameDef = getObjectNameDef();
+        attributesForUserAnalysis.add(0, objectNameDef);
+        return attributesForUserAnalysis;
+    }
+
+    @NotNull
+    public static List<RoleAnalysisAttributeDef> createSimpleRoleAttributeChoiceSet() {
+        List<RoleAnalysisAttributeDef> attributesForRoleAnalysis = new ArrayList<>(getAttributesForRoleAnalysis());
+        attributesForRoleAnalysis.removeIf(RoleAnalysisAttributeDef::isContainer);
+
+        RoleAnalysisAttributeDef objectNameDef = getObjectNameDef();
+        attributesForRoleAnalysis.add(0, objectNameDef);
+        return attributesForRoleAnalysis;
+    }
+
+    public static @NotNull List<ClusteringAttributeRuleType> createClusteringAttributeChoiceSet(
+            @NotNull RoleAnalysisProcessModeType processModeType) {
+        List<RoleAnalysisAttributeDef> attributesForUserAnalysis;
+        if (processModeType.equals(RoleAnalysisProcessModeType.USER)) {
+            attributesForUserAnalysis = RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis();
+        } else {
+            attributesForUserAnalysis = RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis();
+        }
+
+        List<ClusteringAttributeRuleType> result = new ArrayList<>();
+        for (RoleAnalysisAttributeDef def : attributesForUserAnalysis) {
+            ClusteringAttributeRuleType rule = new ClusteringAttributeRuleType();
+            rule.setAttributeIdentifier(def.getDisplayValue());
+            rule.setSimilarity(100.0);
+            rule.setWeight(1.0);
+            rule.setIsMultiValue(def.isContainer());
+            result.add(rule);
+        }
+        return result;
+    }
+
 }
