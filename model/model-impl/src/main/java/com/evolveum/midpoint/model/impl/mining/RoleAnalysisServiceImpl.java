@@ -11,7 +11,7 @@ import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.createAttributeMap;
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis;
+
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.model.impl.mining.analysis.AttributeAnalysisUtil.*;
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisUtils.*;
@@ -92,11 +92,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull OperationResult result) {
         try {
             return modelService.getObject(UserType.class, oid, null, task, result);
+        } catch (ObjectNotFoundException ox) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "User object not found", ox);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get UserType object, Probably not set yet", ex);
-        } finally {
-            result.recomputeStatus();
         }
+
         return null;
     }
 
@@ -107,11 +108,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull OperationResult result) {
         try {
             return modelService.getObject(FocusType.class, oid, null, task, result);
+        } catch (ObjectNotFoundException ox) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Focus object not found", ox);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get FocusType object, Probably not set yet", ex);
-        } finally {
-            result.recomputeStatus();
         }
+
         return null;
     }
 
@@ -122,10 +124,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull OperationResult result) {
         try {
             return modelService.getObject(RoleType.class, oid, null, task, result);
+        } catch (ObjectNotFoundException ox) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Role object not found", ox);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get RoleType object, Probably not set yet", ex);
-        } finally {
-            result.recomputeStatus();
         }
         return null;
     }
@@ -170,12 +172,14 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull OperationResult result) {
         try {
             return modelService.getObject(objectTypeClass, oid, null, task, result);
+        } catch (ObjectNotFoundException ox) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER,
+                    "Object not found", ox);
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER,
                     "Couldn't get object, Probably not set yet", ex);
-        } finally {
-            result.recomputeStatus();
         }
+
         return null;
     }
 
@@ -1960,12 +1964,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     @NotNull
-    public RoleAnalysisAttributeAnalysisResult resolveUserAttributes(@NotNull PrismObject<UserType> prismUser, List<RoleAnalysisAttributeDef> attributesForUserAnalysis) {
+    public RoleAnalysisAttributeAnalysisResult resolveUserAttributes(
+            @NotNull PrismObject<UserType> prismUser,
+            @NotNull List<RoleAnalysisAttributeDef> attributesForUserAnalysis) {
         RoleAnalysisAttributeAnalysisResult outlierCandidateAttributeAnalysisResult = new RoleAnalysisAttributeAnalysisResult();
 
-        List<RoleAnalysisAttributeDef> itemDef = getAttributesForUserAnalysis();
-
-        for (RoleAnalysisAttributeDef item : itemDef) {
+        for (RoleAnalysisAttributeDef item : attributesForUserAnalysis) {
             RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
             roleAnalysisAttributeAnalysis.setItemPath(item.getDisplayValue());
             List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAnalysisAttributeAnalysis.getAttributeStatistics();
