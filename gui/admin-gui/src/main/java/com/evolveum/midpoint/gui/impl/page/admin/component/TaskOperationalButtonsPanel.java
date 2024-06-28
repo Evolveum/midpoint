@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.web.page.admin.reports.ReportDownloadHelper;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -63,7 +65,6 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.server.LivesyncTokenEditorPanel;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -367,7 +368,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
             protected InputStream initStream() {
                 ReportDataType reportObject = getReportData();
                 if (reportObject != null) {
-                    return PageCreatedReports.createReport(reportObject, this, getPageBase());
+                    return ReportDownloadHelper.createReport(reportObject, this, getPageBase());
                 } else {
                     return null;
                 }
@@ -376,7 +377,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
             @Override
             public String getFileName() {
                 ReportDataType reportObject = getReportData();
-                return PageCreatedReports.getReportFileName(reportObject);
+                return ReportDownloadHelper.getReportFileName(reportObject);
             }
         };
         add(ajaxDownloadBehavior);

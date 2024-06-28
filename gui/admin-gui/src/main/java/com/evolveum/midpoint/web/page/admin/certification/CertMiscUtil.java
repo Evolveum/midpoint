@@ -15,6 +15,7 @@ import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -24,6 +25,9 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.ActionType;
+import com.evolveum.midpoint.web.component.action.*;
+import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.wicket.chartjs.ChartData;
@@ -45,6 +49,8 @@ public class CertMiscUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(CertMiscUtil.class);
     private static final String OPERATION_LOAD_CAMPAIGNS_OIDS = "loadCampaignsOids";
+    private static final String OPERATION_RECORD_ACTION = "recordAction";
+    private static final String OPERATION_RECORD_ACTION_SELECTED = "recordActionSelected";
 
     public static String getStopReviewOnText(List<AccessCertificationResponseType> stopOn, PageBase page) {
         if (stopOn == null) {
@@ -211,6 +217,121 @@ public class CertMiscUtil {
                 return "" + CertCampaignTypeUtil.norm(campaign.getIteration());
             }
         };
+    }
+
+    public static void recordCertItemResponse(@NotNull AccessCertificationWorkItemType item,
+            AccessCertificationResponseType response, String comment, OperationResult result, Task task, PageBase pageBase) {
+        try {
+            AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(item);
+            //todo log error?
+            if (certCase == null) {
+                return;
+            }
+            AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaign(certCase);
+            if (campaign == null) {
+                return;
+            }
+            pageBase.getCertificationService().recordDecision(
+                    campaign.getOid(),
+                    certCase.getId(), item.getId(), response, comment, task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    public static List<AbstractGuiAction<AccessCertificationWorkItemType>> mergeCertItemsResponses
+            (List<AccessCertificationResponseType> availableResponses, List<GuiActionType> actions, PageBase pageBase) {
+        List<AbstractGuiAction<AccessCertificationWorkItemType>> availableActions =
+                availableResponses.stream()
+                .map(response -> createAction(response, pageBase))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(actions)) {
+            return availableActions;
+        }
+        actions.forEach(action -> {
+            AbstractGuiAction<AccessCertificationWorkItemType> actionInstance = createAction(action, pageBase);
+            addOrReplaceAction(availableActions, actionInstance);
+        });
+        return availableActions;
+    }
+
+    private static void addOrReplaceAction(List<AbstractGuiAction<AccessCertificationWorkItemType>> availableActions,
+            AbstractGuiAction<AccessCertificationWorkItemType> action) {
+        availableActions.stream()
+                .filter(a -> a.getClass().equals(action.getClass()))
+                .findFirst().ifPresent(availableActions::remove);
+        availableActions.add(action);
+    }
+
+    private static void addIfNotPresent(List<AccessCertificationResponseType> availableResponses,
+            AccessCertificationResponseType response) {
+        if (availableResponses.stream().noneMatch(r -> r.equals(response))) {
+            availableResponses.add(response);
+        }
+    }
+
+    private static void removeIfPresent(List<AccessCertificationResponseType> availableResponses,
+            AccessCertificationResponseType response) {
+        availableResponses.removeIf(r -> r.equals(response));
+    }
+
+    private static AbstractGuiAction<AccessCertificationWorkItemType> createAction(AccessCertificationResponseType response, PageBase pageBase) {
+        CertificationItemResponseHelper helper = new CertificationItemResponseHelper(response);
+        Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>> actionClass = helper.getGuiActionForResponse();
+        if (actionClass == null) {
+            pageBase.error("Unable to find action for response: " + response);
+            return null;
+        }
+        return instantiateAction(actionClass, pageBase);
+    }
+
+    private static AbstractGuiAction<AccessCertificationWorkItemType> createAction(GuiActionType guiAction, PageBase pageBase) {
+        Class<? extends AbstractGuiAction<?>> actionClass = pageBase.findGuiAction(guiAction.getIdentifier());
+        if (actionClass == null) {
+            pageBase.error("Unable to find action for identifier: " + guiAction.getIdentifier());
+            return null;
+        }
+        GuiActionType preAction = guiAction.getPreAction();
+        String preActionIdentifier = preAction != null ? preAction.getIdentifier() : null;
+        AbstractGuiAction<AccessCertificationWorkItemType> preActionInstance = null;
+        if (StringUtils.isNotEmpty(preActionIdentifier)) {
+            Class<? extends AbstractGuiAction<?>> preActionClass = pageBase.findGuiAction(preActionIdentifier);
+            if (preActionClass != null) {
+                preActionInstance = instantiateAction(preActionClass, pageBase);
+            }
+        }
+        AbstractGuiAction<AccessCertificationWorkItemType> actionInstance = instantiateAction(actionClass,
+                preActionInstance, pageBase);
+        if (actionInstance != null && guiAction.getVisibility() != null) {
+            actionInstance.setVisible(WebComponentUtil.getElementVisibility(guiAction.getVisibility()));
+        }
+        return actionInstance;
+    }
+
+    private static AbstractGuiAction<AccessCertificationWorkItemType> instantiateAction(
+            Class<? extends AbstractGuiAction<?>> actionClass, PageBase pageBase) {
+        return instantiateAction(actionClass, null, pageBase);
+    }
+
+    private static AbstractGuiAction<AccessCertificationWorkItemType> instantiateAction(
+            Class<? extends AbstractGuiAction<?>> actionClass, AbstractGuiAction<AccessCertificationWorkItemType> preAction,
+            PageBase pageBase) {
+        ActionType actionType = actionClass.getAnnotation(ActionType.class);
+        Class<?> applicableFor = actionType.applicableForType();
+        if (!applicableFor.isAssignableFrom(AccessCertificationWorkItemType.class)) {
+            pageBase.error("The action is not applicable for AccessCertificationWorkItemType");
+            return null;
+        }
+        if (preAction == null) {
+            return WebComponentUtil.instantiateAction(
+                    (Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>>) actionClass);
+        } else {
+            return WebComponentUtil.instantiateAction(
+                    (Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>>) actionClass, preAction);
+        }
     }
 
 }

@@ -8,15 +8,12 @@
 package com.evolveum.midpoint.web.page.admin.certification.component;
 
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
-import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
-import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignStateHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
@@ -31,32 +28,39 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serial;
+import java.util.List;
 
-public class MyCampaignsPanel extends CampaignsPanel {
-
+/**
+ * Panel is used as an active campaigns preview on the Certification items page.
+ * Campaign tiles are navigating to the certification items view, not to the campaign details.
+ */
+public class ActiveCampaignsPanel extends CampaignsPanel {
     @Serial private static final long serialVersionUID = 1L;
 
-    public MyCampaignsPanel(String id) {
+    public ActiveCampaignsPanel(String id) {
         super(id);
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initMyCampaignsLayout();
     }
 
-    private void initMyCampaignsLayout() {
+    @Override
+    protected void onAfterRender() {
+        super.onAfterRender();
+        var campaignsProvider = getCampaignsProvider();
+        List<?> campaignsList = campaignsProvider != null ? campaignsProvider.getAvailableData() : List.of();
+        if (campaignsList.size() == 1) {
+            // if user has 1 active campaign, they are automatically redirected to the cert items page
+            getPageBase().navigateToNext(PageCertDecisions.class);
+        }
     }
 
     protected ObjectQuery getCustomCampaignsQuery() {
         FocusType principal = getPageBase().getPrincipalFocus();
 
         return getPrismContext().queryFor(AccessCertificationCampaignType.class)
-                .item(AccessCertificationCampaignType.F_CASE, AccessCertificationCaseType.F_WORK_ITEM,
-                        AccessCertificationWorkItemType.F_ASSIGNEE_REF)
-                .ref(principal.getOid())
-                .and()
                 .item(AccessCertificationCampaignType.F_CASE, AccessCertificationCaseType.F_WORK_ITEM,
                         AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
                 .isNull()
@@ -75,7 +79,7 @@ public class MyCampaignsPanel extends CampaignsPanel {
 
             @Override
             protected MidPointPrincipal getPrincipal() {
-                return MyCampaignsPanel.this.getPageBase().getPrincipal();
+                return ActiveCampaignsPanel.this.getPrincipal();
             }
 
             @Override
@@ -103,7 +107,7 @@ public class MyCampaignsPanel extends CampaignsPanel {
 
             @Override
             protected void onBackPerformed(AjaxRequestTarget target) {
-                MyCampaignsPanel.this.getPageBase().redirectBack();
+                ActiveCampaignsPanel.this.getPageBase().redirectBack();
             }
 
             @Override
@@ -114,7 +118,7 @@ public class MyCampaignsPanel extends CampaignsPanel {
 
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        MyCampaignsPanel.this.getPageBase().navigateToNext(PageCertDecisions.class);
+                        ActiveCampaignsPanel.this.getPageBase().navigateToNext(PageCertDecisions.class);
                     }
                 };
                 showAll.showTitleAsLabel(true);
@@ -131,4 +135,9 @@ public class MyCampaignsPanel extends CampaignsPanel {
         parameters.set(PageCertDecisions.CAMPAIGN_OID_PARAMETER, campaignOid);
         getPageBase().navigateToNext(PageCertDecisions.class, parameters);
     }
+
+    protected MidPointPrincipal getPrincipal() {
+        return null;
+    }
 }
+

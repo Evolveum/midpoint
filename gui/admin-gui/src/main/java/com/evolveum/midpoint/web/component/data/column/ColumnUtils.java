@@ -18,6 +18,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelColumn;
@@ -867,38 +868,38 @@ public class ColumnUtils {
         };
         columns.add(column);
 
-        column = new AbstractColumn<>(createStringResource("PageCertCampaigns.table.escalationLevel")) {
-            @Serial private static final long serialVersionUID = 1L;
+//        column = new AbstractColumn<>(createStringResource("PageCertCampaigns.table.escalationLevel")) {
+//            @Serial private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+//                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+//                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+//                int escalationLevelNumber = CertCampaignTypeUtil.getCurrentStageEscalationLevelNumberSafe(campaign);
+//                Label label = new Label(componentId, escalationLevelNumber);
+//                label.add(new VisibleBehaviour(() -> isEscalationLevelNumber(escalationLevelNumber)));
+//                item.add(label);
+//            }
+//
+//            private boolean isEscalationLevelNumber(int escalationLevelNumber) {
+//                return escalationLevelNumber != 0;
+//            }
+//        };
+//        columns.add(column);
 
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
-                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
-                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
-                int escalationLevelNumber = CertCampaignTypeUtil.getCurrentStageEscalationLevelNumberSafe(campaign);
-                Label label = new Label(componentId, escalationLevelNumber);
-                label.add(new VisibleBehaviour(() -> isEscalationLevelNumber(escalationLevelNumber)));
-                item.add(label);
-            }
+//        column = new AbstractColumn<>(createStringResource("PageCertCampaigns.table.stages")) {
+//            @Serial private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+//                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+//                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+//                item.add(new Label(componentId, CertCampaignTypeUtil.getNumberOfStages(campaign)));
+//            }
+//        };
+//        columns.add(column);
 
-            private boolean isEscalationLevelNumber(int escalationLevelNumber) {
-                return escalationLevelNumber != 0;
-            }
-        };
-        columns.add(column);
-
-        column = new AbstractColumn<>(createStringResource("PageCertCampaigns.table.stages")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
-                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
-                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
-                item.add(new Label(componentId, CertCampaignTypeUtil.getNumberOfStages(campaign)));
-            }
-        };
-        columns.add(column);
-
-        column = new AbstractColumn<>(createStringResource("PageCertCampaigns.table.deadline")) {
+        column = new AbstractColumn<>(createStringResource("PageCertCampaign.table.deadline")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -911,6 +912,21 @@ public class ColumnUtils {
 
             private IModel<XMLGregorianCalendar> getDeadlineModel(AccessCertificationCampaignType campaign) {
                 return () -> CampaignProcessingHelper.computeDeadline(campaign, pageBase);
+            }
+        };
+        columns.add(column);
+
+        column = new AbstractColumn<>(createStringResource("CampaignTilePanel.progress")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> item,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+                ProgressBarPanel progressBar = new ProgressBarPanel(componentId,
+                        CertMiscUtil.createCampaignProgressBarModel(campaign, null));
+                progressBar.setOutputMarkupId(true);
+                item.add(progressBar);
             }
         };
         columns.add(column);

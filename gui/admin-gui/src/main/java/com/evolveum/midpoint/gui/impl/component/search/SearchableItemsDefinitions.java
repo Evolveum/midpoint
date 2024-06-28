@@ -204,6 +204,14 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(SimulationResultProcessedObjectType.F_EVENT_MARK_REF)
         ));
 
+        SEARCHABLE_OBJECTS.put(AccessCertificationCampaignType.class, Arrays.asList(
+                ItemPath.create(AccessCertificationCampaignType.F_DEFINITION_REF),
+                ItemPath.create(AccessCertificationCampaignType.F_START_TIMESTAMP),
+                ItemPath.create(AccessCertificationCampaignType.F_END_TIMESTAMP),
+                ItemPath.create(AccessCertificationCampaignType.F_STATE),
+                ItemPath.create(AccessCertificationCampaignType.F_STAGE)
+        ));
+
         SEARCHABLE_OBJECTS.put(AccessCertificationCaseType.class, Arrays.asList(
                 ItemPath.create(AccessCertificationCaseType.F_OBJECT_REF),
                 ItemPath.create(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME),

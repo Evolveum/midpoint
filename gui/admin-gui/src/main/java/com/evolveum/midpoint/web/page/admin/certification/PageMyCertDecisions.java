@@ -18,19 +18,19 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/certification/decisionsAll", matchUrlForSecurity = "/admin/certification/decisionsAll")
+                @Url(mountUrl = "/admin/certification/decisions", matchUrlForSecurity = "/admin/certification/decisions")
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                         label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
                         description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DECISIONS,
-                        label = PageAdminCertification.AUTH_CERTIFICATION_DECISIONS_LABEL,
-                        description = PageAdminCertification.AUTH_CERTIFICATION_DECISIONS_DESCRIPTION)})
-public class PageCertDecisionsAll extends PageCertDecisions {
+                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS,
+                        label = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_LABEL,
+                        description = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_DESCRIPTION) })
+public class PageMyCertDecisions extends PageCertDecisions {
 
     @Override
     boolean isDisplayingAllItems() {
-        return true;
+        return false;
     }
 }

@@ -48,12 +48,12 @@ public class CommentPanel extends BasePanel<String> implements Popupable {
         comment.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(comment);
 
-        AjaxButton saveButton = new AjaxButton(ID_SAVE_BUTTON, createStringResource("Button.save")) {
+        AjaxButton saveButton = new AjaxButton(ID_SAVE_BUTTON, createStringResource("pageAdminFocus.button.save")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                savePerformed(target, getModelObject());
+                savePerformed(target, CommentPanel.this.getModelObject());
             }
         };
         add(saveButton);

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.certification.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
@@ -45,8 +46,6 @@ import java.util.Collection;
 import java.util.List;
 import java.io.Serial;
 
-import static com.evolveum.midpoint.gui.api.page.PageAdminLTE.createStringResourceStatic;
-
 public class CampaignsPanel extends BasePanel {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -75,8 +74,10 @@ public class CampaignsPanel extends BasePanel {
             @Override
             protected Search load() {
                 CertCampaignsStorage storage = getCampaignsStorage();
-                if (storage == null || storage.getSearch() == null) {
-                    return createSearch();
+                if (storage.getSearch() == null) {
+                    Search search = createSearch();
+                    storage.setSearch(search);
+                    return search;
                 }
                 return storage.getSearch();
             }
@@ -150,7 +151,7 @@ public class CampaignsPanel extends BasePanel {
 
                     @Override
                     protected void deselectItem(AccessCertificationCampaignType entry) {
-
+                        getProvider().getSelected().remove(entry);
                     }
 
                     @Override
@@ -160,7 +161,7 @@ public class CampaignsPanel extends BasePanel {
 
                     @Override
                     protected boolean isTogglePanelVisible() {
-                        return false;
+                        return true;
                     }
 
                     @Override
@@ -168,6 +169,13 @@ public class CampaignsPanel extends BasePanel {
                         return "min-height: 340px;";
                     }
 
+                    @Override
+                    protected void onSelectTableRow(IModel<SelectableBean<AccessCertificationCampaignType>> model,
+                            AjaxRequestTarget target) {
+                        if (model.getObject().isSelected()) {
+                            ((SelectableBeanDataProvider) getProvider()).getSelected().add(model.getObject().getValue());
+                        }
+                    }
                 };
         add(tilesTable);
     }
@@ -312,12 +320,15 @@ public class CampaignsPanel extends BasePanel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<AccessCertificationCampaignType>() {
+                return new ColumnMenuAction<SelectableBean<AccessCertificationCampaignType>>() {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        CampaignProcessingHelper.closeCampaignConfirmation(target, getRowModel().getObject(), getPageBase());
+                        if (getRowModel() == null) {
+                            return;
+                        }
+                        CampaignProcessingHelper.closeCampaignConfirmation(target, getRowModel().getObject().getValue(), getPageBase());
                     }
                 };
             }
@@ -336,12 +347,15 @@ public class CampaignsPanel extends BasePanel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<AccessCertificationCampaignType>() {
+                return new ColumnMenuAction<SelectableBean<AccessCertificationCampaignType>>() {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        CampaignProcessingHelper.reiterateCampaignConfirmation(target, getRowModel().getObject(), getPageBase());
+                        if (getRowModel() == null) {
+                            return;
+                        }
+                        CampaignProcessingHelper.reiterateCampaignConfirmation(target, getRowModel().getObject().getValue(), getPageBase());
                     }
                 };
             }
@@ -359,12 +373,15 @@ public class CampaignsPanel extends BasePanel {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<AccessCertificationCampaignType>() {
+                return new ColumnMenuAction<SelectableBean<AccessCertificationCampaignType>>() {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        CampaignProcessingHelper.deleteCampaignConfirmation(target, getRowModel().getObject(), getPageBase());
+                        if (getRowModel() == null) {
+                            return;
+                        }
+                        CampaignProcessingHelper.deleteCampaignConfirmation(target, getRowModel().getObject().getValue(), getPageBase());
                     }
                 };
             }
@@ -400,5 +417,9 @@ public class CampaignsPanel extends BasePanel {
 
     protected WebMarkupContainer createNavigationPanel(String id) {
         return new WebMarkupContainer(id);
+    }
+
+    protected SelectableBeanObjectDataProvider<AccessCertificationCampaignType> getCampaignsProvider() {
+        return provider;
     }
 }

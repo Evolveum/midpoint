@@ -12,31 +12,28 @@ import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProv
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ContainerListDataProvider;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.action.*;
 import com.evolveum.midpoint.web.component.data.column.*;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.page.admin.certification.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
-import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
 import com.evolveum.midpoint.web.session.CertDecisionsStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -48,10 +45,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
@@ -68,13 +62,13 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
     private String campaignOid;
 
-    public CertificationItemsPanel(String id, String campaignOid) {
-        super(id, AccessCertificationWorkItemType.class);
-        this.campaignOid = campaignOid;
-    }
-
     public CertificationItemsPanel(String id, ContainerPanelConfigurationType configurationType) {
         super(id, AccessCertificationWorkItemType.class, configurationType);
+    }
+
+    public CertificationItemsPanel(String id, ContainerPanelConfigurationType configurationType, String campaignOid) {
+        super(id, AccessCertificationWorkItemType.class, configurationType);
+        this.campaignOid = campaignOid;
     }
 
     public CertificationItemsPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
@@ -87,12 +81,25 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     }
 
     private List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createColumns() {
-        return ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
-    }
+        List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> columns =
+                ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
+        List<AbstractGuiAction<AccessCertificationWorkItemType>> actions = getCertItemActions();
 
-    @Override
-    protected List<InlineMenuItem> createInlineMenu() {
-        return createRowActions();
+        columns.add(new GuiActionColumn<>(actions, getPageBase()) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected AccessCertificationWorkItemType unwrapRowModelObject(
+                    PrismContainerValueWrapper<AccessCertificationWorkItemType> rowModelObject) {
+                return rowModelObject.getRealValue();
+            }
+
+            @Override
+            protected List<AccessCertificationWorkItemType> getSelectedItems() {
+                return CertificationItemsPanel.this.getSelectedRealObjects();
+            }
+        });
+        return columns;
     }
 
     @Override
@@ -122,7 +129,7 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
     protected IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String> createIconColumn() {
         return new IconColumn<>(Model.of("")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
@@ -135,11 +142,6 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
     public CertDecisionsStorage getPageStorage() {
         return getSession().getSessionStorage().getCertDecisions();
-    }
-
-    @Override
-    protected String getStorageKey() {
-        return SessionStorage.KEY_CERT_DECISIONS;
     }
 
     private ContainerListDataProvider<AccessCertificationWorkItemType> createProvider(IModel<Search<AccessCertificationWorkItemType>> searchModel) {
@@ -166,110 +168,19 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         return provider;
     }
 
-    private List<InlineMenuItem> createRowActions() {
-        final AvailableResponses availableResponses = new AvailableResponses(getPageBase());
-        List<InlineMenuItem> items = new ArrayList<>();
-        int buttonsCount = 0;
-        if (availableResponses.isAvailable(ACCEPT)) {
-            items.add(createResponseMenu(buttonsCount, ACCEPT));
-            buttonsCount++;
-        }
-        if (availableResponses.isAvailable(REVOKE)) {
-            items.add(createResponseMenu(buttonsCount, REVOKE));
-            buttonsCount++;
-        }
-        if (availableResponses.isAvailable(REDUCE)) {
-            items.add(createResponseMenu(buttonsCount, REDUCE));
-            buttonsCount++;
-        }
-        if (availableResponses.isAvailable(NOT_DECIDED)) {
-            items.add(createResponseMenu(buttonsCount, NOT_DECIDED));
-            buttonsCount++;
-        }
-        if (availableResponses.isAvailable(NO_RESPONSE)) {
-            items.add(createResponseMenu(buttonsCount, NO_RESPONSE));
-        }
-//        addCommentWorkItemAction(items); //todo is it possible just to add comment without any response?
-        addResolveCertItemAction(items);
-        return items;
-    }
-
-    private InlineMenuItem createResponseMenu(int buttonsCount, final AccessCertificationResponseType response) {
-        CertificationItemResponseHelper helper = new CertificationItemResponseHelper(response);
-        if (buttonsCount < 2) {
-            return new ButtonInlineMenuItem(
-                    Model.of(LocalizationUtil.translatePolyString(helper.getResponseDisplayType().getLabel()))) {
-
-                @Serial private static final long serialVersionUID = 1L;
-
-                @Override
-                public CompositedIconBuilder getIconCompositedBuilder() {
-                    return getDefaultCompositedIconBuilder(GuiDisplayTypeUtil.getIconCssClass(helper.getResponseDisplayType()));
-                }
-
-                @Override
-                public InlineMenuItemAction initAction() {
-                    return new ColumnMenuAction<>() {
-                        @Serial private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            responseSelected(response, getRowModel(), target);
-                        }
-                    };
-                }
-
-                @Override
-                public boolean isLabelVisible() {
-                    return true;
-                }
-            };
-        } else {
-            return new InlineMenuItem(createStringResource(helper.getLabelKey())) {
-
-                @Serial private static final long serialVersionUID = 1L;
-
-                @Override
-                public InlineMenuItemAction initAction() {
-                    return new ColumnMenuAction<>() {
-                        @Serial private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            responseSelected(response, getRowModel(), target);
-                        }
-                    };
-                }
-            };
-        }
-    }
-
-    private void responseSelected(AccessCertificationResponseType response,
-            IModel rowModel, AjaxRequestTarget target) {
-        List<AccessCertificationWorkItemType> itemsToProcess = new ArrayList<>();
-        if (rowModel != null && rowModel.getObject() != null) {
-            AccessCertificationWorkItemType item =
-                    ((PrismContainerValueWrapper<AccessCertificationWorkItemType>) rowModel.getObject()).getRealValue();
-            itemsToProcess.add(item);
-        } else {
-            itemsToProcess = getSelectedRealObjects();
-        }
-        confirmAction(response, itemsToProcess, target);
-    }
-
-    private void confirmAction(AccessCertificationResponseType response, List<AccessCertificationWorkItemType> items,
-            AjaxRequestTarget target) {
-        ConfirmationPanelWithComment confirmationPanel = new ConfirmationPanelWithComment(getPageBase().getMainPopupBodyId(),
-                createStringResource("ResponseConfirmationPanel.confirmation", LocalizationUtil.translateEnum(response))) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void yesPerformedWithComment(AjaxRequestTarget target, String comment) {
-                recordActionOnSelected(response, items, comment, target);
-            }
-        };
-        getPageBase().showMainPopup(confirmationPanel, target);
-    }
+//    private void confirmAction(AccessCertificationResponseType response, List<AccessCertificationWorkItemType> items,
+//            AjaxRequestTarget target) {
+//        ConfirmationPanelWithComment confirmationPanel = new ConfirmationPanelWithComment(getPageBase().getMainPopupBodyId(),
+//                createStringResource("ResponseConfirmationPanel.confirmation", LocalizationUtil.translateEnum(response))) {
+//            @Serial private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void yesPerformedWithComment(AjaxRequestTarget target, String comment) {
+//                recordActionOnSelected(response, items, comment, target);
+//            }
+//        };
+//        getPageBase().showMainPopup(confirmationPanel, target);
+//    }
 
     private void recordActionOnSelected(AccessCertificationResponseType response, List<AccessCertificationWorkItemType> items,
             String comment, AjaxRequestTarget target) {
@@ -281,20 +192,9 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
         OperationResult result = new OperationResult(OPERATION_RECORD_ACTION_SELECTED);
         Task task = getPageBase().createSimpleTask(OPERATION_RECORD_ACTION_SELECTED);
-        items.stream().forEach(item -> {
+        items.forEach(item -> {
             OperationResult resultOne = result.createSubresult(OPERATION_RECORD_ACTION);
-            try {
-                AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(item);
-                AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaign(certCase);
-                getPageBase().getCertificationService().recordDecision(
-                        campaign.getOid(),
-                        certCase.getId(), item.getId(),
-                        response, comment, task, resultOne);
-            } catch (Exception ex) {
-                resultOne.recordFatalError(ex);
-            } finally {
-                resultOne.computeStatusIfUnknown();
-            }
+            CertMiscUtil.recordCertItemResponse(item, response, comment, resultOne, task, getPageBase());
         });
         result.computeStatus();
 
@@ -343,47 +243,6 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
         });
     }
 
-    private void addResolveCertItemAction(List<InlineMenuItem> items) {
-        items.add(new InlineMenuItem(createStringResource("CertificationItemsPanel.action.resolve")) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        ResolveItemPanel resolveItemPanel = new ResolveItemPanel(getPageBase().getMainPopupBodyId()) {
-                            @Serial private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected void savePerformed(AjaxRequestTarget target, AccessCertificationResponseType response,
-                                    String comment) {
-                                List<AccessCertificationWorkItemType> items = new ArrayList<>();
-                                if (getRowModel() == null) {
-                                    items = getSelectedRealObjects();
-                                } else {
-                                    PrismContainerValueWrapper<AccessCertificationWorkItemType> wi =
-                                            (PrismContainerValueWrapper<AccessCertificationWorkItemType>) getRowModel().getObject();
-                                    items = Collections.singletonList(wi.getRealValue());
-                                }
-                                if (CollectionUtils.isEmpty(items)) {
-                                    warn(getString("PageCertDecisions.message.noItemSelected"));
-                                    target.add(getFeedbackPanel());
-                                    return;
-                                }
-                                recordActionOnSelected(response, items, comment, target);
-                            }
-                        };
-                        getPageBase().showMainPopup(resolveItemPanel, target);
-                    }
-                };
-            }
-        });
-    }
-
     protected ObjectQuery getOpenCertWorkItemsQuery() {
         ObjectQuery query;
         if (StringUtils.isNotEmpty(campaignOid)) {
@@ -406,6 +265,20 @@ public class CertificationItemsPanel extends ContainerableListPanel<AccessCertif
 
     protected boolean showOnlyNotDecidedItems() {
         return false;
+    }
+
+    private List<AbstractGuiAction<AccessCertificationWorkItemType>> getCertItemActions() {
+        List<AccessCertificationResponseType> availableResponses = new AvailableResponses(getPageBase()).getResponseValues();   //from sys config
+        if (CollectionUtils.isEmpty(availableResponses)) {
+            availableResponses = Arrays.stream(values()).filter(r -> r != DELEGATE).collect(Collectors.toList());
+        }
+        List<GuiActionType> actions = getCertItemsViewActions();
+        return CertMiscUtil.mergeCertItemsResponses(availableResponses, actions, getPageBase());
+    }
+
+    private List<GuiActionType> getCertItemsViewActions() {
+        CompiledObjectCollectionView collectionView = getObjectCollectionView();
+        return collectionView == null ? new ArrayList<>() : collectionView.getActions();
     }
 
 }
