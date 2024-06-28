@@ -4079,7 +4079,16 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-
+                    <xsd:element name="parameter" type="tns:GuiParameterType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the parameter which should be processed while executing the action.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiActionType.parameter</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!-- TODO later: expression, reference to java class, etc. -->
                 </xsd:sequence>
             </xsd:extension>
@@ -4837,5 +4846,44 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="GuiParameterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Parameter which can be used within GUI.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ParameterType">
+                <xsd:sequence>
+                    <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines the characteristics of the parameter to be displayed in the GUI.
+                                E.g. label, help text, etc.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiParameterType.display</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines if the parameter is mandatory.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiParameterType.mandatory</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
 </xsd:schema>
