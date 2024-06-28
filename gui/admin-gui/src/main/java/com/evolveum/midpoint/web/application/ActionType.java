@@ -46,4 +46,6 @@ public @interface ActionType {
      */
     boolean bulkAction() default false;
 
+    String[] parameterName() default {};
+
 }

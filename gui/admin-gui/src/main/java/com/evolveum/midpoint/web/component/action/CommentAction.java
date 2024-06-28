@@ -26,6 +26,7 @@ import java.util.List;
 
 @ActionType(
         identifier = "comment",
+        parameterName = {"comment"},
         display = @PanelDisplay(label = "CommentPanel.title"))
 public class CommentAction<C extends Containerable, AGA extends AbstractGuiAction<C>> extends AbstractGuiAction<C>
         implements PreAction<C, AGA> {
@@ -49,7 +50,7 @@ public class CommentAction<C extends Containerable, AGA extends AbstractGuiActio
 
             @Override
             protected void savePerformed(AjaxRequestTarget target, String comment) {
-                addActionResultParameter("comment", comment);
+                addParameterValue("comment", comment);
                 commentActionPerformed(objectsToProcess, comment, target);
                 if (mainAction != null) {
                     mainAction.onActionPerformed(objectsToProcess, pageBase, target);
