@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util;
+package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.prepareDetectedPattern;
 
@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessM
  * in making informed decisions about role and user assignments.
  */
 
+//TODO experimental class
 //NOTE this class is not used (just experiment)
 public class OutlierPatternResolver implements Serializable {
 
@@ -410,7 +411,7 @@ public class OutlierPatternResolver implements Serializable {
                         preparedChunk.getProperties().retainAll(allowedProperties);
                         preparedObjects.add(preparedChunk);
 
-                    }else {
+                    } else {
                         preparedObjects.add(chunk);
                     }
                 }
@@ -562,7 +563,7 @@ public class OutlierPatternResolver implements Serializable {
      * @param <T> Generic type extending MiningBaseTypeChunk.
      * @param preparedObjects A list of prepared mining base type chunks.
      * @param minIntersection The minimum number of intersections required for analysis.
-     * @param minOccupancy
+     * @param minOccupancy The minimum occupancy threshold for analysis.
      * @return A set of lists representing outer intersections detected in the prepared objects.
      */
     @NotNull

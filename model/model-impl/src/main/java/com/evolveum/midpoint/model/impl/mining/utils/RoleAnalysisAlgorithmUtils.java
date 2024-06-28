@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.model.impl.mining.utils;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.OutliersDetectionUtil.executeOuterOutliersAnalysis;
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.OutliersDetectionUtil.executeOutliersAnalysis;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionExecutionUtil.executeClusteringOutliersDetection;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionExecutionUtil.executeBasicOutlierDetection;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.ClusterExplanation.getClusterExplanationDescription;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.ClusterExplanation.resolveClusterName;
 
@@ -585,10 +585,10 @@ public class RoleAnalysisAlgorithmUtils {
             }
 
             if (cluster.getCategory().equals(RoleAnalysisClusterCategory.OUTLIERS) && detailedAnalysis) {
-                roleAnalysisOutlierTypes = executeOuterOutliersAnalysis(
+                roleAnalysisOutlierTypes = executeClusteringOutliersDetection(
                         roleAnalysisService, cluster, session, task);
             } else {
-                roleAnalysisOutlierTypes = executeOutliersAnalysis(
+                roleAnalysisOutlierTypes = executeBasicOutlierDetection(
                         roleAnalysisService, cluster, session, analysisOption, task);
             }
 
