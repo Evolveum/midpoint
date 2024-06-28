@@ -83,7 +83,8 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         }
 
         ObjectReferenceType roleAnalysisSessionRef = originalCluster.asObjectable().getRoleAnalysisSessionRef();
-        PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(roleAnalysisSessionRef.getOid(), task, result);
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(
+                roleAnalysisSessionRef.getOid(), task, result);
 
         if (sessionTypeObject == null) {
             LOGGER.error("Session with oid {} not found", roleAnalysisSessionRef.getOid());
@@ -94,6 +95,22 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
         RangeType propertiesRange = userModeOptions.getPropertiesRange();
         Integer minMembersCount = userModeOptions.getMinMembersCount();
+        RoleAnalysisDetectionOptionType defaultDetectionOption = session.getDefaultDetectionOption();
+
+        double minFrequency = 2;
+        double maxFrequency = 2;
+
+        if (defaultDetectionOption != null) {
+            if (defaultDetectionOption.getFrequencyRange() != null) {
+                RangeType frequencyRange = defaultDetectionOption.getFrequencyRange();
+                if (frequencyRange.getMin() != null) {
+                    minFrequency = frequencyRange.getMin().intValue();
+                }
+                if (frequencyRange.getMax() != null) {
+                    maxFrequency = frequencyRange.getMax().intValue();
+                }
+            }
+        }
 
         List<ObjectReferenceType> member = originalCluster.asObjectable().getMember();
         for (ObjectReferenceType objectReferenceType : member) {
@@ -130,7 +147,7 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         }
 
         RoleAnalysisDetectionOptionType detectionOption = new RoleAnalysisDetectionOptionType();
-        detectionOption.setFrequencyRange(new RangeType().min(2.0).max(2.0));
+        detectionOption.setFrequencyRange(new RangeType().min(minFrequency).max(maxFrequency));
         cluster.setDetectionOption(detectionOption);
 
         MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareMiningStructure(cluster, displayValueOption,

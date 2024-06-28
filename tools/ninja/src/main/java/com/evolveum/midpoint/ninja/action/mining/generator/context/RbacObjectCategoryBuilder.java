@@ -685,6 +685,8 @@ public class RbacObjectCategoryBuilder {
     }
 
     protected static void additionalChangesOnAllUsers(UserType user){
-
+//            user.extension(new ExtensionType());
+//            ExtensionType ext = user.getExtension();
+//            addExtensionValue(ext, "itemPath", "value");
     }
 }

@@ -661,7 +661,6 @@ public class RoleAnalysisAttributeDefUtils {
     public static @NotNull List<AnalysisAttributeRuleType> createAnalysisAttributeChoiceSet() {
 
         List<AnalysisAttributeRuleType> result = new ArrayList<>();
-        //TODO good
         List<RoleAnalysisAttributeDef> roleAttributesForRoleAnalysis = new ArrayList<>(
                 RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis());
         List<RoleAnalysisAttributeDef> userAttributesForUserAnalysis = new ArrayList<>(

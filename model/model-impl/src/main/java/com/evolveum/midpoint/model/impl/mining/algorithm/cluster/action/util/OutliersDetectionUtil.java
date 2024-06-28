@@ -467,6 +467,21 @@ public class OutliersDetectionUtil {
         UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
         Integer minMembersCount = userModeOptions.getMinMembersCount();
         HashMap<String, RoleAnalysisOutlierType> map = new HashMap<>();
+        RoleAnalysisDetectionOptionType defaultDetectionOption = session.getDefaultDetectionOption();
+        double minFrequency = 2;
+        double maxFrequency = 2;
+
+        if (defaultDetectionOption != null) {
+            if (defaultDetectionOption.getFrequencyRange() != null) {
+                RangeType frequencyRange = defaultDetectionOption.getFrequencyRange();
+                if (frequencyRange.getMin() != null) {
+                    minFrequency = frequencyRange.getMin().intValue();
+                }
+                if (frequencyRange.getMax() != null) {
+                    maxFrequency = frequencyRange.getMax().intValue();
+                }
+            }
+        }
 
         ObjectReferenceType clusterRef = new ObjectReferenceType()
                 .oid(cluster.getOid())
@@ -494,9 +509,10 @@ public class OutliersDetectionUtil {
         for (ObjectReferenceType analyzedObjectRef : member) {
             String memberOid = analyzedObjectRef.getOid();
 
-            if(result.isError()){
+            if (result.isError()) {
                 LOGGER.warn("Error during outlier detection for user: {}", result.getMessage());
             }
+
             MutableDouble usedFrequency = new MutableDouble(minThreshold);
 
             List<String> jaccardCloseObject = roleAnalysisService.findJaccardCloseObject(memberOid,
@@ -518,13 +534,14 @@ public class OutliersDetectionUtil {
             displayValueOption.setSortMode(RoleAnalysisSortMode.JACCARD);
             displayValueOption.setChunkAction(RoleAnalysisChunkAction.EXPLORE_DETECTION);
             RoleAnalysisClusterType tempCluster = new RoleAnalysisClusterType();
+
             for (String element : jaccardCloseObject) {
                 tempCluster.getMember().add(new ObjectReferenceType()
                         .oid(element).type(UserType.COMPLEX_TYPE));
             }
 
             RoleAnalysisDetectionOptionType detectionOption = new RoleAnalysisDetectionOptionType();
-            detectionOption.setFrequencyRange(new RangeType().min(2.0).max(2.0));
+            detectionOption.setFrequencyRange(new RangeType().min(minFrequency).max(maxFrequency));
             tempCluster.setDetectionOption(detectionOption);
 
             MiningOperationChunk tempMiningOperationChunk = roleAnalysisService.prepareMiningStructure(tempCluster, displayValueOption,
