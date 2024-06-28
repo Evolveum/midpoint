@@ -8,15 +8,17 @@
 package com.evolveum.midpoint.web.component.action;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.page.admin.certification.component.CommentPanel;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.io.Serial;
@@ -54,6 +56,11 @@ public class CommentAction<C extends Containerable, AGA extends AbstractGuiActio
                 }
                 pageBase.hideMainPopup(target);
             }
+
+            @Override
+            protected IModel<String> createInformationLabelModel() {
+                return getCommentPanelInformationLabelModel();
+            }
         };
         pageBase.showMainPopup(commentPanel, target);
     }
@@ -61,4 +68,8 @@ public class CommentAction<C extends Containerable, AGA extends AbstractGuiActio
     protected void commentActionPerformed(List<C> objectsToProcess, String comment, AjaxRequestTarget target) {
     }
 
+    protected IModel<String> getCommentPanelInformationLabelModel() {
+        DisplayType display = getActionDisplayType();
+        return Model.of(GuiDisplayTypeUtil.getTranslatedLabel(display));
+    }
 }

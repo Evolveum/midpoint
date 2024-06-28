@@ -25,6 +25,7 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
     AbstractGuiAction<C> preAction;
     private boolean isVisible = true;
     private boolean isExecuted = false;
+    private DisplayType actionDisplayType = null;
 
     public AbstractGuiAction() {
     }
@@ -37,7 +38,6 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
         if (preAction != null && !preAction.isExecuted()) {
             if (preAction instanceof PreAction) {
                 PreAction<C, AbstractGuiAction<C>> preAction = (PreAction<C, AbstractGuiAction<C>>) this.preAction;
-//                processPreActionParametersValues(preAction.getActionResultParametersMap());
                 preAction.executePreActionAndMainAction(this, objectsToProcess, pageBase, target);
             } else {
                 preAction.onActionPerformed(objectsToProcess, pageBase, target);
@@ -59,6 +59,9 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
     }
 
     public DisplayType getActionDisplayType() {
+        if (actionDisplayType != null) {
+            return actionDisplayType;
+        }
         ActionType actionType = AbstractGuiAction.this.getClass().getAnnotation(ActionType.class);
         PanelDisplay display = actionType != null ? actionType.display() : null;
         if (display == null) {
@@ -68,6 +71,10 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
                 .label(display.label())
                 .icon(new IconType()
                         .cssClass(display.icon()));
+    }
+
+    public void setActionDisplayType(DisplayType actionDisplayType) {
+        this.actionDisplayType = actionDisplayType;
     }
 
     /**

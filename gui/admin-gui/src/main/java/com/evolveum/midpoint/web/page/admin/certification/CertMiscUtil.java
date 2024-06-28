@@ -301,12 +301,20 @@ public class CertMiscUtil {
             Class<? extends AbstractGuiAction<?>> preActionClass = pageBase.findGuiAction(preActionIdentifier);
             if (preActionClass != null) {
                 preActionInstance = instantiateAction(preActionClass, pageBase);
+                if (preAction.getDisplay() != null) {
+                    preActionInstance.setActionDisplayType(preAction.getDisplay());
+                }
             }
         }
         AbstractGuiAction<AccessCertificationWorkItemType> actionInstance = instantiateAction(actionClass,
                 preActionInstance, pageBase);
-        if (actionInstance != null && guiAction.getVisibility() != null) {
-            actionInstance.setVisible(WebComponentUtil.getElementVisibility(guiAction.getVisibility()));
+        if (actionInstance != null) {
+                if (guiAction.getVisibility() != null) {
+                    actionInstance.setVisible(WebComponentUtil.getElementVisibility(guiAction.getVisibility()));
+                }
+                if (guiAction.getDisplay() != null) {
+                    actionInstance.setActionDisplayType(guiAction.getDisplay());
+                }
         }
         return actionInstance;
     }
