@@ -3,21 +3,17 @@ midpoint-feature: flexible-authentication
 doc-type: guide
 ---
 = Basic concepts
-:page-nav-title: Concept
+:page-nav-title: Concepts
 :page-wiki-metadata-create-user: lmarton
 :page-wiki-metadata-create-date: 2024-04-04T09:32:45.286+01:00
-:page-since: "4.4"
-:page-since-improved: [ "4.5", "4.7", "4.8" ]
 :page-toc: top
 :toclevels: 3
-:sectnums:
-:sectnumlevels: 4
 
 To better understand the configuration of flexible authentication, it is essential to familiarize ourselves with a few key terms.
 
-Flexible authentication is configured in xref:/midpoint/reference/security/security-policy[Security Policy]. Security policy can be defined on different levels.
+Flexible authentication is configured in a xref:/midpoint/reference/security/security-policy[Security Policy]. Security policy can be defined on different levels.
 There is a global level, when the security policy is defined in System Configuration.
-Since midPoint 4.7 it is also possible to define security policies for organization unit and archetype.
+Since midPoint 4.7 it is also possible to define security policies for organizational unit and archetype.
 All security policies applicable for the user are merged together.
 The merging is performed after user identification, so after the first module which was able to find a user in the system.
 
@@ -33,8 +29,7 @@ The purpose of the sequence is to guide user through a complete authentication p
 == Authentication module
 
 Authentication modules are the basic building blocks of flexible authentication.
-The easiest example of authentication module is the classic login form, found on many websites.
-An example is the classic login form found on many websites, which typically includes fields for a username or email and a password.
+The easiest example of authentication module is the classic login form, found on many websites, which typically includes fields for a username or email and a password.
 This login form represents just one authentication module.
 There are others like LDAP, HTTP basic authentication, or Identity Provider server authentication, each with its own configuration settings.
 
@@ -93,11 +88,7 @@ The following modules are supported:
 
 === Necessity Configuration
 
-++++
-{% include since.html since="4.7" %}
-++++
-
-Each module defined in sequence can define its necessity. Following necessity levels are available:
+Each module in sequence can have its necessity defined. Following necessity levels are available:
 
 * `SUFFICIENT` - The module is sufficient for authentication to succeed.
 It is NOT required to succeed.
