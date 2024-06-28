@@ -120,4 +120,5 @@ public class QShadow extends QObject<MShadow> {
     public QShadow(String variable, String schema, String table) {
         super(MShadow.class, variable, schema, table);
     }
+
 }

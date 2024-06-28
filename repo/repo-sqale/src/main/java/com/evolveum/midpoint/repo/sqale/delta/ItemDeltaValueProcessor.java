@@ -102,7 +102,7 @@ public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
     }
 
     protected void addRealValue(T realValue) throws SchemaException {
-        throw new UnsupportedOperationException("deleteValue not implemented");
+        throw new UnsupportedOperationException("addValue not implemented");
     }
 
     /** Default conversion for one value is a mere type cast, override as necessary. */

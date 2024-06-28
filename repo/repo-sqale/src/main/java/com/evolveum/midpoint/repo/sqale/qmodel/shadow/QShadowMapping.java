@@ -13,6 +13,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.PathSet;
 
+import com.evolveum.midpoint.repo.sqale.delta.item.RefTableItemDeltaProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
+
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
@@ -103,6 +107,19 @@ public class QShadowMapping
                 ctx -> new CountItemDeltaProcessor<>(ctx, q -> q.pendingOperationCount)));
         addRelationResolver(F_PENDING_OPERATION,
                 new CountMappingResolver<>(q -> q.pendingOperationCount));
+
+
+
+
+        //addItemMapping(F_REFERENCE_ATTRIBUTES, new SqaleItemSqlMapper<>(
+        //        ctx -> new RefTableItemFilterProcessor<>(ctx, referenceMapping),
+        //        ctx -> new RefTableItemDeltaProcessor<>(ctx, referenceMapping)));
+
+        // Needed for queries with ref/@/... paths, this resolves the "ref/" part before @.
+        QShadowReferenceAttributeMapping referenceMapping = QShadowReferenceAttributeMapping.init(repositoryContext);
+        addItemMapping(F_REFERENCE_ATTRIBUTES, new ShadowReferenceAttributesMapper());
+        addRelationResolver(F_REFERENCE_ATTRIBUTES, new ShadowReferenceAttributesResolver(referenceMapping));
+
     }
 
     @Override
