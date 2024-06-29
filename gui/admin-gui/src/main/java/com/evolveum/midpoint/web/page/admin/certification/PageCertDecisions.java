@@ -83,7 +83,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/certification/decisionsAll", matchUrlForSecurity = "/admin/certification/decisionsAll")
+                @Url(mountUrl = "/admin/certification/decisionsAllOld", matchUrlForSecurity = "/admin/certification/decisionsAll")
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
@@ -118,10 +118,6 @@ public class PageCertDecisions extends PageAdminCertification {
     // comes as a parameter or in case the user has only one active campaign
     LoadableDetachableModel<AccessCertificationCampaignType> singleCampaignModel;
 
-    boolean isDisplayingAllItems() {
-        return true;
-    }
-
     public PageCertDecisions() {
     }
 
@@ -141,13 +137,17 @@ public class PageCertDecisions extends PageAdminCertification {
 
         Form<?> mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
-        CertificationItemsPanel table = new CertificationItemsPanel(ID_DECISIONS_TABLE, createPanelConfig(),
-                getCampaignOidParameter()) {
+        CertificationItemsPanel table = new CertificationItemsPanel(ID_DECISIONS_TABLE) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected boolean isMyCertItems() {
                 return !isDisplayingAllItems();
+            }
+
+            @Override
+            protected String getCampaignOid() {
+                return getCampaignOidParameter();
             }
 
         };
@@ -897,5 +897,9 @@ public class PageCertDecisions extends PageAdminCertification {
             result.computeStatusIfUnknown();
         }
         return report;
+    }
+
+    boolean isDisplayingAllItems() {
+        return true;
     }
 }

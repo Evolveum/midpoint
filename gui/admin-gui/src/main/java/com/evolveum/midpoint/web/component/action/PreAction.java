@@ -15,6 +15,11 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import java.util.List;
 
+/**
+ * Interface for actions that can be executed as a pre-action before another action.
+ * @param <C>
+ * @param <AGA>
+ */
 public interface PreAction<C extends Containerable, AGA extends AbstractGuiAction<C>> {
 
 
