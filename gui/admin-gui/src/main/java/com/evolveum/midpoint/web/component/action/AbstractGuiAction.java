@@ -17,6 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +28,7 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
     private boolean isVisible = true;
     private boolean isExecuted = false;
     private DisplayType actionDisplayType = null;
+    Map<String, Object> actionParametersMap = new HashMap<>();
 
     public AbstractGuiAction() {
     }
@@ -44,9 +47,6 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
             }
             preAction.setExecuted(true);
         } else {
-            Map<String, Object> preActionParametersMap = preAction != null && preAction instanceof PreAction ?
-                    ((PreAction<C, AbstractGuiAction<C>>) preAction).getActionResultParametersMap() : null;
-            processPreActionParametersValues(preActionParametersMap);
             executeAction(objectsToProcess, pageBase, target);
         }
     }
@@ -99,5 +99,29 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
 
     public void setExecuted(boolean isExecuted) {
         this.isExecuted = isExecuted;
+    }
+
+    public Map<String, Object> getActionParametersMap() {
+        return actionParametersMap;
+    }
+
+    public void addParameterValue(String parameterName, Object parameterValue) {
+        if (actionParametersMap.containsKey(parameterName)) {
+            actionParametersMap.replace(parameterName, parameterValue);
+        } else {
+            actionParametersMap.put(parameterName, parameterValue);
+        }
+    }
+
+    public List<String> getParameterNameList() {
+        ActionType actionType = AbstractGuiAction.this.getClass().getAnnotation(ActionType.class);
+        if (actionType!= null && actionType.parameterName() != null) {
+            return List.of(actionType.parameterName());
+        }
+        return new ArrayList<>();
+    }
+
+    public Map<String, Object> getPreActionParametersMap() {
+        return preAction != null ? preAction.getActionParametersMap() : null;
     }
 }

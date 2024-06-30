@@ -46,20 +46,7 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
         super.onInitialize();
     }
 
-    @Override
-    protected void onAfterRender() {
-        super.onAfterRender();
-        var campaignsProvider = getCampaignsProvider();
-        List<?> campaignsList = campaignsProvider != null ? campaignsProvider.getAvailableData() : List.of();
-        if (campaignsList.size() == 1) {
-            // if user has 1 active campaign, they are automatically redirected to the cert items page
-            getPageBase().navigateToNext(PageCertDecisions.class);
-        }
-    }
-
     protected ObjectQuery getCustomCampaignsQuery() {
-        FocusType principal = getPageBase().getPrincipalFocus();
-
         return getPrismContext().queryFor(AccessCertificationCampaignType.class)
                 .item(AccessCertificationCampaignType.F_CASE, AccessCertificationCaseType.F_WORK_ITEM,
                         AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
@@ -89,7 +76,7 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
 
             @Override
             protected void detailsButtonClickPerformed(AjaxRequestTarget target) {
-                navigateToDecisionsPanel(getCampaign().getOid());
+                showCertItems(getCampaign().getOid(), target);
             }
         };
     }
@@ -118,7 +105,7 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
 
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        ActiveCampaignsPanel.this.getPageBase().navigateToNext(PageCertDecisions.class);
+                        showCertItems(null, ajaxRequestTarget);
                     }
                 };
                 showAll.showTitleAsLabel(true);
@@ -130,10 +117,7 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
         };
     }
 
-    private void navigateToDecisionsPanel(String campaignOid) {
-        PageParameters parameters = new PageParameters();
-        parameters.set(PageCertDecisions.CAMPAIGN_OID_PARAMETER, campaignOid);
-        getPageBase().navigateToNext(PageCertDecisions.class, parameters);
+    protected void showCertItems(String campaignOid, AjaxRequestTarget target) {
     }
 
     protected MidPointPrincipal getPrincipal() {

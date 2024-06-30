@@ -51,15 +51,12 @@ public abstract class AbstractCertItemAction extends AbstractGuiAction<AccessCer
     }
 
     protected String getComment() {
+        Map<String, Object> preActionParametersMap = getPreActionParametersMap();
+        if (preActionParametersMap != null && preActionParametersMap.containsKey("comment")) {
+            comment = (String) preActionParametersMap.get("comment");
+        }
         return comment;
     }
 
     protected abstract AccessCertificationResponseType getResponse();
-
-    @Override
-    protected void processPreActionParametersValues(Map<String, Object> preActionParametersMap) {
-        if (preActionParametersMap != null && preActionParametersMap.containsKey("comment")) {
-            comment = (String) preActionParametersMap.get("comment");
-        }
-    }
 }
