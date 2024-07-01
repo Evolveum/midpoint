@@ -548,10 +548,7 @@ E.g. the following authorization only applies to user objects that have locality
     <object>
         <type>UserType</type>
         <filter>
-            <q:equal>
-                <q:path>locality</q:path>
-                <q:value>Caribbean</q:value>
-            </q:equal>
+            <q:text>locality = "Caribbean"</q:text>
         </filter>
         <orgRef oid="1f82e908-0072-11e4-9532-001e8c717e5b"/>
     </object>
@@ -581,10 +578,7 @@ For example let's have a look at following authorization:
     <phase>request</phase>
     <object>
         <filter>
-            <q:equal>
-               <q:path>subtype</q:path>
-               <q:value>employee</q:value>
-            </q:equal>
+            <q:text>subtype = "employee"</q:text>
         </filter>
     </object>
     <!-- Note: subtype property is not excluded here. User can modify it ... -->
@@ -650,10 +644,7 @@ E.g. the following authorization allows the assignment of application roles to a
     <target>
         <type>RoleType</type>
         <filter>
-            <q:equal>
-                <q:path>roleType</q:path>
-                <q:value>application</q:value>
-            </q:equal>
+            <q:text>roleType = "application"</q:text>
         </filter>
     </target>
 </authorization>

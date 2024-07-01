@@ -128,10 +128,7 @@ An example:
         <mext:objectType>UserType</mext:objectType>
         <mext:objectQuery>
             <q:filter>
-                <q:equal>
-                    <q:path>subtype</q:path>
-                    <q:value>test</q:value>
-                </q:equal>
+                <q:text>subtype = "test"</q:text>
             </q:filter>
         </mext:objectQuery>
         <se:executeScript>
@@ -194,10 +191,7 @@ An example:
                     <type>UserType</type>
                     <query>
                         <q:filter>
-                            <q:equal>
-                                <q:path>subtype</q:path>
-                                <q:value>test</q:value>
-                            </q:equal>
+                            <q:text>subtype = "test"</q:text>
                         </q:filter>
                     </query>
                 </objects>
