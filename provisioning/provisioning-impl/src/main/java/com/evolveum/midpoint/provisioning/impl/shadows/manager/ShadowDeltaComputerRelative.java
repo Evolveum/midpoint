@@ -54,6 +54,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * the primary identifier value.
  *
  * @see ShadowDeltaComputerAbsolute
+ * @see ShadowObjectComputer
  */
 class ShadowDeltaComputerRelative {
 

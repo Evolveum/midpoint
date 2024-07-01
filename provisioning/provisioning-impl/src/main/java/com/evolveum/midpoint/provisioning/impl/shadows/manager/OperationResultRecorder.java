@@ -66,7 +66,7 @@ public class OperationResultRecorder {
     @Autowired private PrismContext prismContext;
     @Autowired private ProvisioningService provisioningService;
     @Autowired private ShadowUpdater shadowUpdater;
-    @Autowired private ShadowCreator shadowCreator;
+    @Autowired private ShadowObjectComputer shadowObjectComputer;
     @Autowired private PendingOperationsHelper pendingOperationsHelper;
     @Autowired private Clock clock;
 
@@ -104,7 +104,7 @@ public class OperationResultRecorder {
         AddOperationState opState = operation.getOpState();
         AbstractShadow shadow = operation.getShadowAddedOrToAdd();
 
-        RawRepoShadow rawRepoShadowToAdd = shadowCreator.createShadowForRepoStorage(ctx, shadow);
+        RawRepoShadow rawRepoShadowToAdd = shadowObjectComputer.createShadowForRepoStorage(ctx, shadow);
         var repoShadowBeanToAdd = rawRepoShadowToAdd.getBean(); // to be updated below
 
         if (opState.isCompleted()) {

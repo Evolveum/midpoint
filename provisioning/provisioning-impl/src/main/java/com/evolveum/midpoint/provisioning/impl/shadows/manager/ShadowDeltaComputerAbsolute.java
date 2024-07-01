@@ -59,6 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @see ShadowDeltaComputerRelative
  * @see ShadowUpdater#updateShadowInRepository(ProvisioningContext, RepoShadow, ResourceObjectShadow, ObjectDelta,
  * ResourceObjectClassification, OperationResult)
+ * @see ShadowObjectComputer
  */
 class ShadowDeltaComputerAbsolute {
 
