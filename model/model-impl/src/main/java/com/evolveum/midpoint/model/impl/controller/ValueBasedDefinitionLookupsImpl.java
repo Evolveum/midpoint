@@ -3,7 +3,14 @@ package com.evolveum.midpoint.model.impl.controller;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableContainerDefinition;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableObjectDefinition;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.schemaContext.SchemaContextImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schemaContext.SchemaContext;
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
+import com.evolveum.midpoint.prism.schemaContext.resolver.Algorithm;
+import com.evolveum.midpoint.prism.schemaContext.resolver.ContextResolverFactory;
+import com.evolveum.midpoint.prism.schemaContext.resolver.SchemaContextResolver;
+import com.evolveum.midpoint.prism.schemaContext.resolver.SchemaContextResolverRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -12,6 +19,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -109,5 +117,46 @@ public class ValueBasedDefinitionLookupsImpl {
     public void init() {
         PrismContext.get().registerValueBasedDefinitionLookup(shadowLookupByKindAndIntent);
         this.lookupTask = taskManager.createTaskInstance("system-resource-lookup-for-queries");
+        SchemaContextResolverRegistry.register(Algorithm.RESOURCE_OBJECT_CONTEXT_RESOLVER, (def) -> new ResourceObjectContextResolver(def));
+    }
+
+
+    class ResourceObjectContextResolver implements SchemaContextResolver {
+
+        SchemaContextDefinition schemaContextDefinition;
+
+        public ResourceObjectContextResolver(SchemaContextDefinition schemaContextDefinition) {
+            this.schemaContextDefinition = schemaContextDefinition;
+        }
+
+        @Override
+        public SchemaContext computeContext(PrismValue prismValue) {
+
+            if (prismValue instanceof PrismContainerValue<?> container) {
+                ResourceObjectTypeDefinitionType resourceObjectDefinitionType = (ResourceObjectTypeDefinitionType) container.asContainerable();
+                ResourceType resource = (ResourceType) container.getRootObjectable();
+
+                ShadowType shadowType = new ShadowType();
+                shadowType.resourceRef(resource.getOid(), ResourceType.COMPLEX_TYPE);
+                shadowType.setKind(resourceObjectDefinitionType.getKind());
+                shadowType.setIntent(resourceObjectDefinitionType.getIntent());
+
+                try {
+                    var result = lookupTask.getResult().createSubresult("ValueBasedDefinitionLookupsImpl.findComplexTypeDefinition");
+                    var resourceObj = provisioning.getObject(ResourceType.class, resource.getOid(), null, lookupTask, result);
+                    ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resourceObj);
+                    ResourceObjectDefinition resourceObjectDefinition = resourceSchema.findDefinitionForShadow(shadowType);
+                    if (resourceObjectDefinition != null) {
+                        return new SchemaContextImpl(resourceObjectDefinition.toPrismObjectDefinition());
+                    }
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+
+            return null;
+        }
     }
 }
+
+
