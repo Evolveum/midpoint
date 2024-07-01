@@ -23,5 +23,5 @@ import java.util.List;
 public interface PreAction<C extends Containerable, AGA extends AbstractGuiAction<C>> {
 
 
-    public void executePreActionAndMainAction(AGA mainAction, List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target);
+    public void onActionPerformed(AGA mainAction, List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target);
 }

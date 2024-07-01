@@ -41,7 +41,7 @@ public class CommentAction<C extends Containerable, AGA extends AbstractGuiActio
     }
 
     @Override
-    public void executePreActionAndMainAction(AGA mainAction, List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
+    public void onActionPerformed(AGA mainAction, List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
         showCommentPanel(mainAction, objectsToProcess, pageBase, target);
     }
 
@@ -54,7 +54,7 @@ public class CommentAction<C extends Containerable, AGA extends AbstractGuiActio
                 addParameterValue("comment", comment);
                 commentActionPerformed(objectsToProcess, comment, target);
                 if (mainAction != null) {
-                    mainAction.onActionPerformed(objectsToProcess, pageBase, target);
+                    mainAction.onActionPerformed(objectsToProcess, false, pageBase, target);
                 }
                 pageBase.hideMainPopup(target);
             }

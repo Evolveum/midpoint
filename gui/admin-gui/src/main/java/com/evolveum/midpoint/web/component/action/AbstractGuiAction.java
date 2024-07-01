@@ -38,14 +38,25 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
     }
 
     public void onActionPerformed(List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
-        if (preAction != null && !preAction.isExecuted()) {
+        onActionPerformed(objectsToProcess, true, pageBase, target);
+    }
+
+    /**
+     * Executes the action. If preAction is set, it will be executed first.
+     * This method should be called for main action with preActionPerform set to false (after pre-action was performed)
+     * @param objectsToProcess
+     * @param preActionPerform
+     * @param pageBase
+     * @param target
+     */
+    public void onActionPerformed(List<C> objectsToProcess, boolean preActionPerform, PageBase pageBase, AjaxRequestTarget target) {
+        if (preAction != null && preActionPerform) {
             if (preAction instanceof PreAction) {
                 PreAction<C, AbstractGuiAction<C>> preAction = (PreAction<C, AbstractGuiAction<C>>) this.preAction;
-                preAction.executePreActionAndMainAction(this, objectsToProcess, pageBase, target);
+                preAction.onActionPerformed(this, objectsToProcess, pageBase, target);
             } else {
                 preAction.onActionPerformed(objectsToProcess, pageBase, target);
             }
-            preAction.setExecuted(true);
         } else {
             executeAction(objectsToProcess, pageBase, target);
         }

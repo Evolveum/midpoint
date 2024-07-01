@@ -37,7 +37,7 @@ public class ConfirmAction<C extends Containerable, AGA extends AbstractGuiActio
     }
 
     @Override
-    public void executePreActionAndMainAction(AGA mainAction, List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
+    public void onActionPerformed(AGA mainAction, List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
         showConfirmationPanel(mainAction, objectsToProcess, pageBase, target);
     }
 
@@ -48,7 +48,7 @@ public class ConfirmAction<C extends Containerable, AGA extends AbstractGuiActio
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 if (mainAction != null) {
-                    mainAction.onActionPerformed(objectsToProcess, pageBase, target);
+                    mainAction.onActionPerformed(objectsToProcess, false, pageBase, target);
                 }
                 pageBase.hideMainPopup(target);
             }
