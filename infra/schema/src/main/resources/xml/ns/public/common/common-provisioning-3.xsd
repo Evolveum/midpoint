@@ -620,6 +620,9 @@
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
                 <a:merger>ResourceObjectTypeDefinitionType</a:merger>
+                <a:schemaContext>
+                    <a:algorithm>ResourceObjectContextResolver</a:algorithm>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

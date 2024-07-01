@@ -36,6 +36,8 @@ public class RoleAnalysisAttributeDef implements Serializable {
     String displayValue;
     ObjectQuery query;
     Class<? extends ObjectType> targetClassType;
+    Class<? extends ObjectType> associatedClassType;
+
     IdentifierType identifierType;
 
     public RoleAnalysisAttributeDef(ItemPath path,
@@ -44,16 +46,6 @@ public class RoleAnalysisAttributeDef implements Serializable {
         this.path = path;
         this.isContainer = isContainer;
         this.targetClassType = classType;
-    }
-
-    public RoleAnalysisAttributeDef(ItemPath path,
-            boolean isContainer,
-            Class<? extends ObjectType> classType,
-            IdentifierType identifierType) {
-        this.path = path;
-        this.isContainer = isContainer;
-        this.targetClassType = classType;
-        this.identifierType = identifierType;
     }
 
     public RoleAnalysisAttributeDef(ItemPath path,
@@ -107,9 +99,20 @@ public class RoleAnalysisAttributeDef implements Serializable {
         Set<String> resolvedValues = new HashSet<>();
         Collection<Item<?, ?>> allItems = prismObject.getAllItems(itemPath);
         for (Item<?, ?> item : allItems) {
-            Object realValue = item.getRealValue();
-            if (realValue != null) {
-                resolvedValues.add(realValue.toString());
+            boolean isMultiValue = !item.isSingleValue();
+
+            if (isMultiValue) {
+                Collection<?> realValues = item.getRealValues();
+                for (Object realValue : realValues) {
+                    if (realValue != null) {
+                        resolvedValues.add(realValue.toString());
+                    }
+                }
+            } else {
+                Object realValue = item.getRealValue();
+                if (realValue != null) {
+                    resolvedValues.add(realValue.toString());
+                }
             }
         }
         return resolvedValues;
@@ -150,6 +153,24 @@ public class RoleAnalysisAttributeDef implements Serializable {
 
     public IdentifierType getIdentifierType() {
         return identifierType;
+    }
+
+    public Class<? extends ObjectType> getAssociatedClassType() {
+        return associatedClassType;
+    }
+
+    public void setAssociatedClassType(Class<? extends ObjectType> associatedClassType) {
+        this.associatedClassType = associatedClassType;
+    }
+
+    public QName getComplexType() {
+        Class<? extends ObjectType> classType = getAssociatedClassType();
+        if (classType.equals(UserType.class)) {
+            return UserType.COMPLEX_TYPE;
+        } else if (classType.equals(RoleType.class)) {
+            return RoleType.COMPLEX_TYPE;
+        }
+        return null;
     }
 
 }

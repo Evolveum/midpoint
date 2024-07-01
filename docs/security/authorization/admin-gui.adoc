@@ -231,31 +231,31 @@ use #selfRequestAssignments instead
 |
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssignMember
-| Assign/manage role members (role/service details, "Members" tab)
+| Assign/manage role members (role/service/policy details, "Members" tab)
 |
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAddMember
-| Create new member (role/service details, "Members" tab)
+| Create new member (role/service/policy details, "Members" tab)
 |
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignMember
-| Unassign member (role/service details, "Members" tab)
+| Unassign member (role/service/policy details, "Members" tab)
 |
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminRecomputeMember
-| Recompute member (role/service details, "Members" tab)
+| Recompute member (role/service/policy details, "Members" tab)
 |
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssignGovernance
-| Assign member (role details, "Governance" tab)
+| Assign member (role/service/policy details, "Governance" tab)
 |
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassignGovernance
-| Unssign member (role details, "Governance" tab)
+| Unssign member (role/service/policy details, "Governance" tab)
 |
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAddGovernance
-| Create new member (role details, "Governance" tab)
+| Create new member (role/service/policy details, "Governance" tab)
 |
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#rolesView
@@ -341,6 +341,34 @@ use #selfRequestAssignments instead
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#serviceHistory
 | Service historical data viewer page. The authorization check is also performed to determine whether the "View object data" button should be displayed on the history page.
 |
+
+|===
+
+== Policy actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#policiesAll
+| All actions related to policies
+| Since 4.9
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#policies
+| List policies
+| Since 4.9
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#policy
+| Create policy
+| Since 4.9
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#policyDetails
+| Details of policy
+| Since 4.9
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#policyHistory
+| Policy historical data viewer page. The authorization check is also performed to determine whether the "View object data" button should be displayed on the history page.
+| Since 4.9
 
 |===
 
@@ -528,6 +556,30 @@ use #selfRequestAssignments instead
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#archetype
 | Edit archetype
 | Since 4.0
+
+|===
+
+== Policy actions
+
+[%autowidth]
+|===
+| Action | Allowed access to page | Note
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#schemasAll
+| All actions related to schemas
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#schemas
+| List schemas
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#schema
+| Create schema
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#schemaDetails
+| Details of schema
+|
 
 |===
 

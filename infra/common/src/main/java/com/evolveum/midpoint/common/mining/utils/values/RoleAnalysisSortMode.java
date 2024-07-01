@@ -18,6 +18,7 @@ public enum RoleAnalysisSortMode implements Serializable {
 
     JACCARD("JACCARD"),
     FREQUENCY("FREQUENCY"),
+    INCLUDES("INCLUDES"),
     NONE("NONE");
 
     private final String displayString;

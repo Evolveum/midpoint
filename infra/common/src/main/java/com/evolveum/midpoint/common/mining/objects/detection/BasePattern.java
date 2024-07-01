@@ -25,6 +25,7 @@ public abstract class BasePattern implements Serializable {
 
     protected double itemsConfidence = 0.0;
     protected double reductionFactorConfidence = 0.0;
+    String roleOid;
 
     RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult;
     RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult;
@@ -72,6 +73,21 @@ public abstract class BasePattern implements Serializable {
             this.identifier = null;
         }
         this.associatedColor = null;
+    }
+
+    public BasePattern(Set<String> roles, Set<String> users,
+            double clusterMetric, Long patternId, String roleOid) {
+        this.roles = roles;
+        this.users = users;
+        this.metric = clusterMetric;
+        this.id = patternId;
+        if (id != null) {
+            this.identifier = id.toString();
+        } else {
+            this.identifier = null;
+        }
+        this.associatedColor = null;
+        this.roleOid = roleOid;
     }
 
     public Set<String> getRoles() {
@@ -153,4 +169,11 @@ public abstract class BasePattern implements Serializable {
         this.reductionFactorConfidence = reductionFactorConfidence;
     }
 
+    public String getRoleOid() {
+        return roleOid;
+    }
+
+    public void setRoleOid(String roleOid) {
+        this.roleOid = roleOid;
+    }
 }

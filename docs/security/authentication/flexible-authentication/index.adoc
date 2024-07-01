@@ -9,7 +9,6 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2018-05-28T09:38:46.493+02:00
 :page-wiki-metadata-modify-user: petr.gasparik
 :page-wiki-metadata-modify-date: 2020-04-06T12:59:25.118+02:00
-:page-since: "4.1"
 :page-upkeep-status: green
 :page-toc: top
 
@@ -113,7 +112,7 @@ It was very hard to reconfigure authentication without system restart (and even 
 Therefore, we have ended up with a hybrid of some Spring Security components and concepts with our own code.
 It is quite likely that the last remains of Spring Security will disappear entirely in future midPoint versions.
 
-Which also means that the unofficial way to use Spring Security modules with midPoint is unlikely to work with midPoint 4.1 and later.
+Which also means that the unofficial way to use Spring Security modules with midPoint is unlikely to work with midPoint.
 
 
 == Limitations
@@ -128,9 +127,7 @@ However, not all configuration options are currently supported.
 * It is unlikely that midPoint could be used as a member of identity federation directly.
 Identity proxy or a similar technology may be needed.
 
-* Support for authentication module _necessity_ is fully supported since 4.8.
-
-* Authentication modules for SOAP web services are not supported because SOAP is deprecated and it will be removed soon.
+* Authentication modules for SOAP web services are not supported because SOAP is deprecated, and will be removed soon.
 
 * REST service supports HTTP basic authentication and OpenID Connect authentication.
 
@@ -139,7 +136,7 @@ Multiple credentials are not supported.
 The reason for mentioning credential names the configuration schema is to have ability to extend midPoint functionality in the future.
 
 The implementation can be improved in the future.
-Please see xref:/midpoint/features/planned/flexible-authentication/[Flexible Authentication Improvements] for the details.
+Please see xref:/midpoint/features/planned/flexible-authentication/[Flexible Authentication Improvements] for details.
 
 
 == See Also

@@ -80,6 +80,7 @@ CREATE TYPE ObjectType AS ENUM (
     'ROLE',
     'ROLE_ANALYSIS_CLUSTER',
     'ROLE_ANALYSIS_SESSION',
+    'ROLE_ANALYSIS_OUTLIER',
     'SCHEMA',
     'SECURITY_POLICY',
     'SEQUENCE',
@@ -1285,7 +1286,19 @@ CREATE TRIGGER m_role_analysis_session_update_tr BEFORE UPDATE ON m_role_analysi
 CREATE TRIGGER m_role_analysis_session_oid_delete_tr AFTER DELETE ON m_role_analysis_session
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
+CREATE TABLE m_role_analysis_outlier (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_OUTLIER') STORED
+        CHECK (objectType = 'ROLE_ANALYSIS_OUTLIER')
+)
+    INHERITS (m_assignment_holder);
 
+CREATE TRIGGER m_role_analysis_outlier_oid_insert_tr BEFORE INSERT ON m_role_analysis_outlier
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_role_analysis_outlier_update_tr BEFORE UPDATE ON m_role_analysis_outlier
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_role_analysis_outlier_oid_delete_tr AFTER DELETE ON m_role_analysis_outlier
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 -- Represents LookupTableType, see https://docs.evolveum.com/midpoint/reference/misc/lookup-tables/
 CREATE TABLE m_lookup_table (
@@ -2308,4 +2321,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(34, $$ SELECT 1 $$, true);
+call apply_change(36, $$ SELECT 1 $$, true);

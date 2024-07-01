@@ -135,6 +135,9 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_SERVICE_HISTORY_QNAME = new QName(NS_AUTHORIZATION_UI, "serviceHistory");
     public static final String AUTZ_UI_SERVICE_HISTORY_URL = NS_AUTHORIZATION_UI + "#serviceHistory";
 
+    public static final QName AUTZ_UI_POLICY_HISTORY_QNAME = new QName(NS_AUTHORIZATION_UI, "policyHistory");
+    public static final String AUTZ_UI_POLICY_HISTORY_URL = NS_AUTHORIZATION_UI + "#policyHistory";
+
     public static final QName AUTZ_UI_USER_HISTORY_XML_REVIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "userHistoryXmlReview");
     public static final String AUTZ_UI_USER_HISTORY_XML_REVIEW_URL = NS_AUTHORIZATION_UI + "#userHistoryXmlReview";
 
@@ -155,6 +158,18 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_SERVICE_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "serviceDetails");
     public static final String AUTZ_UI_SERVICE_DETAILS_URL = NS_AUTHORIZATION_UI + "#serviceDetails";
+
+    public static final QName AUTZ_UI_POLICIES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "policiesAll");
+    public static final String AUTZ_UI_POLICIES_ALL_URL = NS_AUTHORIZATION_UI + "#policiesAll";
+
+    public static final QName AUTZ_UI_POLICIES_QNAME = new QName(NS_AUTHORIZATION_UI, "policies");
+    public static final String AUTZ_UI_POLICIES_URL = NS_AUTHORIZATION_UI + "#policies";
+
+    public static final QName AUTZ_UI_POLICY_QNAME = new QName(NS_AUTHORIZATION_UI, "policy");
+    public static final String AUTZ_UI_POLICY_URL = NS_AUTHORIZATION_UI + "#policy";
+
+    public static final QName AUTZ_UI_POLICY_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "policyDetails");
+    public static final String AUTZ_UI_POLICY_DETAILS_URL = NS_AUTHORIZATION_UI + "#policyDetails";
 
     public static final QName AUTZ_UI_ARCHETYPES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "archetypesAll");
     public static final String AUTZ_UI_ARCHETYPES_ALL_URL = NS_AUTHORIZATION_UI + "#archetypesAll";
@@ -374,7 +389,6 @@ public class AuthorizationConstants {
     public static final String AUTZ_UI_CERTIFICATION_DEFINITION_URL = NS_AUTHORIZATION_UI + "#certificationDefinition";
     public static final String AUTZ_UI_CERTIFICATION_NEW_DEFINITION_URL = NS_AUTHORIZATION_UI + "#certificationNewDefinition";
     public static final String AUTZ_UI_CERTIFICATION_CAMPAIGNS_URL = NS_AUTHORIZATION_UI + "#certificationCampaigns";
-    public static final String AUTZ_UI_MY_CERTIFICATION_CAMPAIGNS_URL = NS_AUTHORIZATION_UI + "#myCertificationCampaigns";
     public static final String AUTZ_UI_CERTIFICATION_CAMPAIGN_URL = NS_AUTHORIZATION_UI + "#certificationCampaign";
     public static final String AUTZ_UI_CERTIFICATION_DECISIONS_URL = NS_AUTHORIZATION_UI + "#certificationDecisions";
     public static final String AUTZ_UI_MY_CERTIFICATION_DECISIONS_URL = NS_AUTHORIZATION_UI + "#myCertificationDecisions";
@@ -556,6 +570,9 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_SERVICES_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "servicesView");
     public static final String AUTZ_UI_SERVICES_VIEW_URL = NS_AUTHORIZATION_UI + "#servicesView";
+
+    public static final QName AUTZ_UI_POLICIES_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "policiesView");
+    public static final String AUTZ_UI_POLICIES_VIEW_URL = NS_AUTHORIZATION_UI + "#policiesView";
 
     public static final QName AUTZ_UI_ORGS_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "orgsView");
     public static final String AUTZ_UI_ORGS_VIEW_URL = NS_AUTHORIZATION_UI + "#orgsView";

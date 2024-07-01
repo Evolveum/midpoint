@@ -22,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionTy
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -34,9 +35,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * @author katkav
- */
 @Component
 public class SchemaItemTypePanelFactory extends AbstractQNameWithChoicesPanelFactory implements Serializable {
 
@@ -85,7 +83,7 @@ public class SchemaItemTypePanelFactory extends AbstractQNameWithChoicesPanelFac
 
         List<DisplayableValue<QName>> alltypes = new ArrayList<>();
 
-        XsdTypeMapper.getAllTypes().forEach(type -> alltypes.add(new TypeDisplayableValue(createLabelForType(null, type), type)));
+        XsdTypeMapper.getAllTypes().forEach(type -> alltypes.add(createDisplayValue(createLabelForType(null, type), type)));
 
         alltypes.add(new TypeDisplayableValue("ref.details", ObjectReferenceType.COMPLEX_TYPE));
 
@@ -130,6 +128,10 @@ public class SchemaItemTypePanelFactory extends AbstractQNameWithChoicesPanelFac
         return alltypes;
     }
 
+    protected DisplayableValue<QName> createDisplayValue(String labelForType, QName type) {
+        return new TypeDisplayableValue(labelForType, type);
+    }
+
     private String createLabelForEnum(String displayName, QName typeName) {
         String label = createLabelForType(displayName, typeName);
         label = StringUtils.removeEndIgnoreCase(label, "type");
@@ -137,7 +139,7 @@ public class SchemaItemTypePanelFactory extends AbstractQNameWithChoicesPanelFac
         return LocalizationUtil.translate("SchemaItemTypePanelFactory.enumeration", new Object[] { label });
     }
 
-    private String createLabelForType(String displayName, QName typeName) {
+    String createLabelForType(String displayName, QName typeName) {
         if (StringUtils.isNotEmpty(displayName)) {
             return displayName;
         }
@@ -158,6 +160,14 @@ public class SchemaItemTypePanelFactory extends AbstractQNameWithChoicesPanelFac
     @Override
     protected boolean isStrictForPossibleValues() {
         return true;
+    }
+
+    @Override
+    public void configure(PrismPropertyPanelContext<QName> panelCtx, org.apache.wicket.Component component) {
+        super.configure(panelCtx, component);
+        if (component instanceof Label) {
+            panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(component));
+        }
     }
 
     private class TypeDisplayableValue implements DisplayableValue<QName>, Serializable {

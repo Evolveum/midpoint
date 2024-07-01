@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
 
 import org.apache.wicket.AttributeModifier;
@@ -59,6 +60,7 @@ public class RepeatingAttributeForm extends BasePanel<String> {
             @NotNull Set<String> objectsOid,
             @NotNull RoleAnalysisProcessModeType processMode) {
         super(id);
+
         WebMarkupContainer firstGroupCard = createContainer(ID_FIRST_GROUP_CARD);
         WebMarkupContainer secondGroupCard = createContainer(ID_SECOND_GROUP_CARD);
         add(firstGroupCard);

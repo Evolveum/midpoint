@@ -13,15 +13,15 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAnalysisSessionOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -34,53 +34,6 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
 
     @Override
     protected void onInitialize() {
-        try {
-            Task task = getPageBase().createSimpleTask("countObjects");
-            OperationResult result = task.getResult();
-            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
-            RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
-            RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
-
-            PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType = getContainerFormModel().getObject()
-                    .getValue();
-
-            Class<? extends ObjectType> propertiesClass = UserType.class;
-            if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-                propertiesClass = RoleType.class;
-            }
-
-            Integer maxPropertiesObjects;
-
-            ModelService modelService = getPageBase().getModelService();
-
-            maxPropertiesObjects = modelService.countObjects(propertiesClass, null, null, task, result);
-
-            if (maxPropertiesObjects == null) {
-                maxPropertiesObjects = 1000000;
-            }
-
-            double minObject = maxPropertiesObjects < 10 ? 1.0 : 10;
-            boolean isIndirect = false;
-
-            if (sessionType.getNewValue().getValue().isIsIndirect() == null) {
-                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_IS_INDIRECT, isIndirect);
-            }
-
-            if (sessionType.getNewValue().getValue().getPropertiesRange() == null
-                    || sessionType.getNewValue().getValue().getPropertiesRange().getMin() == null
-                    || sessionType.getNewValue().getValue().getPropertiesRange().getMax() == null) {
-                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE, new RangeType()
-                        .min(minObject)
-                        .max(maxPropertiesObjects.doubleValue()));
-            }
-
-        } catch (SchemaException e) {
-            throw new RuntimeException("Failed to update values session filtering options values", e);
-        } catch (ObjectNotFoundException | SecurityViolationException | ConfigurationException |
-                CommunicationException | ExpressionEvaluationException e) {
-            throw new RuntimeException("Cloud not count objects", e);
-        }
-
         super.onInitialize();
     }
 
@@ -96,13 +49,16 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
         LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
         RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
         RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
-
+        PrismContainerWrapperModel<RoleAnalysisSessionType, AbstractAnalysisSessionOptionType> containerWrapperModel;
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
+            containerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
                     ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS));
+        } else {
+            containerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
+                    ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS));
         }
-        return PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
-                ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS));
+        containerWrapperModel.getObject().setExpanded(true);
+        return containerWrapperModel;
     }
 
     protected boolean checkMandatory(ItemWrapper itemWrapper) {
@@ -120,7 +76,8 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING)
-                    || itemName.equals(AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING)) {
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING)
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS)) {
                 return ItemVisibility.HIDDEN;
             }
 

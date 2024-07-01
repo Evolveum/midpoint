@@ -39,103 +39,7 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
 
     @Override
     protected void onInitialize() {
-        try {
-
-            Task task = getPageBase().createSimpleTask("countObjects");
-            OperationResult result = task.getResult();
-            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
-            RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
-            RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
-
-            PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType = getContainerFormModel().getObject()
-                    .getValue();
-
-            Class<? extends ObjectType> propertiesClass = UserType.class;
-            Class<? extends ObjectType> membersClass = RoleType.class;
-            if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-                propertiesClass = RoleType.class;
-                membersClass = UserType.class;
-            }
-
-            Integer maxPropertiesObjects;
-            Integer maxMembersObjects;
-
-            ModelService modelService = getPageBase().getModelService();
-
-            maxPropertiesObjects = modelService.countObjects(propertiesClass, null, null, task, result);
-            maxMembersObjects = modelService.countObjects(membersClass, null, null, task, result);
-
-            if (maxPropertiesObjects == null) {
-                maxPropertiesObjects = 1000000;
-            }
-
-            if (maxMembersObjects == null) {
-                maxMembersObjects = 1000000;
-            }
-
-            double minMembersObject = maxMembersObjects < 10 ? 2.0 : 10;
-            double minObject = maxPropertiesObjects < 10 ? 1.0 : 10;
-
-            if (sessionType.getNewValue().getValue().getSimilarityThreshold() == null) {
-                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD, 80.0);
-            }
-
-            if (sessionType.getNewValue().getValue().getMinMembersCount() == null) {
-                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT, minMembersObject);
-            }
-
-            if (sessionType.getNewValue().getValue().getMinPropertiesOverlap() == null) {
-                setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, minObject);
-            }
-
-            AnalysisAttributeSettingType value = new AnalysisAttributeSettingType();
-            List<AnalysisAttributeRuleType> analysisAttributeRule = new ArrayList<>();
-            RoleAnalysisAttributeDef title = RoleAnalysisAttributeDefUtils.getTitle();
-            RoleAnalysisAttributeDef archetypeRef = RoleAnalysisAttributeDefUtils.getArchetypeRef();
-            RoleAnalysisAttributeDef locality = RoleAnalysisAttributeDefUtils.getLocality();
-            RoleAnalysisAttributeDef orgAssignment = RoleAnalysisAttributeDefUtils.getOrgAssignment();
-
-            analysisAttributeRule
-                    .add(new AnalysisAttributeRuleType()
-                            .attributeIdentifier(title.getDisplayValue())
-                            .propertyType(UserType.COMPLEX_TYPE));
-            analysisAttributeRule
-                    .add(new AnalysisAttributeRuleType()
-                            .attributeIdentifier(archetypeRef.getDisplayValue())
-                            .propertyType(UserType.COMPLEX_TYPE));
-            analysisAttributeRule
-                    .add(new AnalysisAttributeRuleType()
-                            .attributeIdentifier(locality.getDisplayValue())
-                            .propertyType(UserType.COMPLEX_TYPE));
-            analysisAttributeRule
-                    .add(new AnalysisAttributeRuleType()
-                            .attributeIdentifier(orgAssignment.getDisplayValue())
-                            .propertyType(UserType.COMPLEX_TYPE));
-            analysisAttributeRule
-                    .add(new AnalysisAttributeRuleType()
-                            .attributeIdentifier(archetypeRef.getDisplayValue())
-                            .propertyType(RoleType.COMPLEX_TYPE));
-
-            value.getAnalysisAttributeRule().addAll(analysisAttributeRule);
-            setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING, value);
-
-            setNewValue(sessionType, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, minObject);
-
-        } catch (SchemaException e) {
-            throw new RuntimeException("Failed to update values session clustering options values", e);
-        } catch (ObjectNotFoundException | SecurityViolationException | ConfigurationException |
-                CommunicationException | ExpressionEvaluationException e) {
-            throw new RuntimeException("Cloud not count objects", e);
-        }
-
         super.onInitialize();
-    }
-
-    private void setNewValue(PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType,
-            ItemName itemName, Object realValue) throws SchemaException {
-
-        sessionType.findProperty(itemName).getValue().setRealValue(realValue);
-
     }
 
     @Override
@@ -143,13 +47,16 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
         LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
         RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
         RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
-
+        PrismContainerWrapperModel<RoleAnalysisSessionType, AbstractAnalysisSessionOptionType> containerWrapperModel;
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
+            containerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
                     ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS));
+        } else {
+            containerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
+                    ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS));
         }
-        return PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
-                ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS));
+        containerWrapperModel.getObject().setExpanded(true);
+        return containerWrapperModel;
     }
 
     protected boolean checkMandatory(ItemWrapper itemWrapper) {
@@ -172,15 +79,19 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
                 return ItemVisibility.HIDDEN;
             }
 
-            if (itemName.equals(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING)
-                    || itemName.equals(AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING)) {
-                LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
-                RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
-                RoleAnalysisCategoryType analysisCategory = processModeObject.getAnalysisCategory();
-                if (!analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
+            if (itemName.equals(AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS)) {
+                if (getDetailsModel().getObjectType() == null) {
+                    return ItemVisibility.HIDDEN;
+                }
+                RoleAnalysisOptionType analysisOption = getDetailsModel().getObjectType().getAnalysisOption();
+                if (analysisOption == null || analysisOption.getAnalysisCategory() == null) {
+                    return ItemVisibility.HIDDEN;
+                }
+                if (!analysisOption.getAnalysisCategory().equals(RoleAnalysisCategoryType.OUTLIERS)) {
                     return ItemVisibility.HIDDEN;
                 }
             }
+
             return ItemVisibility.AUTO;
         };
     }

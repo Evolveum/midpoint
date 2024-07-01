@@ -12,10 +12,12 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceObjectTypesPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.SchemaHandlingObjectsPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -44,6 +46,7 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
 
     @Override
     protected void onBeforeRender() {
+        super.onBeforeRender();
         getTable().getTable().setShowAsCard(false);
     }
 
@@ -75,8 +78,8 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
         onCreateValue(model, target);
     }
 
-    public MultivalueContainerListPanelWithDetailsPanel getTable() {
-        return ((ResourceObjectTypesPanel) get(ID_TABLE)).getTable();
+    public MultivalueContainerListPanel getTable() {
+        return ((SchemaHandlingObjectsPanel) get(ID_TABLE)).getTable();
     }
 
     protected final ContainerPanelConfigurationType getConfiguration(){

@@ -30,6 +30,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
 
 public class SearchableItemsDefinitions {
@@ -202,6 +204,14 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(SimulationResultProcessedObjectType.F_EVENT_MARK_REF)
         ));
 
+        SEARCHABLE_OBJECTS.put(AccessCertificationCampaignType.class, Arrays.asList(
+                ItemPath.create(AccessCertificationCampaignType.F_DEFINITION_REF),
+                ItemPath.create(AccessCertificationCampaignType.F_START_TIMESTAMP),
+                ItemPath.create(AccessCertificationCampaignType.F_END_TIMESTAMP),
+                ItemPath.create(AccessCertificationCampaignType.F_STATE),
+                ItemPath.create(AccessCertificationCampaignType.F_STAGE)
+        ));
+
         SEARCHABLE_OBJECTS.put(AccessCertificationCaseType.class, Arrays.asList(
                 ItemPath.create(AccessCertificationCaseType.F_OBJECT_REF),
                 ItemPath.create(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME),
@@ -219,6 +229,14 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME),
                 ItemPath.create(AccessCertificationWorkItemType.F_CREATE_TIMESTAMP),
                 ItemPath.create(AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
+        ));
+
+        SEARCHABLE_OBJECTS.put(PrismItemDefinitionType.class, Arrays.asList(
+                ItemPath.create(PrismItemDefinitionType.F_NAME),
+                ItemPath.create(PrismItemDefinitionType.F_DISPLAY_NAME),
+                ItemPath.create(PrismItemDefinitionType.F_REQUIRED),
+                ItemPath.create(PrismItemDefinitionType.F_MULTIVALUE),
+                ItemPath.create(PrismItemDefinitionType.F_INDEXED)
         ));
     }
 

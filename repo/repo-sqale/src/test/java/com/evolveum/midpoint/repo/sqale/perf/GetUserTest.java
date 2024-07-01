@@ -48,7 +48,7 @@ public class GetUserTest extends SqaleRepoBaseTest
 
 
     public static int USERS = 10;
-    public static int GETS_TO_MEASURE = 1000;
+    public static int GETS_TO_MEASURE = 15000;
 
     private static final String OPERATION_EXECUTION_EXAMPLE = """
             <operationExecution id="4" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"

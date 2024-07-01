@@ -7,19 +7,16 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.sort.AjaxFallbackOrderByBorder;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxFallbackHeadersToolbar;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortStateLocator;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
-import org.apache.wicket.util.string.Strings;
+
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
 
 public class RoleAnalysisTableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
 

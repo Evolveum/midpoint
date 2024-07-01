@@ -93,7 +93,11 @@ public class ClusterExplanation implements Serializable {
 
                         String candidateName;
                         if (attribute.getIdentifierType().equals(RoleAnalysisAttributeDef.IdentifierType.FINAL)) {
-                            candidateName = itemPath + "-" + value;
+                            if (value.isEmpty()) {
+                                candidateName = "unknown";
+                            }else {
+                                candidateName = itemPath + "-" + value;
+                            }
                         } else {
                             PrismObject<? extends ObjectType> object;
                             object = roleAnalysisService.getObject(FocusType.class, value, task, result);

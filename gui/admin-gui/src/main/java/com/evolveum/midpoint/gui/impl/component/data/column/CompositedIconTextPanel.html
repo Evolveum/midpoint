@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (c) 2010-2024 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <span class="d-flex flex-wrap gap-2 justify-content-center">
+        <span class="d-block position-relative" wicket:id="layeredIcon">
+            <i wicket:id="basicIcon"></i>
+            <div class="bottom-right-layer-for-column icon-stroke-layer justify-content-center" wicket:id="text" style="position: absolute; aspect-ratio: 1 / 1;
+                                            bottom: -2px;
+                                            right: -5px;
+                                            font-size: 18px;height:22px;align-items: center; display:flex"></div>
+        </span>
+
+        <wicket:child/>
+    </span>
+</wicket:panel>
+</html>

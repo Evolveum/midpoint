@@ -25,7 +25,7 @@ public class JaccardSorter {
      */
     public static <T extends MiningBaseTypeChunk> @NotNull List<T> frequencyBasedSort(@NotNull List<T> dataPoints) {
         return dataPoints.stream()
-                .sorted(Comparator.comparingDouble(MiningBaseTypeChunk::getFrequency).reversed())
+                .sorted(Comparator.comparingDouble(MiningBaseTypeChunk::getFrequencyValue).reversed())
                 .collect(Collectors.toList());
     }
 

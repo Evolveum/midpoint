@@ -215,8 +215,7 @@ The XML role definition is as follows:
                      <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:path>attributes/ri:name</q:path>
-                                <q:value>captains</q:value>
+                                <q:text>attributes/name = "captains"</q:text>
                             </filter>
                         </associationTargetSearch>
                  </outbound>

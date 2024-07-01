@@ -285,6 +285,10 @@ li.dropdown.user.user-menu {
 	color: $object-service-color;
 }
 
+.object-policy-color {
+  color: $object-policy-color;
+}
+
 .object-resource-color {
 	color: $object-resource-color;
 }
@@ -316,6 +320,11 @@ li.dropdown.user.user-menu {
 .object-service-bg {
 	background-color: $object-service-color !important;
 	color: #fff !important;
+}
+
+.object-policy-bg {
+  background-color: $object-policy-color !important;
+  color: #fff !important;
 }
 
 .object-resource-bg {
@@ -396,6 +405,10 @@ li.dropdown.user.user-menu {
   @include box-object($object-service-color);
 }
 
+.object-policy-box {
+  @include box-object($object-policy-color);
+}
+
 .object-task-box {
   @include box-object($object-task-color);
 }
@@ -432,6 +445,10 @@ li.dropdown.user.user-menu {
   @include box-thin-object($object-service-color);
 }
 
+.object-policy-box-thin {
+  @include box-thin-object($object-policy-color);
+}
+
 .object-resource-box-thin {
   @include box-thin-object($object-resource-color);
 }
@@ -464,6 +481,10 @@ li.dropdown.user.user-menu {
 
 .info-box-icon.summary-panel-service {
   @include info-box-icon-summary-panel($object-service-color);
+}
+
+.info-box-icon.summary-panel-policy {
+  @include info-box-icon-summary-panel($object-policy-color);
 }
 
 .info-box-icon.summary-panel-resource {
@@ -2152,4 +2173,39 @@ div.show > a > div > i.fas {
 
 .navidation-panel {
   height: 35px !important;
+}
+
+.vertical-navigation-panel {
+  width: 20%;
+}
+
+.summary-panel {
+  & > .logo {
+    min-width: 84px;
+    width: 84px;
+    height: 84px;
+    min-height: 84px;
+    border-radius: 108px;
+    background-color: rgba(60, 141, 188, 0.1);
+  }
+
+  & > .description, & > .title {
+    display: -webkit-box;
+    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+  }
+
+& > .description {
+    -webkit-line-clamp: 2;
+  }
+
+& > .title {
+    -webkit-line-clamp: 1;
+  }
+
+& > .details-item {
+  height: 35px;
+  }
 }

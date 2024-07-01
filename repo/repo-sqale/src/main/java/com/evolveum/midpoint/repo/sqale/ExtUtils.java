@@ -15,6 +15,8 @@ import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,7 +100,14 @@ public class ExtUtils {
             def = PrismContext.get().definitionFactory().newPropertyDefinition(name, typeName);
         }
         def.mutator().setMinOccurs(0);
-        def.mutator().setMaxOccurs(-1);
+        if (itemInfo.cardinality == MExtItemCardinality.SCALAR) {
+            def.mutator().setMaxOccurs(1);
+        } else {
+            def.mutator().setMaxOccurs(-1);
+        }
+
+
+
         def.mutator().setRuntimeSchema(true);
         def.mutator().setDynamic(true);
         def.mutator().setIndexOnly(indexOnly);

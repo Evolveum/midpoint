@@ -237,7 +237,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             }
 
             @Override
-            protected void savePerformed(AjaxRequestTarget target) {
+            protected void submitPerformed(AjaxRequestTarget target) {
                 PageAssignmentHolderDetails.this.savePerformed(target);
             }
 
@@ -266,9 +266,6 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     }
 
     protected void afterDeletePerformed(AjaxRequestTarget target) {
-    }
-
-    protected void onBackPerform(AjaxRequestTarget target) {
     }
 
     protected void addAdditionalButtons(RepeatingView repeatingView) {
@@ -331,6 +328,10 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
     public List<Breadcrumb> getWizardBreadcrumbs() {
         return wizardBreadcrumbs;
+    }
+
+    public boolean isShowByWizard() {
+        return isShowedByWizard();
     }
 
     protected <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> P showWizard(

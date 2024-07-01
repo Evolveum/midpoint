@@ -9,26 +9,27 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.visit.ClassVisitFilter;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.wizard.EnumWizardChoicePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategory;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 @PanelType(name = "rm-category")
 @PanelInstance(identifier = "rm-category",
@@ -36,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRoleAnalysisSession.wizard.step.choice", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<AnalysisCategoryChoiceStepPanel.AnalysisCategory, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
+public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<AnalysisCategory, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
     public static final String PANEL_TYPE = "rm-category";
 
@@ -56,35 +57,19 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
 
     @Override
     protected void onTileClickPerformed(AnalysisCategory value, AjaxRequestTarget target) {
-        RoleAnalysisCategoryType mode = null;
-        if (value.equals(AnalysisCategory.STANDARD)) {
-            mode = RoleAnalysisCategoryType.STANDARD;
-        } else if (value.equals(AnalysisCategory.ADVANCED)) {
-            mode = RoleAnalysisCategoryType.ADVANCED;
-        }
+        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper = getAssignmentHolderDetailsModel().getObjectWrapperModel();
+        RoleAnalysisCategoryType roleAnalysisCategoryType = value.resolveCategoryMode();
+        RoleAnalysisSessionType realValue = objectWrapper.getObject().getValue().getRealValue();
+        RoleAnalysisOptionType analysisOption = realValue.getAnalysisOption();
+        analysisOption.setAnalysisCategory(roleAnalysisCategoryType);
 
-        PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper = getAssignmentHolderDetailsModel().getObjectWrapper();
-        PrismContainer<Containerable> property = objectWrapper.getObject()
-                .findContainer(RoleAnalysisSessionType.F_ANALYSIS_OPTION);
-        property.findProperty(RoleAnalysisOptionType.F_ANALYSIS_CATEGORY)
-                .setRealValue(mode);
+        Task task = getPageBase().createSimpleTask("prepare options");
+        OperationResult result = task.getResult();
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+        value.generateConfiguration(
+                roleAnalysisService, objectWrapper, task, result);
 
         onSubmitPerformed(target);
-    }
-
-    public enum AnalysisCategory implements TileEnum {
-        STANDARD("fa fa-cogs"),
-        ADVANCED("fa fa-sliders-h");
-        private final String icon;
-
-        AnalysisCategory(String icon) {
-            this.icon = icon;
-        }
-
-        @Override
-        public String getIcon() {
-            return icon;
-        }
     }
 
     @Override
@@ -95,6 +80,34 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
     @Override
     protected @NotNull IModel<String> getBreadcrumbLabel() {
         return getTextModel();
+    }
+
+    @Override
+    protected Component createTilePanel(String id, IModel<Tile<AnalysisCategory>> tileModel) {
+
+        RoleAnalysisSessionType session = getAssignmentHolderDetailsModel().getObjectType();
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+
+        boolean isVisible = true;
+        AnalysisCategory category = tileModel.getObject().getValue();
+
+        //TEMPORARY DISABLE OUTLIER ANALYSIS UNTIL IT IS IMPLEMENTED TODO
+//        if (category.equals(AnalysisCategory.OUTLIER)) {
+//            isVisible = false;
+//        }
+
+        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+            if (category.equals(AnalysisCategory.DEPARTMENT)) {
+                isVisible = false;
+            }
+            if(category.equals(AnalysisCategory.OUTLIER)){
+                isVisible = false;
+            }
+        }
+        Component tilePanel = super.createTilePanel(id, tileModel);
+        tilePanel.setVisible(isVisible);
+        return tilePanel;
     }
 
     @Override

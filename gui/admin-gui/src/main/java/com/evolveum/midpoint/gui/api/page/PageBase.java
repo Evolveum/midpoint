@@ -269,7 +269,7 @@ public abstract class PageBase extends PageAdminLTE {
                 target.add(PageBase.this);
             }
         };
-        mode.add(new VisibleBehaviour(() ->  AuthUtil.getPrincipalUser() != null && WebModelServiceUtils.isEnableExperimentalFeature(this)));
+        mode.add(new VisibleBehaviour(() -> AuthUtil.getPrincipalUser() != null && WebModelServiceUtils.isEnableExperimentalFeature(this)));
         container.add(mode);
 
         MidpointForm<?> form = new MidpointForm<>(ID_LOGOUT_FORM);
@@ -317,6 +317,7 @@ public abstract class PageBase extends PageAdminLTE {
         pageTitle.add(deploymentName);
 
         Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, createPageTitleModel());
+        pageTitleReal.add(getPageTitleBehaviour());
         pageTitleReal.setRenderBodyOnly(true);
         pageTitle.add(pageTitleReal);
 
@@ -342,7 +343,7 @@ public abstract class PageBase extends PageAdminLTE {
                 WebMarkupContainer bcSrCurrentMessage = new WebMarkupContainer(ID_BC_SR_CURRENT_MESSAGE);
                 bcLink.add(bcSrCurrentMessage);
 
-                if (item.getIndex() == getModelObject().size()-1) {
+                if (item.getIndex() == getModelObject().size() - 1) {
                     bcLink.add(AttributeAppender.append("aria-current", "page"));
                 } else {
                     bcSrCurrentMessage.add(VisibleBehaviour.ALWAYS_INVISIBLE);
@@ -494,6 +495,10 @@ public abstract class PageBase extends PageAdminLTE {
                         "" + (popupable.getHeight() > 0 ? popupable.getHeight() : ""), popupable.getHeightUnit())));
         dialog.setContent(popupable.getContent());
         dialog.setFooter(popupable.getFooter());
+
+        if (popupable.getTitleComponent() != null) {
+            dialog.setTitleComponent(popupable.getTitleComponent());
+        }
 
         dialog.setTitle(popupable.getTitle());
         dialog.setTitleIconClass(popupable.getTitleIconClass());
@@ -689,7 +694,6 @@ public abstract class PageBase extends PageAdminLTE {
             redirectBack();
         }
     }
-
 
     public String createPropertyModelExpression(String... components) {
         return StringUtils.join(components, ".");

@@ -9,6 +9,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 import java.io.Serial;
 import java.util.Collection;
 import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisSessionOperationButtonPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisSessionSummaryPanel;
+
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -16,7 +25,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,11 +36,10 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.SessionSummaryPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.RoleAnalysisSessionWizardPanel;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -100,77 +108,6 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     }
 
     @Override
-    public void addAdditionalButtons(RepeatingView repeatingView) {
-        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_OBJECT_TASK_ICON,
-                LayeredIconCssStyle.IN_ROW_STYLE);
-        AjaxCompositedIconSubmitButton rebuildButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
-                iconBuilder.build(),
-                setDetectionButtonTitle()) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                clusteringPerform(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(((PageBase) getPage()).getFeedbackPanel());
-            }
-        };
-        rebuildButton.titleAsLabel(true);
-        rebuildButton.setOutputMarkupId(true);
-        rebuildButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
-        repeatingView.add(rebuildButton);
-
-        Form<?> form = rebuildButton.findParent(Form.class);
-        if (form != null) {
-            form.setDefaultButton(rebuildButton);
-        }
-
-    }
-
-    public void clusteringPerform(@NotNull AjaxRequestTarget target) {
-
-        Task task = getPageBase().createSimpleTask(OP_PERFORM_CLUSTERING);
-        OperationResult result = task.getResult();
-
-        AssignmentHolderDetailsModel<RoleAnalysisSessionType> objectDetailsModels = getObjectDetailsModels();
-
-        RoleAnalysisSessionType session = objectDetailsModels.getObjectType();
-
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-
-        try {
-            ModelService modelService = getPageBase().getModelService();
-
-            Collection<ObjectDelta<? extends ObjectType>> objectDeltas = objectDetailsModels.collectDeltas(result);
-            if (objectDeltas != null && !objectDeltas.isEmpty()) {
-                modelService.executeChanges(objectDeltas, null, task, result);
-            }
-        } catch (CommonException e) {
-            LOGGER.error("Couldn't execute changes on RoleAnalysisSessionType object: {}", session.getOid(), e);
-        }
-
-        roleAnalysisService.executeClusteringTask(getModelInteractionService(), session.asPrismObject(), null, null, task, result);
-
-        if (result.isWarning()) {
-            warn(result.getMessage());
-            target.add(getPageBase().getFeedbackPanel());
-        } else {
-            result.recordSuccessIfUnknown();
-            setResponsePage(PageRoleAnalysis.class);
-            ((PageBase) getPage()).showResult(result);
-            target.add(getFeedbackPanel());
-        }
-
-    }
-
-    public StringResourceModel setDetectionButtonTitle() {
-        return ((PageBase) getPage()).createStringResource("PageAnalysisSession.button.save");
-    }
-
-    @Override
     protected void onInitialize() {
         super.onInitialize();
     }
@@ -182,7 +119,12 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
     @Override
     protected Panel createSummaryPanel(String id, IModel<RoleAnalysisSessionType> summaryModel) {
-        return new SessionSummaryPanel(id, summaryModel, null);
+        return null;
+    }
+
+    @Override
+    protected Panel createVerticalSummaryPanel(String id, IModel<RoleAnalysisSessionType> summaryModel) {
+        return new RoleAnalysisSessionSummaryPanel(id, summaryModel);
     }
 
     public PageBase getPageBase() {
@@ -191,7 +133,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        return createStringResource("RoleMining.page.cluster.title");
+        return Model.of();
     }
 
     @Override
@@ -199,18 +141,41 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         return !isEditObject();
     }
 
-    protected DetailsFragment createDetailsFragment() {
-        if (!isNativeRepo()) {
-            return new DetailsFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageRoleAnalysisSession.this) {
-                @Override
-                protected void initFragmentLayout() {
-                    add(new ErrorPanel(ID_TEMPLATE,
-                            createStringResource("RoleAnalysis.menu.nonNativeRepositoryWarning")));
-                }
-            };
-        }
+    @Override
+    protected boolean supportGenericRepository() {
+        return false;
+    }
 
-        return super.createDetailsFragment();
+    @Override
+    protected boolean supportNewDetailsLook() {
+        return true;
+    }
+
+    @Override
+    protected InlineOperationalButtonsPanel<RoleAnalysisSessionType> createInlineButtonsPanel(String idButtons, LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel) {
+        return new RoleAnalysisSessionOperationButtonPanel(idButtons, objectWrapperModel, getObjectDetailsModels()) {
+            @Override
+            protected void submitPerformed(AjaxRequestTarget target) {
+                PageRoleAnalysisSession.this.savePerformed(target);
+            }
+
+            @Override
+            protected void backPerformed(AjaxRequestTarget target) {
+                super.backPerformed(target);
+                onBackPerform(target);
+            }
+
+            @Override
+            protected void deleteConfirmPerformed(AjaxRequestTarget target) {
+                super.deleteConfirmPerformed(target);
+                afterDeletePerformed(target);
+            }
+
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return PageRoleAnalysisSession.this.hasUnsavedChanges(target);
+            }
+        };
     }
 
     @Override
@@ -239,32 +204,24 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
 
-            if (containerPanelConfigurationType.getIdentifier().equals("matchingOptions")) {
-                if (!analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {
+            if (containerPanelConfigurationType.getIdentifier().equals("topDetectedPattern")) {
+                if (RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
                     containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
                     continue;
                 }
             }
 
-            if (containerPanelConfigurationType.getIdentifier().equals("sessionOptions")) {
-                List<VirtualContainersSpecificationType> container = containerPanelConfigurationType.getContainer();
-
-                for (VirtualContainersSpecificationType virtualContainersSpecificationType : container) {
-                    if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-                        if (virtualContainersSpecificationType.getPath().getItemPath()
-                                .equivalent(RoleAnalysisSessionType.F_USER_MODE_OPTIONS)) {
-                            containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                        }
-                    } else {
-                        if (virtualContainersSpecificationType.getPath().getItemPath()
-                                .equivalent(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS)) {
-                            containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                        }
-                    }
-
+            if (containerPanelConfigurationType.getIdentifier().equals("userModeSettings")) {
+                if (RoleAnalysisProcessModeType.ROLE.equals(processMode)) {
+                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
                 }
 
+            } else if (containerPanelConfigurationType.getIdentifier().equals("roleModeSettings")) {
+                if (RoleAnalysisProcessModeType.USER.equals(processMode)) {
+                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                }
             }
+
         }
         return panelConfigurations;
     }
@@ -283,6 +240,11 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
             }
         };
 
+    }
+
+    @Override
+    protected VisibleEnableBehaviour getPageTitleBehaviour() {
+        return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
     }
 }
 

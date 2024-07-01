@@ -17,6 +17,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleA
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 
+import com.evolveum.midpoint.web.page.admin.certification.component.PageCertItems;
+import com.evolveum.midpoint.web.page.admin.certification.component.PageMyCertItems;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -305,6 +308,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         menu.addMainMenuItem(createOrganizationsMenu());
         menu.addMainMenuItem(createRolesMenu());
         menu.addMainMenuItem(createServicesItems());
+        menu.addMainMenuItem(createPoliciesItems());
         menu.addMainMenuItem(createResourcesItems());
         if (getPageBase().getCaseManager().isEnabled()) {
             menu.addMainMenuItem(createWorkItemsItems());
@@ -412,6 +416,12 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return serviceMenu;
     }
 
+    private MainMenuItem createPoliciesItems() {
+        MainMenuItem serviceMenu = createMainMenuItem("PageAdmin.menu.top.policies", GuiStyleConstants.CLASS_OBJECT_POLICY_ICON_COLORED);
+        createBasicAssignmentHolderMenuItems(serviceMenu, PageTypes.POLICY);
+        return serviceMenu;
+    }
+
     private MainMenuItem createResourcesItems() {
         MainMenuItem resourceMenu = createMainMenuItem(
                 "PageAdmin.menu.top.resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
@@ -468,13 +478,14 @@ public class LeftMenuPanel extends BasePanel<Void> {
         }
 
 //        if (isFullyAuthorized()) {  // workaround for MID-5917
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.allDecisions", PageCertDecisionsAll.class));
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.certificationItems", PageCertItems.class));
 
 //        }
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.decisions", PageCertDecisions.class));
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.myCertificationItems", PageMyCertItems.class));
 
         MenuItem newCertificationMenu = new MenuItem("PageAdmin.menu.top.certification.newDefinition", GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCertDefinition.class);
         certificationMenu.addMenuItem(newCertificationMenu);
+
         return certificationMenu;
     }
 

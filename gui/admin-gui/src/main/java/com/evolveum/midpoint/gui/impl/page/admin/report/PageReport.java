@@ -134,7 +134,7 @@ public class PageReport extends PageAssignmentHolderDetails<ReportType, Assignme
             }
 
             @Override
-            protected void savePerformed(AjaxRequestTarget target) {
+            protected void submitPerformed(AjaxRequestTarget target) {
                 PageReport.this.savePerformed(target);
             }
 

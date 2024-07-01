@@ -164,12 +164,9 @@ Like this:
    <name>Dummy Resource</name>
    <connectorRef>
        <filter>
-           <q:equal>
-               <q:path>connectorType</q:path>
-               <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
-           </q:equal>
+           <q:text>connectorType = "com.evolveum.polygon.connector.ldap.LdapConnector"</q:text>
        </filter>
-   <connectorRef>
+   </connectorRef>
 </resource>
 ----
 
@@ -185,7 +182,7 @@ All links between midPoint objects are based on OIDs, so they will remain valid 
 This is usually what you want for most objects.
 But for the connectors there is an important consequence: if a connector is upgraded, new connector definition is created for the new connector version.
 This definition will have new OID.
-As the search filter in the reference is not executed for objects that are already stored in the repository the the `connectorRef` references in resource definitions need to be manually updated after connector upgrade.
+As the search filter in the reference is not executed for objects that are already stored in the repository the `connectorRef` references in resource definitions need to be manually updated after connector upgrade.
 ====
 
 

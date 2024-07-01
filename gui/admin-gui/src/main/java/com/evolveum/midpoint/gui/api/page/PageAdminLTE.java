@@ -26,6 +26,8 @@ import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
 import com.evolveum.midpoint.security.api.SecurityContextManager.ResultAwareCheckedProducer;
+import com.evolveum.midpoint.web.component.action.AbstractGuiAction;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
@@ -33,6 +35,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
@@ -295,11 +298,16 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         add(body);
 
         Label title = new Label(ID_TITLE, createPageTitleModel());
+        title.add(getPageTitleBehaviour());
         title.setRenderBodyOnly(true);
         add(title);
 
         addFooter();
         initDebugBarLayout();
+    }
+
+    protected VisibleEnableBehaviour getPageTitleBehaviour() {
+        return VisibleBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     protected void addDefaultBodyStyle(TransparentWebMarkupContainer body) {
@@ -853,6 +861,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     public Class<? extends Panel> findObjectPanel(String identifier) {
         return guiConfigurationRegistry.findPanel(identifier);
+    }
+
+    public Class<? extends AbstractGuiAction<?>> findGuiAction(String identifier) {
+        return guiConfigurationRegistry.findAction(identifier);
     }
 
     public SimpleCounter getCounterProvider(String identifier) {

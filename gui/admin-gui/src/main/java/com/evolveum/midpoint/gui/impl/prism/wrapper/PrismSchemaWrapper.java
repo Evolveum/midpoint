@@ -9,25 +9,21 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.PrismSchemaTypeUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
@@ -41,8 +37,11 @@ public class PrismSchemaWrapper extends PrismContainerWrapperImpl<PrismSchemaTyp
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismSchemaWrapper.class);
 
-    public PrismSchemaWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<PrismSchemaType> item, ItemStatus status) {
+    private final ItemPath wrapperPath;
+
+    public PrismSchemaWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<PrismSchemaType> item, ItemStatus status, ItemPath wrapperPath) {
         super(parent, item, status);
+        this.wrapperPath = wrapperPath;
     }
 
     @Override
@@ -50,12 +49,11 @@ public class PrismSchemaWrapper extends PrismContainerWrapperImpl<PrismSchemaTyp
 
         Collection<D> deltas = new ArrayList<>();
         PrismObjectWrapper<ObjectType> objectWrapper = findObjectWrapper();
-        @NotNull ItemPath propertyPath = getPath().allExceptLast().append(SchemaType.F_DEFINITION);
-        PrismPropertyDefinition<SchemaDefinitionType> propertyDef = objectWrapper.getItem().getDefinition().findPropertyDefinition(propertyPath);
+        PrismPropertyDefinition<SchemaDefinitionType> propertyDef = objectWrapper.getItem().getDefinition().findPropertyDefinition(wrapperPath);
 
         for (PrismContainerValueWrapper<PrismSchemaType> pVal : getValues()) {
             LOGGER.trace("Processing delta for value:\n {}", pVal);
-            PropertyDelta<SchemaDefinitionType> delta = propertyDef.createEmptyDelta(propertyPath);
+            PropertyDelta<SchemaDefinitionType> delta = propertyDef.createEmptyDelta(wrapperPath);
             switch (pVal.getStatus()) {
                 case ADDED:
 
@@ -96,7 +94,7 @@ public class PrismSchemaWrapper extends PrismContainerWrapperImpl<PrismSchemaTyp
 
                     break;
                 case DELETED:
-                    PrismProperty<SchemaDefinitionType> schemaProperty = objectWrapper.getItem().findProperty(propertyPath);
+                    PrismProperty<SchemaDefinitionType> schemaProperty = objectWrapper.getItem().findProperty(wrapperPath);
                     delta.addValueToDelete(schemaProperty.getValue().clone());
                     deltas.add((D) delta);
                     LOGGER.trace("Computed delta: \n {}", delta.debugDump());

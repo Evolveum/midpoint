@@ -14,13 +14,15 @@ import java.util.Objects;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisCandidateRoleTable;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisClusterAction;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisCandidateRoleTileTable;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -36,10 +38,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelInstance(
         identifier = "candidateRoles",
         applicableForType = RoleAnalysisClusterType.class,
+        childOf = RoleAnalysisClusterAction.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisClusterType.candidateRoles",
                 icon = GuiStyleConstants.CLASS_GROUP_ICON,
-                order = 30
+                order = 20
         )
 )
 public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
@@ -59,7 +62,7 @@ public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClu
 
     @Override
     protected void initLayout() {
-
+        recomputeClusterOpStatus();
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
         add(container);
@@ -80,8 +83,14 @@ public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClu
             }
         }
 
-        RoleAnalysisCandidateRoleTable components = new RoleAnalysisCandidateRoleTable(ID_PANEL,
-                getObjectDetailsModels().getObjectType(), cacheCandidate, roles, null) {
+        RoleAnalysisCandidateRoleTileTable components = new RoleAnalysisCandidateRoleTileTable(ID_PANEL, getPageBase(),
+                new LoadableDetachableModel<>() {
+                    @Override
+                    protected List<RoleType> load() {
+                        return roles;
+                    }
+                }, cacheCandidate, cluster.getOid()) {
+
             @Override
             protected void onRefresh(AjaxRequestTarget target) {
                 performRefresh();
@@ -109,7 +118,7 @@ public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClu
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
         roleAnalysisService.recomputeAndResolveClusterOpStatus(
                 getObjectWrapperObject().getOid(),
-                result, task);
+                result, task, false, getPageBase().getModelInteractionService());
     }
 
     public PageBase getPageBase() {

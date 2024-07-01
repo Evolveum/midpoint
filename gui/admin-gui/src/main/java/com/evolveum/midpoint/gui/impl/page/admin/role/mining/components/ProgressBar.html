@@ -11,16 +11,24 @@
 
 
     <div style="margin-top: 5px;"></div>
-    <div class="row">
-        <div wicket:id="progressBarTitle" class="col progress-label" style="text-transform: capitalize;"></div>
-        <div wicket:id="progressBarDetails" class="col progress-label"></div>
-        <div wicket:id="progressBarPercentage" class="col-auto progress-label float-right"></div>
+    <div class="d-flex flex-wrap">
+        <div wicket:id="progressBarTitle" class="col progress-label" style="text-transform: capitalize; font-size:14px;" ></div>
+        <div wicket:id="progressBarDetails" class="col progress-label" style="font-size:14px;"></div>
+        <div wicket:id="progressBarPercentage" class="col-auto progress-label float-right" style="font-size:14px;"></div>
     </div>
-    <div wicket:id="progressBarContainer" class="progress row" style="border-radius: 10px; height:13px">
-        <div wicket:id="progressBar" class="progress-bar" role="progressbar"
-                aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-        </div>
 
+    <div class="d-flex flex-wrap">
+        <div class="col pl-0">
+            <div wicket:id="progressBarContainer" class="progress" style="border-radius: 10px; height:13px; transform: translateY(50%);">
+
+                <div wicket:id="progressBar" class="progress-bar" role="progressbar"
+                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                </div>
+            </div>
+        </div>
+        <div>
+            <div wicket:id="progressBarPercentageInline" class="progress-label float-right"></div>
+        </div>
     </div>
 
 </wicket:panel>

@@ -2034,6 +2034,19 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="multiselect" type="tns:MultiselectOptionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configures the possibility of selecting multiple objects in the table or view
+                                (in case this table or view provides item selection functionality).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiObjectListPanelConfigurationType.multiselect</a:displayName>
+                                <a:since>4.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <!-- TODO: number of results per page (MID-1931) -->
                     <!-- TODO: later: export settings (GuiExportSettingsType) -->
                 </xsd:sequence>
@@ -4047,6 +4060,35 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="preAction" type="tns:GuiActionType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Defines the additional action which should be executed before the current action.
+                                    Can be used for example to define a confirmation dialog or adding a comment.
+                                </p>
+                                <p>
+                                    For now, pre-action is implemented only for certification items collection view
+                                    when the view is defined within certification definition.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiActionType.preAction</a:displayName>
+                                <a:elaborate>true</a:elaborate>
+                                <a:since>4.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="parameter" type="tns:GuiParameterType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the parameter which should be processed while executing the action.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiActionType.parameter</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!-- TODO later: expression, reference to java class, etc. -->
                 </xsd:sequence>
             </xsd:extension>
@@ -4754,6 +4796,88 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:elaborate>true</a:elaborate>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:simpleType name="MultiselectOptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines the possibility to select multiple items.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="selectAll">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Gives the possibility to select all items at once.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SELECT_ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="selectIndividuals">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Gives the possibility to select individual items without possibility to select all at once.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SELECT_INDIVIDUALS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="noSelect">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        No possibility to select any items.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NO_SELECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="GuiParameterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Parameter which can be used within GUI.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ParameterType">
+                <xsd:sequence>
+                    <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines the characteristics of the parameter to be displayed in the GUI.
+                                E.g. label, help text, etc.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiParameterType.display</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines if the parameter is mandatory.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiParameterType.mandatory</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

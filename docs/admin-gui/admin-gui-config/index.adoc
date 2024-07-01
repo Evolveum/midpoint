@@ -288,6 +288,11 @@ Panels applicable for all FocusType objects:
 | Panel for service assignments. In details menu present as a submenu of `assignments`
 | 40
 
+| Policy assignments
+| `policyAssignments`
+| Panel for policy assignments. In details menu present as a submenu of `assignments`
+| 45
+
 | Password
 | `password`
 | Password panel, might be grouped under credentials in the future
@@ -443,6 +448,24 @@ Panels applicable only for services:
 
 | Service governance
 | `serviceGovernance`
+|
+| 90
+
+|===
+
+Panels applicable only for policies:
+
+[%autowidth]
+|===
+| Panel | Identifier | Description | Default order
+
+| Policy members
+| `policyMembers`
+|
+| 80
+
+| Policy governance
+| `policyGovernance`
 |
 | 90
 
@@ -800,16 +823,7 @@ For configuration of object details for resource (ResourceType) use tag `resourc
                 <connectorRef type="ConnectorType">
                     <resolutionTime>run</resolutionTime>
                     <filter>
-                        <q:and>
-                            <q:equal>
-                                <q:path>connectorType</q:path>
-                                <q:value>com.evolveum.polygon.connector.ldap.ad.AdLdapConnector</q:value>
-                            </q:equal>
-                            <q:equal>
-                                <q:path>available</q:path>
-                                <q:value>true</q:value>
-                            </q:equal>
-                        </q:and>
+                        <q:text>connectorType = "com.evolveum.polygon.connector.ldap.ad.AdLdapConnector" and available = true</q:text>
                     </filter>
                 </connectorRef>
             </resourceDetailsPage>

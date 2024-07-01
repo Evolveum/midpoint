@@ -6,6 +6,10 @@ import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressI
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierNoiseCategoryType;
+
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Performs density-based clustering of data points based on specified parameters and distance measure.
  * This class implements the Density-Based Spatial Clustering of Applications with Noise (DBSCAN) algorithm.
@@ -14,8 +18,6 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
     private double eps;
     private int minPts;
     int minPropertiesOverlap;
-    boolean rule;
-
     private static final Trace LOGGER = TraceManager.getTrace(DensityBasedClustering.class);
 
     /**
@@ -26,8 +28,8 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
      * @param measure The distance measure for clustering.
      * @param minRolesOverlap The minimum properties overlap required for adding a point to a cluster.
      */
-    public DensityBasedClustering(double eps, int minPts, DistanceMeasure measure, int minRolesOverlap, boolean rule) {
-        super(measure);
+    public DensityBasedClustering(double eps, int minPts, @NotNull DistanceMeasure measure, int minRolesOverlap, @NotNull ClusteringMode clusteringMode) {
+        super(measure, clusteringMode);
 
         if (eps < 0.0) {
             LOGGER.warn("Invalid parameter: eps={} is less than 0.0. Parameters not updated.", eps);
@@ -42,9 +44,7 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
                     eps, minPts, this.eps, this.minPts);
         }
 
-        this.rule = rule;
         this.minPropertiesOverlap = minRolesOverlap;
-
     }
 
     /**
@@ -56,7 +56,7 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
      */
     public List<Cluster<T>> cluster(Collection<T> points, RoleAnalysisProgressIncrement handler) {
         List<Cluster<T>> clusters = new ArrayList<>();
-        Map<Clusterable, PointStatus> visited = new HashMap<>();
+        Map<Clusterable, RoleAnalysisOutlierNoiseCategoryType> visited = new HashMap<>();
 
         Set<ClusterExplanation> explanation = new HashSet<>();
 
@@ -67,21 +67,34 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
             handler.iterateActualStatus();
 
             if (visited.get(point) == null) {
-                List<T> neighbors = this.getNeighbors(point, points, rule, explanation);
-                int neighborsSize = getNeightborsSize(neighbors);
+                PointStatusWrapper pStatusWrapper = new PointStatusWrapper(RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER);
 
-                if (neighborsSize >= this.minPts
-                        || (point.getMembersCount() >= this.minPts
-                        && point.getPoint().size() >= minPropertiesOverlap)) {
+                List<T> neighbors = this.getNeighbors(point, points, explanation, this.eps, this.minPts, pStatusWrapper);
+
+                if(pStatusWrapper.pStatus == RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER){
                     Cluster<T> cluster = new Cluster<>();
                     Cluster<T> tCluster = this.expandCluster(cluster, point, neighbors, points, visited, explanation);
                     tCluster.setExplanations(explanation);
                     clusters.add(tCluster);
-                    explanation = new HashSet<>();
-                } else {
-                    visited.put(point, PointStatus.NOISE);
-                    explanation = new HashSet<>();
+                }else {
+                    point.setPointStatus(pStatusWrapper.pStatus);
+                    visited.put(point, pStatusWrapper.pStatus);
                 }
+
+                explanation = new HashSet<>();
+
+//                int neighborsSize = getNeightborsSize(neighbors);
+//                if (neighborsSize >= this.minPts
+//                        || (point.getMembersCount() >= this.minPts && point.getPoint().size() >= minPropertiesOverlap)) {
+//                    Cluster<T> cluster = new Cluster<>();
+//                    Cluster<T> tCluster = this.expandCluster(cluster, point, neighbors, points, visited, explanation);
+//                    tCluster.setExplanations(explanation);
+//                    clusters.add(tCluster);
+//                    explanation = new HashSet<>();
+//                } else {
+//                    visited.put(point, pStatusWrapper.pStatus);
+//                    explanation = new HashSet<>();
+//                }
             }
         }
 
@@ -89,62 +102,30 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
     }
 
     private Cluster<T> expandCluster(Cluster<T> cluster, T point, List<T> neighbors, Collection<T> points,
-            Map<Clusterable, PointStatus> visited, Set<ClusterExplanation> explanation) {
+            Map<Clusterable, RoleAnalysisOutlierNoiseCategoryType> visited, Set<ClusterExplanation> explanation) {
         cluster.addPoint(point);
-        visited.put(point, PointStatus.PART_OF_CLUSTER);
+        visited.put(point, RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER);
         List<T> seeds = new ArrayList<>(neighbors);
 
         for (int index = 0; index < seeds.size(); ++index) {
             T current = (T) ((List) seeds).get(index);
-            PointStatus pStatus = visited.get(current);
+            RoleAnalysisOutlierNoiseCategoryType pStatus = visited.get(current);
             if (pStatus == null) {
-                List<T> currentNeighbors = this.getNeighbors(current, points, rule, explanation);
+                PointStatusWrapper pStatusWrapper = new PointStatusWrapper(RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER);
+                List<T> currentNeighbors = this.getNeighbors(current, points, explanation, this.eps, this.minPts, pStatusWrapper);
                 int currentNeighborsCount = getNeightborsSize(currentNeighbors);
                 if (currentNeighborsCount >= this.minPts) {
                     this.merge(seeds, currentNeighbors);
                 }
             }
 
-            if (pStatus != PointStatus.PART_OF_CLUSTER) {
-                visited.put(current, PointStatus.PART_OF_CLUSTER);
+            if (pStatus != RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER) {
+                visited.put(current, RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER);
                 cluster.addPoint(current);
             }
         }
 
         return cluster;
-    }
-
-    private List<T> getNeighbors(T point, Collection<T> points, boolean rule, Set<ClusterExplanation> explanation) {
-        if (rule) {
-            return getNeighborsRule(point, points, explanation);
-        } else {
-            return getNeighborsClean(point, points);
-        }
-    }
-
-    private List<T> getNeighborsClean(T point, Collection<T> points) {
-        List<T> neighbors = new ArrayList<>();
-
-        for (T neighbor : points) {
-            if (point != neighbor && this.accessDistance(neighbor, point) <= this.eps) {
-                neighbors.add(neighbor);
-            }
-        }
-
-        return neighbors;
-    }
-
-    private List<T> getNeighborsRule(T point, Collection<T> points, Set<ClusterExplanation> explanation) {
-        List<T> neighbors = new ArrayList<>();
-
-        for (T neighbor : points) {
-            if (point != neighbor && this.accessDistance(neighbor, point) <= this.eps
-                    && this.rulesDistance(neighbor.getExtensionProperties(), point.getExtensionProperties(), explanation) == 0) {
-                neighbors.add(neighbor);
-            }
-        }
-
-        return neighbors;
     }
 
     private int getNeightborsSize(List<T> neighbors) {
@@ -166,11 +147,12 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
 
     }
 
-    private enum PointStatus {
-        NOISE,
-        PART_OF_CLUSTER;
 
-        PointStatus() {
+    class PointStatusWrapper {
+        public RoleAnalysisOutlierNoiseCategoryType pStatus;
+
+        public PointStatusWrapper(RoleAnalysisOutlierNoiseCategoryType pStatus) {
+            this.pStatus = pStatus;
         }
     }
 }
