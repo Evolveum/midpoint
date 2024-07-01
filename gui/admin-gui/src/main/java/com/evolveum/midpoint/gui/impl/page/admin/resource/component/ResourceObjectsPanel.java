@@ -103,6 +103,8 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
 
     private final IModel<Boolean> showStatisticsModel = Model.of(false);
 
+    private LoadableDetachableModel<PrismPropertyWrapper<String>> lifecycleStateModel;
+
     public ResourceObjectsPanel(String id, ResourceDetailsModel resourceDetailsModel, ContainerPanelConfigurationType config) {
         super(id, resourceDetailsModel, config);
     }
@@ -125,25 +127,27 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     }
 
     private void createLifecycleStatePanel() {
-        IModel<PrismPropertyWrapper<String>> model = new LoadableDetachableModel<>() {
-            @Override
-            protected PrismPropertyWrapper<String> load() {
-                if (getSelectedObjectType() != null) {
-                    ItemPath pathToProperty = ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)
-                            .append(getSelectedObjectType().asPrismContainerValue().getPath())
-                            .append(ResourceObjectTypeDefinitionType.F_LIFECYCLE_STATE);
-                    try {
-                        return getObjectWrapperModel().getObject().findProperty(pathToProperty);
-                    } catch (SchemaException e) {
-                        LOGGER.error("Couldn't find property with path " + pathToProperty);
+        if (lifecycleStateModel == null) {
+            lifecycleStateModel = new LoadableDetachableModel<>() {
+                @Override
+                protected PrismPropertyWrapper<String> load() {
+                    if (getSelectedObjectType() != null) {
+                        ItemPath pathToProperty = ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)
+                                .append(getSelectedObjectType().asPrismContainerValue().getPath())
+                                .append(ResourceObjectTypeDefinitionType.F_LIFECYCLE_STATE);
+                        try {
+                            return getObjectWrapperModel().getObject().findProperty(pathToProperty);
+                        } catch (SchemaException e) {
+                            LOGGER.error("Couldn't find property with path " + pathToProperty);
+                        }
                     }
+
+                    return null;
                 }
+            };
+        }
 
-                return null;
-            }
-        };
-
-        LifecycleStatePanel panel = new LifecycleStatePanel(ID_LIFECYCLE_STATE, model) {
+        LifecycleStatePanel panel = new LifecycleStatePanel(ID_LIFECYCLE_STATE, lifecycleStateModel) {
             @Override
             protected void onInitialize() {
                 super.onInitialize();
@@ -171,11 +175,11 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
 
                         try {
                             if (result.isSuccess()) {
-                                String realValue = model.getObject().getValue().getRealValue();
-                                model.getObject().getValue().getOldValue().setValue(realValue);
+                                String realValue = lifecycleStateModel.getObject().getValue().getRealValue();
+                                lifecycleStateModel.getObject().getValue().getOldValue().setValue(realValue);
                             }
                         } catch (SchemaException e) {
-                            LOGGER.error("Couldn't get value of " + model.getObject());
+                            LOGGER.error("Couldn't get value of " + lifecycleStateModel.getObject());
                         }
                     }
                 });
@@ -234,6 +238,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                 target.add(get(ID_CONFIGURATION));
                 target.add(get(ID_TASKS));
                 target.add(getShadowTable());
+                lifecycleStateModel.detach();
             }
         });
         objectTypes.setOutputMarkupId(true);
