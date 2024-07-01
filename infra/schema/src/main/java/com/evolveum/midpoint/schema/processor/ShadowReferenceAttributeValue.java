@@ -77,14 +77,17 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
 
     private ShadowReferenceAttributeValue() {
         this(null, null);
+        setTargetType(ShadowType.COMPLEX_TYPE); // FIXME is this correct?
     }
 
     private ShadowReferenceAttributeValue(OriginType type, Objectable source) {
         super(null, type, source);
+        setTargetType(ShadowType.COMPLEX_TYPE); // FIXME is this correct?
     }
 
     private ShadowReferenceAttributeValue(String oid, OriginType type, Objectable source) {
         super(oid, type, source);
+        setTargetType(ShadowType.COMPLEX_TYPE); // FIXME is this correct?
     }
 
     /**
