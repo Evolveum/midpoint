@@ -39,7 +39,7 @@ public class AssociationDefinitionWrapper implements Serializable {
             this.subject = new ParticipantWrapper(subject.getObjectClassName());
         }
 
-        associationDef.getObjectParticipants(resourceSchema).values().forEach(objectParticipantDef -> {
+        associationDef.getTargetParticipantTypes().forEach(objectParticipantDef -> {
             @NotNull ResourceObjectDefinition objectDef = objectParticipantDef.getObjectDefinition();
             if (objectDef instanceof ResourceObjectClassDefinition objectClassDef && objectClassDef.isAssociationObject()) {
                 return;
