@@ -329,7 +329,7 @@ public interface ResourceObjectDefinition
     /**
      * Creates a blank, empty shadow.
      * It contains only the object class name and resource OID.
-     * Kind/intent are not set.
+     * Kind/intent are not set, even for object types (TODO WHY?!)
      */
     default AbstractShadow createBlankShadow() {
         try {

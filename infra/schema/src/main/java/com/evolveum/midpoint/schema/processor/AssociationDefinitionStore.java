@@ -33,7 +33,7 @@ public interface AssociationDefinitionStore {
             throws SchemaException {
         return MiscUtil.requireNonNull(
                 findAssociationDefinition(name),
-                "No definition of association (reference attribute) named '%s' in %s%s", name, this, context);
+                "No definition of association named '%s' in %s%s", name, this, context);
     }
 
     default @NotNull Collection<QName> getNamesOfAssociations() {

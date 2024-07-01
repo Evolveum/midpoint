@@ -78,47 +78,28 @@ public interface AttributeDefinitionStore
     /**
      * Finds a definition of a simple attribute with a given name. Returns null if nothing is found.
      */
-    default @Nullable
-    <V extends PrismValue,
-            D extends ShadowAttributeDefinition<V, D, RV, SA>,
-            RV,
-            SA extends ShadowAttribute<V, D, RV, SA>,
-            ID extends ItemDelta<?, ?>> ShadowAttributeDefinition<V, D, RV, SA> findAttributeDefinition(QName name) {
+    default @Nullable ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinition(QName name) {
         return findAttributeDefinition(name, false);
     }
 
     default @NotNull
-    <V extends PrismValue,
-            D extends ShadowAttributeDefinition<V, D, RV, SA>,
-            RV,
-            SA extends ShadowAttribute<V, D, RV, SA>,
-            ID extends ItemDelta<?, ?>> ShadowAttributeDefinition<V, D, RV, SA> findAttributeDefinitionRequired(
-            @NotNull QName name, Object context) throws SchemaException {
+    ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinitionRequired(@NotNull QName name, Object context)
+            throws SchemaException {
         return MiscUtil.requireNonNull(
                 findAttributeDefinition(name, false),
                 "Unknown attribute '%s' in '%s'%s", name, this, context);
     }
 
     default @NotNull
-    <V extends PrismValue,
-            D extends ShadowAttributeDefinition<V, D, RV, SA>,
-            RV,
-            SA extends ShadowAttribute<V, D, RV, SA>,
-            ID extends ItemDelta<?, ?>> ShadowAttributeDefinition<V, D, RV, SA> findAttributeDefinitionRequired(
-            @NotNull QName name) throws SchemaException {
+    ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinitionRequired(@NotNull QName name) throws SchemaException {
         return findAttributeDefinitionRequired(name, "");
     }
 
     /** TODO ... ignoreCase will be part of the schema, soon ... */
-    default
-    <V extends PrismValue,
-            D extends ShadowAttributeDefinition<V, D, RV, SA>,
-            RV,
-            SA extends ShadowAttribute<V, D, RV, SA>,
-            ID extends ItemDelta<?, ?>> ShadowAttributeDefinition<V, D, RV, SA> findShadowAttributeDefinitionRequired(
+    default ShadowAttributeDefinition<?, ?, ?, ?> findShadowAttributeDefinitionRequired(
             @NotNull ItemName itemName, boolean ignoreCase, Object errorCtx) throws SchemaException {
 
-        ShadowAttributeDefinition<V, D, RV, SA> attributeDefinition = findAttributeDefinition(itemName, ignoreCase);
+        var attributeDefinition = findAttributeDefinition(itemName, ignoreCase);
         if (attributeDefinition != null) {
             return attributeDefinition;
         } else {
@@ -203,14 +184,8 @@ public interface AttributeDefinitionStore
      * @param caseInsensitive if true, ignoring the case
      * @return found property definition or null
      */
-    default <V extends PrismValue,
-            D extends ShadowAttributeDefinition<V, D, RV, SA>,
-            RV,
-            SA extends ShadowAttribute<V, D, RV, SA>,
-            ID extends ItemDelta<?, ?>> @Nullable ShadowAttributeDefinition<V, D, RV, SA> findAttributeDefinition(
-            QName name, boolean caseInsensitive) {
-        //noinspection unchecked
-        return (ShadowAttributeDefinition<V, D, RV, SA>) findLocalItemDefinition(
+    default @Nullable ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinition(QName name, boolean caseInsensitive) {
+        return (ShadowAttributeDefinition<?, ?, ?, ?>) findLocalItemDefinition(
                 ItemName.fromQName(name), ItemDefinition.class, caseInsensitive);
     }
 

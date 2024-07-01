@@ -177,7 +177,7 @@ public class TransformablePropertyDefinition<T> extends TransformableItemDefinit
         }
 
         @Override
-        public PrismPropertyValue<T> createPrismValueFromRealValue(@NotNull T realValue) throws SchemaException {
+        public PrismPropertyValue<T> createPrismValueFromRealValue(@NotNull Object realValue) throws SchemaException {
             return delegate().createPrismValueFromRealValue(realValue);
         }
 

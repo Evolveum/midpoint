@@ -70,7 +70,7 @@ public abstract class ShadowReferenceAttributesCollection implements DebugDumpab
         return ofAttributesContainer(assocValue.getObjectsContainer());
     }
 
-    private static ShadowReferenceAttributesCollection ofAttributesContainer(
+    public static ShadowReferenceAttributesCollection ofAttributesContainer(
             @Nullable PrismContainer<? extends ShadowAttributesType> container) {
         if (container != null && container.hasAnyValue()) {
             return AttributesContainerValueBased.fromValues(container.getValues());
@@ -81,11 +81,38 @@ public abstract class ShadowReferenceAttributesCollection implements DebugDumpab
 
     public abstract Iterator<IterableReferenceAttributeValue> iterator();
 
+    public Iterator<ShadowReferenceAttributeValue> valuesIterator() {
+        return new Iterator<>() {
+
+            private final Iterator<IterableReferenceAttributeValue> iterator =
+                    ShadowReferenceAttributesCollection.this.iterator();
+
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public ShadowReferenceAttributeValue next() {
+                return iterator.next().value();
+            }
+        };
+    }
+
+    public Iterable<ShadowReferenceAttributeValue> valuesIterable() {
+        return new Iterable<>() {
+            @Override
+            public @NotNull Iterator<ShadowReferenceAttributeValue> iterator() {
+                return valuesIterator();
+            }
+        };
+    }
+
     public boolean isEmpty() {
         return !iterator().hasNext(); // TODO we can optimize this
     }
 
-    public List<IterableReferenceAttributeValue> getAllReferenceAttributesValues() {
+    public List<IterableReferenceAttributeValue> getAllIterableValues() {
         List<IterableReferenceAttributeValue> allValues = new ArrayList<>();
         var iterator = iterator();
         while (iterator.hasNext()) {
@@ -94,7 +121,7 @@ public abstract class ShadowReferenceAttributesCollection implements DebugDumpab
         return allValues;
     }
 
-    public List<ShadowReferenceAttributeValue> getAllValues() {
+    public List<ShadowReferenceAttributeValue> getAllReferenceValues() {
         List<ShadowReferenceAttributeValue> allValues = new ArrayList<>();
         var iterator = iterator();
         while (iterator.hasNext()) {
@@ -161,7 +188,7 @@ public abstract class ShadowReferenceAttributesCollection implements DebugDumpab
         }
 
         @Override
-        public List<IterableReferenceAttributeValue> getAllReferenceAttributesValues() {
+        public List<IterableReferenceAttributeValue> getAllIterableValues() {
             return List.of();
         }
 

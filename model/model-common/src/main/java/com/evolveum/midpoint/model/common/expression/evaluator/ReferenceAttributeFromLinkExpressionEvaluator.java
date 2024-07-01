@@ -14,8 +14,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.*;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,6 +32,9 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -43,29 +44,31 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Creates {@link ShadowAssociationValue}s based on projections of given role.
+ * Creates {@link ShadowReferenceAttributeValue}s based on projections of given role.
  *
  * I.e. a role has projection (e.g. group) and it also induces a construction of a user account. Using this expression
  * evaluator the account can obtain groups that are projections of that particular role.
  *
+ * NOTE: The evaluator is a little misnamed. Before 4.9, we used the term "association" to denote the reference between shadows.
+ *
  * @author Radovan Semancik
  *
- * @see ReferenceAttributeFromLinkExpressionEvaluator
+ * @see AssociationFromLinkExpressionEvaluator
  */
-public class AssociationFromLinkExpressionEvaluator
+public class ReferenceAttributeFromLinkExpressionEvaluator
     extends AbstractExpressionEvaluator<
-        ShadowAssociationValue,
-        ShadowAssociationDefinition,
+        ShadowReferenceAttributeValue,
+        ShadowReferenceAttributeDefinition,
         AssociationFromLinkExpressionEvaluatorType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AssociationFromLinkExpressionEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ReferenceAttributeFromLinkExpressionEvaluator.class);
 
     private final ObjectResolver objectResolver;
 
-    AssociationFromLinkExpressionEvaluator(
+    ReferenceAttributeFromLinkExpressionEvaluator(
             QName elementName,
             AssociationFromLinkExpressionEvaluatorType evaluatorType,
-            ShadowAssociationDefinition outputDefinition,
+            ShadowReferenceAttributeDefinition outputDefinition,
             Protector protector,
             ObjectResolver objectResolver) {
         super(elementName, evaluatorType, outputDefinition, protector);
@@ -73,7 +76,7 @@ public class AssociationFromLinkExpressionEvaluator
     }
 
     @Override
-    public PrismValueDeltaSetTriple<ShadowAssociationValue> evaluate(
+    public PrismValueDeltaSetTriple<ShadowReferenceAttributeValue> evaluate(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
@@ -93,9 +96,9 @@ public class AssociationFromLinkExpressionEvaluator
         }
         LOGGER.trace("Candidate shadow OIDs: {}", candidateShadowOidList);
 
-        var outputAssociation = createAssociationFromMatchingValue(candidateShadowOidList, context, result);
+        var outputAttribute = createReferenceAttributeFromMatchingValue(candidateShadowOidList, context, result);
         //noinspection rawtypes,unchecked
-        return (PrismValueDeltaSetTriple) ItemDeltaUtil.toDeltaSetTriple(outputAssociation, null);
+        return (PrismValueDeltaSetTriple) ItemDeltaUtil.toDeltaSetTriple(outputAttribute, null);
     }
 
     private AbstractRoleType getRelevantRole(ExpressionEvaluationContext context) throws ExpressionEvaluationException {
@@ -154,7 +157,7 @@ public class AssociationFromLinkExpressionEvaluator
         }
     }
 
-    private ShadowAssociation createAssociationFromMatchingValue(
+    private ShadowReferenceAttribute createReferenceAttributeFromMatchingValue(
             List<String> candidateShadowsOidList, ExpressionEvaluationContext context, OperationResult result)
             throws ConfigurationException {
 
@@ -178,7 +181,7 @@ public class AssociationFromLinkExpressionEvaluator
             // We need the object class for the provisioning to be able to search for shadows
             filter = filter.and()
                     .item(ShadowType.F_OBJECT_CLASS)
-                    .eq(outputDefinition.getReferenceAttributeDefinition().getTargetObjectClassName());
+                    .eq(outputDefinition.getTargetObjectClassName());
         }
         ObjectQuery query = filter.build();
 
@@ -203,8 +206,7 @@ public class AssociationFromLinkExpressionEvaluator
                     // Filtering on kind/intent was already done.
                 }
                 LOGGER.trace("Adding to association: {}", target);
-                outputAttribute.add(
-                        outputDefinition.createValueFromFullDefaultObject(target));
+                outputAttribute.createNewValueWithFullObject(target);
             }
 
             return outputAttribute;
@@ -244,6 +246,6 @@ public class AssociationFromLinkExpressionEvaluator
 
     @Override
     public String shortDebugDump() {
-        return "associationFromLink";
+        return "associationFromLink for reference attributes";
     }
 }

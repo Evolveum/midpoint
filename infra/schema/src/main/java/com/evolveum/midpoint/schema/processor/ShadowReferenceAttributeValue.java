@@ -13,8 +13,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowAssociationsUtil;
+import com.evolveum.midpoint.util.EqualsChecker;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -43,6 +44,33 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
 
     @Serial private static final long serialVersionUID = 0L;
+
+    private static final EqualsChecker<ShadowReferenceAttributeValue> SEMANTIC_EQUALS_CHECKER =
+            (o1, o2) -> {
+                if (o1 == null || o2 == null) {
+                    return o1 == null && o2 == null;
+                }
+
+                var oid1 = o1.getOid();
+                var oid2 = o2.getOid();
+
+                // Normally, we compare association values by OID. This works for pre-existing target shadows.
+                if (oid1 != null && oid2 != null) {
+                    return oid1.equals(oid2);
+                }
+
+                // However, (some of) these shadows can be newly created. So we have to compare the attributes.
+                // (Comparing the whole shadows can be problematic, as there may be lots of generated data, not marked
+                // as operational.)
+                var s1 = o1.getShadowIfPresent();
+                var s2 = o2.getShadowIfPresent();
+
+                if (s1 == null || s2 == null) {
+                    return s1 == null && s2 == null; // Actually we cannot do any better here.
+                }
+
+                return s1.equalsByContent(s2);
+            };
 
     /** Whether this is really the full object obtained from the resource. For internal provisioning module use only! */
     private transient boolean fullObject;
@@ -84,11 +112,27 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
         return newVal;
     }
 
-    /** Creates a new value from the full or ID-only shadow. No cloning here. */
-    public static @NotNull ShadowReferenceAttributeValue fromShadow(@NotNull AbstractShadow shadow) throws SchemaException {
+    public static @NotNull ShadowReferenceAttributeValue fromReferencable(@NotNull Referencable referencable) throws SchemaException {
         return fromRefValue(
-                ObjectTypeUtil.createObjectRefWithFullObject(shadow.getPrismObject())
-                        .asReferenceValue());
+                referencable.asReferenceValue());
+    }
+
+    /** Creates a new value from the full or ID-only shadow. No cloning here. */
+    public static @NotNull ShadowReferenceAttributeValue fromShadow(@NotNull AbstractShadow shadow, boolean full) throws SchemaException {
+        var value = fromReferencable(
+                ObjectTypeUtil.createObjectRefWithFullObject(shadow.getPrismObject()));
+        value.fullObject = full;
+        return value;
+    }
+
+    public static @NotNull ShadowReferenceAttributeValue fromShadowOid(@NotNull String oid) throws SchemaException {
+        return fromReferencable(
+                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SHADOW));
+    }
+
+    /** TODO better name */
+    public static @NotNull EqualsChecker<ShadowReferenceAttributeValue> semanticEqualsChecker() {
+        return SEMANTIC_EQUALS_CHECKER;
     }
 
     public boolean isFullObject() {
@@ -115,12 +159,13 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
         return clone;
     }
 
-    public @NotNull ShadowAttributesContainer getAttributesContainerRequired() {
-        return ShadowUtil.getAttributesContainerRequired(getShadowBean());
+    protected void copyValues(CloneStrategy strategy, ShadowReferenceAttributeValue clone) {
+        super.copyValues(strategy, clone);
+        clone.fullObject = fullObject;
     }
 
-    public String getShadowOid() {
-        return ShadowAssociationsUtil.getShadowOid(this);
+    public @NotNull ShadowAttributesContainer getAttributesContainerRequired() {
+        return ShadowUtil.getAttributesContainerRequired(getShadowBean());
     }
 
     /** Target object or its reference. TODO better name. */
@@ -201,8 +246,8 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
 //        return true;
 //    }
 
-    public boolean matches(ShadowReferenceAttributeValue deletedValue) {
-        return ShadowAssociationsUtil.shadowRefBasedPcvEqualsChecker().test(this, deletedValue);
+    public boolean matches(ShadowReferenceAttributeValue other) {
+        return semanticEqualsChecker().test(this, other);
     }
 
     public @NotNull PrismPropertyValue<?> getSingleIdentifierValueRequired(@NotNull QName attrName, Object errorCtx)
@@ -224,5 +269,10 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
         } else {
             return valueAttr.getValue();
         }
+    }
+
+    @Override
+    public String toString() {
+        return "SRAV: " + super.toString() + (fullObject ? " (full)" : "");
     }
 }

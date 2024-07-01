@@ -4523,7 +4523,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         // @formatter:on
 
         and("the association has correct definition");
-        var associationValues = ShadowAssociationsCollection.ofShadow(accountAfter.asObjectable()).getAllValues();
+        var associationValues = ShadowAssociationsCollection.ofShadow(accountAfter.asObjectable()).getAllIterableValues();
         assertThat(associationValues).as("associations").hasSize(1);
 
         and("the title has correct definition");
@@ -4714,7 +4714,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .findAssociationDefinitionRequired(assocName);
         return Resource.of(resource).deltaFor(RI_ACCOUNT_OBJECT_CLASS)
                 .item(ShadowType.F_ASSOCIATIONS, assocName)
-                .add(assocDef.createValueFromDefaultObject(assocName, object))
+                .add(assocDef.createValueFromFullDefaultObject(object))
                 .asObjectDelta(subjectOid);
     }
 
@@ -4736,7 +4736,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .findAssociationDefinitionRequired(assocName);
         return Resource.of(resource).deltaFor(RI_ACCOUNT_OBJECT_CLASS)
                 .item(ShadowType.F_ASSOCIATIONS, assocName)
-                .delete(assocDef.createValueFromDefaultObject(assocName, object))
+                .delete(assocDef.createValueFromFullDefaultObject(object))
                 .asObjectDelta(subjectOid);
     }
 

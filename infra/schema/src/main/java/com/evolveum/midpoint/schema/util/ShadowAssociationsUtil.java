@@ -7,52 +7,106 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowReferenceAttributesType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
-import com.evolveum.midpoint.util.EqualsChecker;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
+import java.util.Objects;
 
-/** Covers working with the "new" shadow associations (introduced in 4.9). */
+/**
+ * Covers working with the "new" shadow associations (introduced in 4.9).
+ *
+ * Only methods that have to work with the raw values (like {@link ShadowAssociationValueType}) should belong here.
+ * Pretty much everything that works with native types like {@link ShadowAssociationValue} should be attached to these types.
+ */
 public class ShadowAssociationsUtil {
 
-    // TODO move to ShadowAssociationValue
-    private static final EqualsChecker<ShadowReferenceAttributeValue> SHADOW_REF_BASED_PCV_EQUALS_CHECKER =
-            (o1, o2) -> {
-                if (o1 == null || o2 == null) {
-                    return o1 == null && o2 == null;
-                }
-
-                var oid1 = o1.getShadowOid();
-                var oid2 = o2.getShadowOid();
-
-                // Normally, we compare association values by OID. This works for pre-existing target shadows.
-                if (oid1 != null && oid2 != null) {
-                    return oid1.equals(oid2);
-                }
-
-                // However, (some of) these shadows can be newly created. So we have to compare the attributes.
-                // (Comparing the whole shadows can be problematic, as there may be lots of generated data, not marked
-                // as operational.)
-                var s1 = o1.getShadowIfPresent();
-                var s2 = o2.getShadowIfPresent();
-
-                if (s1 == null || s2 == null) {
-                    return s1 == null && s2 == null; // Actually we cannot do any better here.
-                }
-
-                return s1.equalsByContent(s2);
-            };
-
-    public static @NotNull EqualsChecker<ShadowReferenceAttributeValue> shadowRefBasedPcvEqualsChecker() {
-        return SHADOW_REF_BASED_PCV_EQUALS_CHECKER;
+    /**
+     * @see ShadowAssociationValue#getSingleObjectRefRelaxed()
+     */
+    public static ObjectReferenceType getSingleObjectRefRelaxed(@NotNull ShadowAssociationValueType assocValueBean) {
+        var objects = assocValueBean.getObjects();
+        if (objects == null) {
+            return null;
+        }
+        var items = objects.asPrismContainerValue().getItems();
+        if (items.size() != 1) {
+            return null;
+        }
+        var referenceValue = ((PrismReference) items.iterator().next()).getValue();
+        return ObjectTypeUtil.createObjectRef(referenceValue);
     }
 
-    public static String getShadowOid(@NotNull ShadowReferenceAttributeValue refValue) {
-        return getOid(refValue.asReferencable());
+    /**
+     * See {@link ShadowAssociationValue#getSingleObjectRefRequired()}
+     */
+    public static @NotNull ObjectReferenceType getSingleObjectRefRequired(ShadowAssociationValueType assocValueBean) {
+        return stateNonNull(
+                getSingleObjectRefRelaxed(assocValueBean),
+                () -> "No object reference in " + assocValueBean);
+    }
+
+    public static @NotNull ComplexTypeDefinition getValueCtd() {
+        return Objects.requireNonNull(
+                PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(
+                        ShadowAssociationValueType.class));
+    }
+
+    public static @NotNull PrismContainer<ShadowReferenceAttributesType> instantiateObjectsContainer() {
+        try {
+            return getValueCtd()
+                    .<ShadowReferenceAttributesType>findContainerDefinition(ShadowAssociationValueType.F_OBJECTS)
+                    .instantiate();
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e);
+        }
+    }
+
+    /**
+     * Creates a trivial (single-object-ref) association value as the raw (definition-less) bean.
+     *
+     * @see #createValueFromDefaultObject(AbstractShadow)
+     */
+    public static @NotNull ShadowAssociationValueType createSingleRefRawValue(
+            @NotNull ItemName refName, @NotNull ShadowType shadow) {
+        return createSingleRefRawValue(refName, ObjectTypeUtil.createObjectRef(shadow));
+    }
+
+    public static @NotNull ShadowAssociationValueType createSingleRefRawValue(
+            @NotNull ItemName refName, @NotNull String shadowOid) {
+        return createSingleRefRawValue(refName, ObjectTypeUtil.createObjectRef(shadowOid, ObjectTypes.SHADOW));
+    }
+
+    public static @NotNull ShadowAssociationValueType createSingleRefRawValue(
+            @NotNull ItemName refName, @NotNull ObjectReferenceType refValue) {
+        try {
+            var objectRef = PrismContext.get().itemFactory().createReference(refName);
+            objectRef.add(refValue.asReferenceValue().clone());
+
+            var objectsContainer = instantiateObjectsContainer();
+            objectsContainer.add(objectRef);
+
+            var newValue = new ShadowAssociationValueType();
+            //noinspection unchecked
+            newValue.asPrismContainerValue().add(objectsContainer);
+
+            return newValue;
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e);
+        }
     }
 }

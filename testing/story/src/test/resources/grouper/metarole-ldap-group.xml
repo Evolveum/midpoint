@@ -101,7 +101,7 @@
             <kind>entitlement</kind>
             <intent>group</intent>
         </construction>
-        <order>2</order>        <!--  order=2 means the org object: org->archetype->metarole -->
+        <order>2</order> <!--  order=2 means the org object: org->archetype->metarole -->
     </inducement>
 
     <!--  Provides LDAP group membership for the org object members (users) -->
@@ -117,12 +117,12 @@
                                 <kind>entitlement</kind>
                                 <intent>group</intent>
                             </projectionDiscriminator>
-                            <assignmentPathIndex>1</assignmentPathIndex>        <!--  derive from the immediately assigned org -->
+                            <assignmentPathIndex>1</assignmentPathIndex> <!--  derive from the immediately assigned org -->
                         </associationFromLink>
                     </expression>
                 </outbound>
             </association>
         </construction>
-        <order>3</order>        <!--  order=3 means the user object; user has an assignment to the org: user->org->archetype->metarole -->
+        <order>3</order> <!--  order=3 means the user object; user has an assignment to the org: user->org->archetype->metarole -->
     </inducement>
 </role>

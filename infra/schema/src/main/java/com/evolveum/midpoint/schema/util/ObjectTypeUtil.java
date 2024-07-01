@@ -307,6 +307,12 @@ public class ObjectTypeUtil {
         return ort;
     }
 
+    public static ObjectReferenceType createObjectRef(Referencable value) {
+        ObjectReferenceType ort = new ObjectReferenceType();
+        ort.setupReferenceValue(value.asReferenceValue());
+        return ort;
+    }
+
     public static ObjectReferenceType createObjectRef(ObjectType object) {
         if (object == null) {
             return null;

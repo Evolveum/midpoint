@@ -115,13 +115,11 @@ public interface ShadowSimpleAttribute<T>
         return definition != null ? definition.getNativeAttributeName() : null;
     }
 
-    /** Returns self to be usable in chained calls. */
-    default @NotNull ShadowSimpleAttribute<T> applyDefinitionFrom(@NotNull ResourceObjectDefinition objectDefinition)
+    default void applyDefinitionFrom(@NotNull ResourceObjectDefinition objectDefinition)
             throws SchemaException {
         var attrDef = objectDefinition.findSimpleAttributeDefinitionRequired(getElementName());
         //noinspection unchecked
         applyDefinition((ShadowSimpleAttributeDefinition<T>) attrDef);
-        return this;
     }
 
     @Override

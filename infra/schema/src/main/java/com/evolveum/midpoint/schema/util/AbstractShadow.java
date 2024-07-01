@@ -47,7 +47,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * See {@link #checkConsistence()}.
  */
-public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable {
+public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDumpable, Cloneable {
 
     static AbstractShadow of(@NotNull ShadowType bean) {
         return new Impl(bean);
@@ -302,6 +302,11 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
         return attr != null ? attr.getSingleValueRequired() : null;
     }
 
+    default @NotNull Collection<ShadowReferenceAttributeValue> getReferenceAttributeValues(QName attrName) {
+        var attr = getReferenceAttribute(attrName);
+        return attr != null ? attr.getReferenceValues() : List.of();
+    }
+
     default @NotNull <T> ShadowSimpleAttribute<T> getSimpleAttributeRequired(QName attrName) {
         return MiscUtil.stateNonNull(
                 getSimpleAttribute(attrName),
@@ -319,6 +324,7 @@ public interface AbstractShadow extends ShortDumpable, DebugDumpable, Cloneable 
         return ShadowUtil.getOrCreateAssociationsContainer(getBean());
     }
 
+    /** Returns a detached, immutable list. */
     default @NotNull Collection<ShadowReferenceAttribute> getReferenceAttributes() {
         return ShadowUtil.getReferenceAttributes(getBean());
     }

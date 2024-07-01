@@ -20,6 +20,9 @@ import com.evolveum.midpoint.repo.common.expression.VariableProducer;
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.processor.ShadowAssociation;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -142,9 +145,8 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
         ResourceType resource = source.getResource();
 
         // Value for the $shadow ($projection, $account) variable.
-        // TODO Why do we use "object new" here? (We should perhaps go with ODO, shouldn't we?)
-        //  Bear in mind that the value might not contain the full shadow (for example)
-        PrismObject<ShadowType> shadowVariableValue = source.getResourceObjectNew();
+        // Bear in mind that the value might not contain the full shadow (for example)
+        PrismObject<ShadowType> shadowVariableValue = source.sourceData.getShadowIfPresent();
         PrismObjectDefinition<ShadowType> shadowVariableDef = getShadowDefinition(shadowVariableValue);
 
         Source<V, D> defaultSource = new Source<>(
@@ -192,7 +194,8 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
                     .addVariableDefinition(ExpressionConstants.VAR_PROJECTION, shadowVariableValue, shadowVariableDef)
                     .addAliasRegistration(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION)
                     .addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION)
-                    .addVariableDefinition(ExpressionConstants.VAR_OBJECT, getAssociatedShadow(currentProjectionItem), shadowVariableDef)
+                    .addVariableDefinition(ExpressionConstants.VAR_OBJECT, getReferencedShadow(currentProjectionItem), shadowVariableDef)
+                    .addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION, source.sourceData.getAssociationValueBeanIfPresent(), ShadowAssociationValueType.class)
                     .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource, resource.asPrismObject().getDefinition())
                     .addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION,
                             context.getSystemConfiguration(), getSystemConfigurationDefinition())
@@ -231,16 +234,19 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
     }
 
     // FIXME brutal hack
-    private PrismObject<ShadowType> getAssociatedShadow(Item<V, D> currentProjectionItem) {
-        if (currentProjectionItem == null
-                || !currentProjectionItem.getPath().startsWith(ShadowType.F_ASSOCIATIONS)) {
+    private PrismObject<ShadowType> getReferencedShadow(Item<V, D> currentProjectionItem) {
+        if (currentProjectionItem == null || currentProjectionItem.size() != 1) {
             return null;
         }
-        List<V> values = currentProjectionItem.getValues();
-        if (values.size() != 1) {
+        var value = currentProjectionItem.getValue();
+        if (value instanceof ShadowReferenceAttributeValue refAttrValue) {
+            return refAttrValue.getObject();
+        } else if (value instanceof ShadowAssociationValue assocValue) {
+            var objectRef = assocValue.getSingleObjectRefRelaxed();
+            return objectRef != null ? objectRef.getObject() : null;
+        } else {
             return null;
         }
-        return ((ShadowReferenceAttributeValue) values.get(0)).getShadowBean().asPrismObject();
     }
 
     private @NotNull ItemPath getTargetFullPath(AbstractMappingType mappingBean, String errorCtxDesc)

@@ -43,8 +43,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_UID;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 /**
  * Methods that would belong to the {@link ShadowType} class but cannot go there because of JAXB.
@@ -162,12 +161,12 @@ public class ShadowUtil {
                 "No attributes container in %s", shadow);
     }
 
-    public static ShadowAttributesContainer getAttributesContainer(PrismObject<? extends ShadowType> shadow) {
+    public static @Nullable ShadowAttributesContainer getAttributesContainer(PrismObject<? extends ShadowType> shadow) {
         return castShadowContainer(shadow.getValue(), ShadowType.F_ATTRIBUTES, ShadowAttributesContainer.class);
     }
 
     /** Similar to {@link #getAttributesContainer(ShadowType)}. */
-    public static ShadowAssociationsContainer getAssociationsContainer(@NotNull ShadowType shadow) {
+    public static @Nullable ShadowAssociationsContainer getAssociationsContainer(@NotNull ShadowType shadow) {
         return getAssociationsContainer(shadow.asPrismObject());
     }
 
@@ -248,19 +247,30 @@ public class ShadowUtil {
     }
 
     public static @NotNull ResourceObjectClassDefinition getObjectClassDefinition(@NotNull ShadowType shadow) {
-        // TODO: maybe we can do something more intelligent here
-        ShadowAttributesContainer attributesContainer = getAttributesContainer(shadow);
-        return attributesContainer.getDefinition()
-                .getComplexTypeDefinition()
-                .getResourceObjectDefinition()
+        return getResourceObjectDefinition(shadow)
                 .getObjectClassDefinition();
     }
 
     /** The shadow must have the attributes container and a definition. */
     public static @NotNull ResourceObjectDefinition getResourceObjectDefinition(@NotNull ShadowType shadow) {
-        ShadowAttributesContainer attributesContainer = MiscUtil.argNonNull(
-                getAttributesContainer(shadow), "No attributes container in %s", shadow);
-        return attributesContainer.getResourceObjectDefinitionRequired();
+        var attributesContainer = getAttributesContainer(shadow);
+        if (attributesContainer != null) {
+            // This is the legacy way of determining the definition
+            return attributesContainer.getResourceObjectDefinitionRequired();
+        }
+        // But if there are no attributes, let's try to go with the prism object definition
+        var prismDefinition = stateNonNull(shadow.asPrismObject().getDefinition(), "No definition of %s", shadow);
+        var attrsDefinition = prismDefinition.<ShadowAttributesType>findContainerDefinition(ShadowType.F_ATTRIBUTES);
+        if (attrsDefinition instanceof ShadowAttributesContainerDefinition refinedDefinition) {
+            return refinedDefinition.getResourceObjectDefinition();
+        } else {
+            throw new IllegalStateException("Expected %s but got %s instead (in %s)".formatted(
+                    ShadowAttributesContainerDefinition.class, attrsDefinition, shadow));
+        }
+    }
+
+    public static @NotNull ResourceObjectDefinition getResourceObjectDefinition(@NotNull PrismObject<ShadowType> shadow) {
+        return getResourceObjectDefinition(shadow.asObjectable());
     }
 
     public static String getResourceOid(ShadowType shadowType) {
@@ -1142,6 +1152,7 @@ public class ShadowUtil {
         }
     }
 
+    /** Returns a detached, immutable list. */
     public static @NotNull Collection<ShadowReferenceAttribute> getReferenceAttributes(@NotNull ShadowType shadow) {
         var container = getAttributesContainer(shadow);
         if (container != null) {
@@ -1186,6 +1197,10 @@ public class ShadowUtil {
         return container != null ? container.findAssociation(associationName) : null;
     }
 
+    public static ShadowAssociation getAssociation(ShadowType shadow, QName associationName) {
+        return getAssociation(shadow.asPrismObject(), associationName);
+    }
+
     public static void addAttribute(ShadowType shadow, ShadowAttribute<?, ?, ?, ?> attribute) throws SchemaException {
         getOrCreateAttributesContainer(shadow).add(attribute);
     }
@@ -1215,18 +1230,26 @@ public class ShadowUtil {
     // FIXME improve this method
     static boolean equalsByContent(@NotNull ShadowType s1, @NotNull ShadowType s2) {
 
-        // HACK We ignore icfs:uid and icfs:name, if they are not present at both sides.
-        // The reason is that they may be artificially added by the connector.
-        var attributes1 = new ArrayList<>(getSimpleAttributes(s1));
-        var attributes2 = new ArrayList<>(getSimpleAttributes(s2));
-
-        removeIfNeeded(attributes1, attributes2, ICFS_UID);
-        removeIfNeeded(attributes1, attributes2, ICFS_NAME);
-
-        return MiscUtil.unorderedCollectionEquals(attributes1, attributes2)
-                && MiscUtil.unorderedCollectionEquals(getAssociations(s1), getAssociations(s2))
+        return simpleAttributesEqualRelaxed(getSimpleAttributes(s1), getSimpleAttributes(s2))
+                && MiscUtil.unorderedCollectionEquals(getReferenceAttributes(s1), getReferenceAttributes(s2), ShadowReferenceAttribute.semanticEqualsChecker())
+                && MiscUtil.unorderedCollectionEquals(getAssociations(s1), getAssociations(s2), ShadowAssociation.semanticEqualsChecker())
                 && Objects.equals(s1.getActivation(), s2.getActivation()) // TODO less strict comparison
                 && Objects.equals(s1.getCredentials(), s2.getCredentials()); // TODO less strict comparison
+    }
+
+    public static boolean simpleAttributesEqualRelaxed(
+            @NotNull Collection<ShadowSimpleAttribute<?>> attributes1,
+            @NotNull Collection<ShadowSimpleAttribute<?>> attributes2) {
+
+        // HACK We ignore icfs:uid and icfs:name, if they are not present at both sides.
+        // The reason is that they may be artificially added by the connector.
+        var copy1 = new ArrayList<>(attributes1);
+        var copy2 = new ArrayList<>(attributes2);
+
+        removeIfNeeded(copy1, copy2, ICFS_UID);
+        removeIfNeeded(copy1, copy2, ICFS_NAME);
+
+        return MiscUtil.unorderedCollectionEquals(copy1, copy2);
     }
 
     private static void removeIfNeeded(

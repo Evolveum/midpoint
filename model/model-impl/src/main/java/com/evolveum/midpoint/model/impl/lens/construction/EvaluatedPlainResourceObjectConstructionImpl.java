@@ -18,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -59,12 +58,12 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
     }
 
     @Override
-    List<AttributeMapper<AH, ?>> getAttributeMappers(ConstructionEvaluation<AH, ?> constructionEvaluation) {
-        var mappers = new ArrayList<AttributeMapper<AH, ?>>();
+    List<AttributeMapper<AH, ?, ?>> getAttributeMappers(ConstructionEvaluation<AH, ?> constructionEvaluation) {
+        var mappers = new ArrayList<AttributeMapper<AH, ?, ?>>();
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
 
-        for (ShadowSimpleAttributeDefinition<?> attributeDef : objectDefinition.getSimpleAttributeDefinitions()) {
+        for (var attributeDef : objectDefinition.getAttributeDefinitions()) {
             MappingType outboundMappingBean = attributeDef.getOutboundMappingBean();
             if (outboundMappingBean == null) {
                 continue;
@@ -98,14 +97,14 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
         for (var associationDefinition : objectDefinition.getAssociationDefinitions()) {
-            var legacyOutboundMappingBean = associationDefinition.getLegacyOutboundMappingBean();
-            if (legacyOutboundMappingBean != null) {
+            var explicitOutboundMappingBean = associationDefinition.getExplicitOutboundMappingBean();
+            if (explicitOutboundMappingBean != null) {
                 if (associationDefinition.isVisible(constructionEvaluation.task)) {
                     var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
                     mappers.add(
                             new AssociationMapper<>(
                                     constructionEvaluation, associationDefinition,
-                                    MappingConfigItem.of(legacyOutboundMappingBean, origin),
+                                    MappingConfigItem.of(explicitOutboundMappingBean, origin),
                                     OriginType.OUTBOUND, MappingKindType.OUTBOUND));
                 } else {
                     LOGGER.trace("Skipping processing outbound mapping for association {} because it is not visible in current "

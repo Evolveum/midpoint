@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 
+import com.evolveum.midpoint.schema.util.ShadowAssociationsUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
@@ -233,7 +234,7 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
             PrismReference shadowAss = fillInShadowReference(def, item);
 
             PrismReferenceWrapper shadowReference = (PrismReferenceWrapper) referenceWrapperFactory.createWrapper(shadowValueWrapper, shadowAss, shadowAss.isEmpty() ? ItemStatus.ADDED : ItemStatus.NOT_CHANGED, context);
-            shadowReference.setFilter(def.getAssociationDefinition().createTargetObjectsFilter());
+            shadowReference.setFilter(def.createTargetObjectsFilter());
             shadowReferences.add(shadowReference);
         }
 
@@ -267,9 +268,10 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
         PrismReferenceDefinition shadowRefDef = createShadowAssocationDef(def);
         PrismReference shadowAss = shadowRefDef.instantiate();
 
-        for (PrismContainerValue<ShadowAssociationValueType> associationValue : item.getValues()) {
-            if (associationValue.contains(ShadowAssociationValueType.F_SHADOW_REF)) {
-                shadowAss.add(associationValue.findReference(ShadowAssociationValueType.F_SHADOW_REF).getValue().clone());
+        for (var associationValue : item.getValues()) {
+            var shadowRef = ShadowAssociationsUtil.getSingleObjectRefRelaxed(associationValue.asContainerable());
+            if (shadowRef != null) {
+                shadowAss.add(shadowRef.asReferenceValue().clone());
             }
         }
 

@@ -16,6 +16,8 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceO
 
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
+import com.evolveum.midpoint.schema.util.ShadowReferenceAttributesCollection;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -128,7 +130,7 @@ class ShadowedObjectConstruction {
         copyObjectClassIfMissing();
         copyAuxiliaryObjectClasses();
 
-        copyAttributes(result);
+        copyAndShadowizeAttributes(result);
 
         copyIgnored();
         mergeCredentials();
@@ -141,7 +143,7 @@ class ShadowedObjectConstruction {
         // calling this method.)
 
         mergeActivation();
-        convertReferenceAttributesToAssociations(result);
+        convertReferenceAttributesToAssociations();
         copyCachingMetadata();
 
         checkConsistence();
@@ -264,16 +266,30 @@ class ShadowedObjectConstruction {
                 authoritativeDefinition.getPrismObjectDefinition());
     }
 
-    private void copyAttributes(OperationResult result) throws SchemaException {
+    private void copyAndShadowizeAttributes(OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, EncryptionException {
 
         resultingShadowedBean.asPrismObject().removeContainer(ShadowType.F_ATTRIBUTES);
 
-        ShadowAttributesContainer resultAttributes = resourceObject.getAttributesContainer().clone();
-        resultAttributes.applyDefinition(authoritativeDefinition.toShadowAttributesContainerDefinition());
+        var resultingAttributesContainer = authoritativeDefinition.toShadowAttributesContainerDefinition().instantiate();
+        for (var attribute : resourceObject.getAttributes()) {
+            if (ProvisioningUtil.isExtraLegacyReferenceAttribute(attribute, authoritativeDefinition)) {
+                LOGGER.trace("Ignoring extra legacy reference attribute {}", attribute.getElementName());
+                continue;
+            }
+            var clone = attribute.clone();
+            clone.applyDefinitionFrom(authoritativeDefinition);
+            resultingAttributesContainer.addAttribute(clone);
+        }
 
-        b.accessChecker.filterGetAttributes(resultAttributes, authoritativeDefinition, result);
+        b.accessChecker.filterGetAttributes(resultingAttributesContainer, authoritativeDefinition, result);
 
-        resultingShadowedBean.asPrismObject().add(resultAttributes);
+        for (var refAttrValue : ShadowReferenceAttributesCollection.ofAttributesContainer(resultingAttributesContainer).valuesIterable()) {
+            processEmbeddedShadows(refAttrValue, result);
+        }
+
+        resultingShadowedBean.asPrismObject().add(resultingAttributesContainer);
     }
 
     /**
@@ -282,23 +298,23 @@ class ShadowedObjectConstruction {
      * - acquires target shadows for related references and stores them into those references
      * - sorts the reference attributes into associations based on the definitions (kind/intent)
      */
-    private void convertReferenceAttributesToAssociations(OperationResult result)
-            throws SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            SecurityViolationException, EncryptionException, ObjectNotFoundException {
+    private void convertReferenceAttributesToAssociations()
+            throws SchemaException, ConfigurationException {
 
+        var attributesContainer = ShadowUtil.getAttributesContainerRequired(resultingShadowedBean);
         var associationDefinitions = authoritativeDefinition.getAssociationDefinitions();
 
         LOGGER.trace("Start converting {} reference attributes to {} associations",
-                resourceObject.getReferenceAttributes().size(), associationDefinitions.size());
+                attributesContainer.getReferenceAttributes().size(), associationDefinitions.size());
 
+        // TODO optimize this by iterating through the ref attr values, not the associations!
         for (var assocDef : associationDefinitions) {
             var refAttrDef = assocDef.getReferenceAttributeDefinition();
-            var refAttr = resourceObject.getReferenceAttribute(refAttrDef.getItemName());
+            var refAttr = attributesContainer.findReferenceAttribute(refAttrDef.getItemName());
             var refAttrValues = refAttr != null ? refAttr.getReferenceValues() : List.<ShadowReferenceAttributeValue>of();
             LOGGER.trace("Processing association {} sourced by {} ({} values)",
                     assocDef.getItemName(), refAttrDef.getItemName(), refAttrValues.size());
             for (var refAttrValue : refAttrValues) {
-                processEmbeddedShadows(refAttrValue, result);
                 convertReferenceAttributeValueToAssociationValueIfPossible(refAttrValue, assocDef);
             }
         }

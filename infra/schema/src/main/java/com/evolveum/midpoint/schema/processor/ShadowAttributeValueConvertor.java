@@ -37,7 +37,7 @@ class ShadowAttributeValueConvertor {
     }
 
     static <T> PrismPropertyValue<T> createPrismPropertyValueFromRealValue(
-            @NotNull T realValue, @NotNull ShadowSimpleAttributeDefinition<T> targetDef) throws SchemaException {
+            @NotNull Object realValue, @NotNull ShadowSimpleAttributeDefinition<T> targetDef) throws SchemaException {
         return convertAndNormalize(
                 realValue, targetDef.getTypeClass(), targetDef.getNormalizer(), targetDef.getStringNormalizerIfApplicable());
     }

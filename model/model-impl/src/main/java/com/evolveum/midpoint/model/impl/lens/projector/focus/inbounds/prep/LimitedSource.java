@@ -9,12 +9,13 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.InboundSourceData;
 import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
+import com.evolveum.midpoint.schema.processor.ShadowAssociation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -39,9 +40,10 @@ class LimitedSource extends MSource {
 
     LimitedSource(@NotNull PreInboundsContext<?> ctx) throws SchemaException, ConfigurationException {
         super(
-                ctx.getShadowedResourceObject(),
-                ctx.getResourceObjectDelta(),
-                ctx.getObjectDefinitionRequired(),
+                InboundSourceData.forShadowLikeValue(
+                        ctx.getShadowLikeValue(),
+                        ctx.getResourceObjectDelta(),
+                        ctx.getObjectDefinitionRequired()),
                 ctx.getInboundDefinition(),
                 ctx.getOwningAssociationDefinition());
         this.ctx = ctx;
@@ -89,11 +91,6 @@ class LimitedSource extends MSource {
     }
 
     @Override
-    PrismObject<ShadowType> getResourceObjectNew() {
-        return asPrismObject(ctx.getShadowedResourceObject()); // TODO what if delta is delete?
-    }
-
-    @Override
     String getChannel() {
         return ctx.getChannel();
     }
@@ -120,7 +117,7 @@ class LimitedSource extends MSource {
     @Override
     void resolveInputEntitlements(
             ContainerDelta<ShadowAssociationValueType> associationAPrioriDelta,
-            ShadowReferenceAttribute currentAssociation) {
+            ShadowAssociation currentAssociation) {
         // Associations are not yet supported in pre-mappings
     }
 

@@ -137,8 +137,7 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Abstr
                         ShadowType shadow = selectedList != null && selectedList.size() > 0 ? selectedList.get(0) : null;
                         if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
                             ExpressionType expression = getExpressionFromRowModel(rowModel, true);
-                            ExpressionUtil.addShadowRefEvaluatorValue(expression, shadow.getOid(),
-                                    InducedEntitlementsPanel.this.getPageBase().getPrismContext());
+                            ExpressionUtil.addShadowRefEvaluatorValue(expression, shadow.getOid());
                         }
                     }
 

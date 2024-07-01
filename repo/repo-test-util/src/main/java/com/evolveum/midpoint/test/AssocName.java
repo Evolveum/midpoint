@@ -42,7 +42,7 @@ public class AssocName {
         return itemName;
     }
 
-    public ItemPath path() {
+    public ItemPath associationPath() {
         return ItemPath.create(ShadowType.F_ASSOCIATIONS, q());
     }
 }

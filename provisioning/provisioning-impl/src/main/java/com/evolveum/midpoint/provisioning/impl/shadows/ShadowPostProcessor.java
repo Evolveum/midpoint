@@ -13,6 +13,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
@@ -95,7 +96,11 @@ class ShadowPostProcessor {
             var compositeDefinition =
                     ctx.computeCompositeObjectDefinition(newTypeDefinition, resourceObject.getBean().getAuxiliaryObjectClass());
             ctx = ctx.spawnForDefinition(compositeDefinition);
+
+            ProvisioningUtil.removeExtraLegacyReferenceAttributes(resourceObject, compositeDefinition);
             resourceObject.applyDefinition(compositeDefinition);
+
+            ProvisioningUtil.removeExtraLegacyReferenceAttributes(repoShadow, compositeDefinition);
             repoShadow.applyDefinition(compositeDefinition);
         }
     }

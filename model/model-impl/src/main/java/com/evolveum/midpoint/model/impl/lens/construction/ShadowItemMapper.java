@@ -18,8 +18,10 @@ import java.util.List;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 
+import com.evolveum.midpoint.schema.processor.ShadowItemDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import jakarta.xml.bind.JAXBElement;
@@ -37,7 +39,6 @@ import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -50,16 +51,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import javax.xml.namespace.QName;
 
 /**
- * Attribute or association "mapper" and its evaluation:
+ * Attribute or association "mapper" - i.e. component that evaluates an outbound mapping
+ * (in the context of a construction evaluation) and provides the evaluated triple, via
+ * respective triple provider.
+ *
+ * Exists in two forms:
  *
  * 1. Traditional style: just a single outbound mapping.
  * 2. Association-type style: a set of mappings that define the association value.
  *
  * The latter case delegates the computation to {@link AssociationValuesTripleComputation}.
  */
-abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue, D extends ItemDefinition<?>> {
+abstract class ShadowItemMapper
+        <AH extends AssignmentHolderType,
+                V extends PrismValue,
+                D extends ShadowItemDefinition> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ItemMapper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowItemMapper.class);
 
     /** "Parent" object: the construction evaluation. */
     @NotNull private final ConstructionEvaluation<?, ?> constructionEvaluation;
@@ -77,10 +85,10 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
     @NotNull final D itemDefinition;
 
     /** The mapper itself. */
-    @NotNull private final Mapper<V, D> mapper;
+    @NotNull private final Mapper mapper;
 
     /** Traditional/legacy simple/reference attribute evaluation. */
-    ItemMapper(
+    ShadowItemMapper(
             @NotNull ConstructionEvaluation<AH, ?> constructionEvaluation,
             @NotNull ItemName itemName,
             @NotNull ItemPath itemPath,
@@ -97,7 +105,7 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
     }
 
     /** Association evaluation based on association type definition. */
-    ItemMapper(
+    ShadowItemMapper(
             @NotNull ConstructionEvaluation<AH, ?> constructionEvaluation,
             @NotNull ItemName itemName,
             @NotNull ItemPath itemPath,
@@ -110,12 +118,13 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
         this.mapper = new AssociationTypeBasedMapper();
     }
 
-    PrismValueDeltaSetTripleProducer<V, D> getTripleProducer() {
+    PrismValueDeltaSetTripleProducer<?, ?> getTripleProducer() {
         return mapper.getTripleProducer();
     }
 
-    public PrismValueDeltaSetTripleProducer<V, D> evaluate() throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    public PrismValueDeltaSetTripleProducer<?, ?> evaluate()
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
         mapper.checkNotYetEvaluated();
 
         LOGGER.trace("Starting evaluation of (item-level) {}", this);
@@ -160,7 +169,7 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
             return List.of();
         }
 
-        Item<V, D> item = oldObject.findItem(itemPath);
+        Item<V, ?> item = oldObject.findItem(itemPath);
         if (item == null) {
             // Either the projection is fully loaded and the attribute/association does not exist,
             // or the projection is not loaded (contrary to the fact that loading was requested).
@@ -237,13 +246,13 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
     }
 
     /** Abstract mapper. */
-    private interface Mapper<V extends PrismValue, D extends ItemDefinition<?>> extends Serializable {
+    private interface Mapper extends Serializable {
 
         boolean hasRangeSpecified();
 
         MappingStrengthType getStrength();
 
-        PrismValueDeltaSetTripleProducer<V, D> evaluate()
+        PrismValueDeltaSetTripleProducer<?, ?> evaluate()
                 throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
                 ConfigurationException, SecurityViolationException ;
 
@@ -251,15 +260,19 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
 
         boolean isEnabled();
 
-        PrismValueDeltaSetTripleProducer<V, D> getTripleProducer();
+        PrismValueDeltaSetTripleProducer<?, ?> getTripleProducer();
     }
 
     /**
-     * Maps
-     * Assumes the existence of the projection context and association definition with a bean. */
-    private class AssociationTypeBasedMapper implements Mapper<V, D> {
+     * Mapper that provides the result by evaluating a complex mapping defined in the association type.
+     * Assumes the existence of the projection context and association definition with a bean.
+     *
+     * Delegates to {@link AssociationValuesTripleComputation}.
+     */
+    private class AssociationTypeBasedMapper
+            implements Mapper {
 
-        private PrismValueDeltaSetTriple<V> computedTriple;
+        private PrismValueDeltaSetTriple<ShadowAssociationValue> computedTriple;
 
         @Override
         public boolean hasRangeSpecified() {
@@ -272,13 +285,11 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
         }
 
         @Override
-        public PrismValueDeltaSetTripleProducer<V, D> evaluate()
+        public PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowAssociationDefinition> evaluate()
                 throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
 
-            //noinspection unchecked
-            computedTriple = (PrismValueDeltaSetTriple<V>)
-                    AssociationValuesTripleComputation.compute(getAssociationDefinition(), constructionEvaluation);
+            computedTriple = AssociationValuesTripleComputation.compute(getAssociationDefinition(), constructionEvaluation);
 
             return getTripleProducer();
         }
@@ -294,7 +305,7 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
         }
 
         @Override
-        public PrismValueDeltaSetTripleProducer<V, D> getTripleProducer() {
+        public PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowAssociationDefinition> getTripleProducer() {
             //noinspection MethodDoesntCallSuperMethod
             return new PrismValueDeltaSetTripleProducer<>() {
                 @Override
@@ -303,17 +314,17 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
                 }
 
                 @Override
-                public PrismValueDeltaSetTriple<V> getOutputTriple() {
+                public PrismValueDeltaSetTriple<ShadowAssociationValue> getOutputTriple() {
                     return computedTriple;
                 }
 
                 @Override
                 public @NotNull MappingStrengthType getStrength() {
-                    return MappingStrengthType.STRONG;
+                    return AssociationTypeBasedMapper.this.getStrength();
                 }
 
                 @Override
-                public PrismValueDeltaSetTripleProducer<V, D> clone() {
+                public PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowAssociationDefinition> clone() {
                     return this;
                 }
 
@@ -365,7 +376,8 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
         }
     }
 
-    private class MappingBasedMapper implements Mapper<V, D> {
+    /** Mapper that provides the result by evaluating a single mapping. This is the traditional way. */
+    private class MappingBasedMapper implements Mapper {
 
         /**
          * Mapping definition including the origin.
@@ -381,7 +393,7 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
         @NotNull private final MappingKindType mappingKind;
 
         /** The prepared or evaluated mapping. */
-        private MappingImpl<V, D> mapping;
+        private MappingImpl<V, ?> mapping;
 
         MappingBasedMapper(
                 @NotNull MappingConfigItem mappingConfigItem,
@@ -403,17 +415,18 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
         }
 
         // TODO: unify with MappingEvaluator.evaluateOutboundMapping(...)
-        public PrismValueDeltaSetTripleProducer<V, D> evaluate()
+        public PrismValueDeltaSetTripleProducer<?, ?> evaluate()
                 throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
 
-            MappingBuilder<V, D> mappingBuilder = // [EP:M:OM] DONE
+            MappingBuilder<V, ?> mappingBuilder = // [EP:M:OM] DONE
                     construction.getMappingFactory().createMappingBuilder(mappingConfigItem, getShortDesc());
 
             ObjectDeltaObject<ShadowType> projectionOdo = constructionEvaluation.getProjectionOdo();
 
+            //noinspection unchecked,rawtypes
             mappingBuilder = construction.initializeMappingBuilder(
-                    mappingBuilder, itemPath, itemName, itemDefinition,
+                    (MappingBuilder) mappingBuilder, itemPath, itemName, (ItemDefinition) itemDefinition,
                     getAssociationDefinition(), constructionEvaluation.task);
 
             if (mappingBuilder == null) {
@@ -503,7 +516,7 @@ abstract class ItemMapper<AH extends AssignmentHolderType, V extends PrismValue,
         }
 
         @Override
-        public PrismValueDeltaSetTripleProducer<V, D> getTripleProducer() {
+        public PrismValueDeltaSetTripleProducer<?, ?> getTripleProducer() {
             return mapping;
         }
     }

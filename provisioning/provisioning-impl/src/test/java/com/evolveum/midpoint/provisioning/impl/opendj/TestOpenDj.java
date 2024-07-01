@@ -3534,7 +3534,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         var assocDef = accountDef.findAssociationDefinitionRequired(assocName);
         return Resource.of(resource).deltaFor(accountDef.getObjectClassName())
                 .item(ShadowType.F_ASSOCIATIONS, assocName)
-                .add(assocDef.createValueFromDefaultObject(assocName, object))
+                .add(assocDef.createValueFromFullDefaultObject(object))
                 .asObjectDelta(subjectOid);
     }
 }

@@ -17,7 +17,9 @@
         <t:modificationType>add</t:modificationType>
         <t:path>associations/ri:group</t:path>
         <t:value xsi:type="c:ShadowAssociationValueType">
-            <c:shadowRef oid="20000000-0000-0000-3333-000000000072" type="ShadowType"/>
+            <c:objects>
+                <ri:group oid="20000000-0000-0000-3333-000000000072"/>
+            </c:objects>
         </t:value>
     </itemDelta>
 </objectModification>

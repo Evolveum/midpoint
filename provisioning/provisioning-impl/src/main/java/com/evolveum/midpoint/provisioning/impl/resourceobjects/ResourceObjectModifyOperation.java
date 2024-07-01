@@ -18,8 +18,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
+import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.util.ShadowReferenceAttributesCollection;
 
@@ -41,9 +40,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfModifyReturnValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -155,7 +151,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
         Collection<? extends ItemDelta<?, ?>> allDeltas = new ArrayList<>(requestedDeltas);
         ItemDeltaCollectionsUtil.addNotEquivalent(allDeltas, knownExecutedDeltas); // MID-6892
 
-        // Execute entitlement modification on other objects (if needed)
+        // These are modification on related objects, e.g., groups (if needed)
         determineAndExecuteEntitlementObjectsOperations(
                 preReadObject, postReadObject, allDeltas, result);
 
@@ -240,17 +236,32 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
         if (postReadObject == null) {
             return null; // This may happen in rare cases (e.g. with semi-manual resources)
         }
+
         ObjectDelta<ShadowType> resourceShadowDelta = preReadObject.getPrismObject().diff(postReadObject.getPrismObject());
-        LOGGER.trace("Determined side-effect changes by old-new diff:\n{}", resourceShadowDelta.debugDumpLazily());
+                LOGGER.trace("Determined side-effect changes by old-new diff:\n{}", resourceShadowDelta.debugDumpLazily());
         for (ItemDelta<?, ?> modification : resourceShadowDelta.getModifications()) {
             if (modification.getParentPath().startsWithName(ShadowType.F_ATTRIBUTES)
-                    && !ItemDeltaCollectionsUtil.hasEquivalent(requestedDeltas, modification)) {
+                    && !ItemDeltaCollectionsUtil.hasEquivalent(requestedDeltas, modification)
+                    && !isSimulatedReferenceAttributeDelta(modification)) {
                 ItemDeltaCollectionsUtil.merge(knownExecutedDeltas, modification);
             }
         }
         LOGGER.trace("Side-effect changes after merging with old-new diff:\n{}",
                 DebugUtil.debugDumpLazily(knownExecutedDeltas));
         return postReadObject;
+    }
+
+    /**
+     * There may be phantom "group membership delete" deltas when renaming account with simulated reference attributes that
+     * have explicit (midPoint-provided) referential integrity. The reason is that the renamed account is not visible in
+     * the original group/groups, as they still store the old name.
+     *
+     * Hence, we simply ignore simulated reference attribute deltas (regardless of referential integrity)
+     * and do not put them into "executed deltas" collection.
+     */
+    private boolean isSimulatedReferenceAttributeDelta(ItemDelta<?, ?> modification) {
+        return modification.getDefinition() instanceof ShadowReferenceAttributeDefinition refAttrDef
+                && refAttrDef.isSimulated();
     }
 
     private boolean hasVolatileAttributeModification() throws SchemaException {
@@ -320,33 +331,34 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
 
             ItemPath itemDeltaPath = subjectDelta.getPath();
 
-            if (itemDeltaPath.startsWith(ShadowType.F_ATTRIBUTES)) {
+            if (subjectDelta.getDefinition() instanceof ShadowReferenceAttributeDefinition) {
 
                 // Directly manipulating the associations. We need to update the target objects, e.g. by adding/removing members.
                 var attributesCollection = ShadowReferenceAttributesCollection.ofDelta(subjectDelta);
                 entitlementConverter.transformToObjectOpsOnModify(
                         objectsOperations, attributesCollection, subjectShadowBefore, subjectShadowAfter, result);
 
-            } else {
+            } else if (subjectDelta.getDefinition() instanceof ShadowSimpleAttributeDefinition) {
 
-                // Changing any other attribute. This may affect the associations, typically when the subject is renamed,
-                // we (for resources without the referential integrity) have to adapt the association targets, e.g. groups.
-                // This is done by simulating DELETE/ADD of association value.
+                // Changing any other attribute. This may affect simulated references: typically when the subject is renamed,
+                // we (for resources without the referential integrity) have to adapt the reference targets, e.g. groups.
+                // This is done by simulating DELETE/ADD of reference value.
 
                 if (referenceAttributes.isEmpty()) {
                     LOGGER.trace("No references in old shadow. Skipping processing entitlements change for {}.", itemDeltaPath);
                     continue;
                 }
-                LOGGER.trace("Processing associations in old shadow for {}:\n{}",
+
+                LOGGER.trace("Processing reference attributes in old shadow for {}:\n{}",
                         itemDeltaPath, DebugUtil.debugDumpLazily(referenceAttributes, 1));
 
                 // Update explicit-ref-integrity associations if the subject binding attribute (e.g. a DN) is being changed.
                 for (ShadowReferenceAttribute refAttr : referenceAttributes) {
-                    ItemName refAttrName = refAttr.getElementName();
+                    var refAttrName = refAttr.getElementName();
                     var refAttrDef =
                             ctx.getObjectDefinitionRequired().findReferenceAttributeDefinitionRequired(
                                     refAttrName, () -> ctx.getExceptionDescription());
-                    if (!EntitlementUtils.isSimulatedObjectToSubject(refAttrDef) // subject rename does not matter here
+                    if (!EntitlementUtils.isSimulatedObjectToSubject(refAttrDef) // subject rename matters only for obj->sub ones
                             || !EntitlementUtils.isVisible(refAttrDef, ctx)
                             || !EntitlementUtils.requiresExplicitReferentialIntegrity(refAttrDef)) { // the resource takes care of this
                         continue;
@@ -435,6 +447,8 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
                 } else if (itemDelta instanceof ContainerDelta) {
                     // skip the container delta - most probably password change - it is processed earlier (??)
                 } else if (itemDelta instanceof ReferenceDelta) {
+                    // Simulated subject-to-object reference deltas are converted to attribute deltas by the entitlement
+                    // converter. Native ones are simply copied into ucfOperations without change.
                     var attributesCollection = ShadowReferenceAttributesCollection.ofDelta(itemDelta);
                     ucfOperations.addAll(
                             new EntitlementConverter(ctx)

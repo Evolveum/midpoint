@@ -386,4 +386,38 @@ public class ProvisioningUtil {
             CryptoUtil.checkEncrypted(shadow);
         }
     }
+
+    /**
+     * The following situation may happen:
+     *
+     * A shadow is fetched from the resource. The default definition for its object class contains a definition of
+     * a simulated legacy association, but (after application of correct object type) the given object type does not contain it.
+     *
+     * We should ignore/remove such attributes. This method detects them.
+     */
+    public static boolean isExtraLegacyReferenceAttribute(
+            @NotNull ShadowAttribute<?, ?, ?, ?> attribute, @NotNull ResourceObjectDefinition newDefinition) {
+        if (!(attribute instanceof ShadowReferenceAttribute refAttr)) {
+            return false;
+        }
+        var refAttrDef = refAttr.getDefinitionRequired();
+        var refAttrName = refAttrDef.getItemName();
+        var simulationDefinition = refAttrDef.getSimulationDefinition();
+        return simulationDefinition != null
+                && simulationDefinition.isLegacy()
+                && newDefinition.findAttributeDefinition(refAttrName) == null;
+    }
+
+    /** See {@link #isExtraLegacyReferenceAttribute(ShadowAttribute, ResourceObjectDefinition)}. */
+    public static void removeExtraLegacyReferenceAttributes(
+            @NotNull AbstractShadow shadow, @NotNull ResourceObjectDefinition newDefinition) {
+        var attributesContainer = shadow.getAttributesContainer();
+        for (var refAttr : attributesContainer.getReferenceAttributes()) {
+            if (isExtraLegacyReferenceAttribute(refAttr, newDefinition)) {
+                LOGGER.trace("Removing extra simulated legacy reference attribute {}, as it does not exist in {}",
+                        refAttr.getElementName(), newDefinition);
+                attributesContainer.remove((ShadowAttribute<?, ?, ?, ?>) refAttr);
+            }
+        }
+    }
 }

@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -88,6 +90,7 @@ public class ShadowReferenceAttributeDefinitionImpl
         }
     }
 
+    /** Both modern and legacy */
     static ShadowReferenceAttributeDefinition fromSimulated(
             @NotNull SimulatedShadowReferenceTypeDefinition simulatedReferenceTypeDefinition,
             @Nullable ResourceItemDefinitionType assocDefBean) {
@@ -202,7 +205,7 @@ public class ShadowReferenceAttributeDefinitionImpl
         blankShadow.getAttributesContainer().add(
                 (ShadowAttribute<?, ?, ?, ?>)
                         targetObjectDefinition.instantiateAttribute(identifierName, realValue));
-        return ShadowReferenceAttributeValue.fromShadow(blankShadow);
+        return ShadowReferenceAttributeValue.fromShadow(blankShadow, false);
     }
 
     @Override
@@ -295,8 +298,15 @@ public class ShadowReferenceAttributeDefinitionImpl
     }
 
     @Override
-    public ShadowReferenceAttributeValue createPrismValueFromRealValue(@NotNull Referencable realValue) throws SchemaException {
-        return ShadowReferenceAttributeValue.fromRefValue(realValue.asReferenceValue());
+    public ShadowReferenceAttributeValue createPrismValueFromRealValue(@NotNull Object realValue) throws SchemaException {
+        if (realValue instanceof RawType raw) {
+            return ShadowReferenceAttributeValue.fromReferencable(
+                    raw.getParsedRealValue(ObjectReferenceType.class));
+        } else if (realValue instanceof Referencable referencable) {
+            return ShadowReferenceAttributeValue.fromReferencable(referencable);
+        } else {
+            throw new SchemaException("Couldn't instantiate reference attribute from " + realValue.getClass());
+        }
     }
 
     @Override
@@ -479,13 +489,7 @@ public class ShadowReferenceAttributeDefinitionImpl
 
     @Override
     public @NotNull Collection<ShadowRelationParticipantType> getTargetParticipantTypes() {
-        // TODO use additional information from the association type definition, if there's any
         return referenceTypeDefinition.getObjectTypes();
-    }
-
-    @Override
-    public @NotNull ShadowAssociationDefinition getAssociationDefinition() {
-        throw new UnsupportedOperationException("this is a placeholder");
     }
 
     @Override
@@ -501,5 +505,14 @@ public class ShadowReferenceAttributeDefinitionImpl
     @Override
     public void setComposite(boolean value) {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * See {@link ShadowAssociationDefinitionImpl#createComplexTypeDefinition()} for analogous functionality
+     * (via value migrator).
+     */
+    @Override
+    public @NotNull PrismReferenceValue migrateIfNeeded(@NotNull PrismReferenceValue value) throws SchemaException {
+        return ShadowReferenceAttributeValue.fromRefValue(value);
     }
 }

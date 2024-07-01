@@ -44,10 +44,11 @@ public class ShadowBuilder {
         return this;
     }
 
-    public ShadowBuilder withReferenceAttribute(QName attrName, AbstractShadow referencedShadow) throws SchemaException {
+    public ShadowBuilder withReferenceAttributeWithFullObject(QName attrName, AbstractShadow referencedShadow)
+            throws SchemaException {
         ShadowUtil
                 .getOrCreateAttributesContainer(shadow)
-                .addReferenceAttribute(attrName, referencedShadow);
+                .addReferenceAttribute(attrName, referencedShadow, true);
         return this;
     }
 

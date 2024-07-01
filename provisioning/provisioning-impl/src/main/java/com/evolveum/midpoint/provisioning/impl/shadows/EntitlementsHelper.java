@@ -44,7 +44,7 @@ class EntitlementsHelper {
     @Autowired ShadowFinder shadowFinder;
 
     /**
-     * Makes sure that all the associations object references have identifiers in them.
+     * Makes sure that all object references (in associations and in reference attributes) have identifiers in them.
      * This is necessary for the actual resource-level operations.
      */
     void provideEntitlementsIdentifiersToObject(
@@ -55,11 +55,16 @@ class EntitlementsHelper {
                 ShadowAssociationsCollection.ofShadow(objectToAdd.getBean()),
                 objectToAdd.toString(),
                 result);
+        provideEntitlementIdentifiersToReferenceAttributes(
+                ctx,
+                ShadowReferenceAttributesCollection.ofShadow(objectToAdd.getBean()),
+                objectToAdd.toString(),
+                result);
     }
 
     /**
-     * Makes sure that all the entitlements have identifiers in them so this is
-     * usable by the ResourceObjectConverter.
+     * Makes sure that all object references (in associations and in reference attributes) have identifiers in them.
+     * This is necessary for the actual resource-level operations.
      */
     void provideEntitlementsIdentifiersToDelta(
             ProvisioningContext ctx,
@@ -73,6 +78,11 @@ class EntitlementsHelper {
                     ShadowAssociationsCollection.ofDelta(modification),
                     desc,
                     result);
+            provideEntitlementIdentifiersToReferenceAttributes(
+                    ctx,
+                    ShadowReferenceAttributesCollection.ofDelta(modification),
+                    desc,
+                    result);
         }
     }
 
@@ -82,32 +92,38 @@ class EntitlementsHelper {
             String desc,
             OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException {
 
-        for (var iterableAssocValue : associationsCollection.getAllValues()) {
+        for (var iterableAssocValue : associationsCollection.getAllIterableValues()) {
             var assocValue = iterableAssocValue.associationValue();
+            var shadowRefAttrsCollection = ShadowReferenceAttributesCollection.ofAssociationValue(assocValue);
+            provideEntitlementIdentifiersToReferenceAttributes(ctx, shadowRefAttrsCollection, desc, result);
+        }
+    }
 
-            var shadowRefAttrsIterator = ShadowReferenceAttributesCollection.ofAssociationValue(assocValue).iterator();
-            while (shadowRefAttrsIterator.hasNext()) {
-                var iterableRefAttrValue = shadowRefAttrsIterator.next();
-                var refAttrValue = iterableRefAttrValue.value();
-                var embeddedShadow = refAttrValue.getShadowIfPresent();
-                if (embeddedShadow != null && embeddedShadow.getAttributesContainer().size() > 0) {
-                    continue; // there are identifiers already; no need to do anything here
-                }
+    private void provideEntitlementIdentifiersToReferenceAttributes(
+            ProvisioningContext ctx,
+            ShadowReferenceAttributesCollection referenceAttributesCollection,
+            String desc,
+            OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException {
 
-                LOGGER.trace("Going to provide identifiers to association reference value: {}", iterableRefAttrValue);
-                String objectOid =
-                        MiscUtil.requireNonNull(
-                                refAttrValue.getOid(),
-                                () -> "No identifiers and no OID specified in association reference attribute: %s in %s in %s"
-                                        .formatted(iterableRefAttrValue, iterableAssocValue, desc));
+        for (var iterableRefAttrValue : referenceAttributesCollection.getAllIterableValues()) {
+            var refAttrValue = iterableRefAttrValue.value();
+            var embeddedShadow = refAttrValue.getShadowIfPresent();
+            if (embeddedShadow != null && embeddedShadow.getAttributesContainer().size() > 0) {
+                continue;
+            }
 
-                try {
-                    refAttrValue.setShadow(
-                            shadowFinder.getRepoShadow(ctx, objectOid, result));
-                } catch (ObjectNotFoundException e) {
-                    throw e.wrap("Couldn't resolve object reference OID %s in association %s in %s".formatted(
-                            objectOid, iterableAssocValue.name(), desc));
-                }
+            LOGGER.trace("Going to provide identifiers to association reference value: {}", iterableRefAttrValue);
+            String objectOid =
+                    MiscUtil.requireNonNull(
+                            refAttrValue.getOid(),
+                            () -> "No identifiers and no OID specified in association reference attribute: %s in %s".formatted(
+                                    iterableRefAttrValue, desc));
+
+            try {
+                refAttrValue.setShadow(
+                        shadowFinder.getRepoShadow(ctx, objectOid, result));
+            } catch (ObjectNotFoundException e) {
+                throw e.wrap("Couldn't resolve object reference OID %s in %s".formatted(objectOid, desc));
             }
         }
     }
@@ -117,8 +133,7 @@ class EntitlementsHelper {
      *
      * Note that this is something that must be undone before storing the shadow in a pending operation, if applicable.
      */
-    void convertAssociationsToReferenceAttributes(
-            ProvisioningContext ctx, ResourceObjectShadow objectToAdd, OperationResult result) throws SchemaException {
+    void convertAssociationsToReferenceAttributes(ResourceObjectShadow objectToAdd) throws SchemaException {
         var iterator = ShadowAssociationsCollection.ofShadow(objectToAdd.getBean()).iterator();
         var attrsContainer = objectToAdd.getAttributesContainer();
         while (iterator.hasNext()) {
@@ -132,10 +147,8 @@ class EntitlementsHelper {
         }
     }
 
-    void convertAssociationDeltasToReferenceAttributeDeltas(
-            ProvisioningContext ctx,
-            Collection<? extends ItemDelta<?, ?>> modifications,
-            OperationResult result) throws SchemaException {
+    void convertAssociationDeltasToReferenceAttributeDeltas(Collection<? extends ItemDelta<?, ?>> modifications)
+            throws SchemaException {
         for (var modification : List.copyOf(modifications)) {
             var iterator = ShadowAssociationsCollection.ofDelta(modification).iterator();
             while (iterator.hasNext()) {

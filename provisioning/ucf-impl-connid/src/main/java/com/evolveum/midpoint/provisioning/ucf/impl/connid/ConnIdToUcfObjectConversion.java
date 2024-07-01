@@ -360,7 +360,8 @@ class ConnIdToUcfObjectConversion {
                 throws SchemaException {
             var convertedAttrName = connIdAttributeNameToUcf(connIdAttrName, null, resourceObjectDefinition);
 
-            var mpDefinition = resourceObjectDefinition.findShadowAttributeDefinitionRequired(
+            //noinspection rawtypes
+            ShadowAttributeDefinition mpDefinition = resourceObjectDefinition.findShadowAttributeDefinitionRequired(
                     convertedAttrName,
                     getResourceSchema().isCaseIgnoreAttributeNames(),
                     lazy(() -> "original ConnId name: '%s' in resource object identified by %s".formatted(
@@ -383,6 +384,7 @@ class ConnIdToUcfObjectConversion {
                     schemaCheck(realClass == null || expectedClass.isAssignableFrom(realClass),
                             "The value '%s' does not conform to the definition %s: expected type: %s, actual type: %s",
                             convertedValue, mpDefinition, expectedClass, realClass);
+                    //noinspection unchecked
                     convertedAttr.addValueSkipUniquenessCheck(convertedValue);
                 }
             }
@@ -408,7 +410,8 @@ class ConnIdToUcfObjectConversion {
             // If the conversion is not successful, the conversion of the particular reference attribute - as a whole - fails
             // (and the error is handled just as if any attribute conversion failed).
             return ShadowReferenceAttributeValue.fromShadow(
-                    embeddedConversion.getUcfResourceObjectFragmentIfSuccess());
+                    embeddedConversion.getUcfResourceObjectFragmentIfSuccess(),
+                    targetObjectOrIdentification instanceof ConnectorObject);
         }
 
         @NotNull UcfResourceObjectFragment getResourceObjectFragmentIfSuccess() throws SchemaException {

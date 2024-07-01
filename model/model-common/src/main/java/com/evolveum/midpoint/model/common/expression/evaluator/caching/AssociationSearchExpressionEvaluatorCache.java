@@ -11,7 +11,7 @@ import com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExp
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class AssociationSearchExpressionEvaluatorCache
         extends AbstractSearchExpressionEvaluatorCache<
-            ShadowReferenceAttributeValue,
+            ShadowAssociationValue,
             ShadowType,
             AssociationSearchQueryKey,
             AssociationSearchQueryResult> {
@@ -60,7 +60,7 @@ public class AssociationSearchExpressionEvaluatorCache
 
     @Override
     protected AssociationSearchQueryResult createQueryResult(
-            Collection<? extends ObjectFound<ShadowType, ShadowReferenceAttributeValue>> objectsFound) {
+            Collection<? extends ObjectFound<ShadowType, ShadowAssociationValue>> objectsFound) {
         return new AssociationSearchQueryResult(objectsFound);
     }
 

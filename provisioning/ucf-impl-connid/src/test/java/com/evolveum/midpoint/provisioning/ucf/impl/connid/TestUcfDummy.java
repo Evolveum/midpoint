@@ -720,7 +720,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         var annContractShadow =
                 ShadowBuilder.withDefinition(contractClassDefinition)
                         .withSimpleAttribute(Contract.AttributeNames.NAME.q(), "ann-engineering")
-                        .withReferenceAttribute(Contract.LinkNames.ORG.q(), engineering)
+                        .withReferenceAttributeWithFullObject(Contract.LinkNames.ORG.q(), engineering)
                         .asAbstractShadow();
 
         var personClassDefinition = resourceSchema.findObjectClassDefinitionRequired(Person.OBJECT_CLASS_NAME.xsd());
@@ -729,7 +729,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                         .withSimpleAttribute(Person.AttributeNames.NAME.q(), "ann")
                         .withSimpleAttribute(Person.AttributeNames.FIRST_NAME.q(), "Ann")
                         .withSimpleAttribute(Person.AttributeNames.LAST_NAME.q(), "Green")
-                        .withReferenceAttribute(Person.LinkNames.CONTRACT.q(), annContractShadow)
+                        .withReferenceAttributeWithFullObject(Person.LinkNames.CONTRACT.q(), annContractShadow)
                         .asPrismObject();
 
         when("ann is created on the resource");
@@ -795,9 +795,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 ShadowReferenceAttributeValue.fromShadow(
                         ShadowBuilder.withDefinition(contractClassDefinition)
                                 .withSimpleAttribute(Contract.AttributeNames.NAME.q(), "bob-pharmacy")
-                                .withReferenceAttribute(Contract.LinkNames.ORG.q(), pharmacy)
-                                .asAbstractShadow()
-                );
+                                .withReferenceAttributeWithFullObject(Contract.LinkNames.ORG.q(), pharmacy)
+                                .asAbstractShadow(),
+                        true);
 
         when("the contract is created on the resource");
         var referenceAddDelta =

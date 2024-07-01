@@ -11,7 +11,9 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -36,11 +38,24 @@ public interface ShadowReferenceAttributeDefinition
                 ShadowReferenceAttributeValue,
                 ShadowReferenceAttributeDefinition,
                 Referencable,
-                ShadowReferenceAttribute
-                > {
+                ShadowReferenceAttribute> {
 
-    /** Returns types of the objects on the other side. */
+    /** Returns types of the objects on the other side. Always non-empty. */
     @NotNull Collection<ShadowRelationParticipantType> getTargetParticipantTypes();
+
+    /** Returns the object class definition of the other side. */
+    default @NotNull ResourceObjectClassDefinition getTargetObjectClassDefinition() {
+        var classDefinitions = getTargetParticipantTypes().stream()
+                .map(participantType -> participantType.getObjectDefinition().getObjectClassDefinition())
+                .collect(Collectors.toSet());
+        return MiscUtil.extractSingletonRequired(
+                classDefinitions,
+                () -> new IllegalStateException("Multiple target object class definitions in " + this + ": " + classDefinitions),
+                () -> new IllegalStateException("No target object class definition in " + this));
+    }
+
+    @Override
+    <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz);
 
     /**
      * Returns the object class definition of the immediate target object. Should be exactly one.
@@ -94,13 +109,6 @@ public interface ShadowReferenceAttributeDefinition
                     .buildFilter();
         }
     }
-
-    /**
-     * Returns the definition of the association that is bound to this attribute.
-     *
-     * TEMPORARY. JUST A PLACEHOLDER. There could be more such associations!
-     */
-    @NotNull ShadowAssociationDefinition getAssociationDefinition();
 
     /** TODO reconsider this: which definition should we provide as the representative one? There can be many. */
     @Deprecated

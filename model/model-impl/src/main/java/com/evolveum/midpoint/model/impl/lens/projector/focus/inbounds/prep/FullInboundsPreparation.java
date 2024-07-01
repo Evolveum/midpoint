@@ -14,7 +14,9 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.api.InboundSourceData;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import com.google.common.collect.Sets;
@@ -50,10 +52,6 @@ import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ItemSynchronizationReactionDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -68,7 +66,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
 
     private static final Trace LOGGER = TraceManager.getTrace(FullInboundsPreparation.class);
 
-    private static final String OP_PROCESS_ASSOCIATED_OBJECT = FullInboundsPreparation.class.getName() + ".processAssociatedObject";
+    private static final String OP_PROCESS_ASSOCIATION_VALUE = FullInboundsPreparation.class.getName() + ".processAssociationValue";
 
     @NotNull private final LensProjectionContext projectionContext;
     @NotNull private final LensContext<F> lensContext;
@@ -99,9 +97,10 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                 lensContext,
                 evaluationRequestsBeingCollected,
                 new FullSource(
-                        projectionContext.getObjectCurrent(),
-                        getAPrioriDelta(projectionContext),
-                        projectionContext.getCompositeObjectDefinition(),
+                        InboundSourceData.forShadow(
+                                projectionContext.getObjectCurrent(),
+                                getAPrioriDelta(projectionContext),
+                                projectionContext.getCompositeObjectDefinitionRequired()),
                         projectionContext.getCompositeObjectDefinition(),
                         projectionContext,
                         context,
@@ -222,10 +221,10 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                             .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus, FocusType.class)
                             .addAliasRegistration(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS);
 
-                    PrismObject<ShadowType> accountNew = this.source.getResourceObjectNew();
-                    builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew, ShadowType.class)
-                            .addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew, ShadowType.class)
-                            .addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew, ShadowType.class)
+                    PrismObject<ShadowType> account = this.source.sourceData.getShadowIfPresent();
+                    builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account, ShadowType.class)
+                            .addVariableDefinition(ExpressionConstants.VAR_SHADOW, account, ShadowType.class)
+                            .addVariableDefinition(ExpressionConstants.VAR_PROJECTION, account, ShadowType.class)
                             .addAliasRegistration(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION)
                             .addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION)
                             .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, this.projectionContext.getResource(), ResourceType.class)
@@ -335,29 +334,33 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
     }
 
     @Override
-    void executeComplexProcessing(OperationResult result)
+    void processAssociations(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, StopProcessingProjectionException {
         // FIXME fix this hacking aimed at providing "object new" version
-        var shadow = source.getResourceObjectNew();
-        if (shadow == null && !ObjectDelta.isAdd(source.aPrioriDelta)) {
-            return;
-        }
-
+        PrismObject<ShadowType> shadow;
         if (ObjectDelta.isAdd(source.aPrioriDelta)) {
             shadow = source.aPrioriDelta.getObjectToAdd();
-        } else if (ObjectDelta.isModify(source.aPrioriDelta)) {
-            shadow = shadow.clone();
-            source.aPrioriDelta.applyTo(shadow);
+        } else {
+            var resourceObjectNew = source.sourceData.getShadowIfPresent(); // when doing associations, we are certainly at a shadow
+            if (resourceObjectNew == null) {
+                return;
+            }
+            if (ObjectDelta.isModify(source.aPrioriDelta)) {
+                shadow = resourceObjectNew.clone();
+                source.aPrioriDelta.applyTo(shadow);
+            } else {
+                shadow = resourceObjectNew;
+            }
         }
 
-        // TODO implement also for attributes
-
-        // FIXME treat also empty associations here (i.e., go by definitions, not by actual data)
-        for (var association : ShadowUtil.getAssociations(shadow)) {
-            for (var inboundDefinition : association.getDefinition().getRelevantInboundDefinitions()) {
-                LOGGER.trace("Processing association {} using {}", association.getElementName(), inboundDefinition);
-                new AssociationProcessing(association, inboundDefinition)
+        // TODO make sure we don't process associations from associated objects
+        for (var assocDef : source.sourceData.getAssociationDefinitions()) {
+            for (var inboundDef : assocDef.getRelevantInboundDefinitions()) {
+                var assocName = assocDef.getItemName();
+                var assocValues = ShadowUtil.getAssociationValues(shadow, assocName);
+                LOGGER.trace("Processing association '{}' ({} values) using {}", assocName, assocValues.size(), inboundDef);
+                new AssociationProcessing(assocValues, assocDef, inboundDef)
                         .process(result);
             }
         }
@@ -369,18 +372,19 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
      */
     private class AssociationProcessing {
 
-        @NotNull private final ShadowReferenceAttribute referenceAttribute;
-        @NotNull private final ShadowReferenceAttributeDefinition associationDefinition;
+        @NotNull private final Collection<? extends ShadowAssociationValue> associationValues;
+        @NotNull private final ShadowAssociationDefinition associationDefinition;
         @NotNull private final ResourceObjectInboundDefinition inboundDefinition;
 
         /** IDs of (existing) assignments that were seen by this processing. Other assignments in the range will be removed. */
         @NotNull private final Set<Long> assignmentsSeen = new HashSet<>();
 
         AssociationProcessing(
-                @NotNull ShadowReferenceAttribute referenceAttribute,
+                @NotNull Collection<? extends ShadowAssociationValue> associationValues,
+                @NotNull ShadowAssociationDefinition associationDefinition,
                 @NotNull ResourceObjectInboundDefinition inboundDefinition) {
-            this.referenceAttribute = referenceAttribute;
-            this.associationDefinition = referenceAttribute.getDefinition();
+            this.associationValues = associationValues;
+            this.associationDefinition = associationDefinition;
             this.inboundDefinition = inboundDefinition;
         }
 
@@ -388,8 +392,10 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                 ConfigurationException, StopProcessingProjectionException, ObjectNotFoundException {
 
-            // Processing individual values of the reference attribute
-            values: for (var refAttributeValue : referenceAttribute.getReferenceValues()) {
+            LOGGER.trace("Processing {} individual values of the association '{}'",
+                    associationValues.size(), associationDefinition.getItemName());
+
+            values: for (var associationValue : associationValues) {
 
                 // FIXME EXTRA HACK: we check if the association value was not removed by a-priori delta
                 //  (normal delta application does not work here)
@@ -398,16 +404,16 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                             associationDefinition.getStandardPath());
                     if (associationDelta != null) {
                         for (var deletedValue : emptyIfNull(associationDelta.getValuesToDelete())) {
-                            if (refAttributeValue.matches((ShadowReferenceAttributeValue) deletedValue)) {
-                                LOGGER.trace("Ignoring association value that was already deleted: {}", refAttributeValue);
+                            if (associationValue.matches((ShadowAssociationValue) deletedValue)) {
+                                LOGGER.trace("Ignoring association value that was already deleted: {}", associationValue);
                                 continue values;
                             }
                         }
                     }
                 }
 
-                LOGGER.trace("Processing reference attribute value: {}", refAttributeValue);
-                new ValueProcessing(refAttributeValue)
+                LOGGER.trace("Processing association value: {}", associationValue);
+                new ValueProcessing(associationValue)
                         .process(result);
             }
 
@@ -453,10 +459,10 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
          */
         private class ValueProcessing {
 
-            @NotNull private final ShadowReferenceAttributeValue associationValue;
+            @NotNull private final ShadowAssociationValue associationValue;
             @NotNull private final ResourceType resource = projectionContext.getResourceRequired();
 
-            ValueProcessing(@NotNull ShadowReferenceAttributeValue associationValue) {
+            ValueProcessing(@NotNull ShadowAssociationValue associationValue) {
                 this.associationValue = associationValue;
             }
 
@@ -464,7 +470,7 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                     throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                     ConfigurationException, ObjectNotFoundException, StopProcessingProjectionException {
 
-                OperationResult result = parentResult.subresult(OP_PROCESS_ASSOCIATED_OBJECT)
+                OperationResult result = parentResult.subresult(OP_PROCESS_ASSOCIATION_VALUE)
                         .addArbitraryObjectAsParam("associationValue", associationValue)
                         .build();
                 try {
@@ -505,10 +511,8 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                                 CorrelatorDiscriminator.forSynchronization(),
                                 null,
                                 context.getSystemConfigurationBean()),
-                        new CorrelationContext.Shadow(
-                                associationValue.getShadowBean(),
-                                projectionContext.getResourceRequired(),
-                                associationValue.getTargetObjectDefinition(),
+                        new CorrelationContext.AssociationValue(
+                                associationValue,
                                 assignmentForCorrelation,
                                 candidateAssignments,
                                 context.getSystemConfigurationBean(),
@@ -525,6 +529,9 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                 var targetAssignment = instantiateTargetAssignment();
                 PreMappingsEvaluation.computePreFocusForAssociationValue(
                         associationValue,
+                        associationValue.hasAssociationObject() ?
+                                associationValue.getAssociationObject().getObjectDefinition() :
+                                source.sourceData.getShadowObjectDefinition(),
                         inboundDefinition,
                         projectionContext.getResourceRequired(),
                         targetAssignment,
@@ -624,9 +631,11 @@ public class FullInboundsPreparation<F extends FocusType> extends InboundsPrepar
                     throws ConfigurationException, SchemaException, ObjectNotFoundException, SecurityViolationException,
                     CommunicationException, ExpressionEvaluationException, StopProcessingProjectionException {
                 MSource childSource = new FullSource(
-                        associationValue.getShadow().getPrismObject(),
-                        null, // TODO
-                        associationValue.getTargetObjectDefinition(),
+                        InboundSourceData.forAssociationValue(
+                                associationValue,
+                                associationDefinition.hasAssociationObject() ?
+                                        associationDefinition.getAssociationObjectDefinition() :
+                                        source.sourceData.getShadowObjectDefinition()),
                         inboundDefinition,
                         projectionContext,
                         context,

@@ -6,19 +6,7 @@
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
-import java.util.List;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
-
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
-import com.evolveum.midpoint.schema.util.AbstractShadow;
-
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.common.expression.evaluator.transformation.ValueTransformationContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -26,8 +14,11 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.cache.CacheType;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -35,24 +26,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressi
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
+import java.util.List;
+
 /**
- * Creates {@link ShadowAssociationValue} (or more of them) based on specified condition for the associated object.
+ * Creates {@link ShadowReferenceAttributeValue} (or more or them) based on specified condition for the associated object.
  *
- * TODO deduplicate with {@link ReferenceAttributeTargetSearchExpressionEvaluator}
+ * It is based on `associationTargetSearch` evaluator that is normally mapped to {@link AssociationTargetSearchExpressionEvaluator}
+ * object. But if used in the context of reference attributes, this class is instantiated instead.
  *
  * @author Radovan Semancik
  *
- * @see ReferenceAttributeTargetSearchExpressionEvaluator
+ * @see AssociationTargetSearchExpressionEvaluator
  */
-class AssociationTargetSearchExpressionEvaluator
-        extends AbstractSearchExpressionEvaluator<ShadowAssociationValue, ShadowType, ShadowAssociationDefinition, SearchObjectExpressionEvaluatorType> {
+class ReferenceAttributeTargetSearchExpressionEvaluator
+        extends AbstractSearchExpressionEvaluator<ShadowReferenceAttributeValue, ShadowType, ShadowReferenceAttributeDefinition, SearchObjectExpressionEvaluatorType> {
 
-    AssociationTargetSearchExpressionEvaluator(
+    ReferenceAttributeTargetSearchExpressionEvaluator(
             QName elementName,
             SearchObjectExpressionEvaluatorType expressionEvaluatorBean,
-            ShadowAssociationDefinition outputDefinition,
+            ShadowReferenceAttributeDefinition outputDefinition,
             Protector protector,
             ObjectResolver objectResolver,
             LocalizationService localizationService) {
@@ -77,20 +73,15 @@ class AssociationTargetSearchExpressionEvaluator
             }
 
             @Override
-            protected @NotNull ShadowAssociationValue createResultValue(
+            protected @NotNull ShadowReferenceAttributeValue createResultValue(
                     String targetOid,
                     @NotNull QName targetTypeName,
                     @Nullable PrismObject<ShadowType> target,
-                    List<ItemDelta<ShadowAssociationValue, ShadowAssociationDefinition>> newValueDeltasIgnored)
+                    List<ItemDelta<ShadowReferenceAttributeValue, ShadowReferenceAttributeDefinition>> newValueDeltasIgnored)
                     throws SchemaException {
 
-                if (target != null) {
-                    return outputDefinition.createValueFromFullDefaultObject(
-                            AbstractShadow.of(target));
-                } else {
-                    return outputDefinition.createValueFromDefaultObjectRef(
-                            ShadowReferenceAttributeValue.fromShadowOid(targetOid));
-                }
+                return ShadowReferenceAttributeValue.fromReferencable(
+                        ObjectTypeUtil.createObjectRef(targetOid, ObjectTypes.SHADOW, target));
             }
 
             @Override
@@ -136,21 +127,11 @@ class AssociationTargetSearchExpressionEvaluator
             protected boolean isCreateOnDemandSafe() {
                 return false;
             }
-
-            @Override
-            protected CacheInfo getCacheInfo() {
-                return new CacheInfo(
-                        AssociationSearchExpressionEvaluatorCache.getCache(),
-                        AssociationSearchExpressionEvaluatorCache.class,
-                        CacheType.LOCAL_ASSOCIATION_TARGET_SEARCH_EVALUATOR_CACHE,
-                        ShadowType.class);
-            }
-
         };
     }
 
     @Override
     public String shortDebugDump() {
-        return "associationTargetSearch";
+        return "associationTargetSearch for reference attributes";
     }
 }

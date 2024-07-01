@@ -495,6 +495,7 @@ public class SynchronizationRequest {
             return build().execute(result);
         }
 
+        /** Beware, ImportFromResourceLauncher that is used re-reads the shadow from the resource. */
         public void executeOnForeground(OperationResult result) throws CommonException, IOException {
             build().executeOnForeground(result);
         }

@@ -13,6 +13,10 @@ import java.io.Serial;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.EqualsChecker;
+
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.CloneStrategy;
@@ -49,6 +53,17 @@ public class ShadowAssociation
 
     @Serial private static final long serialVersionUID = 0L;
 
+    private static final EqualsChecker<ShadowAssociation> SEMANTIC_EQUALS_CHECKER =
+            (o1, o2) -> {
+                if (o1 == null || o2 == null) {
+                    return o1 == null && o2 == null;
+                }
+                return MiscUtil.unorderedCollectionEquals(
+                        o1.getAssociationValues(),
+                        o2.getAssociationValues(),
+                        ShadowAssociationValue.semanticEqualsChecker());
+            };
+
     private ShadowAssociation(QName name, ShadowAssociationDefinition definition) {
         super(name, definition);
     }
@@ -59,6 +74,10 @@ public class ShadowAssociation
 
     public static ShadowAssociation empty(@NotNull QName name, @NotNull ShadowAssociationDefinition definition) {
         return new ShadowAssociation(name, definition);
+    }
+
+    public static EqualsChecker<ShadowAssociation> semanticEqualsChecker() {
+        return SEMANTIC_EQUALS_CHECKER;
     }
 
     @Override

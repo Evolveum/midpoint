@@ -11,8 +11,6 @@ import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
@@ -25,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  * Evaluation of an association mapping in resource object construction (assigned/plain).
  */
 class AssociationMapper<AH extends AssignmentHolderType>
-        extends ItemMapper<AH, ShadowAssociationValue, ShadowAssociationDefinition> {
+        extends ShadowItemMapper<AH, ShadowAssociationValue, ShadowAssociationDefinition> {
 
     /**
      * Traditional/legacy association evaluation by a single mapping (just like an attribute is evaluated).

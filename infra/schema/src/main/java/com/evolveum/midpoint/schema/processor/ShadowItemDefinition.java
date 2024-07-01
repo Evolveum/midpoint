@@ -17,7 +17,7 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 /** Temporary class, to be decided what to do with this. */
 public interface ShadowItemDefinition {
 
-    default  <D extends ItemDefinition<?>> D findItemDefinition(@NotNull ItemPath path, @NotNull Class<D> clazz) {
+    default <D extends ItemDefinition<?>> D findItemDefinition(@NotNull ItemPath path, @NotNull Class<D> clazz) {
         if (path.isEmpty()) {
             argCheck(clazz.isAssignableFrom(this.getClass()),
                     "Looking for definition of class %s but found %s", clazz, this);

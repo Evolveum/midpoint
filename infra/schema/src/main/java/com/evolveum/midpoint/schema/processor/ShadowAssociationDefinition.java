@@ -7,36 +7,22 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import static com.google.common.collect.ImmutableSetMultimap.flatteningToImmutableSetMultimap;
-import static com.google.common.collect.ImmutableSetMultimap.toImmutableSetMultimap;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_C;
-import static com.evolveum.midpoint.util.MiscUtil.stateNonEmpty;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -50,92 +36,56 @@ public interface ShadowAssociationDefinition
         PrismContainerDefinition<ShadowAssociationValueType>,
         ShadowItemDefinition {
 
-    // TEMPORARY!
-    ItemName VALUE = ItemName.from(NS_C, "value");
-
-    /** Returns "immediate neighbors". TODO REMOVE/INLINE */
-    default @NotNull Collection<ShadowRelationParticipantType> getImmediateTargetParticipantTypes() {
-        return getReferenceAttributeDefinition().getTargetParticipantTypes();
-    }
-
-    /** This is used for associations with the association object. */
-    default @NotNull ShadowRelationParticipantType getAssociationObjectInformation() {
-        var immediateTargets = getReferenceAttributeDefinition().getTargetParticipantTypes();
-        return MiscUtil.extractSingletonRequired(
-                immediateTargets,
-                () -> new IllegalStateException("Multiple immediate targets in " + this + ": " + immediateTargets),
-                () -> new IllegalStateException("No immediate target in " + this));
-    }
-
-    /** Only for associations with association object! */
-    default @NotNull ResourceObjectDefinition getAssociationObjectDefinition() {
-        return getAssociationObjectInformation().getObjectDefinition();
+    /** True if this is a "rich" association (with association object), false if it's a trivial one. */
+    default boolean hasAssociationObject() {
+        return getReferenceAttributeDefinition()
+                .getTargetObjectClassDefinition()
+                .isAssociationObject();
     }
 
     /**
-     * Returns the object class definition of the immediate target object. Should be exactly one.
+     * For associations with the association object, returns its definition.
      *
-     * TEMPORARY IMPLEMENTATION; this should be resolved during definition parsing/creation.
+     * For trivial associations, it will either fail (as there can be more target participant types)
+     * or provide imprecise information (ignoring the association type definition).
      */
-    default @NotNull ResourceObjectClassDefinition getImmediateTargetObjectClass() {
-        var immediateNeighbors =
-                stateNonEmpty(getImmediateTargetParticipantTypes(), "No immediate neighbors in %s", this);
-        var classDefinitions = immediateNeighbors.stream()
-                .map(participantType -> participantType.getObjectDefinition().getObjectClassDefinition())
-                .collect(Collectors.toSet());
+    default @NotNull ResourceObjectDefinition getAssociationObjectDefinition() {
+        var immediateTargets = getReferenceAttributeDefinition().getTargetParticipantTypes();
         return MiscUtil.extractSingletonRequired(
-                classDefinitions,
-                () -> new IllegalStateException("Multiple object class definitions in " + this + ": " + classDefinitions),
-                () -> new IllegalStateException("No object class definition in " + this));
+                        immediateTargets,
+                        () -> new IllegalStateException("Multiple immediate targets in " + this + ": " + immediateTargets),
+                        () -> new IllegalStateException("No immediate target in " + this))
+                .getObjectDefinition();
     }
 
-    default boolean hasAssociationObject() {
-        return getImmediateTargetObjectClass().isAssociationObject();
-    }
+    /**
+     * Provides information on acceptable types of shadows participating in this association as objects.
+     * These come from the underlying reference attribute definition, but can be further restricted by the association
+     * type definition.
+     */
+    @NotNull Multimap<QName, ShadowRelationParticipantType> getObjectParticipants(@NotNull CompleteResourceSchema resourceSchema);
 
-    /** TEMPORARY */
-    default @NotNull Multimap<QName, ShadowRelationParticipantType> getObjectParticipants(
-            @NotNull CompleteResourceSchema resourceSchema) {
-        if (!hasAssociationObject()) {
-            // "empty" association - just target objects, nothing inside, so immediate targets are the objects
-            return getImmediateTargetParticipantTypes().stream()
-                    .collect(toImmutableSetMultimap(
-                            part -> getReferenceAttributeDefinition().getItemName(),
-                            part -> part));
-        } else {
-            // The object types can be defined either by the association type definition, or by the association object
-            // class or type definition.
-            var associationObjectInfo = getAssociationObjectInformation();
-            return associationObjectInfo.getObjectDefinition().getReferenceAttributeDefinitions().stream()
-                    .collect(flatteningToImmutableSetMultimap(
-                            objectRefDef -> objectRefDef.getItemName(),
-                            objectRefDef -> objectRefDef
-                                    .getAssociationDefinition()
-                                    .getObjectDefinitionsFor(objectRefDef.getItemName(), resourceSchema).stream()));
-        }
-    }
-
-    default Set<ShadowRelationParticipantType> getObjectDefinitionsFor(
-            @NotNull ItemName refAttrName, @NotNull CompleteResourceSchema resourceSchema) {
-        var bean = getAssociationTypeDefinitionBean();
-        if (bean != null) {
-            var objectDefs = bean.getObject().stream()
-                    .filter(objectDef -> objectDef.getRef() == null || QNameUtil.match(refAttrName, objectDef.getRef()))
-                    .toList();
-            var objectDef = MiscUtil.extractSingleton(objectDefs);
-            if (objectDef != null && !objectDef.getObjectType().isEmpty()) {
-                return objectDef.getObjectType().stream()
-                        .map(typeBean -> ResourceObjectTypeIdentification.of(typeBean))
-                        .map(typeId -> resourceSchema.getObjectTypeDefinitionRequired(typeId))
-                        .map(typeDef -> ShadowRelationParticipantType.forObjectType(typeDef))
-                        .collect(Collectors.toSet());
-            }
-        }
-        return new HashSet<>(getImmediateTargetParticipantTypes());
-    }
+//    default Set<ShadowRelationParticipantType> getObjectDefinitionsFor(
+//            @NotNull ItemName refAttrName, @NotNull CompleteResourceSchema resourceSchema) {
+//        var bean = getModernAssociationTypeDefinitionBean();
+//        if (bean != null) {
+//            var objectDefs = bean.getObject().stream()
+//                    .filter(objectDef -> objectDef.getRef() == null || QNameUtil.match(refAttrName, objectDef.getRef()))
+//                    .toList();
+//            var objectDef = MiscUtil.extractSingleton(objectDefs);
+//            if (objectDef != null && !objectDef.getObjectType().isEmpty()) {
+//                return objectDef.getObjectType().stream()
+//                        .map(typeBean -> ResourceObjectTypeIdentification.of(typeBean))
+//                        .map(typeId -> resourceSchema.getObjectTypeDefinitionRequired(typeId))
+//                        .map(typeDef -> ShadowRelationParticipantType.forObjectType(typeDef))
+//                        .collect(Collectors.toSet());
+//            }
+//        }
+//        return new HashSet<>(getReferenceAttributeDefinition().getTargetParticipantTypes());
+//    }
 
     default boolean matches(@NotNull ShadowType potentialTarget) {
-        return getImmediateTargetParticipantTypes().stream()
+        return getReferenceAttributeDefinition().getTargetParticipantTypes().stream()
                 .anyMatch(participantType -> participantType.matches(potentialTarget));
     }
 
@@ -155,19 +105,27 @@ public interface ShadowAssociationDefinition
     }
 
     /** TODO reconsider this: which definition should we provide as the representative one? There can be many. */
+    @Deprecated
     default ResourceObjectDefinition getRepresentativeTargetObjectDefinition() {
-        throw new UnsupportedOperationException("remove me");
+        return getReferenceAttributeDefinition().getRepresentativeTargetObjectDefinition();
     }
 
     @Override
     @NotNull ShadowAssociation instantiate() throws SchemaException;
 
-    @TestOnly
-    default ShadowAssociationValue createValueFromDefaultObject(@NotNull QName assocName, @NotNull AbstractShadow object)
+    default ShadowAssociationValue createValueFromFullDefaultObject(@NotNull AbstractShadow object)
             throws SchemaException {
         var newValue = instantiate().createNewValue();
         newValue.getOrCreateObjectsContainer()
-                .addReferenceAttribute(assocName, object);
+                .addReferenceAttribute(getItemName(), object, true);
+        return newValue.clone(); // to make it parent-less
+    }
+
+    default ShadowAssociationValue createValueFromDefaultObjectRef(@NotNull ShadowReferenceAttributeValue refAttrValue)
+            throws SchemaException {
+        var newValue = instantiate().createNewValue();
+        newValue.getOrCreateObjectsContainer()
+                .addReferenceAttribute(getItemName(), refAttrValue);
         return newValue.clone(); // to make it parent-less
     }
 
@@ -182,13 +140,22 @@ public interface ShadowAssociationDefinition
     @NotNull
     ShadowAssociationDefinition clone();
 
-    @Nullable ShadowAssociationDefinitionType getAssociationDefinitionBean();
+    @Nullable ShadowAssociationDefinitionType getModernAssociationDefinitionBean();
 
-    @Nullable ShadowAssociationTypeDefinitionType getAssociationTypeDefinitionBean();
+    @Nullable ShadowAssociationTypeDefinitionType getModernAssociationTypeDefinitionBean();
+
+    default boolean hasModernInbound() {
+        var bean = getModernAssociationDefinitionBean();
+        if (bean == null) {
+            return false;
+        }
+        return bean.getAttribute().stream().anyMatch(a -> a.getInbound() != null)
+                || bean.getObjectRef().stream().anyMatch(o -> o.getInbound() != null);
+    }
 
     // TODO find better place
     default boolean hasModernOutbound() {
-        var bean = getAssociationDefinitionBean();
+        var bean = getModernAssociationDefinitionBean();
         if (bean == null) {
             return false;
         }
@@ -201,9 +168,29 @@ public interface ShadowAssociationDefinition
         return ShadowItemDefinition.super.findItemDefinition(path, clazz);
     }
 
-    @Nullable MappingType getLegacyOutboundMappingBean();
+    @Nullable MappingType getExplicitOutboundMappingBean();
+
+    @NotNull Collection<InboundMappingType> getExplicitInboundMappingBean();
 
     boolean isVisible(ExecutionModeProvider modeProvider);
 
+    @NotNull Collection<ResourceObjectInboundDefinition> getRelevantInboundDefinitions();
+
     @NotNull ShadowReferenceAttributeDefinition getReferenceAttributeDefinition();
+
+    ItemPath getStandardPath();
+
+    /** To be used only for trivial associations. */
+    default List<String> getTolerantValuePatterns() {
+        return getReferenceAttributeDefinition().getTolerantValuePatterns();
+    }
+
+    /** To be used only for trivial associations. */
+    default List<String> getIntolerantValuePatterns() {
+        return getReferenceAttributeDefinition().getIntolerantValuePatterns();
+    }
+
+    default boolean isTolerant() {
+        return getReferenceAttributeDefinition().isTolerant();
+    }
 }

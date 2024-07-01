@@ -87,7 +87,7 @@ public class ExistingResourceObjectShadow extends ResourceObjectShadow {
             @NotNull ShadowType shadowBean, @NotNull ObjectReferenceType resourceRef, boolean exists) {
         shadowBean.setResourceRef(resourceRef);
         shadowBean.setExists(exists);
-        for (var value : ShadowUtil.getReferenceAttributesCollection(shadowBean).getAllValues()) {
+        for (var value : ShadowUtil.getReferenceAttributesCollection(shadowBean).getAllReferenceValues()) {
             putRequiredInformationToShadows(value.getShadowBean(), resourceRef, exists);
         }
     }

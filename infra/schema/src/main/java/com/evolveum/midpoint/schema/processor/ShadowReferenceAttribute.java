@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.impl.PrismReferenceImpl;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
+import com.evolveum.midpoint.util.EqualsChecker;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,13 +44,27 @@ public class ShadowReferenceAttribute
         ShadowReferenceAttributeValue,
         ShadowReferenceAttributeDefinition,
         Referencable,
-        ShadowReferenceAttribute
-        > {
+        ShadowReferenceAttribute> {
 
     @Serial private static final long serialVersionUID = 0L;
 
+    private static final EqualsChecker<ShadowReferenceAttribute> SEMANTIC_EQUALS_CHECKER =
+            (o1, o2) -> {
+                if (o1 == null || o2 == null) {
+                    return o1 == null && o2 == null;
+                }
+                return MiscUtil.unorderedCollectionEquals(
+                        o1.getReferenceValues(),
+                        o2.getReferenceValues(),
+                        ShadowReferenceAttributeValue.semanticEqualsChecker());
+            };
+
     public ShadowReferenceAttribute(QName name, ShadowReferenceAttributeDefinition definition) {
         super(name, definition);
+    }
+
+    public static EqualsChecker<ShadowReferenceAttribute> semanticEqualsChecker() {
+        return SEMANTIC_EQUALS_CHECKER;
     }
 
     /** TODO shouldn't be the definition always required? */
@@ -75,55 +90,6 @@ public class ShadowReferenceAttribute
         return clone;
     }
 
-    /**
-     * This method will clone the {@link Item} and convert it to a {@link ShadowReferenceAttribute} (if not already one).
-     */
-    static ShadowReferenceAttribute convertFromPrismItem(
-            @NotNull Item<?, ?> item, @NotNull ShadowReferenceAttributeDefinition attrDef) {
-//        var attr = new ShadowReferenceAttribute(item.getElementName(), attrDef);
-//        for (PrismValue value : item.getValues()) {
-//            if (value instanceof PrismReferenceValue refVal) {
-//                try {
-//                    attr.addIgnoringEquivalents(
-//                            ShadowReferenceAttributeValue.of(
-//                                    ((ShadowAssociationValueType) refVal.asContainerable()).clone()
-//                            ));
-//                } catch (SchemaException e) {
-//                    throw new IllegalArgumentException("Couldn't add PCV: " + value, e);
-//                }
-//            } else {
-//                throw new IllegalArgumentException("Not a PCV: " + value);
-//            }
-//        }
-//        return attr;
-        throw new UnsupportedOperationException("FIXME");
-    }
-
-//    @Override
-//    protected boolean addInternalExecution(@NotNull PrismContainerValue<ShadowAssociationValueType> newValue) {
-////        argCheck(newValue instanceof ShadowAssociationValue,
-////                "Trying to add a value which is not a ShadowAssociationValue: %s", newValue);
-//        if (newValue instanceof ShadowReferenceAttributeValue) {
-//            return super.addInternalExecution(newValue);
-//        } else {
-//            // FIXME we should have resolved this (for deltas) in applyDefinition call, but that's not possible now
-//            return super.addInternalExecution(ShadowReferenceAttributeValue.of(
-//                    newValue.asContainerable(),
-//                    getDefinitionRequired()));
-//        }
-//    }
-
-//    @Override
-//    public ShadowReferenceAttributeValue createNewValue() {
-//        // Casting is safe here, as "createNewValueInternal" provides this type.
-//        return (ShadowReferenceAttributeValue) super.createNewValue();
-//    }
-
-//    @Override
-//    protected @NotNull PrismContainerValueImpl<ShadowAssociationValueType> createNewValueInternal() {
-//        return ShadowReferenceAttributeValue.empty();
-//    }
-
     public int size() {
         return values.size();
     }
@@ -135,7 +101,7 @@ public class ShadowReferenceAttribute
 
     @SuppressWarnings("UnusedReturnValue")
     public @NotNull ShadowReferenceAttributeValue createNewValueWithIdentifiers(@NotNull AbstractShadow shadow) throws SchemaException {
-        var value = ShadowReferenceAttributeValue.fromShadow(shadow);
+        var value = ShadowReferenceAttributeValue.fromShadow(shadow, false);
         add(value);
         return value;
     }
@@ -153,7 +119,7 @@ public class ShadowReferenceAttribute
     public @NotNull ShadowReferenceAttributeValue createNewValueWithFullObject(@NotNull AbstractShadow target)
             throws SchemaException {
         // TODO check the definition
-        var value = ShadowReferenceAttributeValue.fromShadow(target);
+        var value = ShadowReferenceAttributeValue.fromShadow(target, true);
         add(value);
         return value;
     }
@@ -192,5 +158,11 @@ public class ShadowReferenceAttribute
                 getReferenceValues(),
                 () -> new IllegalStateException("Multiple values where only a single one was expected: " + this),
                 () -> new IllegalStateException("Missing attribute value in " + this));
+    }
+
+    public void applyDefinitionFrom(@NotNull ResourceObjectDefinition objectDefinition)
+            throws SchemaException {
+        applyDefinition(
+                objectDefinition.findReferenceAttributeDefinitionRequired(getElementName()));
     }
 }

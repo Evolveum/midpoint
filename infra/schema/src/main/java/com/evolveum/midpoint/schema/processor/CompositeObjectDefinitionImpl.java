@@ -373,7 +373,7 @@ public class CompositeObjectDefinitionImpl
         ArrayList<ShadowAttributeDefinition<?, ?, ?, ?>> collectedDefinitions =
                 new ArrayList<>(structuralDefinition.getAttributeDefinitions());
         for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
-            for (var auxAttrDef : auxiliaryObjectClassDefinition.getSimpleAttributeDefinitions()) {
+            for (var auxAttrDef : auxiliaryObjectClassDefinition.getAttributeDefinitions()) {
                 boolean shouldAdd = true;
                 for (var def : collectedDefinitions) {
                     if (def.getItemName().equals(auxAttrDef.getItemName())) { // FIXME what about case in-sensitiveness?
@@ -432,7 +432,8 @@ public class CompositeObjectDefinitionImpl
 
     @Override
     public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
-        return getSimpleAttributeDefinitions();
+        //noinspection unchecked,rawtypes
+        return (List) getAttributeDefinitions();
     }
 
     @Override

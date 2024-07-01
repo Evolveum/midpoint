@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +39,9 @@ public interface ShadowSimpleAttributeDefinition<T>
     default @NotNull PrismPropertyValue<T> convertPrismValue(@NotNull PrismPropertyValue<?> srcValue) {
         return ShadowAttributeValueConvertor.convertPropertyValue(srcValue, this);
     }
+
+    @Override
+    <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz);
 
     @NotNull
     ShadowSimpleAttributeDefinition<T> clone();

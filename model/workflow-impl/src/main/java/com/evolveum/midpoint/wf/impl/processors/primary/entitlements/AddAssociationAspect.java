@@ -30,8 +30,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -44,6 +42,8 @@ import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
 /**
  * Aspect for adding associations.
@@ -349,15 +349,14 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         if (association == null) {
             return null;
         }
-        ObjectReferenceType shadowRef = association.getShadowRef();
+        var shadowRef = ShadowAssociationsUtil.getSingleObjectRefRelaxed(association);
         if (shadowRef == null || shadowRef.getOid() == null) {
             throw new IllegalStateException("None or null-OID shadowRef in " + association);
         }
-        PrismObject<ShadowType> shadow = shadowRef.asReferenceValue().getObject();
+        PrismObject<ShadowType> shadow = shadowRef.getObject();
         if (shadow == null) {
-            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-                    GetOperationOptions.createNoFetch());
-            shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), options, result);
+            // FIXME here should be provisioning call, right?
+            shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), createNoFetchCollection(), result);
             shadowRef.asReferenceValue().setObject(shadow);
         }
         return shadow.asObjectable();

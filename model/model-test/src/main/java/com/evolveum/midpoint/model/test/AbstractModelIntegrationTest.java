@@ -2862,7 +2862,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ShadowSimpleAttributeDefinition<?> idSecondaryDef = objectClassDefinition.getSecondaryIdentifiers().iterator().next();
         ShadowSimpleAttribute icfsNameAttr = idSecondaryDef.instantiate();
         icfsNameAttr.setRealValue(name);
-        attrCont.add(icfsNameAttr);
+        attrCont.addAttribute(icfsNameAttr);
         ActivationType activation = new ActivationType();
         shadowType.setActivation(activation);
         if (enabled) {
@@ -2873,13 +2873,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return shadow;
     }
 
-    protected <T> void addAttributeToShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, String attrName, T attrValue) throws SchemaException {
-        ShadowAttributesContainer attrs = ShadowUtil.getAttributesContainer(shadow);
-        ShadowSimpleAttribute<T> attr = attrs.getDefinition()
-                .<T>findAttributeDefinition(new ItemName(MidPointConstants.NS_RI, attrName))
-                .instantiate();
-        attr.setRealValue(attrValue);
-        attrs.add(attr);
+    protected <T> void addAttributeToShadow(PrismObject<ShadowType> shadow, String attrName, T attrValue) throws SchemaException {
+        ShadowUtil.getAttributesContainer(shadow).addSimpleAttribute(
+                ItemName.from(MidPointConstants.NS_RI, attrName),
+                attrValue);
     }
 
     protected void setDefaultUserTemplate(String userTemplateOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
@@ -3596,7 +3593,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     /**
-     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, int)}.
+     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, long)}.
      *
      * To be used on tasks that are scheduled to be run in regular intervals. (So it needs not be absolutely precise:
      * if the task realization completes between the method is started and the current completion timestamp is determined,
@@ -7716,7 +7713,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         var assocDef = subject.getObjectDefinition().findAssociationDefinitionRequired(assocName);
         return deltaFor(ShadowType.class)
                 .item(ShadowType.F_ASSOCIATIONS.append(assocName), assocDef)
-                .add(assocDef.createValueFromDefaultObject(assocName, object))
+                .add(assocDef.createValueFromFullDefaultObject(object))
                 .asObjectDelta(subjectOid);
     }
 }

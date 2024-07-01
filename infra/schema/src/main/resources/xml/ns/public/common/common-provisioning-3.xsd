@@ -1892,7 +1892,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="ref" type="xsd:QName" minOccurs="0">
-                <!-- TODO docs -->
+                <!-- TODO docs [not useful for subjects] -->
             </xsd:element>
             <xsd:element name="objectType" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
@@ -3411,6 +3411,18 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="explicitOutbound" minOccurs="0" type="tns:MappingType">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        Explicit outbound mapping for the whole association.
+
+                        TODO REMOVE ME, I AM HERE JUST BECAUSE OF TESTS
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

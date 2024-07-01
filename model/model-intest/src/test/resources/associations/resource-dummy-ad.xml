@@ -127,6 +127,7 @@
                         <assignmentSubtype>groupMembership</assignmentSubtype>
                     </focus>
                     <objectRef>
+                        <ref>ri:group</ref>
                         <correlator/>
                         <outbound>
                             <expression>

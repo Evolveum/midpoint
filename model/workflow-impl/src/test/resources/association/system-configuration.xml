@@ -56,7 +56,7 @@
                             log.info('@@@ modelContext = {}', modelContext)
 
                             noFetch = SelectorOptions.createCollection(GetOperationOptions.createNoFetch())
-                            shadow = midpoint.getObject(ShadowType.class, association.shadowRef.oid)
+                            shadow = midpoint.getObject(ShadowType.class, midpoint.getObjectOid(association))
                             shadowName = basic.stringify(shadow.name)
                             log.info('@@@ associated object name = {}', shadowName)
 

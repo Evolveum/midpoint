@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +56,7 @@ public interface ShadowAttributeDefinition<
         ShadowItemLayeredDefinition,
         LayeredDefinition,
         ResourceObjectInboundDefinition.ItemInboundDefinition,
+        ShadowItemDefinition,
         Definition {
 
     /**
@@ -283,12 +286,13 @@ public interface ShadowAttributeDefinition<
         SA attribute = instantiate();
         for (RV realValue : realValues) {
             attribute.addValueSkipUniquenessCheck(
-                    createPrismValueFromRealValue(realValue));
+                    createPrismValueFromRealValue(
+                            CloneUtil.clone(realValue)));
         }
         return attribute;
     }
 
-    V createPrismValueFromRealValue(@NotNull RV realValue) throws SchemaException;
+    V createPrismValueFromRealValue(@NotNull Object realValue) throws SchemaException;
 
     String getHumanReadableDescription();
 

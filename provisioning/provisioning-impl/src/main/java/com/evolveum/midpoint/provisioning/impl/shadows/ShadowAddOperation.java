@@ -172,7 +172,10 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             shadowCreator.addNewProposedShadow(ctx, objectToAdd, opState, result); // If configured & if not existing yet
 
             if (ctx.shouldExecuteResourceOperationDirectly()) {
-                associationsHelper.convertAssociationsToReferenceAttributes(ctx, objectToAdd, result);
+                // FIXME entitlement identifiers should be already there; but it looks like pending operations currently
+                //  do not store embedded shadows correctly, so let's re-resolve them now. This should be fixed!
+                associationsHelper.provideEntitlementsIdentifiersToObject(ctx, objectToAdd, result);
+                associationsHelper.convertAssociationsToReferenceAttributes(objectToAdd);
                 executeAddOperationDirectly(result);
             } else {
                 markOperationExecutionAsPending(result);

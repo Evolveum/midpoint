@@ -256,7 +256,7 @@ public abstract class ResourceObjectConstruction<
             ItemPath implicitTargetPath,
             QName targetItemName,
             D outputDefinition,
-            ShadowReferenceAttributeDefinition associationDefinition,
+            ShadowAssociationDefinition associationDefinition,
             Task task) throws SchemaException {
 
         if (!builder.isApplicableToChannel(lensContext.getChannel())) {
@@ -486,16 +486,16 @@ public abstract class ResourceObjectConstruction<
         auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDefinition);
     }
 
-    public ShadowSimpleAttributeDefinition<?> findAttributeDefinition(QName attributeName) {
+    public ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinition(QName attributeName) {
         if (resourceObjectDefinition == null) {
             throw new IllegalStateException("Construction " + this + " was not evaluated:\n" + this.debugDump());
         }
-        ShadowSimpleAttributeDefinition<?> attrDef = resourceObjectDefinition.findSimpleAttributeDefinition(attributeName);
-        if (attrDef != null) {
-            return attrDef;
+        var inMain = resourceObjectDefinition.findAttributeDefinition(attributeName);
+        if (inMain != null) {
+            return inMain;
         }
         for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
-            ShadowSimpleAttributeDefinition<?> auxAttrDef = auxiliaryObjectClassDefinition.findSimpleAttributeDefinition(attributeName);
+            var auxAttrDef = auxiliaryObjectClassDefinition.findAttributeDefinition(attributeName);
             if (auxAttrDef != null) {
                 return auxAttrDef;
             }

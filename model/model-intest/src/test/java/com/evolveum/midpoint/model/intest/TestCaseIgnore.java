@@ -683,9 +683,9 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_GUYBRUSH_DUMMY_UPCASE_NAME, "title", "FOOL!");
         assertDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_DUMMY_FOOLS_NAME, ACCOUNT_GUYBRUSH_DUMMY_UPCASE_NAME);
 
-        var associationValues = ShadowAssociationsCollection.ofShadow(accountModel.asObjectable()).getAllValues();
+        var associationValues = ShadowAssociationsCollection.ofShadow(accountModel.asObjectable()).getAllIterableValues();
         assertEquals(1, associationValues.size());
-        ObjectReferenceType shadowRef = associationValues.iterator().next().value().getShadowRef();
+        ObjectReferenceType shadowRef = associationValues.iterator().next().associationValue().getSingleObjectRefRequired();
         PrismObject<ShadowType> groupFoolsRepoShadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result);
         display("group fools repo shadow", groupFoolsRepoShadow);
 

@@ -83,6 +83,7 @@ public interface ShadowAttributesContainer extends ShadowItemsContainer, PrismCo
      */
     @NotNull Collection<ShadowSimpleAttribute<?>> getSimpleAttributes();
 
+    /** Returns a detached, immutable list. */
     @NotNull Collection<ShadowReferenceAttribute> getReferenceAttributes();
 
     @NotNull Collection<ShadowAttribute<?, ?, ?, ?>> getAttributes();
@@ -225,10 +226,15 @@ public interface ShadowAttributesContainer extends ShadowItemsContainer, PrismCo
         return this;
     }
 
-    default ShadowAttributesContainer addReferenceAttribute(QName attributeName, AbstractShadow shadow) throws SchemaException {
-        findOrCreateReferenceAttribute(attributeName)
-                .add(ShadowReferenceAttributeValue.fromShadow(shadow));
+    default ShadowAttributesContainer addReferenceAttribute(QName attributeName, ShadowReferenceAttributeValue value)
+            throws SchemaException {
+        findOrCreateReferenceAttribute(attributeName).add(value);
         return this;
+    }
+
+    default ShadowAttributesContainer addReferenceAttribute(QName attributeName, AbstractShadow shadow, boolean full)
+            throws SchemaException {
+        return addReferenceAttribute(attributeName, ShadowReferenceAttributeValue.fromShadow(shadow, full));
     }
 
     <T> boolean contains(ShadowSimpleAttribute<T> attr);

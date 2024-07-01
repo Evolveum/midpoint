@@ -269,7 +269,7 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public PrismPropertyValue<T> createPrismValueFromRealValue(@NotNull T realValue) throws SchemaException {
+    public PrismPropertyValue<T> createPrismValueFromRealValue(@NotNull Object realValue) throws SchemaException {
         return getRefinedAttributeDefinition().createPrismValueFromRealValue(realValue);
     }
 

@@ -43,7 +43,6 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.Map.Entry;
 
-import static com.evolveum.midpoint.schema.util.ShadowAssociationsUtil.shadowRefBasedPcvEqualsChecker;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
@@ -301,10 +300,10 @@ public class ConsolidationProcessor {
         }
     }
 
-    private <T> ItemDelta<?, ?> consolidateAttribute(
+    private <V extends PrismValue, D extends ItemDefinition<?>> ItemDelta<V, D> consolidateAttribute(
             ResourceObjectDefinition rOcDef, ProjectionContextKey key, ObjectDelta<ShadowType> existingDelta,
             LensProjectionContext projCtx, QName itemName,
-            DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<T>, PrismPropertyDefinition<T>>> triple,
+            DeltaSetTriple<ItemValueWithOrigin<?, ?>> triple,
             StrengthSelector strengthSelector, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException {
 
@@ -312,9 +311,7 @@ public class ConsolidationProcessor {
             return null;
         }
 
-        //noinspection unchecked
-        ShadowSimpleAttributeDefinition<T> attributeDef =
-                (ShadowSimpleAttributeDefinition<T>) triple.getAnyValue().getConstruction().findAttributeDefinition(itemName);
+        var attributeDef = triple.getAnyValue().getConstruction().findAttributeDefinition(itemName);
 
         ItemPath itemPath = ItemPath.create(ShadowType.F_ATTRIBUTES, itemName);
 
@@ -327,11 +324,21 @@ public class ConsolidationProcessor {
                     attributeDef);
             return null;
         }
-        PropertyValueMatcher<T> valueMatcher = PropertyValueMatcher.createMatcher(attributeDef, matchingRuleRegistry);
+        EqualsChecker<V> valueMatcher;
+        if (attributeDef instanceof ShadowSimpleAttributeDefinition<?> simpleDef) {
+            //noinspection unchecked
+            valueMatcher = (EqualsChecker<V>) PropertyValueMatcher.createMatcher(simpleDef, matchingRuleRegistry);
+        } else if (attributeDef instanceof ShadowReferenceAttributeDefinition) {
+            //noinspection unchecked
+            valueMatcher = (EqualsChecker<V>) ShadowReferenceAttributeValue.semanticEqualsChecker();
+        } else {
+            throw new UnsupportedOperationException("Unsupported attribute definition: " + attributeDef);
+        }
 
+        //noinspection unchecked,rawtypes
         return consolidateItem(
                 rOcDef, key, existingDelta, projCtx, attributeDef.isExclusiveStrong(),
-                itemPath, attributeDef, triple, valueMatcher, strengthSelector,
+                itemPath, (D) attributeDef, (DeltaSetTriple) triple, valueMatcher, strengthSelector,
                 "attribute "+itemName, result);
     }
 
@@ -363,12 +370,12 @@ public class ConsolidationProcessor {
             ObjectDelta<ShadowType> existingDelta,
             LensProjectionContext projCtx,
             QName associationName,
-            DeltaSetTriple<ItemValueWithOrigin<ShadowReferenceAttributeValue, ShadowReferenceAttributeDefinition>> triple,
+            DeltaSetTriple<ItemValueWithOrigin<ShadowAssociationValue, ShadowAssociationDefinition>> triple,
             StrengthSelector strengthSelector,
             Task task,
             OperationResult result) throws SchemaException, ExpressionEvaluationException {
 
-        ShadowReferenceAttributeDefinition associationDef = objectDef.findAssociationDefinitionRequired(associationName);
+        var associationDef = objectDef.findAssociationDefinitionRequired(associationName);
 
         if (!associationDef.isVisible(task)) {
             LOGGER.trace("Skipping consolidation of association {} because it is not visible in current execution mode",
@@ -378,10 +385,10 @@ public class ConsolidationProcessor {
 
         return consolidateItem(
                 objectDef, key, existingDelta,
-                projCtx, associationDef.isExclusiveStrong(),
+                projCtx, false,
                 ShadowType.F_ASSOCIATIONS.append(associationName),
                 associationDef,
-                triple, shadowRefBasedPcvEqualsChecker(), strengthSelector,
+                triple, ShadowAssociationValue.semanticEqualsChecker(), strengthSelector,
                 "association " + associationName, result);
     }
 
@@ -670,9 +677,8 @@ public class ConsolidationProcessor {
 
         projCtx.checkConsistenceIfNeeded();
 
-        //noinspection unchecked,rawtypes
         projCtx.setSqueezedAttributes(
-                squeeze(projCtx, construction -> (Collection) construction.getAttributeTripleProducers()));
+                squeeze(projCtx, construction -> construction.getAttributeTripleProducers()));
 
         projCtx.setSqueezedAssociations(
                 squeeze(projCtx, construction -> construction.getAssociationTripleProducers()));
@@ -681,7 +687,7 @@ public class ConsolidationProcessor {
                 squeeze(projCtx, construction -> List.of(getTrivialAuxObjectClassTripleProducer(construction))));
     }
 
-    private <F extends FocusType> @NotNull PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>
+    private <F extends FocusType, V extends PrismValue, D extends ItemDefinition<?>> @NotNull PrismValueDeltaSetTripleProducer<V, D>
     getTrivialAuxObjectClassTripleProducer(EvaluatedResourceObjectConstructionImpl<F, ?> evaluatedConstruction) {
         //noinspection MethodDoesntCallSuperMethod
         return new PrismValueDeltaSetTripleProducer<>() {
@@ -691,13 +697,14 @@ public class ConsolidationProcessor {
             }
 
             @Override
-            public PrismValueDeltaSetTriple<PrismPropertyValue<QName>> getOutputTriple() {
+            public PrismValueDeltaSetTriple<V> getOutputTriple() {
                 PrismValueDeltaSetTriple<PrismPropertyValue<QName>> triple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
                 for (ResourceObjectDefinition auxObjectClassDefinition :
                         emptyIfNull(evaluatedConstruction.getConstruction().getAuxiliaryObjectClassDefinitions())) {
                     triple.addToZeroSet(prismContext.itemFactory().createPropertyValue(auxObjectClassDefinition.getTypeName()));
                 }
-                return triple;
+                //noinspection unchecked
+                return (PrismValueDeltaSetTriple<V>) triple;
             }
 
             @Override
@@ -706,7 +713,7 @@ public class ConsolidationProcessor {
             }
 
             @Override
-            public PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>> clone() {
+            public PrismValueDeltaSetTripleProducer<V, D> clone() {
                 return this;
             }
 
@@ -906,7 +913,9 @@ public class ConsolidationProcessor {
     private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromEvaluatedConstructionStraight(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
             EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction, EvaluatedConstructionMappingExtractor<V,D, AH> extractor, AssignmentPolicyEnforcementType enforcement) {
-        for (PrismValueDeltaSetTripleProducer<V, D> mapping: extractor.getMappings(evaluatedConstruction)) {
+        for (var mappingRaw : extractor.getMappings(evaluatedConstruction)) {
+            //noinspection unchecked
+            var mapping = (PrismValueDeltaSetTripleProducer<V, D>) mappingRaw;
             PrismValueDeltaSetTriple<V> vcTriple = mapping.getOutputTriple();
             if (vcTriple == null) {
                 continue;
@@ -926,7 +935,9 @@ public class ConsolidationProcessor {
     private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromEvaluatedConstructionNonMinusToPlus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
             EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction, EvaluatedConstructionMappingExtractor<V,D, AH> extractor) {
-        for (PrismValueDeltaSetTripleProducer<V, D> mapping: extractor.getMappings(evaluatedConstruction)) {
+        for (var mappingRaw : extractor.getMappings(evaluatedConstruction)) {
+            //noinspection unchecked
+            PrismValueDeltaSetTripleProducer<V, D> mapping = (PrismValueDeltaSetTripleProducer<V, D>) mappingRaw;
             PrismValueDeltaSetTriple<V> vcTriple = mapping.getOutputTriple();
             if (vcTriple == null) {
                 continue;
@@ -945,7 +956,9 @@ public class ConsolidationProcessor {
         if (enforcement == AssignmentPolicyEnforcementType.NONE) {
             return;
         }
-        for (PrismValueDeltaSetTripleProducer<V, D> mapping: extractor.getMappings(evaluatedConstruction)) {
+        for (var mappingRaw: extractor.getMappings(evaluatedConstruction)) {
+            //noinspection DuplicatedCode,unchecked
+            PrismValueDeltaSetTripleProducer<V, D> mapping = (PrismValueDeltaSetTripleProducer<V, D>) mappingRaw;
             PrismValueDeltaSetTriple<V> vcTriple = mapping.getOutputTriple();
             if (vcTriple == null) {
                 continue;
@@ -964,18 +977,22 @@ public class ConsolidationProcessor {
     }
 
     private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void squeezeMappingsFromEvaluatedConstructionAllToMinus(
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
-            EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction, EvaluatedConstructionMappingExtractor<V,D, AH> extractor, AssignmentPolicyEnforcementType enforcement) {
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V, D>>> squeezedMap,
+            EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction,
+            EvaluatedConstructionMappingExtractor<V, D, AH> extractor,
+            AssignmentPolicyEnforcementType enforcement) {
         if (enforcement == AssignmentPolicyEnforcementType.NONE) {
             return;
         }
-        for (PrismValueDeltaSetTripleProducer<V, D> mapping: extractor.getMappings(evaluatedConstruction)) {
+        for (var mappingRaw : extractor.getMappings(evaluatedConstruction)) {
+            //noinspection unchecked
+            var mapping = (PrismValueDeltaSetTripleProducer<V, D>) mappingRaw;
             PrismValueDeltaSetTriple<V> vcTriple = mapping.getOutputTriple();
             if (vcTriple == null) {
                 continue;
             }
             QName name = mapping.getTargetItemName();
-            DeltaSetTriple<ItemValueWithOrigin<V,D>> squeezeTriple = getSqueezeMapTriple(squeezedMap, name);
+            DeltaSetTriple<ItemValueWithOrigin<V, D>> squeezeTriple = getSqueezeMapTriple(squeezedMap, name);
             if (enforcement == AssignmentPolicyEnforcementType.POSITIVE) {
                 convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getZeroSet(), mapping, evaluatedConstruction);
                 convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getZeroSet(), mapping, evaluatedConstruction);
@@ -989,13 +1006,14 @@ public class ConsolidationProcessor {
     }
 
     private <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> void convertSqueezeSet(
-            Collection<V> fromSet,
-            Collection<ItemValueWithOrigin<V,D>> toSet,
-            PrismValueDeltaSetTripleProducer<V, D> mapping, EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction) {
-        if (fromSet != null) {
-            for (V from: fromSet) {
-                toSet.add(
-                        new ItemValueWithOrigin<>(from, mapping, evaluatedConstruction.getConstruction()));
+            Collection<V> sourceSet,
+            Collection<ItemValueWithOrigin<V, D>> targetSet,
+            PrismValueDeltaSetTripleProducer<V, D> tripleProducer,
+            EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction) {
+        if (sourceSet != null) {
+            for (V value : sourceSet) {
+                targetSet.add(
+                        new ItemValueWithOrigin<>(value, tripleProducer, evaluatedConstruction.getConstruction()));
             }
         }
     }

@@ -95,11 +95,10 @@ class AssociationValuesTripleComputation {
             @NotNull ConstructionEvaluation<?, ?> constructionEvaluation)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-        var projectionContext = constructionEvaluation.getProjectionContextRequired();
         var avc = new AssociationValuesTripleComputation(
                 associationDefinition,
-                Objects.requireNonNull(associationDefinition.getAssociationDefinitionBean()),
-                projectionContext,
+                Objects.requireNonNull(associationDefinition.getModernAssociationDefinitionBean()),
+                constructionEvaluation.getProjectionContextRequired(),
                 new MappingEvaluationEnvironment(
                         "association computation",
                         constructionEvaluation.construction.now,
@@ -241,9 +240,7 @@ class AssociationValuesTripleComputation {
                 return;
             }
             var targetItemName = attrDefBean.getRef().getItemPath().firstNameOrFail();
-            // TEMPORARY
-            var targetItemPath =
-                    ItemPath.create(isObjectRef ? ShadowType.F_ASSOCIATIONS : ShadowType.F_ATTRIBUTES, targetItemName);
+            var targetItemPath = ShadowType.F_ATTRIBUTES.append(targetItemName);
             var origin = ConfigurationItemOrigin.inResourceOrAncestor(projectionContext.getResourceRequired());
             var mappingConfigItem = MappingConfigItem.of(outboundBean, origin);
 
@@ -266,8 +263,7 @@ class AssociationValuesTripleComputation {
             var magicAssignmentIdi = assignmentPathVariables.getMagicAssignment();
 
             var outputDefinition = associationDefinition
-                    .getAssociationObjectInformation()
-                    .getObjectDefinition()
+                    .getAssociationObjectDefinition() // FIXME this may fail for trivial associations
                     .findAttributeDefinitionRequired(targetItemName);
 
             builder = builder
@@ -303,8 +299,7 @@ class AssociationValuesTripleComputation {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             var shadow = associationDefinition
-                    .getAssociationObjectInformation()
-                    .getObjectDefinition()
+                    .getAssociationObjectDefinition() // FIXME this may fail for trivial associations
                     .createBlankShadow()
                     .getBean();
             //noinspection unchecked

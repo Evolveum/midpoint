@@ -249,8 +249,10 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
 
                 refreshBeforeExecution(result); // Will be skipped in maintenance mode
                 if (wasRefreshOperationSuccessful()) {
-                    associationsHelper.convertAssociationDeltasToReferenceAttributeDeltas(
-                            ctx, resourceDeltaModifications, result);
+                    // FIXME entitlement identifiers should be already there; but it looks like pending operations currently
+                    //  do not store embedded shadows correctly, so let's re-resolve them now. This should be fixed!
+                    associationsHelper.provideEntitlementsIdentifiersToDelta(ctx, resourceDeltaModifications, "", result);
+                    associationsHelper.convertAssociationDeltasToReferenceAttributeDeltas(resourceDeltaModifications);
                     executeModifyOperationDirectly(result);
                 } else {
                     opState.markAsPostponed(

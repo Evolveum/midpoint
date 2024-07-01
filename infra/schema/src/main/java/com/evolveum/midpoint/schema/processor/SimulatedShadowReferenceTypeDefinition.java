@@ -188,6 +188,8 @@ public abstract class SimulatedShadowReferenceTypeDefinition
                 subject -> subject.matches(definition));
     }
 
+    public abstract boolean isLegacy();
+
     @Override
     public String debugDump(int indent) {
         var sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
@@ -294,6 +296,11 @@ public abstract class SimulatedShadowReferenceTypeDefinition
             }
             return definitions;
         }
+
+        @Override
+        public boolean isLegacy() {
+            return true;
+        }
     }
 
     static class Modern
@@ -385,6 +392,11 @@ public abstract class SimulatedShadowReferenceTypeDefinition
                                 delineationCI.getAuxiliaryObjectClassName()));
             }
             return definitions;
+        }
+
+        @Override
+        public boolean isLegacy() {
+            return false;
         }
     }
 }

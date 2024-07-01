@@ -85,7 +85,7 @@ class EntitlementConverter {
      */
     void transformToSubjectOpsOnAdd(ResourceObjectShadow subject) throws SchemaException {
         List<IterableReferenceAttributeValue> refAttrValues =
-                ShadowReferenceAttributesCollection.ofShadow(subject.getBean()).getAllReferenceAttributesValues();
+                ShadowReferenceAttributesCollection.ofShadow(subject.getBean()).getAllIterableValues();
         subject.applyOperations(
                 transformToSubjectOps(refAttrValues));
     }
@@ -105,7 +105,7 @@ class EntitlementConverter {
     @NotNull Collection<Operation> transformToSubjectOpsOnModify(
             @NotNull ShadowReferenceAttributesCollection attributesCollection) throws SchemaException {
         checkNoReplace(attributesCollection);
-        return transformToSubjectOps(attributesCollection.getAllReferenceAttributesValues())
+        return transformToSubjectOps(attributesCollection.getAllIterableValues())
                 .getOperations();
     }
 
@@ -182,7 +182,7 @@ class EntitlementConverter {
         EntitlementObjectsOperations entitlementObjectsOperations = new EntitlementObjectsOperations();
         collectObjectOps(
                 entitlementObjectsOperations,
-                ShadowReferenceAttributesCollection.ofShadow(subject.getBean()).getAllReferenceAttributesValues(),
+                ShadowReferenceAttributesCollection.ofShadow(subject.getBean()).getAllIterableValues(),
                 null,
                 subject.getBean(),
                 result);
@@ -213,7 +213,7 @@ class EntitlementConverter {
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
         checkNoReplace(attributesCollection);
         collectObjectOps(
-                objectsOperations, attributesCollection.getAllReferenceAttributesValues(),
+                objectsOperations, attributesCollection.getAllIterableValues(),
                 subjectShadowBefore, subjectShadowAfter, result);
     }
 

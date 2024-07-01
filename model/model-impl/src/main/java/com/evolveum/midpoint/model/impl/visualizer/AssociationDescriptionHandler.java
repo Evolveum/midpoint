@@ -61,31 +61,32 @@ public class AssociationDescriptionHandler extends ShadowDescriptionHandler {
 
         String objectName = "ShadowDescriptionHandler.noName";
 
-        ObjectReferenceType shadowRef = value.asContainerable().getShadowRef();
-        if (shadowRef != null || shadowRef.getObject() != null) {
-            PrismObject<ShadowType> shadow = shadowRef.getObject();
-            List<Object> associations = shadow.asObjectable().getAssociations().getAny();
-            if (!associations.isEmpty() && associations.get(0) instanceof JAXBElement<?> shadowValueJaxb) {
-                ShadowAssociationValueType shadowValue = (ShadowAssociationValueType) shadowValueJaxb.getValue();
-                ObjectReferenceType objectShadowRef = shadowValue.getShadowRef();
-
-                ShadowType objectShadow = objectShadowRef.getObject() != null ?
-                        (ShadowType) objectShadowRef.getObject().asObjectable() :
-                        (ShadowType) resolver.resolveObject(objectShadowRef, task, result);
-                objectName = getShadowName(objectShadow);
-
-                Optional<? extends VisualizationItemImpl> shadowRefDelta = visualization.getItems().stream().filter(visualizationItem ->
-                                visualizationItem.getSourceDefinition().getItemName().equivalent(ShadowAssociationValueType.F_SHADOW_REF))
-                        .findFirst();
-                if (shadowRefDelta.isPresent() && !shadowRefDelta.get().getNewValues().isEmpty()) {
-                    VisualizationItemValueImpl newItemValue = new VisualizationItemValueImpl(
-                            shadowRefDelta.get().getNewValues().get(0).getText());
-                    newItemValue.setSourceValue(objectShadowRef.asReferenceValue());
-                    shadowRefDelta.get().setNewValues(List.of(newItemValue));
-
-                }
-            }
-        }
+        // FIXME reenable and adapt this code
+//        ObjectReferenceType shadowRef = value.asObjectReferenceType();
+//        if (shadowRef != null || shadowRef.getObject() != null) {
+//            PrismObject<ShadowType> shadow = shadowRef.getObject();
+//            List<Object> associations = shadow.asObjectable().getAssociations().getAny();
+//            if (!associations.isEmpty() && associations.get(0) instanceof JAXBElement<?> shadowValueJaxb) {
+//                ShadowAssociationValueType shadowValue = (ShadowAssociationValueType) shadowValueJaxb.getValue();
+//                ObjectReferenceType objectShadowRef = shadowValue.getShadowRef();
+//
+//                ShadowType objectShadow = objectShadowRef.getObject() != null ?
+//                        (ShadowType) objectShadowRef.getObject().asObjectable() :
+//                        (ShadowType) resolver.resolveObject(objectShadowRef, task, result);
+//                objectName = getShadowName(objectShadow);
+//
+//                Optional<? extends VisualizationItemImpl> shadowRefDelta = visualization.getItems().stream().filter(visualizationItem ->
+//                                visualizationItem.getSourceDefinition().getItemName().equivalent(ShadowAssociationValueType.F_SHADOW_REF))
+//                        .findFirst();
+//                if (shadowRefDelta.isPresent() && !shadowRefDelta.get().getNewValues().isEmpty()) {
+//                    VisualizationItemValueImpl newItemValue = new VisualizationItemValueImpl(
+//                            shadowRefDelta.get().getNewValues().get(0).getText());
+//                    newItemValue.setSourceValue(objectShadowRef.asReferenceValue());
+//                    shadowRefDelta.get().setNewValues(List.of(newItemValue));
+//
+//                }
+//            }
+//        }
 
         ChangeType change = visualization.getChangeType();
 

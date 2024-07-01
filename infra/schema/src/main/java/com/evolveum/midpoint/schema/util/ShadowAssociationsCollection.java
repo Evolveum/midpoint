@@ -12,11 +12,8 @@ import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.io.Serializable;
 import java.util.*;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
-import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationsType;
 
@@ -83,7 +80,7 @@ public abstract class ShadowAssociationsCollection implements DebugDumpable {
         return !iterator().hasNext(); // TODO we can optimize this
     }
 
-    public List<IterableAssociationValue> getAllValues() {
+    public List<IterableAssociationValue> getAllIterableValues() {
         List<IterableAssociationValue> allValues = new ArrayList<>();
         var iterator = iterator();
         while (iterator.hasNext()) {
@@ -189,7 +186,7 @@ public abstract class ShadowAssociationsCollection implements DebugDumpable {
         }
 
         @Override
-        public List<IterableAssociationValue> getAllValues() {
+        public List<IterableAssociationValue> getAllIterableValues() {
             return List.of();
         }
 

@@ -148,7 +148,7 @@ public class ShadowSimpleAttributeDefinitionImpl<T>
     }
 
     @Override
-    public PrismPropertyValue<T> createPrismValueFromRealValue(@NotNull T realValue) throws SchemaException {
+    public PrismPropertyValue<T> createPrismValueFromRealValue(@NotNull Object realValue) throws SchemaException {
         return ShadowAttributeValueConvertor.createPrismPropertyValueFromRealValue(realValue, this);
     }
 
