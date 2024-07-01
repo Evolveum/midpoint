@@ -231,6 +231,10 @@ public class CertMiscUtil {
             if (campaign == null) {
                 return;
             }
+            if (response == null) {
+                String outcome = item.getOutput() != null ? item.getOutput().getOutcome() : null;
+                response = OutcomeUtils.fromUri(outcome);
+            }
             pageBase.getCertificationService().recordDecision(
                     campaign.getOid(),
                     certCase.getId(), item.getId(), response, comment, task, result);

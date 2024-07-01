@@ -27,6 +27,7 @@ import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -42,7 +43,6 @@ import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.CertMiscUtil;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.web.session.CertDecisionsStorage;
@@ -82,6 +82,7 @@ public class CertificationItemsPanel extends BasePanel<String> {
     private static final String OPERATION_LOAD_REPORT = DOT_CLASS + "loadCertItemsReport";
     private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runCertItemsReport";
     private static final String OPERATION_LOAD_ACCESS_CERT_DEFINITION = DOT_CLASS + "loadAccessCertificationDefinition";
+    private static final String OPERATION_RECORD_COMMENT = DOT_CLASS + "recordComment";
 
     private static final String ID_NAVIGATION_PANEL = "navigationPanel";
     private static final String ID_MAIN_FORM = "mainForm";
@@ -172,7 +173,7 @@ public class CertificationItemsPanel extends BasePanel<String> {
         add(mainForm);
 
         ContainerableListPanel<AccessCertificationWorkItemType, PrismContainerValueWrapper<AccessCertificationWorkItemType>> table =
-                new ContainerableListPanel(ID_DECISIONS_TABLE, AccessCertificationWorkItemType.class) {
+                new ContainerableListPanel<>(ID_DECISIONS_TABLE, AccessCertificationWorkItemType.class) {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
@@ -220,25 +221,7 @@ public class CertificationItemsPanel extends BasePanel<String> {
                     }
 
                     private List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createColumns() {
-                        List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> columns =
-                                ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
-                        List<AbstractGuiAction<AccessCertificationWorkItemType>> actions = getCertItemActions();
-
-                        columns.add(new GuiActionColumn<>(actions, getPageBase()) {
-                            @Serial private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected AccessCertificationWorkItemType unwrapRowModelObject(
-                                    PrismContainerValueWrapper<AccessCertificationWorkItemType> rowModelObject) {
-                                return rowModelObject.getRealValue();
-                            }
-
-                            @Override
-                            protected List<AccessCertificationWorkItemType> getSelectedItems() {
-                                return getSelectedRealObjects();
-                            }
-                        });
-                        return columns;
+                        return ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
                     }
 
                     private List<AbstractGuiAction<AccessCertificationWorkItemType>> getCertItemActions() {
@@ -260,6 +243,50 @@ public class CertificationItemsPanel extends BasePanel<String> {
                         return loadCampaignView();
                      }
 
+                     @Override
+                     protected IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String> createActionsColumn() {
+                         List<AbstractGuiAction<AccessCertificationWorkItemType>> actions = getCertItemActions();
+                         if (CollectionUtils.isNotEmpty(actions)) {
+                             return new GuiActionColumn<>(actions, getPageBase()) {
+                                 @Serial private static final long serialVersionUID = 1L;
+
+                                 @Override
+                                 protected AccessCertificationWorkItemType unwrapRowModelObject(
+                                         PrismContainerValueWrapper<AccessCertificationWorkItemType> rowModelObject) {
+                                     return rowModelObject.getRealValue();
+                                 }
+
+                                 @Override
+                                 protected List<AccessCertificationWorkItemType> getSelectedItems() {
+                                     return getSelectedRealObjects();
+                                 }
+                             };
+                         }
+                         return null;
+                     }
+
+                     @Override
+                     protected IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String> createCustomExportableColumn(
+                            IModel<String> displayModel, GuiObjectColumnType guiObjectColumn, ExpressionType expression) {
+                        ItemPath path = WebComponentUtil.getPath(guiObjectColumn);
+
+                        if (ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_COMMENT)
+                                .equivalent(path)) {
+                            String propertyExpression = "realValue" + "." + AccessCertificationWorkItemType.F_OUTPUT.getLocalPart() + "."
+                                    + AbstractWorkItemOutputType.F_COMMENT.getLocalPart();
+                            return new DirectlyEditablePropertyColumn<>(
+                                    createStringResource("PageCertDecisions.table.comment"), propertyExpression) {
+                                @Serial private static final long serialVersionUID = 1L;
+
+                                @Override
+                                public void onBlur(AjaxRequestTarget target,
+                                        IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> model) {
+                                    recordCommentPerformed(target, model.getObject());
+                                }
+                            };
+                        }
+                        return super.createCustomExportableColumn(displayModel, guiObjectColumn, expression);
+                    }
                 };
         table.setOutputMarkupId(true);
         mainForm.add(table);
@@ -647,4 +674,38 @@ public class CertificationItemsPanel extends BasePanel<String> {
         GuiObjectListViewType view = definition.getView();
         return WebComponentUtil.getCompiledObjectCollectionView(view, new ContainerPanelConfigurationType(), getPageBase());
     }
+
+    private void recordCommentPerformed(AjaxRequestTarget target, PrismContainerValueWrapper<AccessCertificationWorkItemType> certItemWrapper) {
+        if (certItemWrapper == null) {
+            return;
+        }
+        OperationResult result = new OperationResult(OPERATION_RECORD_COMMENT);
+        try {
+            AccessCertificationWorkItemType certItem = certItemWrapper.getRealValue();
+            if (certItem == null) {
+                return;
+            }
+            //todo check if comment was really changed
+//            Collection<ItemDelta> containerDelta = certItemWrapper.getDeltas();
+//            if (containerDelta == null || containerDelta.isEmpty()) {
+//                return;
+//            }
+            Task task = getPageBase().createSimpleTask(OPERATION_RECORD_COMMENT);
+            String comment = certItem.getOutput() != null ? certItem.getOutput().getComment() : null;
+            CertMiscUtil.recordCertItemResponse(
+                    certItem, null, comment, result, task, getPageBase());
+
+        } catch (Exception ex) {
+            LOGGER.error("Couldn't record comment for certification work item", ex);
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        if (!result.isSuccess()) {
+            showResult(result);
+        }
+        target.add(this);
+    }
+
 }

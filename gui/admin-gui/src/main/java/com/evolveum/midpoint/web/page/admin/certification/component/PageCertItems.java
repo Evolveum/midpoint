@@ -102,6 +102,7 @@ public class PageCertItems extends PageAdminCertification {
             protected void showCertItems(String campaignOid, AjaxRequestTarget target) {
                 isCampaignView = false;
                 PageCertItems.this.campaignOid = campaignOid;
+                addOrReplaceCertItemsPanel();
                 target.add(PageCertItems.this);
             }
 
@@ -138,6 +139,10 @@ public class PageCertItems extends PageAdminCertification {
         campaignsPanel.add(new VisibleBehaviour(() -> isCampaignView));
         add(campaignsPanel);
 
+        addOrReplaceCertItemsPanel();
+    }
+
+    private void addOrReplaceCertItemsPanel() {
         CertificationItemsPanel table = new CertificationItemsPanel(ID_CERT_ITEMS_PANEL) {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -161,10 +166,8 @@ public class PageCertItems extends PageAdminCertification {
         };
         table.add(new VisibleBehaviour(() -> !isCampaignView));
         table.setOutputMarkupId(true);
-        add(table);
-
+        addOrReplace(table);
     }
-
 
     private ContainerPanelConfigurationType createPanelConfig() {
         ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();

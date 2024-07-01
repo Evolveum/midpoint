@@ -627,36 +627,44 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         List<IColumn<PO, String>> columns = collectColumns();
 
         if (!isPreview()) {
-            List<InlineMenuItem> allItems = new ArrayList<>();
-            List<InlineMenuItem> menuItems = createInlineMenu();
-            if (menuItems != null) {
-                allItems.addAll(menuItems);
-            }
-            addBasicActions(allItems);
-            addCustomActions(allItems, this::getSelectedRealObjects);
-
-            if (!allItems.isEmpty()) {
-                InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(allItems, getPageBase()) {
-                    @Override
-                    public String getCssClass() {
-                        return getInlineMenuCssClass();
-                    }
-
-                    @Override
-                    protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
-                        return isMenuItemVisible(rowModel);
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<PO>> cellItem, String componentId, IModel<PO> rowModel) {
-//                        cellItem.add(Attr))
-                        super.populateItem(cellItem, componentId, rowModel);
-                    }
-                };
+            IColumn<PO, String> actionsColumn = createActionsColumn();
+            if (actionsColumn != null) {
                 columns.add(actionsColumn);
             }
         }
         return columns;
+    }
+
+    protected IColumn<PO, String> createActionsColumn() {
+        List<InlineMenuItem> allItems = new ArrayList<>();
+        List<InlineMenuItem> menuItems = createInlineMenu();
+        if (menuItems != null) {
+            allItems.addAll(menuItems);
+        }
+        addBasicActions(allItems);
+        addCustomActions(allItems, this::getSelectedRealObjects);
+
+        if (!allItems.isEmpty()) {
+            InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(allItems, getPageBase()) {
+                @Override
+                public String getCssClass() {
+                    return getInlineMenuCssClass();
+                }
+
+                @Override
+                protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
+                    return isMenuItemVisible(rowModel);
+                }
+
+                @Override
+                public void populateItem(Item<ICellPopulator<PO>> cellItem, String componentId, IModel<PO> rowModel) {
+//                        cellItem.add(Attr))
+                    super.populateItem(cellItem, componentId, rowModel);
+                }
+            };
+            return actionsColumn;
+        }
+        return null;
     }
 
     /**
