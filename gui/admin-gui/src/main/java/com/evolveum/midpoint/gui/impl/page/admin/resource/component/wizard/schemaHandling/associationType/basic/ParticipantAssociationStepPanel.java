@@ -7,12 +7,13 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -83,7 +84,7 @@ public abstract class ParticipantAssociationStepPanel
                 }
 
                 @Nullable ResourceObjectTypeDefinition objectTypeDef = getDetailsModel().getRefinedSchema().getObjectTypeDefinition(
-                        idBean.getKind(), idBean.getIntent());
+                        ResourceObjectTypeIdentification.of(idBean));
                 if (objectTypeDef == null) {
                     continue;
                 }
@@ -149,10 +150,19 @@ public abstract class ParticipantAssociationStepPanel
             tile.addTag(new DisplayType().label(objectClass.getLocalPart()));
         }
 
-        boolean match = selectedItems.getObject().stream()
-                .anyMatch(selectedItem -> selectedItem.getKind() == objectTypeBean.getKind()
-                        && Objects.equals(selectedItem.getIntent(), objectTypeBean.getIntent()));
-        tile.setSelected(match);
+        try {
+            CompleteResourceSchema resourceSchema = getDetailsModel().getRefinedSchema();
+            @Nullable ResourceObjectTypeDefinition objectTypeDef =
+                    resourceSchema.getObjectTypeDefinition(ResourceObjectTypeIdentification.of(objectTypeBean));
+
+            boolean match = selectedItems.getObject().stream()
+                    .anyMatch(selectedItem -> selectedItem.getKind() == objectTypeDef.getKind()
+                            && Objects.equals(selectedItem.getIntent(), objectTypeDef.getIntent()));
+            tile.setSelected(match);
+
+        } catch (SchemaException | ConfigurationException e) {
+            LOGGER.error("Couldn't load resource schema");
+        }
 
         return tile;
     }
@@ -177,17 +187,28 @@ public abstract class ParticipantAssociationStepPanel
 
         ResourceObjectTypeDefinitionType objectType = value.getRealValue();
         QName objectClass = getObjectClass(objectType);
-        ObjectTypeWrapper wrapper = new ObjectTypeWrapper(
-                objectType.getKind(),
-                objectType.getIntent(),
-                GuiDisplayNameUtil.getDisplayName(objectType),
-                objectClass);
 
-        if (value.isSelected()) {
-            selectedItems.getObject().add(wrapper);
-        } else {
-            removeSelectedItem(wrapper);
+        try {
+            CompleteResourceSchema resourceSchema = getDetailsModel().getRefinedSchema();
+            @Nullable ResourceObjectTypeDefinition objectTypeDef =
+                    resourceSchema.getObjectTypeDefinition(ResourceObjectTypeIdentification.of(objectType));
+
+            ObjectTypeWrapper wrapper = new ObjectTypeWrapper(
+                    objectTypeDef.getKind(),
+                    objectTypeDef.getIntent(),
+                    GuiDisplayNameUtil.getDisplayName(objectType),
+                    objectClass);
+
+            if (value.isSelected()) {
+                selectedItems.getObject().add(wrapper);
+            } else {
+                removeSelectedItem(wrapper);
+            }
+
+        } catch (SchemaException | ConfigurationException e) {
+            LOGGER.error("Couldn't load resource schema");
         }
+
         getTable().getTilesModel().detach();
     }
 

@@ -45,7 +45,7 @@ public class AssociationDefinitionWrapper implements Serializable {
                 return;
             }
 
-            @Nullable ResourceObjectTypeIdentification typeIdentification = objectDef.getTypeIdentification();
+            @Nullable ResourceObjectTypeIdentification typeIdentification = objectParticipantDef.getTypeIdentification();
             if (typeIdentification != null) {
                 this.objects.add(new ParticipantWrapper(
                         typeIdentification.getKind(),
