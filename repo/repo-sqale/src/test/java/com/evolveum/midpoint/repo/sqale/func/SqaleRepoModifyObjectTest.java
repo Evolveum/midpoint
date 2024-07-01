@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.query.TypedObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.query.PreparedQuery;
 import com.evolveum.midpoint.schema.query.TypedQuery;
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -3418,12 +3419,14 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         var groupLimitedOid = repositoryService.addObject(groupLimited.asPrismObject(), null, result);
 
         when("reference attribute group is added");
-        var addAllDeltas = prismContext.deltaFor(ShadowType.class, accountDef)
+        var addAllDeltas = accountDef.newDelta()
                         .item(ShadowType.F_REFERENCE_ATTRIBUTES, groupRef)
                                 .add(new ObjectReferenceType().oid(groupAllOid))
                                         .asItemDeltas();
         repositoryService.modifyObject(ShadowType.class, accountOid, addAllDeltas, result);
         repositoryService.modifyObject(ShadowType.class, ownerOid, addAllDeltas, result);
+
+
 
         then("reference attributes should be readed back");
         account = repositoryService.getObject(ShadowType.class, accountOid, null, result).asObjectable();
@@ -3431,13 +3434,33 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         // FIXME: Add checks
         then("accounts can be found by dereferencing referenceAttributes/group");
 
-        var query = TypedQuery.parse(ShadowType.class, accountDef.objectDefinition, "referenceAttributes/ri:group/@/name = 'all'").toObjectQuery();
-
+        var query = TypedQuery.parse(ShadowType.class, accountDef.objectDefinition,
+                "referenceAttributes/ri:group/@/name = 'all'").toObjectQuery();
         var accountsList = repositoryService.searchObjects(ShadowType.class, query, null, result);
         assertThat(accountsList)
                 .hasSize(2);
         then("group should be found by referencedBy");
 
+        then("accounts can be found by ref filter with oid");
+        query = TypedQuery.parse(ShadowType.class, accountDef.objectDefinition,
+                "referenceAttributes/ri:group matches (oid = '"  + groupAllOid + "' )").toObjectQuery();
+        accountsList = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        assertThat(accountsList)
+                .hasSize(2);
+
+        when("group all is removed from account");
+        repositoryService.modifyObject(ShadowType.class, accountOid,
+                accountDef.newDelta()
+                        .item(ShadowType.F_REFERENCE_ATTRIBUTES, groupRef)
+                        .delete(new ObjectReferenceType().oid(groupAllOid))
+                        .asItemDeltas(),
+                result);
+
+        then("only owner account should be found as member of all group");
+        accountsList = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        assertThat(accountsList)
+                .hasSize(1)
+                .extracting(s -> s.getOid()).containsExactlyInAnyOrder(ownerOid);
     }
     // endregion
 

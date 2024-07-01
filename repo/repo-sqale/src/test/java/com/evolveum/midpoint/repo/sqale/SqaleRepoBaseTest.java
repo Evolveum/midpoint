@@ -19,6 +19,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
@@ -847,6 +848,10 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
             }
             return null;
 
+        }
+
+        public S_ItemEntry newDelta() throws SchemaException {
+            return PrismContext.get().deltaFor(ShadowType.class, this);
         }
     }
 }
