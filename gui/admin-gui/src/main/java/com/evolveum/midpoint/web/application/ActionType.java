@@ -29,7 +29,7 @@ public @interface ActionType {
      * Defined display parameters for the action, such as an icon, label, display order...
      * todo rename and unify PanelDisplay?
      */
-    PanelDisplay display();
+    PanelDisplay display() default @PanelDisplay(label = "");
 
     /**
      * If the confirmation is required before the action is executed.

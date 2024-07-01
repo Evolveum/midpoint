@@ -10,11 +10,9 @@ package com.evolveum.midpoint.web.component.action;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.prism.Containerable;
-
 import com.evolveum.midpoint.web.application.ActionType;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.page.admin.certification.component.CommentPanel;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -25,34 +23,30 @@ import java.io.Serial;
 import java.util.List;
 
 @ActionType(
-        identifier = "comment",
-        parameterName = {"comment"},
-        display = @PanelDisplay(label = "CommentPanel.title"))
-public class CommentAction<C extends Containerable, AGA extends AbstractGuiAction<C>> extends AbstractGuiAction<C>
+        identifier = "confirm")
+public class ConfirmAction<C extends Containerable, AGA extends AbstractGuiAction<C>> extends AbstractGuiAction<C>
         implements PreAction<C, AGA> {
 
-    public CommentAction() {
+    public ConfirmAction() {
         super();
     }
 
     @Override
     public void executeAction(List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
-        showCommentPanel(null, objectsToProcess, pageBase, target);
+        showConfirmationPanel(null, objectsToProcess, pageBase, target);
     }
 
     @Override
     public void executePreActionAndMainAction(AGA mainAction, List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
-        showCommentPanel(mainAction, objectsToProcess, pageBase, target);
+        showConfirmationPanel(mainAction, objectsToProcess, pageBase, target);
     }
 
-    private void showCommentPanel(AGA mainAction, List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
-        CommentPanel commentPanel = new CommentPanel(pageBase.getMainPopupBodyId(), Model.of()) {
+    private void showConfirmationPanel(AGA mainAction, List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
+        ConfirmationPanel confirmationPanel = new ConfirmationPanel(pageBase.getMainPopupBodyId(), getConfirmationModel()) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected void savePerformed(AjaxRequestTarget target, String comment) {
-                addParameterValue("comment", comment);
-                commentActionPerformed(objectsToProcess, comment, target);
+            public void yesPerformed(AjaxRequestTarget target) {
                 if (mainAction != null) {
                     mainAction.onActionPerformed(objectsToProcess, pageBase, target);
                 }
@@ -60,17 +54,14 @@ public class CommentAction<C extends Containerable, AGA extends AbstractGuiActio
             }
 
             @Override
-            protected IModel<String> createInformationLabelModel() {
-                return getCommentPanelInformationLabelModel();
+            public void noPerformed(AjaxRequestTarget target) {
+                pageBase.hideMainPopup(target);
             }
         };
-        pageBase.showMainPopup(commentPanel, target);
+        pageBase.showMainPopup(confirmationPanel, target);
     }
 
-    protected void commentActionPerformed(List<C> objectsToProcess, String comment, AjaxRequestTarget target) {
-    }
-
-    protected IModel<String> getCommentPanelInformationLabelModel() {
+    private IModel<String> getConfirmationModel() {
         DisplayType display = getActionDisplayType();
         return Model.of(GuiDisplayTypeUtil.getTranslatedLabel(display));
     }
