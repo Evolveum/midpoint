@@ -56,7 +56,7 @@ public class ShadowReferenceAttributesResolver
         @Override
         public @Nullable ItemSqlMapper<QShadow, MShadow> getItemMapper(QName itemName) {
             return new SqaleItemSqlMapper<>(
-                    ctx -> new ShadowRefAttributeItemFilterProcessor(itemName,ctx),
+                    ctx -> new ShadowRefAttributeItemFilterProcessor(itemName,ctx, referenceMapping),
                     ctx -> new ShadowRefAttributeItemDeltaProcessor(itemName, ctx, referenceMapping));
         }
 
