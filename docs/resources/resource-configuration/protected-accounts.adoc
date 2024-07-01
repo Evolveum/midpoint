@@ -33,14 +33,7 @@ Following code provides an example of such definition:
             ...
             <protected>
                 <filter>
-                    <q:equal>
-                        <q:matching>stringIgnoreCase</q:matching>
-                        <q:path>
-                          declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
-                          attributes/ri:carLicense
-                         </q:path>
-                        <q:value>ignoreme</q:value>
-                    </q:equal>
+                    <q:text>attributes/carLicense =[stringIgnoreCase] "ignoreme"</q:text>
                </filter>
             </protected>
             ...
@@ -66,15 +59,7 @@ Please see bug:MID-7671[]. This restriction is going to be lifted by caching the
             ...
             <protected>
                 <filter>
-                    <q:substring>
-                        <q:matching>stringIgnoreCase</q:matching>
-                        <q:path>
-                            declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                            attributes/icfs:name
-                        </q:path>
-                        <q:value>ou=SUPERSECRET,dc=example,dc=com</q:value>
-                        <q:anchorEnd>true</q:anchorEnd>
-                    </q:substring>
+                    <q:text>attributes/name endsWith[stringIgnoreCase] "ou=SUPERSECRET,dc=example,dc=com"</q:text>
                </filter>
             </protected>
             ...

@@ -119,10 +119,7 @@ Object collection looks like
     <name>Orphaned tasks</name>
     <type>TaskType</type>
     <filter>
-        <q:equal>
-            <q:path>policySituation</q:path>
-            <q:value>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#orphaned</q:value>
-        </q:equal>
+        <q:text>policySituation = "http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#orphaned"</q:text>
     </filter>
     <domain>
         <collectionRef oid="00000000-0000-0000-0001-000000000007" relation="org:default" type="c:ObjectCollectionType">
