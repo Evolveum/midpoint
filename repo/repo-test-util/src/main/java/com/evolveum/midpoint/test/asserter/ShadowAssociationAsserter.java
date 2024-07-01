@@ -15,7 +15,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -49,23 +48,24 @@ public class ShadowAssociationAsserter<R> extends AbstractAsserter<R> {
             }
         }
         for (var existingAssociation : values) {
-            if (!ArrayUtils.contains(expectedShadowOids, existingAssociation.getShadowRef().getOid())) {
+            var actualObjectOid = existingAssociation.getSingleObjectRefRequired().getOid();
+            if (!ArrayUtils.contains(expectedShadowOids, actualObjectOid)) {
                 fail(String.format(
                         "Unexpected association shadow OID %s in %s. Expected shadow OIDs: %s",
-                        existingAssociation.getShadowRef().getOid(), desc(), ArrayUtils.toString(expectedShadowOids)));
+                        actualObjectOid, desc(), ArrayUtils.toString(expectedShadowOids)));
             }
         }
         return this;
     }
 
-    public ShadowReferenceAsserter<ShadowAssociationAsserter<R>> singleShadowRef() {
-        assertSize(1);
-        PrismReferenceValue refVal = values.iterator().next().getShadowRef().asReferenceValue();
-        ShadowReferenceAsserter<ShadowAssociationAsserter<R>> asserter =
-                new ShadowReferenceAsserter<>(refVal, null, this, "shadowRef in "+desc());
-        copySetupTo(asserter);
-        return asserter;
-    }
+//    public ShadowReferenceAsserter<ShadowAssociationAsserter<R>> singleShadowRef() {
+//        assertSize(1);
+//        PrismReferenceValue refVal = values.iterator().next().getShadowRef().asReferenceValue();
+//        ShadowReferenceAsserter<ShadowAssociationAsserter<R>> asserter =
+//                new ShadowReferenceAsserter<>(refVal, null, this, "shadowRef in "+desc());
+//        copySetupTo(asserter);
+//        return asserter;
+//    }
 
     public ShadowAssociationValueAsserter<ShadowAssociationAsserter<R>> forShadowOid(String shadowOid) {
         var value = findByShadowOid(shadowOid);
@@ -78,7 +78,7 @@ public class ShadowAssociationAsserter<R> extends AbstractAsserter<R> {
 
     private @Nullable ShadowAssociationValue findByShadowOid(String shadowOid) {
         for (var value : values) {
-            if (shadowOid.equals(value.getShadowRef().getOid())) {
+            if (shadowOid.equals(value.getSingleObjectRefRequired().getOid())) {
                 return value;
             }
         }
@@ -89,7 +89,7 @@ public class ShadowAssociationAsserter<R> extends AbstractAsserter<R> {
         StringBuilder sb = new StringBuilder();
         var iterator = values.iterator();
         while (iterator.hasNext()) {
-            sb.append(PrettyPrinter.prettyPrint(iterator.next().getShadowRef().getOid()));
+            sb.append(PrettyPrinter.prettyPrint(iterator.next().getSingleObjectRefRequired().getOid()));
             if (iterator.hasNext()) {
                 sb.append(", ");
             }
@@ -114,7 +114,7 @@ public class ShadowAssociationAsserter<R> extends AbstractAsserter<R> {
 
     public @NotNull ObjectReferenceType getSingleTargetRef() {
         assertSize(1);
-        var ref = values.iterator().next().getShadowRef();
+        var ref = values.iterator().next().getSingleObjectRefRequired();
         assertThat(ref).as("target ref in " + desc()).isNotNull();
         return ref;
     }

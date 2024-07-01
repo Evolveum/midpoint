@@ -235,28 +235,27 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         QName objectClassQname = OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME;
         ResourceObjectClassDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
         assertNotNull("No object class definition " + objectClassQname, accountDefinition);
-        ShadowAttributesContainer resourceObject = accountDefinition.toResourceAttributeContainerDefinition().instantiate();
+        ShadowAttributesContainer resourceObject = accountDefinition.toShadowAttributesContainerDefinition().instantiate();
 
-        ShadowSimpleAttributeDefinition<String> attributeDefinition =
-                        accountDefinition.findSimpleAttributeDefinitionRequired(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
-        ShadowSimpleAttribute<String> attribute = attributeDefinition.instantiate();
-        attribute.setRealValue("uid=" + name + ",ou=people,dc=example,dc=com");
-        resourceObject.add(attribute);
+        resourceObject.addAttribute(
+                accountDefinition
+                        .findSimpleAttributeDefinitionRequired(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER)
+                        .instantiateFromRealValue("uid=" + name + ",ou=people,dc=example,dc=com"));
 
-        attributeDefinition = accountDefinition.findSimpleAttributeDefinitionRequired(QNAME_SN);
-        attribute = attributeDefinition.instantiate();
-        attribute.setRealValue(familyName);
-        resourceObject.add(attribute);
+        resourceObject.addAttribute(
+                accountDefinition
+                        .findSimpleAttributeDefinitionRequired(QNAME_SN)
+                        .instantiateFromRealValue(familyName));
 
-        attributeDefinition = accountDefinition.findSimpleAttributeDefinitionRequired(QNAME_CN);
-        attribute = attributeDefinition.instantiate();
-        attribute.setRealValue(givenName + " " + familyName);
-        resourceObject.add(attribute);
+        resourceObject.addAttribute(
+                accountDefinition
+                        .findSimpleAttributeDefinitionRequired(QNAME_CN)
+                        .instantiateFromRealValue(givenName + " " + familyName));
 
-        attributeDefinition = accountDefinition.findSimpleAttributeDefinitionRequired(QNAME_GIVEN_NAME);
-        attribute = attributeDefinition.instantiate();
-        attribute.setRealValue(givenName);
-        resourceObject.add(attribute);
+        resourceObject.addAttribute(
+                accountDefinition
+                        .findSimpleAttributeDefinitionRequired(QNAME_GIVEN_NAME)
+                        .instantiateFromRealValue(givenName));
 
         PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 
@@ -321,14 +320,14 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         var resourceObject = cc.fetchObject(identification, null, null, result);
         ShadowAttributesContainer resObj = ShadowUtil.getAttributesContainer(resourceObject.getBean());
 
-        AssertJUnit.assertNull(resObj.findAttribute(QNAME_GIVEN_NAME));
+        AssertJUnit.assertNull(resObj.findSimpleAttribute(QNAME_GIVEN_NAME));
 
         String addedEmployeeNumber = resObj
-                .findAttribute(QNAME_EMPLOYEE_NUMBER).getValue(String.class)
+                .findSimpleAttribute(QNAME_EMPLOYEE_NUMBER).getValue(String.class)
                 .getValue();
-        String changedSn = resObj.findAttribute(QNAME_SN)
+        String changedSn = resObj.findSimpleAttribute(QNAME_SN)
                 .getValues(String.class).iterator().next().getValue();
-        String addedStreet = resObj.findAttribute(new QName(MidPointConstants.NS_RI, "street"))
+        String addedStreet = resObj.findSimpleAttribute(new QName(MidPointConstants.NS_RI, "street"))
                 .getValues(String.class).iterator().next().getValue();
 
         System.out.println("changed employee number: " + addedEmployeeNumber);
@@ -493,7 +492,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         AssertJUnit.assertNotNull(uidDefinition);
 
         for (Definition def : resourceSchema.getDefinitions()) {
-            if (def instanceof ResourceAttributeContainerDefinition rdef) {
+            if (def instanceof ShadowAttributesContainerDefinition rdef) {
                 assertNotEmpty("No type name in object class", rdef.getTypeName());
 
                 // This is maybe not that important, but just for a sake of completeness
@@ -690,22 +689,22 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         // Account type is hardcoded now
         var accountOcDef = resourceSchema.findObjectClassDefinitionRequired(OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME);
         // Determine identifier from the schema
-        var attributeContainer = accountOcDef.toResourceAttributeContainerDefinition().instantiate();
+        var attributeContainer = accountOcDef.toShadowAttributesContainerDefinition().instantiate();
 
         ShadowSimpleAttributeDefinition<String> road = accountOcDef.findSimpleAttributeDefinitionRequired(QNAME_SN);
         ShadowSimpleAttribute<String> roa = road.instantiate();
         roa.setRealValue(sn);
-        attributeContainer.add(roa);
+        attributeContainer.addAttribute(roa);
 
         road = accountOcDef.findSimpleAttributeDefinitionRequired(QNAME_CN);
         roa = road.instantiate();
         roa.setRealValue(cn);
-        attributeContainer.add(roa);
+        attributeContainer.addAttribute(roa);
 
         road = accountOcDef.findSimpleAttributeDefinitionRequired(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
         roa = road.instantiate();
         roa.setRealValue(dn);
-        attributeContainer.add(roa);
+        attributeContainer.addAttribute(roa);
 
         return attributeContainer;
     }

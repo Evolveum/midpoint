@@ -338,7 +338,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME));
         jackAccountOid = shadow.getOid();
 
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupPiratesOid);
 
         assertAttribute(shadow, "dn", "CN=Jack Sparrow,CN=Users,DC=win,DC=evolveum,DC=com");
         assertAttribute(shadow, "cn", ACCOUNT_JACK_FULL_NAME);
@@ -602,7 +602,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
 
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
-        ShadowSimpleAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
+        ShadowSimpleAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getSimpleAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in " + shadow, createTimestampAttribute);
         XMLGregorianCalendar createTimestamp = createTimestampAttribute.getRealValue();
         // LDAP server may be on a different host. Allow for some clock offset.
@@ -873,7 +873,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         String shadowOid = getSingleLinkOid(user);
 
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupPiratesOid);
         assertAccountDisabled(shadow);
 
         assertLdapConnectorReasonableInstances();
@@ -966,7 +966,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupPiratesOid);
 
         assertLdapConnectorReasonableInstances();
     }
@@ -1127,7 +1127,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
 
         assertLdapGroupMember(entry, GROUP_MELEE_ISLAND_NAME);
 
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupQName(), groupMeleeOid);
 
         assertLdapConnectorReasonableInstances();
     }
@@ -1149,7 +1149,7 @@ public abstract class AbstractAdLdapSimpleTest extends AbstractLdapSynchronizati
     @Override
     protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException, ConfigurationException {
         super.assertAccountShadow(shadow, dn);
-        ShadowSimpleAttribute<String> primaryIdAttr = ShadowUtil.getAttribute(shadow, getPrimaryIdentifierAttributeQName());
+        ShadowSimpleAttribute<String> primaryIdAttr = ShadowUtil.getSimpleAttribute(shadow, getPrimaryIdentifierAttributeQName());
         assertNotNull("No primary identifier (" + getPrimaryIdentifierAttributeQName() + " in " + shadow, primaryIdAttr);
         String primaryId = primaryIdAttr.getRealValue();
         assertTrue("Unexpected chars in primary ID: '" + primaryId + "'", primaryId.matches("[a-z0-9\\-]+"));

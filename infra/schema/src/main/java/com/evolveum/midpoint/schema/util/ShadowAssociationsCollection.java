@@ -12,9 +12,7 @@ import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.io.Serializable;
 import java.util.*;
-import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationsType;
@@ -37,6 +35,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * For delta, it can concern related either individual associations (i.e., items), or the associations container as a whole.
  *
  * LIMITATIONS: at the level of the whole associations container, only ADD deltas are supported. No REPLACE nor DELETE.
+ *
+ * @see ShadowReferenceAttributesCollection
  */
 public abstract class ShadowAssociationsCollection implements DebugDumpable {
         //implements Iterator<ShadowAssociationDeltas.IterableAssociationValue> {
@@ -80,7 +80,7 @@ public abstract class ShadowAssociationsCollection implements DebugDumpable {
         return !iterator().hasNext(); // TODO we can optimize this
     }
 
-    public List<IterableAssociationValue> getAllValues() {
+    public List<IterableAssociationValue> getAllIterableValues() {
         List<IterableAssociationValue> allValues = new ArrayList<>();
         var iterator = iterator();
         while (iterator.hasNext()) {
@@ -136,26 +136,26 @@ public abstract class ShadowAssociationsCollection implements DebugDumpable {
             return (ShadowAssociationValue) value.asPrismContainerValue();
         }
 
-        public @NotNull PrismPropertyValue<?> getSingleIdentifierValueRequired(@NotNull QName attrName, Object errorCtx)
-                throws SchemaException {
-            ShadowAttributesContainer attributesContainer =
-                    MiscUtil.requireNonNull(
-                            associationValue().getAttributesContainerIfPresent(),
-                            "No attributes container in %s in %s", this, errorCtx);
-
-            PrismProperty<?> valueAttr = attributesContainer.findProperty(ItemName.fromQName(attrName));
-            if (valueAttr == null || valueAttr.isEmpty()) {
-                throw new SchemaException(
-                        "No value of attribute %s present in %s in %s".formatted(
-                                attrName, this, errorCtx));
-            } else if (valueAttr.size() > 1) {
-                throw new SchemaException(
-                        "Multiple values of attribute %s present in %s in %s: %s".formatted(
-                                attrName, this, errorCtx, valueAttr.getValues()));
-            } else {
-                return valueAttr.getValue();
-            }
-        }
+//        public @NotNull PrismPropertyValue<?> getSingleIdentifierValueRequired(@NotNull QName attrName, Object errorCtx)
+//                throws SchemaException {
+//            ShadowAttributesContainer attributesContainer =
+//                    MiscUtil.requireNonNull(
+//                            associationValue().getAttributesContainerIfPresent(),
+//                            "No attributes container in %s in %s", this, errorCtx);
+//
+//            PrismProperty<?> valueAttr = attributesContainer.findProperty(ItemName.fromQName(attrName));
+//            if (valueAttr == null || valueAttr.isEmpty()) {
+//                throw new SchemaException(
+//                        "No value of attribute %s present in %s in %s".formatted(
+//                                attrName, this, errorCtx));
+//            } else if (valueAttr.size() > 1) {
+//                throw new SchemaException(
+//                        "Multiple values of attribute %s present in %s in %s: %s".formatted(
+//                                attrName, this, errorCtx, valueAttr.getValues()));
+//            } else {
+//                return valueAttr.getValue();
+//            }
+//        }
 
         public boolean isAdd() {
             return modificationType == ADD;
@@ -186,7 +186,7 @@ public abstract class ShadowAssociationsCollection implements DebugDumpable {
         }
 
         @Override
-        public List<IterableAssociationValue> getAllValues() {
+        public List<IterableAssociationValue> getAllIterableValues() {
             return List.of();
         }
 

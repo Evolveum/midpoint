@@ -63,7 +63,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -425,7 +424,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNotNull("No identifiers (null) in attributes container in " + accountJackOid, identifiers);
         assertFalse("No identifiers (empty) in attributes container in " + accountJackOid, identifiers.isEmpty());
 
-        ShadowSimpleAttribute<String> fullNameAttr = attributesContainer.findAttribute(dummyResourceCtl.getAttributeFullnameQName());
+        ShadowSimpleAttribute<String> fullNameAttr = attributesContainer.findSimpleAttribute(dummyResourceCtl.getAttributeFullnameQName());
         PrismAsserts.assertPropertyValue(fullNameAttr, ACCOUNT_JACK_DUMMY_FULLNAME);
         ShadowSimpleAttributeDefinition<String> fullNameAttrDef = fullNameAttr.getDefinition();
         displayDumpable("attribute fullname definition", fullNameAttrDef);

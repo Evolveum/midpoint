@@ -170,8 +170,8 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
-    default void replaceDefinition(@NotNull QName itemName, @Nullable ItemDefinition<?> newDefinition) {
-        delegate().replaceDefinition(itemName, newDefinition);
+    default void replaceAttributeDefinition(@NotNull QName itemName, @Nullable ItemDefinition<?> newDefinition) {
+        delegate().replaceAttributeDefinition(itemName, newDefinition);
     }
 
     @Override

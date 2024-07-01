@@ -11,7 +11,7 @@ import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -252,6 +252,51 @@ public abstract class CorrelationContext implements DebugDumpable, Cloneable {
             DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
             DebugUtil.debugDumpWithLabelLn(sb, "resource", String.valueOf(resource), indent + 1);
             DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectDefinition", String.valueOf(resourceObjectDefinition), indent + 1);
+        }
+    }
+
+    /** Context for correlating an association value to a set of matching focus assignments. */
+    public static class AssociationValue extends CorrelationContext {
+
+        @NotNull private final ShadowAssociationValue associationValue;
+
+        public AssociationValue(
+                @NotNull ShadowAssociationValue associationValue,
+                @NotNull Containerable preFocus,
+                @Nullable Collection<? extends Containerable> candidatePool,
+                @Nullable SystemConfigurationType systemConfiguration,
+                @NotNull Task task) {
+            super(preFocus, candidatePool, systemConfiguration, task);
+            this.associationValue = associationValue;
+        }
+
+        public @Nullable String getArchetypeOid() {
+            return null;
+        }
+
+        @Override
+        public @NotNull Set<String> getCandidateOids() {
+            return Set.of();
+        }
+
+        @Override
+        public @NotNull Shadow asShadowCtx() {
+            throw new IllegalStateException("Association value context cannot be used as shadow context");
+        }
+
+        @Override
+        public @NotNull Containerable getPrimaryCorrelatedObject() {
+            return associationValue.asContainerable();
+        }
+
+        @Override
+        public String toString() {
+            return "CorrelationContext.AssociationValue()";
+        }
+
+        @Override
+        void debugDumpSpecific(StringBuilder sb, int indent) {
+            DebugUtil.debugDumpWithLabel(sb, "association value", associationValue, indent + 1);
         }
     }
 

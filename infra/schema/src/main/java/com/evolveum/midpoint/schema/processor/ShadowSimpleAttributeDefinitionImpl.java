@@ -12,9 +12,6 @@ import java.util.Collection;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,11 +23,13 @@ import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryImpl;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * An attribute definition (obtained typically from the connector),
@@ -45,8 +44,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @see NativeShadowSimpleAttributeDefinition
  */
 public class ShadowSimpleAttributeDefinitionImpl<T>
-        extends ShadowAttributeDefinitionImpl<ShadowSimpleAttribute<T>, T, NativeShadowSimpleAttributeDefinition<T>>
-        implements ShadowSimpleAttributeDefinition<T>, ShadowItemDefinitionTemp {
+        extends ShadowAttributeDefinitionImpl<
+        PrismPropertyValue<T>, ShadowSimpleAttributeDefinition<T>, T, ShadowSimpleAttribute<T>, NativeShadowSimpleAttributeDefinition<T>>
+        implements ShadowSimpleAttributeDefinition<T>, ShadowItemDefinition {
 
     private ShadowSimpleAttributeDefinitionImpl(
             @NotNull NativeShadowSimpleAttributeDefinition<T> nativeDefinition,
@@ -107,7 +107,6 @@ public class ShadowSimpleAttributeDefinitionImpl<T>
         }
     }
 
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @NotNull
     @Override
     public ShadowSimpleAttributeDefinitionImpl<T> clone() {
@@ -146,6 +145,11 @@ public class ShadowSimpleAttributeDefinitionImpl<T>
     public @NotNull Class<T> getTypeClass() {
         // TODO cache this somehow
         return PrismContext.get().getSchemaRegistry().determineClassForType(getTypeName());
+    }
+
+    @Override
+    public PrismPropertyValue<T> createPrismValueFromRealValue(@NotNull Object realValue) throws SchemaException {
+        return ShadowAttributeValueConvertor.createPrismPropertyValueFromRealValue(realValue, this);
     }
 
     @Override
@@ -232,7 +236,7 @@ public class ShadowSimpleAttributeDefinitionImpl<T>
     }
 
     @Override
-    public @NotNull ItemDefinition<PrismProperty<T>> cloneWithNewName(@NotNull ItemName itemName) {
+    public @NotNull ShadowSimpleAttributeDefinitionImpl<T> cloneWithNewName(@NotNull ItemName itemName) {
         throw new UnsupportedOperationException("Implement if needed");
     }
 
@@ -241,7 +245,7 @@ public class ShadowSimpleAttributeDefinitionImpl<T>
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ShadowSimpleAttributeDefinitionImpl<?> that)) {
+        if (!(o instanceof ShadowSimpleAttributeDefinitionImpl<?>)) {
             return false;
         }
         return super.equals(o); // no own fields to compare

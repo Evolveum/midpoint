@@ -56,7 +56,7 @@ public class NativeShadowAttributeDefinitionImpl<T>
         PrismItemAccessDefinition.Delegable, PrismItemAccessDefinition.Mutable.Delegable,
         PrismItemMiscDefinition.Delegable, PrismItemMiscDefinition.Mutable.Delegable,
         PrismPresentationDefinition.Delegable, PrismPresentationDefinition.Mutable.Delegable,
-        ShadowItemUcfDefinition.Delegable, ShadowItemUcfDefinition.Mutable.Delegable,
+        ShadowAttributeUcfDefinition.Delegable, ShadowAttributeUcfDefinition.Mutable.Delegable,
         PrismItemValuesDefinition.Delegable<T>, PrismItemValuesDefinition.Mutator.Delegable<T>,
         PrismItemMatchingDefinition.Delegable<T>, PrismItemMatchingDefinition.Mutator.Delegable,
         SerializableItemDefinition, SerializablePropertyDefinition, SerializableContainerDefinition {
@@ -65,7 +65,7 @@ public class NativeShadowAttributeDefinitionImpl<T>
     @NotNull private final PrismItemAccessDefinition.Data prismItemAccessData = new PrismItemAccessDefinition.Data();
     @NotNull private final PrismItemMiscDefinition.Data prismItemMiscData = new PrismItemMiscDefinition.Data();
     @NotNull private final PrismPresentationDefinition.Data prismPresentationData = new PrismPresentationDefinition.Data();
-    @NotNull private final ShadowItemUcfDefinition.Data ucfData = new ShadowItemUcfDefinition.Data();
+    @NotNull private final ShadowAttributeUcfDefinition.Data ucfData = new ShadowAttributeUcfDefinition.Data();
     @NotNull private final PrismItemValuesDefinition.Data<T> prismItemValues = new PrismItemValuesDefinition.Data<>();
     @NotNull private final PrismItemMatchingDefinition.Data<T> prismItemMatching;
 
@@ -110,7 +110,7 @@ public class NativeShadowAttributeDefinitionImpl<T>
     }
 
     @Override
-    public ShadowItemUcfDefinition.Data ucfData() {
+    public ShadowAttributeUcfDefinition.Data ucfData() {
         return ucfData;
     }
 

@@ -74,17 +74,9 @@ In that case the search filter may be explicitly specified in the refresh task:
     <extension>
 		<modelext:objectQuery>
 			<q:filter>
-				<q:and>
-					<q:ref>
-						<q:path>resourceRef</q:path>
-						<q:value>
-							<q:oid>10000000-0000-0000-0000-000000000004</q:oid>
-						</q:value>
-					</q:ref>
-					<q:exists>
-						<q:path>pendingOperation</q:path>
-					</q:exists>
-				</q:and>
+                <q:text>
+                    resourceRef matches (oid = "10000000-0000-0000-0000-000000000004") and pendinOperation exists
+                </q:text>
 			</q:filter>
 		</modelext:objectQuery>
 	</extension>
@@ -103,12 +95,7 @@ In that case the search filter may be explicitly specified in the refresh task:
     <extension>
 		<modelext:objectQuery>
 			<q:filter>
-				<q:ref>
-					<q:path>resourceRef</q:path>
-					<q:value>
-						<q:oid>10000000-0000-0000-0000-000000000004</q:oid>
-					</q:value>
-				</q:ref>
+                <q:text>resourceRef matches (oid = "10000000-0000-0000-0000-000000000004")</q:text>
 			</q:filter>
 		</modelext:objectQuery>
 	</extension>

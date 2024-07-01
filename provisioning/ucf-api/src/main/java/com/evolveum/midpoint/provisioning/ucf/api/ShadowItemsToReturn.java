@@ -39,7 +39,7 @@ public class ShadowItemsToReturn implements Serializable {
     private boolean returnValidToExplicit = false;
 
     /** The list of items that we explicitly request to be returned. */
-    private Collection<? extends ShadowAttributeDefinition<?, ?>> itemsToReturn = null;
+    private Collection<? extends ShadowAttributeDefinition<?, ?, ?, ?>> itemsToReturn = null;
 
     public boolean isReturnDefaultAttributes() {
         return returnDefaultAttributes;
@@ -49,11 +49,11 @@ public class ShadowItemsToReturn implements Serializable {
         this.returnDefaultAttributes = returnDefaultAttributes;
     }
 
-    public Collection<? extends ShadowAttributeDefinition<?, ?>> getItemsToReturn() {
+    public Collection<? extends ShadowAttributeDefinition<?, ?, ?, ?>> getItemsToReturn() {
         return itemsToReturn;
     }
 
-    public void setItemsToReturn(Collection<? extends ShadowAttributeDefinition<?, ?>> itemsToReturn) {
+    public void setItemsToReturn(Collection<? extends ShadowAttributeDefinition<?, ?, ?, ?>> itemsToReturn) {
         this.itemsToReturn = itemsToReturn;
     }
 

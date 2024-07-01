@@ -58,7 +58,7 @@
                             <condition>
                                 <script>
                                     <code>
-                                        name = input?.shadowRef?.targetName
+                                        name = midpoint.getObjectName(input)
                                         log.info('checking mapping range for {}: {}', name, input)
                                         println("checking mapping range for $name: $input")
                                         basic.stringify(name)?.startsWith('mp_')

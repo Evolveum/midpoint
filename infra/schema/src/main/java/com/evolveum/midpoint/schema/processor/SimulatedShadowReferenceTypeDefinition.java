@@ -167,16 +167,16 @@ public abstract class SimulatedShadowReferenceTypeDefinition
     }
 
     @Override
-    public @NotNull Collection<AssociationParticipantType> getSubjectTypes() {
+    public @NotNull Collection<ShadowRelationParticipantType> getSubjectTypes() {
         return toParticipants(subjects);
     }
 
     @Override
-    public @NotNull Collection<AssociationParticipantType> getObjectTypes() {
+    public @NotNull Collection<ShadowRelationParticipantType> getObjectTypes() {
         return toParticipants(objects);
     }
 
-    private @NotNull Collection<AssociationParticipantType> toParticipants(
+    private @NotNull Collection<ShadowRelationParticipantType> toParticipants(
             Collection<SimulatedAssociationClassParticipantDefinition> definitions) {
         return definitions.stream()
                 .map(def -> def.getParticipantType())
@@ -187,6 +187,8 @@ public abstract class SimulatedShadowReferenceTypeDefinition
         return getSubjects().stream().anyMatch(
                 subject -> subject.matches(definition));
     }
+
+    public abstract boolean isLegacy();
 
     @Override
     public String debugDump(int indent) {
@@ -289,10 +291,15 @@ public abstract class SimulatedShadowReferenceTypeDefinition
                                 typeDef.getTypeName(),
                                 typeDef.getDelineation().getBaseContext(),
                                 typeDef.getDelineation().getSearchHierarchyScope(),
-                                AssociationParticipantType.forObjectType(typeDef),
+                                ShadowRelationParticipantType.forObjectType(typeDef),
                                 null));
             }
             return definitions;
+        }
+
+        @Override
+        public boolean isLegacy() {
+            return true;
         }
     }
 
@@ -378,13 +385,18 @@ public abstract class SimulatedShadowReferenceTypeDefinition
                                 objectClassName,
                                 delineationCI.getBaseContext(),
                                 delineationCI.getSearchHierarchyScope(),
-                                AssociationParticipantType.forObjectClass(
+                                ShadowRelationParticipantType.forObjectClass(
                                         delineationCI.configNonNull(
                                                 resourceSchema.findDefinitionForObjectClass(objectClassName),
                                                 "No definition for object class %s found in %s", objectClassName, DESC)),
                                 delineationCI.getAuxiliaryObjectClassName()));
             }
             return definitions;
+        }
+
+        @Override
+        public boolean isLegacy() {
+            return false;
         }
     }
 }

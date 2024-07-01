@@ -10,7 +10,9 @@ package com.evolveum.midpoint.schema.processor.deleg;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.deleg.PropertyDefinitionDelegator;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -273,5 +275,10 @@ public interface ResourceAttributeDefinitionDelegator<T>
     @Override
     default boolean isSimulated() {
         return delegate().isSimulated();
+    }
+
+    @Override
+    default <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
+        return delegate().findItemDefinition(path, clazz);
     }
 }

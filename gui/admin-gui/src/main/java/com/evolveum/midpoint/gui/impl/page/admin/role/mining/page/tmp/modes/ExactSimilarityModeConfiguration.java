@@ -50,7 +50,8 @@ public class ExactSimilarityModeConfiguration extends AbstractRoleAnalysisConfig
                 null,
                 100.0,
                 2,
-                1);
+                1,
+                false);
 
         updateDetectionOptions(2,
                 2,

@@ -8,7 +8,6 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -18,7 +17,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -37,15 +36,15 @@ class AccessChecker {
 
     private static final Trace LOGGER = TraceManager.getTrace(AccessChecker.class);
 
-    void checkAddAccess(ProvisioningContext ctx, ResourceObject resourceObject, OperationResult parentResult)
+    void checkAddAccess(ProvisioningContext ctx, ResourceObjectShadow resourceObject, OperationResult parentResult)
             throws SecurityViolationException, SchemaException {
         OperationResult result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
         try {
 
-            for (ShadowSimpleAttribute<?> attribute : resourceObject.getAttributes()) {
-                PropertyLimitations limitations =
-                        ctx.findAttributeDefinitionRequired(attribute.getElementName())
-                                .getLimitations(LayerType.MODEL);
+            for (var attribute : resourceObject.getAttributes()) {
+                var limitations = ctx
+                        .findAttributeDefinitionRequired(attribute.getElementName())
+                        .getLimitations(LayerType.MODEL);
                 if (limitations == null) {
                     continue;
                 }
@@ -124,20 +123,15 @@ class AccessChecker {
             ShadowAttributesContainer attributeContainer,
             ResourceObjectDefinition objectDefinition,
             OperationResult parentResult) throws SchemaException {
-        OperationResult result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
-        List<ShadowSimpleAttribute<?>> attributesToRemove = new ArrayList<>();
+        var result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
+        var attributesToRemove = new ArrayList<ShadowAttribute<?, ?, ?, ?>>();
         try {
-            for (ShadowSimpleAttribute<?> attribute : attributeContainer.getAttributes()) {
-                QName attrName = attribute.getElementName();
-                ShadowSimpleAttributeDefinition<?> attrDef = objectDefinition.findSimpleAttributeDefinition(attrName);
-                if (attrDef == null) { // TODO
-                    String message = "Unknown attribute " + attrName + " in objectclass " + objectDefinition;
-                    result.recordFatalError(message);
-                    throw new SchemaException(message);
-                }
+            for (var attribute : attributeContainer.getAttributes()) {
                 // Need to check model layer, not schema. Model means IDM logic which can be overridden in schemaHandling,
                 // schema layer is the original one.
-                PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
+                PropertyLimitations limitations = objectDefinition
+                        .findAttributeDefinitionRequired(attribute.getElementName())
+                        .getLimitations(LayerType.MODEL);
                 if (limitations == null) {
                     continue;
                 }
@@ -149,7 +143,7 @@ class AccessChecker {
                     attributesToRemove.add(attribute);
                 }
             }
-            for (ShadowSimpleAttribute<?> attributeToRemove : attributesToRemove) {
+            for (var attributeToRemove : attributesToRemove) {
                 LOGGER.trace("Removing non-readable attribute {}", attributeToRemove);
                 attributeContainer.remove(attributeToRemove);
             }

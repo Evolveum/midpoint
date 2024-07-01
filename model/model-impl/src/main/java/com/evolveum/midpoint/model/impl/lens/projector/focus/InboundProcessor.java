@@ -60,7 +60,7 @@ public class InboundProcessor implements ProjectorProcessor {
         new FullInboundsProcessing<>(context, env)
                 .collectAndEvaluateMappings(result);
 
-        processAssociatedObjects(context, env, result);
+        //processAssociatedObjects(context, env, result);
 
         context.checkConsistenceIfNeeded();
         medic.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
@@ -72,41 +72,41 @@ public class InboundProcessor implements ProjectorProcessor {
         context.checkConsistenceIfNeeded();
     }
 
-    /** Correlates and synchronizes all associated objects. */
-    private <F extends FocusType> void processAssociatedObjects(
-            LensContext<F> context, MappingEvaluationEnvironment env, OperationResult result)
-            throws SchemaException, ConfigurationException {
-        for (LensProjectionContext projCtx : context.getProjectionContexts()) {
-            String skipReason = getAssociatedObjectsProcessingSkipReason(projCtx);
-            if (skipReason != null) {
-                LOGGER.trace("Skipping processing associated objects of {} because: {}",
-                        projCtx.getHumanReadableName(), skipReason);
-                continue;
-            }
-            for (var associationDefinition : projCtx.getCompositeObjectDefinition().getReferenceAttributeDefinitions()) {
-                LOGGER.trace("Processing association {} in {}", associationDefinition, projCtx.getHumanReadableName());
-                /* TODO */
-            }
-        }
-    }
-
-    private String getAssociatedObjectsProcessingSkipReason(LensProjectionContext projCtx) throws SchemaException, ConfigurationException {
-        if (!projCtx.isFullShadow()) {
-            return "not a full shadow";
-        } else if (projCtx.isBroken()) {
-            return "broken";
-        } else if (!projCtx.isVisible()) {
-            return "invisible";
-        } else if (!projCtx.isCanProject()) {
-            return "cannot project";
-        }
-        CompositeObjectDefinition definition = projCtx.getCompositeObjectDefinition();
-        if (definition == null) {
-            return "no object definition";
-        } else if (definition.getReferenceAttributeDefinitions().isEmpty()) {
-            return "no associated objects";
-        } else {
-            return null;
-        }
-    }
+//    /** Correlates and synchronizes all associated objects. */
+//    private <F extends FocusType> void processAssociatedObjects(
+//            LensContext<F> context, MappingEvaluationEnvironment env, OperationResult result)
+//            throws SchemaException, ConfigurationException {
+//        for (LensProjectionContext projCtx : context.getProjectionContexts()) {
+//            String skipReason = getAssociatedObjectsProcessingSkipReason(projCtx);
+//            if (skipReason != null) {
+//                LOGGER.trace("Skipping processing associated objects of {} because: {}",
+//                        projCtx.getHumanReadableName(), skipReason);
+//                continue;
+//            }
+//            for (var associationDefinition : projCtx.getCompositeObjectDefinition().getReferenceAttributeDefinitions()) {
+//                LOGGER.trace("Processing association {} in {}", associationDefinition, projCtx.getHumanReadableName());
+//                /* TODO */
+//            }
+//        }
+//    }
+//
+//    private String getAssociatedObjectsProcessingSkipReason(LensProjectionContext projCtx) throws SchemaException, ConfigurationException {
+//        if (!projCtx.isFullShadow()) {
+//            return "not a full shadow";
+//        } else if (projCtx.isBroken()) {
+//            return "broken";
+//        } else if (!projCtx.isVisible()) {
+//            return "invisible";
+//        } else if (!projCtx.isCanProject()) {
+//            return "cannot project";
+//        }
+//        CompositeObjectDefinition definition = projCtx.getCompositeObjectDefinition();
+//        if (definition == null) {
+//            return "no object definition";
+//        } else if (definition.getReferenceAttributeDefinitions().isEmpty()) {
+//            return "no associated objects";
+//        } else {
+//            return null;
+//        }
+//    }
 }

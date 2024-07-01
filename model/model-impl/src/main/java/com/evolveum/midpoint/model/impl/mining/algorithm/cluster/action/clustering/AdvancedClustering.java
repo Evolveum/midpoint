@@ -202,7 +202,8 @@ public class AdvancedClustering implements Clusterable {
     @NotNull
     public ListMultimap<List<String>, String> loadUserModeData(
             @NotNull ModelService modelService,
-            @NotNull Boolean isIndirect, int minRolesOccupancy,
+            @NotNull Boolean isIndirect,
+            int minRolesOccupancy,
             int maxRolesOccupancy,
             @Nullable SearchFilterType sessionOptionType,
             @NotNull Task task,
@@ -242,11 +243,17 @@ public class AdvancedClustering implements Clusterable {
             if (analysisCategory.equals(RoleAnalysisCategoryType.DEPARTMENT)) {
                 return ClusteringMode.UNBALANCED;
             }
+
             return ClusteringMode.BALANCED;
         } else {
             if (analysisCategory.equals(RoleAnalysisCategoryType.DEPARTMENT)) {
                 return ClusteringMode.UNBALANCED_RULES;
             }
+
+            if(analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)){
+                return ClusteringMode.BALANCED_RULES_OUTLIER;
+            }
+
             return ClusteringMode.BALANCED_RULES;
         }
     }

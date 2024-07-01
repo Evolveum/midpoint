@@ -121,7 +121,8 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
     }
 
     private void initProcessModePanel() {
-        String processModeTitle = getModelObject().getProcessMode().value() + "/" + getModelObject().getCategory().value();
+        String processModeTitle = getModelObject().getProcessMode().value() + "/"
+                + (getModelObject().getCategory() == null ? "N/A" : getModelObject().getCategory().value());
         IconWithLabel mode = new IconWithLabel(ID_PROCESS_MODE, () -> processModeTitle) {
             @Override
             public String getIconCssClass() {

@@ -9,38 +9,38 @@ package com.evolveum.midpoint.web.page.admin.certification.component;
 
 import java.io.Serial;
 import java.util.*;
+import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
-import com.evolveum.midpoint.web.page.admin.certification.CertMiscUtil;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.PageAdminCertification;
 
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignStateHelper;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
 
+import com.evolveum.midpoint.web.page.admin.reports.ReportDownloadHelper;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -49,7 +49,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -72,12 +71,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
         },
         encoder = OnePageParameterEncoder.class,
         action = {
-        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
-                label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
-                description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS,
-                label = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_LABEL,
-                description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_DESCRIPTION) }
+                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
+                        label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
+                        description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS,
+                        label = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_LABEL,
+                        description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGNS_DESCRIPTION) }
 )
 public class PageCertCampaign extends PageAdmin {
 
@@ -92,6 +91,7 @@ public class PageCertCampaign extends PageAdmin {
     private static final String ID_RESPONSES_CONTAINER = "responsesContainer";
     private static final String ID_RESPONSES = "responses";
     private static final String ID_ITEMS_TABBED_PANEL = "itemsTabbedPanel";
+    private static final String ID_CREATED_REPORTS = "createdReports"; //todo temporary here
     private IModel<AccessCertificationCampaignType> campaignModel;
     private LoadableModel<AccessCertificationCasesStatisticsType> statisticsModel;
 
@@ -109,6 +109,7 @@ public class PageCertCampaign extends PageAdmin {
     private void initModels() {
         campaignModel = new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected AccessCertificationCampaignType load() {
                 return loadCampaign();
@@ -117,6 +118,7 @@ public class PageCertCampaign extends PageAdmin {
 
         statisticsModel = new LoadableModel<>(false) {
             @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected AccessCertificationCasesStatisticsType load() {
                 return loadStatistics();
@@ -179,10 +181,10 @@ public class PageCertCampaign extends PageAdmin {
     }
 
     private void initLayout() {
-
         NavigationPanel navigation = new NavigationPanel(ID_NAVIGATION) {
 
             @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected IModel<String> createTitleModel() {
                 return createStringResource("PageCertCampaign.campaignView");
@@ -263,6 +265,38 @@ public class PageCertCampaign extends PageAdmin {
         };
         responsesPanel.setOutputMarkupId(true);
         responsesContainer.add(responsesPanel);
+
+        //todo temporary here; just for testing
+        IModel<List<StatisticBoxDto<ReportDataType>>> createdReportsModel = getCreatedReportsModel();
+        StatisticListBoxPanel<ReportDataType> createdReports = new StatisticListBoxPanel<>(ID_CREATED_REPORTS,
+                getCreatedReportsDisplayModel(createdReportsModel.getObject().size()), createdReportsModel) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void viewAllActionPerformed(AjaxRequestTarget target) {
+                //todo show in the popup? redirect to the report page?
+            }
+
+            @Override
+            protected Component createRightSideBoxComponent(String id, IModel<StatisticBoxDto<ReportDataType>> model) {
+                ReportDataType currentReport = model.getObject().getStatisticObject();
+                AjaxDownloadBehaviorFromStream ajaxDownloadBehavior =
+                        ReportDownloadHelper.createAjaxDownloadBehaviorFromStream(currentReport, PageCertCampaign.this);
+                AjaxIconButton downloadButton = new AjaxIconButton(id, Model.of("fa fa-download"),
+                        createStringResource("pageCreatedReports.button.download")) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        ajaxDownloadBehavior.initiate(target);
+                    }
+                };
+                downloadButton.add(ajaxDownloadBehavior);
+                return downloadButton;
+            }
+        };
+        createdReports.add(new VisibleBehaviour(() -> false));
+        add(createdReports);
 
         addOrReplaceCertItemsTabbedPanel();
     }
@@ -346,5 +380,64 @@ public class PageCertCampaign extends PageAdmin {
                 statisticsModel.getObject().getMarkedAsNotDecide() +
                 statisticsModel.getObject().getWithoutResponse();
         return totalCount > 0 ? (double) responsesCount / totalCount * 100 : 0;
+    }
+
+    private IModel<DisplayType> getCreatedReportsDisplayModel(int reportsCount) {
+        String reportsCountKey = reportsCount == 1 ? "PageCertCampaign.singleCreatedReportCount" :
+                "PageCertCampaign.createdReportsCount";
+        return () -> new DisplayType()
+                .label("PageCertCampaign.createdReportsTitle")
+                .help(createStringResource(reportsCountKey, reportsCount).getString());
+    }
+
+    private IModel<List<StatisticBoxDto<ReportDataType>>> getCreatedReportsModel() {
+        return () -> {
+            List<StatisticBoxDto<ReportDataType>> list = new ArrayList<>();
+            List<ReportDataType> reports = loadReports();
+            if (reports == null) {
+                return list;
+            }
+            reports.forEach(r -> list.add(createStatisticBoxDto(r)));
+            return list;
+        };
+    }
+
+    private List<ReportDataType> loadReports() {
+        ObjectQuery query = getPrismContext().queryFor(ReportDataType.class).build();
+        try {
+            List<PrismObject<ReportDataType>> reports =
+                    WebModelServiceUtils.searchObjects(ReportDataType.class, query, null,
+                            new OperationResult("OPERATION_LOAD_REPORTS"), PageCertCampaign.this);
+            return reports.stream()
+                    .map(r -> r.asObjectable())
+                    .collect(Collectors.toList());
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get reports", ex);
+        }
+        return null;
+    }
+
+    private StatisticBoxDto<ReportDataType> createStatisticBoxDto(ReportDataType report) {
+        DisplayType displayType = new DisplayType()
+                .label(report.getName())
+                .help(getCreatedOnDateLabel(report))
+                .icon(new IconType().cssClass("fa fa-chart-pie"));
+        return new StatisticBoxDto<>(Model.of(displayType), null) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public ReportDataType getStatisticObject() {
+                return report;
+            }
+        };
+    }
+
+    private String getCreatedOnDateLabel(ReportDataType report) {
+        XMLGregorianCalendar createDate = report.getMetadata() != null ? report.getMetadata().getCreateTimestamp() : null;
+        String createdOn = WebComponentUtil.getLocalizedDate(createDate, DateLabelComponent.SHORT_NOTIME_STYLE);
+        if (StringUtils.isNotEmpty(createdOn)) {
+            return createStringResource("PageCertCampaign.createdOn", createdOn).getString();
+        }
+        return null;
     }
 }

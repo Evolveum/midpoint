@@ -98,14 +98,7 @@ This evaluator can be used to dynamically look up assignment targets:
             <assignmentTargetSearch>
                 <targetType>RoleType</targetType>
                 <filter>
-                    <q:equal>
-                        <q:path>name</q:path>
-                        <expression>
-                            <script>
-                                <code>'Employee:' + employeeType</code>
-                            </script>
-                        </expression>
-                    </q:equal>
+                    <q:text>name = `"Employee:" + employeeType`</q:text>
                 </filter>
             </assignmentTargetSearch>
         </expression>

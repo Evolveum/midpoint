@@ -153,10 +153,7 @@ It will represent new menu item with list of roles defined by collectionRef or c
             </display>
             <collection>
                 <filter>
-                    <q:substring>
-                        <q:path>name</q:path>
-                        <q:value>b</q:value>
-                    </q:substring>
+                    <q:text>name contains "b"</q:text>
                 </filter>
             </collection>
         </group>

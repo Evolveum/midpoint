@@ -19,13 +19,15 @@
         <t:path>associations</t:path>
         <t:value>
             <ri:group>
-                <c:shadowRef>
-                    <object xsi:type="c:ShadowType">
-                        <c:attributes>
-                            <ri:dn xsi:type="xsd:string">cn=anygroup,ou=groups,dc=example,dc=com</ri:dn>
-                        </c:attributes>
-                    </object>
-                </c:shadowRef>
+                <c:objects>
+                    <ri:group>
+                        <object xsi:type="c:ShadowType">
+                            <c:attributes>
+                                <ri:dn xsi:type="xsd:string">cn=anygroup,ou=groups,dc=example,dc=com</ri:dn>
+                            </c:attributes>
+                        </object>
+                    </ri:group>
+                </c:objects>
             </ri:group>
         </t:value>
     </itemDelta>

@@ -263,8 +263,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
                                     ItemPath.create(ResourceObjectAssociationType.F_OUTBOUND, MappingType.F_EXPRESSION));
                     ExpressionUtil.addShadowRefEvaluatorValue(
                             expression.getValue().getRealValue(),
-                            item.oid,
-                            PrismContext.get());
+                            item.oid);
 
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't create new value for association container.");

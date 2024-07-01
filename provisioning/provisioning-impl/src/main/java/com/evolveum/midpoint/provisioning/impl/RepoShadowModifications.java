@@ -71,8 +71,13 @@ public class RepoShadowModifications implements DebugDumpable {
         for (ItemDelta<?, ?> modification : modifications) {
             Optional<AttributePath> attributePath = AttributePath.optionalOf(modification.getPath());
             if (attributePath.isPresent()) {
-                add(modification,
-                        objectDefinition.findSimpleAttributeDefinitionRequired(attributePath.get().getAttributeName()));
+                var def = objectDefinition.findAttributeDefinitionRequired(attributePath.get().getAttributeName());
+                if (def instanceof ShadowSimpleAttributeDefinition<?> simpleDef) {
+                    add(modification, simpleDef);
+                } else {
+                    // TODO implement caching of reference attributes
+                    addNonRawOnly(modification);
+                }
             } else {
                 add(modification);
             }
@@ -94,6 +99,12 @@ public class RepoShadowModifications implements DebugDumpable {
     public void addRawOnly(@Nullable ItemDelta<?, ?> modification) {
         if (modification != null) {
             rawItemDeltas.add(modification);
+        }
+    }
+
+    public void addNonRawOnly(@Nullable ItemDelta<?, ?> modification) {
+        if (modification != null) {
+            itemDeltas.add(modification);
         }
     }
 

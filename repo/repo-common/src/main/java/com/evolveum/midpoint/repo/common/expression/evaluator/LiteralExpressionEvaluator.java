@@ -53,6 +53,10 @@ public class LiteralExpressionEvaluator<V extends PrismValue, D extends ItemDefi
         // Cached parsed value is defensively cloned so it can be further changed.
         Item<V, D> output = CloneUtil.clone(parseLiteralItem(context));
 
+        // For example, when associations or reference attributes are provided literally as beans, we need convert these beans
+        // into ShadowAssociationValue / ShadowReferenceAttributeValue objects.
+        output.applyDefinition(outputDefinition);
+
         for (V value : output.getValues()) {
             addInternalOrigin(value, context);
         }

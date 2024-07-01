@@ -155,7 +155,7 @@
                 <shortcutValueAttribute>ri:dn</shortcutValueAttribute>
             </association>
             <association>
-                <ref>ri:group</ref>
+                <ref>ri:groupVip</ref>
                 <displayName>LDAP Group Membership VIP</displayName>
                 <kind>entitlement</kind>
                 <intent>group-vip</intent>

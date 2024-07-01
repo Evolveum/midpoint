@@ -60,7 +60,7 @@ abstract class AbstractResourceObjectRetrievalOperation {
      * Hence, we do not need to use the error-handling machinery provided by lazy initialization
      * in {@link ResourceObjectFound} here.
      */
-    @NotNull CompleteResourceObject complete(@NotNull ExistingResourceObject object, @NotNull OperationResult result)
+    @NotNull CompleteResourceObject complete(@NotNull ExistingResourceObjectShadow object, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         assert errorReportingMethod == null;

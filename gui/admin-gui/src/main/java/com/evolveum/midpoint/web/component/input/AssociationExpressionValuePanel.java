@@ -122,8 +122,7 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType> {
             protected <O extends ObjectType> void chooseObjectPerformed(AjaxRequestTarget target, O object) {
                 ExpressionUtil.addShadowRefEvaluatorValue(
                         AssociationExpressionValuePanel.this.getModelObject(),
-                        object.getOid(),
-                        AssociationExpressionValuePanel.this.getPrismContext());
+                        object.getOid());
             }
 
             @Override

@@ -14,6 +14,7 @@ import java.util.Optional;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.DeepCloneOperation;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ResourceAttributeWrapper;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemProcessing;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -264,6 +266,11 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     @Override
     public ShadowSimpleAttribute<T> instantiate(QName name) {
         return getRefinedAttributeDefinition().instantiate(name);
+    }
+
+    @Override
+    public PrismPropertyValue<T> createPrismValueFromRealValue(@NotNull Object realValue) throws SchemaException {
+        return getRefinedAttributeDefinition().createPrismValueFromRealValue(realValue);
     }
 
     @Override

@@ -58,7 +58,7 @@ public class CompositeObjectDefinitionImpl
     @NotNull private final Collection<? extends ResourceObjectDefinition> auxiliaryDefinitions;
 
     /** Lazily computed, but only when this instance is immutable. */
-    private volatile List<? extends ShadowAttributeDefinition<?, ?>> allAttributeDefinitions;
+    private volatile List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> allAttributeDefinitions;
 
     private PrismObjectDefinition<ShadowType> prismObjectDefinition;
 
@@ -103,7 +103,7 @@ public class CompositeObjectDefinitionImpl
         if (prismObjectDefinition == null) {
             prismObjectDefinition =
                     ObjectFactory.constructObjectDefinition(
-                            toResourceAttributeContainerDefinition(),
+                            toShadowAttributesContainerDefinition(),
                             toShadowAssociationsContainerDefinition());
         }
         return prismObjectDefinition;
@@ -349,7 +349,7 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public synchronized @NotNull List<? extends ShadowAttributeDefinition<?, ?>> getAttributeDefinitions() {
+    public synchronized @NotNull List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> getAttributeDefinitions() {
         if (auxiliaryDefinitions.isEmpty()) {
             return structuralDefinition.getAttributeDefinitions();
         }
@@ -358,7 +358,7 @@ public class CompositeObjectDefinitionImpl
             return allAttributeDefinitions;
         }
 
-        List<? extends ShadowAttributeDefinition<?, ?>> collectedDefinitions = collectAttributeDefinitions();
+        List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> collectedDefinitions = collectAttributeDefinitions();
         if (isImmutable()) {
             allAttributeDefinitions = collectedDefinitions;
         } else {
@@ -368,12 +368,12 @@ public class CompositeObjectDefinitionImpl
         return collectedDefinitions;
     }
 
-    private @NotNull List<? extends ShadowAttributeDefinition<?, ?>> collectAttributeDefinitions() {
+    private @NotNull List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> collectAttributeDefinitions() {
         // Adds all attribute definitions from aux OCs that are not already known.
-        ArrayList<ShadowAttributeDefinition<?, ?>> collectedDefinitions =
+        ArrayList<ShadowAttributeDefinition<?, ?, ?, ?>> collectedDefinitions =
                 new ArrayList<>(structuralDefinition.getAttributeDefinitions());
         for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
-            for (var auxAttrDef : auxiliaryObjectClassDefinition.getSimpleAttributeDefinitions()) {
+            for (var auxAttrDef : auxiliaryObjectClassDefinition.getAttributeDefinitions()) {
                 boolean shouldAdd = true;
                 for (var def : collectedDefinitions) {
                     if (def.getItemName().equals(auxAttrDef.getItemName())) { // FIXME what about case in-sensitiveness?
@@ -432,7 +432,8 @@ public class CompositeObjectDefinitionImpl
 
     @Override
     public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
-        return getSimpleAttributeDefinitions();
+        //noinspection unchecked,rawtypes
+        return (List) getAttributeDefinitions();
     }
 
     @Override
@@ -673,19 +674,19 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public void replaceDefinition(@NotNull QName itemName, @Nullable ItemDefinition<?> newDefinition) {
+    public void replaceAttributeDefinition(@NotNull QName itemName, @Nullable ItemDefinition<?> newDefinition) {
 
         // We replace only the first occurrence. This is consistent with how we look for attributes.
         // Note that this algorithm may break down if we add/delete attribute definitions afterwards.
 
         if (structuralDefinition.containsAttributeDefinition(itemName)) {
-            structuralDefinition.replaceDefinition(itemName, newDefinition);
+            structuralDefinition.replaceAttributeDefinition(itemName, newDefinition);
             return;
         }
 
         for (ResourceObjectDefinition auxiliaryDefinition : auxiliaryDefinitions) {
             if (auxiliaryDefinition.containsAttributeDefinition(itemName)) {
-                auxiliaryDefinition.replaceDefinition(itemName, newDefinition);
+                auxiliaryDefinition.replaceAttributeDefinition(itemName, newDefinition);
                 return;
             }
         }
@@ -694,9 +695,9 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public void trimTo(@NotNull Collection<ItemPath> paths) {
-        structuralDefinition.trimTo(paths);
-        auxiliaryDefinitions.forEach(def -> def.trimTo(paths));
+    public void trimAttributesTo(@NotNull Collection<ItemPath> paths) {
+        structuralDefinition.trimAttributesTo(paths);
+        auxiliaryDefinitions.forEach(def -> def.trimAttributesTo(paths));
     }
 
     @Override
@@ -803,5 +804,15 @@ public class CompositeObjectDefinitionImpl
     @Override
     public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
         return structuralDefinition.getSchemaContextDefinition();
+    }
+
+    @Override
+    public ShadowAssociationDefinition findAssociationDefinition(QName name) {
+        return structuralDefinition.findAssociationDefinition(name);
+    }
+
+    @Override
+    public @NotNull List<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
+        return structuralDefinition.getAssociationDefinitions();
     }
 }

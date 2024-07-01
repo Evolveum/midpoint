@@ -12,7 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainerDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
 @Component
@@ -20,7 +20,7 @@ public class ShadowAttributesWrapperFactoryImpl<C extends Containerable> extends
 
     @Override
     public boolean match(ItemDefinition<?> def) {
-        return def instanceof ResourceAttributeContainerDefinition && ShadowAttributesType.class.isAssignableFrom(((ResourceAttributeContainerDefinition) def).getCompileTimeClass());
+        return def instanceof ShadowAttributesContainerDefinition && ShadowAttributesType.class.isAssignableFrom(((ShadowAttributesContainerDefinition) def).getCompileTimeClass());
     }
 
     @Override

@@ -21,10 +21,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierT
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 
@@ -78,7 +76,7 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
         }
 
         this.outlierObjectModel = generateAssignmentOutlierResultModel(
-                roleAnalysisService, descriptionType, task, task.getResult(), userTypeObject);
+                roleAnalysisService, descriptionType, task, task.getResult(), userTypeObject, outlierParent);
     }
 
     @Override

@@ -391,7 +391,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
                 .assertNoValuesToReplace()
                 .valuesToDelete()
                 .single()
-                .assertRefEquals(ShadowAssociationValueType.F_SHADOW_REF, shadowGroupPiratesOid)
+                .assertRefEquals(ShadowAssociationValueType.F_OBJECTS.append(ASSOCIATION_GROUP_QNAME), shadowGroupPiratesOid)
                 .end()
                 .end()
                 .end()

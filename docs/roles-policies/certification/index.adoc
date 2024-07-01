@@ -209,10 +209,7 @@ The task looks like this:
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/task/campaign-creation/handler-3</handlerUri>
     <objectRef type="AccessCertificationDefinitionType">
         <filter>
-            <q:equal>
-                <q:path>name</q:path>
-                <q:value>Role Inducements</q:value>
-            </q:equal>
+            <q:text>name = "Role Inducements"</q:text>
         </filter>
     </objectRef>
     <recurrence>recurring</recurrence>

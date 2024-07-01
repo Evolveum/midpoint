@@ -24,7 +24,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
  *
  * This definition is derived from {@link ShadowAssociationTypeDefinitionType}. However, there's not much here!
  * Almost everything from that bean goes to the {@link ShadowReferenceAttributeDefinition} attached to the subject or an object.
- * We only need to keep additional {@link AssociationParticipantType}s here - eventually. Currently we do not support
+ * We only need to keep additional {@link ShadowRelationParticipantType}s here - eventually. Currently we do not support
  * that.
  *
  * So, currently this class is empty. But it is here for (near) future extensions.

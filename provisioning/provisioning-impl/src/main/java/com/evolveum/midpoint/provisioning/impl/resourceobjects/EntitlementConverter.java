@@ -14,6 +14,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 
+import com.evolveum.midpoint.schema.util.ShadowReferenceAttributesCollection;
+
+import com.evolveum.midpoint.schema.util.ShadowReferenceAttributesCollection.IterableReferenceAttributeValue;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -24,8 +28,6 @@ import com.evolveum.midpoint.provisioning.impl.ResourceObjectOperations;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection;
-import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection.IterableAssociationValue;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -81,11 +83,11 @@ class EntitlementConverter {
      * An example: when a user is added, with `ri:privs` association to be created, the values of the association
      * are converted into user's `ri:privileges` attribute values.
      */
-    void transformToSubjectOpsOnAdd(ResourceObject subject) throws SchemaException {
-        List<IterableAssociationValue> associationValues =
-                ShadowAssociationsCollection.ofShadow(subject.getBean()).getAllValues();
+    void transformToSubjectOpsOnAdd(ResourceObjectShadow subject) throws SchemaException {
+        List<IterableReferenceAttributeValue> refAttrValues =
+                ShadowReferenceAttributesCollection.ofShadow(subject.getBean()).getAllIterableValues();
         subject.applyOperations(
-                transformToSubjectOps(associationValues));
+                transformToSubjectOps(refAttrValues));
     }
 
     /**
@@ -101,9 +103,9 @@ class EntitlementConverter {
      * ADD VALUE operations on `ri:privileges` attribute of the same user.
      */
     @NotNull Collection<Operation> transformToSubjectOpsOnModify(
-            @NotNull ShadowAssociationsCollection associationsCollection) throws SchemaException {
-        checkNoReplace(associationsCollection);
-        return transformToSubjectOps(associationsCollection.getAllValues())
+            @NotNull ShadowReferenceAttributesCollection attributesCollection) throws SchemaException {
+        checkNoReplace(attributesCollection);
+        return transformToSubjectOps(attributesCollection.getAllIterableValues())
                 .getOperations();
     }
 
@@ -113,14 +115,14 @@ class EntitlementConverter {
      * For {@link ResourceObjectAssociationDirectionType#SUBJECT_TO_OBJECT} entitlement direction, like `ri:priv`.
      */
     private @NotNull SubjectOperations transformToSubjectOps(
-            @NotNull Collection<IterableAssociationValue> iterableAssociationValues)
+            @NotNull Collection<IterableReferenceAttributeValue> iterableRefAttrValues)
             throws SchemaException {
 
-        LOGGER.trace("Transforming {} iterable association values to subject operations", iterableAssociationValues.size());
+        LOGGER.trace("Transforming {} iterable reference attribute values to subject operations", iterableRefAttrValues.size());
 
         var subjectOperations = new SubjectOperations();
-        for (var iterableAssocValue : iterableAssociationValues) {
-            var refAttrDef = getAssociationDefinition(iterableAssocValue.name());
+        for (var iterableRefAttrValue : iterableRefAttrValues) {
+            var refAttrDef = getReferenceAttributeDefinition(iterableRefAttrValue.name());
             if (!isVisible(refAttrDef, subjectCtx)) {
                 continue;
             }
@@ -131,8 +133,8 @@ class EntitlementConverter {
                 subjectOperations
                         .findOrCreateOperation(refAttrDef)
                         .swallowValue(
-                                iterableAssocValue.associationValue().clone(),
-                                iterableAssocValue.isAddNotDelete());
+                                iterableRefAttrValue.value().clone(),
+                                iterableRefAttrValue.isAddNotDelete());
                 continue;
             }
 
@@ -143,7 +145,7 @@ class EntitlementConverter {
 
             // Just take the binding attribute value (like privilege name, e.g. "read") ...
             PrismPropertyValue<?> bindingAttributeValue =
-                    iterableAssocValue.getSingleIdentifierValueRequired(
+                    iterableRefAttrValue.value().getSingleIdentifierValueRequired(
                             simulationDefinition.getPrimaryObjectBindingAttributeName(), // e.g. icfs:name on privilege
                             errorCtx);
 
@@ -154,7 +156,7 @@ class EntitlementConverter {
                             simulationDefinition.getPrimaryBindingMatchingRuleLegacy())
                     .swallowValue(
                             bindingAttributeValue.clone(), // e.g. "read" (a privilege name)
-                            iterableAssocValue.isAddNotDelete());
+                            iterableRefAttrValue.isAddNotDelete());
         }
 
         LOGGER.trace("Transformed iterable association values to:\n{}", subjectOperations.debugDumpLazily(1));
@@ -174,13 +176,13 @@ class EntitlementConverter {
      * An example: when a user is added, with `ri:groups` association to be created, the values of the association
      * are converted into ADD VALUE operations on `ri:member` attribute of the respective group objects.
      */
-    @NotNull EntitlementObjectsOperations transformToObjectOpsOnAdd(ResourceObject subject, OperationResult result)
+    @NotNull EntitlementObjectsOperations transformToObjectOpsOnAdd(ResourceObjectShadow subject, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
 
         EntitlementObjectsOperations entitlementObjectsOperations = new EntitlementObjectsOperations();
         collectObjectOps(
                 entitlementObjectsOperations,
-                ShadowAssociationsCollection.ofShadow(subject.getBean()).getAllValues(),
+                ShadowReferenceAttributesCollection.ofShadow(subject.getBean()).getAllIterableValues(),
                 null,
                 subject.getBean(),
                 result);
@@ -204,14 +206,14 @@ class EntitlementConverter {
      */
     void transformToObjectOpsOnModify(
             @NotNull EntitlementObjectsOperations objectsOperations,
-            @NotNull ShadowAssociationsCollection associationsCollection,
+            @NotNull ShadowReferenceAttributesCollection attributesCollection,
             ShadowType subjectShadowBefore,
             ShadowType subjectShadowAfter,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
-        checkNoReplace(associationsCollection);
+        checkNoReplace(attributesCollection);
         collectObjectOps(
-                objectsOperations, associationsCollection.getAllValues(),
+                objectsOperations, attributesCollection.getAllIterableValues(),
                 subjectShadowBefore, subjectShadowAfter, result);
     }
 
@@ -222,36 +224,36 @@ class EntitlementConverter {
      */
     private void collectObjectOps(
             @NotNull EntitlementObjectsOperations objectsOperations,
-            @NotNull Collection<IterableAssociationValue> iterableAssociationValues,
+            @NotNull Collection<IterableReferenceAttributeValue> iterableRefAttrValues,
             ShadowType subjectShadowBefore,
             ShadowType subjectShadowAfter,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
 
-        for (var iterableAssociationValue : iterableAssociationValues) {
+        for (var iterableRefAttrValue : iterableRefAttrValues) {
 
-            var associationName = iterableAssociationValue.name();
-            var isAddNotDelete = iterableAssociationValue.isAddNotDelete();
+            var refAttrName = iterableRefAttrValue.name();
+            var isAddNotDelete = iterableRefAttrValue.isAddNotDelete();
 
             if (subjectCtx.getOperationContext() != null) {
                 // todo this shouldn't be subjectCtx but the other one [viliam]
-                subjectCtx.setAssociationShadowRef(iterableAssociationValue.value().getShadowRef());
+                subjectCtx.setAssociationShadowRef(iterableRefAttrValue.value().asObjectReferenceType());
             }
 
-            ShadowReferenceAttributeDefinition associationDef = getAssociationDefinition(associationName);
-            if (!isSimulatedObjectToSubject(associationDef) // The other direction is processed elsewhere (see transformToSubjectOps).
-                    || !isVisible(associationDef, subjectCtx)
-                    || !doesMatchSubjectDelineation(associationDef, subjectCtx)) {
+            ShadowReferenceAttributeDefinition refAttrDef = getReferenceAttributeDefinition(refAttrName);
+            if (!isSimulatedObjectToSubject(refAttrDef) // The other direction is processed elsewhere (see transformToSubjectOps).
+                    || !isVisible(refAttrDef, subjectCtx)
+                    || !doesMatchSubjectDelineation(refAttrDef, subjectCtx)) {
                 continue;
             }
 
-            var simulationDefinition = associationDef.getSimulationDefinitionRequired();
+            var simulationDefinition = refAttrDef.getSimulationDefinitionRequired();
             var binding = simulationDefinition.getPrimaryAttributeBinding(); // e.g. account "ri:dn" <-> group "ri:member"
 
-            for (var objectDelineation : simulationDefinition.getObjects()) {
+            for (var participant : simulationDefinition.getObjects()) {
 
                 // TODO clear the relevant parts of the context
-                var entitlementCtx = subjectCtx.spawnForDefinition(objectDelineation.getObjectDefinition());
+                var entitlementCtx = subjectCtx.spawnForDefinition(participant.getObjectDefinition());
 
                 // Should we take the name from "before" or "after" state of the shadow? It depends on the operation
                 // and whether referential integrity is provided by midPoint or the resource.
@@ -262,16 +264,16 @@ class EntitlementConverter {
                 // Take e.g. account's DN (e.g. "uid=joe,ou=people,dc=example,dc=com") ...
                 PrismPropertyValue<?> bindingAttributeValue =
                         EntitlementUtils.getSingleValueRequired(
-                                sourceSubjectShadow, binding.subjectSide(), associationName, errorCtx);
+                                sourceSubjectShadow, binding.subjectSide(), refAttrName, errorCtx);
 
                 // ... convert it into the definition of the object's binding attribute (e.g. "ri:member" on group) ...
-                var objectBindingAttrDef = objectDelineation.getObjectAttributeDefinition(binding);
+                var objectBindingAttrDef = participant.getObjectAttributeDefinition(binding);
                 var objectBindingAttrValue = objectBindingAttrDef.convertPrismValue(bindingAttributeValue);
 
                 // ... and add/remove it to/from that binding attribute on a specific group!
                 objectsOperations
                         .findOrCreate( // operations on specific group (e.g. "cn=wheel,ou=groups,dc=example,dc=com")
-                                getEntitlementDiscriminator(iterableAssociationValue, entitlementCtx, result), // e.g. group uuid
+                                getEntitlementDiscriminator(iterableRefAttrValue, entitlementCtx, result), // e.g. group uuid
                                 entitlementCtx)
                         .findOrCreateAttributeOperation( // operations on specific attribute (e.g. ri:member on that group)
                                 objectBindingAttrDef,
@@ -311,12 +313,12 @@ class EntitlementConverter {
     }
 
     private ResourceObjectDiscriminator getEntitlementDiscriminator(
-            IterableAssociationValue iterableAssociationValue,
+            IterableReferenceAttributeValue iterableRefAttrValue,
             ProvisioningContext entitlementCtx,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
         // this identification may be secondary-only
-        var providedEntitlementIdentification = iterableAssociationValue.associationValue().getIdentification();
+        var providedEntitlementIdentification = iterableRefAttrValue.value().getIdentification();
         var primaryIdentification =
                 b.resourceObjectReferenceResolver.resolvePrimaryIdentifier(entitlementCtx, providedEntitlementIdentification, result);
         return ResourceObjectDiscriminator.of(primaryIdentification);
@@ -413,15 +415,15 @@ class EntitlementConverter {
     //endregion
 
     //region Common
-    private @NotNull ShadowReferenceAttributeDefinition getAssociationDefinition(@NotNull ItemName associationValue)
+    private @NotNull ShadowReferenceAttributeDefinition getReferenceAttributeDefinition(@NotNull ItemName refAttrName)
             throws SchemaException {
-        return subjectCtx.findAssociationDefinitionRequired(associationValue);
+        return subjectCtx.findAssociationDefinitionRequired(refAttrName);
     }
 
-    private void checkNoReplace(@NotNull ShadowAssociationsCollection associationRelatedDelta) throws SchemaException {
-        if (associationRelatedDelta.hasReplace()) {
-            LOGGER.error("Replace delta not supported for\nassociation modifications:\n{}\nin provisioning context:\n{}",
-                    associationRelatedDelta.debugDump(1), subjectCtx.debugDump(1));
+    private void checkNoReplace(@NotNull ShadowReferenceAttributesCollection attributesCollection) throws SchemaException {
+        if (attributesCollection.hasReplace()) {
+            LOGGER.error("Replace delta not supported for\nreference attribute modifications:\n{}\nin provisioning context:\n{}",
+                    attributesCollection.debugDump(1), subjectCtx.debugDump(1));
             throw new SchemaException("Cannot perform replace delta for association");
         }
     }

@@ -26,6 +26,8 @@ import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
 import com.evolveum.midpoint.security.api.SecurityContextManager.ResultAwareCheckedProducer;
+import com.evolveum.midpoint.web.component.action.AbstractGuiAction;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
@@ -859,6 +861,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     public Class<? extends Panel> findObjectPanel(String identifier) {
         return guiConfigurationRegistry.findPanel(identifier);
+    }
+
+    public Class<? extends AbstractGuiAction<?>> findGuiAction(String identifier) {
+        return guiConfigurationRegistry.findAction(identifier);
     }
 
     public SimpleCounter getCounterProvider(String identifier) {

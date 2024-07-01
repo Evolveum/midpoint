@@ -50,7 +50,8 @@ public class OutlierModeConfiguration extends AbstractRoleAnalysisConfiguration 
                 null,
                 90.,
                 10,
-                2);
+                2,
+                false);
 
         updateDetectionOptions(2,
                 2,

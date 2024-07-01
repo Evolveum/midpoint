@@ -41,9 +41,11 @@ public class AvailableResponses implements Serializable {
 
         addResponse(config, "PageCertDecisions.menu.accept", ACCEPT);
         addResponse(config, "PageCertDecisions.menu.revoke", REVOKE);
-        addResponse(config, "PageCertDecisions.menu.reduce", REDUCE);
-        addResponse(config, "PageCertDecisions.menu.notDecided", NOT_DECIDED);
-        addResponse(config, "PageCertDecisions.menu.noResponse", NO_RESPONSE);
+
+        //starting from 4.9 the default responses are Accept a Revoke. All others should be configured if needed
+//        addResponse(config, "PageCertDecisions.menu.reduce", REDUCE);
+//        addResponse(config, "PageCertDecisions.menu.notDecided", NOT_DECIDED);
+//        addResponse(config, "PageCertDecisions.menu.noResponse", NO_RESPONSE);
     }
 
     public List<String> getResponseKeys() {

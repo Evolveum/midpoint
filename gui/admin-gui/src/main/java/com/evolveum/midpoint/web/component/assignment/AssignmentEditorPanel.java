@@ -722,7 +722,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             }
 
             PrismContainerDefinition definition = objectClassDefinition
-                    .toResourceAttributeContainerDefinition();
+                    .toShadowAttributesContainerDefinition();
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Refined definition for {}\n{}", construction, definition.debugDump());

@@ -6,52 +6,22 @@ doc-type: config
 :page-nav-title: Configuration
 :page-wiki-name: Flexible Authentication Configuration
 :page-wiki-id: 41517151
-:page-wiki-metadata-create-user: lskublik
-:page-wiki-metadata-create-date: 2019-11-25T09:32:45.286+01:00
-:page-wiki-metadata-modify-user: virgo
-:page-wiki-metadata-modify-date: 2020-10-14T10:12:43.521+02:00
-:page-since: "4.4"
-:page-since-improved: [ "4.5", "4.7", "4.8" ]
 :page-toc: top
 :toclevels: 3
-:sectnums:
-:sectnumlevels: 4
 
+
+Configuration of flexible authentication is complex. Please familiarize with xref:./concept.adoc[basic concepts] of flexible authentication prior configuration.
 
 .Test your configuration prior deploying.
 WARNING: In case of incorrect loginForm module configuration or in case of its absence, there will be no possibility to login via standard login form again. In that case the user should have another way to restore midPoint environment. +
 The emergency `urlSuffix` configuration can help in such case. See xref:#_example_of_sequence_for_administrator_login[example of sequence for administrator login].
 
-== Selecting the authentication sequence
 
-We can illustrate the authentication sequence flow with two examples.
+== Module configuration
 
-=== First example
+Individual authentication modules are defined in this configuration element. MidPoint supports multiple authentication modules - see xref:./concept[Concepts] page.
 
-MidPoint receives an HTTP request with the URL `http://localhost:8080/midpoint/actuator/metrics`.
-
-It extracts the suffix 'actuator' from the URL and by it determines the channel (see table above).
-This channel is then used to search for the default authentication sequence associated with that channel.
-Once found, midPoint initializes the authentication sequence and, upon successful authentication, sends a request to the actuator service.
-
-=== Second example
-
-In the second scenario, midPoint receives an HTTP request with the URL `http://localhost:8080/midpoint/auth/emergency/users`.
-
-Here, it extracts the 'auth' suffix from the URL, which signifies the use of a specific authentication sequence.
-MidPoint then proceeds to search for the appropriate authentication sequence based on the next part of the URL, which, in this case, is 'emergency'.
-After successfully authenticating, midPoint sends a request to the service defined in the sequence configuration.
-For example, if it is a GUI, the request would be redirected to the users page in the GUI.
-
-
-.Midpoint GUI authentication form
-WARNING: In order to utilize the Midpoint GUI, it is necessary to configure an authentication sequence for the `loginForm` module. +
-If no authentication is configured in the security policy or if there is no sequence defined in the configured authentication, midPoint will default to using the standard (built-in) login form for user GUI authentication.
-However, if there is at least one sequence configured that is not related to loginForm in the authentication configuration, it is imperative to explicitly specify a sequence for the loginForm module in the authentication configuration. This is essential to ensure the proper functioning of the Midpoint GUI. +
-To view the default configuration for the loginForm sequence, please refer to the security policy found in the Midpoint initial objects (015-security-policy.xml).
-
-=== Module configuration
-Each module definition contains following common attributes:
+Each module has its own specific configuration, but following elements are common for all modules:
 
 [%autowidth]
 |===
@@ -73,17 +43,35 @@ The name is also used in the url, so it should not contain special characters.
 | _String_
 |
 
-
 | `focusType`
 | Type of logged object that this authentication module applies to.
 E.g UserType, RoleType, OrgType, ...
 | false
 |
-
 | _UserType_
-
-
 |===
+
+
+== Authentication sequence
+
+Authentication sequence flow can be illustrated by following scenarios
+
+=== Scenario 1
+
+MidPoint receives an HTTP request with the URL `http://localhost:8080/midpoint/actuator/metrics`.
+
+It extracts the suffix 'actuator' from the URL and determines the channel.
+This channel is then used to search for the default authentication sequence associated with that channel.
+Once found, midPoint initializes the authentication sequence and, upon successful authentication, sends a request to the actuator service.
+
+=== Scenario 2
+
+In the second scenario, midPoint receives an HTTP request with the URL `http://localhost:8080/midpoint/auth/emergency/users`.
+
+Here, it extracts the 'auth' suffix from the URL, which signifies the use of a specific authentication sequence.
+MidPoint then proceeds to search for the appropriate authentication sequence based on the next part of the URL, which, in this case, is 'emergency'.
+After successfully authenticating, midPoint sends a request to the service defined in the sequence configuration.
+For example, if it is a GUI, the request would be redirected to the users page in the GUI.
 
 === Sequence Configuration
 
@@ -153,27 +141,6 @@ This authentication sequence is applicable only to node group that have active a
 
 |===
 
-==== FocusBehaviorUpdateType
-
-We can enable/disable updating of focus authentication behavior (such as information about last login time) during every login, or we can use option for updating behaviour only when login failed and during success login after failed login. Default value is 'enabled'. Possible values are:
-
-[%autowidth]
-|===
-| Value | Description
-
-| `enabled`
-| Behaviour attributes will be updated every login.
-
-
-| `disabled`
-| Authentication behaviour attributes will not be updated during login.
-
-
-| `failureOnly`
-| Authentication behaviour attributes will be updated when login failed and when login will be success, but previous login was failed and midPoint needs to update attributes as is number of login fails and lockout state.
-
-|===
-
 ==== AuthenticationSequenceChannelType
 
 Channel specification for authentication sequence.
@@ -188,12 +155,10 @@ It specifies whether this sequence is usable for a specific channel (user/GUI, R
 | true
 | _String_
 
-
 | `description`
 | Free form description (administrator comment).
 | false
 | _String_
-
 
 | `default`
 | Specifies whether this sequence is the default sequence for a specified channel. +
@@ -204,11 +169,29 @@ In that case this element must be used explicitly.
 | false
 | _boolean_
 
-
 | `urlSuffix`
 | URL suffix that can be used to select this authentication sequence specifically.
 | true
 | _String_
+|===
+
+
+==== FocusBehaviorUpdateType
+
+We can enable/disable updating of focus authentication behavior (such as information about last login time) during every login, or we can use option for updating behaviour only when login failed and during success login after failed login. Default value is 'enabled'. Possible values are:
+
+[%autowidth]
+|===
+| Value | Description
+
+| `enabled`
+| Behaviour attributes will be updated every login.
+
+| `disabled`
+| Authentication behaviour attributes will not be updated during login.
+
+| `failureOnly`
+| Authentication behaviour attributes will be updated when login failed and when login will be success, but previous login was failed and midPoint needs to update attributes as is number of login fails and lockout state.
 
 |===
 
@@ -220,7 +203,7 @@ The authentication modules are evaluated in sequence (or in parallel if possible
 At least one authentication module must succeed for authentication to be successful.
 If there are required or requisite modules in the sequence then all of them must succeed for the sequence to be successful.
 
-There is one hard-coded behavior for modules which defines if the module itself is strong enough for authentication to succeed. FocusIdentification, Hint and AttributeVerification module are three specific modules, which are marked as not enough when exist on their own. Even when the sequence consist of other modules (sufficient) which were evaluated as failed and only those three (combination or one of them) succeed, the result of the authentication is failure.
+NOTE: There is hard-coded behavior for modules which defines if the module itself is strong enough for authentication to succeed. FocusIdentification, Hint and AttributeVerification module are three specific modules, which are marked as not enough when exist on their own. Even when the sequence consist of other modules (sufficient) which were evaluated as failed and only those three (combination or one of them) succeed, the result of the authentication is failure.
 
 .Example of default sequence
 [source,xml]
@@ -282,22 +265,13 @@ Example of URL: https://localhost/midpoint/auth/emergency .
 </sequence>
 ----
 
-===== Necessity Configuration
+=== Midpoint GUI authentication form
+In order to utilize the Midpoint GUI, it is necessary to configure an authentication sequence for the `loginForm` module.
 
-++++
-{% include since.html since="4.7" %}
-++++
+If no authentication is configured in the security policy or if there is no sequence defined in the configured authentication, midPoint will default to using the standard (built-in) login form for user GUI authentication.
+However, if there is at least one sequence configured that is not related to loginForm in the authentication configuration, it is imperative to explicitly specify a sequence for the loginForm module in the authentication configuration. This is essential to ensure the proper functioning of the Midpoint GUI.
 
-The necessity levels might be combined. E.g. there might be a sequence consisting of three different modules each defined with different necessity level.
-The evaluation of the authentication is performed after each module.
-
-If `SUFFICIENT` module is found and its evaluation was successful, all previous modules are checked. In case, all previously `REQUIRED` and `REQUISITE` modules were successful, the authentication ends with the success. If any of them failed, authentication continues. All other modules defined in the sequence are evaluated and the result of the authentication is failure.
-
-If evaluation for `SUFFICIENT` module failed, authentication continues according to the sequence defined. In case, there are `REQUIRED` modules and all of them are successful, despite the `SUFFICIENT` module failed, authentication is evaluated as successful.
-Only if the `SUFFICIENT` module is last and its evaluation failed, the whole authentication is evaluated as failed. Last `SUFFICIENT` module in the sequence MUST be successful for authentication to succeed.
-
-If any of the `REQUISITE` modules failed, authentication stops and the result is failure.
-
+To view the default configuration for the loginForm sequence, please refer to the security policy found in the Midpoint initial objects (015-security-policy.xml).
 
 
 == Ignored path Configuration
@@ -323,5 +297,4 @@ You can find example on link:https://github.com/Evolveum/midpoint-samples/blob/m
 == See Also
 
 * xref:..[Flexible Authentication]
-
 * xref:/midpoint/reference/security/security-policy[Security Policy Configuration]

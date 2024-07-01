@@ -65,6 +65,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     private Collection<SelectorOptions<GetOperationOptions>> domainOptions;
     private PagingType paging;
     private PolyString name;
+    private MultiselectOptionType multiselect;
 
     private UserInterfaceElementVisibilityType visibility;
     private OperationTypeType applicableForOperation;
@@ -202,6 +203,14 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         this.displayOrder = displayOrder;
     }
 
+    public MultiselectOptionType getMultiselect() {
+        return multiselect;
+    }
+
+    public void setMultiselect(MultiselectOptionType multiselect) {
+        this.multiselect = multiselect;
+    }
+
     public boolean match(QName expectedObjectType, String expectedViewIdentifier) {
         if (!QNameUtil.match(containerType, expectedObjectType)) {
             return false;
@@ -305,6 +314,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         DebugUtil.debugDumpWithLabel(sb, "visibility", visibility, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "applicableForOperation", applicableForOperation, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "objectCollectionDescription", objectCollectionDescription, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "multiselect", multiselect, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "paging", paging, indent + 1);
         return sb.toString();
     }
@@ -330,6 +340,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         viewType.setVisibility(getVisibility());
         viewType.setApplicableForOperation(getApplicableForOperation());
         viewType.setIncludeDefaultColumns(getIncludeDefaultColumns());
+        viewType.setMultiselect(getMultiselect());
         return viewType;
     }
 

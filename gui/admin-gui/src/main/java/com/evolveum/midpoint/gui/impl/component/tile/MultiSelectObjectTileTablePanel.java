@@ -67,7 +67,7 @@ public abstract class MultiSelectObjectTileTablePanel<E extends Serializable, O 
         };
     }
 
-    void onSelectTableRow(IModel<SelectableBean<O>> model, AjaxRequestTarget target) {
+    protected void onSelectTableRow(IModel<SelectableBean<O>> model, AjaxRequestTarget target) {
         super.onSelectTableRow(model, target);
         if (model.getObject().isSelected()) {
             ((SelectableBeanDataProvider) getProvider()).getSelected().add(model.getObject().getValue());

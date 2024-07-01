@@ -50,7 +50,8 @@ public class AdvancedModeConfiguration extends AbstractRoleAnalysisConfiguration
                 null,
                 80.0,
                 10,
-                5);
+                5,
+                false);
 
         updateDetectionOptions(5,
                 5,

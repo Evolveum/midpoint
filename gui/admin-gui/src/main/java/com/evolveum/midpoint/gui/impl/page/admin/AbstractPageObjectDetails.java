@@ -12,19 +12,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
-
-import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
-import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.web.component.ObjectVerticalSummaryPanel;
-import com.evolveum.midpoint.web.page.error.PageError404;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -35,21 +22,28 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
+import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
+import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -57,13 +51,16 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.ObjectVerticalSummaryPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -86,17 +83,19 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private static final String ID_MAIN_PANEL = "mainPanel";
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_SUMMARY = "summary";
+    private static final String ID_DETAILS_NAVIGATION_PANEL = "detailsNavigationPanel";
     private static final String ID_BUTTONS = "buttons";
 
     private static final String ID_DETAILS_OLD = "detailsOld";
     private static final String ID_DETAILS = "details";
     protected static final String ID_DETAILS_VIEW = "detailsView";
     private static final String ID_ERROR_VIEW = "errorView";
-    private static final String ID_ERROR= "errorPanel";
+    private static final String ID_ERROR = "errorPanel";
 
     private ODM objectDetailsModels;
     private final boolean isAdd;
     private boolean isShowedByWizard;
+    private boolean isDetailsNavigationPanelVisible = true;
 
     public AbstractPageObjectDetails() {
         this(null, null);
@@ -203,7 +202,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             };
         }
 
-        if (supportNewDetailsLook()){
+        if (supportNewDetailsLook()) {
             return createDetailsView();
         }
 
@@ -239,14 +238,22 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
                 initInlineButtons(form);
 
-                form.add(initVerticalSummaryPanel());
+                form.add(initDetailsNavigationPanel());
 
                 ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration();
                 initMainPanel(defaultConfiguration, form);
 
-                form.add(initNavigation());
             }
         };
+    }
+
+    private @NotNull WebMarkupContainer initDetailsNavigationPanel() {
+        WebMarkupContainer container = new WebMarkupContainer(ID_DETAILS_NAVIGATION_PANEL);
+        container.setOutputMarkupId(true);
+        container.add(initVerticalSummaryPanel());
+        container.add(initNavigation());
+        container.add(new VisibleBehaviour(() -> isDetailsNavigationPanelVisible));
+        return container;
     }
 
     private Panel initVerticalSummaryPanel() {
@@ -260,9 +267,9 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             protected IModel<String> getTitleForNewObject(O modelObject) {
                 return () -> LocalizationUtil.translate(
                         "AbstractPageObjectDetails.newObject",
-                        new Object[]{WebComponentUtil.getLabelForType(
+                        new Object[] { WebComponentUtil.getLabelForType(
                                 getModelObject().getClass(),
-                                false)});
+                                false) });
             }
         };
     }
@@ -943,6 +950,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         return (DetailsNavigationPanel) get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM, ID_NAVIGATION));
     }
 
+    protected Component getDetailsNavigationPanel() {
+        return get(createComponentPath(ID_DETAILS_VIEW, ID_MAIN_FORM, ID_DETAILS_NAVIGATION_PANEL));
+    }
+
     public PrismObject<O> getPrismObject() {
         return getModelPrismObject();
     }
@@ -957,5 +968,20 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         WebPrismUtil.collectWrappers(wrapper, iws);
 
         iws.stream().filter(Objects::nonNull).forEach(iw -> iw.setValidated(false));
+    }
+
+    public void hideDetailsNavigationPanel(@NotNull AjaxRequestTarget target) {
+        isDetailsNavigationPanelVisible = false;
+        target.add(getMainForm());
+    }
+
+    public void showDetailsNavigationPanel(@NotNull AjaxRequestTarget target) {
+        isDetailsNavigationPanelVisible = true;
+        target.add(getMainForm());
+    }
+
+    public void toggleDetailsNavigationPanelVisibility(@NotNull AjaxRequestTarget target) {
+        isDetailsNavigationPanelVisible = !isDetailsNavigationPanelVisible;
+        target.add(getMainForm());
     }
 }

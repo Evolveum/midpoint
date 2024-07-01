@@ -17,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extends ItemDefinition>
+public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extends ItemDefinition<?>>
         extends HumanReadableDescribable, DebugDumpable {
 
     QName getTargetItemName();

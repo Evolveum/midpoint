@@ -34,6 +34,17 @@ public class ClusterStatistic implements Serializable {
     List<AttributeAnalysisStructure> userAttributeAnalysisStructures;
     List<AttributeAnalysisStructure> roleAttributeAnalysisStructures;
 
+    public ClusterStatistic(){
+        membersRef = null;
+        propertiesCount = 0;
+        membersCount = 0;
+        minVectorPoint = 0;
+        maxVectorPoint = 0;
+        propertiesMean = 0;
+        propertiesDensity = 0;
+        name = null;
+        propertiesRef = null;
+    }
     public ClusterStatistic(PolyStringType name, Set<ObjectReferenceType> membersRef, int membersCount,
             int propertiesCount, int minVectorPoint, int maxVectorPoint, double propertiesMean, double propertiesDensity) {
         this.membersRef = membersRef;

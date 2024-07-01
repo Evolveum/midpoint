@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 public class MiningUserTypeChunk extends MiningBaseTypeChunk implements Serializable {
 
     String iconColor;
-
     public MiningUserTypeChunk(
             @NotNull List<String> users,
             @NotNull List<String> roles,

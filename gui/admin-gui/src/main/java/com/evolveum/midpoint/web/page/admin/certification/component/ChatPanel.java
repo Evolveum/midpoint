@@ -10,8 +10,11 @@ package com.evolveum.midpoint.web.page.admin.certification.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -102,24 +105,10 @@ public class ChatPanel extends BasePanel<List<ChatMessageItem>> {
 
             private Component initMessageImageComponent(ChatMessageItem message) {
                 IResource messageImageResource = message.getMessageImageResource();
-
-                if (messageImageResource != null) {
-                    return new NonCachingImage(ID_MESSAGE_IMAGE, messageImageResource)  {
-                        @Serial private static final long serialVersionUID = 1L;
-
-                        @Override
-                        protected void onComponentTag(ComponentTag tag) {
-                            tag.setName("img");
-                            super.onComponentTag(tag);
-                        }
-                    };
-                } else {
-                    WebComponent messageImage = new WebComponent(ID_MESSAGE_IMAGE);
-                    messageImage.add(AttributeAppender.append("class", message.getMessageImageCss()));
-                    messageImage.add(AttributeAppender.append("style", "font-size: 40px;"));
-                    messageImage.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(message.getMessageImageCss())));
-                    return messageImage;
-                }
+                Component messageImagePanel = WebComponentUtil.createPhotoOrDefaultImagePanel(ID_MESSAGE_IMAGE, messageImageResource,
+                        new IconType().cssClass(message.getMessageImageCss()));
+                messageImagePanel.add(AttributeAppender.append("style", "font-size: 40px;"));
+                return messageImagePanel;
             }
         };
         messageContainer.setOutputMarkupId(true);

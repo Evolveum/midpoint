@@ -17,7 +17,7 @@ import com.evolveum.midpoint.provisioning.impl.LazilyInitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.AbstractLazilyInitializableResourceEntity;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
 import com.evolveum.midpoint.provisioning.util.InitializationState;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -116,7 +116,7 @@ public abstract class AbstractLazilyInitializableShadowedEntity implements Lazil
             throws SchemaException, ConfigurationException, EncryptionException;
 
     /** Looks up and creates (if needed) a shadow for the resource object. Deals with errors. */
-    @NotNull RepoShadow acquireRepoShadow(@NotNull ExistingResourceObject resourceObject, OperationResult result)
+    @NotNull RepoShadow acquireRepoShadow(@NotNull ExistingResourceObjectShadow resourceObject, OperationResult result)
             throws SchemaException, ConfigurationException, EncryptionException {
 
         try {
@@ -143,7 +143,7 @@ public abstract class AbstractLazilyInitializableShadowedEntity implements Lazil
     }
 
     /** Underlying resource object. Be sure to avoid calling it when there's none. */
-    abstract @NotNull ExistingResourceObject getExistingResourceObjectRequired();
+    abstract @NotNull ExistingResourceObjectShadow getExistingResourceObjectRequired();
 
     public @NotNull InitializationState getInitializationState() {
         return initializationState;

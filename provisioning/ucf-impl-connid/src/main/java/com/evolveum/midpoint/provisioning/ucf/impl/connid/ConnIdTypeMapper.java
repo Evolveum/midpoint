@@ -89,12 +89,12 @@ class ConnIdTypeMapper {
     /**
      * Information about XSD type, obtained from ConnId type (technically, Java class).
      *
-     * @param associationParticipantRole - used only for {@link ConnectorObjectReference}
+     * @param referenceParticipantRole - used only for {@link ConnectorObjectReference}
      */
     record XsdTypeInformation(
             @NotNull QName xsdTypeName,
             boolean multivalued,
-            @Nullable ShadowReferenceParticipantRole associationParticipantRole) {
+            @Nullable ShadowReferenceParticipantRole referenceParticipantRole) {
 
         public int getMaxOccurs() {
             return multivalued ? -1 : 1;

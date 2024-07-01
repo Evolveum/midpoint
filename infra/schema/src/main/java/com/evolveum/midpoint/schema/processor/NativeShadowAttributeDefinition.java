@@ -25,7 +25,7 @@ public interface NativeShadowAttributeDefinition extends
         PrismItemAccessDefinition,
         PrismItemMiscDefinition,
         PrismPresentationDefinition,
-        ShadowItemUcfDefinition {
+        ShadowAttributeUcfDefinition {
 
     @Nullable
     ShadowReferenceParticipantRole getReferenceParticipantRoleIfPresent();

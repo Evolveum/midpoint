@@ -23,14 +23,14 @@ import org.jetbrains.annotations.Nullable;
  *
  * @see UcfAddReturnValue
  */
-public class ResourceObjectAddReturnValue extends AsynchronousOperationReturnValue<ResourceObject> {
+public class ResourceObjectAddReturnValue extends AsynchronousOperationReturnValue<ResourceObjectShadow> {
 
-    private ResourceObjectAddReturnValue(@Nullable ResourceObject returnValue, @NotNull OperationResult operationResult) {
+    private ResourceObjectAddReturnValue(@Nullable ResourceObjectShadow returnValue, @NotNull OperationResult operationResult) {
         super(returnValue, operationResult);
     }
 
     public static ResourceObjectAddReturnValue of(
-            @NotNull ResourceObject object,
+            @NotNull ResourceObjectShadow object,
             @NotNull OperationResult result,
             PendingOperationTypeType operationType) {
         var rv = new ResourceObjectAddReturnValue(object, result);

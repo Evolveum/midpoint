@@ -43,7 +43,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectAddOperation.class);
 
     /** This is the object we obtained with the goal of adding to the resource. */
-    @NotNull private final ResourceObject originalObject;
+    @NotNull private final ResourceObjectShadow originalObject;
 
     /**
      * {@link #originalObject} converted to the raw definition - to avoid pushing artificial {@link PolyString} instances
@@ -52,7 +52,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
      * Moreover, we will modify the object sometimes (e.g. for simulated capabilities or entitlements).
      * But we do not want the changes to propagate back to the calling code. Hence the clone.
      */
-    @NotNull private final ResourceObject workingObject;
+    @NotNull private final ResourceObjectShadow workingObject;
 
     private final boolean skipExplicitUniquenessCheck;
 
@@ -61,7 +61,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
 
     private ResourceObjectAddOperation(
             @NotNull ProvisioningContext ctx,
-            @NotNull ResourceObject object,
+            @NotNull ResourceObjectShadow object,
             OperationProvisioningScriptsType scripts,
             ConnectorOperationOptions connOptions,
             boolean skipExplicitUniquenessCheck) {
@@ -73,7 +73,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
 
     public static ResourceObjectAddReturnValue execute(
             @NotNull ProvisioningContext ctx,
-            @NotNull ResourceObject object,
+            @NotNull ResourceObjectShadow object,
             OperationProvisioningScriptsType scripts,
             ConnectorOperationOptions connOptions,
             boolean skipExplicitUniquenessCheck,
@@ -213,7 +213,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
             ShadowSimpleAttribute<?> clone = addedAttribute.clone();
             clone.applyDefinitionFrom(originalObject.getObjectDefinition());
 
-            targetAttrContainer.add(clone);
+            targetAttrContainer.addAttribute(clone);
         }
     }
 

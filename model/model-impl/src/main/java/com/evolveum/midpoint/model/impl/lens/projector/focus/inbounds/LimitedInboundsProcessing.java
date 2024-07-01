@@ -170,7 +170,7 @@ public class LimitedInboundsProcessing<T extends Containerable> extends Abstract
     public VariablesMap getVariablesMap() {
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
                 null, // FIXME
-                ctx.getShadowedResourceObject(),
+                ctx.getShadowIfPresent(),
                 ctx.getResource(),
                 ctx.getSystemConfiguration());
         variables.put(ExpressionConstants.VAR_SYNCHRONIZATION_CONTEXT, ctx, SynchronizationContext.class);

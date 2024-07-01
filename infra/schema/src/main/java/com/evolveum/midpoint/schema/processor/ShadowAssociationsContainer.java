@@ -9,8 +9,10 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +24,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationsType;
 
 /**
- * Container holding associations. It must have the correct definitions applied.
+ * Container holding {@link ShadowAssociation} objects. It must have the correct definitions applied.
  *
  * @see ShadowAttributesContainer
  */
@@ -37,9 +39,9 @@ public interface ShadowAssociationsContainer extends ShadowItemsContainer, Prism
                         .instantiate(origPrismContainer.getElementName());
         for (Item<?, ?> item : origPrismContainer.getValue().getItems()) {
             var associationName = item.getElementName();
-            var associationDef = resourceObjectDefinition.findAssociationDefinitionRequired(associationName, () -> ""); // TODO
+            var associationDef = resourceObjectDefinition.findAssociationDefinitionRequired(associationName, ""); // TODO
             associationsContainer.add(
-                    ShadowReferenceAttribute.convertFromPrismItem(item.clone(), associationDef));
+                    ShadowAssociation.convertFromPrismItem(item.clone(), associationDef));
         }
         return associationsContainer;
     }
@@ -57,12 +59,18 @@ public interface ShadowAssociationsContainer extends ShadowItemsContainer, Prism
      * Returns the resource object associations. Their order is insignificant.
      * The returned set is immutable!
      */
-    @NotNull Collection<ShadowReferenceAttribute> getAssociations();
+    @NotNull Collection<ShadowAssociation> getAssociations();
+
+    default @NotNull Collection<ItemName> getAssociationNames() {
+        return getAssociations().stream()
+                .map(a -> a.getElementName())
+                .collect(Collectors.toSet());
+    }
 
     @Override
     void add(Item<?, ?> item) throws SchemaException;
 
-    void add(ShadowReferenceAttribute association) throws SchemaException;
+    void add(ShadowAssociation association) throws SchemaException;
 
     /**
      * Finds a specific attribute in the resource object by name.
@@ -72,9 +80,9 @@ public interface ShadowAssociationsContainer extends ShadowItemsContainer, Prism
      * @param assocName attribute name to find.
      * @return found attribute or null
      */
-    ShadowReferenceAttribute findAssociation(QName assocName);
+    ShadowAssociation findAssociation(QName assocName);
 
-    ShadowReferenceAttribute findOrCreateAssociation(QName assocName) throws SchemaException;
+    ShadowAssociation findOrCreateAssociation(QName assocName) throws SchemaException;
 
     default ShadowAssociationsContainer add(QName attributeName, ShadowAssociationValue value) throws SchemaException {
         findOrCreateAssociation(attributeName)
@@ -82,9 +90,10 @@ public interface ShadowAssociationsContainer extends ShadowItemsContainer, Prism
         return this;
     }
 
-    default ShadowAssociationsContainer add(QName attributeName, AbstractShadow referencedShadow) throws SchemaException {
+    default ShadowAssociationsContainer add(QName attributeName, AbstractShadow associationShadow) throws SchemaException {
         findOrCreateAssociation(attributeName)
-                .add(ShadowAssociationValue.of(referencedShadow, false));
+                .createNewValue()
+                .fillFromAssociationObject(associationShadow);
         return this;
     }
 

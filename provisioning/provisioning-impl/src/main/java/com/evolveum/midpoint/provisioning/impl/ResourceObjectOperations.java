@@ -9,7 +9,7 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
 
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 
@@ -34,7 +34,7 @@ public class ResourceObjectOperations {
     @NotNull private final Collection<Operation> ucfOperations = new ArrayList<>();
 
     /** We store the current state here if there is a need to avoid duplicate values. */
-    private ExistingResourceObject currentResourceObject;
+    private ExistingResourceObjectShadow currentResourceObject;
 
     /** The context in which the operations will be carried out. */
     @NotNull private final ProvisioningContext resourceObjectContext;
@@ -43,11 +43,11 @@ public class ResourceObjectOperations {
         this.resourceObjectContext = resourceObjectContext;
     }
 
-    public @Nullable ExistingResourceObject getCurrentResourceObject() {
+    public @Nullable ExistingResourceObjectShadow getCurrentResourceObject() {
         return currentResourceObject;
     }
 
-    public void setCurrentResourceObject(ExistingResourceObject currentResourceObject) {
+    public void setCurrentResourceObject(ExistingResourceObjectShadow currentResourceObject) {
         this.currentResourceObject = currentResourceObject;
     }
 

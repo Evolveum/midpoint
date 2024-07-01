@@ -59,7 +59,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
     final ShadowUpdater shadowUpdater = ShadowsLocalBeans.get().shadowUpdater;
     private final ProvisioningContextFactory ctxFactory = ShadowsLocalBeans.get().ctxFactory;
     final ResourceObjectConverter resourceObjectConverter = ShadowsLocalBeans.get().resourceObjectConverter;
-    final EntitlementsHelper entitlementsHelper = ShadowsLocalBeans.get().entitlementsHelper;
+    final EntitlementsHelper associationsHelper = ShadowsLocalBeans.get().entitlementsHelper;
     final ErrorHandlerLocator errorHandlerLocator = ShadowsLocalBeans.get().errorHandlerLocator;
     private final EventDispatcher eventDispatcher = ShadowsLocalBeans.get().eventDispatcher;
     final Clock clock = ShadowsLocalBeans.get().clock;

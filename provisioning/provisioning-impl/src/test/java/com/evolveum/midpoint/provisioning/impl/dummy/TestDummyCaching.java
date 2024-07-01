@@ -255,7 +255,7 @@ public class TestDummyCaching extends TestDummy {
 
             assertAttribute(shadow, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
             assertAttribute(shadow, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
-            Collection<ShadowSimpleAttribute<?>> attributes = shadow.getAttributes();
+            Collection<ShadowSimpleAttribute<?>> attributes = shadow.getSimpleAttributes();
             assertEquals("Unexpected number of attributes", 7, attributes.size());
 
             var shadowRepo = assertRepoShadowNew(ACCOUNT_WILL_OID)

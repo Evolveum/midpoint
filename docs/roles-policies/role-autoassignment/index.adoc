@@ -77,12 +77,7 @@ However, even complex role autoassignment cases can be handled by using xref:/mi
             <assignmentTargetSearch>
                 <targetType>RoleType</targetType>
                 <filter>
-                    <q:equal>
-                        <q:path>name</q:path>
-                        <expression>
-                            <path>$organization</path>
-                        </expression>
-                    </q:equal>
+                    <q:text>name = $organization</q:text>
                 </filter>
             </assignmentTargetSearch>
         </expression>

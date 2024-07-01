@@ -229,7 +229,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
                 deltaBean.setObjectType(ShadowType.COMPLEX_TYPE);
             }
             delta = DeltaConvertor.createObjectDelta(deltaBean, getPrismContext());
-            definitionApplicator.applyTo(delta);
+            definitionApplicator.applyToDelta(delta);
         } else {
             delta = null;
         }
@@ -247,7 +247,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         ShadowType resourceObjectBean = changeBean.getObject();
         UcfResourceObject ucfResourceObject;
         if (resourceObjectBean != null) {
-            definitionApplicator.applyTo(resourceObjectBean);
+            definitionApplicator.applyToShadow(resourceObjectBean);
             ucfResourceObject = UcfResourceObject.of(resourceObjectBean, primaryIdentifierRealValue);
         } else {
             ucfResourceObject = null;

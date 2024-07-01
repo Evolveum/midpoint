@@ -279,10 +279,7 @@ Following example is looking up the group by name:
                     <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:equal>
-                                    <q:path>attributes/icfs:name</q:path>
-                                    <q:value>landlubers</q:value>
-                                </q:equal>
+                                <q:text>attributes/name = "landlubers"</q:text>
                             </filter>
                         </associationTargetSearch>
                     </expression>
@@ -313,14 +310,7 @@ In this case we can use algorithm to determine the name of the entitlement (grou
                     <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:equal>
-                                    <q:path>attributes/icfs:name</q:path>
-                                    <expression>
-                                        <script>
-                                            <code>'group-' + name</code>
-                                        </script>
-                                    </expression>
-                                </q:equal>
+                                <q:text>attributes/name = `"group-" + name`</q:text>
                             </filter>
                         </associationTargetSearch>
                     </expression>
