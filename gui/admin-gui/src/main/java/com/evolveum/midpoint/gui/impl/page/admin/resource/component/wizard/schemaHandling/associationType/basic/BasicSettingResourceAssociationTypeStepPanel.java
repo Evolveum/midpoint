@@ -57,6 +57,6 @@ public class BasicSettingResourceAssociationTypeStepPanel
 
     @Override
     public VisibleEnableBehaviour getBackBehaviour() {
-        return new VisibleBehaviour(() -> false);
+        return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
     }
 }
