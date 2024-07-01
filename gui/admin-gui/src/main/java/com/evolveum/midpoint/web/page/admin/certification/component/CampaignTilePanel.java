@@ -46,6 +46,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
     @Serial private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(CampaignTilePanel.class);
+    private static final String DOT_CLASS = CampaignTilePanel.class.getName() + ".";
 
     private static final String ID_SELECT_TILE_CHECKBOX = "selectTileCheckbox";
     private static final String ID_STATUS = "status";
@@ -120,7 +121,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         add(description);
 
         ProgressBarPanel progressBar = new ProgressBarPanel(ID_PROGRESS_BAR,
-                CertMiscUtil.createCampaignProgressBarModel(getCampaign(), getPrincipal()));
+                CertMiscUtil.createCampaignProgressBarModel(getCampaign(), getPrincipal(), getPageBase()));
         progressBar.setOutputMarkupId(true);
         add(progressBar);
 

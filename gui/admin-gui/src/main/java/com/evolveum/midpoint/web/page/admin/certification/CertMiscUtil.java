@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -49,6 +50,7 @@ public class CertMiscUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(CertMiscUtil.class);
     private static final String OPERATION_LOAD_CAMPAIGNS_OIDS = "loadCampaignsOids";
+    private static final String OPERATION_LOAD_CASES_COUNT = "loadCampaignsOids";
     private static final String OPERATION_RECORD_ACTION = "recordAction";
     private static final String OPERATION_RECORD_ACTION_SELECTED = "recordActionSelected";
 
@@ -67,26 +69,92 @@ public class CertMiscUtil {
     }
 
     public static LoadableModel<List<ProgressBar>> createCampaignProgressBarModel(AccessCertificationCampaignType campaign,
-            MidPointPrincipal principal) {
+            MidPointPrincipal principal, PageBase pageBase) {
         return new LoadableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected List<ProgressBar> load() {
-                float casesCount = campaign.getCase() != null ? campaign.getCase().size() : 0;
-                if (casesCount == 0) {
-                    ProgressBar allCasesProgressBar = new ProgressBar(casesCount, ProgressBar.State.SECONDARY);
-                    return Collections.singletonList(allCasesProgressBar);
-                }
-                float completed;
-                if (principal != null) {
-                    completed = CertCampaignTypeUtil.getCasesCompletedPercentageCurrStageCurrIterationByReviewer(campaign, principal.getOid());
-                } else {
-                    completed = CertCampaignTypeUtil.getCasesCompletedPercentageCurrStageCurrIteration(campaign);
-                }
+                int currentStage = campaign.getStageNumber();
 
-                ProgressBar completedProgressBar = new ProgressBar(completed, ProgressBar.State.INFO);
-                return Collections.singletonList(completedProgressBar);
+                //todo check if campaign is in review stage state
+
+                OperationResult result = new OperationResult(OPERATION_LOAD_CASES_COUNT);
+                Task task = pageBase.createSimpleTask(OPERATION_LOAD_CASES_COUNT);
+                try {
+                    ObjectQuery allWorkItems;
+                    if (principal != null) {
+                        allWorkItems = pageBase.getPrismContext().queryFor(AccessCertificationWorkItemType.class)
+                                .ownerId(campaign.getOid())
+                                .and()
+                                .item(AccessCertificationWorkItemType.F_STAGE_NUMBER)
+                                .eq(currentStage)
+                                .and()
+                                .item(ItemPath.create(AbstractWorkItemType.F_ASSIGNEE_REF))
+                                .ref(principal.getOid())
+                                .build();
+                    } else {
+                        allWorkItems = pageBase.getPrismContext().queryFor(AccessCertificationWorkItemType.class)
+                                .ownerId(campaign.getOid())
+                                .and()
+                                .item(AccessCertificationWorkItemType.F_STAGE_NUMBER)
+                                .eq(currentStage)
+                                .build();
+                    }
+
+                    Integer allItemsCount = pageBase.getModelService()
+                            .countContainers(AccessCertificationWorkItemType.class, allWorkItems, null, task, result);
+
+                    if (allItemsCount == null || allItemsCount == 0) {
+                        ProgressBar allItemsProgressBar = new ProgressBar(0, ProgressBar.State.SECONDARY);
+                        return Collections.singletonList(allItemsProgressBar);
+                    }
+
+                    ObjectQuery processedItemsQuery;
+                    if (principal != null) {
+                        processedItemsQuery = pageBase.getPrismContext().queryFor(AccessCertificationWorkItemType.class)
+                                .ownerId(campaign.getOid())
+                                .and()
+                                .item(AccessCertificationWorkItemType.F_STAGE_NUMBER)
+                                .eq(currentStage)
+                                .and()
+                                .item(ItemPath.create(AccessCertificationWorkItemType.F_ASSIGNEE_REF))
+                                .ref(principal.getOid())
+                                .and()
+                                .not()
+                                .item(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME)
+                                .isNull()
+                                .build();
+                    } else {
+                        processedItemsQuery = pageBase.getPrismContext().queryFor(AccessCertificationWorkItemType.class)
+                                .ownerId(campaign.getOid())
+                                .and()
+                                .item(AccessCertificationWorkItemType.F_STAGE_NUMBER)
+                                .eq(currentStage)
+                                .and()
+                                .not()
+                                .item(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME)
+                                .isNull()
+                                .build();
+                    }
+
+
+                    Integer processedItemsCount = pageBase.getModelService()
+                            .countContainers(AccessCertificationWorkItemType.class, processedItemsQuery, null, task, result);
+
+                    if (processedItemsCount == null) {
+                        ProgressBar progressBar = new ProgressBar(0, ProgressBar.State.SECONDARY);
+                        return Collections.singletonList(progressBar);
+                    }
+
+                    float completed = (float) processedItemsCount / allItemsCount;
+                    ProgressBar completedProgressBar = new ProgressBar(completed, ProgressBar.State.INFO);
+                    return Collections.singletonList(completedProgressBar);
+                } catch (Exception ex) {
+                    LOGGER.error("Couldn't count certification cases", ex);
+                    pageBase.showResult(result);
+                }
+                return Collections.emptyList();
             }
         };
     }

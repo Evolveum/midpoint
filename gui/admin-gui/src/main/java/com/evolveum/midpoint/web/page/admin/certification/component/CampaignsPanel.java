@@ -190,12 +190,12 @@ public class CampaignsPanel extends BasePanel {
                 return getCampaignsStorage();
             }
 
-            @Override
-            public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
-                return  SchemaService.get().getOperationOptionsBuilder()
-                                .item(AccessCertificationCampaignType.F_CASE).retrieve(RetrieveOption.INCLUDE)
-                                .build();
-            }
+//            @Override
+//            public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+//                return  SchemaService.get().getOperationOptionsBuilder()
+//                                .item(AccessCertificationCampaignType.F_CASE).retrieve(RetrieveOption.INCLUDE)
+//                                .build();
+//            }
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
                 return getCustomCampaignsQuery();
