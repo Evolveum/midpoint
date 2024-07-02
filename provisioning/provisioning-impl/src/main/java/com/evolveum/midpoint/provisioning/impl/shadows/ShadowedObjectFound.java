@@ -18,7 +18,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.AbstractLazilyInitializableResourceEntity;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectFound;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -124,7 +124,7 @@ public class ShadowedObjectFound extends AbstractLazilyInitializableShadowedEnti
                 return repoShadow.getBean();
             }
         }
-        ExistingResourceObject resourceObject = getExistingResourceObjectRequired();
+        ExistingResourceObjectShadow resourceObject = getExistingResourceObjectRequired();
         var resourceObjectBean = resourceObject.getBean();
         if (resourceObjectBean.getName() == null) {
             // most probably the case, as the resource objects do not have prism object names
@@ -171,7 +171,7 @@ public class ShadowedObjectFound extends AbstractLazilyInitializableShadowedEnti
 
     /** The resource object as obtained from the resource object converter. It has no connection to the repo. */
     @Override
-    public @NotNull ExistingResourceObject getExistingResourceObjectRequired() {
+    public @NotNull ExistingResourceObjectShadow getExistingResourceObjectRequired() {
         return resourceObjectFound.getResourceObject();
     }
 

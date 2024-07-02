@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class SimplePreInboundsContextImpl<T extends Containerable>
         implements PreInboundsContext<T> {
 
-    @NotNull private final ShadowType shadowedResourceObject;
+    @NotNull private final ShadowLikeValue shadowLikeValue;
 
     @NotNull private final ResourceType resource;
 
@@ -49,18 +49,18 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
 
     @NotNull private final ResourceObjectInboundDefinition inboundDefinition;
 
-    @Nullable private final ShadowReferenceAttributeDefinition owningAssociationDefinition;
+    @Nullable private final ShadowAssociationDefinition owningAssociationDefinition;
 
     public SimplePreInboundsContextImpl(
-            @NotNull ShadowType shadowedResourceObject,
+            @NotNull ShadowLikeValue shadowLikeValue,
             @NotNull ResourceType resource,
             @NotNull T preFocus,
             @Nullable SystemConfigurationType systemConfiguration,
             @NotNull Task task,
             @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
-            @Nullable ShadowReferenceAttributeDefinition owningAssociationDefinition) {
-        this.shadowedResourceObject = shadowedResourceObject;
+            @Nullable ShadowAssociationDefinition owningAssociationDefinition) {
+        this.shadowLikeValue = shadowLikeValue;
         this.resource = resource;
         this.preFocus = preFocus;
         this.systemConfiguration = systemConfiguration;
@@ -71,8 +71,8 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
     }
 
     @Override
-    public @NotNull ShadowType getShadowedResourceObject() {
-        return shadowedResourceObject;
+    public @NotNull ShadowLikeValue getShadowLikeValue() {
+        return shadowLikeValue;
     }
 
     public @NotNull T getPreFocus() {
@@ -109,7 +109,7 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
     }
 
     @Override
-    public @Nullable ShadowReferenceAttributeDefinition getOwningAssociationDefinition() {
+    public @Nullable ShadowAssociationDefinition getOwningAssociationDefinition() {
         return owningAssociationDefinition;
     }
 
@@ -127,7 +127,7 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
     @Override
     public String toString() {
         return "SimplePreInboundsContext for " +
-                shadowedResourceObject +
+                shadowLikeValue +
                 " on " + resource.getName() +
                 " of " + objectDefinition.getTypeIdentification();
     }
@@ -135,7 +135,7 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "shadowedResourceObject", shadowedResourceObject, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "shadowedResourceObject", shadowLikeValue, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "resource", resource, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "objectTypeDefinition", objectDefinition, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "systemConfiguration", systemConfiguration, indent + 1);

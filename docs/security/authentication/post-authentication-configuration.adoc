@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2018-06-08T16:17:09.351+02:00
 :page-wiki-metadata-modify-user: katkav
 :page-wiki-metadata-modify-date: 2018-09-25T10:01:53.249+02:00
-:page-since: "3.8.1"
 :page-upkeep-status: yellow
 :page-toc: top
 
@@ -20,7 +19,7 @@ This configuration is described below.
 
 == Configure post-authentication flow
 
-Since midPoint 3.7 there has been added support for self registration and self post-registration.
+MidPoint provides support for self registration and self post-registration.
 The self post-registration is very similar to the post-authentication flow.
 The configuration of both are made in security policy.
 To enable post-authentication you will need to add the following snippet to the system configuration.
@@ -79,11 +78,7 @@ Basically, according to the configuration as shown below we can enforce other li
 			<forcedAssignment>
             	<targetType>RoleType</targetType>
             	<filter>
-                	<q:equal>
-                    	<q:matching>polyStringNorm</q:matching>
-                    	<q:path>name</q:path>
-                     	<q:value>post Authentication</q:value>
-                  	</q:equal>
+                    <q:text>name matches (norm = 'post authentication')</q:text>
                	</filter>
             </forcedAssignment>
 			<activeAssignments>false</activeAssignments>

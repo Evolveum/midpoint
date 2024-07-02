@@ -32,7 +32,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
@@ -100,7 +100,7 @@ public class ProvisioningUtil {
 
     public static <T> PropertyDelta<T> narrowPropertyDelta(
             @NotNull PropertyDelta<T> propertyDelta,
-            @NotNull ResourceObject currentObject,
+            @NotNull ResourceObjectShadow currentObject,
             QName overridingMatchingRuleQName,
             MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         ItemDefinition<?> propertyDef = propertyDelta.getDefinition();
@@ -140,17 +140,8 @@ public class ProvisioningUtil {
         return filteredDelta;
     }
 
-    public static @NotNull ResourceSchema getResourceSchema(@NotNull ResourceType resource)
-            throws SchemaException, ConfigurationException {
-        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        if (refinedSchema == null) {
-            throw new ConfigurationException("No schema for " + resource);
-        }
-        return refinedSchema;
-    }
-
     public static boolean isAddShadowEnabled(
-            Collection<ResourceObjectPattern> protectedAccountPatterns, ResourceObject object, OperationResult result)
+            Collection<ResourceObjectPattern> protectedAccountPatterns, ResourceObjectShadow object, OperationResult result)
             throws SchemaException {
         return getEffectiveProvisioningPolicy(protectedAccountPatterns, object, result).getAdd().isEnabled();
     }
@@ -393,6 +384,40 @@ public class ProvisioningUtil {
         }
         if (InternalsConfig.encryptionChecks) {
             CryptoUtil.checkEncrypted(shadow);
+        }
+    }
+
+    /**
+     * The following situation may happen:
+     *
+     * A shadow is fetched from the resource. The default definition for its object class contains a definition of
+     * a simulated legacy association, but (after application of correct object type) the given object type does not contain it.
+     *
+     * We should ignore/remove such attributes. This method detects them.
+     */
+    public static boolean isExtraLegacyReferenceAttribute(
+            @NotNull ShadowAttribute<?, ?, ?, ?> attribute, @NotNull ResourceObjectDefinition newDefinition) {
+        if (!(attribute instanceof ShadowReferenceAttribute refAttr)) {
+            return false;
+        }
+        var refAttrDef = refAttr.getDefinitionRequired();
+        var refAttrName = refAttrDef.getItemName();
+        var simulationDefinition = refAttrDef.getSimulationDefinition();
+        return simulationDefinition != null
+                && simulationDefinition.isLegacy()
+                && newDefinition.findAttributeDefinition(refAttrName) == null;
+    }
+
+    /** See {@link #isExtraLegacyReferenceAttribute(ShadowAttribute, ResourceObjectDefinition)}. */
+    public static void removeExtraLegacyReferenceAttributes(
+            @NotNull AbstractShadow shadow, @NotNull ResourceObjectDefinition newDefinition) {
+        var attributesContainer = shadow.getAttributesContainer();
+        for (var refAttr : attributesContainer.getReferenceAttributes()) {
+            if (isExtraLegacyReferenceAttribute(refAttr, newDefinition)) {
+                LOGGER.trace("Removing extra simulated legacy reference attribute {}, as it does not exist in {}",
+                        refAttr.getElementName(), newDefinition);
+                attributesContainer.remove((ShadowAttribute<?, ?, ?, ?>) refAttr);
+            }
         }
     }
 }

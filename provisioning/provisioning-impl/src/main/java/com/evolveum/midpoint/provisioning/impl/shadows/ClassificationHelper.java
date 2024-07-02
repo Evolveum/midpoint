@@ -25,7 +25,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.classification.ResourceObjectClassifier;
 import com.evolveum.midpoint.provisioning.impl.shadows.classification.ShadowTagGenerator;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
@@ -64,7 +64,7 @@ class ClassificationHelper {
     ResourceObjectClassification classify(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
-            @NotNull ExistingResourceObject resourceObject,
+            @NotNull ExistingResourceObjectShadow resourceObject,
             @NotNull OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
@@ -104,7 +104,7 @@ class ClassificationHelper {
      * In particular, we hope that the object class is roughly OK, and things like entitlement, credentials, and so on
      * are not needed.
      */
-    private ShadowType combine(ExistingResourceObject resourceObject, RepoShadow shadow)
+    private ShadowType combine(ExistingResourceObjectShadow resourceObject, RepoShadow shadow)
             throws SchemaException {
         ShadowType combined = shadow.getBean().clone();
         combined.asPrismObject().removeContainer(ShadowType.F_ATTRIBUTES);

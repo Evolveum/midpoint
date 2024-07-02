@@ -175,13 +175,13 @@ public class TestMetaMeta extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        String alphaRoleOid = addGreekRole(GROUP_BETA_NAME, task, result);
+        String betaRoleOid = addGreekRole(GROUP_BETA_NAME, task, result);
 
         // THEN
         assertSuccess(result);
 
-        rememberGroupRoleOid(GROUP_BETA_NAME, alphaRoleOid);
-        readAndAssertGreekGroupRole(alphaRoleOid, GROUP_BETA_NAME);
+        rememberGroupRoleOid(GROUP_BETA_NAME, betaRoleOid);
+        readAndAssertGreekGroupRole(betaRoleOid, GROUP_BETA_NAME);
     }
 
     @Test
@@ -191,7 +191,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        String alphaRoleOid = addLatinkRole(GROUP_A_NAME, task, result);
+        String alphaRoleOid = addLatinRole(GROUP_A_NAME, task, result);
 
         // THEN
         assertSuccess(result);
@@ -549,28 +549,23 @@ public class TestMetaMeta extends AbstractRbacTest {
         return role;
     }
 
-    private String addGreekRole(String roleName, Task task, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        return addGrupRole(roleName, ROLE_META_GREEK_GROUP_OID, task, result);
+    private String addGreekRole(String roleName, Task task, OperationResult result) throws CommonException {
+        return addGroupRole(roleName, ROLE_META_GREEK_GROUP_OID, task, result);
     }
 
-    private String addLatinkRole(String roleName, Task task, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        return addGrupRole(roleName, ROLE_META_LATIN_GROUP_OID, task, result);
+    private String addLatinRole(String roleName, Task task, OperationResult result) throws CommonException {
+        return addGroupRole(roleName, ROLE_META_LATIN_GROUP_OID, task, result);
     }
 
-    private String addGrupRole(String roleName, String metaroleOid, Task task, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private String addGroupRole(String roleName, String metaroleOid, Task task, OperationResult result) throws CommonException {
         PrismObject<RoleType> role = createGroupRole(roleName, metaroleOid);
         return addObject(role, task, result);
     }
 
     private PrismObject<RoleType> createGroupRole(String roleName, String metaroleOid) throws SchemaException {
         PrismObject<RoleType> role = createObject(RoleType.class, roleName);
-        RoleType roleType = role.asObjectable();
-        roleType.beginAssignment()
+        role.asObjectable().beginAssignment()
                 .targetRef(metaroleOid, RoleType.COMPLEX_TYPE);
         return role;
     }
-
 }

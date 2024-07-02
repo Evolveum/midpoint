@@ -99,12 +99,7 @@ Let us do that in link:https://github.com/Evolveum/midpoint-samples/tree/master/
                 <objectClass>ri:AccountObjectClass</objectClass>
                 <filter>
                     <q:description>Everyone with non-empty last name is a person</q:description>
-                    <q:not>
-                        <q:equal>
-                            <q:path>attributes/ri:lastname</q:path>
-                            <!-- empty value -->
-                        </q:equal>
-                    </q:not>
+                    <q:text>attributes/lastname exists</q:text>
                 </filter>
             </delineation>
         </objectType>
@@ -115,10 +110,7 @@ Let us do that in link:https://github.com/Evolveum/midpoint-samples/tree/master/
                 <objectClass>ri:AccountObjectClass</objectClass>
                 <filter>
                     <q:description>Everyone with empty last name is not a person</q:description>
-                    <q:equal>
-                        <q:path>attributes/ri:lastname</q:path>
-                        <!-- empty value -->
-                    </q:equal>
+                    <q:text>attributes/lastname not exists</q:text>
                 </filter>
             </delineation>
         </objectType>
@@ -319,12 +311,7 @@ Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samp
                 <objectClass>ri:AccountObjectClass</objectClass>
                 <filter>
                     <q:description>Everyone with non-empty last name is a person</q:description>
-                    <q:not>
-                        <q:equal>
-                            <q:path>attributes/ri:lastname</q:path>
-                            <!-- empty value -->
-                        </q:equal>
-                    </q:not>
+                    <q:text>attributes/lastname exists</q:text>
                 </filter>
             </delineation>
             <attribute>

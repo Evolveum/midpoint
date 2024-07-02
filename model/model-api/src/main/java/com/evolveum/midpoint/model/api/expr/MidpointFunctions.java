@@ -1580,4 +1580,27 @@ public interface MidpointFunctions {
      * (So, previously it existed and was effectively enabled.)
      */
     boolean isFocusDeactivated();
+
+    /**
+     * Returns the object reference for a given association value.
+     * Assumes that the association has no content and exactly one object.
+     * (It it does not hold, the method returns null.)
+     */
+    @Nullable ObjectReferenceType getObjectRef(@Nullable ShadowAssociationValueType associationValueBean);
+
+    /** Returns the OID of the reference returned by {@link #getObjectRef(ShadowAssociationValueType)}. */
+    default @Nullable String getObjectOid(@Nullable ShadowAssociationValueType associationValueBean) {
+        return Referencable.getOid(
+                getObjectRef(associationValueBean));
+    }
+
+    /**
+     * Returns the name of the object of given (no-content) association value (if present there).
+     *
+     * @see #getObjectRef(ShadowAssociationValueType)
+     */
+    default @Nullable PolyStringType getObjectName(@Nullable ShadowAssociationValueType associationValueBean) {
+        var ref = getObjectRef(associationValueBean);
+        return ref != null ? ref.getTargetName() : null;
+    }
 }

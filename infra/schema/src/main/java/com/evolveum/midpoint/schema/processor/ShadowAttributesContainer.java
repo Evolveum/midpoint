@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.processor;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
@@ -33,7 +34,7 @@ public interface ShadowAttributesContainer extends ShadowItemsContainer, PrismCo
             if (item instanceof PrismProperty<?> property) {
                 attributesContainer.add(
                         resourceObjectDefinition
-                                .findSimpleAttributeDefinitionRequired(property.getElementName())
+                                .findAttributeDefinitionRequired(property.getElementName())
                                 .instantiateFrom(property));
             } else {
                 throw new SchemaException(
@@ -46,24 +47,24 @@ public interface ShadowAttributesContainer extends ShadowItemsContainer, PrismCo
 
     static ShadowAttributesContainerImpl createEmptyContainer(
             QName elementName, ResourceObjectDefinition resourceObjectDefinition) {
-        ResourceAttributeContainerDefinition attributesContainerDefinition =
-                new ResourceAttributeContainerDefinitionImpl(
+        ShadowAttributesContainerDefinition attributesContainerDefinition =
+                new ShadowAttributesContainerDefinitionImpl(
                         elementName,
                         resourceObjectDefinition.getAttributesComplexTypeDefinition());
         return new ShadowAttributesContainerImpl(elementName, attributesContainerDefinition);
     }
 
     @Override
-    ResourceAttributeContainerDefinition getDefinition();
+    ShadowAttributesContainerDefinition getDefinition();
 
-    default @NotNull ResourceAttributeContainerDefinition getDefinitionRequired() {
+    default @NotNull ShadowAttributesContainerDefinition getDefinitionRequired() {
         return MiscUtil.stateNonNull(
                 getDefinition(),
                 () -> "No definition in " + this);
     }
 
     default @NotNull ResourceObjectDefinition getResourceObjectDefinitionRequired() {
-        ResourceAttributeContainerDefinition definition = getDefinitionRequired();
+        ShadowAttributesContainerDefinition definition = getDefinitionRequired();
         return MiscUtil.stateNonNull(
                 definition.getResourceObjectDefinition(),
                 () -> "No resource object definition in " + definition);
@@ -76,13 +77,26 @@ public interface ShadowAttributesContainer extends ShadowItemsContainer, PrismCo
      *
      * The order of attributes is insignificant.
      *
-     * The returned set is imutable! Any change to it will be ignored.
+     * The returned set is immutable.
      *
      * @return set of resource object attributes.
      */
-    @NotNull Collection<ShadowSimpleAttribute<?>> getAttributes();
+    @NotNull Collection<ShadowSimpleAttribute<?>> getSimpleAttributes();
 
-    void add(ShadowSimpleAttribute<?> attribute) throws SchemaException;
+    /** Returns a detached, immutable list. */
+    @NotNull Collection<ShadowReferenceAttribute> getReferenceAttributes();
+
+    @NotNull Collection<ShadowAttribute<?, ?, ?, ?>> getAttributes();
+
+    void add(ShadowAttribute<?, ?, ?, ?> attribute) throws SchemaException;
+
+    /**
+     * This method exists just to avoid confusion between {@link #add(Item)} and {@link #add(ShadowAttribute)}
+     * for values that conform to both of these signatures (e.g., {@link ShadowSimpleAttribute}).
+     */
+    default void addAttribute(ShadowAttribute<?, ?, ?, ?> attribute) throws SchemaException {
+        add(attribute);
+    }
 
 //    /**
 //     * Adds a {@link PrismProperty}, converting to {@link ResourceAttribute} if needed.
@@ -179,10 +193,12 @@ public interface ShadowAttributesContainer extends ShadowItemsContainer, PrismCo
      *            attribute name to find.
      * @return found attribute or null
      */
-    <X> ShadowSimpleAttribute<X> findAttribute(QName attributeQName);
+    <X> ShadowSimpleAttribute<X> findSimpleAttribute(QName attributeQName);
+
+    ShadowReferenceAttribute findReferenceAttribute(QName attributeQName);
 
     default boolean containsAttribute(QName attributeName) {
-        return findAttribute(attributeName) != null;
+        return findSimpleAttribute(attributeName) != null;
     }
 
     /**
@@ -194,20 +210,37 @@ public interface ShadowAttributesContainer extends ShadowItemsContainer, PrismCo
      *            attribute definition to find.
      * @return found attribute or null
      */
-    <X> ShadowSimpleAttribute<X> findAttribute(ShadowSimpleAttributeDefinition attributeDefinition);
+    <X> ShadowSimpleAttribute<X> findSimpleAttribute(ShadowSimpleAttributeDefinition attributeDefinition);
 
-    <X> ShadowSimpleAttribute<X> findOrCreateAttribute(ShadowSimpleAttributeDefinition attributeDefinition) throws SchemaException;
+    <X> ShadowSimpleAttribute<X> findOrCreateSimpleAttribute(ShadowSimpleAttributeDefinition attributeDefinition) throws SchemaException;
 
-    <X> ShadowSimpleAttribute<X> findOrCreateAttribute(QName attributeName) throws SchemaException;
+    <X> ShadowSimpleAttribute<X> findOrCreateSimpleAttribute(QName attributeName) throws SchemaException;
 
-    default ShadowAttributesContainer add(QName attributeName, Object realValue) throws SchemaException {
-        findOrCreateAttribute(attributeName)
+    ShadowReferenceAttribute findOrCreateReferenceAttribute(QName attributeName) throws SchemaException;
+
+    //ShadowAttribute<?, ?, ?, ?> findOrCreateAttribute(QName attributeName) throws SchemaException;
+
+    default ShadowAttributesContainer addSimpleAttribute(QName attributeName, Object realValue) throws SchemaException {
+        findOrCreateSimpleAttribute(attributeName)
                 .setRealValue(realValue);
         return this;
+    }
+
+    default ShadowAttributesContainer addReferenceAttribute(QName attributeName, ShadowReferenceAttributeValue value)
+            throws SchemaException {
+        findOrCreateReferenceAttribute(attributeName).add(value);
+        return this;
+    }
+
+    default ShadowAttributesContainer addReferenceAttribute(QName attributeName, AbstractShadow shadow, boolean full)
+            throws SchemaException {
+        return addReferenceAttribute(attributeName, ShadowReferenceAttributeValue.fromShadow(shadow, full));
     }
 
     <T> boolean contains(ShadowSimpleAttribute<T> attr);
 
     @Override
     ShadowAttributesContainer clone();
+
+    void remove(ShadowAttribute<?, ?, ?, ?> item);
 }

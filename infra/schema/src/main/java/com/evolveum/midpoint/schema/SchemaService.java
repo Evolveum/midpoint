@@ -8,6 +8,8 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.polystring.NormalizerRegistry;
 
+import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
+
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
@@ -34,6 +36,7 @@ public class SchemaService {
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
     @Autowired private NormalizerRegistry normalizerRegistry;
+    @Autowired private ResourceSchemaRegistry resourceSchemaRegistry;
 
     private static SchemaService instance;
 
@@ -70,6 +73,10 @@ public class SchemaService {
 
     public @NotNull MatchingRuleRegistry matchingRuleRegistry() {
         return matchingRuleRegistry;
+    }
+
+    public @NotNull ResourceSchemaRegistry resourceSchemaRegistry() {
+        return resourceSchemaRegistry;
     }
 
     public GetOperationOptionsBuilder getOperationOptionsBuilder() {

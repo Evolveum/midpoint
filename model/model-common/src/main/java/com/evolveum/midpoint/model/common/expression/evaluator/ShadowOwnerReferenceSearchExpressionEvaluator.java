@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -75,11 +75,11 @@ class ShadowOwnerReferenceSearchExpressionEvaluator
                 configCheck(expressionEvaluatorBean.getFilter().isEmpty(),
                         "Filter is not supported in shadow owner reference search expression: %s",
                         lazy(() -> shortDebugDump()));
-                var input = vtCtx.getVariablesMap().getValue(ExpressionConstants.VAR_INPUT, ShadowAssociationValue.class);
+                var input = vtCtx.getVariablesMap().getValue(ExpressionConstants.VAR_INPUT, ShadowReferenceAttributeValue.class);
                 if (input == null) {
                     return List.of();
                 }
-                var shadowRef = input.getShadowRef();
+                var shadowRef = input.asObjectReferenceType();
                 return List.of(
                         prismContext.queryFor(targetTypeClass)
                                 .item(FocusType.F_LINK_REF)

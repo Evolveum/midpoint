@@ -44,18 +44,26 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
 
     private static final String ATTR_ORGANIZATION = "organization";
 
-    private static final DummyTestResource RESOURCE_DUMMY_ALPHA = new DummyTestResource(TEST_DIR, "resource-dummy-alpha.xml", "8f6b271a-c279-4b1b-bb91-e675c67be243", "alpha");
+    private static final DummyTestResource RESOURCE_DUMMY_ALPHA =
+            new DummyTestResource(TEST_DIR, "resource-dummy-alpha.xml", "8f6b271a-c279-4b1b-bb91-e675c67be243",
+                    "alpha");
 
-    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_INCREMENTING = TestObject.file(TEST_DIR, "user-template-incrementing.xml", "bf0cf9b7-4c38-4ff4-afc6-c9cc9bc08490");
-    private static final TestObject<UserType> USER_FRANZ = TestObject.file(TEST_DIR, "user-franz.xml", "ac42084a-d780-4d32-ac02-bcc49bdc747b");
-    private static final TestObject<UserType> USER_FREDERIC = TestObject.file(TEST_DIR, "user-frederic.xml", "849d540c-d052-43c0-937a-1ca1cda0679e");
-    private static final TestObject<UserType> USER_JOHANN = TestObject.file(TEST_DIR, "user-johann.xml", "25fa06c6-04e2-4f9e-97c4-87fa5613bb15");
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_INCREMENTING =
+            TestObject.file(TEST_DIR, "user-template-incrementing.xml", "bf0cf9b7-4c38-4ff4-afc6-c9cc9bc08490");
+    private static final TestObject<UserType> USER_FRANZ =
+            TestObject.file(TEST_DIR, "user-franz.xml", "ac42084a-d780-4d32-ac02-bcc49bdc747b");
+    private static final TestObject<UserType> USER_FREDERIC =
+            TestObject.file(TEST_DIR, "user-frederic.xml", "849d540c-d052-43c0-937a-1ca1cda0679e");
+    private static final TestObject<UserType> USER_JOHANN =
+            TestObject.file(TEST_DIR, "user-johann.xml", "25fa06c6-04e2-4f9e-97c4-87fa5613bb15");
 
     private static final File ASSIGNMENT_FREDERIC_ALPHA_FILE = new File(TEST_DIR, "assignment-frederic-alpha.xml");
     private static final File ASSIGNMENT_JOHANN_ALPHA_FILE = new File(TEST_DIR, "assignment-johann-alpha.xml");
 
     // ranges
-    private static final DummyTestResource RESOURCE_DUMMY_RANGES_DIRECT = new DummyTestResource(TEST_DIR, "resource-dummy-ranges-direct.xml", "0164ac9c-2727-44cf-be0f-96c4f600017c", "ranges-direct",
+    private static final DummyTestResource RESOURCE_DUMMY_RANGES_DIRECT = new DummyTestResource(
+            TEST_DIR, "resource-dummy-ranges-direct.xml", "0164ac9c-2727-44cf-be0f-96c4f600017c",
+            "ranges-direct",
             controller -> {
                 controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                         ATTR_ORGANIZATION, String.class, false, true);
@@ -63,7 +71,9 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
                         DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true);
             });
 
-    private static final DummyTestResource RESOURCE_DUMMY_RANGES_ROLE = new DummyTestResource(TEST_DIR, "resource-dummy-ranges-role.xml", "96b44c65-011f-489c-bcdb-c5f9a2502942", "ranges-role",
+    private static final DummyTestResource RESOURCE_DUMMY_RANGES_ROLE = new DummyTestResource(
+            TEST_DIR, "resource-dummy-ranges-role.xml", "96b44c65-011f-489c-bcdb-c5f9a2502942",
+            "ranges-role",
             controller -> {
                 controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                         ATTR_ORGANIZATION, String.class, false, true);

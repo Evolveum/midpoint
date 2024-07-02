@@ -8,7 +8,8 @@
 package com.evolveum.midpoint.model.impl.mining.utils;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.OutliersDetectionUtil.executeOutliersAnalysis;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionExecutionUtil.executeClusteringOutliersDetection;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionExecutionUtil.executeBasicOutlierDetection;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.ClusterExplanation.getClusterExplanationDescription;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.ClusterExplanation.resolveClusterName;
 
@@ -200,7 +201,7 @@ public class RoleAnalysisAlgorithmUtils {
         return clusterStatistic;
     }
 
-    private static void extractAttributeStatistics(
+    public static void extractAttributeStatistics(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull QName complexType,
             @NotNull Task task,
@@ -330,17 +331,28 @@ public class RoleAnalysisAlgorithmUtils {
 
         Set<String> elementsOid = new HashSet<>();
         Set<String> pointsSet = new HashSet<>();
+        Set<ObjectReferenceType> processedObjectsRef = new HashSet<>();
         for (DataPoint dataPoint : dataPoints) {
             handler.iterateActualStatus();
 
             Set<String> points = dataPoint.getProperties();
             pointsSet.addAll(points);
-            elementsOid.addAll(dataPoint.getMembers());
+
+            Set<String> members = dataPoint.getMembers();
+            elementsOid.addAll(members);
 
             int pointsSize = points.size();
             sumPoints += pointsSize;
             minVectorPoint = Math.min(minVectorPoint, pointsSize);
             maxVectorPoint = Math.max(maxVectorPoint, pointsSize);
+
+            for (String member : members) {
+                ObjectReferenceType objectReferenceType = new ObjectReferenceType();
+                objectReferenceType.setType(complexType);
+                objectReferenceType.setOid(member);
+                objectReferenceType.setDescription(dataPoint.getPointStatusIdentificator());
+                processedObjectsRef.add(objectReferenceType);
+            }
         }
 
         double meanPoints = (double) sumPoints / totalDataPoints;
@@ -350,15 +362,6 @@ public class RoleAnalysisAlgorithmUtils {
         double density = (sumPoints / (double) (elementSize * pointsSize)) * 100;
 
         PolyStringType name = PolyStringType.fromOrig(sessionTypeObjectCount + "_outliers");
-
-        Set<ObjectReferenceType> processedObjectsRef = new HashSet<>();
-        ObjectReferenceType objectReferenceType;
-        for (String element : elementsOid) {
-            objectReferenceType = new ObjectReferenceType();
-            objectReferenceType.setType(complexType);
-            objectReferenceType.setOid(element);
-            processedObjectsRef.add(objectReferenceType);
-        }
 
         ClusterStatistic clusterStatistic = new ClusterStatistic(name, processedObjectsRef, elementSize,
                 pointsSize, minVectorPoint, maxVectorPoint, meanPoints, density);
@@ -429,7 +432,7 @@ public class RoleAnalysisAlgorithmUtils {
         return clusterTypePrismObject;
     }
 
-    private static void resolveAttributeStatistics(@NotNull ClusterStatistic clusterStatistic,
+    public static void resolveAttributeStatistics(@NotNull ClusterStatistic clusterStatistic,
             @NotNull AnalysisClusterStatisticType roleAnalysisClusterStatisticType) {
         List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = clusterStatistic.getRoleAttributeAnalysisStructures();
         List<AttributeAnalysisStructure> userAttributeAnalysisStructures = clusterStatistic.getUserAttributeAnalysisStructures();
@@ -572,8 +575,22 @@ public class RoleAnalysisAlgorithmUtils {
             if (min == null) {
                 detectionOption.getFrequencyRange().setMin(0.01);
             }
-            Collection<RoleAnalysisOutlierType> roleAnalysisOutlierTypes = executeOutliersAnalysis(
-                    roleAnalysisService, cluster, session, analysisOption, task, result);
+
+            Collection<RoleAnalysisOutlierType> roleAnalysisOutlierTypes;
+
+            UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+            Boolean detailedAnalysis = false;
+            if (userModeOptions != null) {
+                detailedAnalysis = userModeOptions.getDetailedAnalysis();
+            }
+
+            if (cluster.getCategory().equals(RoleAnalysisClusterCategory.OUTLIERS) && detailedAnalysis) {
+                roleAnalysisOutlierTypes = executeClusteringOutliersDetection(
+                        roleAnalysisService, cluster, session, task);
+            } else {
+                roleAnalysisOutlierTypes = executeBasicOutlierDetection(
+                        roleAnalysisService, cluster, session, analysisOption, task);
+            }
 
             for (RoleAnalysisOutlierType roleAnalysisOutlierType : roleAnalysisOutlierTypes) {
                 roleAnalysisOutlierType.setTargetSessionRef(new ObjectReferenceType()
@@ -598,5 +615,4 @@ public class RoleAnalysisAlgorithmUtils {
             }
         }
     }
-
 }

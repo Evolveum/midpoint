@@ -161,7 +161,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         assertNotNull("Shadow not found", shadow);
         ShadowAttributesContainer shadowContainer = ShadowUtil.getAttributesContainer(shadow);
-        ShadowSimpleAttribute<String> initials = shadowContainer.findAttribute(new QName(NS_RESOURCE, "initials"));
+        ShadowSimpleAttribute<String> initials = shadowContainer.findSimpleAttribute(new QName(NS_RESOURCE, "initials"));
         assertEquals(initials.size(), 3, "Expected 3 values in attribute, but found " + initials.size());
 
         Collection<String> values = initials.getRealValues();
@@ -190,7 +190,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         assertNotNull("Shadow not found", shadow);
         ShadowAttributesContainer shadowContainer = ShadowUtil.getAttributesContainer(shadow);
-        ShadowSimpleAttribute<String> initials = shadowContainer.findAttribute(new QName(NS_RESOURCE, "initials"));
+        ShadowSimpleAttribute<String> initials = shadowContainer.findSimpleAttribute(new QName(NS_RESOURCE, "initials"));
         assertEquals(initials.size(), 3, "Expected 3 values in attribute, but found " + initials.size());
 
         Collection<String> values = initials.getRealValues();
@@ -219,7 +219,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         assertNotNull("Shadow not found", shadow);
         ShadowAttributesContainer shadowContainer = ShadowUtil.getAttributesContainer(shadow);
-        ShadowSimpleAttribute<String> initials = shadowContainer.findAttribute(new QName(NS_RESOURCE, "initials"));
+        ShadowSimpleAttribute<String> initials = shadowContainer.findSimpleAttribute(new QName(NS_RESOURCE, "initials"));
         assertEquals(initials.size(), 3, "Expected 3 values in attribute, but found " + initials.size());
 
         Collection<String> values = initials.getRealValues();

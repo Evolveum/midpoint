@@ -30,7 +30,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -96,7 +96,7 @@ class ShadowOperationPropagationHelper {
 
         if (aggregateDelta.isAdd()) {
             ShadowType shadowToAdd = aggregateDelta.getObjectToAdd().asObjectable();
-            ResourceObject objectToAdd = ResourceObject.fromBean(shadowToAdd, false, ctx.getObjectDefinitionRequired());
+            ResourceObjectShadow objectToAdd = ResourceObjectShadow.fromBean(shadowToAdd, false, ctx.getObjectDefinitionRequired());
             ShadowAddOperation.executeInPropagation(ctx, repoShadow, objectToAdd, sortedOperations, result);
         } else if (aggregateDelta.isModify()) {
             ShadowModifyOperation.executeInPropagation(ctx, repoShadow, aggregateDelta.getModifications(), sortedOperations, result);

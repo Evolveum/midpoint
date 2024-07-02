@@ -59,7 +59,7 @@ public class AbstractResourceObjectDefinitionConfigItem<B extends ResourceObject
                 ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
     }
 
-    public List<ResourceObjectAssociationConfigItem> getAssociations() {
+    public List<ResourceObjectAssociationConfigItem> getLegacyAssociations() {
         return children(
                 value().getAssociation(),
                 ResourceObjectAssociationConfigItem.class,
@@ -80,14 +80,14 @@ public class AbstractResourceObjectDefinitionConfigItem<B extends ResourceObject
         return single(matching, "Duplicate definition of attribute '%s' in %s", attrName, DESC);
     }
 
-    public @Nullable ResourceObjectAssociationConfigItem getAssociationDefinitionIfPresent(ItemName assocName)
-            throws ConfigurationException {
-        List<ResourceObjectAssociationConfigItem> matching = new ArrayList<>();
-        for (var assocDef : getAssociations()) {
-            if (QNameUtil.match(assocDef.getItemName(), assocName)) {
-                matching.add(assocDef);
-            }
-        }
-        return single(matching, "Duplicate definition of association '%s' in %s", assocName, DESC);
-    }
+//    public @Nullable ResourceObjectAssociationConfigItem getAssociationDefinitionIfPresent(ItemName assocName)
+//            throws ConfigurationException {
+//        List<ResourceObjectAssociationConfigItem> matching = new ArrayList<>();
+//        for (var assocDef : getAssociations()) {
+//            if (QNameUtil.match(assocDef.getItemName(), assocName)) {
+//                matching.add(assocDef);
+//            }
+//        }
+//        return single(matching, "Duplicate definition of association '%s' in %s", assocName, DESC);
+//    }
 }

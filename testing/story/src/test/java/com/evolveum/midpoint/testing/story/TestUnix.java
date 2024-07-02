@@ -2039,10 +2039,10 @@ public class TestUnix extends AbstractStoryTest {
         String dn = getDn(shadow);
         if (expectedUid != null) {
             ShadowSimpleAttribute<BigInteger> uidNumberAttr = ShadowUtil
-                    .getAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME));
+                    .getSimpleAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME));
             PrismAsserts.assertPropertyValue(uidNumberAttr, expectedUid);
             ShadowSimpleAttribute<BigInteger> gidNumberAttr = ShadowUtil
-                    .getAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME));
+                    .getSimpleAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME));
             PrismAsserts.assertPropertyValue(gidNumberAttr, expectedUid);
         }
 
@@ -2125,7 +2125,7 @@ public class TestUnix extends AbstractStoryTest {
                 shadowType.getAuxiliaryObjectClass(), OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME);
         //noinspection ConstantConditions
         String dn = getDn(shadow);
-        ShadowSimpleAttribute<BigInteger> gidNumberAttr = ShadowUtil.getAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME));
+        ShadowSimpleAttribute<BigInteger> gidNumberAttr = ShadowUtil.getSimpleAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME));
         PrismAsserts.assertPropertyValue(gidNumberAttr, BigInteger.valueOf(expectedGidNumber));
 
         Entry entry = openDJController.fetchEntry(dn);

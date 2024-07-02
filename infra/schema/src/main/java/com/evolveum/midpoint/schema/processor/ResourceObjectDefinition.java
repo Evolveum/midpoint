@@ -329,7 +329,7 @@ public interface ResourceObjectDefinition
     /**
      * Creates a blank, empty shadow.
      * It contains only the object class name and resource OID.
-     * Kind/intent are not set.
+     * Kind/intent are not set, even for object types (TODO WHY?!)
      */
     default AbstractShadow createBlankShadow() {
         try {
@@ -365,10 +365,10 @@ public interface ResourceObjectDefinition
     PrismObjectDefinition<ShadowType> getPrismObjectDefinition();
 
     /**
-     * Creates {@link ResourceAttributeContainerDefinition} with this definition as a complex type definition.
+     * Creates {@link ShadowAttributesContainerDefinition} with this definition as a complex type definition.
      */
-    default @NotNull ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
-        return new ResourceAttributeContainerDefinitionImpl(ShadowType.F_ATTRIBUTES, getAttributesComplexTypeDefinition());
+    default @NotNull ShadowAttributesContainerDefinition toShadowAttributesContainerDefinition() {
+        return new ShadowAttributesContainerDefinitionImpl(ShadowType.F_ATTRIBUTES, getAttributesComplexTypeDefinition());
     }
 
     default @NotNull ShadowAssociationsContainerDefinition toShadowAssociationsContainerDefinition() {
@@ -392,7 +392,7 @@ public interface ResourceObjectDefinition
 
     //region Diagnostics and administration
 
-    void trimTo(@NotNull Collection<ItemPath> paths);
+    void trimAttributesTo(@NotNull Collection<ItemPath> paths);
     /**
      * Executes some basic checks on this object type.
      * Moved from `validateObjectClassDefinition()` method in {@link ResourceTypeUtil}.
@@ -452,10 +452,10 @@ public interface ResourceObjectDefinition
     /**
      * Replaces a definition for given item name with a provided one.
      */
-    void replaceDefinition(@NotNull QName itemName, @Nullable ItemDefinition<?> newDefinition);
+    void replaceAttributeDefinition(@NotNull QName itemName, @Nullable ItemDefinition<?> newDefinition);
 
-    default void replaceDefinition(@NotNull ItemDefinition<?> newDefinition) {
-        replaceDefinition(newDefinition.getItemName(), newDefinition);
+    default void replaceAttributeDefinition(@NotNull ItemDefinition<?> newDefinition) {
+        replaceAttributeDefinition(newDefinition.getItemName(), newDefinition);
     }
 
     /**
@@ -514,7 +514,7 @@ public interface ResourceObjectDefinition
     /** Call {@link #getPrismObjectDefinition()} for the cached version. */
     default @NotNull PrismObjectDefinition<ShadowType> toPrismObjectDefinition() {
         return ObjectFactory.constructObjectDefinition(
-                toResourceAttributeContainerDefinition(),
+                toShadowAttributesContainerDefinition(),
                 toShadowAssociationsContainerDefinition());
     }
 
@@ -531,6 +531,14 @@ public interface ResourceObjectDefinition
 
     default @NotNull ShadowAttributesComplexTypeDefinition getAttributesComplexTypeDefinition() {
         return ShadowAttributesComplexTypeDefinitionImpl.of(this);
+    }
+
+    default @NotNull ShadowAttributesComplexTypeDefinition getSimpleAttributesComplexTypeDefinition() {
+        return ShadowSimpleAttributesComplexTypeDefinitionImpl.of(this);
+    }
+
+    default @NotNull ShadowAttributesComplexTypeDefinition getReferenceAttributesComplexTypeDefinition() {
+        return ShadowReferenceAttributesComplexTypeDefinitionImpl.of(this);
     }
 
     default @NotNull ShadowAssociationsComplexTypeDefinition getAssociationsComplexTypeDefinition() {

@@ -771,7 +771,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         } finally {
             result.close();
         }
-        return UcfAddReturnValue.of(ShadowUtil.getAttributes(shadow), result);
+        return UcfAddReturnValue.of(ShadowUtil.getSimpleAttributes(shadow), result);
     }
 
     private void validateShadowOnAdd(PrismObject<? extends ShadowType> shadow) throws SchemaException {
@@ -783,7 +783,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             throw new IllegalArgumentException("Cannot add a shadow without attributes container");
         }
         // This is a legacy check; to be reviewed (why don't we check UID in non-ConnId form like ri:entryUUID?)
-        if (attributesContainer.findAttribute(SchemaConstants.ICFS_UID) != null) {
+        if (attributesContainer.findSimpleAttribute(SchemaConstants.ICFS_UID) != null) {
             throw new SchemaException("ICF UID explicitly specified in attributes");
         }
     }

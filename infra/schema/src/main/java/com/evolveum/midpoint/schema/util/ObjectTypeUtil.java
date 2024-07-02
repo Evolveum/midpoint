@@ -307,6 +307,12 @@ public class ObjectTypeUtil {
         return ort;
     }
 
+    public static ObjectReferenceType createObjectRef(Referencable value) {
+        ObjectReferenceType ort = new ObjectReferenceType();
+        ort.setupReferenceValue(value.asReferenceValue());
+        return ort;
+    }
+
     public static ObjectReferenceType createObjectRef(ObjectType object) {
         if (object == null) {
             return null;
@@ -463,6 +469,13 @@ public class ObjectTypeUtil {
 
     public static ObjectReferenceType createObjectRef(@NotNull String oid, @NotNull ObjectTypes type) {
         return createObjectRef(oid, null, type);
+    }
+
+    public static ObjectReferenceType createObjectRef(
+            @NotNull String oid, @NotNull ObjectTypes type, @Nullable PrismObject<?> object) {
+        var ref = createObjectRef(oid, null, type);
+        ref.asReferenceValue().setObject(object);
+        return ref;
     }
 
     @Contract("null, _ -> null; !null, _ -> !null")

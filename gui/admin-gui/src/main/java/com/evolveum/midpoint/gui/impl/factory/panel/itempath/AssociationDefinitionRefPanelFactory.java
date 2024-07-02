@@ -71,7 +71,8 @@ public class AssociationDefinitionRefPanelFactory
 
         List<? extends ShadowReferenceAttributeDefinition> refAttributes = objectTypeDef.getReferenceAttributeDefinitions().stream()
                 .filter(referenceAttributeDef ->
-                                referenceAttributeDef.getObjectParticipants((CompleteResourceSchema) schema).values().stream()
+                                referenceAttributeDef
+                                        .getTargetParticipantTypes().stream()
                                         .anyMatch(participant -> QNameUtil.match(
                                                 objectClassOfObject,
                                                         participant.getObjectDefinition().getObjectClassName())))

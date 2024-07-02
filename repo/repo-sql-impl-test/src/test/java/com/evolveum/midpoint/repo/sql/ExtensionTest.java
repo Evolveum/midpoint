@@ -90,7 +90,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
     private RExtItem itemManager;
 
     private PrismObjectDefinition<ShadowType> shadowDefinition;
-    private ResourceAttributeContainerDefinition shadowAttributesDefinition;
+    private ShadowAttributesContainerDefinition shadowAttributesDefinition;
 
     @Override
     public void initSystem() throws Exception {
@@ -119,7 +119,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         attrMemberDefinition = classDef.findSimpleAttributeDefinitionRequired(new ItemName(NS_RI, "member"));
         attrManagerDefinition = classDef.findSimpleAttributeDefinitionRequired(new ItemName(NS_RI, "manager"));
 
-        shadowAttributesDefinition = classDef.toResourceAttributeContainerDefinition();
+        shadowAttributesDefinition = classDef.toShadowAttributesContainerDefinition();
         shadowDefinition = classDef.getPrismObjectDefinition();
         itemGroupName = extItemDictionary.createOrFindItemDefinition(attrGroupNameDefinition, false);
         itemMember = extItemDictionary.createOrFindItemDefinition(attrMemberDefinition, false);

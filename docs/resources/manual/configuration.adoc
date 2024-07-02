@@ -31,10 +31,7 @@ Following example shows the use of internal manual connector implementation:
     <name>Manual Resource</name>
     <connectorRef type="ConnectorType">
         <filter>
-            <q:equal>
-                <q:path>c:connectorType</q:path>
-                <q:value>ManualConnector</q:value>
-            </q:equal>
+            <q:text>connectorType = "ManualConnector"</q:text>
         </filter>
     </connectorRef>
 
@@ -80,10 +77,7 @@ The following example shows combination of midPoint built-in manual connector an
 
     <connectorRef type="ConnectorType">
         <filter>
-            <q:equal>
-                <q:path>c:connectorType</q:path>
-                <q:value>ManualConnector</q:value>
-            </q:equal>
+            <q:text>connectorType = "ManualConnector"</q:text>
         </filter>
     </connectorRef>
 
@@ -95,10 +89,7 @@ The following example shows combination of midPoint built-in manual connector an
         <name>csv</name>
         <connectorRef type="ConnectorType">
             <filter>
-                <q:equal>
-                    <q:path>c:connectorType</q:path>
-                    <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
-                </q:equal>
+                <q:text>connectorType = "com.evolveum.polygon.connector.csv.CsvConnector"</q:text>
             </filter>
         </connectorRef>
         <connectorConfiguration>

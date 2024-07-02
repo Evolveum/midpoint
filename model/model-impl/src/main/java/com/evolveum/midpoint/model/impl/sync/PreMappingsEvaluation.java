@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.*;
+
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -19,9 +21,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInbound
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SimplePreInboundsContextImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -63,7 +62,7 @@ public class PreMappingsEvaluation<T extends Containerable> {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         SimplePreInboundsContextImpl<F> preInboundsContext = new SimplePreInboundsContextImpl<>(
-                shadowedResourceObject,
+                AbstractShadow.of(shadowedResourceObject),
                 resource,
                 PrismContext.get().createObjectable(focusClass),
                 ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
@@ -79,6 +78,7 @@ public class PreMappingsEvaluation<T extends Containerable> {
     // FIXME TEMPORARY
     public static <C extends Containerable> void computePreFocusForAssociationValue(
             @NotNull ShadowAssociationValue associationValue,
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
             @NotNull ResourceType resource,
             @NotNull C targetObject,
@@ -87,14 +87,14 @@ public class PreMappingsEvaluation<T extends Containerable> {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         SimplePreInboundsContextImpl<C> preInboundsContext = new SimplePreInboundsContextImpl<>(
-                associationValue.getShadowBean(),
+                associationValue,
                 resource,
                 targetObject,
                 ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                 task,
-                associationValue.getAssociatedObjectDefinition(),
+                resourceObjectDefinition,
                 inboundDefinition,
-                (ShadowReferenceAttributeDefinition) associationValue.getDefinition());
+                (ShadowAssociationDefinition) associationValue.getDefinition());
         new PreMappingsEvaluation<>(preInboundsContext)
                 .evaluate(result);
     }
@@ -107,7 +107,7 @@ public class PreMappingsEvaluation<T extends Containerable> {
             ConfigurationException, ObjectNotFoundException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
-                .addParam("shadow", ctx.getShadowedResourceObject())
+                .addArbitraryObjectAsParam("shadow", ctx.getShadowLikeValue())
                 .build();
         try {
             MappingEvaluationEnvironment env =

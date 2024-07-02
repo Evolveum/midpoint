@@ -71,6 +71,18 @@ public class RoleAnalysisUtils {
                 .collect(Collectors.toList());
     }
 
+    public static @NotNull List<String> getRolesOidInducement(@NotNull RoleType object) {
+        List<AssignmentType> inducement = object.getInducement();
+
+        return inducement.stream()
+                .map(AssignmentType::getTargetRef)
+                .filter(Objects::nonNull)
+                .filter(targetRef -> targetRef.getType().equals(RoleType.COMPLEX_TYPE))
+                .map(AbstractReferencable::getOid)
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
     public static @NotNull List<String> getRoleMembershipRefAssignment(
             @NotNull AssignmentHolderType object,
             @NotNull QName complexType) {

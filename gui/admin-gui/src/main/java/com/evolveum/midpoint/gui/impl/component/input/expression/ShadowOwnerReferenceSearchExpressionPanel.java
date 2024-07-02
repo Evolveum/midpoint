@@ -94,7 +94,11 @@ public class ShadowOwnerReferenceSearchExpressionPanel extends EvaluatorExpressi
             @Override
             public ExpressionType getObject() {
                 try {
-                    return getEvaluatorValue().expressionRelation;
+                    ExpressionType expression = getEvaluatorValue().expressionRelation;
+                    if (expression == null) {
+                        expression = new ExpressionType();
+                    }
+                    return expression;
                 } finally {
                     updateEvaluatorValue();
                 }
@@ -119,8 +123,11 @@ public class ShadowOwnerReferenceSearchExpressionPanel extends EvaluatorExpressi
         ExpressionType expressionType = getModelObject();
         try {
             ShadowOwnerReferenceSearchExpressionPanel.ShadowOwnerExpressionWrapper evaluatorWrapper = getEvaluatorValue();
+            if (!ExpressionUtil.isEmpty(expression)) {
+                evaluatorWrapper.expressionRelation(expression);
+            }
 
-            ShadowOwnerReferenceSearchExpressionEvaluatorType evaluator = evaluatorWrapper.expressionRelation(expression).toEvaluator();
+            ShadowOwnerReferenceSearchExpressionEvaluatorType evaluator = evaluatorWrapper.toEvaluator();
             expressionType = ExpressionUtil.updateShadowOwnerReferenceSearchExpressionValue(expressionType, evaluator);
             getModel().setObject(expressionType);
         } catch (SchemaException ex) {

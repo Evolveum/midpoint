@@ -239,7 +239,7 @@ public class TestDummySecurity extends AbstractDummyTest {
     // TODO: search
 
     private void checkAccountWill(AbstractShadow shadow) {
-        Collection<ShadowSimpleAttribute<?>> attributes = shadow.getAttributes();
+        Collection<ShadowSimpleAttribute<?>> attributes = shadow.getSimpleAttributes();
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
         assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42L);

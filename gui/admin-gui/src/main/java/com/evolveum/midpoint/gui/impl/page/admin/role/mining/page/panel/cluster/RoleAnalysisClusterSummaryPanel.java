@@ -14,6 +14,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisClusterOccupationPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisSettingsUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -51,33 +52,6 @@ public class RoleAnalysisClusterSummaryPanel extends ObjectVerticalSummaryPanel<
     protected @NotNull IModel<List<DetailsTableItem>> createDetailsItems() {
         AnalysisClusterStatisticType clusterStatistics = getModelObject().getClusterStatistics();
 
-        ObjectReferenceType roleAnalysisSessionRef = getModelObject().getRoleAnalysisSessionRef();
-        PageBase pageBase = (PageBase) getPage();
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-
-        Task task = pageBase.createSimpleTask("Loading session");
-        OperationResult result = task.getResult();
-
-        PrismObject<RoleAnalysisSessionType> sessionPrismObject = roleAnalysisService.getSessionTypeObject(roleAnalysisSessionRef.getOid(), task, result);
-
-        if (sessionPrismObject == null) {
-            return Model.ofList(List.of());
-        }
-
-        RoleAnalysisSessionType session = sessionPrismObject.asObjectable();
-
-        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
-        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
-
-        String mode = Character.
-                toUpperCase(processMode.value().charAt(0))
-                + processMode.value().substring(1)
-                + "/"
-                + Character
-                .toUpperCase(analysisCategory.value().charAt(0))
-                + analysisCategory.value().substring(1);
-
         Double density = clusterStatistics.getMembershipDensity();
         if (density == null) {
             density = 0.0;
@@ -101,7 +75,25 @@ public class RoleAnalysisClusterSummaryPanel extends ObjectVerticalSummaryPanel<
 
         List<DetailsTableItem> detailsModel = List.of(
                 new DetailsTableItem(createStringResource("Mode"),
-                        Model.of(mode)) {
+                        () -> {
+                            //TODO really necessary?
+                            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+
+                            Task task = getPageBase().createSimpleTask("Loading session");
+                            OperationResult result = task.getResult();
+
+                            ObjectReferenceType roleAnalysisSessionRef = getModelObject().getRoleAnalysisSessionRef();
+                            PrismObject<RoleAnalysisSessionType> sessionPrismObject = roleAnalysisService.getSessionTypeObject(roleAnalysisSessionRef.getOid(), task, result);
+
+                            if (sessionPrismObject == null) {
+                                return "";
+                            }
+
+                            RoleAnalysisSessionType session = sessionPrismObject.asObjectable();
+
+                            RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+                            return RoleAnalysisSettingsUtil.getRoleAnalysisMode(analysisOption);
+                        }) {
                     @Override
                     public Component createValueComponent(String id) {
                         return new Label(id, getValue());

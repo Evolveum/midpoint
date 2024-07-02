@@ -37,7 +37,7 @@ public class ResourceObjectFound extends AbstractLazilyInitializableResourceEnti
      * Its content may be modified during processing here (no cloning is done).
      * Ultimately, it should be transformed into {@link #completeResourceObject}.
      */
-    @NotNull private final ExistingResourceObject initialResourceObject;
+    @NotNull private final ExistingResourceObjectShadow initialResourceObject;
 
     /** Result of the processing. */
     private CompleteResourceObject completeResourceObject;
@@ -48,7 +48,7 @@ public class ResourceObjectFound extends AbstractLazilyInitializableResourceEnti
             boolean fetchAssociations) {
         super(ctx, fetchAssociations);
         this.initialUcfResourceObject = initialUcfResourceObject;
-        this.initialResourceObject = ExistingResourceObject.fromUcf(initialUcfResourceObject, ctx.getResourceRef());
+        this.initialResourceObject = ExistingResourceObjectShadow.fromUcf(initialUcfResourceObject, ctx.getResourceRef());
     }
 
     static ResourceObjectFound fromUcf(
@@ -78,7 +78,7 @@ public class ResourceObjectFound extends AbstractLazilyInitializableResourceEnti
     }
 
     /** Returns the best available resource object. */
-    public @NotNull ExistingResourceObject getResourceObject() {
+    public @NotNull ExistingResourceObjectShadow getResourceObject() {
         return getCompleteResourceObject().resourceObject();
     }
 

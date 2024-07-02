@@ -131,10 +131,10 @@ class ConnIdObjectConvertor {
         Set<Attribute> attributes = new HashSet<>();
         try {
             LOGGER.trace("midPoint object before conversion:\n{}", shadow.debugDumpLazily());
-            for (var simpleAttribute : ShadowUtil.getAttributes(shadow)) {
+            for (var simpleAttribute : ShadowUtil.getSimpleAttributes(shadow)) {
                 attributes.add(convertSimpleAttributeToConnId(simpleAttribute, objDef));
             }
-            for (var referenceAttribute : ShadowUtil.getAssociations(shadow)) {
+            for (var referenceAttribute : ShadowUtil.getReferenceAttributes(shadow)) {
                 if (!referenceAttribute.getDefinitionRequired().isSimulated()) {
                     attributes.add(convertReferenceAttributeToConnId(referenceAttribute, objDef));
                 }
@@ -218,7 +218,7 @@ class ConnIdObjectConvertor {
         String connIdAttrName = ucfAttributeNameToConnId(mpAttribute, ocDef);
 
         Set<ConnectorObjectReference> connIdAttrValues = new HashSet<>();
-        for (var mpRefAttrValue : mpAttribute.getAssociationValues()) {
+        for (var mpRefAttrValue : mpAttribute.getReferenceValues()) {
             connIdAttrValues.add(
                     convertReferenceAttributeValueToConnId(mpRefAttrValue));
         }
@@ -230,7 +230,7 @@ class ConnIdObjectConvertor {
         }
     }
 
-    @NotNull ConnectorObjectReference convertReferenceAttributeValueToConnId(ShadowAssociationValue mpRefAttrValue)
+    @NotNull ConnectorObjectReference convertReferenceAttributeValueToConnId(ShadowReferenceAttributeValue mpRefAttrValue)
             throws SchemaException {
         var connIdInfo = convertToConnIdObjectInfo(mpRefAttrValue.getShadowBean());
         // TODO this object should be "by value" (ConnectorObject) for associated objects,

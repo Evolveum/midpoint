@@ -6,12 +6,12 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      oid="10000000-0000-0000-0000-000000006601">
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="10000000-0000-0000-0000-000000006601">
     <name>Org Metarole</name>
 
     <inducement>
@@ -33,14 +33,14 @@
             <intent>ou</intent>
         </construction>
         <condition>
-        <expression>
-          <script>
-            <code>
-              focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType.class
-            </code>
-          </script>
-        </expression>
-      </condition>
+            <expression>
+                <script>
+                    <code>
+                        focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType.class
+                    </code>
+                </script>
+            </expression>
+        </condition>
     </inducement>
 
     <inducement>
@@ -66,14 +66,14 @@
         </construction>
         <order>2</order>
         <condition>
-        <expression>
-          <script>
-            <code>
-              focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType.class
-            </code>
-          </script>
-        </expression>
-      </condition>
+            <expression>
+                <script>
+                    <code>
+                        focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType.class
+                    </code>
+                </script>
+            </expression>
+        </condition>
     </inducement>
 
     <inducement>
@@ -101,15 +101,15 @@
 
                                 object = immediateRole
                                 while (true) {
-                                    rdns.add(new Rdn('ou', object.getName().getOrig()))
-                                    parent = midpoint.getParentOrgByOrgType(object, 'functional')
-                                    if (parent == null) {
-                                        break;
-                                    }
-                                    if (parent.getName().getOrig() == 'TOP') {
-                                        break;
-                                    }
-                                    object = parent;
+                                rdns.add(new Rdn('ou', object.getName().getOrig()))
+                                parent = midpoint.getParentOrgByOrgType(object, 'functional')
+                                if (parent == null) {
+                                break;
+                                }
+                                if (parent.getName().getOrig() == 'TOP') {
+                                break;
+                                }
+                                object = parent;
                                 }
                                 dn = new LdapName('dc=example,dc=com')
                                 rdns.reverse().each { rdn -> dn.add(rdn) }
@@ -135,14 +135,14 @@
         </construction>
         <order>2</order>
         <condition>
-        <expression>
-          <script>
-            <code>
-              focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.class
-            </code>
-          </script>
-        </expression>
-      </condition>
+            <expression>
+                <script>
+                    <code>
+                        focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.class
+                    </code>
+                </script>
+            </expression>
+        </condition>
     </inducement>
 
 </role>

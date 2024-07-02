@@ -35,6 +35,8 @@ import com.evolveum.midpoint.test.DummyTestResource;
 
 import javax.xml.namespace.QName;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -255,6 +257,11 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertSize(1)
                 .association(DummyHrScenarioExtended.Person.LinkNames.CONTRACT.q())
                 .assertSize(2);
+
+        var shadowReadAgain = provisioningService.getObject(
+                ShadowType.class, shadows.get(0).getOid(), createReadOnlyCollection(), task, result);
+        assertShadowAfter(shadowReadAgain)
+                .display();
 
         // We do not check the details here. The provisioning module behavior should be checked in the provisioning tests,
         // in particular in TestDummyAssociations / TestDummyNativeAssociations.

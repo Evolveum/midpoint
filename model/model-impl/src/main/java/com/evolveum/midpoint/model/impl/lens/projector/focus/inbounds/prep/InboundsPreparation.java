@@ -95,7 +95,6 @@ abstract class InboundsPreparation<T extends Containerable> {
             if (!source.isEligibleForInboundProcessing(result)) {
                 return;
             }
-            source.checkResourceObjectDefinitionPresent();
 
             // Collecting information about all source items that are to be mapped
             MappedItems<T> mappedItems = new MappedItems<>(source, target, context);
@@ -104,10 +103,8 @@ abstract class InboundsPreparation<T extends Containerable> {
             // Now we load the full shadow, if we need to. We no longer do that at other places.
             source.loadFullShadowIfNeeded(mappedItems.isFullStateRequired(), context, result);
 
-            // Let's create the mappings and put them to mappingsMap
-            for (var mappedItem : mappedItems.getMappedItems()) {
-                mappedItem.createMappings(evaluationRequestsBeingCollected, result);
-            }
+            // Let's create the mappings and put them to `evaluationRequestsBeingCollected`
+            mappedItems.createMappings(evaluationRequestsBeingCollected, result);
 
             // Evaluation of special mappings. This part will be transformed to the same style as the other mappings (eventually).
             if (!source.isProjectionBeingDeleted()) {
@@ -117,7 +114,7 @@ abstract class InboundsPreparation<T extends Containerable> {
                 LOGGER.trace("Skipping evaluation of special inbounds because of projection DELETE delta");
             }
 
-            executeComplexProcessing(result);
+            processAssociations(result);
 
         } catch (Throwable t) {
             result.recordException(t);
@@ -134,7 +131,7 @@ abstract class InboundsPreparation<T extends Containerable> {
             CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 
     /** Complex processing for shadow attributes. Only for the full processing case. Currently limited to reference ones. */
-    abstract void executeComplexProcessing(OperationResult result)
+    abstract void processAssociations(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, StopProcessingProjectionException;
 }

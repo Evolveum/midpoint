@@ -11,8 +11,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
@@ -22,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class ShadowAssociationValueAsserter<R> extends AbstractAsserter<R> {
@@ -36,7 +35,7 @@ public class ShadowAssociationValueAsserter<R> extends AbstractAsserter<R> {
 
     public ShadowAssociationValueAsserter<R> assertIdentifierValueMatching(ItemName identifierName, String expectedValue)
             throws SchemaException {
-        var identifier = value.getAttributesContainerRequired().findAttribute(identifierName);
+        var identifier = value.getSingleObjectShadowRequired().findAttribute(identifierName);
         String identifierDesc = "identifier '" + identifierName + "' in " + desc();
         assertThat(identifier).as(identifierDesc).isNotNull();
         //noinspection unchecked

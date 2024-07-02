@@ -162,7 +162,8 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
             ClusteringAttributeSettingType clusteringAttributeSetting,
             Double similarityThreshold,
             Integer minMembersCount,
-            Integer minPropertiesOverlap) {
+            Integer minPropertiesOverlap,
+            boolean detailedAnalysis) {
 
         try {
             PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> primaryOptions = getPrimaryOptionContainerFormModel(
@@ -175,6 +176,7 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
             setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT, minMembersCount);
             setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP, minPropertiesOverlap);
             setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_QUERY, query);
+            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS, detailedAnalysis);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }

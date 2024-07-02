@@ -7,11 +7,8 @@
 <role oid="10000000-0000-0000-0000-000000001604"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        xmlns:riOrange="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
     <name>Wimp</name>
     <assignment>
         <construction>
@@ -71,7 +68,7 @@
             <kind>account</kind>
             <intent>default</intent>
             <association>
-                <ref>riOrange:group</ref>
+                <ref>ri:group</ref>
                 <outbound>
                     <expression>
                         <associationFromLink>

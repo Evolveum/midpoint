@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.opendj;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_PASSWORD;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -13,7 +14,6 @@ import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.serializeToXml;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-import static com.evolveum.midpoint.test.IntegrationTestTools.createEntitleDelta;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
 
 import java.io.File;
@@ -1969,7 +1969,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         for (PrismObject<ShadowType> searchResult : searchResults) {
             new PrismObjectAsserter<>((PrismObject<? extends ObjectType>) searchResult)
                     .assertSanity();
-            ShadowSimpleAttribute<String> uidAttr = ShadowUtil.getAttribute(searchResult, new QName(NS_RI, "uid"));
+            ShadowSimpleAttribute<String> uidAttr = ShadowUtil.getSimpleAttribute(searchResult, new QName(NS_RI, "uid"));
             String uid = uidAttr.getRealValues().iterator().next();
             displayValue("found uid", uid);
             assertEquals("Wrong uid (index " + i + ")", expectedUids[i], uid);
@@ -3451,11 +3451,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
         var accountToAdd = new ShadowType()
                 .resourceRef(resource.getOid(), ResourceType.COMPLEX_TYPE)
                 .objectClass(OBJECT_CLASS_INETORGPERSON_QNAME);
-        var attributes = ShadowUtil.getOrCreateAttributesContainer(accountToAdd, accountDef);
-        attributes.add(accountDef.instantiateAttribute(QNAME_DN, "uid=test740,ou=People,dc=example,dc=com"));
-        attributes.add(accountDef.instantiateAttribute(QNAME_UID, "test740"));
-        attributes.add(accountDef.instantiateAttribute(QNAME_CN, "Test740"));
-        attributes.add(accountDef.instantiateAttribute(QNAME_SN, "Test"));
+        ShadowUtil.getOrCreateAttributesContainer(accountToAdd, accountDef)
+                .addSimpleAttribute(QNAME_DN, "uid=test740,ou=People,dc=example,dc=com")
+                .addSimpleAttribute(QNAME_UID, "test740")
+                .addSimpleAttribute(QNAME_CN, "Test740")
+                .addSimpleAttribute(QNAME_SN, "Test");
         provisioningService.addObject(accountToAdd.asPrismObject(), null, null, task, result);
 
         and("livesync token is fetched");
@@ -3497,10 +3497,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
     // Account must be non-raw (deeply), i.e. it has to have RAC/SAssocC instead of PrismContainer for attributes/associations
     private void assertEntitlementGroup(PrismObject<ShadowType> account, String entitlementOid) {
-        var associationValueBean = IntegrationTestTools.assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
-        var dnProp = ((ShadowAssociationValue) associationValueBean.asPrismContainerValue())
-                .getAttributesContainerRequired()
-                .findAttribute(getSecondaryIdentifierQName());
+        var associationValue = IntegrationTestTools.assertAssociationObjectRef(account, ASSOCIATION_GROUP_NAME, entitlementOid);
+        var dnProp = associationValue
+                .getSingleObjectShadowRequired()
+                .getAttributesContainer()
+                .findSimpleAttribute(getSecondaryIdentifierQName());
         assertNotNull("No DN identifier in group association in " + account, dnProp);
     }
 
@@ -3518,5 +3519,22 @@ public class TestOpenDj extends AbstractOpenDjTest {
         return ResourceSchemaFactory.getBareSchema(resourceBean)
                 .findObjectClassDefinitionRequired(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS)
                 .findSimpleAttributeDefinitionRequired(attrName);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, String objectOid)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        var object = AbstractShadow.of(
+                provisioningService.getObject(
+                        ShadowType.class, objectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
+        var accountDef = Resource.of(resource)
+                .getCompleteSchemaRequired()
+                .getObjectTypeDefinitionRequired(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT);
+        var assocDef = accountDef.findAssociationDefinitionRequired(assocName);
+        return Resource.of(resource).deltaFor(accountDef.getObjectClassName())
+                .item(ShadowType.F_ASSOCIATIONS, assocName)
+                .add(assocDef.createValueFromFullDefaultObject(object))
+                .asObjectDelta(subjectOid);
     }
 }

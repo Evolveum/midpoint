@@ -40,28 +40,25 @@ public interface ShadowAssociationTypeParticipantDefinitionConfigItem<PT extends
     }
 
     /**
-     * This is the name under which we declare the association. It may be the same as existing (native/simulated) association,
-     * or it can be a virtual one.
+     * This is the name under which we declare the association. It may be the same as the foundational
+     * (native/simulated) reference attribute, or it can be a different one.
      */
-    default @Nullable ItemName getDeclaringItemName() throws ConfigurationException {
-        var item = value().getAssociation();
-        if (item != null) {
-            return singleNameRequired(item.getRef(), "item/ref");
-        }
-        return null;
+    default @NotNull ItemName getAssociationNameRequired() throws ConfigurationException {
+        var assocDefBean = nonNull(value().getAssociation(), "association definition");
+        return singleNameRequired(assocDefBean.getRef(), "item/ref");
     }
 
-    /** This is the existing (native/simulated) association name we are referring to. */
-    default @Nullable ItemName getReferencedItemName() throws ConfigurationException {
-        var sourceItemRef = value().getSource();
-        if (sourceItemRef != null) {
-            return singleNameRequired(sourceItemRef, "sourceItemRef");
+    /** Returns the name of the reference attribute (native/simulated) this association type participation is based on. */
+    default @NotNull ItemName getReferenceAttributeNameRequired() throws ConfigurationException {
+        var refAttrName = value().getSource();
+        if (refAttrName != null) {
+            return singleNameRequired(refAttrName, "sourceItemRef");
         }
-        return getDeclaringItemName();
+        return getAssociationNameRequired();
     }
 
-    default boolean isRelevantForItem(@NotNull ItemName itemName) throws ConfigurationException {
-        return itemName.matches(getReferencedItemName());
+    default boolean isBasedOnReferenceAttribute(@NotNull ItemName refAttrName) throws ConfigurationException {
+        return refAttrName.matches(getReferenceAttributeNameRequired());
     }
 
     default @Nullable ResourceObjectAssociationNewConfigItem getAssociation() {

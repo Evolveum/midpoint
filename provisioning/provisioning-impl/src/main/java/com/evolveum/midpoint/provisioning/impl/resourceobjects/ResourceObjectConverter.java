@@ -95,11 +95,11 @@ public class ResourceObjectConverter {
 
     /**
      * "Completes" the provided "raw" resource object, i.e. executes
-     * {@link ResourceObjectCompleter#completeResourceObject(ProvisioningContext, ExistingResourceObject, boolean, OperationResult)}.
+     * {@link ResourceObjectCompleter#completeResourceObject(ProvisioningContext, ExistingResourceObjectShadow, boolean, OperationResult)}.
      */
     public @NotNull CompleteResourceObject completeResourceObject(
             @NotNull ProvisioningContext ctx,
-            @NotNull ExistingResourceObject rawObject,
+            @NotNull ExistingResourceObjectShadow rawObject,
             boolean fetchAssociations,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
@@ -165,7 +165,7 @@ public class ResourceObjectConverter {
 
     public ResourceObjectAddReturnValue addResourceObject(
             ProvisioningContext ctx,
-            ResourceObject shadow,
+            ResourceObjectShadow shadow,
             OperationProvisioningScriptsType scripts,
             ConnectorOperationOptions connOptions,
             boolean skipExplicitUniquenessCheck,

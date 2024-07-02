@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.ninja.action.mining.generator.context;
 
+import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.addExtensionValue;
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.importUserAndResolveAuxRoles;
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGeneratorUtils.*;
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacObjectCategoryProcessor.*;
@@ -14,6 +15,9 @@ import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacOb
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -110,9 +114,7 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
-//            user.extension(new ExtensionType());
-//            ExtensionType ext = user.getExtension();
-//            addExtensionValue(ext, "hatSize", "Mike");
+            additionalChangesOnAllUsers(user);
         }
 
         @Override
@@ -187,9 +189,7 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
-//            user.extension(new ExtensionType());
-//            ExtensionType ext = user.getExtension();
-//            addExtensionValue(ext, "hatSize", "Jan");
+            additionalChangesOnAllUsers(user);
         }
 
         @Override
@@ -231,9 +231,7 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
-//            user.extension(new ExtensionType());
-//            ExtensionType ext = user.getExtension();
-//            addExtensionValue(ext, "hatSize", "Jozef");
+            additionalChangesOnAllUsers(user);
         }
 
         @Override
@@ -330,9 +328,7 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
-//            user.extension(new ExtensionType());
-//            ExtensionType ext = user.getExtension();
-//            addExtensionValue(ext, "hatSize", "Peter");
+            additionalChangesOnAllUsers(user);
         }
 
         @Override
@@ -416,9 +412,7 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
-//            user.extension(new ExtensionType());
-//            ExtensionType ext = user.getExtension();
-//            addExtensionValue(ext, "hatSize", "Slavo");
+            additionalChangesOnAllUsers(user);
         }
 
         @Override
@@ -485,9 +479,10 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
+            additionalChangesOnAllUsers(user);
 //            user.extension(new ExtensionType());
 //            ExtensionType ext = user.getExtension();
-//            addExtensionValue(ext, "hatSize", "Karol");
+//            addExtensionValue(ext, "itemPath", "value");
         }
 
         @Override
@@ -554,9 +549,7 @@ public class RbacObjectCategoryBuilder {
 
         @Override
         public void additionalChanges(UserType user) {
-//            user.extension(new ExtensionType());
-//            ExtensionType ext = user.getExtension();
-//            addExtensionValue(ext, "hatSize", "Clark");
+            additionalChangesOnAllUsers(user);
         }
 
         @Override
@@ -689,5 +682,11 @@ public class RbacObjectCategoryBuilder {
             importUserAndResolveAuxRoles(user, repository, generatorOptions, result, log);
 
         }
+    }
+
+    protected static void additionalChangesOnAllUsers(UserType user){
+//            user.extension(new ExtensionType());
+//            ExtensionType ext = user.getExtension();
+//            addExtensionValue(ext, "itemPath", "value");
     }
 }

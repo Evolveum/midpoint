@@ -12,7 +12,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResu
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTION_PENDING;
 
-import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -23,12 +22,9 @@ import com.evolveum.midpoint.schema.processor.ShadowDefinitionApplicator;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -36,7 +32,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Computes the expected future state of a resource object by applying pending operations from its repo shadow.
+ * Computes the expected future state of a resource object or repo shadow by applying pending operations (from the repo shadow).
+ *
+ * @see #futurizeResourceObject(ProvisioningContext, RepoShadow, ExistingResourceObjectShadow, boolean, XMLGregorianCalendar)
+ * @see #futurizeRepoShadow(ProvisioningContext, RepoShadow, XMLGregorianCalendar)
  */
 public class ResourceObjectFuturizer {
 
@@ -46,12 +45,12 @@ public class ResourceObjectFuturizer {
     @NotNull private final RepoShadow repoShadow;
     private final boolean skipExecutionPendingOperations;
     @NotNull private final XMLGregorianCalendar now;
-    private final ExistingResourceObject originalResourceObject;
+    private final ExistingResourceObjectShadow originalResourceObject;
 
     private ResourceObjectFuturizer(
             @NotNull ProvisioningContext shadowCtx,
             @NotNull RepoShadow repoShadow,
-            ExistingResourceObject originalResourceObject,
+            ExistingResourceObjectShadow originalResourceObject,
             boolean skipExecutionPendingOperations,
             @NotNull XMLGregorianCalendar now) {
         this.shadowCtx = shadowCtx;
@@ -61,42 +60,31 @@ public class ResourceObjectFuturizer {
         this.now = now;
     }
 
-    public static @NotNull ExistingResourceObject futurizeResourceObject(
+    public static @NotNull ExistingResourceObjectShadow futurizeResourceObject(
             @NotNull ProvisioningContext shadowCtx,
             @NotNull RepoShadow repoShadow,
-            @NotNull ExistingResourceObject resourceObject,
+            @NotNull ExistingResourceObjectShadow resourceObject,
             boolean skipExecutionPendingOperations,
-            Collection<SelectorOptions<GetOperationOptions>> options,
             XMLGregorianCalendar now)
             throws SchemaException, ConfigurationException {
-        if (!ProvisioningUtil.isFuturePointInTime(options)) {
-            return resourceObject;
-        } else {
-            return (ExistingResourceObject)
-                    new ResourceObjectFuturizer(shadowCtx, repoShadow, resourceObject, skipExecutionPendingOperations, now)
-                            .futurize();
-        }
+        return (ExistingResourceObjectShadow)
+                new ResourceObjectFuturizer(shadowCtx, repoShadow, resourceObject, skipExecutionPendingOperations, now)
+                        .futurize();
     }
 
-    public static @NotNull ResourceObject futurizeRepoShadow(
+    public static @NotNull ResourceObjectShadow futurizeRepoShadow(
             @NotNull ProvisioningContext shadowCtx,
             @NotNull RepoShadow repoShadow,
-            boolean skipExecutionPendingOperations,
-            Collection<SelectorOptions<GetOperationOptions>> options,
             XMLGregorianCalendar now)
             throws SchemaException, ConfigurationException {
-        if (!ProvisioningUtil.isFuturePointInTime(options)) {
-            return repoShadow.asResourceObject();
-        } else {
-            return new ResourceObjectFuturizer(shadowCtx, repoShadow, null, skipExecutionPendingOperations, now)
-                    .futurize();
-        }
+        return new ResourceObjectFuturizer(shadowCtx, repoShadow, null, false, now)
+                .futurize();
     }
 
-    private @NotNull ResourceObject futurize()
-            throws SchemaException, ConfigurationException {
+    private @NotNull ResourceObjectShadow futurize()
+            throws SchemaException {
         LOGGER.trace("Starting to futurize {} / {}", repoShadow, originalResourceObject);
-        ResourceObject currentResourceObject =
+        ResourceObjectShadow currentResourceObject =
                 originalResourceObject != null ?
                         originalResourceObject : repoShadow.asResourceObject();
         if (currentResourceObject.isDead()) {
@@ -136,8 +124,14 @@ public class ResourceObjectFuturizer {
                 // We want to apply all the deltas, even those that are already completed. They might not be reflected
                 // on the resource yet. E.g. they may be not be present in the CSV export until the next export cycle is scheduled
             }
-            ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingOperation.getDelta());
-            shadowDefinitionApplicator.applyTo(pendingDelta);
+
+            ObjectDelta<ShadowType> pendingDelta =
+                    DeltaConvertor.createObjectDelta(
+                            pendingOperation.getDelta(),
+                            shadowCtx.getObjectDefinitionRequired().getPrismObjectDefinition(),
+                            false);
+
+            shadowDefinitionApplicator.applyToDelta(pendingDelta);
             if (pendingDelta.isAdd()) {
                 if (originalResourceObject != null) {
                     // If we have the resource object, we need to ignore the ADD operation.
@@ -160,7 +154,7 @@ public class ResourceObjectFuturizer {
                     newBean.asPrismContainerValue().setValueMetadata(
                             repoShadow.getBean().asPrismContainerValue().getValueMetadata().clone());
                     shadowCtx.applyCurrentDefinition(newBean);
-                    currentResourceObject = ResourceObject.fromBean(newBean, true, shadowCtx.getObjectDefinitionRequired());
+                    currentResourceObject = ResourceObjectShadow.fromBean(newBean, true, shadowCtx.getObjectDefinitionRequired());
                     // We also ignore the fact that there may be multiple pending ADD operations. We just take the last one.
                 }
             } else if (pendingDelta.isModify()) {

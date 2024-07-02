@@ -46,20 +46,15 @@ public class AssociationDataAssociationTypeStepPanel
                 newValueModel,
                 ItemPath.create(
                         ShadowAssociationTypeDefinitionType.F_SUBJECT,
-                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION));
+                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+                        ShadowAssociationDefinitionType.F_FOCUS));
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        PrismContainerWrapper<Containerable> focusContainer = null;
-        try {
-            focusContainer = valueModel.getObject().findContainer(ShadowAssociationDefinitionType.F_FOCUS);
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't find focus container in " + valueModel.getObject());
-        }
-        if (focusContainer != null) {
-            focusContainer.setExpanded(true);
+        if (valueModel.getObject() != null) {
+            valueModel.getObject().setExpanded(true);
         }
     }
 
@@ -85,13 +80,5 @@ public class AssociationDataAssociationTypeStepPanel
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource("PageResource.wizard.step.associationType.data.subText");
-    }
-
-    @Override
-    protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
-        if (c.getItemName().equivalent(ShadowAssociationDefinitionType.F_FOCUS)) {
-            return true;
-        }
-        return super.isVisibleSubContainer(c);
     }
 }

@@ -21,12 +21,15 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
- * Definition of a reference type: a named type of references between shadows.
+ * A named type of references between shadows.
  *
- * . It can be either native or simulated.
- * Each participant can be a set of object definitions: classes or types, potentially mixing both.
+ * On participating shadows, these are visible as {@link ShadowReferenceAttribute}s. The usual case is that they are visible
+ * on the source (subject) shadow, but they can be visible on the target (object) shadow as well. (At least in the future.
+ * Currently we have no reason to provide this functionality, maybe except for diagnostics.)
  *
- * TODO finalize this
+ * A reference can be either _native_ (provided by a connector) or _simulated_. Simulated references can be defined
+ * in legacy (pre-4.9) or modern (4.9+) format.
+ *
  */
 public abstract class AbstractShadowReferenceTypeDefinition implements DebugDumpable, Serializable {
 
@@ -103,10 +106,10 @@ public abstract class AbstractShadowReferenceTypeDefinition implements DebugDump
     }
 
     /** Returns the definitions of the subjects participating on this association class. */
-    abstract @NotNull Collection<AssociationParticipantType> getSubjectTypes();
+    abstract @NotNull Collection<ShadowRelationParticipantType> getSubjectTypes();
 
     /** Returns the definitions of the objects participating on this association class. Must be at least one. */
-    abstract @NotNull Collection<AssociationParticipantType> getObjectTypes();
+    abstract @NotNull Collection<ShadowRelationParticipantType> getObjectTypes();
 
     public @NotNull ResourceObjectDefinition getRepresentativeObjectDefinition() {
         return representativeObjectDefinition;

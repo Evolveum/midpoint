@@ -16,7 +16,6 @@ import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -29,8 +28,6 @@ import com.evolveum.midpoint.web.page.admin.certification.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignStateHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -49,6 +46,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
     @Serial private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(CampaignTilePanel.class);
+    private static final String DOT_CLASS = CampaignTilePanel.class.getName() + ".";
 
     private static final String ID_SELECT_TILE_CHECKBOX = "selectTileCheckbox";
     private static final String ID_STATUS = "status";
@@ -123,7 +121,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         add(description);
 
         ProgressBarPanel progressBar = new ProgressBarPanel(ID_PROGRESS_BAR,
-                CertMiscUtil.createCampaignProgressBarModel(getCampaign(), getPrincipal()));
+                CertMiscUtil.createCampaignProgressBarModel(getCampaign(), getPrincipal(), getPageBase()));
         progressBar.setOutputMarkupId(true);
         add(progressBar);
 
@@ -281,8 +279,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
             @Override
             protected XMLGregorianCalendar load() {
-                AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(getCampaign());
-                return currentStage != null ? currentStage.getDeadline() : null;
+                return CampaignProcessingHelper.computeDeadline(getCampaign(), getPageBase());
             }
         };
     }

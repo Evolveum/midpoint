@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -37,7 +38,7 @@ public interface AttributeDefinitionStore
      *
      * The returned value is a {@link List} because of the contract of {@link ComplexTypeDefinition#getDefinitions()}.
      */
-    @NotNull List<? extends ShadowAttributeDefinition<?, ?>> getAttributeDefinitions();
+    @NotNull List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> getAttributeDefinitions();
 
     default @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getSimpleAttributeDefinitions() {
         //noinspection unchecked
@@ -59,7 +60,7 @@ public interface AttributeDefinitionStore
      * Returns all attribute definitions of given type as an unmodifiable collection.
      *
      */
-    default @NotNull <AD extends ShadowAttributeDefinition<?, ?>> List<? extends AD> getAttributeDefinitions(Class<AD> type) {
+    default @NotNull <AD extends ShadowAttributeDefinition<?, ?, ?, ?>> List<? extends AD> getAttributeDefinitions(Class<AD> type) {
         //noinspection unchecked
         return getAttributeDefinitions().stream()
                 .filter(def -> type.isAssignableFrom(def.getClass()))
@@ -77,19 +78,25 @@ public interface AttributeDefinitionStore
     /**
      * Finds a definition of a simple attribute with a given name. Returns null if nothing is found.
      */
-    default @Nullable <SA extends ShadowAttribute<?, ?>, R> ShadowAttributeDefinition<SA, R> findAttributeDefinition(QName name) {
+    default @Nullable ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinition(QName name) {
         return findAttributeDefinition(name, false);
     }
 
-    default @NotNull <SA extends ShadowAttribute<?, ?>, R> ShadowAttributeDefinition<SA, R> findAttributeDefinitionRequired(
-            @NotNull QName name) throws SchemaException {
+    default @NotNull
+    ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinitionRequired(@NotNull QName name, Object context)
+            throws SchemaException {
         return MiscUtil.requireNonNull(
                 findAttributeDefinition(name, false),
-                "Unknown attribute '%s' in '%s'", name, this);
+                "Unknown attribute '%s' in '%s'%s", name, this, context);
+    }
+
+    default @NotNull
+    ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinitionRequired(@NotNull QName name) throws SchemaException {
+        return findAttributeDefinitionRequired(name, "");
     }
 
     /** TODO ... ignoreCase will be part of the schema, soon ... */
-    default ShadowAttributeDefinition<?, ?> findShadowAttributeDefinitionRequired(
+    default ShadowAttributeDefinition<?, ?, ?, ?> findShadowAttributeDefinitionRequired(
             @NotNull ItemName itemName, boolean ignoreCase, Object errorCtx) throws SchemaException {
 
         var attributeDefinition = findAttributeDefinition(itemName, ignoreCase);
@@ -116,6 +123,13 @@ public interface AttributeDefinitionStore
     }
 
     /**
+     * Finds a definition of an attribute with a given name. Throws {@link IllegalStateException} if it's not there.
+     */
+    default @NotNull ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinitionStrictlyRequired(@NotNull QName name) {
+        return findAttributeDefinitionStrictlyRequired(name, () -> "");
+    }
+
+    /**
      * Finds a definition of an attribute with a given name. Throws {@link SchemaException} if it's not there.
      */
     default @NotNull <T> ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinitionRequired(
@@ -133,6 +147,16 @@ public interface AttributeDefinitionStore
             @NotNull QName name, @NotNull Supplier<String> contextSupplier) {
         return MiscUtil.requireNonNull(
                 findSimpleAttributeDefinition(name),
+                () -> new IllegalStateException("No definition of attribute " + name + " in " + this + contextSupplier.get()));
+    }
+
+    /**
+     * Finds a definition of an attribute with a given name. Throws {@link IllegalStateException} if it's not there.
+     */
+    default @NotNull ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinitionStrictlyRequired(
+            @NotNull QName name, @NotNull Supplier<String> contextSupplier) {
+        return MiscUtil.requireNonNull(
+                findAttributeDefinition(name),
                 () -> new IllegalStateException("No definition of attribute " + name + " in " + this + contextSupplier.get()));
     }
 
@@ -160,10 +184,8 @@ public interface AttributeDefinitionStore
      * @param caseInsensitive if true, ignoring the case
      * @return found property definition or null
      */
-    default <SA extends ShadowAttribute<?, ?>, R> @Nullable ShadowAttributeDefinition<SA, R> findAttributeDefinition(
-            QName name, boolean caseInsensitive) {
-        //noinspection unchecked
-        return (ShadowAttributeDefinition<SA, R>) findLocalItemDefinition(
+    default @Nullable ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinition(QName name, boolean caseInsensitive) {
+        return (ShadowAttributeDefinition<?, ?, ?, ?>) findLocalItemDefinition(
                 ItemName.fromQName(name), ItemDefinition.class, caseInsensitive);
     }
 
@@ -220,5 +242,21 @@ public interface AttributeDefinitionStore
                 .filter(a -> QNameUtil.match(a.getItemName(), name))
                 .findFirst().orElse(null);
     }
+
+    default @NotNull ShadowReferenceAttributeDefinition findReferenceAttributeDefinitionRequired(QName name)
+            throws SchemaException {
+        return findReferenceAttributeDefinitionRequired(name, () -> "");
+    }
+
+    default @NotNull ShadowReferenceAttributeDefinition findReferenceAttributeDefinitionRequired(QName name, Supplier<String> contextSupplier)
+            throws SchemaException {
+        var def = findReferenceAttributeDefinition(name);
+        if (def == null) {
+            throw new SchemaException("No definition of reference attribute named '%s' in %s%s".formatted(
+                    name, this, contextSupplier.get()));
+        }
+        return def;
+    }
+
 
 }

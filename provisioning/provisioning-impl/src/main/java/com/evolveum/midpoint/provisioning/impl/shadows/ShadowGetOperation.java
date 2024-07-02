@@ -21,8 +21,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.provisioning.impl.*;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.CompleteResourceObject;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
@@ -161,7 +161,7 @@ class ShadowGetOperation {
             return returnCached("no primary identifier but can return repository shadow");
         }
 
-        ExistingResourceObject resourceObject;
+        ExistingResourceObjectShadow resourceObject;
         OperationResult result = parentResult.createSubresult(OP_GET_RESOURCE_OBJECT);
         result.addArbitraryObjectAsParam("identification", identification);
         result.addArbitraryObjectAsParam("context", ctx);
@@ -367,7 +367,7 @@ class ShadowGetOperation {
                 //  (not sure about the association)
                 completeObject = b.resourceObjectConverter.completeResourceObject(
                         ctx,
-                        ExistingResourceObject.fromRepoShadow(repoShadow),
+                        ExistingResourceObjectShadow.fromRepoShadow(repoShadow),
                         true,
                         result);
             } else {
@@ -441,21 +441,26 @@ class ShadowGetOperation {
     private @NotNull Shadow returnCached(String reason) throws SchemaException, ConfigurationException {
         LOGGER.trace("Returning cached (repository) version of shadow {} because of: {}", repoShadow, reason);
         ctx.applyCurrentDefinition(repoShadow.getBean());
-        var futurized = futurizeRepoShadow(ctx, repoShadow, false, options, now);
+        var futurized =
+                ProvisioningUtil.isFuturePointInTime(options) ?
+                        futurizeRepoShadow(ctx, repoShadow, now) :
+                        repoShadow.asResourceObject();
         LOGGER.trace("Futurized shadow:\n{}", DebugUtil.debugDumpLazily(futurized));
         return createShadow(ctx, futurized);
     }
 
-    private @NotNull Shadow returnRetrieved(@NotNull ExistingResourceObject shadowedObject)
+    private @NotNull Shadow returnRetrieved(@NotNull ExistingResourceObjectShadow shadowedObject)
             throws SchemaException, ConfigurationException {
         assert repoShadow != null;
-        ResourceObject futurized = futurizeResourceObject(
-                ctx, repoShadow, shadowedObject, false, options, now);
+        ResourceObjectShadow futurized =
+                ProvisioningUtil.isFuturePointInTime(options) ?
+                        futurizeResourceObject(ctx, repoShadow, shadowedObject, false, now) :
+                        shadowedObject;
         LOGGER.trace("Futurized shadowed resource object:\n{}", futurized.debugDumpLazily(1));
         return createShadow(ctx, futurized);
     }
 
-    private Shadow createShadow(ProvisioningContext ctx, ResourceObject resourceObject) {
+    private Shadow createShadow(ProvisioningContext ctx, ResourceObjectShadow resourceObject) {
         validateShadow(resourceObject.getBean(), true);
         return resourceObject.asShadow(ctx.getResource());
     }

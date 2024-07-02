@@ -14,7 +14,8 @@
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <name>Dummy Resource</name>
     <connectorRef type="ConnectorType">
@@ -408,16 +409,6 @@
                     </condition>
                 </inbound>
             </attribute>
-            <attribute>
-                <ref>ri:group</ref>
-                <outbound>
-                    <expression>
-                        <value>
-                            <shadowRef oid="20000000-0000-0000-3333-000000000002"/> <!-- "testers" group -->
-                        </value>
-                    </expression>
-                </outbound>
-            </attribute>
 
             <iteration>
                 <maxIterations>5</maxIterations>
@@ -490,10 +481,6 @@
                 <ref>ri:members</ref>
                 <fetchStrategy>minimal</fetchStrategy>
             </attribute>
-            <attribute>
-                <ref>ri:group</ref>
-                <!-- nothing to configure here -->
-            </attribute>
         </objectType>
 
         <objectType>
@@ -504,6 +491,53 @@
         </objectType>
 
         <!-- account privilege is applied automatically, no need to refine the definition -->
+
+        <associationType>
+            <name>groupForDefaultAccount</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </objectType>
+                <association>
+                    <ref>ri:group</ref>
+                </association>
+            </subject>
+        </associationType>
+        <associationType>
+            <name>groupForTestAccount</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>test</intent>
+                </objectType>
+                <association>
+                    <ref>ri:group</ref>
+                    <explicitOutbound> <!-- TODO remove -->
+                        <expression>
+                            <value xsi:type="ShadowAssociationValueType">
+                                <objects>
+                                    <ri:group oid="20000000-0000-0000-3333-000000000002"/> <!-- "testers" group -->
+                                </objects>
+                            </value>
+                        </expression>
+                    </explicitOutbound>
+                </association>
+            </subject>
+        </associationType>
+        <associationType>
+            <name>groupForGroup</name>
+            <subject>
+                <ref>ri:group</ref>
+                <objectType>
+                    <kind>entitlement</kind>
+                    <intent>group</intent>
+                </objectType>
+                <association>
+                    <ref>ri:group</ref>
+                </association>
+            </subject>
+        </associationType>
     </schemaHandling>
 
     <capabilities>

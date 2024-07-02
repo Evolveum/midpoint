@@ -15,6 +15,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -269,12 +270,13 @@ class ColumnDataConverter<C> {
         }
 
         if (value instanceof PrismContainerValue<?> pcv) {
+            if (pcv instanceof ShadowAssociationValue shadowAssociationValue) {
+                return prettyPrintValue(shadowAssociationValue);
+            }
             if (pcv.getCompileTimeClass() != null) {
                 Object realValue = pcv.getRealValue();
                 if (realValue instanceof AssignmentType assignmentValue) {
                     return prettyPrintValue(assignmentValue);
-                } else if (realValue instanceof ShadowAssociationValueType associationValue) {
-                    return prettyPrintValue(associationValue);
                 }
             }
         }
@@ -325,9 +327,9 @@ class ColumnDataConverter<C> {
         return String.join(" ", segments);
     }
 
-    private String prettyPrintValue(@NotNull ShadowAssociationValueType associationValue) {
+    private String prettyPrintValue(@NotNull ShadowAssociationValue associationValue) {
         List<String> segments = new ArrayList<>();
-        ObjectReferenceType shadowRef = associationValue.getShadowRef();
+        ObjectReferenceType shadowRef = associationValue.getSingleObjectRefRelaxed();
         if (shadowRef != null) {
             String name = getObjectNameFromRef(shadowRef);
             if (StringUtils.isNotEmpty(name)) {

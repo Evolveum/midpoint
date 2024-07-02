@@ -22,6 +22,8 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -1075,7 +1077,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSuccess(result);
 
         ShadowAttributesContainer attributesContainer = ShadowUtil.getAttributesContainer(accountWill);
-        ShadowSimpleAttribute<Object> titleAttribute = attributesContainer.findAttribute(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_QNAME);
+        ShadowSimpleAttribute<Object> titleAttribute = attributesContainer.findSimpleAttribute(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_QNAME);
         assertNull("Title attribute sneaked in", titleAttribute);
 
         accountWill.checkConsistence();
@@ -2475,7 +2477,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = createEntitleDelta(ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID);
+        var delta = createEntitleDelta(ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2539,7 +2541,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = createEntitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID);
+        var delta = createEntitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2589,7 +2591,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = createEntitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_PRIV_NAME, PRIVILEGE_BARGAIN_OID);
+        var delta = createEntitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_PRIV_NAME, PRIVILEGE_BARGAIN_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2837,9 +2839,9 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = createEntitleDeltaIdentifiers(
-                ACCOUNT_WILL_OID, getAccountDefaultDefinition(),
-                DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME);
+        ObjectDelta<ShadowType> delta = createEntitleDeltaFromIdentifier(
+                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME,
+                getGroupDefaultDefinition(), SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2865,9 +2867,9 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = createDetitleDeltaIdentifiers(
-                ACCOUNT_WILL_OID, getAccountDefaultDefinition(),
-                DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME);
+        ObjectDelta<ShadowType> delta = createDetitleDeltaFromIdentifier(
+                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME,
+                getGroupDefaultDefinition(), SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2893,9 +2895,9 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = createEntitleDeltaIdentifiers(
-                ACCOUNT_WILL_OID, getAccountDefaultDefinition(),
-                DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_UID, piratesIcfUid);
+        ObjectDelta<ShadowType> delta = createEntitleDeltaFromIdentifier(
+                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME,
+                getGroupDefaultDefinition(), SchemaConstants.ICFS_UID, piratesIcfUid);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2921,9 +2923,9 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = createDetitleDeltaIdentifiers(
-                ACCOUNT_WILL_OID, getAccountDefaultDefinition(),
-                DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_UID, piratesIcfUid);
+        ObjectDelta<ShadowType> delta = createDetitleDeltaFromIdentifier(
+                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME,
+                getGroupDefaultDefinition(), SchemaConstants.ICFS_UID, piratesIcfUid);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -3888,16 +3890,13 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertTrue("Wrong type of current shadow: " + currentShadow.getClass().getName(),
                 currentShadow.canRepresent(ShadowType.class));
 
-        ShadowAttributesContainer attributesContainer = ShadowUtil
-                .getAttributesContainer(currentShadow);
+        var attributesContainer = ShadowUtil.getAttributesContainer(currentShadow);
         assertNotNull("No attributes container in current shadow", attributesContainer);
-        Collection<ShadowSimpleAttribute<?>> attributes = attributesContainer.getAttributes();
-        assertFalse("Attributes container is empty", attributes.isEmpty());
         assertAttribute(currentShadow,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Edward Teach");
         assertAttribute(currentShadow,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
-        assertEquals("Unexpected number of attributes", 4, attributes.size());
+        assertEquals("Unexpected number of attributes", 4, attributesContainer.getAttributes().size());
 
         var accountRepo = findAccountShadowByUsername(getBlackbeardRepoIcfName(), resource, result);
         assertNotNull("Shadow was not created in the repository", accountRepo);
@@ -3943,13 +3942,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         ShadowAttributesContainer attributesContainer = ShadowUtil
                 .getAttributesContainer(currentShadow);
         assertNotNull("No attributes container in current shadow", attributesContainer);
-        Collection<ShadowSimpleAttribute<?>> attributes = attributesContainer.getAttributes();
-        assertFalse("Attributes container is empty", attributes.isEmpty());
         assertAttribute(currentShadow,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Blackbeard");
         assertAttribute(currentShadow,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
-        assertEquals("Unexpected number of attributes", 4, attributes.size());
+        assertEquals("Unexpected number of attributes", 4, attributesContainer.getAttributes().size());
 
         var accountRepo = findAccountShadowByUsername(getBlackbeardRepoIcfName(), resource, result);
         assertNotNull("Shadow was not created in the repository", accountRepo);
@@ -4104,10 +4101,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         ShadowAttributesContainer attributesContainer = ShadowUtil
                 .getAttributesContainer(currentShadowType);
         assertNotNull("No attributes container in current shadow", attributesContainer);
-        Collection<ShadowSimpleAttribute<?>> attributes = attributesContainer.getAttributes();
-        assertFalse("Attributes container is empty", attributes.isEmpty());
-        assertEquals("Unexpected number of attributes", 3, attributes.size());
-        ShadowSimpleAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(MidPointConstants.NS_RI, "fullname"));
+        assertEquals("Unexpected number of attributes", 3, attributesContainer.getSimpleAttributes().size());
+        ShadowSimpleAttribute<?> fullnameAttribute = attributesContainer.findSimpleAttribute(new QName(MidPointConstants.NS_RI, "fullname"));
         assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
         assertEquals("Wrong value of fullname attribute in current shadow", "Sir Francis Drake",
                 fullnameAttribute.getRealValue());
@@ -4157,14 +4152,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertTrue("Wrong type of current shadow: " + currentShadow.getClass().getName(),
                 currentShadow.canRepresent(ShadowType.class));
 
-        ShadowAttributesContainer attributesContainer = ShadowUtil
-                .getAttributesContainer(currentShadow);
+        var attributesContainer = ShadowUtil.getAttributesContainer(currentShadow);
         assertNotNull("No attributes container in current shadow", attributesContainer);
-        Collection<ShadowSimpleAttribute<?>> attributes = attributesContainer.getAttributes();
-        assertFalse("Attributes container is empty", attributes.isEmpty());
         assertAttribute(currentShadow,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Drake");
-        assertEquals("Unexpected number of attributes", 3, attributes.size());
+        assertEquals("Unexpected number of attributes", 3, attributesContainer.getSimpleAttributes().size());
 
         var accountRepo = findAccountShadowByUsername(getDrakeRepoIcfName(), resource, result);
         assertNotNull("Shadow was not created in the repository", accountRepo);
@@ -4220,9 +4212,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             ShadowAttributesContainer attributesContainer = ShadowUtil
                     .getAttributesContainer(currentShadowFromChange);
             assertNotNull("No attributes container in current shadow", attributesContainer);
-            Collection<ShadowSimpleAttribute<?>> attributes = attributesContainer.getAttributes();
-            assertFalse("Attributes container is empty", attributes.isEmpty());
-            assertEquals("Unexpected number of attributes", 2, attributes.size());
+            assertEquals("Unexpected number of attributes", 2, attributesContainer.getAttributes().size());
 
             corsairsShadowOid = currentShadowFromChange.getOid();
             var repoShadowByOid = getShadowRepo(corsairsShadowOid);
@@ -4501,7 +4491,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         turnMaintenanceModeOn(RESOURCE_DUMMY_OID, result);
 
         and("the account is entitled (pirates) + title changed (Cpt.)");
-        ObjectDelta<ShadowType> delta = createEntitleDelta(shadowOid, DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID);
+        var delta = createEntitleDelta(shadowOid, DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID);
         delta.addModification(
                 Resource.of(resource).deltaFor(RI_ACCOUNT_OBJECT_CLASS)
                         .item(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH).replace("Cpt.")
@@ -4533,9 +4523,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         // @formatter:on
 
         and("the association has correct definition");
-        var associationValues = ShadowAssociationsCollection.ofShadow(accountAfter.asObjectable()).getAllValues();
+        var associationValues = ShadowAssociationsCollection.ofShadow(accountAfter.asObjectable()).getAllIterableValues();
         assertThat(associationValues).as("associations").hasSize(1);
-        associationValues.iterator().next().associationValue().getAttributesContainerRequired().getDefinitionRequired();
 
         and("the title has correct definition");
         PrismPropertyDefinition<Object> titleDefinition =
@@ -4560,26 +4549,37 @@ public class TestDummy extends AbstractBasicDummyTest {
         var accountName = "account930";
         var accountOid = provisioningService.addObject(
                 ShadowBuilder.withDefinition(getAccountDefaultDefinition())
-                        .withAttribute(SchemaConstants.ICFS_NAME, accountName)
+                        .withSimpleAttribute(SchemaConstants.ICFS_NAME, accountName)
                         .asPrismObject(),
                 null, null, task, result);
 
         String groupName = "group930";
         var groupOid = provisioningService.addObject(
                 ShadowBuilder.withDefinition(getGroupDefaultDefinition())
-                        .withAttribute(SchemaConstants.ICFS_NAME, groupName)
+                        .withSimpleAttribute(SchemaConstants.ICFS_NAME, groupName)
                         .asPrismObject(),
                 null, null, task, result);
 
         var assocDef = getAccountDefaultDefinition().findAssociationDefinitionRequired(ASSOCIATION_GROUP_NAME);
 
         when("account is entitled/detitled in the most raw way (raw value, raw definition)");
-        var rawValue = new ShadowAssociationValueType().shadowRef(groupOid, ShadowType.COMPLEX_TYPE);
+        var associationRawValue = new ShadowAssociationValueType();
+
+        var groupRefDef =
+                prismContext.definitionFactory().newReferenceDefinition(
+                        ASSOCIATION_GROUP_NAME, ObjectReferenceType.COMPLEX_TYPE);
+        var groupRef = groupRefDef.instantiate();
+        groupRef.add(ObjectTypeUtil.createObjectRef(groupOid, ObjectTypes.SHADOW).asReferenceValue());
+
+        associationRawValue.setObjects(new ShadowReferenceAttributesType());
+        //noinspection unchecked
+        associationRawValue.getObjects().asPrismContainerValue().add(groupRef);
+
         var rawDef = prismContext.definitionFactory().newContainerDefinition(
                 assocDef.getItemName(),
                 prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowAssociationValueType.class));
 
-        testEntitleDetitle(accountOid, rawValue, rawDef, task, result);
+        testEntitleDetitle(accountOid, associationRawValue, rawDef, task, result);
     }
 
     private void testEntitleDetitle(
@@ -4670,15 +4670,14 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
         PrismAsserts.assertClass("old shadow", ShadowType.class, oldShadow);
         ShadowType oldShadowType = oldShadow.asObjectable();
-        ShadowAttributesContainer attributesContainer = ShadowUtil
-                .getAttributesContainer(oldShadowType);
+        ShadowAttributesContainer attributesContainer = ShadowUtil.getAttributesContainer(oldShadowType);
         assertNotNull("No attributes container in old shadow", attributesContainer);
-        Collection<ShadowSimpleAttribute<?>> attributes = attributesContainer.getAttributes();
+        var attributes = attributesContainer.getAttributes();
         assertFalse("Attributes container is empty", attributes.isEmpty());
         if (expectedNumberOfAttributes != null) {
             assertEquals("Unexpected number of attributes", (int) expectedNumberOfAttributes, attributes.size());
         }
-        ShadowSimpleAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttribute<?> icfsNameAttribute = attributesContainer.findSimpleAttribute(SchemaConstants.ICFS_NAME);
         assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
         assertEquals("Wrong value of ICF name attribute in old  shadow", repoName,
                 icfsNameAttribute.getRealValue());
@@ -4688,5 +4687,64 @@ public class TestDummy extends AbstractBasicDummyTest {
     RepoShadowAsserter<Void> assertRepoShadowNew(@NotNull String oid)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
         return assertRepoShadow(oid, getCachedAccountAttributes());
+    }
+
+    ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, String objectOid)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        var object = AbstractShadow.of(
+                provisioningService.getObject(
+                        ShadowType.class, objectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
+        return createEntitleDelta(subjectOid, assocName, object);
+    }
+
+    private ObjectDelta<ShadowType> createEntitleDeltaFromIdentifier(
+            String subjectOid, QName assocName, ResourceObjectDefinition objectDef, QName identifierName, String identifierValue)
+            throws SchemaException, ConfigurationException {
+        var object = objectDef.createBlankShadow();
+        object.getAttributesContainer().addSimpleAttribute(identifierName, identifierValue);
+        return createEntitleDelta(subjectOid, assocName, object);
+    }
+
+    private ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, AbstractShadow object)
+            throws SchemaException, ConfigurationException {
+        var assocDef = Resource.of(resource)
+                .getCompleteSchemaRequired()
+                .getObjectTypeDefinitionRequired(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                .findAssociationDefinitionRequired(assocName);
+        return Resource.of(resource).deltaFor(RI_ACCOUNT_OBJECT_CLASS)
+                .item(ShadowType.F_ASSOCIATIONS, assocName)
+                .add(assocDef.createValueFromFullDefaultObject(object))
+                .asObjectDelta(subjectOid);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    ObjectDelta<ShadowType> createDetitleDelta(String subjectOid, QName assocName, String objectOid)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        var object = AbstractShadow.of(
+                provisioningService.getObject(
+                        ShadowType.class, objectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
+        return createDetitleDelta(subjectOid, assocName, object);
+    }
+
+    private ObjectDelta<ShadowType> createDetitleDelta(String subjectOid, QName assocName, AbstractShadow object)
+            throws SchemaException, ConfigurationException {
+        var assocDef = Resource.of(resource)
+                .getCompleteSchemaRequired()
+                .getObjectTypeDefinitionRequired(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                .findAssociationDefinitionRequired(assocName);
+        return Resource.of(resource).deltaFor(RI_ACCOUNT_OBJECT_CLASS)
+                .item(ShadowType.F_ASSOCIATIONS, assocName)
+                .delete(assocDef.createValueFromFullDefaultObject(object))
+                .asObjectDelta(subjectOid);
+    }
+
+    private ObjectDelta<ShadowType> createDetitleDeltaFromIdentifier(
+            String subjectOid, QName assocName, ResourceObjectDefinition objectDef, QName identifierName, String identifierValue)
+            throws SchemaException, ConfigurationException {
+        var object = objectDef.createBlankShadow();
+        object.getAttributesContainer().addSimpleAttribute(identifierName, identifierValue);
+        return createDetitleDelta(subjectOid, assocName, object);
     }
 }

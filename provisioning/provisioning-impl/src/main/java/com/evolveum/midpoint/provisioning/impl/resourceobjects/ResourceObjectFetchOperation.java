@@ -59,7 +59,7 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
      *
      * This means no simulated activation, associations, and so on.
      */
-    static @NotNull ExistingResourceObject executeRaw(
+    static @NotNull ExistingResourceObjectShadow executeRaw(
             @NotNull ProvisioningContext ctx,
             @NotNull ResourceObjectIdentification.WithPrimary identification,
             @NotNull OperationResult result)
@@ -81,7 +81,7 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
      * Note that the identifiers here can be either primary or secondary.
      * In the latter case, the repository is used to find the primary identifier.
      */
-    private @NotNull ExistingResourceObject executeRaw(
+    private @NotNull ExistingResourceObjectShadow executeRaw(
             @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
@@ -93,7 +93,7 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
         try {
             UcfResourceObject object =
                     connector.fetchObject(primaryIdentification, shadowItemsToReturn, ctx.getUcfExecutionContext(), result);
-            return ExistingResourceObject.fromUcf(object, ctx.getResourceRef());
+            return ExistingResourceObjectShadow.fromUcf(object, ctx.getResourceRef());
         } catch (ObjectNotFoundException e) {
             // Not finishing the result because we did not create it! (The same for other catch clauses.)
             // We do not use simple "e.wrap" because there is a lot of things to be filled-in here.

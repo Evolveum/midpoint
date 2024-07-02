@@ -9,9 +9,6 @@ package com.evolveum.midpoint.provisioning.impl.dummy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.createDetitleDelta;
-import static com.evolveum.midpoint.test.IntegrationTestTools.createEntitleDelta;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -156,7 +153,7 @@ public class TestDummyExtra extends TestDummy {
 
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = createEntitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
+        var delta = createEntitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 

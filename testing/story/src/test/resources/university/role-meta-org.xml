@@ -53,9 +53,7 @@
     <inducement id="3">
         <construction>
             <description>org-ou creation</description>
-            <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                         oid="10000000-0000-0000-0000-000000000003"
-                         type="tns:ResourceType"></resourceRef>
+            <resourceRef oid="10000000-0000-0000-0000-000000000003"/>
             <kind>generic</kind>
             <intent>org-ou</intent>
         </construction>

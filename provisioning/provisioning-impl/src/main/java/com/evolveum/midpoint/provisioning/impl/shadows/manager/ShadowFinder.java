@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.*;
@@ -264,7 +264,7 @@ public class ShadowFinder {
      * Returns dead shadows "compatible" (having the same primary identifier) as given shadow that is to be added.
      */
     public @NotNull Collection<PrismObject<ShadowType>> searchForPreviousDeadShadows(
-            ProvisioningContext ctx, ResourceObject objectToAdd, OperationResult result)
+            ProvisioningContext ctx, ResourceObjectShadow objectToAdd, OperationResult result)
             throws SchemaException {
 
         var primaryIdentification = objectToAdd.getPrimaryIdentification();

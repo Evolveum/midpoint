@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
+import com.evolveum.midpoint.model.api.InboundSourceData;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -17,18 +18,16 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
 
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContext;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Everything necessary to carry out pre-clockwork inbounds evaluation.
@@ -50,14 +49,16 @@ public interface PreInboundsContext<T extends Containerable>
         return getPreFocus().asPrismContainerValue();
     }
 
-    @Nullable ObjectDelta<ShadowType> getResourceObjectDelta();
-
+    /**
+     * Relates to {@link ResourceObjectProcessingContext#getShadowLikeValue()}.
+     * See the docs for {@link InboundSourceData#getShadowObjectDefinition()}.
+     */
     @NotNull ResourceObjectDefinition getObjectDefinitionRequired() throws SchemaException, ConfigurationException;
 
     @NotNull ResourceObjectInboundDefinition getInboundDefinition() throws SchemaException, ConfigurationException;
 
     // TODO
-    default @Nullable ShadowReferenceAttributeDefinition getOwningAssociationDefinition() {
+    default @Nullable ShadowAssociationDefinition getOwningAssociationDefinition() {
         return null;
     }
 

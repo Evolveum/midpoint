@@ -136,38 +136,48 @@ public class OutlierObjectModel implements Serializable {
             outlierObjectModel.addOutlierItemModel(patternItemModel);
         }
 
-        AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
-        int similarObjectCount = cluster.getMember().size();
-        Double membershipDensity = clusterStatistics.getMembershipDensity();
+        int similarObjectCount = 0;
+        if (outlierResult.getSimilarObjects() != null) {
+            similarObjectCount = outlierResult.getSimilarObjects();
+        }
+        Double membershipDensity = outlierResult.getSimilarObjectsDensity();
         String clusterDescription = "Detected " + similarObjectCount + " similar objects with membership density "
-                + String.format("%.2f", membershipDensity) + "%";
+                + String.format("%.2f", membershipDensity) + "%"
+                + " and threshold above " + outlierResult.getSimilarObjectsThreshold() + "%. ";
         OutlierItemModel clusterItemModel = new OutlierItemModel(similarObjectCount + " similar object(s)",
                 clusterDescription, "fa fa-cubes");
         outlierObjectModel.addOutlierItemModel(clusterItemModel);
 
-        RoleAnalysisAttributeAnalysisResult compareAttributeResult = outlierResult.getAttributeAnalysis().getUserClusterCompare();
-
-        double averageItemsOccurs = 0;
-        assert compareAttributeResult != null;
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
-
-        int attributeAboveThreshold = 0;
-        int threshold = 80;
-        StringBuilder attributeDescriptionThreshold = new StringBuilder();
-        attributeDescriptionThreshold.append("Attributes with occurrence above ").append(threshold).append("%: ");
-
-        for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysis) {
-            Double density = attribute.getDensity();
-            if (density != null) {
-                if (density > 0.8) {
-                    attributeAboveThreshold++;
-                    attributeDescriptionThreshold.append(attribute.getItemPath()).append(", ");
-                }
-                averageItemsOccurs += density;
-            }
+        AttributeAnalysis outlierAttributeAnalysis = outlierResult.getAttributeAnalysis();
+        RoleAnalysisAttributeAnalysisResult compareAttributeResult = null;
+        if (outlierAttributeAnalysis != null) {
+            compareAttributeResult = outlierAttributeAnalysis.getUserClusterCompare();
         }
 
-        averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
+        double averageItemsOccurs = 0;
+        int attributeAboveThreshold = 0;
+        int threshold = 80;
+
+        StringBuilder attributeDescriptionThreshold = new StringBuilder();
+        attributeDescriptionThreshold.append("Attributes with occurrence above ").append(threshold).append("%: ");
+        if (compareAttributeResult != null && compareAttributeResult.getAttributeAnalysis() != null) {
+            List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
+
+            for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysis) {
+                Double density = attribute.getDensity();
+                if (density != null) {
+                    if (density >= threshold) {
+                        attributeAboveThreshold++;
+                        attributeDescriptionThreshold.append(attribute.getItemPath()).append(", ");
+                    }
+                    averageItemsOccurs += density;
+                }
+            }
+
+            if (averageItemsOccurs != 0 && !attributeAnalysis.isEmpty()) {
+                averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
+            }
+        }
 
         String assignmentsFrequencyDescription = "Assignment of the outlier object confidence in the cluster.";
         OutlierItemModel roleAssignmentsFrequencyItemModel = new OutlierItemModel(
@@ -185,6 +195,34 @@ public class OutlierObjectModel implements Serializable {
         OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(attributeAboveThreshold + " attribute(s)",
                 attributeDescriptionThreshold.toString(), "fa fa-cogs");
         outlierObjectModel.addOutlierItemModel(attributeItemModelThreshold);
+
+        String outlierNoiseCategoryDescription = "Outlier noise category of the outlier object.";
+
+        RoleAnalysisOutlierNoiseCategoryType outlierNoiseCategory = outlierResult.getOutlierNoiseCategory();
+        if (outlierNoiseCategory != null && outlierNoiseCategory.value() != null) {
+            OutlierItemModel noiseCategoryItemModel = new OutlierItemModel(outlierNoiseCategory.value(),
+                    outlierNoiseCategoryDescription, "fa fa-cogs");
+            outlierObjectModel.addOutlierItemModel(noiseCategoryItemModel);
+        }
+
+        List<ObjectReferenceType> duplicatedRoleAssignment = outlierResult.getDuplicatedRoleAssignment();
+        String duplicatedRoleAssignmentDescription = "Duplicated role assignments/inducements of the outlier object.";
+        int numberOfDuplicatedRoleAssignment = 0;
+        if (duplicatedRoleAssignment != null) {
+            if (duplicatedRoleAssignment.size() == 1) {
+                ObjectReferenceType ref = duplicatedRoleAssignment.get(0);
+                if (ref == null || ref.getOid() == null) {
+                    numberOfDuplicatedRoleAssignment = 0;
+                } else {
+                    numberOfDuplicatedRoleAssignment = 1;
+                }
+            } else {
+                numberOfDuplicatedRoleAssignment = duplicatedRoleAssignment.size();
+            }
+        }
+        OutlierItemModel duplicatedRoleAssignmentModel = new OutlierItemModel(String.valueOf(numberOfDuplicatedRoleAssignment),
+                duplicatedRoleAssignmentDescription, "fa fa-cogs");
+        outlierObjectModel.addOutlierItemModel(duplicatedRoleAssignmentModel);
 
         List<String> rolesOid = getRolesOidAssignment(userTypeObject.asObjectable());
 
@@ -302,9 +340,8 @@ public class OutlierObjectModel implements Serializable {
             outlierObjectModel.addOutlierItemModel(patternItemModel);
         }
 
-        AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
-        int similarObjectCount = cluster.getMember().size();
-        Double membershipDensity = clusterStatistics.getMembershipDensity();
+        int similarObjectCount = outlierResult.getSimilarObjects();
+        Double membershipDensity = outlierResult.getSimilarObjectsDensity();
         String clusterDescription = "Detected " + similarObjectCount + " similar objects with membership density "
                 + String.format("%.2f", membershipDensity) + "%";
         OutlierItemModel clusterItemModel = new OutlierItemModel(similarObjectCount
@@ -315,30 +352,37 @@ public class OutlierObjectModel implements Serializable {
                 "fe fe-role");
         outlierObjectModel.addOutlierItemModel(outlierItemModel);
 
-        RoleAnalysisAttributeAnalysisResult compareAttributeResult = outlierResult.getAttributeAnalysis()
-                .getUserRoleMembersCompare();
-
-        double averageItemsOccurs = 0;
-        assert compareAttributeResult != null;
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
-
-        int attributeAboveThreshold = 0;
-        int threshold = 80;
-        StringBuilder attributeDescriptionThreshold = new StringBuilder();
-        attributeDescriptionThreshold.append("Attributes with occurrence above ").append(threshold).append("%: ");
-
-        for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysis) {
-            Double density = attribute.getDensity();
-            if (density != null) {
-                if (density > 0.8) {
-                    attributeAboveThreshold++;
-                    attributeDescriptionThreshold.append(attribute.getItemPath()).append(", ");
-                }
-                averageItemsOccurs += density;
-            }
+        AttributeAnalysis outlierAttributeAnalysis = outlierResult.getAttributeAnalysis();
+        RoleAnalysisAttributeAnalysisResult compareAttributeResult = null;
+        if (outlierAttributeAnalysis != null) {
+            compareAttributeResult = outlierAttributeAnalysis.getUserClusterCompare();
         }
 
-        averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
+        double averageItemsOccurs = 0;
+        int attributeAboveThreshold = 0;
+        int threshold = 80;
+
+        StringBuilder attributeDescriptionThreshold = new StringBuilder();
+        attributeDescriptionThreshold.append("Attributes with occurrence above ").append(threshold).append("%: ");
+        if (compareAttributeResult != null && compareAttributeResult.getAttributeAnalysis() != null) {
+            List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
+
+            for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysis) {
+                Double density = attribute.getDensity();
+                if (density != null) {
+                    if (density >= threshold) {
+                        attributeAboveThreshold++;
+                        attributeDescriptionThreshold.append(attribute.getItemPath()).append(", ");
+                    }
+                    averageItemsOccurs += density;
+                }
+            }
+
+            if (averageItemsOccurs != 0 && !attributeAnalysis.isEmpty()) {
+                averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
+            }
+
+        }
 
         String assignmentsFrequencyDescription = "Assignment of the outlier object confidence in the cluster.";
         OutlierItemModel roleAssignmentsFrequencyItemModel = new OutlierItemModel(
@@ -406,7 +450,8 @@ public class OutlierObjectModel implements Serializable {
             @NotNull RoleAnalysisOutlierDescriptionType outlierResult,
             @NotNull Task task,
             @NotNull OperationResult result,
-            @NotNull PrismObject<UserType> userTypeObject) {
+            @NotNull PrismObject<UserType> userTypeObject,
+            @NotNull RoleAnalysisOutlierType outlierParent) {
         DecimalFormat decimalFormat = new DecimalFormat("#.##");
         decimalFormat.setGroupingUsed(false);
         decimalFormat.setRoundingMode(RoundingMode.DOWN);
@@ -504,8 +549,9 @@ public class OutlierObjectModel implements Serializable {
                 }
             }
 
-            averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
-
+            if (averageItemsOccurs != 0 && !attributeAnalysis.isEmpty()) {
+                averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
+            }
             if (attributeAboveThreshold == 0) {
                 attributeDescriptionThreshold = new StringBuilder("No attributes with occurrence above ")
                         .append(threshold).append("%.");
@@ -522,6 +568,22 @@ public class OutlierObjectModel implements Serializable {
             outlierObjectModel.addOutlierItemModel(attributeItemModelThreshold);
 
         }
+
+        List<ObjectReferenceType> duplicatedRoleAssignment = outlierParent.getDuplicatedRoleAssignment();
+        String oid = roleTypeObject.asObjectable().getOid();
+        String value = "Not duplicated";
+        if (duplicatedRoleAssignment != null && !duplicatedRoleAssignment.isEmpty()) {
+            for (ObjectReferenceType ref : duplicatedRoleAssignment) {
+                if (ref != null && ref.getOid() != null && ref.getOid().equals(oid)) {
+                    value = "Duplicated";
+                }
+            }
+        }
+
+        String duplicatedRoleAssignmentDescription = "Specifies if the assignment was duplicated.";
+        OutlierItemModel duplicatedRoleAssignmentModel = new OutlierItemModel(value,
+                duplicatedRoleAssignmentDescription, "fa fa-cogs");
+        outlierObjectModel.addOutlierItemModel(duplicatedRoleAssignmentModel);
 
         String roleMemberDescription = "Specifies from which source the assignment was assigned.";
 

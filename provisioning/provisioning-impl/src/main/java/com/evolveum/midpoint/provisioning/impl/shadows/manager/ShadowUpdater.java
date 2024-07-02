@@ -39,7 +39,7 @@ import com.evolveum.midpoint.provisioning.api.ShadowDeathEvent;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -452,7 +452,7 @@ public class ShadowUpdater {
     public @NotNull RepoShadow updateShadowInRepository(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
-            @NotNull ResourceObject resourceObject,
+            @NotNull ResourceObjectShadow resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
             @Nullable ResourceObjectClassification newClassification,
             OperationResult result)
@@ -508,7 +508,7 @@ public class ShadowUpdater {
             return repoShadow;
         }
 
-        if (repoShadow.getAttributes().stream()
+        if (repoShadow.getSimpleAttributes().stream()
                 .noneMatch(Item::isIncomplete)) {
             LOGGER.trace("All repo attributes are complete -> nothing to retrieve");
             return repoShadow;

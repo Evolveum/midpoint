@@ -24,6 +24,10 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
@@ -45,7 +49,6 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
@@ -63,7 +66,7 @@ class AssociationValuesTripleComputation {
     private static final Trace LOGGER = TraceManager.getTrace(AssociationValuesTripleComputation.class);
 
     private final boolean hasAssociationObject;
-    @NotNull private final ShadowReferenceAttributeDefinition associationDefinition;
+    @NotNull private final ShadowAssociationDefinition associationDefinition;
     @NotNull private final ShadowAssociationDefinitionType associationDefinitionBean;
     @NotNull private final LensProjectionContext projectionContext;
     @NotNull private final MappingEvaluationEnvironment env;
@@ -72,7 +75,7 @@ class AssociationValuesTripleComputation {
     @NotNull private final ModelBeans b = ModelBeans.get();
 
     private AssociationValuesTripleComputation(
-            @NotNull ShadowReferenceAttributeDefinition associationDefinition,
+            @NotNull ShadowAssociationDefinition associationDefinition,
             @NotNull ShadowAssociationDefinitionType associationDefinitionBean,
             @NotNull LensProjectionContext projectionContext,
             @NotNull MappingEvaluationEnvironment env,
@@ -88,15 +91,14 @@ class AssociationValuesTripleComputation {
 
     /** Assumes the existence of the projection context and association definition with a bean. */
     public static PrismValueDeltaSetTriple<ShadowAssociationValue> compute(
-            @NotNull ShadowReferenceAttributeDefinition associationDefinition,
+            @NotNull ShadowAssociationDefinition associationDefinition,
             @NotNull ConstructionEvaluation<?, ?> constructionEvaluation)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-        var projectionContext = constructionEvaluation.getProjectionContextRequired();
         var avc = new AssociationValuesTripleComputation(
                 associationDefinition,
-                Objects.requireNonNull(associationDefinition.getAssociationDefinitionBean()),
-                projectionContext,
+                Objects.requireNonNull(associationDefinition.getModernAssociationDefinitionBean()),
+                constructionEvaluation.getProjectionContextRequired(),
                 new MappingEvaluationEnvironment(
                         "association computation",
                         constructionEvaluation.construction.now,
@@ -216,9 +218,11 @@ class AssociationValuesTripleComputation {
                 for (ResourceAttributeDefinitionType attrDefBean : associationDefinitionBean.getObjectRef()) {
                     evaluateAttribute(attrDefBean, true);
                 }
-                var shadow = consolidate();
-
-                var associationValue = ShadowAssociationValue.of(AbstractShadow.of(shadow), false);
+                var associationObject = consolidate();
+                var associationValue =
+                        ShadowAssociationValue.fromAssociationObject(
+                                AbstractShadow.of(associationObject),
+                                associationDefinition);
                 var resultingTriple = PrismContext.get().deltaFactory().<ShadowAssociationValue>createPrismValueDeltaSetTriple();
                 resultingTriple.addAllToSet(mode, List.of(associationValue));
                 return resultingTriple;
@@ -236,9 +240,7 @@ class AssociationValuesTripleComputation {
                 return;
             }
             var targetItemName = attrDefBean.getRef().getItemPath().firstNameOrFail();
-            // TEMPORARY
-            var targetItemPath =
-                    ItemPath.create(isObjectRef ? ShadowType.F_ASSOCIATIONS : ShadowType.F_ATTRIBUTES, targetItemName);
+            var targetItemPath = ShadowType.F_ATTRIBUTES.append(targetItemName);
             var origin = ConfigurationItemOrigin.inResourceOrAncestor(projectionContext.getResourceRequired());
             var mappingConfigItem = MappingConfigItem.of(outboundBean, origin);
 
@@ -261,8 +263,7 @@ class AssociationValuesTripleComputation {
             var magicAssignmentIdi = assignmentPathVariables.getMagicAssignment();
 
             var outputDefinition = associationDefinition
-                    .getAssociationObjectInformation()
-                    .getObjectDefinition()
+                    .getAssociationObjectDefinition() // FIXME this may fail for trivial associations
                     .findAttributeDefinitionRequired(targetItemName);
 
             builder = builder
@@ -298,8 +299,7 @@ class AssociationValuesTripleComputation {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
             var shadow = associationDefinition
-                    .getAssociationObjectInformation()
-                    .getObjectDefinition()
+                    .getAssociationObjectDefinition() // FIXME this may fail for trivial associations
                     .createBlankShadow()
                     .getBean();
             //noinspection unchecked

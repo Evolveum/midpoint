@@ -50,7 +50,8 @@ public class BalancedCoverageModeConfiguration extends AbstractRoleAnalysisConfi
                 null,
                 80.0,
                 2,
-                2);
+                2,
+                false);
 
         updateDetectionOptions(2,
                 2,

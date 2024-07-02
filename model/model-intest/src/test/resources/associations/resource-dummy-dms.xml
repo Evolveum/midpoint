@@ -147,7 +147,7 @@
                         <inbound> <!-- not strictly necessary, just for illustration -->
                             <name>documentName-and-level-into-assignment-identifier</name>
                             <source>
-                                <path>$shadow/attributes/ri:level</path>
+                                <path>$association/attributes/ri:level</path>
                             </source>
                             <source>
                                 <name>documentName</name>
@@ -165,7 +165,7 @@
                         <inbound>
                             <name>document-and-level-to-assignment-targetRef</name>
                             <source>
-                                <path>$shadow/attributes/ri:level</path>
+                                <path>$association/attributes/ri:level</path>
                             </source>
                             <expression>
                                 <shadowOwnerReferenceSearch>

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 
 import jakarta.xml.bind.JAXBElement;
@@ -60,14 +61,30 @@ public class AssociationTargetSearchExpressionEvaluatorFactory extends AbstractO
         SearchObjectExpressionEvaluatorType evaluatorBean =
                 getSingleEvaluatorBean(evaluatorElements, SearchObjectExpressionEvaluatorType.class, contextDescription);
 
-        //noinspection unchecked
-        return (ExpressionEvaluator<V>)
-                new AssociationTargetSearchExpressionEvaluator(
-                        ELEMENT_NAME,
-                        evaluatorBean,
-                        (ShadowReferenceAttributeDefinition) outputDefinition,
-                        protector,
-                        getObjectResolver(),
-                        getLocalizationService());
+        if (outputDefinition instanceof ShadowAssociationDefinition associationDefinition) {
+            //noinspection unchecked
+            return (ExpressionEvaluator<V>)
+                    new AssociationTargetSearchExpressionEvaluator(
+                            ELEMENT_NAME,
+                            evaluatorBean,
+                            associationDefinition,
+                            protector,
+                            getObjectResolver(),
+                            getLocalizationService());
+        } else if (outputDefinition instanceof ShadowReferenceAttributeDefinition referenceAttributeDefinition) {
+            //noinspection unchecked
+            return (ExpressionEvaluator<V>)
+                    new ReferenceAttributeTargetSearchExpressionEvaluator(
+                            ELEMENT_NAME,
+                            evaluatorBean,
+                            referenceAttributeDefinition,
+                            protector,
+                            getObjectResolver(),
+                            getLocalizationService());
+        } else {
+            // We actually require object definition to be non-null here
+            throw new UnsupportedOperationException(
+                    "Association target search evaluator cannot be used with output definition of " + outputDefinition);
+        }
     }
 }

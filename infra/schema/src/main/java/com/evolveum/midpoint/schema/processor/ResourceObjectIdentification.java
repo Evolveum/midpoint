@@ -162,7 +162,7 @@ public abstract class ResourceObjectIdentification<I extends ResourceObjectIdent
     public static @NotNull ResourceObjectIdentification.WithPrimary fromCompleteShadow(
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull ShadowType shadow) {
-        var identification = fromAttributes(resourceObjectDefinition, ShadowUtil.getAttributes(shadow));
+        var identification = fromAttributes(resourceObjectDefinition, ShadowUtil.getSimpleAttributes(shadow));
         if (identification instanceof WithPrimary withPrimary) {
             return withPrimary;
         } else {

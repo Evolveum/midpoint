@@ -71,7 +71,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
      */
     private final RepoShadow repoShadow;
 
-    private ExistingResourceObject currentObject;
+    private ExistingResourceObjectShadow currentObject;
 
     @NotNull private final ResourceObjectIdentification.WithPrimary identification;
     private Collection<Operation> operations;
@@ -80,7 +80,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
     private ResourceObjectUcfModifyOperation(
             ProvisioningContext ctx,
             RepoShadow repoShadow,
-            ExistingResourceObject currentObject,
+            ExistingResourceObjectShadow currentObject,
             @NotNull ResourceObjectIdentification.WithPrimary identification,
             @NotNull Collection<Operation> operations,
             OperationProvisioningScriptsType scripts,
@@ -100,7 +100,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
     static UcfModifyReturnValue execute(
             ProvisioningContext ctx,
             RepoShadow repoShadow,
-            ExistingResourceObject preReadObject,
+            ExistingResourceObjectShadow preReadObject,
             @NotNull ResourceObjectIdentification.WithPrimary identification,
             @NotNull Collection<Operation> operations,
             OperationProvisioningScriptsType scripts,
@@ -277,7 +277,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             // TODO eliminate this fetch if this is first wave and there are no explicitly requested attributes
             //  but make sure currentShadow contains all required attributes
             LOGGER.trace("Fetching object because of READ+REPLACE mode");
-            ResourceObject fetchedResourceObject;
+            ResourceObjectShadow fetchedResourceObject;
             if (ctx.isReadingCachingOnly()) {
                 if (currentObject != null) {
                     fetchedResourceObject =
@@ -302,7 +302,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             AttributeContentRequirementType attributeContentRequirement = updateCapability.getAttributeContentRequirement();
             if (attributeContentRequirement == AttributeContentRequirementType.ALL) {
                 LOGGER.trace("AttributeContentRequirement: {} for {}", attributeContentRequirement, ctx.getResource());
-                ResourceObject fetched;
+                ResourceObjectShadow fetched;
                 if (ctx.isReadingCachingOnly()) {
                     if (currentObject != null) {
                         fetched =
@@ -374,7 +374,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
     private Collection<Operation> convertToReplace(
             ProvisioningContext ctx,
             Collection<Operation> operations,
-            @Nullable ResourceObject current,
+            @Nullable ResourceObjectShadow current,
             boolean requireAllAttributes) throws SchemaException {
         List<Operation> retval = new ArrayList<>(operations.size());
         for (Operation operation : operations) {
@@ -397,11 +397,9 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             retval.add(operation); // for yet-unprocessed operations
         }
         if (requireAllAttributes && current != null) {
-            for (ShadowSimpleAttribute<?> currentAttribute : current.getAttributes()) {
+            for (var currentAttribute : current.getSimpleAttributes()) { // TODO what about reference attribute?
                 if (!containsDelta(operations, currentAttribute.getElementName())) {
-                    ShadowSimpleAttributeDefinition<?> rad =
-                            ctx.findAttributeDefinitionRequired(currentAttribute.getElementName());
-                    if (rad.canModify()) {
+                    if (ctx.findAttributeDefinitionRequired(currentAttribute.getElementName()).canModify()) {
                         //noinspection rawtypes
                         PropertyDelta resultingDelta =
                                 PrismContext.get().deltaFactory().property()
@@ -430,7 +428,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
     }
 
     private <T> PropertyModificationOperation<T> convertToReplace(
-            PropertyDelta<T> propertyDelta, @Nullable ResourceObject resourceObject, QName matchingRuleQName)
+            PropertyDelta<T> propertyDelta, @Nullable ResourceObjectShadow resourceObject, QName matchingRuleQName)
             throws SchemaException {
         if (propertyDelta.isReplace()) {
             // this was probably checked before

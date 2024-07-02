@@ -7,11 +7,10 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
-
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.InboundSourceData;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
@@ -33,7 +32,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -50,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Note that the name means "mapping source" and it's there to distinguish from {@link Source} (to avoid ugly qualified names).
  * TODO come with something more sensible
  */
-abstract class MSource implements DebugDumpable {
+abstract class MSource implements IMSource {
 
     private static final Trace LOGGER = TraceManager.getTrace(MSource.class);
 
@@ -58,6 +56,8 @@ abstract class MSource implements DebugDumpable {
      * Current shadow object (in case of clockwork processing it may be full or repo-only, or maybe even null
      * - e.g. when currentObject is null in projection context).
      */
+    @NotNull InboundSourceData sourceData;
+
     @Nullable PrismObject<ShadowType> currentShadow;
 
     /**
@@ -66,26 +66,17 @@ abstract class MSource implements DebugDumpable {
      */
     @Nullable final ObjectDelta<ShadowType> aPrioriDelta;
 
-    /**
-     * Definition of resource object (object type or object class). Must not be null if the mappings are to be processed.
-     * See {@link #checkResourceObjectDefinitionPresent()}.
-     */
-    final ResourceObjectDefinition resourceObjectDefinition;
-
     @NotNull final ResourceObjectInboundDefinition inboundDefinition;
 
     // TODO
-    @Nullable private final ShadowReferenceAttributeDefinition owningAssociationDefinition;
+    @Nullable private final ShadowAssociationDefinition owningAssociationDefinition;
 
     MSource(
-            @Nullable ShadowType currentShadow,
-            @Nullable ObjectDelta<ShadowType> aPrioriDelta,
-            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull InboundSourceData sourceData,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
-            @Nullable ShadowReferenceAttributeDefinition owningAssociationDefinition) {
-        this.currentShadow = asPrismObject(currentShadow);
-        this.aPrioriDelta = aPrioriDelta;
-        this.resourceObjectDefinition = resourceObjectDefinition;
+            @Nullable ShadowAssociationDefinition owningAssociationDefinition) {
+        this.sourceData = sourceData;
+        this.aPrioriDelta = sourceData.getAPrioriDelta();
         this.inboundDefinition = inboundDefinition;
         this.owningAssociationDefinition = owningAssociationDefinition;
     }
@@ -95,21 +86,6 @@ abstract class MSource implements DebugDumpable {
      * from resource if there's no explicit reason to do so. See the implementation for details.
      */
     abstract boolean isEligibleForInboundProcessing(OperationResult result) throws SchemaException, ConfigurationException;
-
-    /**
-     * Resource object definition is absolutely necessary for mappings to be processed.
-     * We might consider even checking this at the very beginning (even before checking if we can process mappings),
-     * but let's be a bit forgiving.
-     */
-    void checkResourceObjectDefinitionPresent() {
-        if (resourceObjectDefinition == null) {
-            // Logging things here to log the context dump (it's not in the exception)
-            LOGGER.error("Definition for projection {} not found in the context, but it " +
-                    "should be there, dumping context:\n{}", getProjectionHumanReadableName(), getContextDump());
-            throw new IllegalStateException("Definition for projection " + getProjectionHumanReadableName()
-                    + " not found in the context, but it should be there");
-        }
-    }
 
     /**
      * Returns the resource object.
@@ -133,8 +109,7 @@ abstract class MSource implements DebugDumpable {
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "projection on", getProjectionHumanReadableName(), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "current shadow", currentShadow, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "a priori delta", aPrioriDelta, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "source data", sourceData, indent + 1);
         return sb.toString();
     }
 
@@ -166,9 +141,6 @@ abstract class MSource implements DebugDumpable {
             Item<V, D> currentProjectionItem, ItemDelta<V, D> itemAPrioriDelta, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException;
-
-    /** TODO clarify */
-    abstract PrismObject<ShadowType> getResourceObjectNew();
 
     abstract String getChannel();
 
@@ -223,7 +195,7 @@ abstract class MSource implements DebugDumpable {
      */
     abstract void resolveInputEntitlements(
             ContainerDelta<ShadowAssociationValueType> associationAPrioriDelta,
-            ShadowReferenceAttribute currentAssociation);
+            ShadowAssociation currentAssociation);
 
     /**
      * Provides the `entitlement` variable for mapping evaluation.
@@ -240,7 +212,7 @@ abstract class MSource implements DebugDumpable {
 
     /**
      * Selects mappings appropriate for the current evaluation phase.
-     * (The method is in this class, because here we have {@link #resourceObjectDefinition} where defaults are defined.)
+     * (The method is in this class, because here we have the object definition where defaults are defined.)
      *
      * @param resourceItemLocalCorrelatorDefined Is the correlator defined "locally" for particular resource object item
      * (currently attribute)?
@@ -275,7 +247,23 @@ abstract class MSource implements DebugDumpable {
 
     abstract ItemPath determineTargetPathExecutionOverride(ItemPath targetItemPath) throws ConfigurationException, SchemaException;
 
-    public @Nullable ShadowReferenceAttributeDefinition getOwningAssociationDefinition() {
-        return owningAssociationDefinition;
+    @Override
+    public @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getSimpleAttributeDefinitions() {
+        return sourceData.getSimpleAttributeDefinitions();
+    }
+
+    @Override
+    public @NotNull Collection<? extends ShadowReferenceAttributeDefinition> getObjectReferenceAttributeDefinitions() {
+        return sourceData.getReferenceAttributeDefinitions();
+    }
+
+    @Override
+    public @NotNull Collection<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
+        return sourceData.getAssociationDefinitions();
+    }
+
+    @Override
+    public @NotNull ResourceObjectInboundDefinition getInboundDefinition() {
+        return inboundDefinition;
     }
 }

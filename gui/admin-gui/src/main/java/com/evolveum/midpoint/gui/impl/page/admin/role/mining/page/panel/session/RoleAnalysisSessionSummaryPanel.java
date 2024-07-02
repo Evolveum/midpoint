@@ -7,13 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
-import com.evolveum.midpoint.web.component.ObjectVerticalSummaryPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
+
+import java.text.DecimalFormat;
+import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
@@ -21,11 +19,14 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.text.DecimalFormat;
-import java.util.List;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisSettingsUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.web.component.ObjectVerticalSummaryPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class RoleAnalysisSessionSummaryPanel extends ObjectVerticalSummaryPanel<RoleAnalysisSessionType> {
 
@@ -45,18 +46,6 @@ public class RoleAnalysisSessionSummaryPanel extends ObjectVerticalSummaryPanel<
         if (sessionStatistic == null) {
             return Model.ofList(List.of());
         }
-
-        RoleAnalysisOptionType analysisOption = getModelObject().getAnalysisOption();
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
-        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
-
-        String mode = Character.
-                toUpperCase(processMode.value().charAt(0))
-                + processMode.value().substring(1)
-                + "/"
-                + Character
-                .toUpperCase(analysisCategory.value().charAt(0))
-                + analysisCategory.value().substring(1);
 
         Double density = sessionStatistic.getMeanDensity();
         if (density == null) {
@@ -80,7 +69,7 @@ public class RoleAnalysisSessionSummaryPanel extends ObjectVerticalSummaryPanel<
 
         List<DetailsTableItem> detailsModel = List.of(
                 new DetailsTableItem(createStringResource("Mode"),
-                        Model.of(mode)) {
+                        () -> RoleAnalysisSettingsUtil.getRoleAnalysisMode(getModelObject().getAnalysisOption())) {
                     @Override
                     public Component createValueComponent(String id) {
                         return new Label(id, getValue());
@@ -111,6 +100,9 @@ public class RoleAnalysisSessionSummaryPanel extends ObjectVerticalSummaryPanel<
                         return new IconWithLabel(id, getValue()) {
                             @Override
                             public String getIconCssClass() {
+                            RoleAnalysisOptionType analysisOption = RoleAnalysisSessionSummaryPanel.this.getModelObject().getAnalysisOption();
+                            RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+
                                 if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
                                     return IconAndStylesUtil.createDefaultColoredIcon(RoleType.COMPLEX_TYPE);
                                 }

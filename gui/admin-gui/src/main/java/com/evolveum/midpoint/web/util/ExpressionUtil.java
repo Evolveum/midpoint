@@ -10,6 +10,9 @@ import java.util.*;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowAssociationsUtil;
+
 import jakarta.xml.bind.JAXBElement;
 
 import javax.xml.namespace.QName;
@@ -319,8 +322,9 @@ public class ExpressionUtil {
                 if (raw.isParsed()) {
                     try {
                         if (raw.getParsedRealValue(ShadowAssociationValueType.class) != null) {
-                            ShadowAssociationValueType assoc = raw.getParsedRealValue(ShadowAssociationValueType.class);
-                            if (assoc.getShadowRef() != null && shadowRefOid.equals(assoc.getShadowRef().getOid())) {
+                            ShadowAssociationValueType assocValue = raw.getParsedRealValue(ShadowAssociationValueType.class);
+                            var shadowRef = ShadowAssociationsUtil.getSingleObjectRefRelaxed(assocValue);
+                            if (shadowRef != null && shadowRefOid.equals(shadowRef.getOid())) {
                                 elementIterator.remove();
                                 break;
                             }
@@ -451,9 +455,10 @@ public class ExpressionUtil {
     public static List<ObjectReferenceType> getShadowRefValue(ExpressionType expressionType, PrismContext prismContext) {
         List<ObjectReferenceType> rv = new ArrayList<>();
         if (expressionType != null) {
-            for (var association : getAssociationList(expressionType)) {
-                if (association.getShadowRef() != null) {
-                    rv.add(association.getShadowRef().clone());
+            for (var associationValue : getAssociationList(expressionType)) {
+                var shadowRef = ShadowAssociationsUtil.getSingleObjectRefRelaxed(associationValue);
+                if (shadowRef != null) {
+                    rv.add(shadowRef.clone());
                 }
             }
         }
@@ -515,11 +520,13 @@ public class ExpressionUtil {
         return Collections.unmodifiableList(rv);
     }
 
-    public static void addShadowRefEvaluatorValue(ExpressionType expression, String oid, PrismContext prismContext) {
+    public static void addShadowRefEvaluatorValue(ExpressionType expression, String oid) {
         if (StringUtils.isNotEmpty(oid)) {
             expression.getExpressionEvaluator().add(
                     new JAXBElement<>(SchemaConstants.C_VALUE, ShadowAssociationValueType.class,
-                            new ShadowAssociationValueType().shadowRef(oid, ShadowType.COMPLEX_TYPE)));
+                            ShadowAssociationsUtil.createSingleRefRawValue(
+                                    ItemName.from("", "TODO"), // FIXME provide association name here
+                                    oid)));
         } else {
             expression.getExpressionEvaluator().add(
                     new JAXBElement<>(SchemaConstants.C_VALUE, ShadowAssociationValueType.class,
@@ -537,7 +544,9 @@ public class ExpressionUtil {
                     new JAXBElement<>(
                             SchemaConstantsGenerated.C_VALUE,
                             ShadowAssociationValueType.class,
-                            new ShadowAssociationValueType().shadowRef(value)));
+                            ShadowAssociationsUtil.createSingleRefRawValue(
+                                    ItemName.from("", "TODO"), // FIXME provide association name here
+                                    value)));
         }
     }
 

@@ -599,7 +599,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         ShadowAttributesContainer attributes = ShadowUtil.getAttributesContainer(account);
 
         assertEquals("shadow secondary identifier not equal with the account dn. ", dn, attributes
-                .findAttribute(getOpenDjSecondaryIdentifierQName()).getRealValue(String.class));
+                .findSimpleAttribute(getOpenDjSecondaryIdentifierQName()).getRealValue(String.class));
 
         String identifier = attributes.getPrimaryIdentifier().getRealValue(String.class);
 
@@ -2605,7 +2605,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertShadowModel(accountModel, accountOid, "uid=morgan,ou=users,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
-        ShadowSimpleAttribute<?> attributes = ShadowUtil.getAttribute(accountModel, QNAME_UID);
+        ShadowSimpleAttribute<?> attributes = ShadowUtil.getSimpleAttribute(accountModel, QNAME_UID);
         assertEquals("morgan", attributes.getAnyRealValue());
         // TODO: check OpenDJ Account
     }
@@ -3053,7 +3053,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertFalse(identifiers.isEmpty());
         assertEquals(1, identifiers.size());
 
-        ShadowSimpleAttribute<?> icfNameAttr = attributeContainer.findAttribute(getOpenDjSecondaryIdentifierQName());
+        ShadowSimpleAttribute<?> icfNameAttr = attributeContainer.findSimpleAttribute(getOpenDjSecondaryIdentifierQName());
         assertEquals("Wrong secondary indetifier.", "uid=e123,ou=people,dc=example,dc=com", icfNameAttr.getRealValue());
 
         assertEquals("Wrong shadow name. ", "uid=e123,ou=people,dc=example,dc=com", eAccount.getName().getOrig());
@@ -3063,7 +3063,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         provisioningService.applyDefinition(repoShadow, task, result);
 
         ShadowAttributesContainer repoAttributeContainer = ShadowUtil.getAttributesContainer(repoShadow);
-        ShadowSimpleAttribute<?> repoIcfNameAttr = repoAttributeContainer.findAttribute(getOpenDjSecondaryIdentifierQName());
+        ShadowSimpleAttribute<?> repoIcfNameAttr = repoAttributeContainer.findSimpleAttribute(getOpenDjSecondaryIdentifierQName());
         assertEquals("Wrong secondary indetifier.", "uid=e123,ou=people,dc=example,dc=com", repoIcfNameAttr.getRealValue());
 
         assertEquals("Wrong shadow name. ", "uid=e123,ou=people,dc=example,dc=com", repoShadow.asObjectable().getName().getOrig());

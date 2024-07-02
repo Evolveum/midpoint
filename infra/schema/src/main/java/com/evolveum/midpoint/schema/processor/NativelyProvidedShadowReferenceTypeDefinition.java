@@ -21,13 +21,13 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 public class NativelyProvidedShadowReferenceTypeDefinition extends AbstractShadowReferenceTypeDefinition {
 
     @NotNull private final NativeReferenceTypeDefinition nativeClassDef;
-    @NotNull private final Collection<AssociationParticipantType> subjectTypes;
-    @NotNull private final Collection<AssociationParticipantType> objectTypes;
+    @NotNull private final Collection<ShadowRelationParticipantType> subjectTypes;
+    @NotNull private final Collection<ShadowRelationParticipantType> objectTypes;
 
     private NativelyProvidedShadowReferenceTypeDefinition(
             @NotNull NativeReferenceTypeDefinition nativeClassDef,
-            @NotNull Collection<AssociationParticipantType> subjectTypes,
-            @NotNull Collection<AssociationParticipantType> objectTypes) {
+            @NotNull Collection<ShadowRelationParticipantType> subjectTypes,
+            @NotNull Collection<ShadowRelationParticipantType> objectTypes) {
         super(nativeClassDef.getName(), objectTypes.iterator().next().objectDefinition);
         this.nativeClassDef = nativeClassDef;
         this.subjectTypes = subjectTypes;
@@ -43,11 +43,11 @@ public class NativelyProvidedShadowReferenceTypeDefinition extends AbstractShado
     }
 
     @NotNull
-    private static Collection<AssociationParticipantType> convertParticipants(
+    private static Collection<ShadowRelationParticipantType> convertParticipants(
             @NotNull Collection<NativeReferenceTypeDefinition.NativeParticipant> nativeParticipants, @NotNull ResourceSchema schema) {
         return nativeParticipants.stream()
                 .map(nativeParticipant ->
-                        AssociationParticipantType.forObjectClass(
+                        ShadowRelationParticipantType.forObjectClass(
                                 resolveObjectClass(nativeParticipant.objectClassName(), schema)))
                 .toList();
     }
@@ -64,12 +64,12 @@ public class NativelyProvidedShadowReferenceTypeDefinition extends AbstractShado
     }
 
     @Override
-    public @NotNull Collection<AssociationParticipantType> getSubjectTypes() {
+    public @NotNull Collection<ShadowRelationParticipantType> getSubjectTypes() {
         return subjectTypes;
     }
 
     @Override
-    public @NotNull Collection<AssociationParticipantType> getObjectTypes() {
+    public @NotNull Collection<ShadowRelationParticipantType> getObjectTypes() {
         return objectTypes;
     }
 }

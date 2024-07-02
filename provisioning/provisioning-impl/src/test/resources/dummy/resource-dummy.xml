@@ -185,6 +185,7 @@
                 </association>
             </subject>
             <object>
+                <ref>ri:group</ref> <!-- FIXME remove -->
                 <objectType>
                     <kind>entitlement</kind>
                     <intent>group</intent>
@@ -203,6 +204,7 @@
                 </association>
             </subject>
             <object>
+                <ref>ri:priv</ref> <!-- FIXME remove -->
                 <objectType>
                     <kind>entitlement</kind>
                     <intent>privilege</intent>

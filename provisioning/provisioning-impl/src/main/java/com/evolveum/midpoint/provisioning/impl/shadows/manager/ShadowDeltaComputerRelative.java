@@ -16,6 +16,8 @@ import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -52,6 +54,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * the primary identifier value.
  *
  * @see ShadowDeltaComputerAbsolute
+ * @see ShadowObjectComputer
  */
 class ShadowDeltaComputerRelative {
 
@@ -90,7 +93,10 @@ class ShadowDeltaComputerRelative {
             var parentPath = modification.getParentPath();
             if (parentPath.equivalent(ShadowType.F_ATTRIBUTES)) {
                 QName attrName = modification.getElementName();
-                var attrDef = objectDefinition.findSimpleAttributeDefinitionRequired(attrName);
+                var attrDef = objectDefinition.findAttributeDefinitionRequired(attrName);
+                if (!(attrDef instanceof ShadowSimpleAttributeDefinition<?> simpleAttrDef)) {
+                    continue; // only simple attributes are processed here
+                }
                 if (isNamingAttribute(attrName, objectDefinition)) {
                     // Naming attribute is changed -> the shadow name should change as well.
                     // TODO: change this to displayName attribute later
@@ -103,8 +109,8 @@ class ShadowDeltaComputerRelative {
                     resultingRepoModifications.add(
                             primaryIdentifierValueModFromAttributeMod(modification));
                 }
-                if (ctx.shouldStoreAttributeInShadow(objectDefinition, attrDef)) {
-                    resultingRepoModifications.add(modification, attrDef);
+                if (ctx.shouldStoreAttributeInShadow(objectDefinition, simpleAttrDef)) {
+                    resultingRepoModifications.add(modification, simpleAttrDef);
                 }
             } else if (parentPath.equivalent(ShadowType.F_ACTIVATION)) {
                 if (ProvisioningUtil.shouldStoreActivationItemInShadow(modification.getElementName(), cachingEnabled)) {
