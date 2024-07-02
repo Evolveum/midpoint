@@ -843,4 +843,9 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
         }
         return processors;
     }
+
+    @Override
+    public String toString() {
+        return "\"" + getItemName() + "\"->" + super.toString();
+    }
 }
