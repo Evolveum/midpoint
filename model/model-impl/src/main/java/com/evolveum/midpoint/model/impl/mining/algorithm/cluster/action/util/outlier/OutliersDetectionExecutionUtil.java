@@ -56,8 +56,7 @@ public class OutliersDetectionExecutionUtil {
                 .type(RoleAnalysisSessionType.COMPLEX_TYPE);
 
         RangeType frequencyRange = session.getDefaultDetectionOption().getFrequencyRange();
-        Double minFrequency = frequencyRange.getMin();
-        Double maxFrequency = frequencyRange.getMax();
+        Double sensitivity = session.getDefaultDetectionOption().getSensitivity();
         UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
         Double similarityThreshold = userModeOptions.getSimilarityThreshold();
 
@@ -68,8 +67,8 @@ public class OutliersDetectionExecutionUtil {
                     session,
                     task,
                     miningOperationChunk,
-                    minFrequency,
-                    maxFrequency,
+                    frequencyRange,
+                    sensitivity,
                     clusterRef,
                     sessionRef,
                     result,
@@ -78,8 +77,8 @@ public class OutliersDetectionExecutionUtil {
         } else if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
             resolveRoleModeOutliers(roleAnalysisService,
                     miningOperationChunk,
-                    minFrequency,
-                    maxFrequency,
+                    frequencyRange,
+                    sensitivity,
                     clusterRef,
                     sessionRef,
                     map);

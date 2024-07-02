@@ -56,6 +56,7 @@ public class DepartmentModeConfiguration extends AbstractRoleAnalysisConfigurati
 
         updateDetectionOptions(2,
                 2,
+                null,
                 createDetectionRange(),
                 RoleAnalysisDetectionProcessType.FULL);
     }

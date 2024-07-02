@@ -43,18 +43,22 @@ public class OutlierModeConfiguration extends AbstractRoleAnalysisConfiguration 
                 .min(5.0)
                 .max(Double.valueOf(getMaxPropertyCount()));
 
+        //TODO after implementing use isIndirect
+        boolean isIndirect = getProcessMode().equals(RoleAnalysisProcessModeType.USER);
+
         updatePrimaryOptions(null,
-                getProcessMode().equals(RoleAnalysisProcessModeType.USER),
+                false,
                 propertyRange,
                 getDefaultAnalysisAttributes(),
                 null,
-                90.,
+                90.0,
                 10,
                 2,
                 false);
 
         updateDetectionOptions(2,
                 2,
+                20.0,
                 new RangeType()
                         .min(2.0)
                         .max(2.0),

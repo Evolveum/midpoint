@@ -112,6 +112,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     }
 
     transient RoleAnalysisClusterType cluster;
+
     @Override
     protected void initLayout() {
         PageBase pageBase = getPageBase();
@@ -125,8 +126,6 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         this.cluster = cluster;
         PrismObject<RoleAnalysisSessionType> getParent = roleAnalysisService.
                 getSessionTypeObject(cluster.getRoleAnalysisSessionRef().getOid(), task, result);
-
-
 
         if (getCandidateRoleContainerId() != null) {
             loadSelectedCandidateRole(cluster, roleAnalysisService, task);
@@ -351,6 +350,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
 
         RangeType frequencyRange = detectionOption.getFrequencyRange();
+        Double sensitivity = detectionOption.getSensitivity();
 
         double minFrequency = 0;
         double maxFrequency = 0;
@@ -370,9 +370,9 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
         if (isOutlierDetection && frequencyRange != null) {
             if (!isRoleMode) {
-                roleAnalysisService.resolveOutliersZScore(roles, frequencyRange.getMin(), frequencyRange.getMax());
+                roleAnalysisService.resolveOutliersZScore(roles, frequencyRange, sensitivity);
             } else {
-                roleAnalysisService.resolveOutliersZScore(users, frequencyRange.getMin(), frequencyRange.getMax());
+                roleAnalysisService.resolveOutliersZScore(users, frequencyRange, sensitivity);
             }
         }
         if (analysePattern != null && !analysePattern.isEmpty()) {

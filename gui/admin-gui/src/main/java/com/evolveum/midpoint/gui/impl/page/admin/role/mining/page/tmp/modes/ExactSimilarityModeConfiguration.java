@@ -55,6 +55,7 @@ public class ExactSimilarityModeConfiguration extends AbstractRoleAnalysisConfig
 
         updateDetectionOptions(2,
                 2,
+                null,
                 new RangeType()
                         .min(10.0)
                         .max(100.0),

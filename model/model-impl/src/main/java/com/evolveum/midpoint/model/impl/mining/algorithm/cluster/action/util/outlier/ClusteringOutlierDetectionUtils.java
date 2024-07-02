@@ -340,8 +340,9 @@ public class ClusteringOutlierDetectionUtils {
             int countOfRoles = clusterRolesCount.intValue();
 
             RangeType frequencyRange = detectionOption.getFrequencyRange();
-            ZScoreData zScoreData = roleAnalysisService.resolveOutliersZScore
-                    (miningRoleTypeChunks, frequencyRange.getMin(), frequencyRange.getMax());
+            Double sensitivity = detectionOption.getSensitivity();
+            ZScoreData zScoreData = roleAnalysisService.resolveOutliersZScore(
+                    miningRoleTypeChunks, frequencyRange, sensitivity);
 
             analyzeAnomalyMarkedRoleTypeChunk(roleAnalysisService,
                     session,
