@@ -860,7 +860,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (others == null) {
             return columns;
         } else if (notContainsNameColumn(others)) {
-            IColumn<PO, String> nameColumn = createNameColumn(null, null, null);
+            IColumn<PO, String> nameColumn = createNameColumn(createStringResource("ObjectType.name"), null, null);
             if (nameColumn != null) {
                 columns.add(nameColumn);
             }

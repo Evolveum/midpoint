@@ -22,8 +22,8 @@ public class CertItemNotDecidedAction extends AbstractCertItemAction {
         super();
     }
 
-    public CertItemNotDecidedAction(AbstractGuiAction<AccessCertificationWorkItemType> preAction) {
-        super(preAction);
+    public CertItemNotDecidedAction(GuiActionDto<AccessCertificationWorkItemType> actionDto) {
+        super(actionDto);
     }
 
     @Override

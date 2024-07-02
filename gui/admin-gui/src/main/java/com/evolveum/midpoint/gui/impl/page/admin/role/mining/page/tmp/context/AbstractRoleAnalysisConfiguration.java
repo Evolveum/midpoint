@@ -86,6 +86,7 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
     public void setObjectWrapper(LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper) {
         this.objectWrapper = objectWrapper;
     }
+
     public AnalysisAttributeSettingType getDefaultAnalysisAttributes() {
         AnalysisAttributeSettingType value = new AnalysisAttributeSettingType();
         List<AnalysisAttributeRuleType> analysisAttributeRule = new ArrayList<>();
@@ -185,6 +186,7 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
     public void updateDetectionOptions(
             Integer minRolesOccupancy,
             Integer minUserOccupancy,
+            Double sensitivity,
             RangeType frequencyRange,
             RoleAnalysisDetectionProcessType detectionProcessMode) {
 
@@ -193,6 +195,9 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
                     objectWrapper).getObject().getValue();
             setNewDetectionOptionValue(primaryOptions, RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY, minRolesOccupancy);
             setNewDetectionOptionValue(primaryOptions, RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY, minUserOccupancy);
+            if (sensitivity != null) {
+                setNewDetectionOptionValue(primaryOptions, RoleAnalysisDetectionOptionType.F_SENSITIVITY, sensitivity);
+            }
             setNewDetectionOptionValue(primaryOptions, RoleAnalysisDetectionOptionType.F_FREQUENCY_RANGE, frequencyRange);
             setNewDetectionOptionValue(primaryOptions, RoleAnalysisDetectionOptionType.F_DETECTION_PROCESS_MODE, detectionProcessMode);
 

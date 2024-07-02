@@ -39,6 +39,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public interface RoleAnalysisService {
 
+    ModelService getModelService();
+
     /**
      * Retrieves a PrismObject of UserType object based on its OID.
      *
@@ -803,7 +805,10 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result,
             @NotNull List<RoleAnalysisAttributeDef> attributeDefSet);
 
-    <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(@NotNull List<T> data, double negativeThreshold, double positiveThreshold);
+    <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(
+            @NotNull List<T> data,
+            @Nullable RangeType range,
+            @Nullable Double sensitivity);
     <T extends MiningBaseTypeChunk> double calculateZScoreConfidence(@NotNull T item, ZScoreData zScoreData);
 
     @Nullable Set<String> resolveUserValueToMark(
@@ -833,13 +838,17 @@ public interface RoleAnalysisService {
      * @param roleAnalysisOutlierType The role analysis outlier type containing the outlier information.
      * @param task The task associated with the operation.
      * @param result The operation result.
-     * @param sessionOid The OID of the session associated with the outlier.
+     * @param session The role analysis session type containing the session information.
+     * @param cluster The role analysis cluster type containing the cluster information.
+     * @param requiredConfidence The required confidence for the outlier.
      */
     void resolveOutliers(
             @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
             @NotNull Task task,
             @NotNull OperationResult result,
-            @NotNull String sessionOid);
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull RoleAnalysisClusterType cluster,
+            double requiredConfidence);
 
     /**
      * Search for the top detected patterns over all clusters
@@ -902,6 +911,41 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result,
             @NotNull Task task);
 
-    ModelService getModelService();
+    /**
+     * This method is used to calculate the threshold range for outlier detection.
+     * The range is adjusted based on the provided sensitivity.
+     *
+     * @param sensitivity The sensitivity for outlier detection. It should be a value between 0.0 and 100.
+     *                    If the provided value is outside this range, it will be set to 0.0.
+     *                    The sensitivity is used to adjust the threshold for outlier detection.
+     * @param range The initial range for outlier detection. It should be a RangeType object with min and max values.
+     *              If the min or max values are null, they will be set to 2.0.
+     *              Note: The range is expected to have both values positive.
+     * @return The adjusted range for outlier detection. It's a RangeType object with the min and max values
+     * adjusted based on the sensitivity.
+     */
+    RangeType calculateOutlierThresholdRange(Double sensitivity, @NotNull RangeType range);
 
+    /**
+     * Calculates the required confidence for outlier detection based on the provided sensitivity.
+     * The sensitivity should be a value between 0.0 and 100. If the provided value is outside this range, the function will return 0.0.
+     * The function uses the formula 1 - (sensitivity * 0.01) to calculate the required confidence.
+     *
+     * @param sensitivity The sensitivity for outlier detection. It should be a value between 0.0 and 100.
+     * @return The required confidence for outlier detection. It's a value between 0.0 and 1.0.
+     */
+    double calculateOutlierConfidenceRequired(double sensitivity);
+
+    /**
+     * This method is used to find all outliers associated with a specific cluster.
+     *
+     * @param cluster The cluster for which to find associated outliers. It should be a RoleAnalysisClusterType object.
+     * @param task The task in context. It should be a Task object.
+     * @param result The operation result. It should be an OperationResult object.
+     * @return A list of RoleAnalysisOutlierType objects that are associated with the provided cluster.
+     */
+    List<RoleAnalysisOutlierType> findClusterOutliers(
+            @NotNull RoleAnalysisClusterType cluster,
+            @NotNull Task task,
+            @NotNull OperationResult result);
 }

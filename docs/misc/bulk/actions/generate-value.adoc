@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2017-05-25T10:34:35.773+02:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2017-05-25T10:45:24.477+02:00
-:page-since: "3.6"
 :page-upkeep-status: orange
 
 == Description

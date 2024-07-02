@@ -35,6 +35,10 @@ public class CommentAction<C extends Containerable, AGA extends AbstractGuiActio
         super();
     }
 
+    public CommentAction(GuiActionDto<C> actionDto) {
+        super(actionDto);
+    }
+
     @Override
     public void executeAction(List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
         showCommentPanel(null, objectsToProcess, pageBase, target);
@@ -62,6 +66,10 @@ public class CommentAction<C extends Containerable, AGA extends AbstractGuiActio
             @Override
             protected IModel<String> createInformationLabelModel() {
                 return getCommentPanelInformationLabelModel();
+            }
+
+            protected boolean isCommentRequired() {
+                return CommentAction.this.isParameterMandatory("comment");
             }
         };
         pageBase.showMainPopup(commentPanel, target);

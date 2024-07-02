@@ -93,6 +93,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     transient @Autowired RepositoryService repositoryService;
 
     @Override
+    public ModelService getModelService() {
+        return modelService;
+    }
+
+    @Override
     public @Nullable PrismObject<UserType> getUserTypeObject(
             @NotNull String oid,
             @NotNull Task task,
@@ -1956,7 +1961,26 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         return userAnalysis;
     }
 
-    public <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(@NotNull List<T> data, double negativeThreshold, double positiveThreshold) {
+    public <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(
+            @NotNull List<T> data,
+            @Nullable RangeType range,
+            @Nullable Double sensitivity) {
+
+        if (sensitivity == null) {
+            sensitivity = 0.0;
+        }
+
+        if (range == null) {
+            range = new RangeType();
+            range.setMin(2.0);
+            range.setMax(2.0);
+        }
+
+        RangeType tunedRange = calculateOutlierThresholdRange(sensitivity, range);
+
+        double negativeThreshold = tunedRange.getMin();
+        double positiveThreshold = tunedRange.getMax();
+
         double sum = 0;
         int dataSize = 0;
         for (T item : data) {
@@ -2151,8 +2175,36 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
             @NotNull Task task,
             @NotNull OperationResult result,
-            @NotNull String sessionOid) {
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull RoleAnalysisClusterType cluster,
+            double requiredConfidence) {
         //TODO TARGET OBJECT REF IS NECESSARY (check git history)
+
+        Double clusterConfidence = roleAnalysisOutlierType.getClusterConfidence();
+        if (clusterConfidence == null) {
+            clusterConfidence = 0.0;
+        }
+        if (clusterConfidence < requiredConfidence) {
+            return;
+        }
+
+        roleAnalysisOutlierType.setTargetSessionRef(new ObjectReferenceType()
+                .oid(session.getOid())
+                .targetName(session.getName())
+                .type(RoleAnalysisSessionType.COMPLEX_TYPE));
+
+        roleAnalysisOutlierType.setTargetClusterRef(new ObjectReferenceType()
+                .oid(cluster.getOid())
+                .targetName(cluster.getName())
+                .type(RoleAnalysisClusterType.COMPLEX_TYPE));
+
+        ObjectReferenceType targetObjectRef = roleAnalysisOutlierType.getTargetObjectRef();
+        PrismObject<FocusType> object = this
+                .getObject(FocusType.class, targetObjectRef.getOid(), task, result);
+
+        roleAnalysisOutlierType.setName(object != null && object.getName() != null
+                ? PolyStringType.fromOrig(object.getName() + " (outlier)")
+                : PolyStringType.fromOrig("outlier_" + session.getName() + "_" + UUID.randomUUID()));
 
         this.importOutlier(roleAnalysisOutlierType, task, result);
 
@@ -2477,8 +2529,64 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     @Override
-    public ModelService getModelService() {
-        return modelService;
+    public @NotNull RangeType calculateOutlierThresholdRange(Double sensitivity, @NotNull RangeType range) {
+        if (sensitivity < 0.0 || sensitivity > 100) {
+            sensitivity = 0.0;
+        }
+
+        if (range.getMin() == null || range.getMax() == null) {
+            range.setMin(2.0);
+            range.setMax(2.0);
+        }
+
+        //TODO careful with the range now is both values positive
+        Double min = range.getMin();
+        Double max = range.getMax();
+
+        double thresholdMin = min * (1 + (sensitivity * 0.01));
+        double thresholdMax = max * (1 + (sensitivity * 0.01));
+
+        RangeType tunedRange = new RangeType();
+        tunedRange.setMin(thresholdMin);
+        tunedRange.setMax(thresholdMax);
+        return range;
+    }
+
+    @Override
+    public double calculateOutlierConfidenceRequired(double sensitivity) {
+        //TODO check the formula
+        if (sensitivity < 0.0 || sensitivity > 100) {
+            return 0.0;
+        }
+
+        return 1 - (sensitivity * 0.01);
+    }
+
+    @NotNull
+    public List<RoleAnalysisOutlierType> findClusterOutliers(
+            @NotNull RoleAnalysisClusterType cluster,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        List<RoleAnalysisOutlierType> searchResultList = new ArrayList<>();
+        String clusterOid = cluster.getOid();
+        ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
+
+            RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
+            ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
+            String oid = targetClusterRef.getOid();
+            if (clusterOid.equals(oid)) {
+                searchResultList.add(outlier.asObjectable());
+            }
+            return true;
+        };
+
+        try {
+            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
+                    null, task, result);
+        } catch (Exception ex) {
+            throw new RuntimeException("Couldn't search outliers", ex);
+        }
+        return searchResultList;
     }
 
 }

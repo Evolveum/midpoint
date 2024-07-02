@@ -154,6 +154,7 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
                 RoleAnalysisProcessModeType.USER, result, task);
 
         RangeType frequencyRange = detectionOption.getFrequencyRange();
+        Double sensitivity = detectionOption.getSensitivity();
 
         RoleAnalysisSortMode sortMode = displayValueOption.getSortMode();
         if (sortMode == null) {
@@ -164,7 +165,7 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         List<MiningRoleTypeChunk> roles = miningOperationChunk.getMiningRoleTypeChunks(sortMode);
 
         if (frequencyRange != null) {
-            roleAnalysisService.resolveOutliersZScore(roles, frequencyRange.getMin(), frequencyRange.getMax());
+            roleAnalysisService.resolveOutliersZScore(roles, frequencyRange, sensitivity);
         }
 
         for (MiningRoleTypeChunk role : roles) {

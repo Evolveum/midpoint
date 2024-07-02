@@ -55,6 +55,7 @@ public class BalancedCoverageModeConfiguration extends AbstractRoleAnalysisConfi
 
         updateDetectionOptions(2,
                 2,
+                null,
                 new RangeType()
                         .min(10.0)
                         .max(100.0),
