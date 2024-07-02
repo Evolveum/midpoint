@@ -24,8 +24,8 @@ public class CertItemAcceptAction extends AbstractCertItemAction {
         super();
     }
 
-    public CertItemAcceptAction(AbstractGuiAction<AccessCertificationWorkItemType> preAction) {
-        super(preAction);
+    public CertItemAcceptAction(GuiActionDto<AccessCertificationWorkItemType> actionDto) {
+        super(actionDto);
     }
 
     @Override

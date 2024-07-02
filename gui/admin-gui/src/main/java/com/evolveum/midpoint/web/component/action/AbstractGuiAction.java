@@ -12,9 +12,11 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -26,15 +28,18 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
 
     AbstractGuiAction<C> preAction;
     private boolean isVisible = true;
-    private boolean isExecuted = false;
     private DisplayType actionDisplayType = null;
     Map<String, Object> actionParametersMap = new HashMap<>();
+    List<GuiParameterType> actionParameters = new ArrayList<>();
 
     public AbstractGuiAction() {
     }
 
-    public AbstractGuiAction(AbstractGuiAction<C> preAction) {
-        this.preAction = preAction;
+    public AbstractGuiAction(@NotNull GuiActionDto<C> guiActionDto) {
+        this.preAction = guiActionDto.getPreAction();
+        this.actionParameters = guiActionDto.getActionParameters();
+        this.isVisible = guiActionDto.isVisible();
+        this.actionDisplayType = guiActionDto.getDisplay();
     }
 
     public void onActionPerformed(List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
@@ -84,32 +89,8 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
                         .cssClass(display.icon()));
     }
 
-    public void setActionDisplayType(DisplayType actionDisplayType) {
-        this.actionDisplayType = actionDisplayType;
-    }
-
-    /**
-     * the idea is to move some values from the preAction to the main action
-     * (e.g. comment in case CommentAction is executed as preAction)
-     * @param preActionParametersMap
-     */
-    protected void processPreActionParametersValues(Map<String, Object> preActionParametersMap) {
-    }
-
     public boolean isVisible() {
         return isVisible;
-    }
-
-    public void setVisible(boolean isVisible) {
-        this.isVisible = isVisible;
-    }
-
-    public boolean isExecuted() {
-        return isExecuted;
-    }
-
-    public void setExecuted(boolean isExecuted) {
-        this.isExecuted = isExecuted;
     }
 
     public Map<String, Object> getActionParametersMap() {
@@ -134,5 +115,13 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
 
     public Map<String, Object> getPreActionParametersMap() {
         return preAction != null ? preAction.getActionParametersMap() : null;
+    }
+
+    public boolean isParameterMandatory(String parameterName) {
+        if (actionParameters == null) {
+            return false;
+        }
+        return actionParameters.stream()
+                .anyMatch(param -> parameterName.equals(param.getName()) && param.isMandatory());
     }
 }

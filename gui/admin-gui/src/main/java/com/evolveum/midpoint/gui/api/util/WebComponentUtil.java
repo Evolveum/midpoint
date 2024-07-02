@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.web.component.action.AbstractGuiAction;
+import com.evolveum.midpoint.web.component.action.GuiActionDto;
 import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 
@@ -3848,11 +3849,11 @@ public final class WebComponentUtil {
         return null;
     }
 
-    public static <C extends Containerable, AGA extends AbstractGuiAction<C>> AbstractGuiAction<C> instantiateAction(
-            Class<? extends AbstractGuiAction<C>> actionClass, AGA preAction) {
+    public static <C extends Containerable> AbstractGuiAction<C> instantiateAction(
+            Class<? extends AbstractGuiAction<C>> actionClass, GuiActionDto<C> actionDto) {
         if (AbstractGuiAction.class.isAssignableFrom(actionClass)) {
             try {
-                return ConstructorUtils.invokeConstructor(actionClass, preAction);
+                return ConstructorUtils.invokeConstructor(actionClass, actionDto);
             } catch (Throwable e) {
                 LOGGER.trace("No constructor found for action.", e);
                 return null;
