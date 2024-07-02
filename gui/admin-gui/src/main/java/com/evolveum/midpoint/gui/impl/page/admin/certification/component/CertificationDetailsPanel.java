@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.impl.page.admin.certification.CertificationDetailsModel;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -28,12 +30,10 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimpleContainerPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -52,25 +52,24 @@ import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationI
 import com.evolveum.midpoint.web.page.admin.reports.ReportDownloadHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@PanelType(name = "certificationItems") //TODO better name
+@PanelType(name = "certificationDetails") //TODO better name
 @PanelInstance(identifier = "certificationDetails", //TODO better name
         applicableForType = AccessCertificationCampaignType.class,
         defaultPanel = true,// change later to assignmentHolder type, probably we will want org assignments later
         display = @PanelDisplay(label = "Responses" /*TODO better name*/, icon = GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON, order = 1))
 // TODO @Counter(provider = AssignmentCounter.class)
-public class CertificationDetailsPanel extends AbstractObjectMainPanel<AccessCertificationCampaignType, ObjectDetailsModels<AccessCertificationCampaignType>> {
+public class CertificationDetailsPanel extends AbstractObjectMainPanel<AccessCertificationCampaignType, CertificationDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CertificationDetailsPanel.class);
 
     private static final String DOT_CLASS = CertificationDetailsPanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_STATISTICS = DOT_CLASS + "loadStatistics";
 
     private static final String ID_RESPONSES_CONTAINER = "responsesContainer";
     private static final String ID_RESPONSES = "responses";
     private static final String ID_CREATED_REPORTS = "createdReports"; //todo temporary here
     private static final String ID_ITEMS_TABBED_PANEL = "itemsTabbedPanel";
 
-    public CertificationDetailsPanel(String id, ObjectDetailsModels<AccessCertificationCampaignType> model, ContainerPanelConfigurationType config) {
+    public CertificationDetailsPanel(String id, CertificationDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
@@ -134,25 +133,8 @@ public class CertificationDetailsPanel extends AbstractObjectMainPanel<AccessCer
         addOrReplaceCertItemsTabbedPanel();
     }
 
-    //TODO create AccessCertificationDetailsModel and add statistinc loading there
-    private AccessCertificationCasesStatisticsType loadStatistics() {
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_STATISTICS);
-        OperationResult result = task.getResult();
-        AccessCertificationCasesStatisticsType stat = null;
-        try {
-            stat = getPageBase().getCertificationService().getCampaignStatistics(getObjectDetailsModels().getObjectType().getOid(),
-                    false, task, result);
-            result.recordSuccessIfUnknown();
-        } catch (Exception ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get campaign statistics", ex);
-            result.recordFatalError(getString("PageCertCampaign.message.loadStatistics.fatalerror"), ex);
-        }
-        result.recomputeStatus();
-
-        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            getPageBase().showResult(result);
-        }
-        return stat;
+    private AccessCertificationCasesStatisticsType getStatistics() {
+        return getObjectDetailsModels().getCertStatisticsModel().getObject();
     }
 
     private @NotNull LoadableModel<List<ProgressBar>> createResponseStatisticsModel() {
@@ -163,7 +145,7 @@ public class CertificationDetailsPanel extends AbstractObjectMainPanel<AccessCer
             protected List<ProgressBar> load() {
                 List<ProgressBar> progressBars = new ArrayList<>();
 
-                AccessCertificationCasesStatisticsType statisticsType = loadStatistics();
+                AccessCertificationCasesStatisticsType statisticsType = getStatistics();
                 CertificationItemResponseHelper responseHelper =
                         new CertificationItemResponseHelper(AccessCertificationResponseType.ACCEPT);
                 ProgressBar accepted = new ProgressBar(statisticsType.getMarkedAsAccept(),

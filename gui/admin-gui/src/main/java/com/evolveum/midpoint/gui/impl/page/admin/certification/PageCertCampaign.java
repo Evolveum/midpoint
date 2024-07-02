@@ -217,4 +217,9 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
         return () -> WebComponentUtil.getDisplayNameOrName(getModelPrismObject());
     }
 
+    @Override
+    protected CertificationDetailsModel createObjectDetailsModels(PrismObject<AccessCertificationCampaignType> object) {
+        return new CertificationDetailsModel(createPrismObjectModel(object), this);
+    }
+
 }
