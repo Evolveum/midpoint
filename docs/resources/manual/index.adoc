@@ -9,7 +9,6 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2017-04-24T11:59:19.577+02:00
 :page-wiki-metadata-modify-user: vera
 :page-wiki-metadata-modify-date: 2018-01-29T14:07:01.936+01:00
-:page-since: "3.6"
 :page-upkeep-status: yellow
 
 == Manual Resource
@@ -141,10 +140,6 @@ If you are interesting in helping to finish those resources please consider a xr
 
 == Provisioning Propagation
 
-
-++++
-{% include since.html since="3.7.1" %}
-++++
 
 MidPoint usually executes all resource operations as soon as possible.
 But this may be quite troublesome for manual resources where resource operations are usually costly.

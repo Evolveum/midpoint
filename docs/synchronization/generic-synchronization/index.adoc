@@ -9,7 +9,6 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2014-01-07T14:08:05.801+01:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2014-04-02T10:50:42.822+02:00
-:page-since: 3.0
 :page-upkeep-status: orange
 :page-upkeep-note: Probably just minor updates needed.
 

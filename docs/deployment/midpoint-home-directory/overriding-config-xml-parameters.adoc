@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2018-08-09T17:12:25.521+02:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2018-08-09T17:12:25.521+02:00
-:page-since: "3.9"
 
 
 It is possible to override parameters specified in `config.xml` using Java system properties specified on the command line.

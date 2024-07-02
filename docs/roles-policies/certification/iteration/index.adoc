@@ -6,7 +6,6 @@
 :page-wiki-metadata-create-date: 2018-06-15T09:55:43.162+02:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2018-09-17T13:32:56.839+02:00
-:page-since: "3.9"
 :page-upkeep-status: yellow
 
 A certification campaign - after it's closed - can be "re-run" or "re-iterated": reviewers that have not provided an answer get a second chance: they are offered their work items to be filled-in.
