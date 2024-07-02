@@ -100,7 +100,7 @@ Only the size of individual buckets is measured (if supported by the item provid
 | Item | Description
 | `configurationToUse`
 | Using `predefined` property, one can select either `production` or `development` configuration.
-| The former is the default one.
+ The former is the default one.
 |===
 
 An example:
