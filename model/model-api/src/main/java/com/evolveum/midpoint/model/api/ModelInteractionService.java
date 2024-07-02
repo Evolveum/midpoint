@@ -724,4 +724,11 @@ public interface ModelInteractionService {
      */
     void applyDefinitions(ShadowType shadow, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Determines if the object is of the specified archetype considering also archetypes hierarchy.
+     * In other works, looks recursively at superArchetypeRef is there is a match with specified archetype
+     * Later, this should be the functionality directly supported in DB (and midPoint query language)
+     */
+    boolean isOfArchetype(AssignmentHolderType assignmentHolderType, String archetypeOid, OperationResult result) throws SchemaException, ConfigurationException;
 }

@@ -580,4 +580,35 @@ public class ArchetypeManager implements Cache {
             }
         }
     }
+
+    public boolean isOfArchetype(AssignmentHolderType assignmentHolderType, String archetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
+        List<ArchetypeType> archetypes = determineArchetypes(assignmentHolderType, result);
+
+        Optional<ArchetypeType> resultedArchetype = archetypes.stream()
+                .filter(archetype -> archetype.getOid().equals(archetypeOid))
+                .findFirst();
+        if (resultedArchetype.isPresent()) {
+            return true;
+        }
+
+        return checkSuperArchetypes(archetypes, archetypeOid, result);
+    }
+
+    private boolean checkSuperArchetypes(List<ArchetypeType> archetypes, String archetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
+        List<ArchetypeType> superArchetypes = new ArrayList<>();
+        for (ArchetypeType archetype : archetypes) {
+            ArchetypeType superArchetype = getSuperArchetype(archetype, result);
+            if (superArchetype == null) {
+                continue;
+            }
+            if (superArchetype.getOid().equals(archetypeOid)) {
+                return true;
+            }
+            superArchetypes.add(superArchetype);
+        }
+        if (superArchetypes.isEmpty()) {
+            return false;
+        }
+        return checkSuperArchetypes(superArchetypes, archetypeOid, result);
+    }
 }
