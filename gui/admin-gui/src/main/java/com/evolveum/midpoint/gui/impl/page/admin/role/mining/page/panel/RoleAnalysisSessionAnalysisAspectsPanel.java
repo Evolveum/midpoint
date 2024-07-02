@@ -143,14 +143,13 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
                         @Override
                         protected void addDescriptionComponents() {
-                            appendText("A potential reduction has been detected. ");
                             WebMarkupContainer container = new WebMarkupContainer(getRepeatedView().newChildId());
                             container.add(AttributeAppender.append("class", "d-flex"));
                             appendComponent(container);
                             appendText(" Involves ");
                             appendIcon("fe fe-assignment", "color: red;");
                             appendText(" " + formattedReductionFactorConfidence + " relations ");
-                            appendText("and ");
+                            appendText("with ");
                             appendIcon("fa fa-leaf", "color: green");
                             appendText(" " + formattedItemConfidence + "% confidence.");
                         }
@@ -262,10 +261,10 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     }
 
                     if (outlierStatResult.size() > 1) {
-                        label = "Has been detected outliers with multiple (" + outlierStatResult.size() + ") anomalies "
-                                + "and confidence of " + formattedConfidence + "% (" + clusterName.toLowerCase() + ").";
+                        label = outlierStatResult.size() + " anomalies "
+                                + "with confidence of " + formattedConfidence + "% (" + clusterName.toLowerCase() + ").";
                     } else {
-                        label = "Has been detected outliers with single anomalies and confidence of " + formattedConfidence
+                        label = "1 anomalies with confidence of " + formattedConfidence
                                 + "% (" + clusterName.toLowerCase() + ").";
                     }
 
@@ -833,7 +832,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-                if(outlier == null) {
+                if (outlier == null) {
                     return;
                 }
                 PageParameters parameters = new PageParameters();
@@ -910,7 +909,6 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             outlierObjectModel = generateRoleOutlierResultModel(
                     roleAnalysisService, outlierObject, task, task.getResult(), cluster);
         }
-
 
         if (outlierObjectModel == null) {
             emptyPanel(ID_PANEL, "No data available", container);
