@@ -153,13 +153,9 @@ public class PageCertCampaign extends PageAdmin {
         AccessCertificationCampaignType campaign = null;
         try {
             String campaignOid = OnePageParameterEncoder.getParameter(this);
-            Collection<SelectorOptions<GetOperationOptions>> options =
-                    SchemaService.get().getOperationOptionsBuilder()
-                            .item(AccessCertificationCampaignType.F_CASE).retrieve(RetrieveOption.INCLUDE)
-                            .build();
             PrismObject<AccessCertificationCampaignType> campaignObject =
                     WebModelServiceUtils.loadObject(AccessCertificationCampaignType.class, campaignOid,
-                            options, PageCertCampaign.this, task, result);
+                            null, PageCertCampaign.this, task, result);
             if (campaignObject != null) {
                 campaign = campaignObject.asObjectable();
             }
