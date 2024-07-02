@@ -9,7 +9,6 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2017-02-16T09:19:52.585+01:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2017-07-10T14:09:49.121+02:00
-:page-since: "3.5"
 :page-upkeep-status: yellow
 
 One of the drawbacks of the general RBAC models is that there is usually a large number of roles to choose from.

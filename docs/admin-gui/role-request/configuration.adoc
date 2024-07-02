@@ -6,8 +6,6 @@
 :page-wiki-metadata-create-date: 2017-07-10T14:26:50.466+02:00
 :page-wiki-metadata-modify-user: rpudil
 :page-wiki-metadata-modify-date: 2018-08-29T14:47:31.137+02:00
-:page-since: "3.5"
-:page-since-improved: [ "3.6" ]
 :page-upkeep-status: yellow
 
 == Role Catalog Configuration
@@ -16,10 +14,6 @@ The prerequisite for a good user experience is usually proper configuration of x
 Therefore especially the proper use of `assign` authorization is crucial for proper functioning of this page.
 
 == Role Catalog Collections
-
-++++
-{% include since.html since="3.6" %}
-++++
 
 The role catalog has several _views_ or _collections_ that control the way what the end-user role catalog page displays the role catalog content.
 The specific view can be selected in the role request page.

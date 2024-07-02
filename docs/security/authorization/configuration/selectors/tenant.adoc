@@ -1,5 +1,4 @@
 = Tenant
-:page-since: 3.9
 
 It selects objects that have the same tenant as the subject.
 

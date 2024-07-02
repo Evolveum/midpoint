@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2018-10-16T18:36:49.744+02:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2018-10-16T18:58:52.421+02:00
-:page-since: 3.9
 :page-keywords: [ 're-encrypt', 'reencrypt', 'encrypt']
 :page-upkeep-status: green
 
