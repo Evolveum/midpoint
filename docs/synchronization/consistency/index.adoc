@@ -9,7 +9,6 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2012-11-22T09:54:51.391+01:00
 :page-wiki-metadata-modify-user: rpudil
 :page-wiki-metadata-modify-date: 2019-12-06T10:13:14.361+01:00
-:page-since: "3.9"
 :page-toc: top
 :page-upkeep-status: yellow
 

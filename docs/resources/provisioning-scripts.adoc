@@ -68,10 +68,6 @@ For example, for xref:/connectors/connectors/com.evolveum.polygon.connector.ldap
 
 === Criticality
 
-++++
-{% include since.html since="3.6.1" %}
-++++
-
 Error in a provisioning script is equivalent to the error in the main provisioning operation by default.
 Therefore if there is an error in create script then midPoint cannot assume that an account was created.
 This behavior is configurable by using the `criticality` setting:
@@ -149,11 +145,6 @@ Of course, complex scripting expressions may be used as well:
 
 == Ad-hoc Provisioning Scripts
 
-++++
-{% include since.html since="3.7.1" %}
-++++
-
-
 Vast majority of provisioning scripts are coupled with provisioning operations.
 E.g. the scripts are executed before or after modification of an account.
 However, there are cases when a script has to be executed in an ad-hoc manner.
@@ -184,11 +175,11 @@ Note: both resource and resource OID can be used as the first parameter to the e
 [TIP]
 .Object kind and script variables
 ====
-MidPoint 3.0 (and later) is designed with xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] in mind.
+MidPoint is designed with xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] in mind.
 Therefore the provisioning scripts are executed not just for accounts but also for other xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kinds of objects]. And there are two major consequences of this:
 
 * Please keep in mind that unless the script is limited to a particular xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kind] of objects then it will be executed for all object kinds that midPoint provisions.
-This may have unexpected side-effects therefore it is recommended to constraint the scripts to a particular object kind in midPoint 3.0 and later:
+This may have unexpected side-effects therefore it is recommended to constraint the scripts to a particular object kind:
 
 [source,xml]
 ----

@@ -7,7 +7,6 @@
 :page-wiki-metadata-modify-user: dantrob
 :page-wiki-metadata-modify-date: 2019-07-15T16:32:44.297+02:00
 :page-upkeep-status: green
-:page-since: "3.8"
 
 == Introduction
 
@@ -56,7 +55,7 @@ Yet, this is nice, simple and elegant method for many practical use cases.
 The effectiveness of the method depends heavily on the normalization algorithm.
 Given the right algorithm and the system will work flawlessly.
 However wrong normalization algorithm may cause a lot of problems.
-Therefore since midPoint 3.8 the normalization algorithm is configurable and there is an option for a completely custom normalization algorithm.
+Therefore, the normalization algorithm is configurable and there is an option for a completely custom normalization algorithm.
 
 All normalization algorithms bundled with midPoint go through the same set of steps:
 
