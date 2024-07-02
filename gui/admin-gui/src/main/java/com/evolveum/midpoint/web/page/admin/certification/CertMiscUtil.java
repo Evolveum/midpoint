@@ -147,7 +147,7 @@ public class CertMiscUtil {
                         return Collections.singletonList(progressBar);
                     }
 
-                    float completed = (float) processedItemsCount / allItemsCount;
+                    float completed = (float) processedItemsCount / allItemsCount * 100;
                     ProgressBar completedProgressBar = new ProgressBar(completed, ProgressBar.State.INFO);
                     return Collections.singletonList(completedProgressBar);
                 } catch (Exception ex) {
