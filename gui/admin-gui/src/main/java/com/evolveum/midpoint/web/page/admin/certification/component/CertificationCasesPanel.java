@@ -113,16 +113,18 @@ public class CertificationCasesPanel extends
             @Override
             public void onClick(AjaxRequestTarget target,
                     IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-                showResponseDetailsPopup(target, rowModel.getObject());
+                showResponseDetailsPopup(target, rowModel);
             }
 
         };
     }
 
     private void showResponseDetailsPopup(AjaxRequestTarget target,
-            PrismContainerValueWrapper<AccessCertificationCaseType> rowModel) {
+            IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
         CertResponseDetailsPanel panel = new CertResponseDetailsPanel(getPageBase().getMainPopupBodyId(),
-                Model.of(rowModel.getRealValue()), stageNumber);
+                rowModel,
+//                Model.of(rowModel.getRealValue()),
+                stageNumber);
         getPageBase().showMainPopup(panel, target);
     }
 

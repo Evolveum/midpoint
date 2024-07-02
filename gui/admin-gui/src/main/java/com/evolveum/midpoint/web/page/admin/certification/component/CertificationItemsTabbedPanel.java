@@ -31,6 +31,7 @@ public class CertificationItemsTabbedPanel extends BasePanel<AccessCertification
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABBED_PANEL = "tabbedPanel";
 
+    //TODO probably better would be wrapper model?
     public CertificationItemsTabbedPanel(String id, IModel<AccessCertificationCampaignType> model) {
         super(id, model);
     }
