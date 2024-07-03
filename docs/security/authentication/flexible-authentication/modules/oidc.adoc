@@ -525,7 +525,7 @@ _OpaqueTokenOidcResourceServerType_ contains following attributes:
             <oidc>
                 <identifier>oidcResourceServer</identifier>
                 <resourceServer>
-                    <jwt>  <!-- Or opaqueToken -->
+                    <jwt> <!-- or opaqueToken -->
                         <issuerUri>https://keycloak.lab.evolveum.com/auth/realms/test</issuerUri>
                         <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
                     </jwt>
