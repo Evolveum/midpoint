@@ -23,7 +23,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                 ResourceType.class,
                 RoleAnalysisClusterType.class,
                 RoleAnalysisSessionType.class,
-                RoleAnalysisOutlierType.class },
+                RoleAnalysisOutlierType.class,
+                AccessCertificationCampaignType.class},
         defaultPanel = true,
         display = @PanelDisplay(label = "pageAdminFocus.basic", icon = GuiStyleConstants.CLASS_CIRCLE_FULL, order = 10))
 @PanelInstance(identifier = "basic",

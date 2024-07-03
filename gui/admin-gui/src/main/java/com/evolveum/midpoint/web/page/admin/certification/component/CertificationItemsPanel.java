@@ -686,10 +686,8 @@ public class CertificationItemsPanel extends BasePanel<String> {
                 return;
             }
             //todo check if comment was really changed
-//            Collection<ItemDelta> containerDelta = certItemWrapper.getDeltas();
-//            if (containerDelta == null || containerDelta.isEmpty()) {
-//                return;
-//            }
+            //for now certItemWrapper.findProperty(ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_COMMENT))
+            //returns null so that we cannot analyze the delta
             Task task = getPageBase().createSimpleTask(OPERATION_RECORD_COMMENT);
             String comment = certItem.getOutput() != null ? certItem.getOutput().getComment() : null;
             CertMiscUtil.recordCertItemResponse(

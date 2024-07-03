@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.page.admin.certification.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -24,15 +25,14 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CertificationItemsTabbedPanel extends BasePanel<AccessCertificationCampaignType> {
+public class CertificationItemsTabbedPanel extends BasePanel<PrismObjectWrapper<AccessCertificationCampaignType>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABBED_PANEL = "tabbedPanel";
 
-    //TODO probably better would be wrapper model?
-    public CertificationItemsTabbedPanel(String id, IModel<AccessCertificationCampaignType> model) {
+    public CertificationItemsTabbedPanel(String id, IModel<PrismObjectWrapper<AccessCertificationCampaignType>> model) {
         super(id, model);
     }
 
@@ -50,7 +50,7 @@ public class CertificationItemsTabbedPanel extends BasePanel<AccessCertification
 
         IModel<List<ITab>> tabs = createTabsModel();
         TabbedPanel<ITab> tabbedPanel = WebComponentUtil.createTabPanel(ID_TABBED_PANEL, getPageBase(), tabs.getObject(), null);
-        tabbedPanel.add(new VisibleBehaviour(() -> getModelObject().getStageNumber() > 0));
+        tabbedPanel.add(new VisibleBehaviour(() -> getCampaign().getStageNumber() > 0));
         mainForm.add(tabbedPanel);
     }
 
@@ -61,8 +61,8 @@ public class CertificationItemsTabbedPanel extends BasePanel<AccessCertification
             @Override
             protected List<ITab> load() {
                 List<ITab> tabs = new ArrayList<>();
-                int iteration = getModelObject().getIteration();
-                int currentStage = getModelObject().getStage()
+                int iteration = getCampaign().getIteration();
+                int currentStage = getCampaign().getStage()
                         .stream().filter(stage -> stage.getIteration() == iteration)
                         .toList().size();
                 for (int i = 1; i <= currentStage; i++) {
@@ -85,5 +85,9 @@ public class CertificationItemsTabbedPanel extends BasePanel<AccessCertification
                 return items;
             }
         };
+    }
+
+    private AccessCertificationCampaignType getCampaign() {
+        return getModelObject().getObject().asObjectable();
     }
 }

@@ -38,6 +38,8 @@ import com.evolveum.midpoint.web.page.admin.certification.component.CertCampaign
 import com.evolveum.midpoint.web.page.admin.certification.component.CertificationItemsTabbedPanel;
 import com.evolveum.midpoint.web.page.admin.certification.component.StatisticBoxDto;
 import com.evolveum.midpoint.web.page.admin.certification.component.StatisticListBoxPanel;
+import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
+import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignStateHelper;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
 
 import com.evolveum.midpoint.web.page.admin.reports.ReportDownloadHelper;
@@ -46,7 +48,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -99,100 +103,42 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
         return true;
     }
 
-    //TODO proabbly standard buttons won't be here, only button to manage campaign
     @Override
     protected InlineOperationalButtonsPanel<AccessCertificationCampaignType> createInlineButtonsPanel(String idButtons, LoadableModel<PrismObjectWrapper<AccessCertificationCampaignType>> objectWrapperModel) {
         return new InlineOperationalButtonsPanel<>(idButtons, objectWrapperModel) {
-            @Override
-            protected void submitPerformed(AjaxRequestTarget target) {
-                PageCertCampaign.this.savePerformed(target);
-            }
+
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
-                return PageCertCampaign.this.hasUnsavedChanges(target);
-            }
-
-            @Override
-            protected boolean isDeleteButtonVisible() {
+            protected boolean isSaveButtonVisible() {
                 return false;
             }
 
             @Override
+            protected boolean isDeleteButtonVisible() {
+                return true;
+            }
+
+            @Override
             protected IModel<String> getDeleteButtonLabelModel(PrismObjectWrapper<AccessCertificationCampaignType> modelObject) {
-                return Model.of();
+                return Model.of("PageCertCampaign.button.deleteCampaign");
+            }
+
+            @Override
+            protected void addRightButtons(@NotNull RepeatingView rightButtonsView) {
+                addCampaignManagementButtons(rightButtonsView);
             }
 
             @Override
             protected IModel<String> createSubmitButtonLabelModel(PrismObjectWrapper<AccessCertificationCampaignType> modelObject) {
-                return createStringResource("PageCertCampaign.save");
+                return Model.of();
             }
 
             @Override
             protected IModel<String> getTitle() {
-                return getPageTitleModel();
+                return createStringResource("PageCertCampaign.campaignView");
             }
         };
-
-        //TODO probably should be part of inlineOprationalButtonsPanel. but why is the "wizard" navigation used here?
-
-//        NavigationPanel navigation = new NavigationPanel(ID_NAVIGATION) {
-//
-//            @Serial private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected IModel<String> createTitleModel() {
-//                return createStringResource("PageCertCampaign.campaignView");
-//            }
-//
-//            @Override
-//            protected void onBackPerformed(AjaxRequestTarget target) {
-//                PageCertCampaign.this.onBackPerformed();
-//            }
-//
-//            @Override
-//            protected Component createNextButton(String id, IModel<String> nextTitle) {
-//                AjaxIconButton next = new AjaxIconButton(id, getActionButtonCssModel(), getActionButtonTitleModel()) {
-//                    @Serial private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-//                        CampaignProcessingHelper.campaignActionPerformed(campaignModel.getObject(), getPageBase(), ajaxRequestTarget);
-//                        campaignModel.detach();
-//                        addOrReplaceCertItemsTabbedPanel();
-//                    }
-//                };
-//                next.showTitleAsLabel(true);
-//                next.add(AttributeAppender.append("class", "btn btn-primary"));
-//
-//                return next;
-//            }
-//
-//            private LoadableModel<String> getActionButtonCssModel() {
-//                return new LoadableModel<>() {
-//                    @Serial private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    protected String load() {
-//                        CampaignStateHelper campaignStateHelper = new CampaignStateHelper(campaignModel.getObject());
-//                        return campaignStateHelper.getNextAction().getActionIcon().getCssClass();
-//                    }
-//                };
-//            }
-//
-//            private LoadableModel<String> getActionButtonTitleModel() {
-//                return new LoadableModel<>() {
-//                    @Serial private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    protected String load() {
-//                        CampaignStateHelper campaignStateHelper = new CampaignStateHelper(campaignModel.getObject());
-//                        return createStringResource(campaignStateHelper.getNextAction().getActionLabelKey()).getString();
-//                    }
-//                };
-//            }
-//        };
-//        add(navigation);
 
     }
 
@@ -217,4 +163,57 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
         return () -> WebComponentUtil.getDisplayNameOrName(getModelPrismObject());
     }
 
+    @Override
+    protected CertificationDetailsModel createObjectDetailsModels(PrismObject<AccessCertificationCampaignType> object) {
+        return new CertificationDetailsModel(createPrismObjectModel(object), this);
+    }
+
+    private void addCampaignManagementButtons(RepeatingView rightButtonsView) {
+        LoadableDetachableModel<String> buttonLabelModel = getActionButtonTitleModel();
+        LoadableDetachableModel<String> buttonCssModel = getActionButtonCssModel();
+        AjaxIconButton button = new AjaxIconButton(rightButtonsView.newChildId(), buttonCssModel, buttonLabelModel) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                CampaignProcessingHelper.campaignActionPerformed(getModelObjectType(), PageCertCampaign.this, ajaxRequestTarget);
+
+                //todo fix reloading of the page
+                getObjectDetailsModels().reloadPrismObjectModel();
+                PageCertCampaign.this.getModel().detach();
+
+                buttonCssModel.detach();
+                buttonLabelModel.detach();
+
+                ajaxRequestTarget.add(PageCertCampaign.this);
+            }
+        };
+        button.showTitleAsLabel(true);
+        button.add(AttributeAppender.append("class", "btn btn-primary"));
+        rightButtonsView.add(button);
+    }
+
+    private LoadableDetachableModel<String> getActionButtonCssModel() {
+        return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
+                CampaignStateHelper campaignStateHelper = new CampaignStateHelper(getModelObjectType());
+                return campaignStateHelper.getNextAction().getActionIcon().getCssClass();
+            }
+        };
+    }
+
+    private LoadableDetachableModel<String> getActionButtonTitleModel() {
+        return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
+                CampaignStateHelper campaignStateHelper = new CampaignStateHelper(getModelObjectType());
+                return createStringResource(campaignStateHelper.getNextAction().getActionLabelKey()).getString();
+            }
+        };
+    }
 }
