@@ -26,9 +26,6 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
 
     private static final String WORK_PANEL_TYPE = "rm-detection";
 
-    private static final double DEFAULT_MIN_FREQUENCY = 30.0;
-    private static final double DEFAULT_MAX_FREQUENCY = 100.0;
-
     public RoleAnalysisSessionDetectionOptionsWizardPanel(AssignmentHolderDetailsModel<RoleAnalysisSessionType> model) {
         super(model);
     }
@@ -72,7 +69,7 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
     protected IModel<? extends PrismContainerWrapper<RoleAnalysisDetectionOptionType>> getContainerFormModel() {
         PrismContainerWrapperModel<RoleAnalysisSessionType, RoleAnalysisDetectionOptionType> containerWrapperModel =
                 PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
-                ItemPath.create(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION));
+                        ItemPath.create(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION));
         containerWrapperModel.getObject().setExpanded(true);
         return containerWrapperModel;
     }
@@ -94,13 +91,20 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
         RoleAnalysisOptionType option = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
         RoleAnalysisCategoryType analysisCategory = option.getAnalysisCategory();
 
+        boolean isOutlierSession = analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS);
         return wrapper -> {
             ItemName itemName = wrapper.getItemName();
 
             if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
                     || itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY)) {
 
-                if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                if (isOutlierSession) {
+                    return ItemVisibility.HIDDEN;
+                }
+            }
+
+            if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_SENSITIVITY)) {
+                if (!isOutlierSession) {
                     return ItemVisibility.HIDDEN;
                 }
             }

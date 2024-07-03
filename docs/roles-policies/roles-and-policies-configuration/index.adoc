@@ -297,10 +297,6 @@ See xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles
 
 == Idempotent Roles
 
-++++
-{% include since.html since="3.6" %}
-++++
-
 If a role is marked as idempotent then midPoint assumes that the evaluation of this role gives the same results regardless of its position in the assignment/inducement hierarchy.
 I.e. evaluation of this roles does not depend on the assignment parameters of focus or any of the preceding roles.
 This flag is used to enable aggressive caching of role evaluation, so idempotent roles are only evaluated once regardless of their position in the hierarchy as we can assume that any subsequent evaluation will produce exactly the same results as the first evaluation.

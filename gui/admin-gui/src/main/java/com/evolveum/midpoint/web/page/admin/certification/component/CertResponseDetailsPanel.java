@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.certification.component;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -41,7 +42,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseType> implements Popupable {
+public class CertResponseDetailsPanel extends BasePanel<PrismContainerValueWrapper<AccessCertificationCaseType>> implements Popupable {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -55,7 +56,7 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
 
     int stageNumber;
 
-    public CertResponseDetailsPanel(String id, IModel<AccessCertificationCaseType> model, int stageNumber) {
+    public CertResponseDetailsPanel(String id, IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> model, int stageNumber) {
         super(id, model);
         this.stageNumber = stageNumber;
     }
@@ -97,7 +98,7 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
 
                 @Override
                 public Component createValueComponent(String id) {
-                    return new ObjectReferenceColumnPanel(id, Model.of(getModelObject().getObjectRef()));
+                    return new ObjectReferenceColumnPanel(id, Model.of(getModelObject().getRealValue().getObjectRef()));
                 }
             });
             list.add(new DetailsTableItem(createStringResource("ObjectType.description")) {
@@ -105,7 +106,7 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
 
                 @Override
                 public Component createValueComponent(String id) {
-                    PrismObject<? extends ObjectType> caseObject = WebModelServiceUtils.loadObject(getModelObject().getObjectRef(),
+                    PrismObject<? extends ObjectType> caseObject = WebModelServiceUtils.loadObject(getModelObject().getRealValue().getObjectRef(),
                             getPageBase());
                     String description = caseObject != null ? caseObject.asObjectable().getDescription() : "";
                     return new Label(id, description);
@@ -116,7 +117,7 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
 
                 @Override
                 public Component createValueComponent(String id) {
-                    return new ObjectReferenceColumnPanel(id, Model.of(getModelObject().getTargetRef()));
+                    return new ObjectReferenceColumnPanel(id, Model.of(getModelObject().getRealValue().getTargetRef()));
                 }
             });
             list.add(new DetailsTableItem(createStringResource("ObjectType.description")) {
@@ -124,7 +125,7 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
 
                 @Override
                 public Component createValueComponent(String id) {
-                    PrismObject<? extends ObjectType> caseObject = WebModelServiceUtils.loadObject(getModelObject().getTargetRef(),
+                    PrismObject<? extends ObjectType> caseObject = WebModelServiceUtils.loadObject(getModelObject().getRealValue().getTargetRef(),
                             getPageBase());
                     String description = caseObject != null ? caseObject.asObjectable().getDescription() : "";
                     return new Label(id, description);
@@ -135,7 +136,7 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
 
                 @Override
                 public Component createValueComponent(String id) {
-                    AccessCertificationResponseType response = OutcomeUtils.fromUri(getModelObject().getCurrentStageOutcome());
+                    AccessCertificationResponseType response = OutcomeUtils.fromUri(getModelObject().getRealValue().getCurrentStageOutcome());
                     DisplayType responseDisplayType = new CertificationItemResponseHelper(response).getResponseDisplayType();
 
                     CompositedIcon icon = new CompositedIconBuilder()
@@ -166,7 +167,7 @@ public class CertResponseDetailsPanel extends BasePanel<AccessCertificationCaseT
         return () -> {
             List<ChatMessageItem> list = new ArrayList<>();
 
-            AccessCertificationCaseType certCase = getModelObject();
+            AccessCertificationCaseType certCase = getModelObject().getRealValue();
             List<AccessCertificationWorkItemType> workItems = certCase.getWorkItem();
             workItems.forEach(workItem -> {
                 if (workItem.getStageNumber() != null && workItem.getStageNumber() == stageNumber) {

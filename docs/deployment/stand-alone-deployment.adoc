@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2017-12-06T11:39:00.501+01:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2017-12-08T14:05:11.986+01:00
-:page-since: "3.7"
 :page-toc: top
 :page-upkeep-status: yellow
 

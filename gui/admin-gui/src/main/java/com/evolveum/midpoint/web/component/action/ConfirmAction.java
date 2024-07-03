@@ -31,6 +31,10 @@ public class ConfirmAction<C extends Containerable, AGA extends AbstractGuiActio
         super();
     }
 
+    public ConfirmAction(GuiActionDto<C> actionDto) {
+        super(actionDto);
+    }
+
     @Override
     public void executeAction(List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
         showConfirmationPanel(null, objectsToProcess, pageBase, target);

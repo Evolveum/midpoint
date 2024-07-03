@@ -20,6 +20,8 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.S_ConditionEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -76,29 +78,30 @@ public class CertMiscUtil {
             @Override
             protected List<ProgressBar> load() {
                 int currentStage = campaign.getStageNumber();
-
-                //todo check if campaign is in review stage state
+                int currentIteration = campaign.getIteration();
 
                 OperationResult result = new OperationResult(OPERATION_LOAD_CASES_COUNT);
                 Task task = pageBase.createSimpleTask(OPERATION_LOAD_CASES_COUNT);
+
+                S_FilterExit queryBasePart = pageBase.getPrismContext().queryFor(AccessCertificationWorkItemType.class)
+                        .ownerId(campaign.getOid())
+                        .and()
+                        .item(AccessCertificationWorkItemType.F_ITERATION)
+                        .eq(currentIteration)
+                        .and()
+                        .item(AccessCertificationWorkItemType.F_STAGE_NUMBER)
+                        .eq(currentStage);
+
                 try {
                     ObjectQuery allWorkItems;
                     if (principal != null) {
-                        allWorkItems = pageBase.getPrismContext().queryFor(AccessCertificationWorkItemType.class)
-                                .ownerId(campaign.getOid())
-                                .and()
-                                .item(AccessCertificationWorkItemType.F_STAGE_NUMBER)
-                                .eq(currentStage)
+                        allWorkItems = queryBasePart
                                 .and()
                                 .item(ItemPath.create(AbstractWorkItemType.F_ASSIGNEE_REF))
                                 .ref(principal.getOid())
                                 .build();
                     } else {
-                        allWorkItems = pageBase.getPrismContext().queryFor(AccessCertificationWorkItemType.class)
-                                .ownerId(campaign.getOid())
-                                .and()
-                                .item(AccessCertificationWorkItemType.F_STAGE_NUMBER)
-                                .eq(currentStage)
+                        allWorkItems = queryBasePart
                                 .build();
                     }
 
@@ -110,34 +113,22 @@ public class CertMiscUtil {
                         return Collections.singletonList(allItemsProgressBar);
                     }
 
+                    S_FilterExit processedItemsQueryPart = queryBasePart
+                            .and()
+                            .not()
+                            .item(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME)
+                            .isNull();
                     ObjectQuery processedItemsQuery;
                     if (principal != null) {
-                        processedItemsQuery = pageBase.getPrismContext().queryFor(AccessCertificationWorkItemType.class)
-                                .ownerId(campaign.getOid())
-                                .and()
-                                .item(AccessCertificationWorkItemType.F_STAGE_NUMBER)
-                                .eq(currentStage)
+                        processedItemsQuery = processedItemsQueryPart
                                 .and()
                                 .item(ItemPath.create(AccessCertificationWorkItemType.F_ASSIGNEE_REF))
                                 .ref(principal.getOid())
-                                .and()
-                                .not()
-                                .item(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME)
-                                .isNull()
                                 .build();
                     } else {
-                        processedItemsQuery = pageBase.getPrismContext().queryFor(AccessCertificationWorkItemType.class)
-                                .ownerId(campaign.getOid())
-                                .and()
-                                .item(AccessCertificationWorkItemType.F_STAGE_NUMBER)
-                                .eq(currentStage)
-                                .and()
-                                .not()
-                                .item(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME)
-                                .isNull()
+                        processedItemsQuery = processedItemsQueryPart
                                 .build();
                     }
-
 
                     Integer processedItemsCount = pageBase.getModelService()
                             .countContainers(AccessCertificationWorkItemType.class, processedItemsQuery, null, task, result);
@@ -366,29 +357,38 @@ public class CertMiscUtil {
             pageBase.error("Unable to find action for identifier: " + guiAction.getIdentifier());
             return null;
         }
+        return instantiateAction(actionClass, createActionDto(guiAction, pageBase), pageBase);
+    }
+
+    private static GuiActionDto<AccessCertificationWorkItemType> createActionDto(GuiActionType guiAction, PageBase pageBase) {
+        GuiActionDto<AccessCertificationWorkItemType> actionDto = new GuiActionDto<>();
+
         GuiActionType preAction = guiAction.getPreAction();
         String preActionIdentifier = preAction != null ? preAction.getIdentifier() : null;
-        AbstractGuiAction<AccessCertificationWorkItemType> preActionInstance = null;
         if (StringUtils.isNotEmpty(preActionIdentifier)) {
             Class<? extends AbstractGuiAction<?>> preActionClass = pageBase.findGuiAction(preActionIdentifier);
             if (preActionClass != null) {
-                preActionInstance = instantiateAction(preActionClass, pageBase);
-                if (preAction.getDisplay() != null) {
-                    preActionInstance.setActionDisplayType(preAction.getDisplay());
-                }
+                GuiActionDto<AccessCertificationWorkItemType> preActionDto = createActionDto(preAction, pageBase);
+                AbstractGuiAction<AccessCertificationWorkItemType> preActionInstance = instantiateAction(preActionClass,
+                        preActionDto, pageBase);
+                actionDto.setPreAction(preActionInstance);
             }
         }
-        AbstractGuiAction<AccessCertificationWorkItemType> actionInstance = instantiateAction(actionClass,
-                preActionInstance, pageBase);
-        if (actionInstance != null) {
-                if (guiAction.getVisibility() != null) {
-                    actionInstance.setVisible(WebComponentUtil.getElementVisibility(guiAction.getVisibility()));
-                }
-                if (guiAction.getDisplay() != null) {
-                    actionInstance.setActionDisplayType(guiAction.getDisplay());
-                }
+
+        List<GuiParameterType> actionParameters = guiAction.getParameter();
+        if (actionParameters != null) {
+            actionDto.setActionParameters(actionParameters);
         }
-        return actionInstance;
+
+        if (guiAction.getVisibility() != null) {
+            actionDto.setVisible(WebComponentUtil.getElementVisibility(guiAction.getVisibility()));
+        }
+
+        if (guiAction.getDisplay() != null) {
+            actionDto.setDisplay(guiAction.getDisplay());
+        }
+
+        return actionDto;
     }
 
     private static AbstractGuiAction<AccessCertificationWorkItemType> instantiateAction(
@@ -397,7 +397,7 @@ public class CertMiscUtil {
     }
 
     private static AbstractGuiAction<AccessCertificationWorkItemType> instantiateAction(
-            Class<? extends AbstractGuiAction<?>> actionClass, AbstractGuiAction<AccessCertificationWorkItemType> preAction,
+            Class<? extends AbstractGuiAction<?>> actionClass, GuiActionDto<AccessCertificationWorkItemType> actionDto,
             PageBase pageBase) {
         ActionType actionType = actionClass.getAnnotation(ActionType.class);
         Class<?> applicableFor = actionType.applicableForType();
@@ -405,12 +405,12 @@ public class CertMiscUtil {
             pageBase.error("The action is not applicable for AccessCertificationWorkItemType");
             return null;
         }
-        if (preAction == null) {
+        if (actionDto == null) {
             return WebComponentUtil.instantiateAction(
                     (Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>>) actionClass);
         } else {
             return WebComponentUtil.instantiateAction(
-                    (Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>>) actionClass, preAction);
+                    (Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>>) actionClass, actionDto);
         }
     }
 

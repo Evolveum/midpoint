@@ -76,7 +76,7 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
 
         IModel<String> descriptionModel = getDescriptionModel();
         Label description = new Label(ID_DESCRIPTION, descriptionModel);
-        description.add(new VisibleBehaviour(() -> descriptionModel.getObject() != null));
+//        description.add(new VisibleBehaviour(() -> descriptionModel.getObject() != null));
         add(description);
 
         ListView<DetailsTableItem> details = new ListView<>(ID_DETAILS, getModel()) {

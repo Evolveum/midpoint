@@ -30,8 +30,8 @@ public abstract class AbstractCertItemAction extends AbstractGuiAction<AccessCer
         super();
     }
 
-    public AbstractCertItemAction(AbstractGuiAction<AccessCertificationWorkItemType> preAction) {
-        super(preAction);
+    public AbstractCertItemAction(GuiActionDto<AccessCertificationWorkItemType> actionDto) {
+        super(actionDto);
     }
 
     @Override

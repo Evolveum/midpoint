@@ -22,8 +22,8 @@ public class CertItemNoResponseAction extends AbstractCertItemAction {
         super();
     }
 
-    public CertItemNoResponseAction(AbstractGuiAction<AccessCertificationWorkItemType> preAction) {
-        super(preAction);
+    public CertItemNoResponseAction(GuiActionDto<AccessCertificationWorkItemType> actionDto) {
+        super(actionDto);
     }
 
     @Override

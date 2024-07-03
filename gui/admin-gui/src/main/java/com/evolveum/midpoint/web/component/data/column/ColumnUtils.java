@@ -1288,7 +1288,7 @@ public class ColumnUtils {
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationWorkItemType>>> cellItem,
                     String componentId, IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
-                ImagePanel imagePanel = new ImagePanel(componentId, new ReadOnlyModel<>(() -> getIconDisplayType(rowModel)));
+                ImagePanel imagePanel = new ImagePanel(componentId, () -> getIconDisplayType(rowModel));
                 imagePanel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(
                         LocalizationUtil.translatePolyString(getIconDisplayType(rowModel).getTooltip()))));
                 cellItem.add(imagePanel);

@@ -32,8 +32,8 @@ public class BasicOutlierDetectionUtils {
             @NotNull RoleAnalysisSessionType session,
             @NotNull Task task,
             @NotNull MiningOperationChunk miningOperationChunk,
-            Double minFrequency,
-            Double maxFrequency,
+            RangeType range,
+            Double sensitivity,
             ObjectReferenceType clusterRef,
             ObjectReferenceType sessionRef,
             OperationResult result,
@@ -42,7 +42,7 @@ public class BasicOutlierDetectionUtils {
         List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(
                 RoleAnalysisSortMode.NONE);
 
-        ZScoreData zScoreData = roleAnalysisService.resolveOutliersZScore(miningRoleTypeChunks, minFrequency, maxFrequency);
+        ZScoreData zScoreData = roleAnalysisService.resolveOutliersZScore(miningRoleTypeChunks, range, sensitivity);
 
         int countOfRoles = 0;
         for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
@@ -175,15 +175,15 @@ public class BasicOutlierDetectionUtils {
     public static void resolveRoleModeOutliers(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull MiningOperationChunk miningOperationChunk,
-            Double minFrequency,
-            Double maxFrequency,
+            RangeType range,
+            Double sensitivity,
             ObjectReferenceType clusterRef,
             ObjectReferenceType sessionRef,
             HashMap<String, RoleAnalysisOutlierType> map) {
         List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(
                 RoleAnalysisSortMode.NONE);
 
-        ZScoreData zScoreData = roleAnalysisService.resolveOutliersZScore(miningUserTypeChunks, minFrequency, maxFrequency);
+        ZScoreData zScoreData = roleAnalysisService.resolveOutliersZScore(miningUserTypeChunks, range, sensitivity);
 
         for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
 

@@ -23,8 +23,8 @@ public class CertItemRevokeAction extends AbstractCertItemAction {
         super();
     }
 
-    public CertItemRevokeAction(AbstractGuiAction<AccessCertificationWorkItemType> preAction) {
-        super(preAction);
+    public CertItemRevokeAction(GuiActionDto<AccessCertificationWorkItemType> actionDto) {
+        super(actionDto);
     }
 
     @Override
