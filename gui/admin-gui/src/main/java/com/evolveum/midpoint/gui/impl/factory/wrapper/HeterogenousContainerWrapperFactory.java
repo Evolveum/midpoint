@@ -85,6 +85,10 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> extend
             return false;
         }
 
+        if (containerDef.isElaborate()) {
+            return true;
+        }
+
         if (containerDef.isMultiValue() && isNotPolicyConstraint(containerDef)) {
             return false;
         }
