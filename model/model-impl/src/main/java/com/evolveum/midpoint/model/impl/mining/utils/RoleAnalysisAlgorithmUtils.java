@@ -592,26 +592,13 @@ public class RoleAnalysisAlgorithmUtils {
                         roleAnalysisService, cluster, session, analysisOption, task);
             }
 
+            Double sensitivity = detectionOption.getSensitivity();
+            double requiredConfidence = roleAnalysisService.calculateOutlierConfidenceRequired(sensitivity);
+
+            //TODO temporary solution
+            requiredConfidence = requiredConfidence * 100;
             for (RoleAnalysisOutlierType roleAnalysisOutlierType : roleAnalysisOutlierTypes) {
-                roleAnalysisOutlierType.setTargetSessionRef(new ObjectReferenceType()
-                        .oid(session.getOid())
-                        .targetName(session.getName())
-                        .type(RoleAnalysisSessionType.COMPLEX_TYPE));
-
-                roleAnalysisOutlierType.setTargetClusterRef(new ObjectReferenceType()
-                        .oid(cluster.getOid())
-                        .targetName(cluster.getName())
-                        .type(RoleAnalysisClusterType.COMPLEX_TYPE));
-
-                ObjectReferenceType targetObjectRef = roleAnalysisOutlierType.getTargetObjectRef();
-                PrismObject<FocusType> object = roleAnalysisService
-                        .getObject(FocusType.class, targetObjectRef.getOid(), task, result);
-
-                roleAnalysisOutlierType.setName(object != null && object.getName() != null
-                        ? PolyStringType.fromOrig(object.getName() + " (outlier)")
-                        : PolyStringType.fromOrig("outlier_" + session.getName() + "_" + UUID.randomUUID()));
-
-                roleAnalysisService.resolveOutliers(roleAnalysisOutlierType, task, result, session.getOid());
+                roleAnalysisService.resolveOutliers(roleAnalysisOutlierType, task, result, session, cluster, requiredConfidence);
             }
         }
     }

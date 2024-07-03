@@ -460,8 +460,6 @@ Default is "add".
 | search
 | Retrieves a set of objects from the repository or a resource.
 3+| see the description
-|
-|
 
 |===
 

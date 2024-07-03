@@ -111,7 +111,7 @@ public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel 
 
         ResourceObjectTypeIdentificationType bean = objectTypeOfSubject.getValues().iterator().next().getRealValue();
         CompleteResourceSchema schema = getDetailsModel().getRefinedSchema();
-        @Nullable ResourceObjectTypeDefinition def = schema.getObjectTypeDefinition(bean.getKind(), bean.getIntent());
+        @Nullable ResourceObjectTypeDefinition def = schema.getObjectTypeDefinition(ResourceObjectTypeIdentification.of(bean));
         if (def == null) {
             return values;
         }
@@ -125,7 +125,7 @@ public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel 
             referenceAttribute.getTargetParticipantTypes().forEach(associationParticipantType -> {
                 ResourceObjectDefinition targetDef = associationParticipantType.getObjectDefinition();
 
-                if (targetDef.getTypeIdentification() != null) {
+                if (associationParticipantType.getTypeIdentification() != null) {
                     addObjectTypeDef(values, (ResourceObjectTypeDefinition) targetDef);
                 } else {
                     schema.getObjectTypeDefinitions().stream()

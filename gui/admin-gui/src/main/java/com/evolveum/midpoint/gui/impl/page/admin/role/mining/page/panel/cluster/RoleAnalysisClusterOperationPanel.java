@@ -80,6 +80,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     public static final String PARAM_DETECTED_PATER_ID = "detectedPatternId";
     public static final String PARAM_TABLE_SETTING = "tableSetting";
     boolean isOutlierDetection = false;
+    Set<String> markedUsers = new HashSet<>();
 
     public List<String> getCandidateRoleContainerId() {
         StringValue stringValue = getPageBase().getPageParameters().get(PARAM_CANDIDATE_ROLE_ID);
@@ -144,6 +145,20 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             Integer parameterTableSetting = getParameterTableSetting();
             if (parameterTableSetting != null && parameterTableSetting == 1) {
                 displayValueOptionModel.getObject().setFullPage(true);
+            }
+        }
+
+        if (isOutlierDetection) {
+            markedUsers = new HashSet<>();
+            List<RoleAnalysisOutlierType> searchResultList = roleAnalysisService.findClusterOutliers(
+                    cluster, task, result);
+            if (searchResultList != null && !searchResultList.isEmpty()) {
+                for (RoleAnalysisOutlierType outlier : searchResultList) {
+                    ObjectReferenceType targetObjectRef = outlier.getTargetObjectRef();
+                    if (targetObjectRef != null && targetObjectRef.getOid() != null) {
+                        markedUsers.add(targetObjectRef.getOid());
+                    }
+                }
             }
         }
 
@@ -348,6 +363,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
 
         RangeType frequencyRange = detectionOption.getFrequencyRange();
+        Double sensitivity = detectionOption.getSensitivity();
 
         double minFrequency = 0;
         double maxFrequency = 0;
@@ -367,9 +383,9 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
         if (isOutlierDetection && frequencyRange != null) {
             if (!isRoleMode) {
-                roleAnalysisService.resolveOutliersZScore(roles, frequencyRange.getMin(), frequencyRange.getMax());
+                roleAnalysisService.resolveOutliersZScore(roles, frequencyRange, sensitivity);
             } else {
-                roleAnalysisService.resolveOutliersZScore(users, frequencyRange.getMin(), frequencyRange.getMax());
+                roleAnalysisService.resolveOutliersZScore(users, frequencyRange, sensitivity);
             }
         }
         if (analysePattern != null && !analysePattern.isEmpty()) {
@@ -441,6 +457,15 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 selectedPattern,
                 displayValueOptionModel,
                 getObjectWrapperObject()) {
+
+            @Override
+            protected Set<String> getMarkMemberObjects() {
+                if (isOutlierDetection()) {
+                    return markedUsers;
+                }
+
+                return null;
+            }
 
             @Override
             public List<DetectedPattern> getClusterPatterns() {

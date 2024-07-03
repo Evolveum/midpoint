@@ -162,14 +162,10 @@ The complete configuration of the metarole looks like this:
 
 == Order Constraints
 
-++++
-{% include since.html since="3.5" %}
-++++
-
 Simple integer definition of order may not be sufficient for all the cases.
 There are numerous xref:/midpoint/reference/concepts/relation/[relations] that define how objects relate to each other.
 E.g. it may be needed to define different privileges to organization managers than those privileges defined for common organization members.
-Therefore since midPoint 3.5 there is a method how to specify complex order constraints.
+Therefore, there is a method how to specify complex order constraints.
 These constraints may define requirements for specific relation, it may define order range and so on.
 The constraint looks like this:
 
@@ -225,8 +221,7 @@ There are turtles all the way down.
 However, the situation may not be entirely clear in some cases.
 For example the `associationFromLink` expression needs one object to get the links from.
 In the meta-meta-meta scenarios there are many objects to choose from.
-Until midPoint 3.7 there was a fixed algorithm that have chosen one of those objects.
-In midPoint 3.7 there is a way how to choose the object explicitly using assignmentPathIndex property of the `associationFromLink` expression.
+There is a way how to choose the object explicitly using assignmentPathIndex property of the `associationFromLink` expression.
 This index points to the object that should be used as a source to get the link from.
 Index 0 is the focal object, index 1 is the first (plain) role, index 2 is meta-role, index 3 is meta-meta-role and so on.
 Negative index can also be used, in that case the order is reversed: index -1 is that last meta-meta-meta-...-role.

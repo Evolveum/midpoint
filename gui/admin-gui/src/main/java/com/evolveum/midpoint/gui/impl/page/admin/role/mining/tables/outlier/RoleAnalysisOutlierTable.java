@@ -47,6 +47,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 public class RoleAnalysisOutlierTable extends BasePanel<String> {
 
     private static final String ID_DATATABLE = "datatable";
@@ -311,29 +313,12 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
     }
 
     private SelectableBeanObjectDataProvider<RoleAnalysisOutlierType> createProvider(RoleAnalysisClusterType cluster) {
-        List<RoleAnalysisOutlierType> searchResultList = new ArrayList<>();
-        String clusterOid = cluster.getOid();
-        ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
-
-            RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
-            ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
-            String oid = targetClusterRef.getOid();
-            if (clusterOid.equals(oid)) {
-                searchResultList.add(outlier.asObjectable());
-            }
-            return true;
-        };
 
         PageBase pageBase = getPageBase();
         Task task = pageBase.createSimpleTask("Search outliers");
         OperationResult result = task.getResult();
-
-        try {
-            pageBase.getModelService().searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
-                    null, task, result);
-        } catch (Exception ex) {
-            throw new RuntimeException("Couldn't search outliers", ex);
-        }
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        List<RoleAnalysisOutlierType> searchResultList = roleAnalysisService.findClusterOutliers(cluster, task, result);
         return new SelectableBeanObjectDataProvider<>(
                 RoleAnalysisOutlierTable.this, Set.of()) {
 
@@ -358,6 +343,34 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
                 return searchResultList.size();
             }
         };
+    }
+
+    @NotNull
+    private List<RoleAnalysisOutlierType> findClusterOutliers(@NotNull RoleAnalysisClusterType cluster) {
+        List<RoleAnalysisOutlierType> searchResultList = new ArrayList<>();
+        String clusterOid = cluster.getOid();
+        ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
+
+            RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
+            ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
+            String oid = targetClusterRef.getOid();
+            if (clusterOid.equals(oid)) {
+                searchResultList.add(outlier.asObjectable());
+            }
+            return true;
+        };
+
+        PageBase pageBase = getPageBase();
+        Task task = pageBase.createSimpleTask("Search outliers");
+        OperationResult result = task.getResult();
+
+        try {
+            pageBase.getModelService().searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
+                    null, task, result);
+        } catch (Exception ex) {
+            throw new RuntimeException("Couldn't search outliers", ex);
+        }
+        return searchResultList;
     }
 
 }

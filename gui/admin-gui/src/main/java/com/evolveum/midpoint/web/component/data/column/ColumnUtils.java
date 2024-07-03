@@ -31,16 +31,14 @@ import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.certification.CertMiscUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
-import com.evolveum.midpoint.web.page.admin.certification.component.CertificationItemsPanel;
-import com.evolveum.midpoint.web.page.admin.certification.component.DeadlinePanel;
-import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
-import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.component.DeadlinePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationItemResponseHelper;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -924,7 +922,7 @@ public class ColumnUtils {
                     String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
                 AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
                 ProgressBarPanel progressBar = new ProgressBarPanel(componentId,
-                        CertMiscUtil.createCampaignProgressBarModel(campaign, null));
+                        CertMiscUtil.createCampaignProgressBarModel(campaign, null, pageBase));
                 progressBar.setOutputMarkupId(true);
                 item.add(progressBar);
             }
@@ -1288,7 +1286,7 @@ public class ColumnUtils {
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationWorkItemType>>> cellItem,
                     String componentId, IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
-                ImagePanel imagePanel = new ImagePanel(componentId, new ReadOnlyModel<>(() -> getIconDisplayType(rowModel)));
+                ImagePanel imagePanel = new ImagePanel(componentId, () -> getIconDisplayType(rowModel));
                 imagePanel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(
                         LocalizationUtil.translatePolyString(getIconDisplayType(rowModel).getTooltip()))));
                 cellItem.add(imagePanel);

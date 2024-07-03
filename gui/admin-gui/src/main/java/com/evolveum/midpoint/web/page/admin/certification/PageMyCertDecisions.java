@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.page.admin.certification;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageAdminCertification;
 
 /**
  * Displays all certification decisions.

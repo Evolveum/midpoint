@@ -55,10 +55,10 @@ public class ToggleCheckBoxPanel extends InputPanel {
         check.add(new EnableBehaviour(this::isCheckboxEnabled));
         add(check);
 
-        Label label = new Label(ID_LABEL, labelModel);
-        add(label);
+//        Label label = new Label(ID_LABEL, labelModel);
+//        add(label);
 
-        Component titleComponent = getTitleComponent(ID_TITLE);
+        Component titleComponent = getTitleComponent(ID_LABEL);
         add(titleComponent);
 
         Label description = new Label(ID_DESCRIPTION, descriptionModel);

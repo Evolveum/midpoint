@@ -1235,6 +1235,26 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+
+            <xsd:element name="sensitivity" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Sensitivity of the detection process. This parameter influences the confidence threshold for
+                            identifying outliers. For instance, only those outliers with a confidence level
+                            above (100 - sensitivity) are considered valid outliers.
+                        </p>
+                        <p>
+                            Additionally, the sensitivity parameter affects the range settings used for anomaly detection.
+                            The range is adjusted by the formula: range_value * (1 + sensitivity).
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ClusteringAttributeRuleType.sensitivity</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="minRolesOccupancy" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

@@ -2458,4 +2458,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
     }
+
+    public boolean isOfArchetype(AssignmentHolderType assignmentHolderType, String archetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
+        return archetypeManager.isOfArchetype(assignmentHolderType, archetypeOid, result);
+    }
 }

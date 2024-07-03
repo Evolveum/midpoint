@@ -458,6 +458,7 @@ _JwtOidcResourceServerType_ contains following attributes:
 
 | `nameOfUsernameClaim`
 | Name of claim in JWT, which value define name of user in midPoint.
+|
 | _String_
 
 | `singleSymmetricKey`
@@ -504,6 +505,7 @@ _OpaqueTokenOidcResourceServerType_ contains following attributes:
 
 | `nameOfUsernameClaim`
 | Name of claim in JWT, which value define name of user in midPoint.
+|
 | _String_
 
 | `userInfoUri`
@@ -523,10 +525,10 @@ _OpaqueTokenOidcResourceServerType_ contains following attributes:
             <oidc>
                 <identifier>oidcResourceServer</identifier>
                 <resourceServer>
-                    <jwt(or opaqueToken)>
+                    <jwt> <!-- or opaqueToken -->
                         <issuerUri>https://keycloak.lab.evolveum.com/auth/realms/test</issuerUri>
                         <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
-                    </jwt(or opaqueToken)>
+                    </jwt>
                 </resourceServer>
             </oidc>
         </modules>

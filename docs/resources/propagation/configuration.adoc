@@ -10,7 +10,6 @@ doc-type: config
 :page-wiki-metadata-create-date: 2018-01-05T15:45:48.812+01:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2018-02-15T10:04:38.437+01:00
-:page-since: "3.7.1"
 :page-upkeep-status: green
 :page-toc: top
 

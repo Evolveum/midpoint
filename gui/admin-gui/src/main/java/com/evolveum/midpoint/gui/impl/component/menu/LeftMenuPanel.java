@@ -13,12 +13,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.certification.*;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-
-import com.evolveum.midpoint.web.page.admin.certification.component.PageCertItems;
-import com.evolveum.midpoint.web.page.admin.certification.component.PageMyCertItems;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -70,7 +68,6 @@ import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAll;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAllocatedToMe;
 import com.evolveum.midpoint.web.page.admin.cases.PageWorkItemsClaimable;
-import com.evolveum.midpoint.web.page.admin.certification.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardConfigurable;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
