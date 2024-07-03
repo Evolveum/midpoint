@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchQueryResult;
 import com.evolveum.midpoint.model.common.expression.evaluator.transformation.ValueTransformationContext;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.*;
 
 import com.evolveum.midpoint.util.DOMUtil;
@@ -43,7 +44,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
@@ -305,7 +305,10 @@ public abstract class AbstractSearchExpressionEvaluator<
             List<V> cachedResult = cache.getSearchResult(targetTypeClass, queries, searchStrategy, eeCtx);
             if (cachedResult != null) {
                 cacheInfo.logHit(targetTypeClass, queries);
-                return CloneUtil.clone(cachedResult);
+                // TODO consider freezing/cloning objects in the cache or more shallow cloning here;
+                //  but it's not crucial, as this kind of cache is not used globally (only as a thread-local one),
+                //  nor probably the amount of data cached is quite low
+                return CloneUtil.cloneCollectionMembers(cachedResult);
             }
 
             cacheInfo.logMiss(targetTypeClass, queries);
