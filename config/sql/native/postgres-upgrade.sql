@@ -622,7 +622,7 @@ call apply_change(37, $aa$
     );
 
     CREATE INDEX m_shadow_ref_attribute_ownerOid_idx ON m_shadow_ref_attribute (ownerOid);
-);
+$aa$);
 
 ---
 -- WRITE CHANGES ABOVE ^^
