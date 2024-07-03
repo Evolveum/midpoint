@@ -183,7 +183,7 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
      * @param <TQ> type of target entity path
      * @param <TR> row type related to the target entity path {@link TQ}
      */
-    public final @Nullable <TQ extends FlexibleRelationalPathBase<TR>, TR>
+    public @Nullable <TQ extends FlexibleRelationalPathBase<TR>, TR>
     ItemRelationResolver<Q, R, TQ, TR> getRelationResolver(QName itemName) {
         //noinspection unchecked
         return (ItemRelationResolver<Q, R, TQ, TR>)

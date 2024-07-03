@@ -19,6 +19,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import com.querydsl.core.types.Predicate;
@@ -771,6 +773,85 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         } finally {
             queryRecorder.stopRecording();
             display(queryRecorder.dumpQueryBuffer());
+        }
+    }
+
+    public class TestShadowDefinition implements ItemDefinitionResolver {
+
+
+        public final PrismObjectDefinition<ShadowType> objectDefinition;
+        private final PrismContainerDefinition<?> attributesDefinition;
+        private final PrismContainerDefinition<?> referenceAttributesDefinition;
+
+        private final ShadowKindType kind;
+        private final String intent;
+        private final QName objectClass;
+
+        private final String resourceRef;
+
+
+        public TestShadowDefinition(String resourceRef, QName objectClass, ShadowKindType kind, String intent) {
+            this.resourceRef = resourceRef;
+            this.objectClass = objectClass;
+            this.kind = kind;
+            this.intent = intent;
+            objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class).clone();
+            ComplexTypeDefinition ctd =
+                    prismContext.definitionFactory().newComplexTypeDefinition(ShadowAttributesType.COMPLEX_TYPE);
+            attributesDefinition = (PrismContainerDefinition<Containerable>)
+                    prismContext.definitionFactory()
+                            .newContainerDefinition(ShadowType.F_ATTRIBUTES, ctd);
+            referenceAttributesDefinition = (PrismContainerDefinition<Containerable>)
+                    prismContext.definitionFactory()
+                            .newContainerDefinition(ShadowType.F_REFERENCE_ATTRIBUTES, ctd.clone());
+            objectDefinition.replaceDefinition(ShadowType.F_ATTRIBUTES, attributesDefinition);
+            objectDefinition.replaceDefinition(ShadowType.F_REFERENCE_ATTRIBUTES, referenceAttributesDefinition);
+        }
+
+        public ItemName itemName(String name) {
+            return ItemName.interned(SchemaConstants.NS_RI, name);
+        }
+
+        public ItemName defineAttribute(String name, QName type) {
+            var itemName = itemName(name);
+            var minOccurrence = 0;
+            var maxOccurrence = 1;
+            var def = attributesDefinition.mutator().createPropertyDefinition(itemName, type, minOccurrence, maxOccurrence);
+            def.mutator().setDynamic(true);
+            def.mutator().setIndexed(true);
+            return itemName;
+        }
+
+        public ItemName defineReference(String name, int maxOccurs) {
+            var itemName = itemName(name);
+            var refDef = prismContext.definitionFactory().newReferenceDefinition(itemName, ObjectReferenceType.COMPLEX_TYPE, 0, maxOccurs);
+            refDef.mutator().setTargetTypeName(ShadowType.COMPLEX_TYPE);
+            referenceAttributesDefinition.getComplexTypeDefinition().mutator().add(refDef);
+            return itemName;
+        }
+
+        public ShadowType newShadow(String name) {
+            var ret = new ShadowType();
+            ret.asPrismObject().setDefinition(objectDefinition);
+            return ret
+                    .name(name)
+                    .resourceRef(resourceRef, ResourceType.COMPLEX_TYPE)
+                    .kind(kind)
+                    .intent(intent)
+                    .objectClass(objectClass);
+        }
+
+        @Override
+        public @Nullable ItemDefinition<?> findItemDefinition(@NotNull Class<? extends Containerable> type, @NotNull ItemPath itemPath) {
+            if (ShadowType.class.equals(type)) {
+                return objectDefinition.findItemDefinition(itemPath);
+            }
+            return null;
+
+        }
+
+        public S_ItemEntry newDelta() throws SchemaException {
+            return PrismContext.get().deltaFor(ShadowType.class, this);
         }
     }
 }

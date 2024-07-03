@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 public class RefTableItemDeltaProcessor<Q extends QReference<?, OR>, OQ extends FlexibleRelationalPathBase<OR>, OR>
         extends ItemDeltaValueProcessor<ObjectReferenceType> {
 
-    private final SqaleUpdateContext<?, OQ, OR> context;
+    protected final SqaleUpdateContext<?, OQ, OR> context;
     private final QReferenceMapping<Q, ?, OQ, OR> refTableMapping;
 
     public RefTableItemDeltaProcessor(

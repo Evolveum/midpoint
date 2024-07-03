@@ -23,7 +23,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.InfraItemName;
+import com.evolveum.midpoint.prism.query.TypedObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.query.PreparedQuery;
+import com.evolveum.midpoint.schema.query.TypedQuery;
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -3385,7 +3388,88 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .containsEntry(extensionKey(extensionContainer, "string"), "510");
     }
 
-    /** Checks that the attribute type can be changed e.g. from {@link String} to {@link PolyString}. */
+    @Test
+    public void test530ModifyReferenceAttributes() throws CommonException {
+        OperationResult result = createOperationResult();
+
+        var resourceRef = UUID.randomUUID().toString();
+
+        var accountDef = new TestShadowDefinition(resourceRef,
+                SchemaConstants.RI_ACCOUNT_OBJECT_CLASS, ShadowKindType.ACCOUNT, "default");
+        var nameAttr = accountDef.defineAttribute("name", DOMUtil.XSD_STRING);
+        var groupRef = accountDef.defineReference("group",-1);
+
+        var groupDef = new TestShadowDefinition(resourceRef,
+                SchemaConstants.RI_GROUP_OBJECT_CLASS, ShadowKindType.ENTITLEMENT, "default");
+        groupDef.defineAttribute("name", DOMUtil.XSD_STRING);
+        var ownerRef = groupDef.defineReference("owner", -1);
+
+
+
+
+        given("a shadow in repository");
+        ShadowType account = accountDef.newShadow("account");
+        var accountOid = repositoryService.addObject(account.asPrismObject(), null, result);
+
+
+        ShadowType groupAll =groupDef.newShadow("all");
+        var groupAllOid = repositoryService.addObject(groupAll.asPrismObject(), null, result);
+
+        ShadowType owner = accountDef.newShadow("owner");
+        owner.asPrismObject().findOrCreateItem(ItemPath.create(ShadowType.F_REFERENCE_ATTRIBUTES, groupRef), PrismReference.class)
+                .add(new ObjectReferenceType().oid(groupAllOid).asReferenceValue());
+
+
+        var ownerOid = repositoryService.addObject(owner.asPrismObject(), null, result);
+
+        ShadowType groupLimited = groupDef.newShadow("limited");
+        var groupLimitedOid = repositoryService.addObject(groupLimited.asPrismObject(), null, result);
+
+        when("reference attribute group is added");
+        var addAllDeltas = accountDef.newDelta()
+                        .item(ShadowType.F_REFERENCE_ATTRIBUTES, groupRef)
+                                .add(new ObjectReferenceType().oid(groupAllOid))
+                                        .asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, accountOid, addAllDeltas, result);
+
+
+
+        then("reference attributes should be readed back");
+        account = repositoryService.getObject(ShadowType.class, accountOid, null, result).asObjectable();
+
+        // FIXME: Add checks
+        then("accounts can be found by dereferencing referenceAttributes/group");
+
+        var query = TypedQuery.parse(ShadowType.class, accountDef.objectDefinition,
+                "referenceAttributes/ri:group/@/name = 'all'").toObjectQuery();
+        var accountsList = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        assertThat(accountsList)
+                .hasSize(2);
+        then("group should be found by referencedBy");
+
+        then("accounts can be found by ref filter with oid");
+        query = TypedQuery.parse(ShadowType.class, accountDef.objectDefinition,
+                "referenceAttributes/ri:group matches (oid = '"  + groupAllOid + "' )").toObjectQuery();
+        accountsList = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        assertThat(accountsList)
+                .hasSize(2);
+
+        when("group all is removed from account");
+        repositoryService.modifyObject(ShadowType.class, accountOid,
+                accountDef.newDelta()
+                        .item(ShadowType.F_REFERENCE_ATTRIBUTES, groupRef)
+                        .delete(new ObjectReferenceType().oid(groupAllOid))
+                        .asItemDeltas(),
+                result);
+
+        then("only owner account should be found as member of all group");
+        accountsList = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        assertThat(accountsList)
+                .hasSize(1)
+                .extracting(s -> s.getOid()).containsExactlyInAnyOrder(ownerOid);
+    }
+    // endregion
+
     @Test
     public void test520ChangeAttributeType() throws CommonException {
         OperationResult result = createOperationResult();
@@ -3422,7 +3506,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         PrismProperty<PolyString> valueAfter = shadowAfter.findProperty(attrPath);
         assertThat(valueAfter.getRealValue()).isEqualTo(PolyString.fromOrig("JACK2"));
     }
-    // endregion
+
+
 
     // region value metadata
     @Test
