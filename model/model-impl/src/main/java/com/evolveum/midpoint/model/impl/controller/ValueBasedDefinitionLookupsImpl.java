@@ -19,10 +19,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.ImmutableSet;
 import jakarta.annotation.PostConstruct;
@@ -117,9 +114,9 @@ public class ValueBasedDefinitionLookupsImpl {
     public void init() {
         PrismContext.get().registerValueBasedDefinitionLookup(shadowLookupByKindAndIntent);
         this.lookupTask = taskManager.createTaskInstance("system-resource-lookup-for-queries");
-        SchemaContextResolverRegistry.register(Algorithm.RESOURCE_OBJECT_CONTEXT_RESOLVER, (def) -> new ResourceObjectContextResolver(def));
+        SchemaContextResolverRegistry.register(Algorithm.RESOURCE_OBJECT_CONTEXT_RESOLVER, ResourceObjectContextResolver::new);
+        SchemaContextResolverRegistry.register(Algorithm.SHADOW_CONSTRUCTION_CONTEXT_RESOLVER, ShadowConstructionContextResolver::new);
     }
-
 
     class ResourceObjectContextResolver implements SchemaContextResolver {
 
@@ -131,7 +128,6 @@ public class ValueBasedDefinitionLookupsImpl {
 
         @Override
         public SchemaContext computeContext(PrismValue prismValue) {
-
             if (prismValue instanceof PrismContainerValue<?> container) {
                 ResourceObjectTypeDefinitionType resourceObjectDefinitionType = (ResourceObjectTypeDefinitionType) container.asContainerable();
                 ResourceType resource = (ResourceType) container.getRootObjectable();
@@ -144,6 +140,46 @@ public class ValueBasedDefinitionLookupsImpl {
                 try {
                     var result = lookupTask.getResult().createSubresult("ValueBasedDefinitionLookupsImpl.findComplexTypeDefinition");
                     var resourceObj = provisioning.getObject(ResourceType.class, resource.getOid(), null, lookupTask, result);
+                    ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resourceObj);
+                    ResourceObjectDefinition resourceObjectDefinition = resourceSchema.findDefinitionForShadow(shadowType);
+                    if (resourceObjectDefinition != null) {
+                        return new SchemaContextImpl(resourceObjectDefinition.toPrismObjectDefinition());
+                    }
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    class ShadowConstructionContextResolver implements SchemaContextResolver {
+
+        SchemaContextDefinition schemaContextDefinition;
+
+        public ShadowConstructionContextResolver(SchemaContextDefinition schemaContextDefinition) {
+            this.schemaContextDefinition = schemaContextDefinition;
+        }
+
+        @Override
+        public SchemaContext computeContext(PrismValue prismValue) {
+            if (prismValue instanceof PrismContainerValue<?> container) {
+                ConstructionType construction = (ConstructionType) container.asContainerable();
+
+                ShadowType shadowType = new ShadowType();
+                shadowType.resourceRef(construction.getResourceRef().getOid(), ConstructionType.COMPLEX_TYPE);
+                shadowType.setKind(construction.getKind());
+
+                if (construction.getIntent() != null) {
+                    shadowType.setIntent(construction.getIntent());
+                } else {
+                    shadowType.setIntent("default");
+                }
+
+                try {
+                    var result = lookupTask.getResult().createSubresult("ValueBasedDefinitionLookupsImpl.findComplexTypeDefinition");
+                    var resourceObj = provisioning.getObject(ResourceType.class, construction.getResourceRef().getOid(), null, lookupTask, result);
                     ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resourceObj);
                     ResourceObjectDefinition resourceObjectDefinition = resourceSchema.findDefinitionForShadow(shadowType);
                     if (resourceObjectDefinition != null) {
