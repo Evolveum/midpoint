@@ -135,7 +135,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 
         var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
-        assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
+        assertGroupAssociation(shadow, GROUP_PIRATES_OID);
 
         assertSteadyResource();
     }
@@ -206,7 +206,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 
         var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
-        assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
+        assertGroupAssociation(shadow, GROUP_PIRATES_OID);
 
         assertSteadyResource();
     }

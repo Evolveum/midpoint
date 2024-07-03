@@ -7,22 +7,24 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
 import java.io.Serial;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.CloneStrategy;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.impl.PrismReferenceImpl;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.util.EqualsChecker;
 import com.evolveum.midpoint.util.MiscUtil;
-
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.util.exception.SchemaException;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Represents a shadow reference attribute (like `ri:group` or `ri:access`). It is a reference to another shadow.
@@ -139,6 +141,12 @@ public class ShadowReferenceAttribute
                 (List<? extends ShadowReferenceAttributeValue>) (List) getValues());
     }
 
+    public @NotNull List<ObjectReferenceType> getReferenceRealValues() {
+        return getReferenceValues().stream()
+                .map(refVal -> refVal.asObjectReferenceType())
+                .toList();
+    }
+
     @Override
     public void addValueSkipUniquenessCheck(ShadowReferenceAttributeValue value) throws SchemaException {
         addIgnoringEquivalents(value);
@@ -164,5 +172,13 @@ public class ShadowReferenceAttribute
             throws SchemaException {
         applyDefinition(
                 objectDefinition.findReferenceAttributeDefinitionRequired(getElementName()));
+    }
+
+    /** Creates a delta that would enforce (via REPLACE operation) the values of this attribute. */
+    public @NotNull ReferenceDelta createReplaceDelta() {
+        var delta = getDefinitionRequired().createEmptyDelta();
+        delta.setValuesToReplace(
+                CloneUtil.cloneCollectionMembers(getValues()));
+        return delta;
     }
 }

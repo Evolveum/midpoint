@@ -55,7 +55,10 @@ public class ShadowCreator {
 
         LOGGER.trace("Adding new shadow from resource object:\n{}", resourceObject.debugDumpLazily(1));
 
-        ShadowType repoShadowBean = shadowObjectComputer.createShadowForRepoStorage(ctx, resourceObject).getBean();
+        ShadowType repoShadowBean =
+                shadowObjectComputer
+                        .createShadowForRepoStorage(ctx, resourceObject)
+                        .getBean();
         LOGGER.trace("Shadow to add (from resource object):\n{}", repoShadowBean.debugDumpLazily(1));
 
         ConstraintsChecker.onShadowAddOperation(repoShadowBean); // TODO eventually replace by repo cache invalidation
@@ -95,7 +98,9 @@ public class ShadowCreator {
             return;
         }
 
-        ShadowType newRawRepoShadow = shadowObjectComputer.createShadowForRepoStorage(ctx, objectToAdd).getBean();
+        ShadowType newRawRepoShadow = shadowObjectComputer
+                .createShadowForRepoStorage(ctx, objectToAdd)
+                .getBean();
         newRawRepoShadow.setExists(false);
         assert newRawRepoShadow.getPendingOperation().isEmpty();
 

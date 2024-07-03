@@ -7,16 +7,16 @@
 
 package com.evolveum.midpoint.test.asserter;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowReferenceAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import javax.xml.namespace.QName;
@@ -65,10 +65,36 @@ public class RepoShadowAsserter<RA> extends ShadowAsserter<RA> {
         return new RepoShadowAsserter<>(shadow, cachedAttributes, "");
     }
 
+    public final RepoShadowAsserter<RA> assertCachedRefValues(String attrName, String... expectedOids) {
+        return assertCachedRefValues(
+                ItemName.from(MidPointConstants.NS_RI, attrName),
+                expectedOids);
+    }
+
+    /** Attribute is present iff it is among {@link #cachedAttributes}. */
+    public final RepoShadowAsserter<RA> assertCachedRefValues(QName attrName, String... expectedOidsIfCached) {
+        PrismContainer<ShadowReferenceAttributesType> container = getObject().findContainer(ShadowType.F_REFERENCE_ATTRIBUTES);
+        PrismReference reference = container != null ? container.findReference(ItemName.fromQName(attrName)) : null;
+        Collection<String> actualOids = new ArrayList<>();
+        if (reference != null) {
+            for (PrismReferenceValue value : reference.getValues()) {
+                actualOids.add(
+                        MiscUtil.assertNonNull(
+                                value.getOid(),
+                                "No OID in reference attribute '%s' value: %s", attrName, value));
+            }
+        }
+        Collection<String> expectedValues = isCached(attrName) ? List.of(expectedOidsIfCached) : List.of();
+        assertThat(actualOids)
+                .as("OIDs in reference attribute '" + attrName + "' in " + getObject())
+                .containsExactlyInAnyOrderElementsOf(expectedValues);
+        return this;
+    }
+
     @SafeVarargs
     public final <T> RepoShadowAsserter<RA> assertCachedOrigValues(String attrName, T... expectedValues) {
         return assertCachedOrigValues(
-                new ItemName(MidPointConstants.NS_RI, attrName),
+                ItemName.from(MidPointConstants.NS_RI, attrName),
                 expectedValues);
     }
 
@@ -82,7 +108,7 @@ public class RepoShadowAsserter<RA> extends ShadowAsserter<RA> {
     @SafeVarargs
     public final <T> RepoShadowAsserter<RA> assertCachedNormValues(String attrName, T... expectedValues) {
         return assertCachedNormValues(
-                new ItemName(MidPointConstants.NS_RI, attrName),
+                ItemName.from(MidPointConstants.NS_RI, attrName),
                 expectedValues);
     }
 

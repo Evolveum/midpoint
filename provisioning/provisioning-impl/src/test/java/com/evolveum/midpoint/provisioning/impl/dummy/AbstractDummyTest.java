@@ -439,11 +439,11 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         IntegrationTestTools.assertNoGroupMember(group, accountId);
     }
 
-    protected void assertEntitlementGroup(AbstractShadow account, String entitlementOid) {
+    protected void assertGroupAssociation(AbstractShadow account, String entitlementOid) {
         assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
     }
 
-    protected void assertEntitlementPriv(AbstractShadow account, String entitlementOid) {
+    protected void assertPrivAssociation(AbstractShadow account, String entitlementOid) {
         assertAssociation(account, ASSOCIATION_PRIV_NAME, entitlementOid);
     }
 

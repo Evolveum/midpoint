@@ -46,4 +46,8 @@ public interface ShadowAttribute<
     SA cloneComplex(CloneStrategy strategy);
 
     void applyDefinitionFrom(ResourceObjectDefinition objectDefinition) throws SchemaException;
+
+    D getDefinitionRequired();
+
+    ItemDelta<?, ?> createReplaceDelta();
 }

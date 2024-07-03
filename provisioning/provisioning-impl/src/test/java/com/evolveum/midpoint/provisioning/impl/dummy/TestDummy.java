@@ -2502,6 +2502,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.assertSingleNotifySuccessOnly();
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         assertSteadyResource();
+
+        and("cached shadow is OK");
+        assertRepoShadowNew(ACCOUNT_WILL_OID)
+                .display();
+                //.assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate")
     }
 
     /**
@@ -2523,7 +2528,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSuccess(result);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
-        assertEntitlementGroup(account, GROUP_PIRATES_OID);
+        assertGroupAssociation(account, GROUP_PIRATES_OID);
 
         // Just make sure nothing has changed
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
@@ -2531,6 +2536,11 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         assertSteadyResource();
+
+        and("cached shadow is OK");
+        assertRepoShadowNew(ACCOUNT_WILL_OID)
+                .display()
+                .assertCachedRefValues(DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID);
     }
 
     @Test
@@ -2578,10 +2588,18 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
-        assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
-        assertEntitlementPriv(shadow, PRIVILEGE_PILLAGE_OID);
+        assertGroupAssociation(shadow, GROUP_PIRATES_OID);
+        assertPrivAssociation(shadow, PRIVILEGE_PILLAGE_OID);
 
         assertSteadyResource();
+
+        and("cached shadow is OK");
+        checkWillAfter222();
+    }
+
+    private void checkWillAfter222() throws CommonException {
+        assertRepoShadowNew(ACCOUNT_WILL_OID)
+                .display();
     }
 
     @Test
@@ -2645,9 +2663,9 @@ public class TestDummy extends AbstractBasicDummyTest {
         display("Account", account);
         assertSuccess(result);
 
-        assertEntitlementGroup(account, GROUP_PIRATES_OID);
-        assertEntitlementPriv(account, PRIVILEGE_PILLAGE_OID);
-        assertEntitlementPriv(account, PRIVILEGE_BARGAIN_OID);
+        assertGroupAssociation(account, GROUP_PIRATES_OID);
+        assertPrivAssociation(account, PRIVILEGE_PILLAGE_OID);
+        assertPrivAssociation(account, PRIVILEGE_BARGAIN_OID);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
@@ -2708,10 +2726,10 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
-        assertEntitlementGroup(account, GROUP_PIRATES_OID);
-        assertEntitlementGroup(account, foolsShadow.getOid());
-        assertEntitlementPriv(account, PRIVILEGE_PILLAGE_OID);
-        assertEntitlementPriv(account, PRIVILEGE_BARGAIN_OID);
+        assertGroupAssociation(account, GROUP_PIRATES_OID);
+        assertGroupAssociation(account, foolsShadow.getOid());
+        assertPrivAssociation(account, PRIVILEGE_PILLAGE_OID);
+        assertPrivAssociation(account, PRIVILEGE_BARGAIN_OID);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
@@ -2768,20 +2786,23 @@ public class TestDummy extends AbstractBasicDummyTest {
         var foolsShadow = findShadowByName(RI_GROUP_OBJECT_CLASS, "fools", resource, result);
         assertNotNull("No shadow for group fools", foolsShadow);
 
+        var nonsenseShadow = findShadowByName(RI_GROUP_OBJECT_CLASS, "fools", resource, result);
+        assertNotNull("No shadow for priv nonsense", nonsenseShadow);
+
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
-        assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
-        assertEntitlementGroup(shadow, foolsShadow.getOid());
-        assertEntitlementPriv(shadow, PRIVILEGE_PILLAGE_OID);
-        assertEntitlementPriv(shadow, PRIVILEGE_BARGAIN_OID);
+        assertGroupAssociation(shadow, GROUP_PIRATES_OID);
+        assertGroupAssociation(shadow, foolsShadow.getOid());
+        assertPrivAssociation(shadow, PRIVILEGE_PILLAGE_OID);
+        assertPrivAssociation(shadow, PRIVILEGE_BARGAIN_OID);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 
         // Just make sure nothing has changed
         dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         assertNotNull("Account will is gone!", dummyAccount);
-        Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
-        PrismAsserts.assertSets("Wrong account privileges", accountProvileges,
+        Set<String> accountPrivileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
+        PrismAsserts.assertSets("Wrong account privileges", accountPrivileges,
                 transformNameToResource(PRIVILEGE_PILLAGE_NAME),
                 transformNameToResource(PRIVILEGE_BARGAIN_NAME),
                 PRIVILEGE_NONSENSE_NAME);
@@ -2803,6 +2824,14 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         assertSteadyResource();
+
+        and("cached shadow is OK");
+        checkWillAfter226();
+    }
+
+    private void checkWillAfter226() throws CommonException {
+        assertRepoShadowNew(ACCOUNT_WILL_OID)
+                .display();
     }
 
     @Test
@@ -2973,8 +3002,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = task.getResult();
         var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
-        assertEntitlementPriv(shadow, PRIVILEGE_PILLAGE_OID);
-        assertEntitlementPriv(shadow, PRIVILEGE_BARGAIN_OID);
+        assertPrivAssociation(shadow, PRIVILEGE_PILLAGE_OID);
+        assertPrivAssociation(shadow, PRIVILEGE_BARGAIN_OID);
 
         assertSteadyResource();
     }
@@ -3013,9 +3042,9 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = task.getResult();
         var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
-        assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
-        assertEntitlementPriv(shadow, PRIVILEGE_PILLAGE_OID);
-        assertEntitlementPriv(shadow, PRIVILEGE_BARGAIN_OID);
+        assertGroupAssociation(shadow, GROUP_PIRATES_OID);
+        assertPrivAssociation(shadow, PRIVILEGE_PILLAGE_OID);
+        assertPrivAssociation(shadow, PRIVILEGE_BARGAIN_OID);
 
         assertSteadyResource();
     }
@@ -3057,7 +3086,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
-        assertEntitlementPriv(shadow, PRIVILEGE_BARGAIN_OID);
+        assertPrivAssociation(shadow, PRIVILEGE_BARGAIN_OID);
 
         assertSteadyResource();
     }
@@ -3167,8 +3196,8 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .end()
                 .getAbstractShadow();
 
-        assertEntitlementGroup(accountAfter2, GROUP_PIRATES_OID);
-        assertEntitlementPriv(accountAfter2, PRIVILEGE_PILLAGE_OID);
+        assertGroupAssociation(accountAfter2, GROUP_PIRATES_OID);
+        assertPrivAssociation(accountAfter2, PRIVILEGE_PILLAGE_OID);
 
         checkUniqueness(accountAfter2);
 
@@ -4689,6 +4718,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         return assertRepoShadow(oid, getCachedAccountAttributes());
     }
 
+    /** Creates the association value (not the low-level reference attribute value). */
     ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, String objectOid)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {

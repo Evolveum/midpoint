@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.shouldStoreSimpleAttributeInShadow;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Collection;
@@ -109,7 +110,7 @@ class ShadowDeltaComputerRelative {
                     resultingRepoModifications.add(
                             primaryIdentifierValueModFromAttributeMod(modification));
                 }
-                if (ctx.shouldStoreAttributeInShadow(objectDefinition, simpleAttrDef)) {
+                if (shouldStoreSimpleAttributeInShadow(ctx, objectDefinition, simpleAttrDef)) {
                     resultingRepoModifications.add(modification, simpleAttrDef);
                 }
             } else if (parentPath.equivalent(ShadowType.F_ACTIVATION)) {

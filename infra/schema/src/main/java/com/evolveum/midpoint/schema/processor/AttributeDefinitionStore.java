@@ -56,6 +56,12 @@ public interface AttributeDefinitionStore
         return getAttributeDefinitions(ShadowReferenceAttributeDefinition.class);
     }
 
+    default @NotNull Collection<ItemName> getReferenceAttributesNames() {
+        return getReferenceAttributeDefinitions().stream()
+                .map(def -> def.getItemName())
+                .toList();
+    }
+
     /**
      * Returns all attribute definitions of given type as an unmodifiable collection.
      *

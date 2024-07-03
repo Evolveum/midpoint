@@ -16,8 +16,6 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceO
 
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
-import com.evolveum.midpoint.schema.util.ShadowReferenceAttributesCollection;
-
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -285,10 +283,6 @@ class ShadowedObjectConstruction {
 
         b.accessChecker.filterGetAttributes(resultingAttributesContainer, authoritativeDefinition, result);
 
-        for (var refAttrValue : ShadowReferenceAttributesCollection.ofAttributesContainer(resultingAttributesContainer).valuesIterable()) {
-            processEmbeddedShadows(refAttrValue, result);
-        }
-
         resultingShadowedBean.asPrismObject().add(resultingAttributesContainer);
     }
 
@@ -369,158 +363,5 @@ class ShadowedObjectConstruction {
                 .findOrCreateAssociation(assocDef.getItemName())
                 .createNewValue()
                 .fillFromReferenceAttributeValue(refAttrValue);
-    }
-
-    /** Acquires/updates/combines shadow(s) embedded in the reference value. */
-    private void processEmbeddedShadows(@NotNull ShadowReferenceAttributeValue refAttrValue, @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, EncryptionException, ObjectNotFoundException {
-
-        var shadow = refAttrValue.getShadowIfPresent();
-        if (shadow == null) {
-            return;
-        }
-
-        var shadowCtx = ctx.spawnForShadow(shadow.getBean());
-        var updatedShadow = acquireAndPostProcessEmbeddedShadow(shadow, refAttrValue.isFullObject(), shadowCtx, result);
-        if (updatedShadow != null) {
-            refAttrValue.setObject(updatedShadow.getPrismObject());
-            refAttrValue.setOid(updatedShadow.getOid());
-        }
-
-//        var refAttrName = refAttrValue.name();
-//        var associationValue = refAttrValue.associationValue();
-//
-//        if (authoritativeDefinition.findReferenceAttributeDefinition(refAttrName) == null) {
-//            // This is quite legal. Imagine that we are looking for account/type1 type that has an association defined,
-//            // but the shadow is classified (after being fetched) as account/type2 that does not have the association.
-//            // We should simply ignore such association.
-//            LOGGER.trace("Association with name {} does not exist in {}, ignoring the value", refAttrName, ctx);
-//            return false;
-//        }
-//
-//        boolean potentialMatch = false;
-//
-//        for (var targetParticipantType : associationValue.getDefinitionRequired().getTargetParticipantTypes()) {
-//            LOGGER.trace("Checking if target object participant restriction matches: {}", targetParticipantType);
-//            ResourceObjectDefinition participantObjectDefinition = targetParticipantType.getObjectDefinition();
-//            ProvisioningContext ctxAssociatedObject = ctx.spawnForDefinition(participantObjectDefinition);
-//
-//            var entitlementShadow = acquireAndPostProcessAssociatedRepoShadow(refAttrValue, ctxAssociatedObject, result);
-//            if (entitlementShadow == null) {
-//                // Null means an error (see the called method). I am not sure if it makes sense to try another intent,
-//                // but this is how it was for years. So, let's keep that behavior.
-//                continue;
-//            }
-//
-//            @Nullable var existingClassification = ResourceObjectTypeIdentification.createIfKnown(entitlementShadow.getBean());
-//            @Nullable var requiredClassification = targetParticipantType.getTypeIdentification();
-//
-//            if (shadowDoesMatch(requiredClassification, existingClassification)) {
-//                LOGGER.trace("Association value matches. Repo shadow is: {}", entitlementShadow);
-//                associationValue.setShadow(entitlementShadow);
-//                if (entitlementShadow.isClassified()) {
-//                    return true;
-//                } else {
-//                    // We are not sure we have the right shadow. Hence let us be careful and not copy any identifiers.
-//                    // But we may return this shadow, if nothing better is found.
-//                    potentialMatch = true;
-//                }
-//            } else {
-//                LOGGER.trace("Association value does not match. Repo shadow is: {}", entitlementShadow);
-//                // We have association value that does not match its definition. This may happen because the association attribute
-//                // may be shared among several associations. The EntitlementConverter code has no way to tell them apart.
-//                // We can do that only if we have shadow or full resource object. And that is available at this point only.
-//                // Therefore just silently filter out the association values that do not belong here.
-//                // See MID-5790
-//            }
-//        }
-//        return potentialMatch;
-    }
-
-//    private static boolean shadowDoesMatch(
-//            @Nullable ResourceObjectTypeIdentification requiredClassification,
-//            @Nullable ResourceObjectTypeIdentification existingClassification) {
-//        // FIXME the shadow may be unclassified here by mistake, please fix the upstream code!
-//        //
-//        // About unclassified shadows: This should not happen in a well-configured system. But the world is a tough place.
-//        // In case that this happens let's just keep all such shadows in all associations. This is how midPoint worked before,
-//        // therefore we will get better compatibility. But it is also better for visibility. MidPoint will show data that are
-//        // wrong. But it will at least show something. The alternative would be to show nothing, which is not really friendly
-//        // for debugging.
-//        return requiredClassification == null
-//                || existingClassification == null // see the note above
-//                || existingClassification.equals(requiredClassification);
-//    }
-
-    /**
-     * Returns either {@link RepoShadow} or combined {@link ExistingResourceObjectShadow}.
-     *
-     * FIXME the second case is wrong, should be something different (that denotes we have a shadow connected)
-     */
-    private @Nullable AbstractShadow acquireAndPostProcessEmbeddedShadow(
-            @NotNull AbstractShadow shadow,
-            boolean isFullObject,
-            @NotNull ProvisioningContext shadowCtx,
-            @NotNull OperationResult result)
-            throws ConfigurationException, CommunicationException, ExpressionEvaluationException, SecurityViolationException,
-            EncryptionException, ObjectNotFoundException, SchemaException {
-
-        // TODO should we fully cache the entitlement shadow (~ attribute/shadow caching)?
-        //  (If yes, maybe we should retrieve also the associations below?)
-
-        if (isFullObject) {
-            // The conversion from shadow to an ExistingResourceObjectShadow looks strange but actually has a point:
-            // the shadow really came from the resource.
-            var existingResourceObject = ExistingResourceObjectShadow.fromShadow(shadow);
-            return acquireAndPostProcessShadow(shadowCtx, existingResourceObject, result);
-        }
-
-        var attributesContainer = shadow.getAttributesContainer();
-        var identifiers = attributesContainer.getAllIdentifiers();
-
-        // for simulated references, here should be exactly one attribute; for native ones, it can vary
-        var existingLiveRepoShadow = b.shadowFinder.lookupLiveShadowByAllAttributes(shadowCtx, identifiers, result);
-        if (existingLiveRepoShadow != null) {
-            return existingLiveRepoShadow; // no post-processing (updating shadow, combining with the resource object)
-        }
-
-        // Nothing found in repo, let's do the search on the resource.
-        var identification = shadow.getIdentificationRequired();
-
-        CompleteResourceObject fetchedResourceObject;
-        try {
-            fetchedResourceObject =
-                    b.resourceObjectConverter.locateResourceObject(
-                            shadowCtx, identification, false, result);
-
-        } catch (ObjectNotFoundException e) {
-            // The entitlement to which we point is not there. Simply ignore this association value.
-            result.muteLastSubresultError();
-            LOGGER.warn("The entitlement identified by {} referenced from {} does not exist. Skipping.",
-                    identification, resourceObject);
-            return null;
-        } catch (SchemaException e) {
-            // The entitlement to which we point is bad. Simply ignore this association value.
-            result.muteLastSubresultError();
-            LOGGER.warn("The entitlement identified by {} referenced from {} violates the schema. Skipping. Original error: {}",
-                    identification, resourceObject, e.getMessage(), e);
-            return null;
-        }
-
-        // Try to look up repo shadow again, this time with full resource shadow. When we
-        // have searched before we might have only some identifiers. The shadow
-        // might still be there, but it may be renamed
-        return acquireAndPostProcessShadow(shadowCtx, fetchedResourceObject.resourceObject(), result);
-    }
-
-    private static @NotNull ExistingResourceObjectShadow acquireAndPostProcessShadow(
-            ProvisioningContext ctxEntitlement, ExistingResourceObjectShadow existingResourceObject, OperationResult result)
-            throws SchemaException, ConfigurationException, EncryptionException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ObjectNotFoundException {
-        var repoShadow = ShadowAcquisition.acquireRepoShadow(ctxEntitlement, existingResourceObject, result);
-        var shadowPostProcessor = new ShadowPostProcessor(
-                ctxEntitlement, repoShadow, existingResourceObject, null);
-        return shadowPostProcessor.execute(result);
     }
 }

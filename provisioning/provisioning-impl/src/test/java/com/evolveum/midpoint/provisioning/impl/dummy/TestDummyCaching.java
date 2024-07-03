@@ -382,8 +382,7 @@ public class TestDummyCaching extends TestDummy {
                     .build();
             // @formatter:on
 
-            SearchResultList<PrismObject<ShadowType>> objects
-                    = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+            var objects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
             assertThat(objects).as("accounts matching will").hasSize(1);
 
         } else {
@@ -419,7 +418,7 @@ public class TestDummyCaching extends TestDummy {
 
     @Override
     protected @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
-        return getAccountDefaultDefinition().getSimpleAttributeDefinitions().stream()
+        return getAccountDefaultDefinition().getAttributeDefinitions().stream()
                 .map(def -> def.getItemName())
                 .toList();
     }

@@ -123,8 +123,6 @@ public final class ShadowAttributesContainerImpl
         for (var simpleAttribute : getSimpleAttributes()) {
             for (var attrDef : definitions) {
                 if (attrDef.getItemName().equals(simpleAttribute.getElementName())) {
-                    //noinspection unchecked
-                    simpleAttribute.setDefinition(attrDef); // TODO Is this really necessary?
                     attributes.add(simpleAttribute);
                 }
             }

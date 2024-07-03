@@ -526,23 +526,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return ItemPath.create(components);
     }
 
-    public boolean shouldStoreAttributeInShadow(
-            @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull ShadowSimpleAttributeDefinition<?> attrDef) {
-        ItemName attrName = attrDef.getItemName();
-        if (objectDefinition.isIdentifier(attrName)) {
-            return true;
-        }
-        if (Boolean.FALSE.equals(getExplicitCachingStatus())) {
-            return false;
-        }
-        if (isReadCachingOnlyCapabilityPresent()) {
-            return true;
-        }
-        return attrDef.isEffectivelyCached(objectDefinition);
-    }
-
-    private Boolean getExplicitCachingStatus() {
+    public Boolean getExplicitCachingStatus() {
         if (resourceObjectDefinition != null) {
             var objectLevel = resourceObjectDefinition.getEffectiveShadowCachingPolicy().getCachingStrategy();
             if (objectLevel == CachingStrategyType.NONE) {
@@ -568,7 +552,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return null;
     }
 
-    private boolean isReadCachingOnlyCapabilityPresent() {
+    public boolean isReadCachingOnlyCapabilityPresent() {
         ReadCapabilityType readCapability = getEnabledCapability(ReadCapabilityType.class);
         return readCapability != null && Boolean.TRUE.equals(readCapability.isCachingOnly());
     }

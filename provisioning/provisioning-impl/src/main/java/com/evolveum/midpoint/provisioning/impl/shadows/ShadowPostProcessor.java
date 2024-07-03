@@ -12,11 +12,15 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.CompleteResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+import com.evolveum.midpoint.schema.util.ShadowReferenceAttributesCollection;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -71,6 +75,7 @@ class ShadowPostProcessor {
             ConfigurationException, ObjectNotFoundException, EncryptionException {
 
         classifyIfNeeded(result);
+        postProcessReferenceValues(result);
         updateShadowInRepository(result);
         createCombinedObject(result);
 
@@ -103,6 +108,106 @@ class ShadowPostProcessor {
             ProvisioningUtil.removeExtraLegacyReferenceAttributes(repoShadow, compositeDefinition);
             repoShadow.applyDefinition(compositeDefinition);
         }
+    }
+
+    private void postProcessReferenceValues(OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, EncryptionException {
+        for (var refAttrValue : ShadowReferenceAttributesCollection.ofShadow(resourceObject.getBean()).getAllReferenceValues()) {
+            processEmbeddedShadows(refAttrValue, result);
+        }
+        for (var refAttrValue : ShadowReferenceAttributesCollection.ofObjectDelta(resourceObjectDelta).getAllReferenceValues()) {
+            processEmbeddedShadows(refAttrValue, result);
+        }
+    }
+
+    /** Acquires/updates/combines shadow(s) embedded in the reference value. */
+    private void processEmbeddedShadows(@NotNull ShadowReferenceAttributeValue refAttrValue, @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, EncryptionException, ObjectNotFoundException {
+
+        var shadow = refAttrValue.getShadowIfPresent();
+        if (shadow == null) {
+            return;
+        }
+
+        var shadowCtx = ctx.spawnForShadow(shadow.getBean());
+        var updatedShadow = acquireAndPostProcessEmbeddedShadow(shadow, refAttrValue.isFullObject(), shadowCtx, result);
+        if (updatedShadow != null) {
+            refAttrValue.setObject(updatedShadow.getPrismObject());
+            refAttrValue.setOid(updatedShadow.getOid());
+        }
+    }
+
+    /**
+     * Returns either {@link RepoShadow} or combined {@link ExistingResourceObjectShadow}.
+     *
+     * FIXME the second case is wrong, should be something different (that denotes we have a shadow connected)
+     */
+    private @Nullable AbstractShadow acquireAndPostProcessEmbeddedShadow(
+            @NotNull AbstractShadow shadow,
+            boolean isFullObject,
+            @NotNull ProvisioningContext shadowCtx,
+            @NotNull OperationResult result)
+            throws ConfigurationException, CommunicationException, ExpressionEvaluationException, SecurityViolationException,
+            EncryptionException, ObjectNotFoundException, SchemaException {
+
+        // TODO should we fully cache the entitlement shadow (~ attribute/shadow caching)?
+        //  (If yes, maybe we should retrieve also the associations below?)
+
+        if (isFullObject) {
+            // The conversion from shadow to an ExistingResourceObjectShadow looks strange but actually has a point:
+            // the shadow really came from the resource.
+            var existingResourceObject = ExistingResourceObjectShadow.fromShadow(shadow);
+            return acquireAndPostProcessShadow(shadowCtx, existingResourceObject, result);
+        }
+
+        var attributesContainer = shadow.getAttributesContainer();
+        var identifiers = attributesContainer.getAllIdentifiers();
+
+        // for simulated references, here should be exactly one attribute; for native ones, it can vary
+        var existingLiveRepoShadow = b.shadowFinder.lookupLiveShadowByAllAttributes(shadowCtx, identifiers, result);
+        if (existingLiveRepoShadow != null) {
+            return existingLiveRepoShadow; // no post-processing (updating shadow, combining with the resource object)
+        }
+
+        // Nothing found in repo, let's do the search on the resource.
+        var identification = shadow.getIdentificationRequired();
+
+        CompleteResourceObject fetchedResourceObject;
+        try {
+            fetchedResourceObject =
+                    b.resourceObjectConverter.locateResourceObject(
+                            shadowCtx, identification, false, result);
+
+        } catch (ObjectNotFoundException e) {
+            // The entitlement to which we point is not there. Simply ignore this association value.
+            result.muteLastSubresultError();
+            LOGGER.warn("The entitlement identified by {} referenced from {} does not exist. Skipping.",
+                    identification, resourceObject);
+            return null;
+        } catch (SchemaException e) {
+            // The entitlement to which we point is bad. Simply ignore this association value.
+            result.muteLastSubresultError();
+            LOGGER.warn("The entitlement identified by {} referenced from {} violates the schema. Skipping. Original error: {}",
+                    identification, resourceObject, e.getMessage(), e);
+            return null;
+        }
+
+        // Try to look up repo shadow again, this time with full resource shadow. When we
+        // have searched before we might have only some identifiers. The shadow
+        // might still be there, but it may be renamed
+        return acquireAndPostProcessShadow(shadowCtx, fetchedResourceObject.resourceObject(), result);
+    }
+
+    private static @NotNull ExistingResourceObjectShadow acquireAndPostProcessShadow(
+            ProvisioningContext ctxEntitlement, ExistingResourceObjectShadow existingResourceObject, OperationResult result)
+            throws SchemaException, ConfigurationException, EncryptionException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ObjectNotFoundException {
+        var repoShadow = ShadowAcquisition.acquireRepoShadow(ctxEntitlement, existingResourceObject, result);
+        var shadowPostProcessor = new ShadowPostProcessor(
+                ctxEntitlement, repoShadow, existingResourceObject, null);
+        return shadowPostProcessor.execute(result);
     }
 
     /**

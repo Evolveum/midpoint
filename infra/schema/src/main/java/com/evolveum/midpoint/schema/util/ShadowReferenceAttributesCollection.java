@@ -8,14 +8,15 @@
 package com.evolveum.midpoint.schema.util;
 
 import static com.evolveum.midpoint.prism.ModificationType.*;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +51,7 @@ public abstract class ShadowReferenceAttributesCollection implements DebugDumpab
         return Empty.INSTANCE;
     }
 
-    public static ShadowReferenceAttributesCollection ofDelta(@NotNull ItemDelta<?, ?> itemDelta) throws SchemaException {
+    public static ShadowReferenceAttributesCollection ofDelta(@NotNull ItemDelta<?, ?> itemDelta) {
         if (ShadowType.F_ATTRIBUTES.equivalent(itemDelta.getParentPath())
                 && itemDelta instanceof ReferenceDelta referenceDelta) {
             return new ItemDeltaBased(referenceDelta);
@@ -58,6 +59,17 @@ public abstract class ShadowReferenceAttributesCollection implements DebugDumpab
             return AttributesContainerValueBased.fromDelta((ContainerDelta<?>) itemDelta);
         } else {
             return empty();
+        }
+    }
+
+    public static ShadowReferenceAttributesCollection ofObjectDelta(@Nullable ObjectDelta<ShadowType> objectDelta) {
+        if (objectDelta == null || objectDelta.isDelete()) {
+            return empty();
+        } else if (objectDelta.isAdd()) {
+            return ofShadow(objectDelta.getObjectableToAdd());
+        } else {
+            assert objectDelta.isModify();
+            return new ModifyDeltaBased(objectDelta);
         }
     }
 
@@ -218,17 +230,87 @@ public abstract class ShadowReferenceAttributesCollection implements DebugDumpab
         }
     }
 
+    private static class ModifyDeltaBased extends ShadowReferenceAttributesCollection {
+
+        @NotNull private final ObjectDelta<ShadowType> shadowModifyDelta;
+
+        private ModifyDeltaBased(@NotNull ObjectDelta<ShadowType> shadowModifyDelta) {
+            Preconditions.checkArgument(shadowModifyDelta.isModify());
+            this.shadowModifyDelta = shadowModifyDelta;
+        }
+
+        @Override
+        public Iterator<IterableReferenceAttributeValue> iterator() {
+            return new ItemDeltaListBasedIterator(shadowModifyDelta.getModifications().iterator());
+        }
+
+        @Override
+        public boolean hasReplace() {
+            return false;
+        }
+
+        @Override
+        DebugDumpable getDebugContent() {
+            return shadowModifyDelta;
+        }
+
+        @Override
+        public void cleanup() {
+            // Nothing to do (even if we remove all item deltas, the empty shadow modify delta is still valid)
+        }
+
+        private static class ItemDeltaListBasedIterator implements Iterator<IterableReferenceAttributeValue> {
+
+            @NotNull private final Iterator<? extends ItemDelta<?, ?>> itemDeltaIterator;
+            private Iterator<IterableReferenceAttributeValue> valueIterator;
+
+            ItemDeltaListBasedIterator(@NotNull Iterator<? extends ItemDelta<?, ?>> iterator) {
+                this.itemDeltaIterator = iterator;
+            }
+
+            @Override
+            public boolean hasNext() {
+                for (;;) {
+                    if (valueIterator != null && valueIterator.hasNext()) {
+                        return true;
+                    }
+                    if (!itemDeltaIterator.hasNext()) {
+                        return false;
+                    }
+                    valueIterator = ShadowReferenceAttributesCollection
+                            .ofDelta(itemDeltaIterator.next())
+                            .iterator();
+                }
+            }
+
+            @Override
+            public IterableReferenceAttributeValue next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
+                }
+                assert valueIterator != null && valueIterator.hasNext();
+                return valueIterator.next();
+            }
+
+            @Override
+            public void remove() {
+                assert valueIterator != null;
+                valueIterator.remove();
+            }
+        }
+    }
+
     private static class ItemDeltaBased extends ShadowReferenceAttributesCollection {
 
         @NotNull private final ReferenceDelta delta;
         @NotNull private final ItemName attributeName;
 
-        private class MyIterator implements Iterator<IterableReferenceAttributeValue> {
+        private class ItemDeltaBasedIterator implements Iterator<IterableReferenceAttributeValue> {
             @NotNull private final Iterator<ModificationType> setIterator;
             private ModificationType currentSet;
             private Iterator<PrismReferenceValue> valueIterator;
 
-            private MyIterator() {
+            private ItemDeltaBasedIterator() {
                 this.setIterator = List.of(ADD, DELETE, REPLACE).iterator();
             }
 
@@ -277,7 +359,7 @@ public abstract class ShadowReferenceAttributesCollection implements DebugDumpab
 
         @Override
         public Iterator<IterableReferenceAttributeValue> iterator() {
-            return new MyIterator();
+            return new ItemDeltaBasedIterator();
         }
 
         @Override
@@ -305,10 +387,10 @@ public abstract class ShadowReferenceAttributesCollection implements DebugDumpab
             this.attributes = attributes;
         }
 
-        private static AttributesContainerValueBased fromDelta(ContainerDelta<?> containerDelta) throws SchemaException {
-            schemaCheck(containerDelta.getValuesToReplace() == null,
+        private static AttributesContainerValueBased fromDelta(ContainerDelta<?> containerDelta) {
+            stateCheck(containerDelta.getValuesToReplace() == null,
                     "REPLACE attributes delta is not supported: %s", containerDelta);
-            schemaCheck(containerDelta.isDelete(),
+            stateCheck(containerDelta.isDelete(),
                     "DELETE attributes delta is not supported: %s", containerDelta);
             return fromValues(containerDelta.getValuesToAdd());
         }

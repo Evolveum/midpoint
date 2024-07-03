@@ -41,7 +41,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * This class also takes care of _object classification_. I am not sure if this is the right approach, though.
  */
-class ShadowAcquisition {
+public class ShadowAcquisition {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowAcquisition.class);
 
@@ -84,7 +84,7 @@ class ShadowAcquisition {
      * It may look like this method would rather belong to ShadowManager. But it does not. It does too much stuff
      * (e.g. change notification).
      */
-    @NotNull static RepoShadow acquireRepoShadow(
+    public static @NotNull RepoShadow acquireRepoShadow(
             @NotNull ProvisioningContext ctx,
             @NotNull ExistingResourceObjectShadow resourceObject,
             @NotNull OperationResult result)

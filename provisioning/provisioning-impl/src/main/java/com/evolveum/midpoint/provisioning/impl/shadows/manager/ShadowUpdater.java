@@ -144,6 +144,7 @@ public class ShadowUpdater {
             throws ObjectNotFoundException, SchemaException {
 
         if (modifications.isEmpty()) {
+            LOGGER.trace("No need to update repo shadow {} (empty delta)", repoShadow);
             return;
         }
 
@@ -489,12 +490,7 @@ public class ShadowUpdater {
                 ShadowDeltaComputerAbsolute.computeShadowModifications(
                         ctx, repoShadow, resourceObject, resourceObjectDelta, true);
 
-        if (!shadowModifications.isEmpty()) {
-            LOGGER.trace("Updating repo shadow {} with delta:\n{}", repoShadow, shadowModifications.debugDumpLazily(1));
-            executeRepoShadowModifications(ctx, repoShadow, shadowModifications, result);
-        } else {
-            LOGGER.trace("No need to update repo shadow {} (empty delta)", repoShadow);
-        }
+        executeRepoShadowModifications(ctx, repoShadow, shadowModifications, result);
         return repoShadow;
     }
 

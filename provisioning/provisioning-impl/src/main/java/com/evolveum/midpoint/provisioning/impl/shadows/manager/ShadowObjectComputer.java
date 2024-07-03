@@ -15,9 +15,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -30,6 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.toPolyStringType;
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.shouldStoreReferenceAttributeInShadow;
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.shouldStoreSimpleAttributeInShadow;
 
 /**
  * Computes a shadow to be stored in the repository.
@@ -44,52 +44,71 @@ class ShadowObjectComputer {
     @Autowired private Protector protector;
 
     /**
-     * Create a copy of a resource object (or another shadow) that is suitable for repository storage.
-     *
-     * @see ShadowDeltaComputerAbsolute
+     * Creates a copy of a resource object (or other) shadow that is suitable for repository storage.
      */
-    @NotNull RawRepoShadow createShadowForRepoStorage(ProvisioningContext ctx, AbstractShadow resourceObjectOrShadow)
+    @NotNull RawRepoShadow createShadowForRepoStorage(
+            ProvisioningContext ctx, AbstractShadow resourceObjectOrOtherShadow)
             throws SchemaException, EncryptionException {
 
-        resourceObjectOrShadow.checkConsistence();
-
-        ResourceObjectDefinition objectDef = resourceObjectOrShadow.getObjectDefinition();
-        ShadowAttributesContainer originalAttributesContainer = resourceObjectOrShadow.getAttributesContainer();
+        resourceObjectOrOtherShadow.checkConsistence();
 
         // An alternative would be to start with a clean shadow and fill-in the data from resource object.
         // But we could easily miss something. So let's clone the shadow instead.
-        ShadowType repoShadowBean = resourceObjectOrShadow.getBean().clone();
+        var repoShadowBean = resourceObjectOrOtherShadow.getBean().clone();
+        var repoShadowObject = repoShadowBean.asPrismObject();
+
+        // Associations are not stored in the repository at all.
+        repoShadowObject.removeContainer(ShadowType.F_ASSOCIATIONS);
 
         // Attributes will be created anew, not as RAC but as PrismContainer. This is because normalization-aware
         // attributes are no longer ResourceAttribute instances. We delete them also because the application of the
-        // raw PCD definition (below) would fail on a RAC. The same reasons for associations.
-        repoShadowBean.asPrismObject().removeContainer(ShadowType.F_ATTRIBUTES);
-        repoShadowBean.asPrismObject().removeContainer(ShadowType.F_ASSOCIATIONS);
+        // raw PCD definition (below) would fail on a RAC.
+        repoShadowObject.removeContainer(ShadowType.F_ATTRIBUTES);
 
         // For similar reason, we remove any traces of RACD from the definition.
         PrismObjectDefinition<ShadowType> standardDefinition =
                 PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-        repoShadowBean.asPrismObject().applyDefinition(standardDefinition);
+        repoShadowObject.applyDefinition(standardDefinition);
 
         // For resource objects, this information is obviously limited, as there are no pending operations known.
         // But the exists and dead flags can tell us something.
         var shadowLifecycleState = ctx.determineShadowState(repoShadowBean);
 
         Object primaryIdentifierValue =
-                ShadowManagerMiscUtil.determinePrimaryIdentifierValue(resourceObjectOrShadow, shadowLifecycleState);
+                ShadowManagerMiscUtil.determinePrimaryIdentifierValue(resourceObjectOrOtherShadow, shadowLifecycleState);
         repoShadowBean.setPrimaryIdentifierValue(primaryIdentifierValue != null ? primaryIdentifierValue.toString() : null);
 
-        var repoAttributesContainer = repoShadowBean.asPrismObject().findOrCreateContainer(ShadowType.F_ATTRIBUTES);
-        for (ShadowSimpleAttribute<?> attribute : originalAttributesContainer.getSimpleAttributes()) {
-            // TODO or should we use attribute.getDefinition()?
-            var attrDef = objectDef.findSimpleAttributeDefinitionRequired(attribute.getElementName());
-            if (ctx.shouldStoreAttributeInShadow(objectDef, attrDef)) {
-                var repoAttrDef = attrDef.toNormalizationAware();
-                var repoAttr = repoAttrDef.adoptRealValuesAndInstantiate(attribute.getRealValues());
-                repoAttributesContainer.add(repoAttr);
+        var objectDef = resourceObjectOrOtherShadow.getObjectDefinition();
+        for (var attribute : resourceObjectOrOtherShadow.getAttributes()) {
+            if (attribute instanceof ShadowSimpleAttribute<?> simpleAttribute) {
+                var attrDef = simpleAttribute.getDefinitionRequired();
+                if (shouldStoreSimpleAttributeInShadow(ctx, objectDef, attrDef)) {
+                    var repoAttrDef = attrDef.toNormalizationAware();
+                    var repoAttr = repoAttrDef.adoptRealValuesAndInstantiate(simpleAttribute.getRealValues());
+                    repoShadowObject
+                            .findOrCreateContainer(ShadowType.F_ATTRIBUTES)
+                            .add(repoAttr);
+                }
+            } else if (attribute instanceof ShadowReferenceAttribute referenceAttribute) {
+                var attrDef = referenceAttribute.getDefinitionRequired();
+                if (shouldStoreReferenceAttributeInShadow(ctx, objectDef, attrDef)) {
+                    var repoAttrDef = PrismContext.get().definitionFactory().newReferenceDefinition(
+                            attrDef.getItemName(), ObjectReferenceType.COMPLEX_TYPE);
+                    var repoAttr = repoAttrDef.instantiate();
+                    for (var refAttrValue : referenceAttribute.getReferenceValues()) {
+                        ObjectReferenceType inRepoFormat = ShadowComputerUtil.toRepoFormat(ctx, refAttrValue);
+                        if (inRepoFormat != null) {
+                            repoAttr.addIgnoringEquivalents(inRepoFormat.asReferenceValue());
+                        }
+                    }
+                    repoShadowObject
+                            .findOrCreateContainer(ShadowType.F_REFERENCE_ATTRIBUTES)
+                            .add(repoAttr);
+                }
+            } else {
+                throw new AssertionError(attribute);
             }
         }
-
         if (ctx.isCachingEnabled()) {
             CachingMetadataType cachingMetadata = new CachingMetadataType();
             cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
@@ -113,8 +132,8 @@ class ShadowObjectComputer {
 
         if (repoShadowBean.getName() == null) {
             PolyString name = MiscUtil.requireNonNull(
-                    resourceObjectOrShadow.determineShadowName(),
-                    () -> "Cannot determine the shadow name for " + resourceObjectOrShadow);
+                    resourceObjectOrOtherShadow.determineShadowName(),
+                    () -> "Cannot determine the shadow name for " + resourceObjectOrOtherShadow);
             repoShadowBean.setName(toPolyStringType(name));
         }
 

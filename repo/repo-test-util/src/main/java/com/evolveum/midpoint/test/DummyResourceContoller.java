@@ -67,18 +67,18 @@ public class DummyResourceContoller extends AbstractResourceController {
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME = "water";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME = "enlistTimestamp";
 
-    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME = new ItemName(NS_RI, DummyAccount.ATTR_FULLNAME_NAME);
-    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_TITLE_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
-    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_DESCRIPTION_QNAME = new ItemName(NS_RI, DummyAccount.ATTR_DESCRIPTION_NAME);
-    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
-    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
-    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_WATER_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME);
-    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME);
-    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME);
-    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
-    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
-    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_LOOT_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
-    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_QNAME = new ItemName(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME = ItemName.from(NS_RI, DummyAccount.ATTR_FULLNAME_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_TITLE_QNAME = ItemName.from(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_DESCRIPTION_QNAME = ItemName.from(NS_RI, DummyAccount.ATTR_DESCRIPTION_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME = ItemName.from(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME = ItemName.from(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_WATER_QNAME = ItemName.from(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_QNAME = ItemName.from(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_QNAME = ItemName.from(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME = ItemName.from(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME = ItemName.from(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_LOOT_QNAME = ItemName.from(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
+    public static final ItemName DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_QNAME = ItemName.from(NS_RI, DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME);
 
     public static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME);
     public static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_QNAME);
@@ -114,8 +114,8 @@ public class DummyResourceContoller extends AbstractResourceController {
     public static final String DUMMY_GROUP_ATTRIBUTE_DESCRIPTION = "description";
     public static final String DUMMY_GROUP_ATTRIBUTE_CC = "cc";
 
-    public static final ItemName DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_QNAME = new ItemName(NS_RI, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION);
-    public static final ItemName DUMMY_GROUP_ATTRIBUTE_CC_QNAME = new ItemName(NS_RI, DUMMY_GROUP_ATTRIBUTE_CC);
+    public static final ItemName DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_QNAME = ItemName.from(NS_RI, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION);
+    public static final ItemName DUMMY_GROUP_ATTRIBUTE_CC_QNAME = ItemName.from(NS_RI, DUMMY_GROUP_ATTRIBUTE_CC);
     public static final ItemPath DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION_QNAME);
     public static final ItemPath DUMMY_GROUP_ATTRIBUTE_CC_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, DUMMY_GROUP_ATTRIBUTE_CC_QNAME);
 
@@ -124,7 +124,7 @@ public class DummyResourceContoller extends AbstractResourceController {
     public static final String DUMMY_PRIVILEGE_ATTRIBUTE_POWER = "power";
 
     public static final String DUMMY_ENTITLEMENT_GROUP_NAME = "group";
-    public static final QName DUMMY_ENTITLEMENT_GROUP_QNAME = new ItemName(MidPointConstants.NS_RI, DUMMY_ENTITLEMENT_GROUP_NAME);
+    public static final QName DUMMY_ENTITLEMENT_GROUP_QNAME = ItemName.from(MidPointConstants.NS_RI, DUMMY_ENTITLEMENT_GROUP_NAME);
     public static final String DUMMY_ENTITLEMENT_PRIVILEGE_NAME = "privileges";
 
     public static final String CONNECTOR_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector";
