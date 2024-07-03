@@ -1066,6 +1066,22 @@ CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation);
 CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);
 */
 
+-- Represents shadowType/referenceAttributes/[name] ObjectReferenceTypes
+CREATE TABLE m_shadow_ref_attribute (
+        ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+        ownerType ObjectType NOT NULL,
+
+        pathId INTEGER NOT NULL,
+        resourceOid UUID NOT NULL,
+        ownerObjectClassId INTEGER NOT NULL REFERENCES m_uri(id),
+        targetOid UUID NOT NULL, -- soft-references m_object
+        targetType ObjectType NOT NULL,
+        relationId INTEGER NOT NULL REFERENCES m_uri(id)
+    );
+
+CREATE INDEX m_shadow_ref_attribute_ownerOid_idx ON m_assignment_metadata (ownerOid);
+
+
 -- Represents NodeType, see https://docs.evolveum.com/midpoint/reference/deployment/clustering-ha/managing-cluster-nodes/
 CREATE TABLE m_node (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -2321,4 +2337,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(36, $$ SELECT 1 $$, true);
+call apply_change(37, $$ SELECT 1 $$, true);

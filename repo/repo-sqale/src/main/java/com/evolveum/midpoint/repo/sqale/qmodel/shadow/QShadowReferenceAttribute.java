@@ -3,6 +3,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReference;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
 
@@ -17,7 +18,7 @@ public class QShadowReferenceAttribute extends QReference<MShadowReferenceAttrib
 
     public static final ColumnMetadata OWNER_OBJECT_CLASS_ID =
             ColumnMetadata.named("ownerObjectClassId").ofType(Types.INTEGER);
-    public static final ColumnMetadata RESOURCE__OID =
+    public static final ColumnMetadata RESOURCE_OID =
             ColumnMetadata.named("resourceOid").ofType(UuidPath.UUID_TYPE);
 
 
@@ -31,6 +32,10 @@ public class QShadowReferenceAttribute extends QReference<MShadowReferenceAttrib
     public final NumberPath<Integer> ownerObjectClassId =
             createInteger("ownerObjectClassId", OWNER_OBJECT_CLASS_ID);
     public final UuidPath resourceOid =
-            createUuid("resourceOid", RESOURCE__OID);
+            createUuid("resourceOid", RESOURCE_OID);
 
+    @Override
+    public BooleanExpression isOwnedBy(MShadow ownerRow) {
+        return ownerOid.eq(ownerRow.oid);
+    }
 }

@@ -557,8 +557,8 @@ CREATE TABLE m_assignment_metadata (
     PRIMARY KEY (ownerOid, assignmentCid, cid)
 ) INHERITS(m_container);
 
-CREATE INDEX m_assignment_metadata_createTimestamp_idx ON m_assignment (createTimestamp);
-CREATE INDEX m_assignment_metadata_modifyTimestamp_idx ON m_assignment (modifyTimestamp);
+CREATE INDEX m_assignment_metadata_createTimestamp_idx ON m_assignment_metadata (createTimestamp);
+CREATE INDEX m_assignment_metadata_modifyTimestamp_idx ON m_assignment_metadata (modifyTimestamp);
 
 ALTER TABLE m_assignment_ref_create_approver ADD COLUMN metadataCid INTEGER;
 
@@ -607,6 +607,22 @@ CREATE TRIGGER m_role_analysis_outlier_update_tr BEFORE UPDATE ON m_role_analysi
 CREATE TRIGGER m_role_analysis_outlier_oid_delete_tr AFTER DELETE ON m_role_analysis_outlier
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 $aa$);
+
+call apply_change(37, $aa$
+    CREATE TABLE m_shadow_ref_attribute (
+        ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+        ownerType ObjectType NOT NULL,
+
+        pathId INTEGER NOT NULL,
+        resourceOid UUID NOT NULL,
+        ownerObjectClassId INTEGER NOT NULL REFERENCES m_uri(id),
+        targetOid UUID NOT NULL, -- soft-references m_object
+        targetType ObjectType NOT NULL,
+        relationId INTEGER NOT NULL REFERENCES m_uri(id)
+    );
+
+    CREATE INDEX m_shadow_ref_attribute_ownerOid_idx ON m_assignment_metadata (ownerOid);
+);
 
 ---
 -- WRITE CHANGES ABOVE ^^
