@@ -67,8 +67,8 @@ More details can be found in the xrefv:/midpoint/reference/support-4.8/misc/noti
 * Fixed error in Groovy scripts when `role.requestable` caused compilation error. See bug:MID-9658[].
 * Fixed incorrect conversion of XML PolyString filters in Query Playground to Query Language. See bug:MID-9413[].
 * Fixed search on Resource Object page - query language now supports attributes, basic search box is updated after switching Object Class. See bug:MID-9593[], bug:MID-9548[].
-** See xref:/midpoint/reference/support-4.8/concepts/query/midpoint-query-language/search-using-shadow-attributes/[Search Using Shadow Attributes] for details.
-* Fixed incorrect execution of Ref Filter with Target eg. `assignment/targetRef matches (relation = manager and @ ( ... ))` in generic repository. See bug:MID-9592[].
+** See xrefv:/midpoint/reference/support-4.8/concepts/query/midpoint-query-language/search-using-shadow-attributes/[Search Using Shadow Attributes] for details.
+* Fixed incorrect execution of Ref Filter with Target e.g. `assignment/targetRef matches (relation = manager and @ ( ... ))` in generic repository. See bug:MID-9592[].
 * Fixed Reindex tasks breaking  Simulation Results. See bug:MID-9435[].
 
 * Changes in initial objects:
@@ -114,7 +114,7 @@ See xrefv:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-statu
 - *subscribers who are in the renewal period*: none during the grace period of 90 days
 - *non-subscribers*: disabled cluster communication; if a non-H2 generic repository is used, the GUI would be disabled and the only option would be to set a subscription ID
 
-Please contact our xref:https://evolveum.com/partners/find-a-partner/[official partners] or mailto:sales@evolveum.com to inquire about your subscription options.
+Please contact our https://evolveum.com/partners/find-a-partner/[official partners] or mailto:sales@evolveum.com to inquire about your subscription options.
 
 * xrefv:/midpoint/reference/support-4.8/roles-policies/mining/[Role Mining] Analysis Optimization:
 - Improved efficiency and stability in Role Mining analysis.
@@ -439,7 +439,7 @@ We are positive that midPoint can be successfully installed on other operating s
 Such installations can be used to for evaluation, demonstration or development purposes.
 However, we do not support these operating systems for production environments.
 The tooling for production use is not maintained, such as various run control (start/stop) scripts, low-level administration and migration tools, backup and recovery support and so on.
-Please see xref:/midpoint/install/platform-support/[] for details.
+Please see xref:/midpoint/install/bare-installation/platform-support/[] for details.
 
 Note that production deployments in Windows environments are supported only for LTS releases.
 
@@ -666,7 +666,7 @@ The following list contains a description of changes to the initial objects in t
 The complete new set of initial objects is in the `config/initial-objects` directory in both the source and binary distributions.
 
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
-For more information see xrefv:/midpoint/reference/support-4.8/deployment/ninja/upgrade-with-ninja/#initial-objects[here].
+For more information see xrefv:/midpoint/reference/support-4.8/deployment/ninja/use-case/upgrade-with-ninja/#initial-objects[here].
 
 * References to removed `category`, `handlerUri`, and `reportOutputOid` properties of tasks were deleted: from task archetypes and from GUI configurations.
 See https://github.com/Evolveum/midpoint/commit/1fe4b60057d040f7424523cf24194bfcb7920f90[1fe4b6], https://github.com/Evolveum/midpoint/commit/b5a331b377a4fff0dbabd82e64da60f0b8c96c2b[b5a331], and https://github.com/Evolveum/midpoint/commit/6887e980c48e45a5ae22642932ed22e0c8b5f665[6887e9].
