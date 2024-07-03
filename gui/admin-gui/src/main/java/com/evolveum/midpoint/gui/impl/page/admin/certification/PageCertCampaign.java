@@ -8,45 +8,17 @@
 package com.evolveum.midpoint.gui.impl.page.admin.certification;
 
 import java.io.Serial;
-import java.util.*;
-import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
-import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.certification.PageAdminCertification;
 
-import com.evolveum.midpoint.web.page.admin.certification.component.CertCampaignSummaryPanel;
-import com.evolveum.midpoint.web.page.admin.certification.component.CertificationItemsTabbedPanel;
-import com.evolveum.midpoint.web.page.admin.certification.component.StatisticBoxDto;
-import com.evolveum.midpoint.web.page.admin.certification.component.StatisticListBoxPanel;
-import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignProcessingHelper;
-import com.evolveum.midpoint.web.page.admin.certification.helpers.CampaignStateHelper;
-import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CertCampaignSummaryPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
 
-import com.evolveum.midpoint.web.page.admin.reports.ReportDownloadHelper;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -61,16 +33,11 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.*;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 @PageDescriptor(
         urls = {
@@ -121,7 +88,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
 
             @Override
             protected IModel<String> getDeleteButtonLabelModel(PrismObjectWrapper<AccessCertificationCampaignType> modelObject) {
-                return Model.of("PageCertCampaign.button.deleteCampaign");
+                return createStringResource("PageCertCampaign.button.deleteCampaign");
             }
 
             @Override

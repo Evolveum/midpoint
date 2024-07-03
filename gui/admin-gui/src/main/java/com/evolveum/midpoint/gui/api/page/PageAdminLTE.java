@@ -26,7 +26,7 @@ import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
 import com.evolveum.midpoint.security.api.SecurityContextManager.ResultAwareCheckedProducer;
-import com.evolveum.midpoint.web.component.action.AbstractGuiAction;
+import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -35,7 +35,6 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;

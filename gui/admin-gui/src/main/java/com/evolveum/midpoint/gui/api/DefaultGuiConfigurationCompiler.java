@@ -13,7 +13,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.web.application.ActionType;
 
-import com.evolveum.midpoint.web.component.action.AbstractGuiAction;
+import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;

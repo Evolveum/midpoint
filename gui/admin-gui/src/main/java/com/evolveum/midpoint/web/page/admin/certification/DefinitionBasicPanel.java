@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.certification;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;

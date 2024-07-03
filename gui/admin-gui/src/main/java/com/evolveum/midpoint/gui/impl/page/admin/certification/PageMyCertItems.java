@@ -1,25 +1,19 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (c) 2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.page.admin.certification;
+package com.evolveum.midpoint.gui.impl.page.admin.certification;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.PageAdminCertification;
 
-/**
- * Displays all certification decisions.
- *
- * Note: The ultimate authorization check is done in certification-impl module.
- */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/certification/decisionsOld", matchUrlForSecurity = "/admin/certification/decisions")
+                @Url(mountUrl = "/admin/certification/decisions", matchUrlForSecurity = "/admin/certification/decisions")
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
@@ -28,7 +22,11 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.PageAdminCertific
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS,
                         label = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_LABEL,
                         description = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_DESCRIPTION) })
-public class PageMyCertDecisions extends PageCertDecisions {
+public class PageMyCertItems extends PageCertItems {
+
+    public PageMyCertItems() {
+        super();
+    }
 
     @Override
     boolean isDisplayingAllItems() {

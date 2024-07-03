@@ -20,8 +20,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
-import com.evolveum.midpoint.web.component.action.AbstractGuiAction;
-import com.evolveum.midpoint.web.component.action.GuiActionDto;
+import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
+import com.evolveum.midpoint.gui.impl.component.action.GuiActionDto;
 import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 

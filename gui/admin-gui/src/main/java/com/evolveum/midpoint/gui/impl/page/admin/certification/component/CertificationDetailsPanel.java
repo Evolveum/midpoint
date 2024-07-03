@@ -45,10 +45,7 @@ import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.certification.component.CertificationItemsTabbedPanel;
-import com.evolveum.midpoint.web.page.admin.certification.component.StatisticBoxDto;
-import com.evolveum.midpoint.web.page.admin.certification.component.StatisticListBoxPanel;
-import com.evolveum.midpoint.web.page.admin.certification.helpers.CertificationItemResponseHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationItemResponseHelper;
 import com.evolveum.midpoint.web.page.admin.reports.ReportDownloadHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 

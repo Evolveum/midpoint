@@ -9,8 +9,8 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.web.component.action.AbstractGuiAction;
-import com.evolveum.midpoint.web.component.action.ActionsPanel;
+import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
+import com.evolveum.midpoint.gui.impl.component.action.ActionsPanel;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
