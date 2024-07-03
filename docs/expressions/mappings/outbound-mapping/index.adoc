@@ -58,7 +58,7 @@ Following table summarizes the variables available to outbound expressions.
 | `focus` +
 _root node_
 | Subclasses of FocusType
-| Represents xref:https://docs.evolveum.com/midpoint/reference/schema/focus-and-projections/[focal object] which is typically a user.
+| Represents xref:/midpoint/reference/schema/focus-and-projections/[focal object] which is typically a user.
 This is the most common source of data for outbound expressions.
 
 

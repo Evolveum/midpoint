@@ -30,7 +30,7 @@ Even if a role definition is wrong, including access that it should not include,
 
 == Implementation
 
-MidPoint contains two pre-configured xref:../schema/archetypes/[archetypes]:
+MidPoint contains two pre-configured xref:/midpoint/reference/schema/archetypes/[archetypes]:
 
 * `Classification` archetype is used to set up classification schemes.
 It is used to define set of _classifications_ (_information labels_) that can be assigned to applications.
