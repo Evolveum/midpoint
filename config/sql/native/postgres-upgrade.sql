@@ -614,14 +614,14 @@ call apply_change(37, $aa$
         ownerType ObjectType NOT NULL,
 
         pathId INTEGER NOT NULL,
-        resourceOid UUID NOT NULL,
-        ownerObjectClassId INTEGER NOT NULL REFERENCES m_uri(id),
+        resourceOid UUID,
+        ownerObjectClassId INTEGER,
         targetOid UUID NOT NULL, -- soft-references m_object
         targetType ObjectType NOT NULL,
         relationId INTEGER NOT NULL REFERENCES m_uri(id)
     );
 
-    CREATE INDEX m_shadow_ref_attribute_ownerOid_idx ON m_assignment_metadata (ownerOid);
+    CREATE INDEX m_shadow_ref_attribute_ownerOid_idx ON m_shadow_ref_attribute (ownerOid);
 );
 
 ---

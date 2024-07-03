@@ -3411,10 +3411,17 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         ShadowType account = accountDef.newShadow("account");
         var accountOid = repositoryService.addObject(account.asPrismObject(), null, result);
 
-        ShadowType owner = accountDef.newShadow("owner");
-        var ownerOid = repositoryService.addObject(owner.asPrismObject(), null, result);
+
         ShadowType groupAll =groupDef.newShadow("all");
         var groupAllOid = repositoryService.addObject(groupAll.asPrismObject(), null, result);
+
+        ShadowType owner = accountDef.newShadow("owner");
+        owner.asPrismObject().findOrCreateItem(ItemPath.create(ShadowType.F_REFERENCE_ATTRIBUTES, groupRef), PrismReference.class)
+                .add(new ObjectReferenceType().oid(groupAllOid).asReferenceValue());
+
+
+        var ownerOid = repositoryService.addObject(owner.asPrismObject(), null, result);
+
         ShadowType groupLimited = groupDef.newShadow("limited");
         var groupLimitedOid = repositoryService.addObject(groupLimited.asPrismObject(), null, result);
 
@@ -3424,7 +3431,6 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                                 .add(new ObjectReferenceType().oid(groupAllOid))
                                         .asItemDeltas();
         repositoryService.modifyObject(ShadowType.class, accountOid, addAllDeltas, result);
-        repositoryService.modifyObject(ShadowType.class, ownerOid, addAllDeltas, result);
 
 
 
