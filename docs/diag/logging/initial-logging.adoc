@@ -151,4 +151,4 @@ Sensitive values in logs are protected in all supported 4.x versions, but the ov
 
 * xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory]
 * xref:/midpoint/reference/diag/logging/[Logging]
-* xref:/midpoint/reference/deployment/syslog-logging/[Syslog Logging]
+* xref:/midpoint/reference/diag/logging/syslog-logging.adoc[Syslog Logging]
