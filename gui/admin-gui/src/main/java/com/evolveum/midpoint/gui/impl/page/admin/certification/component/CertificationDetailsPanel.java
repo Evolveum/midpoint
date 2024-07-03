@@ -246,8 +246,7 @@ public class CertificationDetailsPanel extends AbstractObjectMainPanel<AccessCer
     }
 
     private void addOrReplaceCertItemsTabbedPanel() {
-        //TODO change to wrapper model?
-        CertificationItemsTabbedPanel items = new CertificationItemsTabbedPanel(ID_ITEMS_TABBED_PANEL, getObjectDetailsModels().getSummaryModel());
+        CertificationItemsTabbedPanel items = new CertificationItemsTabbedPanel(ID_ITEMS_TABBED_PANEL, getObjectWrapperModel());
         items.setOutputMarkupId(true);
         addOrReplace(items);
     }

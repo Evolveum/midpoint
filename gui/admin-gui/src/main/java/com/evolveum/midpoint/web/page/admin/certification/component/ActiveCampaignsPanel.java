@@ -71,7 +71,7 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
 
             @Override
             protected IModel<String> getDetailsButtonLabelModel() {
-                return createStringResource("CampaignTilePanel.showItems");
+                return createStringResource("CampaignTilePanel.showItemsLabel");
             }
 
             @Override
