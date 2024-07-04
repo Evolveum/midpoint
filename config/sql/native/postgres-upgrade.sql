@@ -557,8 +557,8 @@ CREATE TABLE m_assignment_metadata (
     PRIMARY KEY (ownerOid, assignmentCid, cid)
 ) INHERITS(m_container);
 
-CREATE INDEX m_assignment_metadata_createTimestamp_idx ON m_assignment (createTimestamp);
-CREATE INDEX m_assignment_metadata_modifyTimestamp_idx ON m_assignment (modifyTimestamp);
+CREATE INDEX m_assignment_metadata_createTimestamp_idx ON m_assignment_metadata (createTimestamp);
+CREATE INDEX m_assignment_metadata_modifyTimestamp_idx ON m_assignment_metadata (modifyTimestamp);
 
 ALTER TABLE m_assignment_ref_create_approver ADD COLUMN metadataCid INTEGER;
 
@@ -586,6 +586,42 @@ DROP CONSTRAINT "m_assignment_metadata_pkey";
 ALTER TABLE "m_assignment_metadata"
 ADD FOREIGN KEY ("owneroid", "assignmentcid") REFERENCES "m_assignment" ("owneroid", "cid") ON DELETE CASCADE;
 
+$aa$);
+
+call apply_change(35, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_OUTLIER' AFTER 'ROLE_ANALYSIS_SESSION';
+$aa$);
+
+call apply_change(36, $aa$
+CREATE TABLE m_role_analysis_outlier (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_OUTLIER') STORED
+        CHECK (objectType = 'ROLE_ANALYSIS_OUTLIER')
+)
+    INHERITS (m_assignment_holder);
+
+CREATE TRIGGER m_role_analysis_outlier_oid_insert_tr BEFORE INSERT ON m_role_analysis_outlier
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_role_analysis_outlier_update_tr BEFORE UPDATE ON m_role_analysis_outlier
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_role_analysis_outlier_oid_delete_tr AFTER DELETE ON m_role_analysis_outlier
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+$aa$);
+
+call apply_change(37, $aa$
+    CREATE TABLE m_shadow_ref_attribute (
+        ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+        ownerType ObjectType NOT NULL,
+
+        pathId INTEGER NOT NULL,
+        resourceOid UUID,
+        ownerObjectClassId INTEGER,
+        targetOid UUID NOT NULL, -- soft-references m_object
+        targetType ObjectType NOT NULL,
+        relationId INTEGER NOT NULL REFERENCES m_uri(id)
+    );
+
+    CREATE INDEX m_shadow_ref_attribute_ownerOid_idx ON m_shadow_ref_attribute (ownerOid);
 $aa$);
 
 ---

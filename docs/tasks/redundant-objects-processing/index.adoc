@@ -37,28 +37,15 @@ It is intended to process all users that have an assignment of either `Superuser
                 <s:type>c:UserType</s:type>
                 <s:query>
                     <q:filter>
-                        <q:or>
-                            <q:ref>
-                                <q:path>assignment/targetRef</q:path>
-                                <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-00000000000a" type="c:RoleType" />    <!-- Approver -->
-                            </q:ref>
-                            <q:ref>
-                                <q:path>assignment/targetRef</q:path>
-                                <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-00000000000c" type="c:RoleType" />    <!-- Delegator -->
-                            </q:ref>
-                            <q:ref>
-                                <q:path>assignment/targetRef</q:path>
-                                <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-000000000008" type="c:RoleType" />    <!-- End user -->
-                            </q:ref>
-                            <q:ref>
-                                <q:path>assignment/targetRef</q:path>
-                                <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-00000000000b" type="c:RoleType" />    <!-- Reviewer -->
-                            </q:ref>
-                            <q:ref>
-                                <q:path>assignment/targetRef</q:path>
-                                <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-000000000004" type="c:RoleType" />    <!-- Superuser -->
-                            </q:ref>
-                        </q:or>
+                        <!-- Approver, Delegator, End user, Reviewer or Superuser role -->
+                        <q:text>
+                            assignment matches (
+                                targetRef matches (oid = '00000000-0000-0000-0000-00000000000a' and type = c:RoleType) or
+                                targetRef matches (oid = '00000000-0000-0000-0000-00000000000c' and type = c:RoleType) or
+                                targetRef matches (oid = '00000000-0000-0000-0000-000000000008' and type = c:RoleType) or
+                                targetRef matches (oid = '00000000-0000-0000-0000-00000000000b' and type = c:RoleType) or
+                                targetRef matches (oid = '00000000-0000-0000-0000-000000000004' and type = c:RoleType))
+                        </q:text>
                     </q:filter>
                 </s:query>
                 <s:action>
@@ -199,39 +186,20 @@ Therefore, if such a query is used in bulk action task or recomputation task or 
 == Limiting the redundancy, step 1: Exists filter
 
 The above has been known for some time.
-In order to limit the redundancies, midPoint 3.4 introduced a special filter: `exists`. When used it looks like this:
+In order to limit the redundancies, provides filter: `exists`. When used it looks like this:
 
 [source,xml]
 ----
 <q:query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <q:filter>
-        <q:exists>
-            <q:path>assignment</q:path>
-            <q:filter>
-                <q:or>
-                    <q:ref>
-                        <q:path>targetRef</q:path>
-                        <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-00000000000a" type="c:RoleType" />    <!-- Approver -->
-                    </q:ref>
-                    <q:ref>
-                        <q:path>targetRef</q:path>
-                        <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-00000000000c" type="c:RoleType" />    <!-- Delegator -->
-                    </q:ref>
-                    <q:ref>
-                        <q:path>targetRef</q:path>
-                        <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-000000000008" type="c:RoleType" />    <!-- End user -->
-                    </q:ref>
-                    <q:ref>
-                        <q:path>targetRef</q:path>
-                        <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-00000000000b" type="c:RoleType" />    <!-- Reviewer -->
-                    </q:ref>
-                    <q:ref>
-                        <q:path>targetRef</q:path>
-                        <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-000000000004" type="c:RoleType" />    <!-- Superuser -->
-                    </q:ref>
-                </q:or>
-            </q:filter>
-        </q:exists>
+        <q:text>
+            assignment matches (
+                targetRef matches (oid = '00000000-0000-0000-0000-00000000000a' and type = c:RoleType) or
+                targetRef matches (oid = '00000000-0000-0000-0000-00000000000c' and type = c:RoleType) or
+                targetRef matches (oid = '00000000-0000-0000-0000-000000000008' and type = c:RoleType) or
+                targetRef matches (oid = '00000000-0000-0000-0000-00000000000b' and type = c:RoleType) or
+                targetRef matches (oid = '00000000-0000-0000-0000-000000000004' and type = c:RoleType))
+        </q:text>
     </q:filter>
 </q:query>
 ----
@@ -332,33 +300,15 @@ Here we show the use within bulk actions and recomputation tasks.
                 <s:type>c:UserType</s:type>
                 <s:query>
                     <q:filter>
-                        <q:exists>
-                            <q:path>assignment</q:path>
-                            <q:filter>
-                                <q:or>
-                                    <q:ref>
-                                        <q:path>targetRef</q:path>
-                                        <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-00000000000a" type="c:RoleType" />    <!-- Approver -->
-                                    </q:ref>
-                                    <q:ref>
-                                        <q:path>targetRef</q:path>
-                                        <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-00000000000c" type="c:RoleType" />    <!-- Delegator -->
-                                    </q:ref>
-                                    <q:ref>
-                                        <q:path>targetRef</q:path>
-                                        <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-000000000008" type="c:RoleType" />    <!-- End user -->
-                                    </q:ref>
-                                    <q:ref>
-                                        <q:path>targetRef</q:path>
-                                        <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-00000000000b" type="c:RoleType" />    <!-- Reviewer -->
-                                    </q:ref>
-                                    <q:ref>
-                                        <q:path>targetRef</q:path>
-                                        <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-000000000004" type="c:RoleType" />    <!-- Superuser -->
-                                    </q:ref>
-                                </q:or>
-                            </q:filter>
-                        </q:exists>
+                        <!-- Approver, Delegator, End user, Reviewer or Superuser role -->
+                        <q:text>
+                            assignment matches (
+                                targetRef matches (oid = '00000000-0000-0000-0000-00000000000a' and type = c:RoleType) or
+                                targetRef matches (oid = '00000000-0000-0000-0000-00000000000c' and type = c:RoleType) or
+                                targetRef matches (oid = '00000000-0000-0000-0000-000000000008' and type = c:RoleType) or
+                                targetRef matches (oid = '00000000-0000-0000-0000-00000000000b' and type = c:RoleType) or
+                                targetRef matches (oid = '00000000-0000-0000-0000-000000000004' and type = c:RoleType))
+                        </q:text>
                     </q:filter>
                 </s:query>
                 <s:options>
@@ -389,7 +339,7 @@ Here we show the use within bulk actions and recomputation tasks.
 </task>
 ----
 
-Note the code on lines 46-52, i.e.
+Note the code:
 
 [source,xml]
 ----
@@ -405,19 +355,12 @@ Note the code on lines 46-52, i.e.
 
 === Distinct option in recomputation task
 
-++++
-{% include since.html since="3.8" %}
-++++
-
-
 When doing recomputation (or basically any iterative task), `mext:searchOptions` extension item has to be used:
 
 .User recomputation with 'distinct' search option
 [source,xml]
 ----
-<?xml version="1.0" encoding="UTF-8"?>
-<task
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -427,33 +370,15 @@ When doing recomputation (or basically any iterative task), `mext:searchOptions`
     <extension>
         <mext:objectQuery>
             <q:filter>
-                <q:exists>
-                    <q:path>assignment</q:path>
-                    <q:filter>
-                        <q:or>
-                            <q:ref>
-                                <q:path>targetRef</q:path>
-                                <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-00000000000a" type="c:RoleType" />    <!-- Approver -->
-                            </q:ref>
-                            <q:ref>
-                                <q:path>targetRef</q:path>
-                                <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-00000000000c" type="c:RoleType" />    <!-- Delegator -->
-                            </q:ref>
-                            <q:ref>
-                                <q:path>targetRef</q:path>
-                                <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-000000000008" type="c:RoleType" />    <!-- End user -->
-                            </q:ref>
-                            <q:ref>
-                                <q:path>targetRef</q:path>
-                                <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-00000000000b" type="c:RoleType" />    <!-- Reviewer -->
-                            </q:ref>
-                            <q:ref>
-                                <q:path>targetRef</q:path>
-                                <q:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-000000000004" type="c:RoleType" />    <!-- Superuser -->
-                            </q:ref>
-                        </q:or>
-                    </q:filter>
-                </q:exists>
+                <!-- Approver, Delegator, End user, Reviewer or Superuser role -->
+                <q:text>
+                    assignment matches (
+                        targetRef matches (oid = '00000000-0000-0000-0000-00000000000a' and type = c:RoleType) or
+                        targetRef matches (oid = '00000000-0000-0000-0000-00000000000c' and type = c:RoleType) or
+                        targetRef matches (oid = '00000000-0000-0000-0000-000000000008' and type = c:RoleType) or
+                        targetRef matches (oid = '00000000-0000-0000-0000-00000000000b' and type = c:RoleType) or
+                        targetRef matches (oid = '00000000-0000-0000-0000-000000000004' and type = c:RoleType))
+                </q:text>
             </q:filter>
         </mext:objectQuery>
         <mext:objectType>UserType</mext:objectType>

@@ -10,19 +10,24 @@
 <wicket:panel>
     <div class="">
         <div class="p-0 mx-auto w-100 d-flex">
-            <div class="d-flex flex-column card" style="border-right: 0 !important; min-width: auto; border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;">
+            <div class="d-flex flex-column card mb-0" style="border-right: 0 !important; min-width: auto; border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;">
                 <div class="p-3" style="border-bottom: 1px solid rgba(0, 0, 0, .125);">
-                    <button wicket:id="newValueButton" class="btn btn-default text-nowrap"/>
+                    <div>
+                        <input type="text" class="form-control" wicket:id="searchDefinition" wicket:message="placeholder:ComplexTypeDefinitionPanel.searchDefinition"/>
+                    </div>
+                    <div class="pt-3">
+                        <button wicket:id="newValueButton" class="btn btn-default text-nowrap w-100"/>
+                    </div>
                 </div>
                 <div>
-                    <ul class="details-menu">
+                    <ul class="details-menu" wicket:id="listContainer">
                         <li class="navigation-details second-level mb-0" wicket:id="listOfValues">
                             <div wicket:id="value" class="btn w-100 rounded-0 text-nowrap" style="text-align: start;"/>
                         </li>
                     </ul>
                 </div>
             </div>
-            <div wicket:id="tabPanel" class="w-100" style="border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important;"/>
+            <div wicket:id="tabPanel" class="w-100 mb-0" style="border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important;"/>
         </div>
     </div>
 </wicket:panel>

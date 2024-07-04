@@ -13,7 +13,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.ucf.api.ReferenceModificationOperation;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -291,7 +291,7 @@ abstract class AbstractModificationConverter implements DebugDumpable {
 
     private <V extends PrismValue> Object covertAttributeValueToConnId(V prismValue, QName midPointAttributeName)
             throws SchemaException {
-        if (prismValue instanceof ShadowAssociationValue referenceValue) {
+        if (prismValue instanceof ShadowReferenceAttributeValue referenceValue) {
             return objectConvertor.convertReferenceAttributeValueToConnId(referenceValue);
         } else {
             return ConnIdUtil.convertValueToConnId(prismValue, protector, midPointAttributeName);

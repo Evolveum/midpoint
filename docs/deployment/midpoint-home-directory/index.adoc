@@ -78,7 +78,7 @@ MidPoint will try to create the `midpoint.home` directory if it does not already
 
 | `logback.xml`
 | startup logging configuration
-| See xref:/midpoint/reference/diag/initial-logging/[Initial Logging Setup HOWTO]
+| See xref:/midpoint/reference/diag/logging/initial-logging.adoc[Initial Logging Setup]
 
 
 | `config.xml`

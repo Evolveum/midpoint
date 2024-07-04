@@ -19,6 +19,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
 
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -29,10 +30,8 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -673,7 +672,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
-        AssignmentType assignmentType = new AssignmentType(prismContext);
+        AssignmentType assignmentType = new AssignmentType();
         assignmentType.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_CORP_ENGINEER_OID, ObjectTypes.ROLE));
         fillContextWithFocus(context, user);
 
@@ -742,55 +741,53 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     @SafeVarargs
     private <T> void assertPlusAttributeValues(EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedAccountConstruction, QName attrName, T... expectedValue) {
-        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = evaluatedAccountConstruction.getAttributeTripleProducer(attrName);
+        var vc = evaluatedAccountConstruction.getAttributeTripleProducer(attrName);
         assertNotNull("No value construction for attribute " + attrName + " in plus set", vc);
-        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
+        var triple = vc.getOutputTriple();
         Collection<T> actual = getMultiValueFromDeltaSetTriple(triple.getPlusSet());
         TestUtil.assertSetEquals("Attribute " + attrName + " value in plus set", actual, expectedValue);
     }
 
     @SafeVarargs
     private <T> void assertZeroAttributeValues(EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedAccountConstruction, QName attrName, T... expectedValue) {
-        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = evaluatedAccountConstruction.getAttributeTripleProducer(attrName);
+        var vc = evaluatedAccountConstruction.getAttributeTripleProducer(attrName);
         assertNotNull("No value construction for attribute " + attrName + " in zero set", vc);
-        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
+        var triple = vc.getOutputTriple();
         Collection<T> actual = getMultiValueFromDeltaSetTriple(triple.getZeroSet());
         TestUtil.assertSetEquals("Attribute " + attrName + " value in zero set", actual, expectedValue);
     }
 
     @SafeVarargs
     private <T> void assertMinusAttributeValues(EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedAccountConstruction, QName attrName, T... expectedValue) {
-        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = evaluatedAccountConstruction.getAttributeTripleProducer(attrName);
+        var vc = evaluatedAccountConstruction.getAttributeTripleProducer(attrName);
         assertNotNull("No value construction for attribute " + attrName + " in minus set", vc);
-        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
+        var triple = vc.getOutputTriple();
         Collection<T> actual = getMultiValueFromDeltaSetTriple(triple.getMinusSet());
         TestUtil.assertSetEquals("Attribute " + attrName + " value in minus set", actual, expectedValue);
     }
 
     private void assertNoPlusAttributeValues(EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedAccountConstruction, QName attrName) {
-        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = evaluatedAccountConstruction.getAttributeTripleProducer(attrName);
-        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
+        var vc = evaluatedAccountConstruction.getAttributeTripleProducer(attrName);
+        var triple = vc.getOutputTriple();
         PrismAsserts.assertTripleNoPlus(triple);
     }
 
     private void assertNoZeroAttributeValues(EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedAccountConstruction, QName attrName) {
-        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = evaluatedAccountConstruction.getAttributeTripleProducer(attrName);
-        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
+        var vc = evaluatedAccountConstruction.getAttributeTripleProducer(attrName);
+        var triple = vc.getOutputTriple();
         PrismAsserts.assertTripleNoZero(triple);
     }
 
     private void assertNoMinusAttributeValues(EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedAccountConstruction, QName attrName) {
-        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = evaluatedAccountConstruction.getAttributeTripleProducer(attrName);
-        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
+        var vc = evaluatedAccountConstruction.getAttributeTripleProducer(attrName);
+        var triple = vc.getOutputTriple();
         PrismAsserts.assertTripleNoMinus(triple);
     }
 
-    private <T> Collection<T> getMultiValueFromDeltaSetTriple(
-            Collection<? extends PrismPropertyValue<?>> set) {
+    private <T> Collection<T> getMultiValueFromDeltaSetTriple(@NotNull Collection<?> set) {
         Collection<T> vals = new ArrayList<>(set.size());
-        for (PrismPropertyValue<?> pval : set) {
-            //noinspection unchecked
-            vals.add((T) pval.getValue());
+        for (var pval : set) {
+            vals.add(((PrismValue) pval).getRealValue());
         }
         return vals;
     }

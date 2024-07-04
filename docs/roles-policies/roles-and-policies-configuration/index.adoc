@@ -215,8 +215,7 @@ The XML role definition is as follows:
                      <expression>
                         <associationTargetSearch>
                             <filter>
-                                <q:path>attributes/ri:name</q:path>
-                                <q:value>captains</q:value>
+                                <q:text>attributes/name = "captains"</q:text>
                             </filter>
                         </associationTargetSearch>
                  </outbound>
@@ -297,10 +296,6 @@ See xref:/midpoint/reference/roles-policies/roles-services-and-orgs/['Roles, Ser
 See xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
 
 == Idempotent Roles
-
-++++
-{% include since.html since="3.6" %}
-++++
 
 If a role is marked as idempotent then midPoint assumes that the evaluation of this role gives the same results regardless of its position in the assignment/inducement hierarchy.
 I.e. evaluation of this roles does not depend on the assignment parameters of focus or any of the preceding roles.

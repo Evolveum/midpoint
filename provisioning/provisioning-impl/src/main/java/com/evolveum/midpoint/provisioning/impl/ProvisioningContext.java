@@ -17,7 +17,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ShadowItemsToReturnProvider;
 import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
@@ -128,7 +128,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     /**
      * Cached resource schema.
      */
-    private ResourceSchema resourceSchema;
+    private CompleteResourceSchema resourceSchema;
 
     /**
      * Cached patterns for protected objects in given object type with their filter expressions evaluated.
@@ -206,9 +206,9 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return ObjectTypeUtil.createObjectRef(resource);
     }
 
-    public @NotNull ResourceSchema getResourceSchema() throws SchemaException, ConfigurationException {
+    public @NotNull CompleteResourceSchema getResourceSchema() throws SchemaException, ConfigurationException {
         if (resourceSchema == null) {
-            resourceSchema = ProvisioningUtil.getResourceSchema(resource);
+            resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         }
         return resourceSchema;
     }
@@ -526,23 +526,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return ItemPath.create(components);
     }
 
-    public boolean shouldStoreAttributeInShadow(
-            @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull ShadowSimpleAttributeDefinition<?> attrDef) {
-        ItemName attrName = attrDef.getItemName();
-        if (objectDefinition.isIdentifier(attrName)) {
-            return true;
-        }
-        if (Boolean.FALSE.equals(getExplicitCachingStatus())) {
-            return false;
-        }
-        if (isReadCachingOnlyCapabilityPresent()) {
-            return true;
-        }
-        return attrDef.isEffectivelyCached(objectDefinition);
-    }
-
-    private Boolean getExplicitCachingStatus() {
+    public Boolean getExplicitCachingStatus() {
         if (resourceObjectDefinition != null) {
             var objectLevel = resourceObjectDefinition.getEffectiveShadowCachingPolicy().getCachingStrategy();
             if (objectLevel == CachingStrategyType.NONE) {
@@ -568,7 +552,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return null;
     }
 
-    private boolean isReadCachingOnlyCapabilityPresent() {
+    public boolean isReadCachingOnlyCapabilityPresent() {
         ReadCapabilityType readCapability = getEnabledCapability(ReadCapabilityType.class);
         return readCapability != null && Boolean.TRUE.equals(readCapability.isCachingOnly());
     }
@@ -680,12 +664,12 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
                 .toList();
     }
 
-    public <T> @Nullable ShadowSimpleAttributeDefinition<T> findAttributeDefinition(QName name) throws SchemaException {
+    public <T> @Nullable ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinition(QName name) throws SchemaException {
         return resourceObjectDefinition != null ? resourceObjectDefinition.findSimpleAttributeDefinition(name) : null;
     }
 
-    public <T> @NotNull ShadowSimpleAttributeDefinition<T> findAttributeDefinitionRequired(QName name) throws SchemaException {
-        return getObjectDefinitionRequired().findSimpleAttributeDefinitionRequired(name);
+    public @NotNull ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinitionRequired(QName name) throws SchemaException {
+        return getObjectDefinitionRequired().findAttributeDefinitionRequired(name);
     }
 
     public <T> @NotNull ShadowSimpleAttributeDefinition<T> findAttributeDefinitionRequired(QName name, Supplier<String> contextSupplier)
@@ -701,7 +685,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     public @NotNull ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName name, Supplier<String> contextSupplier)
             throws SchemaException {
         return getObjectDefinitionRequired()
-                .findAssociationDefinitionRequired(name, contextSupplier);
+                .findReferenceAttributeDefinitionRequired(name, contextSupplier);
     }
 
     /**
@@ -720,7 +704,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     }
 
     /** Beware! Creates a new context based on the shadow kind/intent/OC. TODO check if not redundant! */
-    public ProvisioningContext applyDefinitionInNewCtx(@NotNull ResourceObject resourceObject)
+    public ProvisioningContext applyDefinitionInNewCtx(@NotNull ResourceObjectShadow resourceObject)
             throws SchemaException, ConfigurationException {
         return applyDefinitionInNewCtx(resourceObject.getBean());
     }
@@ -743,7 +727,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     /** Does not create a new context. The current context should be derived from the shadow. TODO reconsider */
     public void applyCurrentDefinition(@NotNull ShadowType shadow) throws SchemaException {
         new ShadowDefinitionApplicator(getObjectDefinitionRequired())
-                .applyTo(shadow);
+                .applyToShadow(shadow);
     }
 
     /**
@@ -795,21 +779,21 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return RepoShadow.of(shadowBean, rawRepoShadow, shadowCtx.getResource());
     }
 
-    /** The shadow should be a bean usable as a {@link ResourceObject} (except for the attribute definitions). */
-    public @NotNull ResourceObject adoptNotYetExistingResourceObject(ShadowType bean)
+    /** The shadow should be a bean usable as a {@link ResourceObjectShadow} (except for the attribute definitions). */
+    public @NotNull ResourceObjectShadow adoptNotYetExistingResourceObject(ShadowType bean)
             throws SchemaException, ConfigurationException {
         var shadowCtx = adoptShadowBean(bean);
-        return ResourceObject.fromBean(bean, false, shadowCtx.getObjectDefinitionRequired());
+        return ResourceObjectShadow.fromBean(bean, false, shadowCtx.getObjectDefinitionRequired());
     }
 
     public void applyCurrentDefinition(@NotNull ObjectDelta<ShadowType> delta) throws SchemaException {
         new ShadowDefinitionApplicator(getObjectDefinitionRequired())
-                .applyTo(delta);
+                .applyToDelta(delta);
     }
 
     public void applyCurrentDefinition(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) throws SchemaException {
         new ShadowDefinitionApplicator(getObjectDefinitionRequired())
-                .applyTo(modifications);
+                .applyToItemDeltas(modifications);
     }
 
     public void updateShadowState(ShadowType shadow) {
@@ -931,7 +915,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     }
 
     // The object should correspond to the raw schema to avoid comparison issues related to polystrings
-    public void checkProtectedObjectAddition(ResourceObject object, OperationResult result)
+    public void checkProtectedObjectAddition(ResourceObjectShadow object, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         if (!ProvisioningUtil.isAddShadowEnabled(

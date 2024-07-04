@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * The enhanced definition of `associations` container ({@link ShadowAssociationsContainer}) in a {@link ShadowType} object.
  *
- * @see ResourceAttributeContainerDefinition
+ * @see ShadowAttributesContainerDefinition
  */
 public interface ShadowAssociationsContainerDefinition extends PrismContainerDefinition<ShadowAssociationsType> {
 
@@ -33,7 +33,7 @@ public interface ShadowAssociationsContainerDefinition extends PrismContainerDef
     ShadowAssociationsContainerDefinition clone();
 
     @Override
-    @NotNull List<? extends ShadowReferenceAttributeDefinition> getDefinitions();
+    @NotNull List<? extends ShadowAssociationDefinition> getDefinitions();
 
-    @NotNull List<? extends ShadowReferenceAttributeDefinition> getAssociationsDefinitions();
+    @NotNull List<? extends ShadowAssociationDefinition> getAssociationsDefinitions();
 }

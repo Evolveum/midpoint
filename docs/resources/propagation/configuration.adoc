@@ -10,7 +10,6 @@ doc-type: config
 :page-wiki-metadata-create-date: 2018-01-05T15:45:48.812+01:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2018-02-15T10:04:38.437+01:00
-:page-since: "3.7.1"
 :page-upkeep-status: green
 :page-toc: top
 
@@ -122,6 +121,7 @@ Therefore there is an experimental support for multi-resource propagation task:
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/provisioning/task/propagation/multi-handler-3</handlerUri>
     <objectRef type="ResourceType">
         <filter>
+            <q:text>extension/provisioning = "propagated"</q:text>
             <q:equal>
                 <q:path>extension/provisioning</q:path>
                 <q:value>propagated</q:value>
@@ -135,7 +135,7 @@ Therefore there is an experimental support for multi-resource propagation task:
 
 Please note the difference in task handler URI (`handler-3` versus `multi-handler-3`).
 
-.Notation in 4.4 and after
+.Notation in 4.4 and after - XML query
 [source,xml]
 ----
 <task>
@@ -150,6 +150,27 @@ Please note the difference in task handler URI (`handler-3` versus `multi-handle
                                 <q:path>extension/provisioning</q:path>
                                 <q:value>propagated</q:value>
                             </q:equal>
+                        </q:filter>
+                    </query>
+                </resources>
+            </multiPropagation>
+        </work>
+    </activity>
+</task>
+----
+
+.Notation in 4.8 and after - MidPoint Query
+[source,xml]
+----
+<task>
+    ...
+    <activity>
+        <work>
+            <multiPropagation>
+                <resources>
+                    <query>
+                        <q:filter>
+                            <q:text>extension/provisioning = "propagated"</q:text>
                         </q:filter>
                     </query>
                 </resources>

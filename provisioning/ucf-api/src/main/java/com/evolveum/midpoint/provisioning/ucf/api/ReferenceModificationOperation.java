@@ -12,30 +12,29 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyModificationOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
 
 /**
  * Represents modification of a shadow reference attribute.
  */
 public class ReferenceModificationOperation extends Operation {
 
-    @NotNull private final ContainerDelta<ShadowAssociationValueType> referenceDelta;
+    @NotNull private final ReferenceDelta referenceDelta;
 
-    public ReferenceModificationOperation(@NotNull ContainerDelta<ShadowAssociationValueType> referenceDelta) {
+    public ReferenceModificationOperation(@NotNull ReferenceDelta referenceDelta) {
         this.referenceDelta = referenceDelta;
     }
 
-    @NotNull public ContainerDelta<ShadowAssociationValueType> getReferenceDelta() {
+    @NotNull public ReferenceDelta getReferenceDelta() {
         return referenceDelta;
     }
 
@@ -59,7 +58,7 @@ public class ReferenceModificationOperation extends Operation {
         return null;
     }
 
-    public void swallowValue(@NotNull ShadowAssociationValue value, boolean toPlusSet) {
+    public void swallowValue(@NotNull ShadowReferenceAttributeValue value, boolean toPlusSet) {
         if (toPlusSet) {
             referenceDelta.addValueToAdd(value);
         } else {

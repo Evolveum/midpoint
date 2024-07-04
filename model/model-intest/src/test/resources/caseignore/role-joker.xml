@@ -6,9 +6,7 @@
   -->
 <role oid="0a736ff6-9ca8-11e4-b820-001e8c717e5b"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Joker</name>
         <inducement>
@@ -29,9 +27,11 @@
                 <outbound>
                     <strength>strong</strength>
                     <expression>
-                        <value>
-                            <!-- group joker -->
-                            <shadowRef oid="bc2a1d98-9ca4-11e4-a600-001e8c717e5b" type="ShadowType"/>
+                        <value xsi:type="ShadowAssociationValueType">
+                            <objects>
+                                <!-- group joker -->
+                                <ri:group oid="bc2a1d98-9ca4-11e4-a600-001e8c717e5b"/>
+                            </objects>
                         </value>
                     </expression>
                 </outbound>

@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
-import static com.evolveum.midpoint.model.common.expression.evaluator.AssociationRelatedEvaluatorUtil.getAssociationDefinition;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
@@ -15,12 +14,13 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
@@ -34,8 +34,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -45,19 +43,19 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Creates an association (or associations) based on projections of given role.
+ * Creates {@link ShadowAssociationValue}s based on projections of given role.
  *
  * I.e. a role has projection (e.g. group) and it also induces a construction of a user account. Using this expression
  * evaluator the account can obtain groups that are projections of that particular role.
  *
- * To be used in induced constructions only i.e. not in mappings!
- *
  * @author Radovan Semancik
+ *
+ * @see ReferenceAttributeFromLinkExpressionEvaluator
  */
 public class AssociationFromLinkExpressionEvaluator
     extends AbstractExpressionEvaluator<
-        PrismContainerValue<ShadowAssociationValueType>,
-        ShadowReferenceAttributeDefinition,
+        ShadowAssociationValue,
+        ShadowAssociationDefinition,
         AssociationFromLinkExpressionEvaluatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationFromLinkExpressionEvaluator.class);
@@ -67,7 +65,7 @@ public class AssociationFromLinkExpressionEvaluator
     AssociationFromLinkExpressionEvaluator(
             QName elementName,
             AssociationFromLinkExpressionEvaluatorType evaluatorType,
-            ShadowReferenceAttributeDefinition outputDefinition,
+            ShadowAssociationDefinition outputDefinition,
             Protector protector,
             ObjectResolver objectResolver) {
         super(elementName, evaluatorType, outputDefinition, protector);
@@ -75,7 +73,7 @@ public class AssociationFromLinkExpressionEvaluator
     }
 
     @Override
-    public PrismValueDeltaSetTriple<PrismContainerValue<ShadowAssociationValueType>> evaluate(
+    public PrismValueDeltaSetTriple<ShadowAssociationValue> evaluate(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
@@ -95,8 +93,9 @@ public class AssociationFromLinkExpressionEvaluator
         }
         LOGGER.trace("Candidate shadow OIDs: {}", candidateShadowOidList);
 
-        var outputAssociation = createAssociationFromMatchingValues(candidateShadowOidList, context, result);
-        return ItemDeltaUtil.toDeltaSetTriple(outputAssociation, null);
+        var outputAssociation = createAssociationFromMatchingValue(candidateShadowOidList, context, result);
+        //noinspection rawtypes,unchecked
+        return (PrismValueDeltaSetTriple) ItemDeltaUtil.toDeltaSetTriple(outputAssociation, null);
     }
 
     private AbstractRoleType getRelevantRole(ExpressionEvaluationContext context) throws ExpressionEvaluationException {
@@ -155,12 +154,11 @@ public class AssociationFromLinkExpressionEvaluator
         }
     }
 
-    private ShadowReferenceAttribute createAssociationFromMatchingValues(
+    private ShadowAssociation createAssociationFromMatchingValue(
             List<String> candidateShadowsOidList, ExpressionEvaluationContext context, OperationResult result)
-            throws ExpressionEvaluationException, ConfigurationException {
+            throws ConfigurationException {
 
-        // TODO please obtain resource OID in a nicer way
-        var resourceOid = getAssociationDefinition(context).getResourceOid();
+        var resourceOid = outputDefinition.getResourceOid();
 
         S_FilterExit filter = prismContext.queryFor(ShadowType.class)
                 .id(candidateShadowsOidList.toArray(new String[0]))
@@ -180,7 +178,7 @@ public class AssociationFromLinkExpressionEvaluator
             // We need the object class for the provisioning to be able to search for shadows
             filter = filter.and()
                     .item(ShadowType.F_OBJECT_CLASS)
-                    .eq(outputDefinition.getImmediateTargetObjectClass().getTypeName());
+                    .eq(outputDefinition.getReferenceAttributeDefinition().getTargetObjectClassName());
         }
         ObjectQuery query = filter.build();
 
@@ -189,7 +187,7 @@ public class AssociationFromLinkExpressionEvaluator
             var targetObjects = objectResolver.searchObjects(
                     ShadowType.class, query, createNoFetchReadOnlyCollection(), context.getTask(), result);
 
-            ShadowReferenceAttribute outputAssociation = outputDefinition.instantiate();
+            var outputAttribute = outputDefinition.instantiate();
             for (PrismObject<ShadowType> targetObject : targetObjects) {
                 var target = AbstractShadow.of(targetObject);
                 if (target.isDead()) {
@@ -205,10 +203,11 @@ public class AssociationFromLinkExpressionEvaluator
                     // Filtering on kind/intent was already done.
                 }
                 LOGGER.trace("Adding to association: {}", target);
-                outputAssociation.createNewValueWithFullObject(target);
+                outputAttribute.add(
+                        outputDefinition.createValueFromFullDefaultObject(target));
             }
 
-            return outputAssociation;
+            return outputAttribute;
         } catch (CommonException e) {
             throw new SystemException("Couldn't search for relevant shadows: " + e.getMessage(), e);
         }

@@ -140,4 +140,10 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
         LOGGER.trace("end::internalSize(): {}", count);
         return count;
     }
+
+    @Override
+    public void detach() {
+        super.detach();
+        getAvailableData().clear();
+    }
 }

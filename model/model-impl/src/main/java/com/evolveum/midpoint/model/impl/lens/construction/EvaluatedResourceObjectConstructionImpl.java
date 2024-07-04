@@ -17,8 +17,8 @@ import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProduc
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.config.ConstructionConfigItem;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -68,14 +68,12 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
     /**
      * Mappings for the resource object attributes.
      */
-    @NotNull private final Collection<PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>>
-            attributeTripleProducers = new ArrayList<>();
+    @NotNull private final Collection<PrismValueDeltaSetTripleProducer<?, ?>> attributeTripleProducers = new ArrayList<>();
 
     /**
      * Mappings for the resource object associations.
      */
-    @NotNull private final Collection<PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowReferenceAttributeDefinition>>
-            associationTripleProducers = new ArrayList<>();
+    @NotNull private final Collection<PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowAssociationDefinition>> associationTripleProducers = new ArrayList<>();
 
     /**
      * Projection context for the resource object.
@@ -88,7 +86,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
      * Construction evaluation state. It is factored out into separate class to allow many of its fields to be final.
      * (It would not be possible if it was part of this class.)
      */
-    private transient ConstructionEvaluation<AH, ROC> evaluation;
+    private transient ConstructionEvaluation<AH, ROC> constructionEvaluation;
 
     /**
      * Precondition: {@link ResourceObjectConstruction} is already evaluated and not ignored (has resource).
@@ -204,12 +202,12 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
     //endregion
 
     //region Mappings management
-    public @NotNull Collection<PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> getAttributeTripleProducers() {
+    public @NotNull Collection<PrismValueDeltaSetTripleProducer<?, ?>> getAttributeTripleProducers() {
         return attributeTripleProducers;
     }
 
     @TestOnly
-    public PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> getAttributeTripleProducer(QName attrName) {
+    public PrismValueDeltaSetTripleProducer<?, ?> getAttributeTripleProducer(QName attrName) {
         for (var myVc : getAttributeTripleProducers()) {
             if (myVc.getTargetItemName().equals(attrName)) {
                 return myVc;
@@ -218,20 +216,19 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
         return null;
     }
 
-    void addAttributeTripleProducer(PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> tripleProducer) {
+    void addAttributeTripleProducer(PrismValueDeltaSetTripleProducer<?, ?> tripleProducer) {
         if (tripleProducer != null) {
             attributeTripleProducers.add(tripleProducer);
         }
     }
 
-    public @NotNull Collection<PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowReferenceAttributeDefinition>> getAssociationTripleProducers() {
+    public @NotNull Collection<PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowAssociationDefinition>> getAssociationTripleProducers() {
         return associationTripleProducers;
     }
 
-    void addAssociationTripleProducer(
-            PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowReferenceAttributeDefinition> mapping) {
-        if (mapping != null) {
-            associationTripleProducers.add(mapping);
+    void addAssociationTripleProducer(PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowAssociationDefinition> producer) {
+        if (producer != null) {
+            associationTripleProducers.add(producer);
         }
     }
     //endregion
@@ -239,7 +236,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
     //region Mappings evaluation
     public NextRecompute evaluate(Task task, OperationResult parentResult) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        if (evaluation != null) {
+        if (constructionEvaluation != null) {
             throw new IllegalStateException("Attempting to evaluate an EvaluatedResourceObjectConstruction twice: " + this);
         }
         OperationResult result = parentResult.subresult(OP_EVALUATE)
@@ -266,9 +263,9 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
                 return null;
             } else {
                 LOGGER.trace("Starting evaluation of {}", this);
-                evaluation = new ConstructionEvaluation<>(this, task, result);
-                evaluation.evaluate();
-                return evaluation.getNextRecompute();
+                constructionEvaluation = new ConstructionEvaluation<>(this, task, result);
+                constructionEvaluation.evaluate();
+                return constructionEvaluation.getNextRecompute();
             }
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -288,7 +285,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
     /**
      * Collects attributes that are to be evaluated. Again, the exact mechanism is implementation-specific.
      */
-    abstract List<AttributeMapper<AH, ?>> getAttributeMappers(ConstructionEvaluation<AH, ?> constructionEvaluation)
+    abstract List<AttributeMapper<AH, ?, ?>> getAttributeMappers(ConstructionEvaluation<AH, ?> constructionEvaluation)
             throws SchemaException, ConfigurationException;
 
     /**
@@ -304,7 +301,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
      * Checks whether we are obliged to load the full shadow.
      * @return non-null if we have to
      */
-    String getFullShadowLoadReason(ItemMapper<?, ?, ?> itemMapper) {
+    String getFullShadowLoadReason(ShadowItemMapper<?, ?, ?> itemMapper) {
         if (projectionContext == null) {
             LOGGER.trace("We will not load full shadow, because we have no projection context");
             return null;

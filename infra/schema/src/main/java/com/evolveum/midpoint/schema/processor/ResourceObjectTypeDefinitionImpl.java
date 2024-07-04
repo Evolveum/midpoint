@@ -177,12 +177,12 @@ public final class ResourceObjectTypeDefinitionImpl
     }
 
     @Override
-    public void trimTo(@NotNull Collection<ItemPath> paths) {
+    public void trimAttributesTo(@NotNull Collection<ItemPath> paths) {
         if (isImmutable()) {
             return; // This would fail anyway
         }
-        super.trimTo(paths);
-        refinedObjectClassDefinition.trimTo(paths);
+        super.trimAttributesTo(paths);
+        refinedObjectClassDefinition.trimAttributesTo(paths);
     }
 
     @Override
@@ -262,7 +262,7 @@ public final class ResourceObjectTypeDefinitionImpl
         }
         ResourceObjectTypeDefinitionImpl that = (ResourceObjectTypeDefinitionImpl) o;
         return attributeDefinitions.equals(that.attributeDefinitions)
-//                && associationDefinitions.equals(that.associationDefinitions)
+                && associationDefinitions.equals(that.associationDefinitions)
                 && primaryIdentifiersNames.equals(that.primaryIdentifiersNames)
                 && secondaryIdentifiersNames.equals(that.secondaryIdentifiersNames)
                 && refinedObjectClassDefinition.equals(that.refinedObjectClassDefinition)

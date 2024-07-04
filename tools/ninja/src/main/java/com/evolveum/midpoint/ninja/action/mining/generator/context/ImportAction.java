@@ -13,8 +13,6 @@ import static com.evolveum.midpoint.ninja.action.mining.generator.object.Initial
 import java.io.IOException;
 import java.util.*;
 
-import com.evolveum.midpoint.schema.ResultHandler;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,13 +20,14 @@ import com.evolveum.midpoint.ninja.action.mining.generator.GeneratorOptions;
 import com.evolveum.midpoint.ninja.action.mining.generator.object.InitialObjectsDefinition;
 import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -247,6 +246,10 @@ public class ImportAction {
         }
 
         try {
+            //TODO uncomment for extension adding (remember to add extension to UserType schema and correct name)
+//            user.extension(new ExtensionType());
+//            ExtensionType ext = user.getExtension();
+//            addExtensionValue(ext, "hatSize","XL","L","M","S");
             repositoryService.addObject(user.asPrismObject(), null, result);
         } catch (ObjectAlreadyExistsException e) {
             log.warn("User {} already exists", user.getName());
@@ -444,6 +447,33 @@ public class ImportAction {
         String name = names.iterator().next();
         names.remove(name);
         return PolyStringType.fromOrig(name);
+    }
+
+    public static <V> void addExtensionValue(
+            Containerable extContainer, String itemName, V... values) {
+        PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
+        ItemDefinition<?> itemDefinition =
+                pcv.getDefinition().findItemDefinition(new ItemName(itemName));
+
+        try {
+            if (itemDefinition instanceof PrismReferenceDefinition) {
+                PrismReference ref = (PrismReference) itemDefinition.instantiate();
+                for (V value : values) {
+                    ref.add(value instanceof PrismReferenceValue
+                            ? (PrismReferenceValue) value
+                            : ((Referencable) value).asReferenceValue());
+                }
+                pcv.add(ref);
+            } else {
+                //noinspection unchecked
+                PrismProperty<V> property = (PrismProperty<V>) itemDefinition.instantiate();
+                property.setRealValues(values);
+                pcv.add(property);
+            }
+        } catch (SchemaException e) {
+            throw new RuntimeException("Cloud not add extension value", e);
+        }
+
     }
 
 }

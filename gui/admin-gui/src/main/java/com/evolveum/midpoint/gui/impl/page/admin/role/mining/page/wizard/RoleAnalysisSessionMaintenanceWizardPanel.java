@@ -46,7 +46,7 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
     private static final String DECOMISSIONED_MARK_OID = "00000000-0000-0000-0000-000000000801";
     boolean isRebuild = false;
     TaskType taskType;
-    Model<Boolean> isActiveModel = Model.of(true);
+    Model<Boolean> isActiveModel = Model.of(false);
 
     public RoleAnalysisSessionMaintenanceWizardPanel(AssignmentHolderDetailsModel<RoleAnalysisSessionType> model, TaskType taskType) {
         super(model);

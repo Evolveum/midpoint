@@ -19,6 +19,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
 public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
@@ -27,7 +29,7 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
     String oid;
     private String name;
     private String description;
-    private String density;
+    private double density;
     private String processedObjectCount;
     private String clusterCount;
     RoleAnalysisProcessModeType processMode;
@@ -58,10 +60,11 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
 
             Double meanDensity = sessionStatistic.getMeanDensity();
             if (meanDensity != null) {
-                this.density = new DecimalFormat("#.###")
-                        .format(Math.round(meanDensity * 1000.0) / 1000.0);
+                BigDecimal bd = new BigDecimal(Double.toString(meanDensity));
+                bd = bd.setScale(2, RoundingMode.HALF_UP);
+                this.density = bd.doubleValue();
             } else {
-                this.density = "0.00";
+                this.density = 0.00;
             }
 
             Integer processedObjectCount = sessionStatistic.getProcessedObjectCount();
@@ -74,7 +77,7 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
                 this.clusterCount = clusterCount.toString();
             }
         } else {
-            this.density = "0.00";
+            this.density = 0.00;
             this.processedObjectCount = "0";
             this.clusterCount = "0";
         }
@@ -146,11 +149,11 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
         this.description = description;
     }
 
-    public String getDensity() {
+    public Double getDensity() {
         return density;
     }
 
-    public void setDensity(String density) {
+    public void setDensity(Double density) {
         this.density = density;
     }
 

@@ -5,91 +5,23 @@
 :page-wiki-metadata-create-date: 2017-10-24T12:19:40.968+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2017-10-26T14:30:43.173+02:00
-:page-since: "3.7"
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 
 MidPoint offers an easy way of starting a task that is similar to a pre-existing one.
 The pre-existing task is called a _template_, although it is technically an ordinary task: with an exception that it is not meant to be executed directly.
 
 == An example
 
-This is a task template that sets a description for user `userName` to the value of `userDescription`. These two parameters are expected to be present as extension values in a task that is created from this template.
-
 .Task that modifies a given user
-[source,xml]
-----
-<task xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        oid="79dacdf7-2bc9-4eef-9c63-08d53d2392c3">
-    <name>Change description task template</name>
-    <extension>
-        <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-            <s:pipeline>
-                <s:search>
-                    <s:type>c:UserType</s:type>
-                    <s:query>
-                        <q:filter>
-                            <q:equal>
-                                <q:path>name</q:path>
-                                <c:expression>
-                                    <c:path>$userName</c:path>
-                                </c:expression>
-                            </q:equal>
-                        </q:filter>
-                    </s:query>
-                </s:search>
-                <s:action>
-                    <s:type>execute-script</s:type>
-                    <s:parameter>
-                        <s:name>script</s:name>
-                        <c:value xsi:type="c:ScriptExpressionEvaluatorType">
-                            <c:code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-                                import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/templates/task-template-change-description.xml[Git]
 
-                                log.info('Modifying user {}', input)
-                                def deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
-                                               .item(UserType.F_DESCRIPTION)
-                                               .replace(userDescription)
-                                               .asObjectDeltas(input.oid)
-                                log.info('Change:\n{}', deltas.iterator().next().debugDump())
-                                midpoint.executeChanges(deltas, null)
-                            </c:code>
-                        </c:value>
-                    </s:parameter>
-                </s:action>
-            </s:pipeline>
-            <s:variables>
-                <s:variable>
-                    <s:name>userName</s:name>
-                    <s:expression>
-                        <c:path>$task/extension/userName</c:path>
-                    </s:expression>
-                </s:variable>
-                <s:variable>
-                    <s:name>userDescription</s:name>
-                    <s:expression>
-                        <c:path>$task/extension/userDescription</c:path>
-                    </s:expression>
-                </s:variable>
-            </s:variables>
-        </scext:executeScript>
-    </extension>
-    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>waiting</executionStatus>      <!-- this is just a template, therefore it should not be executed -->
-    <category>BulkActions</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</handlerUri>
-    <cleanupAfterCompletion>PT10M</cleanupAfterCompletion>  <!-- delete 10 minutes after completion -->
-    <recurrence>single</recurrence>
-</task>
+sampleRef::samples/tasks/templates/task-template-change-description.xml[]
+====
 
-----
+Note that `executionState` of this task is set to `waiting`, so that the task template itself will not be executed.
 
-Note that `executionStatus` of this task is set to `waiting`, so that the task template itself will not be executed.
-The `userName` and `userDescription` extension items are not present: they are to be inserted into tasks created from this object.
 Finally, note the `cleanupAfterCompletion`: it says that tasks created from this template will be automatically deleted 10 minutes after their completion (i.e. switching into the `CLOSED` state).
 
 
@@ -99,8 +31,7 @@ Creation of a templated task is facilitated by two methods among midPoint functi
 
 [source]
 ----
-midpoint.submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems)
-midpoint.submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues)
+midpoint.submitTaskFromTemplate(String templateTaskOid, ActivityCustomization customization)
 ----
 
 The former method expects a list of prism items to be inserted into an extension of newly created task.
@@ -108,16 +39,15 @@ The latter method is less general but easier to use: it expects a map of extensi
 
 So, in our case the usage would look like this:
 
+        var taskOid = modelInteractionService.submitTaskFromTemplate(
+                TASK_TEMPLATE_SCRIPTING_NO_PROFILE.oid,
+                ActivityCustomization.forOids(List.of(USER_JOE.oid)),
+                task, result);
+
 [source]
 ----
-midpoint.submitTaskFromTemplate('79dacdf7-2bc9-4eef-9c63-08d53d2392c3', [
-	(new QName('userName')):'jack',
-	(new QName('userDescription')):'new desc jack'
-])
+midpoint.submitTaskFromTemplate('79dacdf7-2bc9-4eef-9c63-08d53d2392c3', ActivityCustomization.forOids(List.of('3490c9ae-8839-40e5-8ba5-6ceb235d9af2')));
 ----
-
-See also xref:/midpoint/reference/misc/bulk/variables/[Variables in bulk actions] for more information on using bulk actions with variables.
-
 
 == Task Cleanup
 
@@ -125,7 +55,7 @@ This method is likely to produce a lot of tasks that are relatively short-lived.
 There is a cleanup task in midPoint that deletes old closed tasks.
 However, the default setting may cause tasks to stay around for too long.
 
-Therefore there is now a `cleanupAfterCompletion` task property that can be used for finer control over the cleanup.
+Therefore, there is now a `cleanupAfterCompletion` task property that can be used for finer control over the cleanup.
 This property can be set explicitly to force task cleanup after a specific interval.
 
 

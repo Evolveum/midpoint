@@ -17,8 +17,9 @@ doc-type: config
 MidPoint has quite a rich xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user schema] with many attributes that are common for most IDM deployments.
 But if there are attributes that are not really common the best option is to extend user schema.
 It is quite easy.
-The User schema is extended by adding appropriate XSD file to the midPoint installation.
-The schema extension is not stored in the database because it may influence the database schema and therefore may create a chicken-egg problem.
+The User schema is extended by adding appropriate XSD schema to the midPoint installation.
+The schema extension is stored in the database as a SchemaType that contains an attribute for the schema in XSD format.
+You can also use the XSD file in the midPoint home directory as in previous versions.
 
 The custom schema extension is specified in the XML Schema Description (XSD) format similar to other schemas in midPoint.
 It is using XSD annotations to specify details that XSD cannot specify.
@@ -33,62 +34,67 @@ The example defines two properties: `officeNumber` and `favoriteColor`.
 .Custom schema extension
 [source,xml]
 ----
-<xsd:schema elementFormDefault="qualified"
-            targetNamespace="http://example.com/xml/ns/mySchema"
-            xmlns:tns="http://example.com/xml/ns/mySchema"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<schema>
+    <name>UserExtension</name>
+    <definition>
+        <xsd:schema elementFormDefault="qualified"
+                    targetNamespace="http://example.com/xml/ns/mySchema"
+                    xmlns:tns="http://example.com/xml/ns/mySchema"
+                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-    <xsd:complexType name="UserExtensionType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:extension ref="c:UserType"/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="officeNumber" type="xsd:string" minOccurs="0" maxOccurs="1">
+            <xsd:complexType name="UserExtensionType">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <a:indexed>true</a:indexed>
-                        <a:displayName>office number</a:displayName>
-                        <a:displayOrder>120</a:displayOrder>
+                        <a:extension ref="c:UserType"/>
                     </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="favoriteColor" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:indexed>false</a:indexed>
-                        <a:displayName>favorite color</a:displayName>
-                        <a:displayOrder>130</a:displayOrder>
-                        <a:help>The favorite color</a:help>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
- 			<xsd:element name="facility" type="xsd:string" minOccurs="1" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:indexed>true</a:indexed>
-                        <a:displayName>facility</a:displayName>
-                        <a:displayOrder>135</a:displayOrder>
-                        <a:help>The address of the facility where the employees office resides</a:help>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-			<xsd:element name="officePhone" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:indexed>false</a:indexed>
-                        <a:displayName>office telephone number</a:displayName>
-                        <a:displayOrder>140</a:displayOrder>
-                        <a:help>The office telephone number</a:help>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-</xsd:schema>
+                <xsd:sequence>
+                    <xsd:element name="officeNumber" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:indexed>true</a:indexed>
+                                <a:displayName>office number</a:displayName>
+                                <a:displayOrder>120</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="favoriteColor" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:indexed>false</a:indexed>
+                                <a:displayName>favorite color</a:displayName>
+                                <a:displayOrder>130</a:displayOrder>
+                                <a:help>The favorite color</a:help>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+ 			        <xsd:element name="facility" type="xsd:string" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:indexed>true</a:indexed>
+                                <a:displayName>facility</a:displayName>
+                                <a:displayOrder>135</a:displayOrder>
+                                <a:help>The address of the facility where the employees office resides</a:help>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+			        <xsd:element name="officePhone" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:indexed>false</a:indexed>
+                                <a:displayName>office telephone number</a:displayName>
+                                <a:displayOrder>140</a:displayOrder>
+                                <a:help>The office telephone number</a:help>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+        </xsd:schema>
+    </definition>
+</schema>
 ----
 
 This file is all it takes to extend the schema.
@@ -154,19 +160,38 @@ A more complex schema examples are provided in the git link:https://github.com/E
 
 == Installing Custom Schema Extension
 
-Currently, the custom schema extension has to be available to midPoint at the startup time.
-It is not stored in the xref:/midpoint/reference/repository/[repository (database)]
-and cannot be dynamically changed when the system is running.
+Currently, unlike previous versions, the schema extension does not need to be present in midPoint at startup time.
+It is stored in the xref:/midpoint/reference/repository/[repository (database)]
+and can be dynamically changed when the system is running.
 
-The schema files have to be placed in the `schema` subdirectory of xref:/midpoint/reference/deployment/midpoint-home-directory/[midpoint.home directory].
-The name of the file does not matter as long as it ends with `.xsd` extension.
-There also may be subdirectories.
-When MidPoint starts it scans the directory and all subdirectories and loads all the schemas that it finds there.
+The schema is stored in the `definition` attribute of `SchemaType`. This attribute contains the schema in XSD format.
+When MidPoint starts and after each SchemaType is saved, all schemas of all SchemaTypes are loaded.
 
-[TIP]
-====
-After any change in custom schema extension definition(s), you need to restart midPoint.
-====
+=== Changing Custom Schema Extension via GUI
+
+From midpoint 4.9, schemas can be configured via GUI panels.
+After each change, the schema is reloaded and you can immediately see the new attributes
+in the GUI panels of the extended object type.
+
+When we create a new schema, a new complex type or a new item, the GUI panel has no limitations.
+However, when we modify it, we run into certain limitations related to the schema lifecycle.
+Deleting schemas, complex types or items is forbidden because some objects may contain values for attributes created by that schema, complex type or item.
+Another reason is that we need old attributes in schemas for the correct display of deltas in audit records.
+Unnecessary attributes should be marked as removed, but should remain in the schema extension.
+
+Limitations:
+
+* Can't change `Namespace` of schema
+* Can't change `Name` and  `Extension` of complex type
+* Can't change `Name` and  `Type` of item
+* Value of `Required` attribute of item can't change form `false` to true or undefined
+* Value of `Multivalue` attribute of item can't change form `true` to false or undefined
+* Container item can't mark as indexed
+* Can't change `Object reference target type` of reference item
+* Can't change `name`  of enumeration
+* Can't change `value`  of enumeration value
+
+These are limitations for GUI panels only, so if you want to, and you're sure it's correct, *you can change it directly via the XML file at your own risk.*.
 
 == Data Types Supported
 
@@ -291,44 +316,48 @@ To allow using of midPoint types, proper schemas have to be added to the extensi
 
 [source,xml]
 ----
-<xsd:schema elementFormDefault="qualified"
-            targetNamespace="http://example.com/xml/ns/mySchema"
-            xmlns:tns="http://example.com/xml/ns/mySchema"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<schema>
+    <name>UserExtension</name>
+    <definition>
+        <xsd:schema elementFormDefault="qualified"
+                    targetNamespace="http://example.com/xml/ns/mySchema"
+                    xmlns:tns="http://example.com/xml/ns/mySchema"
+                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
 
-    <xsd:complexType name="UserExtensionType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:extension ref="c:UserType"/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="customAdministrativeStatus" type="c:ActivationStatusType" minOccurs="0">
+            <xsd:complexType name="UserExtensionType">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <a:indexed>true</a:indexed>
-                        <a:displayName>Custom Administrative status</a:displayName>
-                        <a:displayOrder>250</a:displayOrder>
+                        <a:extension ref="c:UserType"/>
                     </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="secondaryPassword" type="t:ProtectedStringType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:indexed>false</a:indexed>
-                        <a:displayName>Secondary Password</a:displayName>
-                        <a:displayOrder>260</a:displayOrder>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
-</xsd:schema>
+                <xsd:sequence>
+                    <xsd:element name="customAdministrativeStatus" type="c:ActivationStatusType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:indexed>true</a:indexed>
+                                <a:displayName>Custom Administrative status</a:displayName>
+                                <a:displayOrder>250</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="secondaryPassword" type="t:ProtectedStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:indexed>false</a:indexed>
+                                <a:displayName>Secondary Password</a:displayName>
+                                <a:displayOrder>260</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+        </xsd:schema>
+    </definition>
+</schema>
 ----

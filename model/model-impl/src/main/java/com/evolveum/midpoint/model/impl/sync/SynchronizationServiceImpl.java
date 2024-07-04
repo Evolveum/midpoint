@@ -124,7 +124,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             }
 
             LOGGER.debug("SYNCHRONIZATION: DONE (mode '{}') for {}",
-                    completeCtx.getExecutionMode(), completeCtx.getShadowedResourceObject());
+                    completeCtx.getExecutionMode(), completeCtx.getShadowLikeValue());
 
         } catch (SystemException ex) {
             // avoid unnecessary re-wrap
@@ -309,14 +309,14 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             OperationResult result) throws ConfigurationException {
         F linkedOwner = syncCtx.getLinkedOwner();
         F correlatedOwner = syncCtx.getCorrelatedOwner(); // may be null; or may be provided by sync sorter
+        var shadow = syncCtx.getShadowedResourceObject();
 
-        LOGGER.trace("Shadow {} has linked owner: {}, correlated owner: {}", syncCtx.getShadowedResourceObject(),
-                linkedOwner, correlatedOwner);
+        LOGGER.trace("Shadow {} has linked owner: {}, correlated owner: {}", shadow, linkedOwner, correlatedOwner);
 
         if (correlatedOwner != null && linkedOwner != null && !correlatedOwner.getOid().equals(linkedOwner.getOid())) {
             LOGGER.error("Cannot synchronize {}, linked owner and expected owner are not the same. "
-                    + "Linked owner: {}, expected owner: {}", syncCtx.getShadowedResourceObject(), linkedOwner, correlatedOwner);
-            String msg = "Cannot synchronize " + syncCtx.getShadowedResourceObject()
+                    + "Linked owner: {}, expected owner: {}", shadow, linkedOwner, correlatedOwner);
+            String msg = "Cannot synchronize " + shadow
                     + ", linked owner and expected owner are not the same. Linked owner: " + linkedOwner
                     + ", expected owner: " + correlatedOwner;
             result.recordFatalError(msg);

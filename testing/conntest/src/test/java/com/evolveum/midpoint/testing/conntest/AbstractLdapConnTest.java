@@ -667,7 +667,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_PASSWORD);
 
-        ShadowSimpleAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimestamp"));
+        ShadowSimpleAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getSimpleAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimestamp"));
         assertNotNull("No createTimestamp in " + shadow, createTimestampAttribute);
         XMLGregorianCalendar createTimestamp = createTimestampAttribute.getRealValue();
         long createTimestampMillis = XmlTypeConverter.toMillis(createTimestamp);
@@ -1246,7 +1246,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertLdapGroupMember(entry, GROUP_EVIL_CN);
         assertLdapNoGroupMember(entry, GROUP_UNDEAD_CN);
 
-        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupName(), groupEvilShadowOid);
+        IntegrationTestTools.assertAssociationObjectRef(shadow, getAssociationGroupName(), groupEvilShadowOid);
 
         assertLdapConnectorReasonableInstances();
         showToken();

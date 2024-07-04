@@ -8,11 +8,9 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
@@ -40,13 +38,17 @@ public class ShadowBuilder {
         return this;
     }
 
-    public ShadowBuilder withAttribute(QName attrName, Object realValue) throws SchemaException {
-        ShadowUtil.getOrCreateAttributesContainer(shadow).add(attrName, realValue);
+    public ShadowBuilder withSimpleAttribute(QName attrName, Object realValue) throws SchemaException {
+        ShadowUtil.getOrCreateAttributesContainer(shadow)
+                .addSimpleAttribute(attrName, realValue);
         return this;
     }
 
-    public ShadowBuilder withReferenceAttribute(QName attrName, AbstractShadow referencedShadow) throws SchemaException {
-        ShadowUtil.getOrCreateAssociationsContainer(shadow).add(attrName, referencedShadow);
+    public ShadowBuilder withReferenceAttributeWithFullObject(QName attrName, AbstractShadow referencedShadow)
+            throws SchemaException {
+        ShadowUtil
+                .getOrCreateAttributesContainer(shadow)
+                .addReferenceAttribute(attrName, referencedShadow, true);
         return this;
     }
 

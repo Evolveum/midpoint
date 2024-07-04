@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import com.evolveum.midpoint.util.ShortDumpable;
@@ -14,9 +15,6 @@ import com.evolveum.midpoint.util.ShortDumpable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -25,6 +23,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -167,16 +166,6 @@ public class RawRepoShadow implements DebugDumpable, ShortDumpable {
         return bean.getName();
     }
 
-    /** If missing, it returns a newly created value (does not put it back into the shadow). */
-    public @NotNull PrismContainerValue<?> getAttributesContainerValue() {
-        var attributes = bean.getAttributes();
-        if (attributes != null) {
-            return attributes.asPrismContainerValue();
-        } else {
-            return PrismContext.get().itemFactory().createContainerValue();
-        }
-    }
-
     public @NotNull PrismObject<ShadowType> getPrismObject() {
         return bean.asPrismObject();
     }
@@ -187,5 +176,15 @@ public class RawRepoShadow implements DebugDumpable, ShortDumpable {
 
     public String getResourceOid() {
         return ShadowUtil.getResourceOid(bean);
+    }
+
+    public Collection<Item<?, ?>> getSimpleAttributes() {
+        var container = getPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
+        return container != null ? List.copyOf(container.getValue().getItems()) : List.of();
+    }
+
+    public Collection<Item<?, ?>> getReferenceAttributes() {
+        var container = getPrismObject().findContainer(ShadowType.F_REFERENCE_ATTRIBUTES);
+        return container != null ? List.copyOf(container.getValue().getItems()) : List.of();
     }
 }

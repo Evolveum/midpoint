@@ -23,9 +23,11 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.*;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -298,7 +300,8 @@ public abstract class ProvisioningOperationState<RV extends AsynchronousOperatio
         PendingOperationType pendingOperation = new PendingOperationType();
         pendingOperation.setType(getOperationType());
         pendingOperation.setDelta(
-                DeltaConvertor.toObjectDeltaType(delta));
+                DeltaConvertor.toObjectDeltaType(
+                        convertForPendingOperationStorage(delta)));
         pendingOperation.setRequestTimestamp(now);
         if (executionStatus == EXECUTING) {
             pendingOperation.setOperationStartTimestamp(now);
@@ -310,6 +313,29 @@ public abstract class ProvisioningOperationState<RV extends AsynchronousOperatio
         pendingOperation.setAsynchronousOperationReference(
                 asyncOperationReferenceOverride != null ? asyncOperationReferenceOverride : getAsynchronousOperationReference());
         return pendingOperation;
+    }
+
+    /**
+     * TODO Should we store reference attributes or not?
+     */
+    private ObjectDelta<ShadowType> convertForPendingOperationStorage(ObjectDelta<ShadowType> delta) {
+        if (ObjectDelta.isAdd(delta)) {
+            var clone = delta.clone();
+            var attributesContainer = ShadowUtil.getAttributesContainer(clone.getObjectToAdd());
+            if (attributesContainer != null) {
+                for (var refAttr : List.copyOf(attributesContainer.getReferenceAttributes())) {
+                    attributesContainer.removeReference(refAttr.getElementName());
+                }
+            }
+            return clone;
+        } else if (ObjectDelta.isModify(delta)) {
+            var clone = delta.clone();
+            clone.getModifications().removeIf(
+                    modification -> modification.getDefinition() instanceof ShadowReferenceAttributeDefinition);
+            return clone;
+        } else {
+            return delta;
+        }
     }
 
     public boolean hasRepoShadow() {
@@ -338,7 +364,7 @@ public abstract class ProvisioningOperationState<RV extends AsynchronousOperatio
         }
 
         /** This is a shadow that was created on the resource by the operation. */
-        ResourceObject getCreatedObject() {
+        ResourceObjectShadow getCreatedObject() {
             var aResult = getAsyncResult();
             return aResult != null ? aResult.getReturnValue() : null;
         }

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.shouldStoreSimpleAttributeInShadow;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Collection;
@@ -15,6 +16,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
+
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -52,6 +55,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * the primary identifier value.
  *
  * @see ShadowDeltaComputerAbsolute
+ * @see ShadowObjectComputer
  */
 class ShadowDeltaComputerRelative {
 
@@ -90,7 +94,10 @@ class ShadowDeltaComputerRelative {
             var parentPath = modification.getParentPath();
             if (parentPath.equivalent(ShadowType.F_ATTRIBUTES)) {
                 QName attrName = modification.getElementName();
-                var attrDef = objectDefinition.findSimpleAttributeDefinitionRequired(attrName);
+                var attrDef = objectDefinition.findAttributeDefinitionRequired(attrName);
+                if (!(attrDef instanceof ShadowSimpleAttributeDefinition<?> simpleAttrDef)) {
+                    continue; // only simple attributes are processed here
+                }
                 if (isNamingAttribute(attrName, objectDefinition)) {
                     // Naming attribute is changed -> the shadow name should change as well.
                     // TODO: change this to displayName attribute later
@@ -103,8 +110,8 @@ class ShadowDeltaComputerRelative {
                     resultingRepoModifications.add(
                             primaryIdentifierValueModFromAttributeMod(modification));
                 }
-                if (ctx.shouldStoreAttributeInShadow(objectDefinition, attrDef)) {
-                    resultingRepoModifications.add(modification, attrDef);
+                if (shouldStoreSimpleAttributeInShadow(ctx, objectDefinition, simpleAttrDef)) {
+                    resultingRepoModifications.add(modification, simpleAttrDef);
                 }
             } else if (parentPath.equivalent(ShadowType.F_ACTIVATION)) {
                 if (ProvisioningUtil.shouldStoreActivationItemInShadow(modification.getElementName(), cachingEnabled)) {

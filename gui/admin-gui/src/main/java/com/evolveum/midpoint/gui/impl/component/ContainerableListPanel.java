@@ -627,36 +627,44 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         List<IColumn<PO, String>> columns = collectColumns();
 
         if (!isPreview()) {
-            List<InlineMenuItem> allItems = new ArrayList<>();
-            List<InlineMenuItem> menuItems = createInlineMenu();
-            if (menuItems != null) {
-                allItems.addAll(menuItems);
-            }
-            addBasicActions(allItems);
-            addCustomActions(allItems, this::getSelectedRealObjects);
-
-            if (!allItems.isEmpty()) {
-                InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(allItems, getPageBase()) {
-                    @Override
-                    public String getCssClass() {
-                        return getInlineMenuCssClass();
-                    }
-
-                    @Override
-                    protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
-                        return isMenuItemVisible(rowModel);
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<PO>> cellItem, String componentId, IModel<PO> rowModel) {
-//                        cellItem.add(Attr))
-                        super.populateItem(cellItem, componentId, rowModel);
-                    }
-                };
+            IColumn<PO, String> actionsColumn = createActionsColumn();
+            if (actionsColumn != null) {
                 columns.add(actionsColumn);
             }
         }
         return columns;
+    }
+
+    protected IColumn<PO, String> createActionsColumn() {
+        List<InlineMenuItem> allItems = new ArrayList<>();
+        List<InlineMenuItem> menuItems = createInlineMenu();
+        if (menuItems != null) {
+            allItems.addAll(menuItems);
+        }
+        addBasicActions(allItems);
+        addCustomActions(allItems, this::getSelectedRealObjects);
+
+        if (!allItems.isEmpty()) {
+            InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(allItems, getPageBase()) {
+                @Override
+                public String getCssClass() {
+                    return getInlineMenuCssClass();
+                }
+
+                @Override
+                protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
+                    return isMenuItemVisible(rowModel);
+                }
+
+                @Override
+                public void populateItem(Item<ICellPopulator<PO>> cellItem, String componentId, IModel<PO> rowModel) {
+//                        cellItem.add(Attr))
+                    super.populateItem(cellItem, componentId, rowModel);
+                }
+            };
+            return actionsColumn;
+        }
+        return null;
     }
 
     /**
@@ -712,6 +720,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     private void addingCheckAndIconColumnIfExists(List<IColumn<PO, String>> columns) {
         if (!isPreview()) {
             IColumn<PO, String> checkboxColumn = createCheckboxColumn();
+            checkboxColumn = applyMultiselectOptionConfiguration(checkboxColumn);
             if (checkboxColumn != null) {
                 columns.add(checkboxColumn);
             }
@@ -851,7 +860,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (others == null) {
             return columns;
         } else if (notContainsNameColumn(others)) {
-            IColumn<PO, String> nameColumn = createNameColumn(null, null, null);
+            IColumn<PO, String> nameColumn = createNameColumn(createStringResource("ObjectType.name"), null, null);
             if (nameColumn != null) {
                 columns.add(nameColumn);
             }
@@ -1411,5 +1420,29 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     protected LoadableModel<PageParameters> getNavigationParametersModel() {
         return null;
+    }
+
+    private IColumn<PO, String> applyMultiselectOptionConfiguration(IColumn<PO, String> column) {
+        if (column == null) {
+            return null;
+        }
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        if (view == null) {
+            return column;
+        }
+        MultiselectOptionType multiselect = view.getMultiselect();
+        if (multiselect == null) {
+            return column; //when no multiselect is defined, we take checkbox column as it is
+        }
+        return switch (multiselect) {
+            case NO_SELECT -> null;
+            case SELECT_ALL -> column;
+            case SELECT_INDIVIDUALS -> {
+                if (column instanceof CheckBoxHeaderColumn) {
+                    ((CheckBoxHeaderColumn) column).setCheckboxVisible(false);
+                }
+                yield column;
+            }
+        };
     }
 }

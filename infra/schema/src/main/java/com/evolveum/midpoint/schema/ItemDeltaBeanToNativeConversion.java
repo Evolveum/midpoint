@@ -70,7 +70,7 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
      */
     private ItemDefinition<?> itemDefinition;
 
-    private boolean convertUnknownTypes;
+    private final boolean convertUnknownTypes;
 
     /**
      * Definition of the item parent container. It is used only when itemDefinition cannot be determined directly.
@@ -79,7 +79,10 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
      */
     private PrismContainerDefinition<?> parentDefinition;
 
-    ItemDeltaBeanToNativeConversion(@NotNull ItemDeltaType deltaBean, @NotNull PrismContainerDefinition<?> rootContainerDef, boolean convertUnknownTypes)
+    ItemDeltaBeanToNativeConversion(
+            @NotNull ItemDeltaType deltaBean,
+            @NotNull PrismContainerDefinition<?> rootContainerDef,
+            boolean convertUnknownTypes)
             throws SchemaException {
         this.deltaBean = deltaBean;
         itemPath =
@@ -105,7 +108,6 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
                 itemDefinition = replacementDef;
             }
         }
-
 
         Collection<IV> parsedValues = getParsedValues(deltaBean.getValue());
         ItemDelta<IV, ID> itemDelta = createDelta();

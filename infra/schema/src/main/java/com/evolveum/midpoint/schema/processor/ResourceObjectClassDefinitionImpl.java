@@ -284,7 +284,7 @@ public class ResourceObjectClassDefinitionImpl
         return getClass().getSimpleName() + "{" +
                 "native=" + nativeObjectClassDefinition +
                 ", attributeDefinitions: " + attributeDefinitions.size() +
-//                ", associationDefinitions: " + associationDefinitions.size() +
+                ", associationDefinitions: " + associationDefinitions.size() +
                 ", primaryIdentifiersNames: " + primaryIdentifiersNames.size() +
                 ", secondaryIdentifiersNames: " + secondaryIdentifiersNames.size() +
                 "}";

@@ -416,9 +416,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         addObject(userDeWatt);
         String userDeWattkOid = userDeWatt.getOid();
 
-        PrismObject<ShadowType> accountDeWatt = createAccount(getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME), ACCOUNT_DEWATT_NAME, true);
-        addAttributeToShadow(accountDeWatt, getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME),
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Augustus DeWatt");
+        var accountDeWatt = createAccount(getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME), ACCOUNT_DEWATT_NAME, true);
+        addAttributeToShadow(
+                accountDeWatt, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Augustus DeWatt");
         addObject(accountDeWatt);
 
         // precondition

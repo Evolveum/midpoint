@@ -178,7 +178,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
         if (isDelete()) {
             if (ucfResourceObject != null) {
                 return CompleteResourceObject.ofDeleted(
-                        ExistingResourceObject.fromUcf(ucfResourceObject, effectiveCtx.getResourceRef(), false));
+                        ExistingResourceObjectShadow.fromUcf(ucfResourceObject, effectiveCtx.getResourceRef(), false));
             } else {
                 return null;
             }
@@ -197,7 +197,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
         }
 
         // effectiveCtx is already related to the shadow
-        ExistingResourceObject resourceObject = ExistingResourceObject.fromUcf(ucfResourceObject, effectiveCtx.getResourceRef());
+        ExistingResourceObjectShadow resourceObject = ExistingResourceObjectShadow.fromUcf(ucfResourceObject, effectiveCtx.getResourceRef());
 
         return ResourceObjectCompleter.completeResourceObject(effectiveCtx, resourceObject, fetchAssociations, result);
     }
@@ -265,7 +265,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
             ErrorState errorState = initializationState.getErrorState();
             assert errorState.isError();
             return CompleteResourceObject.of(
-                    ExistingResourceObject.fromUcf(ucfResourceObject, effectiveCtx.getResourceRef(), !isDelete()),
+                    ExistingResourceObjectShadow.fromUcf(ucfResourceObject, effectiveCtx.getResourceRef(), !isDelete()),
                     errorState);
         } else {
             return null;

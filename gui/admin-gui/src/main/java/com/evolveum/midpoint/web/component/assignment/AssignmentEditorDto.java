@@ -272,7 +272,7 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
             }
 
             PrismContainerDefinition<?> definition = objectClassDefinition
-                    .toResourceAttributeContainerDefinition();
+                    .toShadowAttributesContainerDefinition();
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Refined definition for {}\n{}", construction, definition.debugDump());

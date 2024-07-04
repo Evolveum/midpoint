@@ -228,15 +228,15 @@ class ConnIdSchemaParser {
 
             NativeShadowAttributeDefinitionImpl<?> mpItemDef = createNativeAttributeDefinition(xsdItemName, xsdTypeName);
 
-            var participantRole = xsdTypeInfo.associationParticipantRole();
+            var participantRole = xsdTypeInfo.referenceParticipantRole();
             if (participantRole == null) {
-                LOGGER.trace("  attribute conversion: ConnId: {}({}) -> XSD: {}({})",
+                LOGGER.trace("  simple attribute conversion: ConnId: {}({}) -> XSD: {}({})",
                         connIdAttrName, connIdAttrInfo.getType().getSimpleName(),
                         PrettyPrinter.prettyPrintLazily(xsdItemName),
                         PrettyPrinter.prettyPrintLazily(xsdTypeName));
             } else {
                 mpItemDef.setReferenceParticipantRole(participantRole);
-                LOGGER.trace("  association conversion: ConnId: {} ({}) -> XSD: {}",
+                LOGGER.trace("  reference attribute conversion: ConnId: {} ({}) -> XSD: {}",
                         connIdAttrName, connIdAttrInfo.getSubtype(), PrettyPrinter.prettyPrintLazily(xsdItemName));
             }
 

@@ -320,7 +320,7 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
         menu.setVisibilityChecker(
                 (InlineMenuItem.VisibilityChecker) (rowModel, isHeader) -> {
                     if (isHeader){
-                        return isHeaderVisible();
+                        return false;
                     }
                     PrismContainerValueWrapper<PrismItemDefinitionType> rowObject =
                             (PrismContainerValueWrapper<PrismItemDefinitionType>) rowModel.getObject();

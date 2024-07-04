@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.toRepoPolyLegacy;
+
 import static org.testng.AssertJUnit.assertEquals;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
@@ -15,6 +17,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.prism.polystring.PolyString;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -445,7 +449,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, "title", "JoKeR");
         assertDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_JOKER_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
 
-        IntegrationTestTools.assertAssociation(accountModelShadow, RESOURCE_DUMMY_UPCASE_ASSOCIATION_GROUP_QNAME,
+        IntegrationTestTools.assertAssociationObjectRef(accountModelShadow, RESOURCE_DUMMY_UPCASE_ASSOCIATION_GROUP_QNAME,
                 GROUP_SHADOW_JOKER_DUMMY_UPCASE_OID);
 
         assertShadows(6);
@@ -683,14 +687,15 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_GUYBRUSH_DUMMY_UPCASE_NAME, "title", "FOOL!");
         assertDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_DUMMY_FOOLS_NAME, ACCOUNT_GUYBRUSH_DUMMY_UPCASE_NAME);
 
-        var associationValues = ShadowAssociationsCollection.ofShadow(accountModel.asObjectable()).getAllValues();
+        var associationValues = ShadowAssociationsCollection.ofShadow(accountModel.asObjectable()).getAllIterableValues();
         assertEquals(1, associationValues.size());
-        ObjectReferenceType shadowRef = associationValues.iterator().next().value().getShadowRef();
+        ObjectReferenceType shadowRef = associationValues.iterator().next().associationValue().getSingleObjectRefRequired();
         PrismObject<ShadowType> groupFoolsRepoShadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result);
         display("group fools repo shadow", groupFoolsRepoShadow);
 
-        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_NAME_PATH, toRepoPoly(GROUP_DUMMY_FOOLS_NAME));
-        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_UID_PATH, toRepoPoly(GROUP_DUMMY_FOOLS_NAME));
+        PolyString repoNameValue = isNativeRepository() ? toRepoPoly(GROUP_DUMMY_FOOLS_NAME) : toRepoPolyLegacy(GROUP_DUMMY_FOOLS_NAME);
+        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_NAME_PATH, repoNameValue);
+        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ICFS_UID_PATH, repoNameValue);
         assertShadowKindIntent(groupFoolsRepoShadow, ShadowKindType.ENTITLEMENT, INTENT_DUMMY_GROUP);
 
         assertShadows(6);

@@ -8,6 +8,8 @@ import java.util.Set;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierNoiseCategoryType;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -25,48 +27,159 @@ public abstract class Clusterer<T extends Clusterable> {
 
     public abstract List<? extends Cluster<T>> cluster(Collection<T> var1, RoleAnalysisProgressIncrement handler);
 
-    public List<T> getNeighbors(T point, Collection<T> points, Set<ClusterExplanation> explanation, double eps) {
+    @SuppressWarnings({ "rawtypes", "ClassEscapesDefinedScope" })
+    public List<T> getNeighbors(T point, Collection<T> points, Set<ClusterExplanation> explanation, double eps, int minPts,
+            DensityBasedClustering.PointStatusWrapper pStatusWrapper) {
         List<T> neighbors = new ArrayList<>();
 
         return switch (clusteringMode) {
             case BALANCED -> {
+                int numberOfOveralRuleNeighbors = point.getMembersCount();
                 for (T neighbor : points) {
-                    if (point != neighbor && this.balancedAccessDistance(neighbor, point) <= eps) {
+                    boolean notNeighbor = point != neighbor;
+                    boolean accessDistance = this.balancedAccessDistance(neighbor, point) <= eps;
+
+                    if (notNeighbor && accessDistance) {
                         neighbors.add(neighbor);
+                        numberOfOveralRuleNeighbors += neighbor.getMembersCount();
                     }
                 }
+
+                if (numberOfOveralRuleNeighbors > minPts) {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER;
+                } else {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
+                }
+
                 yield neighbors;
             }
             case UNBALANCED -> {
+                int numberOfOveralRuleNeighbors = point.getMembersCount();
                 for (T neighbor : points) {
-                    if (point != neighbor && this.unbalancedAccessDistance(neighbor, point) <= eps) {
+                    boolean notNeighbor = point != neighbor;
+                    boolean accessDistance = this.unbalancedAccessDistance(neighbor, point) <= eps;
+
+                    if (notNeighbor && accessDistance) {
                         neighbors.add(neighbor);
+                        numberOfOveralRuleNeighbors += neighbor.getMembersCount();
                     }
                 }
+
+                if (numberOfOveralRuleNeighbors > minPts) {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER;
+                } else {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
+                }
+
                 yield neighbors;
             }
             case BALANCED_RULES -> {
+                int numberOfOveralRuleNeighbors = point.getMembersCount();
                 for (T neighbor : points) {
-                    if (point != neighbor && this.balancedAccessDistance(neighbor, point) <= eps
-                            && this.rulesDistance(
+                    boolean notNeighbor = point != neighbor;
+                    boolean accessDistance = this.balancedAccessDistance(neighbor, point) <= eps;
+                    boolean rulesDistance = this.rulesDistance(
                             neighbor.getExtensionProperties(),
                             point.getExtensionProperties(),
-                            explanation) == 0) {
+                            explanation) == 0;
+
+                    if (notNeighbor && accessDistance && rulesDistance) {
                         neighbors.add(neighbor);
+                        numberOfOveralRuleNeighbors += neighbor.getMembersCount();
                     }
                 }
+
+                if (numberOfOveralRuleNeighbors > minPts) {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER;
+                } else {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
+                }
+
                 yield neighbors;
             }
             case UNBALANCED_RULES -> {
+                int numberOfOveralRuleNeighbors = point.getMembersCount();
+                int numberOfAccessNeighbors = point.getMembersCount();
+                int numberOfRulesNeighbors = point.getMembersCount();
                 for (T neighbor : points) {
-                    if (point != neighbor && this.unbalancedAccessDistance(neighbor, point) <= eps
-                            && this.rulesDistance(
+                    boolean notNeighbor = point != neighbor;
+                    boolean accessDistance = this.unbalancedAccessDistance(neighbor, point) <= eps;
+                    boolean rulesDistance = this.rulesDistance(
                             neighbor.getExtensionProperties(),
                             point.getExtensionProperties(),
-                            explanation) == 0) {
+                            explanation) == 0;
+
+                    if (notNeighbor && accessDistance && rulesDistance) {
                         neighbors.add(neighbor);
+                        numberOfOveralRuleNeighbors += neighbor.getMembersCount();
+                    }
+
+                    if (accessDistance) {
+                        numberOfAccessNeighbors += neighbor.getMembersCount();
+                    }
+
+                    if (rulesDistance) {
+                        numberOfRulesNeighbors += neighbor.getMembersCount();
                     }
                 }
+
+                if (numberOfOveralRuleNeighbors > minPts) {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER;
+                } else if (numberOfAccessNeighbors < minPts && numberOfRulesNeighbors < minPts) {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
+                } else if (numberOfAccessNeighbors < minPts) {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.ACCESS_NOISE;
+                } else if (numberOfRulesNeighbors < minPts) {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.RULE_NOISE;
+                } else {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
+                }
+
+                yield neighbors;
+            }
+            case BALANCED_RULES_OUTLIER -> {
+
+                int numberOfOveralRuleNeighbors = point.getMembersCount();
+                int numberOfAccessNeighbors = point.getMembersCount();
+                int numberOfRulesNeighbors = point.getMembersCount();
+
+                for (T neighbor : points) {
+                    ExtensionProperties neighborExtensionProperties = neighbor.getExtensionProperties();
+                    ExtensionProperties pointExtensionProperties = point.getExtensionProperties();
+
+                    boolean notNeighbor = point != neighbor;
+                    boolean accessDistance = this.balancedAccessDistance(neighbor, point) <= eps;
+                    boolean rulesDistance = this.rulesDistance(
+                            neighborExtensionProperties,
+                            pointExtensionProperties,
+                            explanation) == 0;
+
+                    if (accessDistance) {
+                        numberOfAccessNeighbors += neighbor.getMembersCount();
+                    }
+
+                    if (rulesDistance) {
+                        numberOfRulesNeighbors += neighbor.getMembersCount();
+                    }
+
+                    if (notNeighbor && accessDistance && rulesDistance) {
+                        neighbors.add(neighbor);
+                        numberOfOveralRuleNeighbors += neighbor.getMembersCount();
+                    }
+                }
+
+                if (numberOfOveralRuleNeighbors > minPts) {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER;
+                } else if (numberOfAccessNeighbors < minPts && numberOfRulesNeighbors <= minPts) {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
+                } else if (numberOfAccessNeighbors < minPts) {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.ACCESS_NOISE;
+                } else if (numberOfRulesNeighbors < minPts) {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.RULE_NOISE;
+                } else {
+                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
+                }
+
                 yield neighbors;
             }
         };

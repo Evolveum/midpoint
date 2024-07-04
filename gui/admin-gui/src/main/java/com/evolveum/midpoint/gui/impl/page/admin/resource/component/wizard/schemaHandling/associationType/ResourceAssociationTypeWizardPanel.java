@@ -77,10 +77,10 @@ public class ResourceAssociationTypeWizardPanel extends SchemaHandlingTypeWizard
     }
 
     private void showResourceObjectTypeBasic(AjaxRequestTarget target) {
-        showChoiceFragment(
-                target,
-                new ResourceAssociationTypeBasicWizardPanel(getIdOfChoicePanel(), createHelper(true))
-        );
+        ResourceAssociationTypeBasicWizardPanel wizard =
+                new ResourceAssociationTypeBasicWizardPanel(getIdOfChoicePanel(), createHelper(true));
+        wizard.setShowChoicePanel(false);
+        showChoiceFragment(target, wizard);
     }
 
     private void showCorrelationItemsTable(AjaxRequestTarget target) {

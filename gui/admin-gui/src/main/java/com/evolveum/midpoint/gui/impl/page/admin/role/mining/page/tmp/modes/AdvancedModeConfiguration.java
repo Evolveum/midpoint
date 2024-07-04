@@ -50,10 +50,12 @@ public class AdvancedModeConfiguration extends AbstractRoleAnalysisConfiguration
                 null,
                 80.0,
                 10,
-                5);
+                5,
+                false);
 
         updateDetectionOptions(5,
                 5,
+                null,
                 new RangeType()
                         .min(10.0)
                         .max(100.0),

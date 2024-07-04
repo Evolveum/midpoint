@@ -19,6 +19,7 @@ import java.util.*;
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.common.mining.utils.values.*;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.OperationPanelModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisTableOpPanelItem;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.Role
 
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
+import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -163,19 +165,7 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
                     @Override
                     protected void performOnClick(AjaxRequestTarget target) {
                         showAsExpandCard = !showAsExpandCard;
-
-                        boolean visible = getNavigationComponent().isVisible();
-                        if (showAsExpandCard) {
-                            if (visible) {
-                                getNavigationComponent().setVisible(false);
-                                target.add(getNavigationComponent().getParent());
-                            }
-                        } else {
-                            if (!visible) {
-                                getNavigationComponent().setVisible(true);
-                                target.add(getNavigationComponent().getParent());
-                            }
-                        }
+                        toggleDetailsNavigationPanelVisibility(target);
                     }
 
                     @Contract(pure = true)
@@ -1249,8 +1239,13 @@ public class RoleAnalysisRoleBasedTable extends BasePanel<String> {
         return new ArrayList<>();
     }
 
-    protected Component getNavigationComponent() {
-        return getPageBase().get(getPageBase().createComponentPath("detailsView", "mainForm", "navigationHeader"));
+    @SuppressWarnings("rawtypes")
+    protected void toggleDetailsNavigationPanelVisibility(AjaxRequestTarget target) {
+        Page page = getPage();
+        if (page instanceof AbstractPageObjectDetails) {
+            AbstractPageObjectDetails<?,?> pageObjectDetails = ((AbstractPageObjectDetails) page);
+            pageObjectDetails.toggleDetailsNavigationPanelVisibility(target);
+        }
     }
 
     public @NotNull List<DetectedPattern> getSelectedPatterns() {

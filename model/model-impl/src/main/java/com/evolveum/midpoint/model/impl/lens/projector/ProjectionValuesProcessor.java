@@ -571,22 +571,23 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             PrismObject<ShadowType> accountToAdd = primaryDelta.getObjectToAdd();
             ShadowAttributesContainer attributesContainer = ShadowUtil.getAttributesContainer(accountToAdd);
             if (attributesContainer != null) {
-                for (ShadowSimpleAttribute<?> attribute: attributesContainer.getAttributes()) {
-                    var attrDef = requireNonNull(rAccountDef.findAttributeDefinition(attribute.getElementName()));
+                for (var attribute: attributesContainer.getAttributes()) {
+                    var attrDef = rAccountDef.findAttributeDefinitionRequired(attribute.getElementName());
                     if (!attrDef.isTolerant()) {
-                        throw new PolicyViolationException("Attempt to add object with non-tolerant attribute "+attribute.getElementName()+" in "+
-                                "account "+accountContext.getKey()+" during "+activityDescription);
+                        throw new PolicyViolationException(
+                                "Attempt to add object with non-tolerant attribute '%s' in projection %s during %s".formatted(
+                                        attribute.getElementName(), accountContext.getKey(), activityDescription));
                     }
                 }
             }
         } else if (primaryDelta.isModify()) {
-            for(ItemDelta<?,?> modification: primaryDelta.getModifications()) {
+            for (ItemDelta<?, ?> modification : primaryDelta.getModifications()) {
                 if (modification.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
-                    PropertyDelta<?> attrDelta = (PropertyDelta<?>) modification;
-                    var attrDef = requireNonNull(rAccountDef.findAttributeDefinition(attrDelta.getElementName()));
+                    var attrDef = rAccountDef.findAttributeDefinitionRequired(modification.getElementName());
                     if (!attrDef.isTolerant()) {
-                        throw new PolicyViolationException("Attempt to modify non-tolerant attribute "+attrDelta.getElementName()+" in "+
-                                "account "+accountContext.getKey()+" during "+activityDescription);
+                        throw new PolicyViolationException(
+                                "Attempt to modify non-tolerant attribute '%s' in account %s during %s".formatted(
+                                        modification.getElementName(), accountContext.getKey(), activityDescription));
                     }
                 }
             }

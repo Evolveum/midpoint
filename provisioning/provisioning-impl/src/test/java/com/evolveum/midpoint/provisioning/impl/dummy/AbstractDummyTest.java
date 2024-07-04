@@ -223,7 +223,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         var objectDef = Resource.of(resourceBean)
                 .getCompleteSchemaRequired()
                 .findDefinitionForObjectClassRequired(shadow.asObjectable().getObjectClass());
-        attrContainerClone.applyDefinition(objectDef.toResourceAttributeContainerDefinition());
+        attrContainerClone.applyDefinition(objectDef.toShadowAttributesContainerDefinition());
 
         PrismContainerValue<ShadowAttributesType> origAttrContainerValue = origAttrContainer.getValue();
         origAttrContainerValue.clear();
@@ -286,7 +286,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
     protected void checkUniqueness(AbstractShadow object, boolean liveOnly) throws SchemaException {
         OperationResult result = createOperationResult("checkUniqueness");
-        var nameAttr = object.getAttributeRequired(SchemaConstants.ICFS_NAME);
+        var nameAttr = object.getSimpleAttributeRequired(SchemaConstants.ICFS_NAME);
         var q = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(object.getResourceOidRequired())
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(object.getObjectClass())
@@ -439,11 +439,11 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         IntegrationTestTools.assertNoGroupMember(group, accountId);
     }
 
-    protected void assertEntitlementGroup(AbstractShadow account, String entitlementOid) {
+    protected void assertGroupAssociation(AbstractShadow account, String entitlementOid) {
         assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
     }
 
-    protected void assertEntitlementPriv(AbstractShadow account, String entitlementOid) {
+    protected void assertPrivAssociation(AbstractShadow account, String entitlementOid) {
         assertAssociation(account, ASSOCIATION_PRIV_NAME, entitlementOid);
     }
 

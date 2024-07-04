@@ -6,13 +6,13 @@
  */
 package com.evolveum.midpoint.model.api.mining;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import com.google.common.collect.ListMultimap;
+import org.apache.commons.lang3.mutable.MutableDouble;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +38,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public interface RoleAnalysisService {
+
+    ModelService getModelService();
 
     /**
      * Retrieves a PrismObject of UserType object based on its OID.
@@ -475,7 +477,7 @@ public interface RoleAnalysisService {
      * @param taskName The name of the task.
      * @param task The task associated with this operation.
      * @param result The operation result.
-     * @param processingTask
+     * @param processingTask The processing task.
      */
     void executeClusteringTask(
             @NotNull ModelInteractionService modelInteractionService,
@@ -485,20 +487,6 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull TaskType processingTask);
-
-    /**
-     * This method is used to update the cluster detected patterns.
-     * Currently, it is used to update the cluster detected patterns
-     * after the migration task in the cluster.
-     *
-     * @param clusterRefOid The cluster OID.
-     * @param task The task associated with this operation.
-     * @param result The operation result.
-     */
-    void updateClusterPatterns(
-            @NotNull String clusterRefOid,
-            @NotNull Task task,
-            @NotNull OperationResult result);
 
     /**
      * Recompute and resolve the cluster operation status.
@@ -719,8 +707,8 @@ public interface RoleAnalysisService {
             @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
             @NotNull Task task,
             @NotNull OperationResult result,
-            @NotNull List<RoleAnalysisAttributeDef> attributeRoleDefSet,
-            @NotNull List<RoleAnalysisAttributeDef> attributeUserDefSet);
+            @Nullable List<RoleAnalysisAttributeDef> attributeRoleDefSet,
+            @Nullable List<RoleAnalysisAttributeDef> attributeUserDefSet);
 
     /**
      * Searches for clusters associated with a specific role analysis session.
@@ -803,7 +791,9 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    RoleAnalysisAttributeAnalysisResult resolveUserAttributes(@NotNull PrismObject<UserType> prismUser, List<RoleAnalysisAttributeDef> attributesForUserAnalysis);
+    RoleAnalysisAttributeAnalysisResult resolveUserAttributes(
+            @NotNull PrismObject<UserType> prismUser,
+            @NotNull List<RoleAnalysisAttributeDef> attributesForUserAnalysis);
 
     @Nullable RoleAnalysisAttributeAnalysisResult resolveSimilarAspect(
             @NotNull RoleAnalysisAttributeAnalysisResult compared,
@@ -815,15 +805,11 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result,
             @NotNull List<RoleAnalysisAttributeDef> attributeDefSet);
 
-    <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(@NotNull List<T> data, double negativeThreshold, double positiveThreshold);
-
-    <T extends MiningBaseTypeChunk> double calculateZScore(@NotNull T data, ZScoreData zScoreData);
-
+    <T extends MiningBaseTypeChunk> ZScoreData resolveOutliersZScore(
+            @NotNull List<T> data,
+            @Nullable RangeType range,
+            @Nullable Double sensitivity);
     <T extends MiningBaseTypeChunk> double calculateZScoreConfidence(@NotNull T item, ZScoreData zScoreData);
-
-    List<RoleAnalysisAttributeDef> resolveRoleAttributes(@NotNull RoleAnalysisSessionType session);
-
-    List<RoleAnalysisAttributeDef> resolveUserAttributes(@NotNull RoleAnalysisSessionType session);
 
     @Nullable Set<String> resolveUserValueToMark(
             @NotNull PrismObject<UserType> prismUser,
@@ -852,13 +838,17 @@ public interface RoleAnalysisService {
      * @param roleAnalysisOutlierType The role analysis outlier type containing the outlier information.
      * @param task The task associated with the operation.
      * @param result The operation result.
-     * @param sessionOid The OID of the session associated with the outlier.
+     * @param session The role analysis session type containing the session information.
+     * @param cluster The role analysis cluster type containing the cluster information.
+     * @param requiredConfidence The required confidence for the outlier.
      */
     void resolveOutliers(
             @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
             @NotNull Task task,
             @NotNull OperationResult result,
-            @NotNull String sessionOid);
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull RoleAnalysisClusterType cluster,
+            double requiredConfidence);
 
     /**
      * Search for the top detected patterns over all clusters
@@ -895,15 +885,67 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    void stopSessionTask(
-            @NotNull String sessionOid,
-            @NotNull Task task,
-            @NotNull OperationResult result);
-
     List<DetectedPattern> getTopSessionPattern(
             @NotNull RoleAnalysisSessionType session,
             @NotNull Task task,
             @NotNull OperationResult result,
             boolean single);
 
+    //TODO: replace this method (experiment)
+    List<String> findJaccardCloseObject(
+            @NotNull String userOid,
+            @NotNull ListMultimap<List<String>, String> chunkMap,
+            @NotNull MutableDouble usedFrequency,
+            @NotNull List<String> outliersMembers,
+            double minThreshold,
+            int minMembers,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    ListMultimap<List<String>, String> loadUserForOutlierComparison(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            List<String> outliersMembers,
+            int minRolesOccupancy,
+            int maxRolesOccupancy,
+            @Nullable SearchFilterType query,
+            @NotNull OperationResult result,
+            @NotNull Task task);
+
+    /**
+     * This method is used to calculate the threshold range for outlier detection.
+     * The range is adjusted based on the provided sensitivity.
+     *
+     * @param sensitivity The sensitivity for outlier detection. It should be a value between 0.0 and 100.
+     *                    If the provided value is outside this range, it will be set to 0.0.
+     *                    The sensitivity is used to adjust the threshold for outlier detection.
+     * @param range The initial range for outlier detection. It should be a RangeType object with min and max values.
+     *              If the min or max values are null, they will be set to 2.0.
+     *              Note: The range is expected to have both values positive.
+     * @return The adjusted range for outlier detection. It's a RangeType object with the min and max values
+     * adjusted based on the sensitivity.
+     */
+    RangeType calculateOutlierThresholdRange(Double sensitivity, @NotNull RangeType range);
+
+    /**
+     * Calculates the required confidence for outlier detection based on the provided sensitivity.
+     * The sensitivity should be a value between 0.0 and 100. If the provided value is outside this range, the function will return 0.0.
+     * The function uses the formula 1 - (sensitivity * 0.01) to calculate the required confidence.
+     *
+     * @param sensitivity The sensitivity for outlier detection. It should be a value between 0.0 and 100.
+     * @return The required confidence for outlier detection. It's a value between 0.0 and 1.0.
+     */
+    double calculateOutlierConfidenceRequired(double sensitivity);
+
+    /**
+     * This method is used to find all outliers associated with a specific cluster.
+     *
+     * @param cluster The cluster for which to find associated outliers. It should be a RoleAnalysisClusterType object.
+     * @param task The task in context. It should be a Task object.
+     * @param result The operation result. It should be an OperationResult object.
+     * @return A list of RoleAnalysisOutlierType objects that are associated with the provided cluster.
+     */
+    List<RoleAnalysisOutlierType> findClusterOutliers(
+            @NotNull RoleAnalysisClusterType cluster,
+            @NotNull Task task,
+            @NotNull OperationResult result);
 }

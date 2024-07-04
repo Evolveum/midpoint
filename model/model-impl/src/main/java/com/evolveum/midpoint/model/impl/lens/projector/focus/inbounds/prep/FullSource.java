@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
+import com.evolveum.midpoint.model.api.InboundSourceData;
 import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowAssociationsUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -61,19 +63,12 @@ class FullSource extends MSource {
     @NotNull private final IdentityManagementConfiguration identityManagementConfiguration;
 
     FullSource(
-            PrismObject<ShadowType> currentShadow,
-            @Nullable ObjectDelta<ShadowType> aPrioriDelta,
-            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull InboundSourceData sourceData,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
             @NotNull LensProjectionContext projectionContext,
             @NotNull Context context,
-            @Nullable ShadowReferenceAttributeDefinition owningAssociationDefinition) throws ConfigurationException {
-        super(
-                asObjectable(currentShadow),
-                aPrioriDelta,
-                resourceObjectDefinition,
-                inboundDefinition,
-                owningAssociationDefinition);
+            @Nullable ShadowAssociationDefinition owningAssociationDefinition) throws ConfigurationException {
+        super(sourceData, inboundDefinition, owningAssociationDefinition);
         this.projectionContext = projectionContext;
         this.context = context;
         this.identityManagementConfiguration = getFocusContext().getIdentityManagementConfiguration();
@@ -176,11 +171,6 @@ class FullSource extends MSource {
     }
 
     @Override
-    PrismObject<ShadowType> getResourceObjectNew() {
-        return currentShadow;
-    }
-
-    @Override
     String getChannel() {
         return projectionContext.getLensContext().getChannel();
     }
@@ -203,7 +193,7 @@ class FullSource extends MSource {
             return ProcessingMode.A_PRIORI_DELTA;
         }
 
-        if (currentShadow == null) {
+        if (sourceData.isEmpty()) {
             // We have no chance of loading the shadow - we have no information about it.
             // Actually, this shouldn't occur (see shouldProcessMappings).
             LOGGER.trace("Mapping(s) for {}: No item a priori delta, and no shadow (not even repo version) -> skipping them",
@@ -235,13 +225,12 @@ class FullSource extends MSource {
     @Override
     void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull Context context, OperationResult result)
             throws SchemaException, StopProcessingProjectionException {
-        if (projectionContext.isFullShadow()) {
+        if (projectionContext.isFullShadow()) { // FIXME BEWARE, we may deal with a different shadow!
             return;
         }
         if (projectionContext.isGone()) {
             LOGGER.trace("Not loading {} because the resource object is gone", getProjectionHumanReadableNameLazy());
         }
-
         if (fullStateRequired) {
             LOGGER.trace("Loading {} because full state is required", getProjectionHumanReadableNameLazy());
             doLoad(context, result);
@@ -252,7 +241,10 @@ class FullSource extends MSource {
             throws SchemaException, StopProcessingProjectionException {
         try {
             beans.contextLoader.loadFullShadow(projectionContext, "inbound", context.env.task, result);
-            currentShadow = projectionContext.getObjectCurrent();
+            sourceData = InboundSourceData.forShadow(
+                    projectionContext.getObjectCurrentRequired(),
+                    sourceData.getAPrioriDelta(),
+                    sourceData.getShadowObjectDefinition());
             if (projectionContext.isBroken()) { // just in case the load does not return an exception
                 throw new StopProcessingProjectionException();
             }
@@ -278,9 +270,7 @@ class FullSource extends MSource {
     @Override
     void resolveInputEntitlements(
             ContainerDelta<ShadowAssociationValueType> associationAPrioriDelta,
-            ShadowReferenceAttribute currentAssociation) {
-
-        // FIXME rework this!
+            ShadowAssociation currentAssociation) {
 
         Collection<PrismContainerValue<ShadowAssociationValueType>> associationsToResolve = new ArrayList<>();
         if (currentAssociation != null) {
@@ -298,22 +288,18 @@ class FullSource extends MSource {
     }
 
     private void resolveEntitlementFromResource(PrismContainerValue<ShadowAssociationValueType> associationToResolve) {
-        var associationValue = associationToResolve.asContainerable();
-
-        ObjectReferenceType shadowRef = associationValue.getShadowRef();
+        // FIXME ugly hack
+        ObjectReferenceType shadowRef = ((ShadowAssociationValue) associationToResolve).getSingleObjectRefRelaxed();
         if (shadowRef == null) {
             return;
         }
 
         Map<String, PrismObject<ShadowType>> entitlementMap = projectionContext.getEntitlementMap();
 
-        if (!Boolean.TRUE.equals(associationValue.isIdentifiersOnly())) {
-            // If there's a full object (not ID only), we can use the embedded object directly
-            PrismObject<Objectable> existingObject = shadowRef.getObject();
-            if (existingObject != null && existingObject.getOid() != null) {
-                entitlementMap.put(existingObject.getOid(), PrismObject.cast(existingObject, ShadowType.class));
-                return;
-            }
+        PrismObject<Objectable> existingObject = shadowRef.getObject();
+        if (existingObject != null && existingObject.getOid() != null) {
+            entitlementMap.put(existingObject.getOid(), PrismObject.cast(existingObject, ShadowType.class));
+            return;
         }
 
         PrismObject<ShadowType> object;
@@ -356,22 +342,19 @@ class FullSource extends MSource {
 
         // FIXME rework this!
 
-        PrismReference entitlementRef;
-
         LOGGER.trace("Trying to resolve the entitlement object from association value {}", value);
         PrismObject<ShadowType> entitlement;
         if (!(value instanceof PrismContainerValue<?> pcv)) {
             LOGGER.trace("No value or not a PCV -> no entitlement object");
-            entitlementRef = null;
             entitlement = null;
         } else {
-            entitlementRef = pcv.findReference(ShadowAssociationValueType.F_SHADOW_REF);
-            if (entitlementRef == null) {
+            var reference = ShadowAssociationsUtil.getSingleObjectRefRelaxed((ShadowAssociationValueType) pcv.asContainerable());
+            if (reference == null) {
                 LOGGER.trace("No shadow reference found -> no entitlement object");
                 entitlement = null;
             } else {
                 // This is the old style of obtaining the entitlement; to be deleted
-                entitlement = projectionContext.getEntitlementMap().get(entitlementRef.getOid());
+                entitlement = projectionContext.getEntitlementMap().get(reference.getOid());
                 LOGGER.trace("Resolved entitlement object: {}", entitlement);
             }
         }
@@ -384,9 +367,7 @@ class FullSource extends MSource {
         variables.put(ExpressionConstants.VAR_ENTITLEMENT, entitlement, entitlementDef);
 
         // The new way
-        var entitlementRefValue = entitlementRef != null ? entitlementRef.getValue() : null;
-        var entitlementNew = entitlementRefValue != null ? entitlementRefValue.getObject() : null;
-        variables.put(ExpressionConstants.VAR_OBJECT, entitlementNew, entitlementDef);
+        variables.put(ExpressionConstants.VAR_OBJECT, entitlement, entitlementDef);
     }
 
     @Override

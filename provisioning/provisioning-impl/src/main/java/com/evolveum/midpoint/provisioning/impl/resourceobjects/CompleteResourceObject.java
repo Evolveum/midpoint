@@ -20,7 +20,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -32,17 +31,17 @@ import java.io.Serializable;
  * (Except for {@link ResourceObjectConverter#searchResourceObjects(ProvisioningContext, ResourceObjectHandler, ObjectQuery,
  * boolean, FetchErrorReportingMethodType, OperationResult)} that should return lazily-initializable objects!)
  *
- * TODO Decide on the fate of this object. It is quite similar to {@link ExistingResourceObject}.
+ * TODO Decide on the fate of this object. It is quite similar to {@link ExistingResourceObjectShadow}.
  *
  * @see ResourceObjectFound
  */
 public record CompleteResourceObject (
-        @NotNull ExistingResourceObject resourceObject,
+        @NotNull ExistingResourceObjectShadow resourceObject,
         @NotNull LimitationReason limitationReason,
         @NotNull ErrorState errorState) implements Serializable, DebugDumpable {
 
     public static @NotNull CompleteResourceObject of(
-            @NotNull ExistingResourceObject resourceObject, @NotNull ErrorState errorState) {
+            @NotNull ExistingResourceObjectShadow resourceObject, @NotNull ErrorState errorState) {
         if (errorState.isOk()) {
             return new CompleteResourceObject(resourceObject, LimitationReason.NONE, errorState);
         } else {
@@ -50,7 +49,7 @@ public record CompleteResourceObject (
         }
     }
 
-    static @NotNull CompleteResourceObject ofDeleted(@NotNull ExistingResourceObject resourceObject) {
+    static @NotNull CompleteResourceObject ofDeleted(@NotNull ExistingResourceObjectShadow resourceObject) {
         return new CompleteResourceObject(resourceObject, LimitationReason.OBJECT_DELETION, ErrorState.ok());
     }
 

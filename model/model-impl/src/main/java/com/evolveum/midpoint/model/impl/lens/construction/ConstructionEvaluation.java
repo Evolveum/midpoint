@@ -9,6 +9,11 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
+
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -132,14 +137,16 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
 
         for (var associationMapper : evaluatedConstruction.getAssociationMappers(this)) {
             if (associationMapper.isEnabled()) {
+                //noinspection unchecked
                 evaluatedConstruction.addAssociationTripleProducer(
-                        associationMapper.evaluate());
+                        (PrismValueDeltaSetTripleProducer<ShadowAssociationValue, ShadowAssociationDefinition>)
+                                associationMapper.evaluate());
                 updateNextRecompute(associationMapper);
             }
         }
     }
 
-    void loadFullShadowIfNeeded(ItemMapper<?, ?, ?> itemMapper)
+    void loadFullShadowIfNeeded(ShadowItemMapper<?, ?, ?> itemMapper)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         String loadReason = evaluatedConstruction.getFullShadowLoadReason(itemMapper);
@@ -148,7 +155,7 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
         }
     }
 
-    private void updateNextRecompute(ItemMapper<?, ?, ?> itemMapper) {
+    private void updateNextRecompute(ShadowItemMapper<?, ?, ?> itemMapper) {
         if (itemMapper.getTripleProducer() instanceof MappingImpl<?, ?> mapping) {
             nextRecompute = NextRecompute.update(mapping, nextRecompute);
         }
@@ -162,7 +169,7 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
         return projectionOdo;
     }
 
-    public @NotNull LensProjectionContext getProjectionContextRequired() {
+    @NotNull LensProjectionContext getProjectionContextRequired() {
         return Objects.requireNonNull(projectionContext, "No projection context");
     }
 }

@@ -83,10 +83,7 @@ The following configuration restricts the `entitlement/unixGroup` type to object
         <baseContext>
             <objectClass>ri:organizationalUnit</objectClass>
             <filter>
-                <q:equal>
-                    <q:path>attributes/dn</q:path>
-                    <q:value>ou=unixgroups,dc=example,dc=com</q:value>
-                </q:equal>
+                <q:text>attributes/dn = "ou=unixgroups,dc=example,dc=com"</q:text>
             </filter>
         </baseContext>
     </delineation>
@@ -227,10 +224,7 @@ Here is an (artificial) example of using advanced resource object type delineati
             <baseContext>
                 <objectClass>ri:organizationalUnit</objectClass>
                 <filter>
-                    <q:equal>
-                        <q:path>attributes/dn</q:path>
-                        <q:value>ou=employees,dc=example,dc=com</q:value>
-                    </q:equal>
+                    <q:text>attributes/dn = "ou=employees,dc=example,dc=com"</q:text>
                 </filter>
             </baseContext>
         </delineation>
@@ -249,10 +243,7 @@ Here is an (artificial) example of using advanced resource object type delineati
             <baseContext>
                 <objectClass>ri:organizationalUnit</objectClass>
                 <filter>
-                    <q:equal>
-                        <q:path>attributes/dn</q:path>
-                        <q:value>ou=special,dc=example,dc=com</q:value>
-                    </q:equal>
+                    <q:text>attributes/dn = "ou=special,dc=example,dc=com"</q:text>
                 </filter>
             </baseContext>
         </delineation>
@@ -272,10 +263,7 @@ Here is an (artificial) example of using advanced resource object type delineati
         <delineation>
             <!-- baseContext is inherited -->
             <filter>
-                <q:equal>
-                    <q:path>attributes/businessCategory</q:path>
-                    <q:value>admin</q:value>
-                </q:equal>
+                <q:text>attributes/businessCategory = "admin"</q:text>
             </filter>
         </delineation>
     </objectType>
@@ -294,10 +282,7 @@ Here is an (artificial) example of using advanced resource object type delineati
         <delineation>
             <!-- baseContext is inherited -->
             <filter>
-                <q:equal>
-                    <q:path>attributes/businessCategory</q:path>
-                    <q:value>tester</q:value>
-                </q:equal>
+                <q:text>attributes/businessCategory = "tester"</q:text>
             </filter>
         </delineation>
     </objectType>

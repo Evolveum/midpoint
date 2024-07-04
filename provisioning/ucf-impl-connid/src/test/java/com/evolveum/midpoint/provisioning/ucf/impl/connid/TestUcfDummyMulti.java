@@ -110,7 +110,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         shadowType.setObjectClass(defaultAccountDefinition.getTypeName());
         PrismObject<ShadowType> shadow = shadowType.asPrismObject();
         ShadowAttributesContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, defaultAccountDefinition);
-        ShadowSimpleAttribute<String> icfsNameProp = attributesContainer.findOrCreateAttribute(SchemaConstants.ICFS_NAME);
+        ShadowSimpleAttribute<String> icfsNameProp = attributesContainer.findOrCreateSimpleAttribute(SchemaConstants.ICFS_NAME);
         icfsNameProp.setRealValue(ACCOUNT_JACK_USERNAME);
 
         // WHEN
@@ -315,7 +315,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
     private void checkUcfShadow(PrismObject<ShadowType> shadow, ResourceObjectClassDefinition objectClassDefinition) {
         assertNotNull("No objectClass in shadow " + shadow, shadow.asObjectable().getObjectClass());
         assertEquals("Wrong objectClass in shadow " + shadow, objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
-        Collection<ShadowSimpleAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
+        Collection<ShadowSimpleAttribute<?>> attributes = ShadowUtil.getSimpleAttributes(shadow);
         assertNotNull("No attributes in shadow " + shadow, attributes);
         assertFalse("Empty attributes in shadow " + shadow, attributes.isEmpty());
     }

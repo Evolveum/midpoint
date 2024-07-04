@@ -20,6 +20,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
+import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
+import com.evolveum.midpoint.gui.impl.component.action.GuiActionDto;
+import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -41,12 +44,15 @@ import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.WebComponent;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
@@ -166,10 +172,6 @@ import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationUtil;
-import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -3834,6 +3836,32 @@ public final class WebComponentUtil {
         return null;
     }
 
+    public static <C extends Containerable, AGA extends AbstractGuiAction<C>> AbstractGuiAction<C> instantiateAction(
+            Class<? extends AbstractGuiAction<C>> actionClass) {
+        if (AbstractGuiAction.class.isAssignableFrom(actionClass)) {
+            try {
+                return ConstructorUtils.invokeConstructor(actionClass);
+            } catch (Throwable e) {
+                LOGGER.trace("No constructor found for action.", e);
+                return null;
+            }
+        }
+        return null;
+    }
+
+    public static <C extends Containerable> AbstractGuiAction<C> instantiateAction(
+            Class<? extends AbstractGuiAction<C>> actionClass, GuiActionDto<C> actionDto) {
+        if (AbstractGuiAction.class.isAssignableFrom(actionClass)) {
+            try {
+                return ConstructorUtils.invokeConstructor(actionClass, actionDto);
+            } catch (Throwable e) {
+                LOGGER.trace("No constructor found for action.", e);
+                return null;
+            }
+        }
+        return null;
+    }
+
     public static PrismObject<ResourceType> findResource(PrismPropertyWrapper itemWrapper, PrismPropertyPanelContext panelCtx) {
         PrismObjectWrapper<?> objectWrapper = itemWrapper.findObjectWrapper();
         if (objectWrapper == null) {
@@ -4123,5 +4151,25 @@ public final class WebComponentUtil {
                 return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz);
             }
         };
+    }
+
+    public static Component createPhotoOrDefaultImagePanel(String id, IResource photo, IconType defaultIcon) {
+        if (photo != null) {
+            return new NonCachingImage(id, photo)  {
+                @Serial private static final long serialVersionUID = 1L;
+
+                @Override
+                protected void onComponentTag(ComponentTag tag) {
+                    tag.setName("img");
+                    super.onComponentTag(tag);
+                }
+            };
+        } else {
+            WebComponent icon = new WebComponent(id);
+            String iconCss = defaultIcon != null ? defaultIcon.getCssClass() : "";
+            icon.add(AttributeAppender.append("class", iconCss));
+            icon.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(iconCss)));
+            return icon;
+        }
     }
 }

@@ -5,7 +5,6 @@
 :page-wiki-metadata-create-date: 2017-10-20T13:34:12.705+02:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2017-10-24T12:21:13.069+02:00
-:page-since: "3.7"
 :page-upkeep-status: yellow
 
 [NOTE]
@@ -71,12 +70,7 @@ It is possible to define additional variables within the `<executeScript>` eleme
             <s:type>c:UserType</s:type>
             <s:query>
                 <q:filter>
-                    <q:equal>
-                        <q:path>name</q:path>
-                        <c:expression>
-                            <c:path>$userName</c:path>
-                        </c:expression>
-                    </q:equal>
+                    <q:text>name = $userName</q:text>
                 </q:filter>
             </s:query>
         </s:search>

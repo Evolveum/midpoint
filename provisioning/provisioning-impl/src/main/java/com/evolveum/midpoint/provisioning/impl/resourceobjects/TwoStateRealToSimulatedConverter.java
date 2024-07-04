@@ -183,7 +183,7 @@ class TwoStateRealToSimulatedConverter<N> {
             OperationResult result) throws SchemaException {
         LOGGER.trace("Name of the simulating attribute for {}: {}", description, simulatingAttributeName);
 
-        ShadowSimpleAttributeDefinition<?> attributeDefinition = ctx.findAttributeDefinition(simulatingAttributeName);
+        var attributeDefinition = ctx.<S>findSimpleAttributeDefinition(simulatingAttributeName);
         if (attributeDefinition == null) {
             // Warning is appropriate here. Attribute is defined, but that attribute is not known.
             ResourceType resource = ctx.getResource();
@@ -195,8 +195,7 @@ class TwoStateRealToSimulatedConverter<N> {
             return null;
         }
 
-        //noinspection unchecked
-        return (ShadowSimpleAttribute<S>) attributeDefinition.instantiate(simulatingAttributeName);
+        return attributeDefinition.instantiate(simulatingAttributeName);
     }
 
     private <S> S getPositiveSimulationValue(ShadowSimpleAttribute<S> simulatingAttribute) {

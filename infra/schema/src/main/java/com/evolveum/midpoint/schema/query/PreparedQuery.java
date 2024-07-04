@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schema.query;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -54,6 +55,11 @@ public class PreparedQuery<T> extends AbstractTypedQuery<T, PreparedQuery<T>> {
      */
     public static <T> PreparedQuery<T> parse(Class<T> type, String query) throws SchemaException {
         var prismQuery = PrismContext.get().createQueryParser().parse(type, query);
+        return new PreparedQuery<>(type, prismQuery);
+    }
+
+    public static <T> PreparedQuery<T> parse(Class<T> type, ItemDefinition<?> def,  String query) throws SchemaException {
+        var prismQuery = PrismContext.get().createQueryParser().parse(def, query);
         return new PreparedQuery<>(type, prismQuery);
     }
 

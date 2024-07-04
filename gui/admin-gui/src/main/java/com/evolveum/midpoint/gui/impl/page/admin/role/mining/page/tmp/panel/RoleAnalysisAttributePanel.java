@@ -163,7 +163,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
         if (userAttributeAnalysisResult != null) {
             List<RoleAnalysisAttributeAnalysis> userAttributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
             for (RoleAnalysisAttributeAnalysis analysis : userAttributeAnalysis) {
-                if (userPath.contains(analysis.getItemPath())) {
+                if (userPath.contains(analysis.getItemPath().toLowerCase())) {
                     analysisAttributeToDisplay.getAttributeAnalysis().add(analysis.clone());
                 }
             }

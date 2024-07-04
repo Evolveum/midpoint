@@ -9,7 +9,6 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2016-11-28T14:26:19.638+01:00
 :page-wiki-metadata-modify-user: dantrob
 :page-wiki-metadata-modify-date: 2019-09-18T01:01:22.717+02:00
-:page-since: "3.6"
 :page-toc: top
 :page-upkeep-status: orange
 :page-upkeep-note: Lot's of TODOs here
@@ -147,10 +146,7 @@ The global policy rule is defined in a system configuration like this:
         <focusSelector>
             <type>RoleType</type>
             <filter>
-                <q:equal>
-                    <q:path>riskLevel</q:path>
-                    <q:value>high</q:value>
-                </q:equal>
+                <q:text>riskLevel = "high"</q:text>
             </filter>
         </focusSelector>
     </globalPolicyRule>

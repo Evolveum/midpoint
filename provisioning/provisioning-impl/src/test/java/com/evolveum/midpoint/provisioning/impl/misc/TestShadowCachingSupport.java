@@ -110,9 +110,9 @@ public class TestShadowCachingSupport extends AbstractProvisioningIntegrationTes
                 .objectClass(RI_ACCOUNT_OBJECT_CLASS);
 
         ShadowAttributesContainer attrContainer = ShadowUtil.setupAttributesContainer(shadow, accountDef);
-        attrContainer.add(nameAttr.clone());
-        attrContainer.add(weaponAttr.clone());
-        attrContainer.add(gossipAttr.clone());
+        attrContainer.addAttribute(nameAttr.clone());
+        attrContainer.addAttribute(weaponAttr.clone());
+        attrContainer.addAttribute(gossipAttr.clone());
 
         ShadowType repoShadow = new ShadowType()
                 .name(name)

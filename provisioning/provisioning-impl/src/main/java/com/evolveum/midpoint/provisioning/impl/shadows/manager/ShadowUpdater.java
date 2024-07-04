@@ -39,7 +39,7 @@ import com.evolveum.midpoint.provisioning.api.ShadowDeathEvent;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -144,6 +144,7 @@ public class ShadowUpdater {
             throws ObjectNotFoundException, SchemaException {
 
         if (modifications.isEmpty()) {
+            LOGGER.trace("No need to update repo shadow {} (empty delta)", repoShadow);
             return;
         }
 
@@ -452,7 +453,7 @@ public class ShadowUpdater {
     public @NotNull RepoShadow updateShadowInRepository(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
-            @NotNull ResourceObject resourceObject,
+            @NotNull ResourceObjectShadow resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
             @Nullable ResourceObjectClassification newClassification,
             OperationResult result)
@@ -489,12 +490,7 @@ public class ShadowUpdater {
                 ShadowDeltaComputerAbsolute.computeShadowModifications(
                         ctx, repoShadow, resourceObject, resourceObjectDelta, true);
 
-        if (!shadowModifications.isEmpty()) {
-            LOGGER.trace("Updating repo shadow {} with delta:\n{}", repoShadow, shadowModifications.debugDumpLazily(1));
-            executeRepoShadowModifications(ctx, repoShadow, shadowModifications, result);
-        } else {
-            LOGGER.trace("No need to update repo shadow {} (empty delta)", repoShadow);
-        }
+        executeRepoShadowModifications(ctx, repoShadow, shadowModifications, result);
         return repoShadow;
     }
 
@@ -508,7 +504,7 @@ public class ShadowUpdater {
             return repoShadow;
         }
 
-        if (repoShadow.getAttributes().stream()
+        if (repoShadow.getSimpleAttributes().stream()
                 .noneMatch(Item::isIncomplete)) {
             LOGGER.trace("All repo attributes are complete -> nothing to retrieve");
             return repoShadow;

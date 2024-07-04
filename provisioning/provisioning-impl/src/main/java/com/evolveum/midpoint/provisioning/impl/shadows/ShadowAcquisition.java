@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -41,7 +41,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * This class also takes care of _object classification_. I am not sure if this is the right approach, though.
  */
-class ShadowAcquisition {
+public class ShadowAcquisition {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowAcquisition.class);
 
@@ -62,13 +62,13 @@ class ShadowAcquisition {
     @NotNull private final QName objectClass;
 
     /** The resource object we try to acquire shadow for. May be minimalistic in extreme cases (sync changes, emergency). */
-    @NotNull private final ExistingResourceObject resourceObject;
+    @NotNull private final ExistingResourceObjectShadow resourceObject;
 
     private final ShadowsLocalBeans b = ShadowsLocalBeans.get();
 
     private ShadowAcquisition(
             @NotNull ProvisioningContext ctx,
-            @NotNull ExistingResourceObject resourceObject) throws SchemaException {
+            @NotNull ExistingResourceObjectShadow resourceObject) throws SchemaException {
         this.ctx = ctx;
         this.primaryIdentification = resourceObject.getPrimaryIdentification();
         this.objectClass = resourceObject.getObjectClassName();
@@ -84,9 +84,9 @@ class ShadowAcquisition {
      * It may look like this method would rather belong to ShadowManager. But it does not. It does too much stuff
      * (e.g. change notification).
      */
-    @NotNull static RepoShadow acquireRepoShadow(
+    public static @NotNull RepoShadow acquireRepoShadow(
             @NotNull ProvisioningContext ctx,
-            @NotNull ExistingResourceObject resourceObject,
+            @NotNull ExistingResourceObjectShadow resourceObject,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, EncryptionException {
 

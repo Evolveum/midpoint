@@ -71,7 +71,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
      *
      * Frozen after creation.
      */
-    @NotNull final DeeplyFreezableList<ShadowAttributeDefinition<?, ?>> attributeDefinitions =
+    @NotNull final DeeplyFreezableList<ShadowAttributeDefinition<?, ?, ?, ?>> attributeDefinitions =
             new DeeplyFreezableList<>();
 
     /**
@@ -80,7 +80,28 @@ public abstract class AbstractResourceObjectDefinitionImpl
      *
      * Temporary/experimental.
      */
-    private Map<QName, ShadowAttributeDefinition<?, ?>> attributeDefinitionMap;
+    private Map<QName, ShadowAttributeDefinition<?, ?, ?, ?>> attributeDefinitionMap;
+
+    /**
+     * Definition of associations.
+     *
+     * It seems that elements are strictly of {@link ShadowAssociationDefinitionImpl} class and its subclasses,
+     * but this is currently not enforceable in the compile time -
+     * see e.g. {@link #copyDefinitionDataFrom(LayerType, ResourceObjectDefinition)}
+     * or {@link #addInternal(ItemDefinition)}. TODO reconsider if it's ok this way.
+     *
+     * Frozen after creation.
+     */
+    @NotNull final DeeplyFreezableList<ShadowAssociationDefinition> associationDefinitions =
+            new DeeplyFreezableList<>();
+
+    /**
+     * Indexed association definitions for faster access.
+     * Created (as immutable map) on freezing.
+     *
+     * Temporary/experimental.
+     */
+    private Map<QName, ShadowAssociationDefinition> associationDefinitionMap;
 
     /**
      * Names of primary identifiers. They are the same for both raw and refined definitions.
@@ -179,17 +200,36 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull List<? extends ShadowAttributeDefinition<?, ?>> getAttributeDefinitions() {
+    public @NotNull List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> getAttributeDefinitions() {
         return attributeDefinitions;
+    }
+
+    @Override
+    public @NotNull List<ShadowAssociationDefinition> getAssociationDefinitions() {
+        return associationDefinitions;
     }
 
     @Override
     public <T> @Nullable ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinition(QName name, boolean caseInsensitive) {
         if (caseInsensitive || isMutable() || QNameUtil.isUnqualified(name)) {
             return ResourceObjectDefinition.super.findSimpleAttributeDefinition(name, caseInsensitive);
+        }
+        var def = attributeDefinitionMap.get(name);
+        //noinspection unchecked
+        return def instanceof ShadowSimpleAttributeDefinition<?> ? (ShadowSimpleAttributeDefinition<T>) def : null;
+    }
+
+    @Override
+    public ShadowAssociationDefinition findAssociationDefinition(QName name) {
+        if (isMutable() || QNameUtil.isUnqualified(name)) {
+            for (var associationDefinition : associationDefinitions) {
+                if (QNameUtil.match(associationDefinition.getItemName(), name)) {
+                    return associationDefinition;
+                }
+            }
+            return null;
         } else {
-            //noinspection unchecked
-            return (ShadowSimpleAttributeDefinition<T>) attributeDefinitionMap.get(name);
+            return associationDefinitionMap.get(name);
         }
     }
 
@@ -378,13 +418,14 @@ public abstract class AbstractResourceObjectDefinitionImpl
         }
         AbstractResourceObjectDefinitionImpl that = (AbstractResourceObjectDefinitionImpl) o;
         return attributeDefinitions.equals(that.attributeDefinitions)
+                && associationDefinitions.equals(that.associationDefinitions)
                 && primaryIdentifiersNames.equals(that.primaryIdentifiersNames)
                 && secondaryIdentifiersNames.equals(that.secondaryIdentifiersNames);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(attributeDefinitions, primaryIdentifiersNames, secondaryIdentifiersNames);
+        return Objects.hash(attributeDefinitions, associationDefinitions, primaryIdentifiersNames, secondaryIdentifiersNames);
     }
 
     public abstract @NotNull AbstractResourceObjectDefinitionImpl clone();
@@ -395,7 +436,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
             @NotNull ResourceObjectDefinition source) {
         source.getAttributeDefinitions().forEach(
                 def -> attributeDefinitions.add(def.forLayer(layer)));
-        //associationDefinitions.addAll(source.getReferenceAttributeDefinitions());
+        associationDefinitions.addAll(source.getAssociationDefinitions());
         primaryIdentifiersNames.addAll(source.getPrimaryIdentifiersNames());
         secondaryIdentifiersNames.addAll(source.getSecondaryIdentifiersNames());
         auxiliaryObjectClassDefinitions.addAll(source.getAuxiliaryDefinitions());
@@ -412,7 +453,8 @@ public abstract class AbstractResourceObjectDefinitionImpl
     protected void performFreeze() {
         attributeDefinitions.freeze();
         createAttributeDefinitionMap();
-        //associationDefinitions.freeze();
+        associationDefinitions.freeze();
+        createAssociationDefinitionMap();
 
 //        stateCheck(itemDefinitions.isEmpty(), "Any item definitions in %s", this);
 //        //noinspection unchecked,rawtypes
@@ -425,7 +467,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     private void createAttributeDefinitionMap() {
-        var map = new HashMap<QName, ShadowAttributeDefinition<?, ?>>();
+        var map = new HashMap<QName, ShadowAttributeDefinition<?, ?, ?, ?>>();
         attributeDefinitions.forEach(def -> {
             var previous = map.put(def.getItemName(), def);
             stateCheck(previous == null, "Multiple definitions for attribute %s in %s", def, this);
@@ -433,12 +475,21 @@ public abstract class AbstractResourceObjectDefinitionImpl
         attributeDefinitionMap = Collections.unmodifiableMap(map);
     }
 
+    private void createAssociationDefinitionMap() {
+        var map = new HashMap<QName, ShadowAssociationDefinition>();
+        associationDefinitions.forEach(def -> {
+            var previous = map.put(def.getItemName(), def);
+            stateCheck(previous == null, "Multiple definitions for association %s in %s", def, this);
+        });
+        associationDefinitionMap = Collections.unmodifiableMap(map);
+    }
+
     @Override
     public void accept(Visitor<Definition> visitor) {
         visitor.visit(this);
         attributeDefinitions.forEach(def -> def.accept(visitor));
         auxiliaryObjectClassDefinitions.forEach(def -> def.accept(visitor));
-        //associationDefinitions.forEach(def -> def.accept(visitor));
+        associationDefinitions.forEach(def -> def.accept(visitor));
     }
 
     @Override
@@ -449,7 +500,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
             visitor.visit(this);
             attributeDefinitions.forEach(def -> def.accept(visitor, visitation));
             auxiliaryObjectClassDefinitions.forEach(def -> def.accept(visitor, visitation));
-            //associationDefinitions.forEach(def -> def.accept(visitor));
+            associationDefinitions.forEach(def -> def.accept(visitor));
             return true;
         }
     }
@@ -468,7 +519,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         if (layer != null) {
             sb.append(", layer=").append(layer);
         }
-        var attributeDefinitions = _this.getAttributeDefinitions();
+        List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> attributeDefinitions = _this.getAttributeDefinitions();
         sb.append(") with ").append(attributeDefinitions.size()).append(" attribute definitions");
         for (var attrDef : attributeDefinitions) {
             sb.append("\n");
@@ -662,7 +713,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public void replaceDefinition(@NotNull QName itemName, @Nullable ItemDefinition<?> newDefinition) {
+    public void replaceAttributeDefinition(@NotNull QName itemName, @Nullable ItemDefinition<?> newDefinition) {
         checkMutable();
         invalidatePrismObjectDefinition();
         attributeDefinitions.removeIf(def -> def.getItemName().equals(itemName));
@@ -676,12 +727,14 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     private void addInternal(@NotNull ItemDefinition<?> definition) {
-        if (definition instanceof ShadowAttributeDefinition<?, ?> attributeDefinition) {
+        if (definition instanceof ShadowAttributeDefinition<?, ?, ?, ?> attributeDefinition) {
             // Can occur during definition replacement.
             attributeDefinitions.add(attributeDefinition);
+        } else if (definition instanceof ShadowAssociationDefinition associationDefinition) {
+            associationDefinitions.add(associationDefinition);
         } else {
             throw new IllegalArgumentException(
-                    ("Only attribute definitions should be put into a resource object definition. "
+                    ("Only attribute or association definitions should be put into a resource object definition. "
                             + "Item definition = %s (%s), object definition = %s").formatted(
                                     definition, definition.getClass(), this));
         }
@@ -697,7 +750,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public void trimTo(@NotNull Collection<ItemPath> paths) {
+    public void trimAttributesTo(@NotNull Collection<ItemPath> paths) {
         if (isImmutable()) {
             return; // This would fail anyway
         }
@@ -706,7 +759,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
                 .map(ItemPath::asSingleName)
                 .collect(Collectors.toList());
         attributeDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getItemName()));
-        //associationDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getItemName()));
 
         // TODO what about QName references like primary or secondary identifier names,
         //  or name, display name, or description attribute names?
@@ -770,12 +822,12 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+    public ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) {
         return findSimpleAttributeDefinition(itemName);
     }
 
     @Override
-    public ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) throws SchemaException {
+    public ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) {
         return findReferenceAttributeDefinition(itemName);
     }
 

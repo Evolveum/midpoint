@@ -30,7 +30,7 @@ class ShadowAttributesComplexTypeDefinitionImpl
         extends AbstractShadowItemsContainerTypeDefinitionImpl
         implements ShadowAttributesComplexTypeDefinition {
 
-    private ShadowAttributesComplexTypeDefinitionImpl(@NotNull ResourceObjectDefinition objectDefinition) {
+    ShadowAttributesComplexTypeDefinitionImpl(@NotNull ResourceObjectDefinition objectDefinition) {
         super(objectDefinition);
     }
 
@@ -39,14 +39,15 @@ class ShadowAttributesComplexTypeDefinitionImpl
     }
 
     @Override
-    public @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getDefinitions() {
-        return objectDefinition.getSimpleAttributeDefinitions();
+    public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
+        //noinspection unchecked
+        return (List<? extends ItemDefinition<?>>) objectDefinition.getAttributeDefinitions();
     }
 
     @Override
     public <ID extends ItemDefinition<?>> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
         var def = objectDefinition.findItemDefinition(path, clazz);
-        if (def instanceof ShadowSimpleAttributeDefinition<?>) {
+        if (def instanceof ShadowAttributeDefinition<?, ?, ?, ?>) {
             return def;
         } else {
             return null;
@@ -65,7 +66,7 @@ class ShadowAttributesComplexTypeDefinitionImpl
     }
 
     @Override
-    public @NotNull List<? extends ShadowAttributeDefinition<?, ?>> getAttributeDefinitions() {
+    public @NotNull List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> getAttributeDefinitions() {
         return objectDefinition.getAttributeDefinitions();
     }
 
@@ -91,6 +92,6 @@ class ShadowAttributesComplexTypeDefinitionImpl
 
     @Override
     public String toString() {
-        return "RACTD (" + getSimpleAttributeDefinitions().size() + " attributes) in " + objectDefinition;
+        return "SACTDImpl(" + getAttributeDefinitions().size() + " attributes) in " + objectDefinition;
     }
 }

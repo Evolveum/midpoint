@@ -49,10 +49,10 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
     }
 
     @Override
-    List<AttributeMapper<AH, ?>> getAttributeMappers(ConstructionEvaluation<AH, ?> constructionEvaluation)
+    List<AttributeMapper<AH, ?, ?>> getAttributeMappers(ConstructionEvaluation<AH, ?> constructionEvaluation)
             throws ConfigurationException {
 
-        List<AttributeMapper<AH, ?>> attributesToEvaluate = new ArrayList<>();
+        List<AttributeMapper<AH, ?, ?>> attributesToEvaluate = new ArrayList<>();
 
         // [EP:CONST] DONE
         for (ResourceAttributeDefinitionConfigItem attributeConstrDefinitionCI : getTypedConfigItemRequired().getAttributes()) {
@@ -66,7 +66,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
                     attributeConstrDefinitionCI.configNonNull(
                             attributeConstrDefinitionCI.getOutbound(), "No outbound section in %s", DESC);
 
-            ShadowSimpleAttributeDefinition<?> attributeDef =
+            var attributeDef =
                     attributeConstrDefinitionCI.configNonNull(
                             construction.findAttributeDefinition(attrName),
                             "Attribute '%s' not found in schema for resource object type %s on %s; as defined in %s",

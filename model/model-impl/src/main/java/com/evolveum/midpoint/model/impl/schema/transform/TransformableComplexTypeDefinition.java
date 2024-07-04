@@ -153,6 +153,11 @@ public class TransformableComplexTypeDefinition
     }
 
     @Override
+    public @Nullable QName getDefaultReferenceTargetTypeName() {
+        return delegate.get().getDefaultReferenceTargetTypeName();
+    }
+
+    @Override
     public boolean isEmpty() {
         return getDefinitions().isEmpty();
     }

@@ -46,7 +46,8 @@ class FakeIdentifierGenerator {
         //  Let us be consistent with the Change-based version and use definition from the caller provisioning context.
         if (primaryIdentifierRealValue != null
                 && selectPrimaryIdentifiers(attrContainer.getAllIdentifiers(), objectClassDef).isEmpty()) {
-            attrContainer.add(createFakePrimaryIdentifier(primaryIdentifierRealValue, objectClassDef));
+            attrContainer.addAttribute(
+                    createFakePrimaryIdentifier(primaryIdentifierRealValue, objectClassDef));
         }
     }
 

@@ -12,6 +12,8 @@ import com.evolveum.midpoint.gui.impl.factory.panel.AbstractInputGuiComponentFac
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.RangeSliderPanel;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionOptionType;
+
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +34,8 @@ public class ValueSelectorSliderPanelFactory extends AbstractInputGuiComponentFa
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        return RoleAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD.equals(wrapper.getItemName());
+        return RoleAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD.equals(wrapper.getItemName())
+                || RoleAnalysisDetectionOptionType.F_SENSITIVITY.equals(wrapper.getItemName());
     }
 
     @Override

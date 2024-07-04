@@ -158,10 +158,16 @@ public class GetObjectOpHandler extends CachedOpHandler {
         try {
             PrismObject<T> object = getObjectInternal(exec.type, exec.oid, exec.options, exec.result);
             PrismObject<T> immutable = toImmutable(object);
-            cacheUpdater.storeImmutableObjectToObjectLocal(immutable, exec.caches);
-            cacheUpdater.storeImmutableObjectToObjectGlobal(immutable);
-            cacheUpdater.storeObjectToVersionGlobal(immutable, exec.caches.globalVersion);
-            cacheUpdater.storeObjectToVersionLocal(immutable, exec.caches.localVersion);
+
+            if (!ObjectType.class.equals(exec.type)) {
+                // Only cache object when read is performed by concrete type, reading by ObjectType
+                // and caching may actually lead to caching incorrectly read object
+                // if repository uses object class specific mappings
+                cacheUpdater.storeImmutableObjectToObjectLocal(immutable, exec.caches);
+                cacheUpdater.storeImmutableObjectToObjectGlobal(immutable);
+                cacheUpdater.storeObjectToVersionGlobal(immutable, exec.caches.globalVersion);
+                cacheUpdater.storeObjectToVersionLocal(immutable, exec.caches.localVersion);
+            }
             if (exec.readOnly) {
                 return immutable;
             } else {

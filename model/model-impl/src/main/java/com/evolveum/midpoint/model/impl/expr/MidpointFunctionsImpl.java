@@ -1905,13 +1905,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             LOGGER.trace("No association");
             return null;
         }
-        ObjectReferenceType shadowRef = associationValue.getShadowRef();
+        ObjectReferenceType shadowRef = ShadowAssociationsUtil.getSingleObjectRefRelaxed(associationValue);
         if (shadowRef == null) {
-            LOGGER.trace("No shadowRef in association {}", associationValue);
+            LOGGER.trace("No unique shadowRef in association {}", associationValue);
             return null;
         }
-        if (shadowRef.asReferenceValue().getObject() != null) {
-            return (ShadowType) associationValue.getShadowRef().asReferenceValue().getObject().asObjectable();
+        if (shadowRef.getObject() != null) {
+            return (ShadowType) shadowRef.asReferenceValue().getObject().asObjectable();
         }
 
         LensProjectionContext projectionCtx = (LensProjectionContext) getProjectionContext();
@@ -1933,7 +1933,6 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         LOGGER.trace("Returning resolved entitlement: {}", entitlement);
         return entitlement.asObjectable();
-
     }
 
     @Override
@@ -2603,5 +2602,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public <T extends ObjectType> List<T> searchObjects(TypedQuery<T> query) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         return MiscSchemaUtil.toObjectableList(
                 modelService.searchObjects(query, getCurrentTask(), getCurrentResult()));
+    }
+
+    @Override
+    public @Nullable ObjectReferenceType getObjectRef(@Nullable ShadowAssociationValueType associationValueBean) {
+        return associationValueBean != null ?
+                ShadowAssociationsUtil.getSingleObjectRefRelaxed(associationValueBean) :
+                null;
     }
 }

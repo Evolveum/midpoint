@@ -511,7 +511,7 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(referenceAttributeDefinitions).as("definitions of reference attributes").hasSize(2);
 
         QName groupQName = new QName(NS_RI, "group");
-        var groupDef = accountDef.findAssociationDefinitionRequired(groupQName, () -> "");
+        var groupDef = accountDef.findReferenceAttributeDefinitionRequired(groupQName, () -> "");
         assertThat(groupDef.getSimulationDefinitionRequired().requiresExplicitReferentialIntegrity())
                 .as("requiresExplicitReferentialIntegrity flag")
                 .isFalse();

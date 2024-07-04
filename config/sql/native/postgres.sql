@@ -1066,6 +1066,22 @@ CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation);
 CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);
 */
 
+-- Represents shadowType/referenceAttributes/[name] ObjectReferenceTypes
+CREATE TABLE m_shadow_ref_attribute (
+        ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+        ownerType ObjectType NOT NULL,
+
+        pathId INTEGER NOT NULL,
+        resourceOid UUID,
+        ownerObjectClassId INTEGER,
+        targetOid UUID NOT NULL, -- soft-references m_object
+        targetType ObjectType NOT NULL,
+        relationId INTEGER NOT NULL REFERENCES m_uri(id)
+    );
+
+CREATE INDEX m_shadow_ref_attribute_ownerOid_idx ON m_shadow_ref_attribute (ownerOid);
+
+
 -- Represents NodeType, see https://docs.evolveum.com/midpoint/reference/deployment/clustering-ha/managing-cluster-nodes/
 CREATE TABLE m_node (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -1299,14 +1315,6 @@ CREATE TRIGGER m_role_analysis_outlier_update_tr BEFORE UPDATE ON m_role_analysi
     FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_role_analysis_outlier_oid_delete_tr AFTER DELETE ON m_role_analysis_outlier
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
-
-CREATE INDEX m_role_analysis_outlier_targetObjectRefTargetOid_idx ON m_role_analysis_outlier (targetObjectRefTargetOid);
-CREATE INDEX m_role_analysis_outlier_targetObjectRefTargetType_idx ON m_role_analysis_outlier (targetObjectRefTargetType);
-CREATE INDEX m_role_analysis_outlier_targetObjectRefRelationId_idx ON m_role_analysis_outlier (targetObjectRefRelationId);
-CREATE INDEX m_role_analysis_outlier_targetClusterRefTargetOid_idx ON m_role_analysis_outlier (targetClusterRefTargetOid);
-CREATE INDEX m_role_analysis_outlier_targetClusterRefTargetType_idx ON m_role_analysis_outlier (targetClusterRefTargetType);
-CREATE INDEX m_role_analysis_outlier_targetClusterRefRelationId_idx ON m_role_analysis_outlier (targetClusterRefRelationId);
-
 
 -- Represents LookupTableType, see https://docs.evolveum.com/midpoint/reference/misc/lookup-tables/
 CREATE TABLE m_lookup_table (
@@ -2329,4 +2337,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(34, $$ SELECT 1 $$, true);
+call apply_change(37, $$ SELECT 1 $$, true);

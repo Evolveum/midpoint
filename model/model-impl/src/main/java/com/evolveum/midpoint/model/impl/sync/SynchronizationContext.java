@@ -8,10 +8,9 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.task.api.TaskUtil;
 
@@ -36,7 +35,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -166,7 +164,7 @@ public abstract class SynchronizationContext<F extends FocusType>
             @Nullable ObjectSynchronizationDiscriminatorType sorterResult,
             @Nullable String tag) {
         this.change = change;
-        this.shadowedResourceObject = processingContext.getShadowedResourceObject();
+        this.shadowedResourceObject = processingContext.getShadowRequired();
         this.shadowedResourceObjectBefore = this.shadowedResourceObject.clone();
         this.resourceObjectDelta = processingContext.getResourceObjectDelta();
         this.resource = processingContext.getResource();
@@ -279,8 +277,8 @@ public abstract class SynchronizationContext<F extends FocusType>
     }
 
     @Override
-    public @NotNull ShadowType getShadowedResourceObject() {
-        return shadowedResourceObject;
+    public @NotNull ShadowLikeValue getShadowLikeValue() {
+        return AbstractShadow.of(shadowedResourceObject);
     }
 
     @NotNull ShadowType getShadowedResourceObjectBefore() {
@@ -517,6 +515,10 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     public boolean isVisible() {
         return SimulationUtil.isVisible(resource, resourceObjectDefinition, task.getExecutionMode());
+    }
+
+    public @NotNull ShadowType getShadowedResourceObject() {
+        return shadowedResourceObject;
     }
 
     /**

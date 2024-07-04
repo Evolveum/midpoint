@@ -474,24 +474,18 @@ class ResourceSchemaParser {
 
             LOGGER.trace("Parsing native and modern-simulated associations of {}", definition);
             for (var refAttrDef : definition.getReferenceAttributeDefinitions()) {
-                LOGGER.trace("Parsing association for reference attribute {}", refAttrDef);
-
-                var assocTypeCIs = getRelevantAssociationTypes(refAttrDef.getItemName());
-                if (assocTypeCIs.isEmpty()) {
-                    parseModernAssociation(refAttrDef, null);
-                } else {
-                    for (var assocTypeCI : assocTypeCIs) {
-                        parseModernAssociation(refAttrDef, assocTypeCI);
-                    }
+                LOGGER.trace("Parsing associations for reference attribute {}", refAttrDef);
+                for (var assocTypeCI : getRelevantAssociationTypes(refAttrDef.getItemName())) {
+                    parseModernAssociation(refAttrDef, assocTypeCI);
                 }
             }
         }
 
-        /** Association type definition beans that refine the specific (existing) association item. */
-        private @NotNull Collection<ShadowAssociationTypeDefinitionConfigItem> getRelevantAssociationTypes(ItemName itemName)
+        /** Returns association type definition beans for associations based on the specified reference attribute. */
+        private @NotNull Collection<ShadowAssociationTypeDefinitionConfigItem> getRelevantAssociationTypes(ItemName refAttrName)
                 throws ConfigurationException {
-            return definition.getTypeIdentification() != null ?
-                    schemaHandling.getAssociationTypesFor(definition.getTypeIdentification(), itemName) : List.of();
+            var subjectTypeId = definition.getTypeIdentification();
+            return subjectTypeId != null ? schemaHandling.getAssociationTypesFor(subjectTypeId, refAttrName) : List.of();
         }
 
         /**
@@ -499,44 +493,17 @@ class ResourceSchemaParser {
          */
         private void parseModernAssociation(
                 @NotNull ShadowReferenceAttributeDefinition refAttrDef,
-                @Nullable ShadowAssociationTypeDefinitionConfigItem assocTypeCI)
+                @NotNull ShadowAssociationTypeDefinitionConfigItem assocTypeCI)
                 throws ConfigurationException {
-
-            if (assocTypeCI == null) {
-                return; // Currently nothing to do here; TODO implement in future
-            }
-
-            // TEMPORARY
-            ((ShadowReferenceAttributeDefinitionImpl) refAttrDef)
-                    .setAssociationTypeDefinitionBean(assocTypeCI.value());
 
             var subjectSideCI = assocTypeCI.getSubject().getAssociation();
             if (subjectSideCI == null) {
-                return; // Nothing to attach to the reference attr definition
+                return; // The association type detached from subjects makes no sense (yet)
             }
-
-            ((ShadowReferenceAttributeDefinitionImpl) refAttrDef)
-                    .setAssociationDefinitionBean(subjectSideCI.value());
-//            var refAttrName = refAttrDef.getItemName();
-//            var declaringAssocName = assocTypeCI != null ? assocTypeCI.getSubject().getDeclaringItemName() : null;
-//            var assocDefBeanFromAssociationType = assocTypeCI != null ? value(assocTypeCI.getSubject().getAssociation()) : null;
-//            var assocDefBeanFromObjectType = value(definitionCI.getAssociationDefinitionIfPresent(declaringAssocName));
-//            configCheck(assocDefBeanFromAssociationType == null || assocDefBeanFromObjectType == null,
-//                    "Association item cannot be defined both in association type and object type: "
-//                            + "declaring: %s, referencing: %s", declaringAssocName, refAttrName);
-//            ResourceItemDefinitionType assocDefBean =
-//                    MiscUtil.getFirstNonNull(assocDefBeanFromAssociationType, assocDefBeanFromObjectType);
-//            if (declaringAssocName != null && !declaringAssocName.equals(refAttrName)) {
-//                // We need to adapt ShadowItemDefinitionImpl to allow itemName different from the native definition item name
-//                throw new UnsupportedOperationException("Currently we don't support declaration of virtual associations");
-//            }
-//            definition.add(
-//                    nativeRefDef != null ?
-//                            ShadowReferenceAttributeDefinitionImpl.fromNative(
-//                                    nativeRefDef, refTypeDef, assocDefBean) :
-//                            ShadowReferenceAttributeDefinitionImpl.fromSimulated(
-//                                    ((SimulatedShadowReferenceTypeDefinition) refTypeDef),
-//                                    refTypeDef, assocDefBean));
+            definition.add(
+                    ShadowAssociationDefinitionImpl.modern(
+                            assocTypeCI.getSubject().getAssociationNameRequired(),
+                            refAttrDef, subjectSideCI.value(), assocTypeCI.value()));
         }
 
         /**
@@ -544,13 +511,16 @@ class ResourceSchemaParser {
          */
         void parseLegacySimulatedAssociations() throws ConfigurationException {
             LOGGER.trace("Parsing legacy simulated associations of {}", definition);
-            for (var assocDefCI : definitionCI.getAssociations()) {
-                if (!definition.containsAttributeDefinition(assocDefCI.getItemName())) {
-                    // Not present -> it must be legacy one
-                    definition.add(
-                            new LegacyAssociationParser(assocDefCI.asLegacy(), definition)
-                                    .parse());
-                }
+            for (var legacyAssocDefCI : definitionCI.getLegacyAssociations()) {
+                legacyAssocDefCI.configCheck(
+                        !definition.containsAttributeDefinition(legacyAssocDefCI.getItemName()),
+                        "Legacy association '%s' is already defined as an attribute in %s",
+                            legacyAssocDefCI.getItemName(), DESC);
+                // The item is not present as an attribute, so it must be legacy one. We will parse it, and add both
+                // the association definition and the (simulated) reference attribute definition.
+                var legacyAssocDef = new LegacyAssociationParser(legacyAssocDefCI.asLegacy(), definition).parse();
+                definition.add(legacyAssocDef);
+                definition.add(legacyAssocDef.getReferenceAttributeDefinition());
             }
         }
 
@@ -823,8 +793,8 @@ class ResourceSchemaParser {
             this.subjectTypeDefinition = _subjectTypeDefinition;
         }
 
-        @NotNull ShadowReferenceAttributeDefinitionImpl parse() throws ConfigurationException {
-            return ShadowReferenceAttributeDefinitionImpl.parseLegacy(
+        @NotNull ShadowAssociationDefinitionImpl parse() throws ConfigurationException {
+            return ShadowAssociationDefinitionImpl.parseLegacy(
                     associationDefCI, resourceSchema, subjectTypeDefinition, getObjectTypeDefinitions());
         }
 

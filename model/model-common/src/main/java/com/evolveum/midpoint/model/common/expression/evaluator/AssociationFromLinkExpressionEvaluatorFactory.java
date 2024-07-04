@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 
 import jakarta.xml.bind.JAXBElement;
@@ -60,13 +61,28 @@ public class AssociationFromLinkExpressionEvaluatorFactory extends AbstractObjec
         AssociationFromLinkExpressionEvaluatorType evaluatorBean =
                 getSingleEvaluatorBean(evaluatorElements, AssociationFromLinkExpressionEvaluatorType.class, contextDescription);
 
-        //noinspection unchecked
-        return (ExpressionEvaluator<V>)
-                new AssociationFromLinkExpressionEvaluator(
-                        ELEMENT_NAME,
-                        evaluatorBean,
-                        (ShadowReferenceAttributeDefinition) outputDefinition,
-                        protector,
-                        getObjectResolver());
+        if (outputDefinition instanceof ShadowAssociationDefinition associationDefinition) {
+            //noinspection unchecked
+            return (ExpressionEvaluator<V>)
+                    new AssociationFromLinkExpressionEvaluator(
+                            ELEMENT_NAME,
+                            evaluatorBean,
+                            associationDefinition,
+                            protector,
+                            getObjectResolver());
+        } else if (outputDefinition instanceof ShadowReferenceAttributeDefinition referenceAttributeDefinition) {
+            //noinspection unchecked
+            return (ExpressionEvaluator<V>)
+                    new ReferenceAttributeFromLinkExpressionEvaluator(
+                            ELEMENT_NAME,
+                            evaluatorBean,
+                            referenceAttributeDefinition,
+                            protector,
+                            getObjectResolver());
+        } else {
+            // We actually require object definition to be non-null here
+            throw new UnsupportedOperationException(
+                    "'Association from link' evaluator cannot be used with output definition of " + outputDefinition);
+        }
     }
 }

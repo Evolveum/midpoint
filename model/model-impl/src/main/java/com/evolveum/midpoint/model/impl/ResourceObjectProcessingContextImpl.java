@@ -9,6 +9,10 @@ package com.evolveum.midpoint.model.impl;
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.processor.ShadowLikeValue;
+
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,8 +53,8 @@ public class ResourceObjectProcessingContextImpl implements ResourceObjectProces
     }
 
     @Override
-    public @NotNull ShadowType getShadowedResourceObject() {
-        return shadowedResourceObject;
+    public @NotNull ShadowLikeValue getShadowLikeValue() {
+        return AbstractShadow.of(shadowedResourceObject);
     }
 
     @Override

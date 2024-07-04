@@ -7,24 +7,22 @@
 
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import com.evolveum.midpoint.prism.path.ItemName;
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.stream.Stream;
+import javax.xml.namespace.QName;
+
+import com.google.common.collect.Streams;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
 import com.evolveum.midpoint.util.exception.SystemException;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-import static com.evolveum.midpoint.test.DummyResourceContoller.*;
 
 public class TestDummyCachingPartial extends TestDummyCaching {
 
@@ -37,13 +35,16 @@ public class TestDummyCachingPartial extends TestDummyCaching {
 
     @Override
     protected @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
-        List<QName> rv = new ArrayList<>(
-                getAccountDefaultDefinition().getAllIdentifiersNames());
-        rv.add(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME);
-        rv.add(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_QNAME);
-        rv.add(DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME);
-        rv.add(DUMMY_ACCOUNT_ATTRIBUTE_WATER_QNAME);
-        return rv;
+        var accountDefaultDef = getAccountDefaultDefinition();
+        return Streams.concat(
+                        accountDefaultDef.getAllIdentifiersNames().stream(),
+                        accountDefaultDef.getReferenceAttributesNames().stream(),
+                        Stream.of(
+                                DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME,
+                                DUMMY_ACCOUNT_ATTRIBUTE_LOOT_QNAME,
+                                DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME,
+                                DUMMY_ACCOUNT_ATTRIBUTE_WATER_QNAME))
+                .toList();
     }
 
     // TEMPORARY

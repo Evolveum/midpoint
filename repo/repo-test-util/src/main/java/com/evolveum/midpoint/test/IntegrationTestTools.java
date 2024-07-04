@@ -328,18 +328,18 @@ public class IntegrationTestTools {
         ShadowAttributesContainer rAttributesContainer = (ShadowAttributesContainer) attributesContainer;
         var attrsDef = attributesContainer.getDefinition();
         assertNotNull("No attributes container definition", attrsDef);
-        assertTrue("Wrong attributes definition class " + attrsDef.getClass().getName(), attrsDef instanceof ResourceAttributeContainerDefinition);
-        ResourceAttributeContainerDefinition rAttrsDef = (ResourceAttributeContainerDefinition) attrsDef;
+        assertTrue("Wrong attributes definition class " + attrsDef.getClass().getName(), attrsDef instanceof ShadowAttributesContainerDefinition);
+        ShadowAttributesContainerDefinition rAttrsDef = (ShadowAttributesContainerDefinition) attrsDef;
         ResourceObjectClassDefinition objectClassDef = rAttrsDef.getResourceObjectDefinition().getObjectClassDefinition();
         assertNotNull("No object class definition in attributes definition", objectClassDef);
         assertEquals("Wrong object class in attributes definition", objectClass, objectClassDef.getTypeName());
         var primaryIdDef = objectClassDef.getPrimaryIdentifiers().iterator().next();
-        ShadowSimpleAttribute<?> primaryIdAttr = rAttributesContainer.findAttribute(primaryIdDef.getItemName());
+        ShadowSimpleAttribute<?> primaryIdAttr = rAttributesContainer.findSimpleAttribute(primaryIdDef.getItemName());
         assertNotNull("No primary ID " + primaryIdDef.getItemName() + " in " + account, primaryIdAttr);
         assertAttributeDefinition(primaryIdAttr, DOMUtil.XSD_STRING, 0, 1, true, false, false, expectedAttributeDefinitionClass);
 
         var secondaryIdDef = objectClassDef.getSecondaryIdentifiers().iterator().next();
-        ShadowSimpleAttribute<Object> secondaryIdAttr = rAttributesContainer.findAttribute(secondaryIdDef.getItemName());
+        ShadowSimpleAttribute<Object> secondaryIdAttr = rAttributesContainer.findSimpleAttribute(secondaryIdDef.getItemName());
         assertNotNull("No secondary ID " + secondaryIdDef.getItemName() + " in " + account, secondaryIdAttr);
         assertAttributeDefinition(secondaryIdAttr, DOMUtil.XSD_STRING, 1, 1, true, true, true, expectedAttributeDefinitionClass);
     }
@@ -917,46 +917,6 @@ public class IntegrationTestTools {
         display(message, xml);
     }
 
-    public static ObjectDelta<ShadowType> createEntitleDelta(
-            String accountOid, QName associationName, String groupOid) throws SchemaException {
-        //noinspection unchecked
-        return PrismContext.get().deltaFactory().object().createModificationAddContainer(
-                ShadowType.class, accountOid,
-                ShadowType.F_ASSOCIATIONS.append(associationName),
-                ShadowAssociationValue.rawWithReferenceTo(groupOid));
-    }
-
-    public static ObjectDelta<ShadowType> createDetitleDelta(
-            String accountOid, QName associationName, String groupOid) {
-        //noinspection unchecked
-        return PrismContext.get().deltaFactory().object().createModificationDeleteContainer(
-                ShadowType.class, accountOid,
-                ShadowType.F_ASSOCIATIONS.append(associationName),
-                ShadowAssociationValue.rawWithReferenceTo(groupOid));
-    }
-
-    public static ObjectDelta<ShadowType> createEntitleDeltaIdentifiers(
-            String accountOid, ResourceObjectDefinition accountDefinition,
-            QName associationName, QName identifierQname, String identifierValue) throws SchemaException {
-        var assocValue = accountDefinition
-                .findAssociationDefinitionRequired(associationName)
-                .instantiateFromIdentifierRealValue(identifierQname, identifierValue);
-        return PrismContext.get().deltaFactory().object().createModificationAddContainer(
-                ShadowType.class, accountOid, ShadowType.F_ASSOCIATIONS.append(associationName),
-                assocValue);
-    }
-
-    public static ObjectDelta<ShadowType> createDetitleDeltaIdentifiers(
-            String accountOid, ResourceObjectDefinition accountDefinition,
-            QName associationName, QName identifierQname, String identifierValue) throws SchemaException {
-        var assocValue = accountDefinition
-                .findAssociationDefinitionRequired(associationName)
-                .instantiateFromIdentifierRealValue(identifierQname, identifierValue);
-        return PrismContext.get().deltaFactory().object().createModificationDeleteContainer(
-                ShadowType.class, accountOid, ShadowType.F_ASSOCIATIONS.append(associationName),
-                assocValue);
-    }
-
     public static void assertGroupMember(DummyGroup group, String accountId) {
         assertGroupMember(group, accountId, false);
     }
@@ -989,11 +949,10 @@ public class IntegrationTestTools {
         assertTrue("Group " + group.getName() + " has members while not expecting it, members: " + members, members == null || members.isEmpty());
     }
 
-    public static @NotNull ShadowAssociationValueType assertAssociation(
+    public static @NotNull ShadowAssociationValue assertAssociationObjectRef(
             PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
         for (var value : ShadowUtil.getAssociationValues(shadow, associationName)) {
-            ObjectReferenceType ref = value.getShadowRef();
-            if (ref != null && entitlementOid.equals(ref.getOid())) {
+            if (entitlementOid.equals(value.getSingleObjectRefRequired().getOid())) {
                 return value;
             }
         }
@@ -1003,8 +962,7 @@ public class IntegrationTestTools {
 
     public static void assertNoAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
         for (var value : ShadowUtil.getAssociationValues(shadow, associationName)) {
-            ObjectReferenceType ref = value.getShadowRef();
-            if (ref != null && entitlementOid.equals(ref.getOid())) {
+            if (entitlementOid.equals(value.getSingleObjectRefRequired().getOid())) {
                 AssertJUnit.fail("Unexpected association for entitlement " + entitlementOid + " in " + shadow);
             }
         }
@@ -1167,6 +1125,18 @@ public class IntegrationTestTools {
     }
 
     public static PolyString toRepoPoly(String orig, QName matchingRuleName) throws SchemaException {
+        var matchingRule = SchemaService.get().matchingRuleRegistry().getMatchingRuleSafe(matchingRuleName, null);
+        String norm = matchingRule.getNormalizer().normalizeString(orig);
+        return new PolyString(orig, norm);
+    }
+
+    // temporary
+    public static PolyString toRepoPolyLegacy(String orig) throws SchemaException {
+        return toRepoPolyLegacy(orig, PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME);
+    }
+
+    // temporary
+    public static PolyString toRepoPolyLegacy(String orig, QName matchingRuleName) throws SchemaException {
         var matchingRule = SchemaService.get().matchingRuleRegistry().getMatchingRuleSafe(matchingRuleName, null);
         String norm = matchingRule.getNormalizer().normalizeString(orig);
         return NormalizationAwareResourceAttributeDefinition.wrap(orig, norm);

@@ -53,7 +53,7 @@ public class ObjectFactory {
     }
 
     public static PrismObjectDefinition<ShadowType> constructObjectDefinition(
-            ResourceAttributeContainerDefinition rACD,
+            ShadowAttributesContainerDefinition rACD,
             ShadowAssociationsContainerDefinition rAsCD) {
         // Almost-shallow clone of object definition and complex type
         PrismObjectDefinition<ShadowType> shadowDefinition =

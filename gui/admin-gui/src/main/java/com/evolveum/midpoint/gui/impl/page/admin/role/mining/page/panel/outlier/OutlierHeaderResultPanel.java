@@ -46,9 +46,10 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
         itemBox.setOutputMarkupId(true);
         add(itemBox);
 
-        WebMarkupContainer iconContainer = createIconContainer(ID_ICON);
-        iconContainer.setOutputMarkupId(true);
-        itemBox.add(iconContainer);
+        //TODO not in HTML
+//        WebMarkupContainer iconContainer = createIconContainer(ID_ICON);
+//        iconContainer.setOutputMarkupId(true);
+//        itemBox.add(iconContainer);
 
         Label value = new Label(ID_VALUE, Model.of(getValue()));
         value.setOutputMarkupId(true);
@@ -88,7 +89,7 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
     }
 
     public String getProgressValue() {
-        double progressValue = Double.parseDouble(this.progressValue);
+        double progressValue = Double.parseDouble(this.progressValue.replace(',', '.'));
 
         return String.valueOf((int) progressValue);
     }

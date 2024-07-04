@@ -297,7 +297,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                     getEditObjectClassDefinition(shadow, resource, phase, task, result);
             if (resourceObjectDefinition != null) {
                 objectDefinition.replaceDefinition(ShadowType.F_ATTRIBUTES,
-                        resourceObjectDefinition.toResourceAttributeContainerDefinition());
+                        resourceObjectDefinition.toShadowAttributesContainerDefinition());
                 objectDefinition.replaceDefinition(ShadowType.F_ASSOCIATIONS,
                         resourceObjectDefinition.toShadowAssociationsContainerDefinition());
             }
@@ -432,7 +432,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 if (attributeModifyDecision != AuthorizationDecisionType.ALLOW) {
                     attrDefClone.setOverrideCanModify(false);
                 }
-                objectDefinition.replaceDefinition(rAttrDef.getItemName(), attrDefClone);
+                objectDefinition.replaceAttributeDefinition(rAttrDef.getItemName(), attrDefClone);
             }
         }
 
@@ -2457,5 +2457,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public void applyDefinitions(ShadowType shadow, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
+    }
+
+    public boolean isOfArchetype(AssignmentHolderType assignmentHolderType, String archetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
+        return archetypeManager.isOfArchetype(assignmentHolderType, archetypeOid, result);
     }
 }

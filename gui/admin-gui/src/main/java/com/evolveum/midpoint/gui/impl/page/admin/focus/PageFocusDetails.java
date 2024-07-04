@@ -116,7 +116,7 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
             }
 
             @Override
-            protected void savePerformed(AjaxRequestTarget target) {
+            protected void submitPerformed(AjaxRequestTarget target) {
                 PageFocusDetails.this.savePerformed(target);
             }
 

@@ -18,6 +18,9 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -117,13 +120,22 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
 
     @Override
     protected boolean canShowWizard() {
+
         return !isHistoryPage() && !isEditObject()
-                && (WebComponentUtil.hasArchetypeAssignment(
-                getObjectDetailsModels().getObjectType(),
-                SystemObjectsType.ARCHETYPE_APPLICATION_ROLE.value())
-                || WebComponentUtil.hasArchetypeAssignment(
-                getObjectDetailsModels().getObjectType(),
-                SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value()));
+                && isApplicationOrBusinessRole();
+    }
+
+    private boolean isApplicationOrBusinessRole() {
+        OperationResult result = new OperationResult("determineArchetype");
+        RoleType roleToTest = getObjectDetailsModels().getObjectType();
+        try {
+            return getModelInteractionService().isOfArchetype(roleToTest, SystemObjectsType.ARCHETYPE_APPLICATION_ROLE.value(), result)
+                    || getModelInteractionService().isOfArchetype(roleToTest, SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value(), result);
+        } catch (Exception e) {
+            result.recordFatalError("Couldn't determine archetype for role: " + roleToTest, e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine archetype for role: " + roleToTest, e);
+            return false;
+        }
     }
 
     @Override
@@ -180,17 +192,25 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
     }
 
     private Class<? extends AbstractWizardPanel> getWizardPanelClass() {
-        if (WebComponentUtil.hasArchetypeAssignment(
-                getObjectDetailsModels().getObjectType(),
-                SystemObjectsType.ARCHETYPE_APPLICATION_ROLE.value())) {
-            return ApplicationRoleWizardPanel.class;
+        OperationResult result = new OperationResult("determineArchetype");
+        try {
+            if (getModelInteractionService().isOfArchetype(
+                    getObjectDetailsModels().getObjectType(),
+                    SystemObjectsType.ARCHETYPE_APPLICATION_ROLE.value(),
+                    result)) {
+                return ApplicationRoleWizardPanel.class;
+            }
+            if (getModelInteractionService().isOfArchetype(
+                    getObjectDetailsModels().getObjectType(),
+                    SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value(),
+                    result)) {
+                return BusinessRoleWizardPanel.class;
+            }
+        } catch (Exception e) {
+            LoggingUtils.logException(LOGGER, "Couldn't determine archetype for role: " + getObjectDetailsModels().getObjectType(), e);
+            result.recordFatalError("Couldn't determine archetype for role: " + getObjectDetailsModels().getObjectType(), e);
         }
-
-        if (WebComponentUtil.hasArchetypeAssignment(
-                getObjectDetailsModels().getObjectType(),
-                SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value())) {
-            return BusinessRoleWizardPanel.class;
-        }
+        showResult(result);
         return null;
     }
 

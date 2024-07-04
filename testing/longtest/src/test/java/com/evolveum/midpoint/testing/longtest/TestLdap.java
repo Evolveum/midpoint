@@ -259,8 +259,8 @@ public class TestLdap extends AbstractLongTest {
         String userLechuckOid = userLechuck.getOid();
 
         PrismObject<ShadowType> accountCharles = createAccount(resourceOpenDj, toDn(ACCOUNT_CHARLES_NAME), true);
-        addAttributeToShadow(accountCharles, resourceOpenDj, "sn", "Charles");
-        addAttributeToShadow(accountCharles, resourceOpenDj, "cn", "Charles L. Charles");
+        addAttributeToShadow(accountCharles, "sn", "Charles");
+        addAttributeToShadow(accountCharles, "cn", "Charles L. Charles");
         addObject(accountCharles);
 
         // preconditions

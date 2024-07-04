@@ -10,7 +10,36 @@
 <wicket:extend>
     <div wicket:id="detailsView"></div>
 
+    <wicket:fragment wicket:id="errorView">
+        <div wicket:id="errorPanel"></div>
+    </wicket:fragment>
+
     <wicket:fragment wicket:id="details">
+
+        <form class="col-lg-12" wicket:id="mainForm">
+
+            <div class="row" wicket:id="buttons"></div>
+
+            <div class="row d-flex align-items-start gap-3">
+                <div wicket:id="detailsNavigationPanel" class="px-0 card vertical-navigation-panel">
+                    <div wicket:id="summary"></div>
+                    <wicket:enclosure child="navigation">
+                        <div class="card-footer details-panel-navigation p-2" wicket:id="navigation" role="navigation"/>
+                    </wicket:enclosure>
+                </div>
+
+                <div class="col p-0 elevation-1 bg-white rounded" style="
+                align-items: stretch;
+                overflow: hidden;
+                " wicket:id="mainPanel"
+                        wicket:message="aria-label:AbstractPageObjectDetails.detailsPanel" tabindex="0" role="region">
+                </div>
+            </div>
+        </form>
+
+    </wicket:fragment>
+
+    <wicket:fragment wicket:id="detailsOld">
         <div class="row">
             <div class="col-lg-12" wicket:id="summary"></div>
         </div>

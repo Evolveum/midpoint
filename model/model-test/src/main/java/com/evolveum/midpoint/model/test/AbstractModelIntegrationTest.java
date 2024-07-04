@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.model.api.validator.StringLimitationResult.e
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.OPERATION_GET_PRINCIPAL;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_ASSIGNEE_REF;
@@ -2863,7 +2864,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ShadowSimpleAttributeDefinition<?> idSecondaryDef = objectClassDefinition.getSecondaryIdentifiers().iterator().next();
         ShadowSimpleAttribute icfsNameAttr = idSecondaryDef.instantiate();
         icfsNameAttr.setRealValue(name);
-        attrCont.add(icfsNameAttr);
+        attrCont.addAttribute(icfsNameAttr);
         ActivationType activation = new ActivationType();
         shadowType.setActivation(activation);
         if (enabled) {
@@ -2874,13 +2875,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return shadow;
     }
 
-    protected <T> void addAttributeToShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, String attrName, T attrValue) throws SchemaException {
-        ShadowAttributesContainer attrs = ShadowUtil.getAttributesContainer(shadow);
-        ShadowSimpleAttribute<T> attr = attrs.getDefinition()
-                .<T>findAttributeDefinition(new ItemName(MidPointConstants.NS_RI, attrName))
-                .instantiate();
-        attr.setRealValue(attrValue);
-        attrs.add(attr);
+    protected <T> void addAttributeToShadow(PrismObject<ShadowType> shadow, String attrName, T attrValue) throws SchemaException {
+        ShadowUtil.getAttributesContainer(shadow).addSimpleAttribute(
+                ItemName.from(MidPointConstants.NS_RI, attrName),
+                attrValue);
     }
 
     protected void setDefaultUserTemplate(String userTemplateOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
@@ -3597,7 +3595,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     /**
-     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, int)}.
+     * Simplified version of {@link #waitForRootActivityCompletion(String, XMLGregorianCalendar, long)}.
      *
      * To be used on tasks that are scheduled to be run in regular intervals. (So it needs not be absolutely precise:
      * if the task realization completes between the method is started and the current completion timestamp is determined,
@@ -7703,5 +7701,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 openWorkItems,
                 () -> new AssertionError("More than one open work item: " + openWorkItems),
                 () -> new AssertionError("No open work items in: " + aCase));
+    }
+
+    protected ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, String objectOid)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        var subject = AbstractShadow.of(
+                provisioningService.getObject(
+                        ShadowType.class, subjectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
+        var object = AbstractShadow.of(
+                provisioningService.getObject(
+                        ShadowType.class, objectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
+        var assocDef = subject.getObjectDefinition().findAssociationDefinitionRequired(assocName);
+        return deltaFor(ShadowType.class)
+                .item(ShadowType.F_ASSOCIATIONS.append(assocName), assocDef)
+                .add(assocDef.createValueFromFullDefaultObject(object))
+                .asObjectDelta(subjectOid);
     }
 }

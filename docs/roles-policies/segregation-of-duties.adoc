@@ -9,8 +9,6 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2012-04-18T15:57:03.768+02:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2021-03-02T23:37:12.075+01:00
-:page-since: "3.5"
-:page-since-improved: [ "3.6" ]
 :page-upkeep-status: yellow
 
 Segregation of Duties (SoD) is a mechanisms that prevents accumulating of too much power in the hands of a single person.
@@ -105,10 +103,7 @@ The controlling metarole defines exclusion of all executive roles:
                 <exclusion>
                     <targetRef type="RoleType">
                         <filter>
-                            <q:equal>
-                                <q:path>subtype</q:path>
-                                <q:value>executive</q:value>
-                            </q:equal>
+                            <q:text>subtype = "executive"</q:text>
                         </filter>
                         <resolutionTime>run</resolutionTime>
                     </targetRef>

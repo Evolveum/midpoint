@@ -37,14 +37,14 @@ class ShadowAssociationsComplexTypeDefinitionImpl
     }
 
     @Override
-    public @NotNull List<? extends ShadowReferenceAttributeDefinition> getDefinitions() {
-        return objectDefinition.getReferenceAttributeDefinitions();
+    public @NotNull List<? extends ShadowAssociationDefinition> getDefinitions() {
+        return objectDefinition.getAssociationDefinitions();
     }
 
     @Override
     public <ID extends ItemDefinition<?>> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
         var def = objectDefinition.findItemDefinition(path, clazz);
-        if (def instanceof ShadowReferenceAttributeDefinition) {
+        if (def instanceof ShadowAssociationDefinition) {
             return def;
         } else {
             return null;
@@ -62,12 +62,8 @@ class ShadowAssociationsComplexTypeDefinitionImpl
                 objectDefinition.clone());
     }
 
-    public @NotNull List<? extends ShadowReferenceAttributeDefinition> getReferenceAttributeDefinitions() {
-        return objectDefinition.getReferenceAttributeDefinitions();
-    }
-
     @Override
     public String toString() {
-        return "SAssocCTD (" + getReferenceAttributeDefinitions().size() + " associations) in " + objectDefinition;
+        return "SAssocCTD (" + getDefinitions().size() + " associations) in " + objectDefinition;
     }
 }

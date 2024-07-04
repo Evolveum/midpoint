@@ -22,7 +22,7 @@ class ResourceObjectCompleter {
 
     /**
      * Fills-in provisioning policy, simulated activation, associations, and so on.
-     * Modifies provided {@link ResourceObject} instance.
+     * Modifies provided {@link ResourceObjectShadow} instance.
      *
      * This is the core of the processing on objects coming from the resources.
      *
@@ -34,7 +34,7 @@ class ResourceObjectCompleter {
      */
     static @NotNull CompleteResourceObject completeResourceObject(
             @NotNull ProvisioningContext ctx,
-            @NotNull ExistingResourceObject resourceObject,
+            @NotNull ExistingResourceObjectShadow resourceObject,
             boolean fetchAssociations,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,

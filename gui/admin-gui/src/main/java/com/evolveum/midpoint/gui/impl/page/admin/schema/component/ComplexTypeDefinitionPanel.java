@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.component.TabCenterTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
@@ -44,9 +45,11 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -65,13 +68,15 @@ import java.util.Optional;
         applicableForType = SchemaType.class,
         display = @PanelDisplay(label = "ComplexTypeDefinitionPanel.title", icon = GuiStyleConstants.CLASS_OBJECT_SCHEMA_TEMPLATE_ICON, order = 25))
 @Counter(provider = SchemaDefinitionCounter.class)
-public class ComplexTypeDefinitionPanel<S extends SchemaType, ADM extends AssignmentHolderDetailsModel<S>> extends AbstractObjectMainPanel<S, ADM> {
+public class ComplexTypeDefinitionPanel<AH extends AssignmentHolderType, ADM extends AssignmentHolderDetailsModel<AH>> extends AbstractObjectMainPanel<AH, ADM> {
 
     @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ComplexTypeDefinitionPanel.class);
 
+    private static final String ID_SEARCH_DEFINITION = "searchDefinition";
     private static final String ID_NEW_VALUE_BUTTON = "newValueButton";
+    private static final String ID_LIST_CONTAINER = "listContainer";
     private static final String ID_LIST_OF_VALUES = "listOfValues";
     private static final String ID_VALUE = "value";
     private static final String ID_TAB_PANEL = "tabPanel";
@@ -79,40 +84,99 @@ public class ComplexTypeDefinitionPanel<S extends SchemaType, ADM extends Assign
     private static final String DEFAULT_TITLE = "ComplexTypeDefinitionPanel.title";
 
     private IModel<PrismContainerValueWrapper> typeValueModel;
+    private LoadableDetachableModel<List<PrismContainerValueWrapper<? extends DefinitionType>>> valuesModel;
+    private final IModel<String> searchDefinitionModel = Model.of();
+    private final ItemPath containerPath;
 
     public ComplexTypeDefinitionPanel(String id, ADM model, ContainerPanelConfigurationType config) {
-        super(id, model, null);
+        this(id, model, config, ItemPath.EMPTY_PATH);
+    }
+
+    public ComplexTypeDefinitionPanel(String id, ADM model, ContainerPanelConfigurationType config, ItemPath containerPath) {
+        super(id, model, config);
+        this.containerPath = containerPath.append(WebPrismUtil.PRISM_SCHEMA);
     }
 
     @Override
     protected void onInitialize() {
-        initComplexTypeModel();
+        initValueModels();
         super.onInitialize();
     }
 
-    private void initComplexTypeModel() {
+    private void initValueModels() {
+
+        if (valuesModel == null) {
+            valuesModel = new LoadableDetachableModel<>() {
+                @Override
+                protected List<PrismContainerValueWrapper<? extends DefinitionType>> load() {
+                    try {
+                        List<PrismContainerValueWrapper<? extends DefinitionType>> values = new ArrayList<>();
+
+                        PrismContainerWrapper<ComplexTypeDefinitionType> complexContainerWrapper =
+                                getObjectWrapper().findContainer(ItemPath.create(containerPath, PrismSchemaType.F_COMPLEX_TYPE));
+                        if (complexContainerWrapper != null) {
+                            complexContainerWrapper.getValues().forEach(value -> {
+                                if (complexContainerWrapper.isReadOnly() &&
+                                        value.getRealValue().getItemDefinitions().isEmpty()) {
+                                    return;
+                                }
+                                values.add(value);
+                            });
+                        }
+
+                        PrismContainerWrapper<EnumerationTypeDefinitionType> enumContainerWrapper =
+                                getObjectWrapper().findContainer(ItemPath.create(containerPath, PrismSchemaType.F_ENUMERATION_TYPE));
+                        if (enumContainerWrapper != null) {
+                            values.addAll(enumContainerWrapper.getValues());
+                        }
+
+                        if (StringUtils.isNotBlank(searchDefinitionModel.getObject())) {
+                            values.removeIf(value -> !value.getRealValue().getName().getLocalPart().contains(searchDefinitionModel.getObject()));
+                        }
+
+                        return values;
+                    } catch (SchemaException e) {
+                        LOGGER.error("Couldn't find container.", e);
+                    }
+                    return null;
+                }
+            };
+        }
+
+        selectOneValueOfDefinition();
+
         if (typeValueModel == null) {
             typeValueModel = new LoadableDetachableModel<>() {
                 @Override
                 protected PrismContainerValueWrapper<DefinitionType> load() {
                     try {
                         PrismContainerWrapper<DefinitionType> containerWrapper =
-                                getObjectWrapper().findContainer(ItemPath.create(WebPrismUtil.PRISM_SCHEMA, PrismSchemaType.F_COMPLEX_TYPE));
+                                getObjectWrapper().findContainer(ItemPath.create(containerPath, PrismSchemaType.F_COMPLEX_TYPE));
                         PrismContainerValueWrapper<DefinitionType> foundValue = getSelectedValue(containerWrapper);
                         if (foundValue != null) {
                             return foundValue;
                         }
 
-                        containerWrapper = getObjectWrapper().findContainer(ItemPath.create(WebPrismUtil.PRISM_SCHEMA, PrismSchemaType.F_ENUMERATION_TYPE));
+                        containerWrapper = getObjectWrapper().findContainer(ItemPath.create(containerPath, PrismSchemaType.F_ENUMERATION_TYPE));
                         return getSelectedValue(containerWrapper);
 
                     } catch (SchemaException e) {
-                        LOGGER.error("Couldn't find complex type container.");
+                        LOGGER.error("Couldn't find container.", e);
                     }
                     return null;
                 }
             };
         }
+    }
+
+    private void selectOneValueOfDefinition() {
+        if (isNoAnyDefinitionSelected()) {
+            valuesModel.getObject().get(0).setSelected(true);
+        }
+    }
+
+    private boolean isNoAnyDefinitionSelected() {
+        return !valuesModel.getObject().isEmpty() && !valuesModel.getObject().stream().anyMatch(PrismContainerValueWrapper::isSelected);
     }
 
     private PrismContainerValueWrapper<DefinitionType> getSelectedValue(PrismContainerWrapper<DefinitionType> containerWrapper) {
@@ -131,20 +195,59 @@ public class ComplexTypeDefinitionPanel<S extends SchemaType, ADM extends Assign
 
     @Override
     protected void initLayout() {
+
+        TextField defSearch = new TextField<>(ID_SEARCH_DEFINITION, searchDefinitionModel);
+        defSearch.setOutputMarkupId(true);
+        defSearch.add(new AjaxFormComponentUpdatingBehavior("keyup") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                valuesModel.detach();
+                if (isNoAnyDefinitionSelected()) {
+                    typeValueModel.detach();
+                    unselectAllDefinitionValues();
+                    selectOneValueOfDefinition();
+                }
+                createTabPanel();
+                target.add(ComplexTypeDefinitionPanel.this.get(ID_LIST_CONTAINER));
+                target.add(ComplexTypeDefinitionPanel.this.get(ID_TAB_PANEL));
+            }
+        });
+        add(defSearch);
+
         AjaxIconButton newValueButton = new AjaxIconButton(
                 ID_NEW_VALUE_BUTTON,
                 Model.of(GuiStyleConstants.CLASS_PLUS_CIRCLE),
                 createStringResource("ComplexTypeDefinitionPanel.createNewValue")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                onClickNewComplexType(target);
+                onClickNewDefinitionType(target);
             }
         };
         newValueButton.showTitleAsLabel(true);
+        newValueButton.add(new VisibleBehaviour(ComplexTypeDefinitionPanel.this::isNewDefinitionButtonVisible));
         add(newValueButton);
 
         createValueList();
         createTabPanel();
+    }
+
+    protected boolean isNewDefinitionButtonVisible() {
+        return true;
+    }
+
+    private void unselectAllDefinitionValues() {
+        try {
+            PrismContainerWrapper<ComplexTypeDefinitionType> complexContainerWrapper =
+                    getObjectWrapper().findContainer(ItemPath.create(containerPath, PrismSchemaType.F_COMPLEX_TYPE));
+            complexContainerWrapper.getValues().forEach(value -> value.setSelected(false));
+
+            PrismContainerWrapper<EnumerationTypeDefinitionType> enumContainerWrapper =
+                    getObjectWrapper().findContainer(ItemPath.create(containerPath, PrismSchemaType.F_ENUMERATION_TYPE));
+            enumContainerWrapper.getValues().forEach(value -> value.setSelected(false));
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't find container.", e);
+        }
     }
 
     private void createTabPanel() {
@@ -192,7 +295,7 @@ public class ComplexTypeDefinitionPanel<S extends SchemaType, ADM extends Assign
                         .build();
 
                 VerticalFormPrismContainerValuePanel panel
-                        = new VerticalFormPrismContainerValuePanel(panelId, typeValueModel, settings){
+                        = new VerticalFormPrismContainerValuePanel(panelId, typeValueModel, settings) {
 
                     @Override
                     protected void onInitialize() {
@@ -233,47 +336,25 @@ public class ComplexTypeDefinitionPanel<S extends SchemaType, ADM extends Assign
         };
     }
 
-    protected void onClickNewComplexType(AjaxRequestTarget target) {
+    private void onClickNewDefinitionType(AjaxRequestTarget target) {
         @Nullable PrismItemDefinitionsTable table = getTable();
         if (table != null) {
             if (table.isValidFormComponents(target)) {
-                ((PageSchema)getPageBase()).showComplexOrEnumerationTypeWizard(target);
+                showWizardForNewDefinition(target);
             }
         } else {
-            ((PageSchema)getPageBase()).showComplexOrEnumerationTypeWizard(target);
+            showWizardForNewDefinition(target);
         }
     }
 
+    protected void showWizardForNewDefinition(AjaxRequestTarget target) {
+        ((PageSchema) getPageBase()).showComplexOrEnumerationTypeWizard(target);
+    }
+
     private void createValueList() {
-        LoadableDetachableModel<List<PrismContainerValueWrapper<? extends DefinitionType>>> valuesModel = new LoadableDetachableModel<>() {
-            @Override
-            protected List<PrismContainerValueWrapper<? extends DefinitionType>> load() {
-                try {
-                    List<PrismContainerValueWrapper<? extends DefinitionType>> values = new ArrayList<>();
-
-                    PrismContainerWrapper<ComplexTypeDefinitionType> complexContainerWrapper =
-                            getObjectWrapper().findContainer(ItemPath.create(WebPrismUtil.PRISM_SCHEMA, PrismSchemaType.F_COMPLEX_TYPE));
-                    if (complexContainerWrapper != null) {
-                        values.addAll(complexContainerWrapper.getValues());
-                    }
-
-                    PrismContainerWrapper<EnumerationTypeDefinitionType> enumContainerWrapper =
-                            getObjectWrapper().findContainer(ItemPath.create(WebPrismUtil.PRISM_SCHEMA, PrismSchemaType.F_ENUMERATION_TYPE));
-                    if (enumContainerWrapper != null) {
-                        values.addAll(enumContainerWrapper.getValues());
-                    }
-
-                    return values;
-                } catch (SchemaException e) {
-                    LOGGER.error("Couldn't find complex type container.");
-                }
-                return null;
-            }
-        };
-
-        if (!valuesModel.getObject().isEmpty() && !valuesModel.getObject().stream().anyMatch(PrismContainerValueWrapper::isSelected)) {
-            valuesModel.getObject().get(0).setSelected(true);
-        }
+        WebMarkupContainer listContainer = new WebMarkupContainer(ID_LIST_CONTAINER);
+        listContainer.setOutputMarkupId(true);
+        add(listContainer);
 
         ListView values = new ListView<>(ID_LIST_OF_VALUES, valuesModel) {
             @Override
@@ -316,7 +397,7 @@ public class ComplexTypeDefinitionPanel<S extends SchemaType, ADM extends Assign
             }
         };
         values.setOutputMarkupId(true);
-        add(values);
+        listContainer.add(values);
     }
 
     private void clickOnListItem(LoadableDetachableModel<List<PrismContainerValueWrapper<? extends DefinitionType>>> valuesModel, ListItem<PrismContainerValueWrapper<? extends DefinitionType>> item, AjaxRequestTarget target) {
@@ -324,7 +405,7 @@ public class ComplexTypeDefinitionPanel<S extends SchemaType, ADM extends Assign
         item.getModelObject().setSelected(true);
         typeValueModel.detach();
         createTabPanel();
-        target.add(ComplexTypeDefinitionPanel.this);
+        target.add(ComplexTypeDefinitionPanel.this.get(ID_LIST_CONTAINER));
         target.add(ComplexTypeDefinitionPanel.this.get(ID_TAB_PANEL));
     }
 
@@ -336,14 +417,23 @@ public class ComplexTypeDefinitionPanel<S extends SchemaType, ADM extends Assign
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
+                if (typeValueModel.getObject() == null) {
+                    return new WebMarkupContainer(panelId);
+                }
+
                 if (typeValueModel.getObject().getRealValue() instanceof ComplexTypeDefinitionType) {
                     PrismItemDefinitionsTable table = new PrismItemDefinitionsTable(
                             panelId,
                             getComplexTypeValueModel(),
-                            getPanelConfiguration()){
+                            getPanelConfiguration()) {
                         @Override
                         protected boolean showTableAsCard() {
                             return false;
+                        }
+
+                        @Override
+                        protected boolean isCreateNewObjectVisible() {
+                            return isVisibleNewItemDefinitionOrEnumValueButton();
                         }
                     };
                     table.setOutputMarkupId(true);
@@ -351,17 +441,22 @@ public class ComplexTypeDefinitionPanel<S extends SchemaType, ADM extends Assign
                 }
 
                 if (typeValueModel.getObject().getRealValue() instanceof EnumerationTypeDefinitionType) {
-                    EnumerationValueDefinitionsTable table = new EnumerationValueDefinitionsTable(panelId, getEnumTypeValueModel(), getPanelConfiguration()){
+                    EnumerationValueDefinitionsTable table = new EnumerationValueDefinitionsTable(panelId, getEnumTypeValueModel(), getPanelConfiguration()) {
                         @Override
                         protected boolean showTableAsCard() {
                             return false;
+                        }
+
+                        @Override
+                        protected boolean isCreateNewObjectVisible() {
+                            return isVisibleNewItemDefinitionOrEnumValueButton();
                         }
                     };
                     table.setOutputMarkupId(true);
                     return table;
                 }
 
-                return null;
+                return new WebMarkupContainer(panelId);
             }
 
             @Override
@@ -371,6 +466,10 @@ public class ComplexTypeDefinitionPanel<S extends SchemaType, ADM extends Assign
 
             @Override
             public String getCount() {
+                if (typeValueModel.getObject() == null) {
+                    return "0";
+                }
+
                 if (typeValueModel.getObject().getRealValue() instanceof ComplexTypeDefinitionType complexType) {
                     return String.valueOf(complexType.getItemDefinitions().size());
                 }
@@ -379,9 +478,13 @@ public class ComplexTypeDefinitionPanel<S extends SchemaType, ADM extends Assign
                     return String.valueOf(enumType.getValues().size());
                 }
 
-                return "";
+                return "0";
             }
         };
+    }
+
+    protected boolean isVisibleNewItemDefinitionOrEnumValueButton() {
+        return true;
     }
 
     private IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> getComplexTypeValueModel() {

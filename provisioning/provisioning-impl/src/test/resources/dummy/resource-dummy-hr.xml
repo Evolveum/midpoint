@@ -37,6 +37,9 @@
                     <kind>account</kind>
                     <intent>person</intent>
                 </objectType>
+                <association>
+                    <ref>ri:contract</ref>
+                </association>
             </subject>
             <associationObject>
                 <kind>associated</kind>

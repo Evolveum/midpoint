@@ -134,6 +134,21 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="view" type="tns:GuiObjectListViewType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Specifies a view for a presentation of the certification items collections which
+                                    are created on the basis of the current certification definition. This means that
+                                    every certification campaign created on the basis of this definition will use this view
+                                    while displaying certification items collection.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!--<xsd:element name="campaignSchedulingInterval" type="xsd:duration" minOccurs="0">-->
                     <!--<xsd:annotation>-->
                     <!--<xsd:documentation>-->

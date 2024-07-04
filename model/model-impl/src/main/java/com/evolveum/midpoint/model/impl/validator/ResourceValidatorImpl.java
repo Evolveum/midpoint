@@ -282,7 +282,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
             ResourceObjectTypeDefinitionType objectType, ResourceAttributeDefinitionType attributeDef) {
         QName ref = itemRefToName(attributeDef.getRef());
         checkSchemaHandlingItem(ctx, path, objectType, attributeDef);
-        ShadowAttributeDefinition<?, ?> attrDef = null;
+        ShadowAttributeDefinition<?, ?, ?, ?> attrDef = null;
         // TODO rewrite using CompositeObjectDefinition
         if (ref != null) {
             boolean caseIgnoreAttributeNames = ResourceTypeUtil.isCaseIgnoreAttributeNames(ctx.resourceObject.asObjectable());
@@ -405,7 +405,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
     }
 
     private void checkMatchingRule(ResourceValidationContext ctx, ItemPath path,
-            ResourceObjectTypeDefinitionType objectType, ResourceAttributeDefinitionType attributeDef, QName ref, ShadowAttributeDefinition<?, ?> rad) {
+            ResourceObjectTypeDefinitionType objectType, ResourceAttributeDefinitionType attributeDef, QName ref, ShadowAttributeDefinition<?, ?, ?, ?> rad) {
         QName matchingRule = attributeDef.getMatchingRule();
         if (matchingRule == null) {
             return;

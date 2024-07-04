@@ -158,7 +158,7 @@ abstract class BaseClockworkAction<F extends FocusType> extends BaseAction<F> {
 
     private void createProjectionContext(ModelExecuteOptions options, LensContext<F> context) {
         ResourceType resource = change.getResource().asObjectable();
-        ShadowType shadow = syncCtx.getShadowedResourceObject();
+        ShadowType shadow = syncCtx.getShadowRequired();
         ResourceObjectTypeIdentification typeIdentification = syncCtx.getTypeIdentification();
         boolean tombstone = isTombstone(change);
         LensProjectionContext projectionContext =

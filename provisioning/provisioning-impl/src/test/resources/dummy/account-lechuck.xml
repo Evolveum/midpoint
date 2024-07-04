@@ -19,10 +19,14 @@
     </attributes>
     <associations>
         <ri:group>
-            <shadowRef oid="c0c010c0-d34d-b44f-f11d-3332eeee0000"/>
+            <objects>
+                <ri:group oid="c0c010c0-d34d-b44f-f11d-3332eeee0000"/>
+            </objects>
         </ri:group>
         <ri:priv>
-            <shadowRef oid="c0c010c0-d34d-b44f-f11d-3332eeff0000"/>
+            <objects>
+                <ri:priv oid="c0c010c0-d34d-b44f-f11d-3332eeff0000"/>
+            </objects>
         </ri:priv>
     </associations>
     <credentials>

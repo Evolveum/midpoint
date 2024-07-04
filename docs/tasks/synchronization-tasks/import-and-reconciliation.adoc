@@ -129,11 +129,7 @@ specifying that only objects with `ident` starting with `b` should be imported.
                     <objectclass>ri:AccountObjectClass</objectclass>
                     <query>
                         <q:filter>
-                            <q:substring>
-                                <q:path>attributes/ident</q:path>
-                                <q:value>b</q:value>
-                                <q:anchorStart>true</q:anchorStart>
-                            </q:substring>
+                            <q:text>attributes/ident startsWith "b"</q:text>
                         </q:filter>
                     </query>
                     <queryApplication>append</queryApplication>

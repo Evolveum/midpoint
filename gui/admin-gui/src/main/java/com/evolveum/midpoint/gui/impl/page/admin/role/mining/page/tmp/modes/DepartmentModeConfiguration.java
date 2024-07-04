@@ -51,10 +51,12 @@ public class DepartmentModeConfiguration extends AbstractRoleAnalysisConfigurati
                 clusteringSetting,
                 0.0,
                 2,
-                1);
+                1,
+                false);
 
         updateDetectionOptions(2,
                 2,
+                null,
                 createDetectionRange(),
                 RoleAnalysisDetectionProcessType.FULL);
     }

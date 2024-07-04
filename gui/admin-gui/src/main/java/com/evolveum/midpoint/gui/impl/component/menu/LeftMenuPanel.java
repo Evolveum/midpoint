@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.certification.*;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
@@ -67,7 +68,6 @@ import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAll;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAllocatedToMe;
 import com.evolveum.midpoint.web.page.admin.cases.PageWorkItemsClaimable;
-import com.evolveum.midpoint.web.page.admin.certification.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardConfigurable;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
@@ -475,13 +475,14 @@ public class LeftMenuPanel extends BasePanel<Void> {
         }
 
 //        if (isFullyAuthorized()) {  // workaround for MID-5917
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.allDecisions", PageCertDecisionsAll.class));
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.certificationItems", PageCertItems.class));
 
 //        }
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.decisions", PageCertDecisions.class));
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.myCertificationItems", PageMyCertItems.class));
 
         MenuItem newCertificationMenu = new MenuItem("PageAdmin.menu.top.certification.newDefinition", GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCertDefinition.class);
         certificationMenu.addMenuItem(newCertificationMenu);
+
         return certificationMenu;
     }
 

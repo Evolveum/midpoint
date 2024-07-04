@@ -12,9 +12,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.AttributePath;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -71,8 +69,13 @@ public class RepoShadowModifications implements DebugDumpable {
         for (ItemDelta<?, ?> modification : modifications) {
             Optional<AttributePath> attributePath = AttributePath.optionalOf(modification.getPath());
             if (attributePath.isPresent()) {
-                add(modification,
-                        objectDefinition.findSimpleAttributeDefinitionRequired(attributePath.get().getAttributeName()));
+                var def = objectDefinition.findAttributeDefinitionRequired(attributePath.get().getAttributeName());
+                if (def instanceof ShadowSimpleAttributeDefinition<?> simpleDef) {
+                    add(modification, simpleDef);
+                } else {
+                    // TODO implement caching of reference attributes
+                    addNonRawOnly(modification);
+                }
             } else {
                 add(modification);
             }
@@ -97,11 +100,23 @@ public class RepoShadowModifications implements DebugDumpable {
         }
     }
 
-    public void add(ItemDelta<?, ?> modification, ShadowSimpleAttributeDefinition<?> attrDef) throws SchemaException {
+    public void addNonRawOnly(@Nullable ItemDelta<?, ?> modification) {
+        if (modification != null) {
+            itemDeltas.add(modification);
+        }
+    }
+
+    public void add(ItemDelta<?, ?> modification, ShadowAttributeDefinition<?, ?, ?, ?> attrDef) throws SchemaException {
         ItemDelta<?, ?> rawModification = modification.clone();
-        // We have to suppress the type parameters, because - in fact - we change the type of the values.
-        //noinspection rawtypes,unchecked
-        ((ItemDelta) rawModification).applyDefinition(attrDef.toNormalizationAware(), true);
+        if (attrDef instanceof ShadowSimpleAttributeDefinition<?> simpleAttrDef) {
+            // We have to suppress the type parameters, because - in fact - we change the type of the values.
+            //noinspection rawtypes,unchecked
+            ((ItemDelta) rawModification).applyDefinition(simpleAttrDef.toNormalizationAware(), true);
+        } else if (attrDef instanceof ShadowReferenceAttributeDefinition) {
+            rawModification.setParentPath(ShadowType.F_REFERENCE_ATTRIBUTES); // ugly hack but should work
+        } else {
+            throw new AssertionError(attrDef);
+        }
         add(modification, rawModification);
     }
 

@@ -7,7 +7,10 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.shouldStoreReferenceAttributeInShadow;
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.shouldStoreSimpleAttributeInShadow;
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import java.util.*;
 import javax.xml.namespace.QName;
@@ -29,7 +32,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsLocalBeans;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -57,35 +60,51 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * These two situations are discriminated by {@link #fromResource} flag.
  *
  * @see ShadowDeltaComputerRelative
- * @see ShadowUpdater#updateShadowInRepository(ProvisioningContext, RepoShadow, ResourceObject, ObjectDelta,
+ * @see ShadowUpdater#updateShadowInRepository(ProvisioningContext, RepoShadow, ResourceObjectShadow, ObjectDelta,
  * ResourceObjectClassification, OperationResult)
+ * @see ShadowObjectComputer
  */
 class ShadowDeltaComputerAbsolute {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowDeltaComputerAbsolute.class);
 
     @NotNull private final ProvisioningContext ctx;
+
+    /** Current repo shadow. Not directly updated, used only as a source for creating {@link #computedModifications}. */
     @NotNull private final RepoShadow repoShadow;
+
+    /** "Raw" component of {@link #repoShadow}. */
     @NotNull private final RawRepoShadow rawRepoShadow;
-    @NotNull private final ResourceObject resourceObject;
+
+    /** The current resource object (or presumed resource object) that should be reflected in the repository shadow. */
+    @NotNull private final ResourceObjectShadow resourceObject;
+
+    /** The delta reflecting what happened with the object on the resource. Always `null` if {@link #fromResource} is false. */
     @Nullable private final ObjectDelta<ShadowType> resourceObjectDelta;
-    @NotNull private final RepoShadowModifications computedModifications = new RepoShadowModifications();
-    private final boolean cachingEnabled; // FIXME partial caching?!
 
     /**
-     * True if the information we deal with (resource object, resource object delta) comes from the resource.
-     * False if the shadow was sent to the resource, and the operation might or might not succeeded.
+     * True if the information we deal with ({@link #resourceObject}, {@link #resourceObjectDelta}) comes from the resource.
+     *
+     * False if the shadow is not from the resource: it is an object that was tried to be created on the resource,
+     * and the operation might or might not succeeded.
      */
     private final boolean fromResource;
+
+    /** Here we collect modifications that will be (presumably) applied to the repo shadow by the caller. */
+    @NotNull private final RepoShadowModifications computedModifications = new RepoShadowModifications();
+
+    private final boolean cachingEnabled; // FIXME partial caching?!
 
     private final ShadowsLocalBeans b = ShadowsLocalBeans.get();
 
     private ShadowDeltaComputerAbsolute(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
-            @NotNull ResourceObject resourceObject,
+            @NotNull ResourceObjectShadow resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
             boolean fromResource) {
+        argCheck(fromResource || resourceObjectDelta == null,
+                "Non-null delta with object not coming from resource?");
         this.ctx = ctx;
         this.repoShadow = repoShadow;
         this.rawRepoShadow = Preconditions.checkNotNull(repoShadow.getRawRepoShadow(), "no raw repo shadow");
@@ -98,7 +117,7 @@ class ShadowDeltaComputerAbsolute {
     static @NotNull RepoShadowModifications computeShadowModifications(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
-            @NotNull ResourceObject resourceObject,
+            @NotNull ResourceObjectShadow resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
             boolean fromResource)
             throws SchemaException, ConfigurationException {
@@ -112,12 +131,10 @@ class ShadowDeltaComputerAbsolute {
     private @NotNull RepoShadowModifications execute()
             throws SchemaException, ConfigurationException {
 
-        Collection<QName> incompleteCacheableItems = new HashSet<>();
-
         // Note: these updateXXX method work by adding respective deltas (if needed) to the computedShadowDelta
         // They do not change repoShadow nor resourceObject.
 
-        updateAttributes(incompleteCacheableItems);
+        var incompleteCacheableItems = updateAttributes();
         updateShadowName();
         updateAuxiliaryObjectClasses();
 
@@ -234,41 +251,71 @@ class ShadowDeltaComputerAbsolute {
         }
     }
 
-    private void updateAttributes(Collection<QName> incompleteCacheableAttributes)
+    private Collection<QName> updateAttributes()
             throws SchemaException, ConfigurationException {
 
-        ShadowAttributesContainer resourceObjectAttributesContainer = resourceObject.getAttributesContainer();
-        PrismContainerValue<?> rawRepoShadowAttributesPcv = rawRepoShadow.getAttributesContainerValue();
+        Collection<QName> incompleteCacheableAttributes = new HashSet<>();
+
+        var resourceObjectAttributesContainer = resourceObject.getAttributesContainer();
 
         // TODO the object should have the composite definition by now!
-        ResourceObjectDefinition ocDef = ctx.computeCompositeObjectDefinition(resourceObject.getBean());
+        var ocDef = ctx.computeCompositeObjectDefinition(resourceObject.getBean());
 
         // For complete attributes we can proceed as before: take the resource object as authoritative.
         // If not obtained from the resource, they were created from object delta anyway.
         // However, for incomplete (e.g. index-only) attributes we have to rely on object delta, if present.
         // TODO clean this up! MID-5834
 
-        Collection<QName> expectedRepoAttributes = new ArrayList<>();
+        var expectedRepoSimpleAttributes = new HashSet<QName>();
+        var expectedRepoReferenceAttributes = new HashSet<QName>();
 
-        for (ShadowSimpleAttribute<?> resourceObjectAttribute : resourceObjectAttributesContainer.getAttributes()) {
-            ShadowSimpleAttributeDefinition<?> attrDef = resourceObjectAttribute.getDefinitionRequired();
-            ItemName attrName = attrDef.getItemName();
-            if (ctx.shouldStoreAttributeInShadow(ocDef, attrDef)) {
-                expectedRepoAttributes.add(attrName);
-                if (!resourceObjectAttribute.isIncomplete()) {
-                    updateAttributeIfNeeded(rawRepoShadowAttributesPcv, resourceObjectAttribute);
+        // Let's update repo shadow according to attributes currently present in the resource object
+
+        for (var resourceObjectAttribute : resourceObjectAttributesContainer.getAttributes()) {
+            if (resourceObjectAttribute instanceof ShadowSimpleAttribute<?> simpleAttribute) {
+                var attrDef = simpleAttribute.getDefinitionRequired();
+                var attrName = attrDef.getItemName();
+                if (shouldStoreSimpleAttributeInShadow(ctx, ocDef, attrDef)) {
+                    expectedRepoSimpleAttributes.add(attrName);
+                    if (!resourceObjectAttribute.isIncomplete()) {
+                        updateSimpleAttributeIfNeeded(simpleAttribute);
+                    } else {
+                        incompleteCacheableAttributes.add(attrName);
+                    }
                 } else {
-                    incompleteCacheableAttributes.add(attrName);
+                    LOGGER.trace("Skipping simple attribute because it's not going to be stored in repo: {}", attrName);
+                }
+            } else if (resourceObjectAttribute instanceof ShadowReferenceAttribute referenceAttribute) {
+                var attrDef = referenceAttribute.getDefinitionRequired();
+                var attrName = attrDef.getItemName();
+                if (shouldStoreReferenceAttributeInShadow(ctx, ocDef, attrDef)) {
+                    expectedRepoReferenceAttributes.add(attrName);
+                    if (!resourceObjectAttribute.isIncomplete()) {
+                        updateReferenceAttributeIfNeeded(referenceAttribute);
+                    } else {
+                        incompleteCacheableAttributes.add(attrName);
+                    }
+                } else {
+                    LOGGER.trace("Skipping reference attribute because it's not going to be stored in repo: {}", attrName);
                 }
             } else {
-                LOGGER.trace("Skipping resource attribute because it's not going to be stored in shadow: {}", attrName);
+                throw new AssertionError(resourceObjectAttribute);
             }
         }
 
-        for (Item<?, ?> oldRepoItem : rawRepoShadowAttributesPcv.getItems()) {
+        // Now let's remove the items that are present in the repo shadow but should not be there
+
+        for (Item<?, ?> oldRepoItem : rawRepoShadow.getSimpleAttributes()) {
             ItemName oldRepoItemName = oldRepoItem.getElementName();
-            if (!expectedRepoAttributes.contains(oldRepoItemName)) {
-                removeAttribute(oldRepoItem, resourceObjectAttributesContainer.findAttribute(oldRepoItemName));
+            if (!expectedRepoSimpleAttributes.contains(oldRepoItemName)) {
+                removeRepoAttribute(oldRepoItem, resourceObjectAttributesContainer.findSimpleAttribute(oldRepoItemName));
+            }
+        }
+
+        for (Item<?, ?> oldRepoItem : rawRepoShadow.getReferenceAttributes()) {
+            ItemName oldRepoItemName = oldRepoItem.getElementName();
+            if (!expectedRepoReferenceAttributes.contains(oldRepoItemName)) {
+                removeRepoAttribute(oldRepoItem, resourceObjectAttributesContainer.findReferenceAttribute(oldRepoItemName));
             }
         }
 
@@ -291,69 +338,52 @@ class ShadowDeltaComputerAbsolute {
                         + "We will not update them in the repo shadow.", incompleteCacheableAttributes);
             }
         }
+
+        return incompleteCacheableAttributes;
     }
 
-    private void removeAttribute(@NotNull Item<?, ?> oldRepoItem, @Nullable ShadowSimpleAttribute<?> correspondingAttribute) {
-        LOGGER.trace("Removing old repo shadow attribute {} because it should not be cached", oldRepoItem.getElementName());
-        ItemDelta<?, ?> rawEraseDelta = oldRepoItem.createDelta();
-        rawEraseDelta.setValuesToReplace();
-        if (correspondingAttribute != null) {
-            ItemDelta<?, ?> eraseDelta = correspondingAttribute.createDelta();
-            eraseDelta.setValuesToReplace();
-            computedModifications.add(eraseDelta, rawEraseDelta);
-        } else {
-            computedModifications.addRawOnly(rawEraseDelta);
-        }
-    }
 
-    private <T, N> void updateAttributeIfNeeded(
-            @NotNull PrismContainerValue<?> rawRepoShadowAttributesPcv,
-            @NotNull ShadowSimpleAttribute<T> simpleAttribute)
+    //region Updating simple attributes
+
+    /** Generates modifications of the cached version of a simple attribute (represented by a prism property). */
+    private <T, N> void updateSimpleAttributeIfNeeded(@NotNull ShadowSimpleAttribute<T> resourceObjectAttribute)
             throws SchemaException {
-        ShadowSimpleAttributeDefinition<T> attrDef = simpleAttribute.getDefinitionRequired();
-        NormalizationAwareResourceAttributeDefinition<N> expectedRepoAttrDef = attrDef.toNormalizationAware();
-        List<N> expectedRepoRealValues = expectedRepoAttrDef.adoptRealValues(simpleAttribute.getRealValues());
+        ShadowSimpleAttributeDefinition<T> attrDef = resourceObjectAttribute.getDefinitionRequired();
+        NormalizationAwareResourceAttributeDefinition<N> expectedRepoPropDef = attrDef.toNormalizationAware();
+        List<N> expectedRepoPropRealValues = expectedRepoPropDef.adoptRealValues(resourceObjectAttribute.getRealValues());
 
-        PrismProperty<?> oldRepoAttr = rawRepoShadowAttributesPcv.findProperty(attrDef.getItemName());
-        if (oldRepoAttr == null) {
-            replaceRepoAttribute(simpleAttribute, "the attribute in repo is missing");
+        var oldRepoProp = rawRepoShadow.getPrismObject().findProperty(ShadowType.F_ATTRIBUTES.append(attrDef.getItemName()));
+        if (oldRepoProp == null) {
+            replaceRepoAttribute(resourceObjectAttribute, "the property in repo is missing");
             return;
         }
 
-        PrismPropertyDefinition<?> oldRepoAttrDef = oldRepoAttr.getDefinition();
-        if (oldRepoAttrDef == null) {
-            replaceRepoAttribute(simpleAttribute, "it has no definition in repo");
+        PrismPropertyDefinition<?> oldRepoPropDef = oldRepoProp.getDefinition();
+        if (oldRepoPropDef == null) {
+            replaceRepoAttribute(resourceObjectAttribute, "the property in repo has no definition");
             return;
         }
 
-        if (!oldRepoAttrDef.getTypeName().equals(expectedRepoAttrDef.getTypeName())) {
-            replaceRepoAttribute(simpleAttribute, "it has a different definition in repo");
+        if (!oldRepoPropDef.getTypeName().equals(expectedRepoPropDef.getTypeName())) {
+            replaceRepoAttribute(resourceObjectAttribute, "the property in repo has a wrong definition");
             return;
         }
 
-        if (MiscUtil.unorderedCollectionEquals(oldRepoAttr.getRealValues(), expectedRepoRealValues)) {
-            LOGGER.trace("Not updating attribute {} because it is up-to-date in repo", attrDef.getItemName());
+        if (MiscUtil.unorderedCollectionEquals(oldRepoProp.getRealValues(), expectedRepoPropRealValues)) {
+            LOGGER.trace("Not updating property {} because it is up-to-date in repo", attrDef.getItemName());
             return;
         }
 
         if (attrDef.isSingleValue()) {
-            replaceRepoAttribute(simpleAttribute, "the attribute value is outdated");
+            replaceRepoAttribute(resourceObjectAttribute, "the property value is outdated");
         } else {
-            updateRepoAttribute(oldRepoAttr, simpleAttribute, expectedRepoAttrDef, expectedRepoRealValues);
+            updateMultiValuedSimpleRepoAttribute(oldRepoProp, resourceObjectAttribute, expectedRepoPropDef, expectedRepoPropRealValues);
         }
     }
 
-    private <T> void replaceRepoAttribute(
-            @NotNull ShadowSimpleAttribute<T> simpleAttribute,
-            @NotNull String reason) throws SchemaException {
-        ShadowSimpleAttributeDefinition<T> attrDef = simpleAttribute.getDefinitionRequired();
-        LOGGER.trace("Going to set new attribute {} to repo shadow, because {}", attrDef.getItemName(), reason);
-        computedModifications.add(simpleAttribute.createReplaceDelta(), attrDef);
-    }
-
-    private <T, N> void updateRepoAttribute(
+    private <T, N> void updateMultiValuedSimpleRepoAttribute(
             @NotNull PrismProperty<?> oldRepoAttr,
-            @NotNull ShadowSimpleAttribute<T> simpleAttribute,
+            @NotNull ShadowSimpleAttribute<T> resourceObjectAttribute,
             @NotNull NormalizationAwareResourceAttributeDefinition<N> repoAttrDef,
             @NotNull List<N> expectedRepoRealValues) {
         PrismProperty<N> expectedRepoAttr = repoAttrDef.instantiateFromUniqueRealValues(expectedRepoRealValues);
@@ -364,10 +394,61 @@ class ShadowDeltaComputerAbsolute {
             LOGGER.trace("Going to update the new attribute {} in repo shadow because it's outdated", repoAttrDef.getItemName());
             // The repo is update with a nice, relative delta. We need not bother with computing such delta
             // for the in-memory update, as it is efficient enough also for "replace" version (hopefully)
-            PropertyDelta<T> attrDelta = simpleAttribute.createReplaceDelta();
+            PropertyDelta<T> attrDelta = resourceObjectAttribute.createReplaceDelta();
             computedModifications.add(attrDelta, repoAttrDelta);
         } else {
             throw new IllegalStateException("Different content but non-empty delta?");
         }
     }
+    //endregion
+
+    /** Generates modifications of the cached version of a reference attribute (represented by a prism reference). */
+    private void updateReferenceAttributeIfNeeded(@NotNull ShadowReferenceAttribute referenceAttribute)
+            throws SchemaException {
+        ShadowReferenceAttributeDefinition attrDef = referenceAttribute.getDefinitionRequired();
+        List<ObjectReferenceType> expectedRepoRefRealValues =
+                ShadowComputerUtil.toRepoFormat(ctx, referenceAttribute.getReferenceValues());
+
+        var oldRepoRef = rawRepoShadow.getPrismObject().findReference(
+                ShadowType.F_REFERENCE_ATTRIBUTES.append(attrDef.getItemName()));
+        if (oldRepoRef == null) {
+            replaceRepoAttribute(referenceAttribute, "the attribute in repo is missing");
+            return;
+        }
+
+        if (MiscUtil.unorderedCollectionEquals(oldRepoRef.getRealValues(), expectedRepoRefRealValues)) {
+            LOGGER.trace("Not updating attribute {} because it is up-to-date in repo", attrDef.getItemName());
+            return;
+        }
+
+        // FIXME currently we'll simply create REPLACE deltas for both repo and in-memory version,
+        //  please improve this for multi-valued attributes later
+        replaceRepoAttribute(referenceAttribute, "the attribute value is outdated");
+    }
+
+    //region Common support
+    private void removeRepoAttribute(
+            @NotNull Item<?, ?> oldRepoItem,
+            @Nullable ShadowAttribute<?, ?, ?, ?> correspondingResourceObjectAttribute) {
+        LOGGER.trace("Removing old repo shadow attribute {} because it should not be cached", oldRepoItem.getElementName());
+        ItemDelta<?, ?> rawEraseDelta = oldRepoItem.createDelta();
+        rawEraseDelta.setValuesToReplace();
+        if (correspondingResourceObjectAttribute != null) {
+            ItemDelta<?, ?> eraseDelta = correspondingResourceObjectAttribute.createDelta();
+            eraseDelta.setValuesToReplace();
+            computedModifications.add(eraseDelta, rawEraseDelta);
+        } else {
+            computedModifications.addRawOnly(rawEraseDelta);
+        }
+    }
+
+    private void replaceRepoAttribute(
+            @NotNull ShadowAttribute<?, ?, ?, ?> resourceObjectAttribute,
+            @NotNull String reason) throws SchemaException {
+        ShadowAttributeDefinition<?, ?, ?, ?> attrDef = resourceObjectAttribute.getDefinitionRequired();
+        LOGGER.trace("Going to set set/replace attribute {} to repo shadow, because {}", attrDef.getItemName(), reason);
+        computedModifications.add(resourceObjectAttribute.createReplaceDelta(), attrDef);
+    }
+    //endregion
+
 }

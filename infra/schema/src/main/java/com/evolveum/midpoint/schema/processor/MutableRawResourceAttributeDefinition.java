@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
  */
 public interface MutableRawResourceAttributeDefinition<T>
 
-        extends ShadowItemUcfDefinition.Mutable,
+        extends ShadowAttributeUcfDefinition.Mutable,
         ResourceItemPrismDefinition.Mutable,
         PrismPropertyDefinition.PrismPropertyDefinitionMutator<T> {
 

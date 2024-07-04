@@ -7,6 +7,11 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static org.apache.commons.lang3.ClassUtils.primitiveToWrapper;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,16 +24,8 @@ import org.springframework.util.ClassUtils;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismPropertyImpl;
-import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.normalization.Normalizer;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
-import static org.apache.commons.lang3.ClassUtils.primitiveToWrapper;
 
 public class ShadowSimpleAttributeImpl<T> extends PrismPropertyImpl<T> implements ShadowSimpleAttribute<T> {
 
@@ -41,6 +38,11 @@ public class ShadowSimpleAttributeImpl<T> extends PrismPropertyImpl<T> implement
     @Override
     public ShadowSimpleAttributeDefinition<T> getDefinition() {
         return (ShadowSimpleAttributeDefinition<T>) super.getDefinition();
+    }
+
+    @Override
+    public ShadowSimpleAttributeImpl<T> createImmutableClone() {
+        return (ShadowSimpleAttributeImpl<T>) super.createImmutableClone();
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
@@ -85,16 +87,13 @@ public class ShadowSimpleAttributeImpl<T> extends PrismPropertyImpl<T> implement
         List<T> oldRealValues = List.copyOf(getRealValues());
         clear();
 
-        addNormalizedValues(oldRealValues, (ShadowSimpleAttributeDefinition<T>) newDefinition);
+        addConvertedValues(oldRealValues, (ShadowSimpleAttributeDefinition<T>) newDefinition);
     }
 
-    @Override
-    public void addNormalizedValues(@NotNull Collection<?> realValues, @NotNull ShadowSimpleAttributeDefinition<T> newDefinition)
+    private void addConvertedValues(@NotNull Collection<?> realValues, @NotNull ShadowSimpleAttributeDefinition<T> newDefinition)
             throws SchemaException {
         Normalizer<T> normalizer = newDefinition.getNormalizer();
-        Normalizer<String> polyStringNormalizer =
-                PolyString.class.equals(newDefinition.getTypeClass()) ?
-                    newDefinition.getStringNormalizerForPolyStringProperty() : null;
+        Normalizer<String> polyStringNormalizer = newDefinition.getStringNormalizerIfApplicable();
         //noinspection unchecked
         Class<T> newJavaType = (Class<T>) ClassUtils.resolvePrimitiveIfNecessary(newDefinition.getTypeClass());
         for (Object realValue : realValues) {
@@ -113,76 +112,8 @@ public class ShadowSimpleAttributeImpl<T> extends PrismPropertyImpl<T> implement
 
         Preconditions.checkNotNull(oldRealValue,
                 "null value cannot be added to %s", this);
-        Preconditions.checkArgument(!(oldRealValue instanceof PrismValue),
-                "real value is required here: %s", oldRealValue);
 
-        // Only 3 scenarios are supported here:
-        //  - String to PolyString
-        //  - PolyString to PolyString
-        //  - X to X (where X is any other type); with "no-op" normalizer
-
-        if (PolyString.class.equals(newJavaType)) {
-
-            if (oldRealValue instanceof PolyString polyString) {
-                // This is a special case; we want to normalize the polystring norm, but keep other parts intact.
-                assert polyStringNormalizer != null;
-                //noinspection unchecked
-                return (PrismPropertyValue<T2>) new PrismPropertyValueImpl<>(
-                        polyString.copyApplyingNormalization(polyStringNormalizer));
-            }
-
-            String oldStringValue;
-            if (oldRealValue instanceof RawType raw) {
-                oldStringValue = raw.getParsedRealValue(String.class);
-            } else if (oldRealValue instanceof String string) {
-                oldStringValue = string;
-            } else {
-                throw new UnsupportedOperationException(
-                        "Cannot convert from %s to %s".formatted(oldRealValue.getClass(), newJavaType));
-            }
-            // TODO what if the original attribute is a "rich" polystring with (e.g.) translations?
-            //noinspection unchecked
-            return (PrismPropertyValue<T2>) new PrismPropertyValueImpl<>(new PolyString(
-                    oldStringValue,
-                    normalizer.normalizeString(oldStringValue)));
-        }
-
-        if (String.class.equals(newJavaType)) {
-            if (oldRealValue instanceof PolyString polyString) {
-                // "Downgrading" from PolyString to String when going back to raw definition
-                //noinspection unchecked
-                return (PrismPropertyValue<T2>) new PrismPropertyValueImpl<>(polyString.getOrig());
-            } else if (oldRealValue instanceof String string) {
-                // We intentionally do not want to normalize strings. This could lead to a loss of information.
-                // Moreover, the refined schema parser makes sure that the expected type for such cases is PolyString.
-                //noinspection unchecked
-                return (PrismPropertyValue<T2>) new PrismPropertyValueImpl<>(string);
-            } else if (oldRealValue instanceof RawType raw) {
-                //noinspection unchecked
-                return (PrismPropertyValue<T2>) new PrismPropertyValueImpl<>(raw.getParsedRealValue(String.class));
-            } else {
-                // this will probably fail below
-            }
-        }
-
-        if (normalizer.isIdentity()) {
-            if (newJavaType.isInstance(oldRealValue)) {
-                //noinspection unchecked
-                return (PrismPropertyValue<T2>) new PrismPropertyValueImpl<>(oldRealValue);
-            } else if (oldRealValue instanceof RawType raw) {
-                return new PrismPropertyValueImpl<>(
-                        raw.getParsedRealValue(newJavaType));
-            } else if (Long.class.equals(newJavaType) && oldRealValue instanceof Integer integer) {
-                // FIXME temporary hack MID-2119 (loot was int, but needed to carry long values ... so we made it long,
-                //  but this code is here to avoid crashing on int values)
-                //noinspection unchecked
-                return (PrismPropertyValue<T2>) new PrismPropertyValueImpl<>(integer.longValue());
-            }
-        }
-
-        throw new UnsupportedOperationException(
-                "Cannot convert %s to %s with %s in attribute %s".formatted(
-                        MiscUtil.getDiagInfo(oldRealValue), newJavaType, normalizer, elementName));
+        return ShadowAttributeValueConvertor.convertAndNormalize(oldRealValue, newJavaType, normalizer, polyStringNormalizer);
     }
 
     @Override

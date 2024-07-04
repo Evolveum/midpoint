@@ -249,12 +249,12 @@
                     </target>
                 </inbound>
             </attribute>
-            <association>
+            <attribute>
                 <ref>ri:group</ref>
                 <tolerant>false</tolerant>
                 <tolerantValuePattern>LaNdLuBeRs</tolerantValuePattern>
                 <tolerantValuePattern>mapmakers</tolerantValuePattern>
-            </association>
+            </attribute>
 
             <iteration>
                 <maxIterations>5</maxIterations>
@@ -405,16 +405,16 @@
                     </condition>
                 </inbound>
             </attribute>
-            <association>
+            <attribute>
                 <ref>ri:group</ref>
-                <outbound>
+                <outbound> <!-- TODO remove -->
                     <expression>
                         <value>
                             <shadowRef oid="20000000-0000-0000-3333-000000000002"/> <!-- "testers" group -->
                         </value>
                     </expression>
                 </outbound>
-            </association>
+            </attribute>
 
             <iteration>
                 <maxIterations>5</maxIterations>
@@ -487,10 +487,10 @@
                 <ref>ri:members</ref>
                 <fetchStrategy>minimal</fetchStrategy>
             </attribute>
-            <association>
+            <attribute>
                 <ref>ri:group</ref>
                 <!-- nothing to configure here -->
-            </association>
+            </attribute>
         </objectType>
 
         <objectType>

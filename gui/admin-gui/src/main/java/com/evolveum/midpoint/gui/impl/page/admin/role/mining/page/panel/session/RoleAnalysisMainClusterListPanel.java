@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
 
 import java.io.Serial;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -385,7 +387,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                 };
                 columns.add(column);
 
-                if (!analysisOption.getAnalysisCategory().equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                if (!RoleAnalysisCategoryType.OUTLIERS.equals(analysisOption.getAnalysisCategory())) {
                     column = new AbstractExportableColumn<>(
                             createStringResource("AnalysisClusterStatisticType.detectedReductionMetric")) {
 
@@ -722,10 +724,12 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
             @NotNull Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
             @NotNull String componentId,
             @NotNull Double density) {
-        String pointsDensity = String.format("%.3f",
-                density);
 
-        String colorClass = densityBasedColor(density);
+        BigDecimal bd = new BigDecimal(Double.toString(density));
+        bd = bd.setScale(2, RoundingMode.HALF_UP);
+        double pointsDensity = bd.doubleValue();
+
+        String colorClass = densityBasedColor(pointsDensity);
 
         ProgressBar progressBar = new ProgressBar(componentId) {
 
@@ -736,7 +740,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
 
             @Override
             public double getActualValue() {
-                return Double.parseDouble(pointsDensity);
+                return pointsDensity;
             }
 
             @Override

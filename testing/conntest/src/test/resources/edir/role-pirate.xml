@@ -23,7 +23,7 @@
                      <filter>
                          <q:text>attributes/ri:cn = "Pirates"</q:text>
                      </filter>
-                     <searchOnResource>true</searchOnResource>
+                     <searchStrategy>onResourceIfNeeded</searchStrategy>
                   </associationTargetSearch>
                </expression>
             </outbound>

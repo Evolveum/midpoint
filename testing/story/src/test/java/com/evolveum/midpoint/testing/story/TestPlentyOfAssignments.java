@@ -318,7 +318,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
                     .kind(ShadowKindType.ENTITLEMENT)
                     .intent("group");
             ShadowAttributesContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, rOcDef);
-            ShadowSimpleAttribute<String> nameAttribute = attributesContainer.findOrCreateAttribute(SchemaConstants.ICFS_NAME);
+            ShadowSimpleAttribute<String> nameAttribute = attributesContainer.findOrCreateSimpleAttribute(SchemaConstants.ICFS_NAME);
             String groupName = formatGroupName(i);
             nameAttribute.setRealValue(groupName);
             display("Group shadow " + i, shadow);
