@@ -38,12 +38,12 @@ public class TestDummyCachingPartial extends TestDummyCaching {
         var accountDefaultDef = getAccountDefaultDefinition();
         return Streams.concat(
                         accountDefaultDef.getAllIdentifiersNames().stream(),
-                        accountDefaultDef.getReferenceAttributesNames().stream(),
                         Stream.of(
                                 DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME,
                                 DUMMY_ACCOUNT_ATTRIBUTE_LOOT_QNAME,
                                 DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_QNAME,
-                                DUMMY_ACCOUNT_ATTRIBUTE_WATER_QNAME))
+                                DUMMY_ACCOUNT_ATTRIBUTE_WATER_QNAME,
+                                DUMMY_ENTITLEMENT_GROUP_QNAME)) // priv is not cached, only group is
                 .toList();
     }
 

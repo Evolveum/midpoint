@@ -15,6 +15,10 @@ import java.io.File;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.impl.ItemPathParserImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 
 import org.jetbrains.annotations.NotNull;
@@ -135,6 +139,26 @@ public class TestDummyAssociations extends AbstractDummyTest {
 
         executeGetJohnWithAssociations(oid, null);
         executeGetJohnWithAssociations(oid, createReadOnlyCollection());
+    }
+
+    @Test
+    public void test120SearchJohnUsingContract() throws Exception {
+
+        var task = getTestTask();
+        var result = task.getResult();
+        var options = GetOperationOptionsBuilder.create().noFetch().build();
+        // associations/contract/objects/org/@/name = "Law"
+        var path = PrismContext.get().itemPathParser().asItemPath("associations/contract/objects/org/@/name");
+        when("Searching for john using associations " + path.toString());
+        var query = Resource.of(resource)
+                .queryFor(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "person"))
+                .and().item(path).eq("law")
+                .build();
+        var objects = provisioningService.searchObjects(ShadowType.class, query, options, task, result);
+        then("John should be found.");
+        assertThat(objects).hasSize(1);
+
+
     }
 
     private String executeSearchForJohnWithAssociations(Collection<SelectorOptions<GetOperationOptions>> options)
