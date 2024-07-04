@@ -92,8 +92,7 @@ class ShadowObjectComputer {
             } else if (attribute instanceof ShadowReferenceAttribute referenceAttribute) {
                 var attrDef = referenceAttribute.getDefinitionRequired();
                 if (shouldStoreReferenceAttributeInShadow(ctx, objectDef, attrDef)) {
-                    var repoAttrDef = PrismContext.get().definitionFactory().newReferenceDefinition(
-                            attrDef.getItemName(), ObjectReferenceType.COMPLEX_TYPE);
+                    var repoAttrDef = ShadowComputerUtil.createRepoRefAttrDef(attrDef);
                     var repoAttr = repoAttrDef.instantiate();
                     for (var refAttrValue : referenceAttribute.getReferenceValues()) {
                         ObjectReferenceType inRepoFormat = ShadowComputerUtil.toRepoFormat(ctx, refAttrValue);

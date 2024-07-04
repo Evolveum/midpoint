@@ -7,8 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
-import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.shouldStoreReferenceAttributeInShadow;
-import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.shouldStoreSimpleAttributeInShadow;
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.*;
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
@@ -354,18 +353,21 @@ class ShadowDeltaComputerAbsolute {
 
         var oldRepoProp = rawRepoShadow.getPrismObject().findProperty(ShadowType.F_ATTRIBUTES.append(attrDef.getItemName()));
         if (oldRepoProp == null) {
-            replaceRepoAttribute(resourceObjectAttribute, "the property in repo is missing");
+            replaceRepoAttribute(
+                    resourceObjectAttribute, expectedRepoPropRealValues, "the property in repo is missing");
             return;
         }
 
         PrismPropertyDefinition<?> oldRepoPropDef = oldRepoProp.getDefinition();
         if (oldRepoPropDef == null) {
-            replaceRepoAttribute(resourceObjectAttribute, "the property in repo has no definition");
+            replaceRepoAttribute(
+                    resourceObjectAttribute, expectedRepoPropRealValues, "the property in repo has no definition");
             return;
         }
 
         if (!oldRepoPropDef.getTypeName().equals(expectedRepoPropDef.getTypeName())) {
-            replaceRepoAttribute(resourceObjectAttribute, "the property in repo has a wrong definition");
+            replaceRepoAttribute(
+                    resourceObjectAttribute, expectedRepoPropRealValues, "the property in repo has a wrong definition");
             return;
         }
 
@@ -375,9 +377,11 @@ class ShadowDeltaComputerAbsolute {
         }
 
         if (attrDef.isSingleValue()) {
-            replaceRepoAttribute(resourceObjectAttribute, "the property value is outdated");
+            replaceRepoAttribute(
+                    resourceObjectAttribute, expectedRepoPropRealValues, "the (single) property value is outdated");
         } else {
-            updateMultiValuedSimpleRepoAttribute(oldRepoProp, resourceObjectAttribute, expectedRepoPropDef, expectedRepoPropRealValues);
+            updateMultiValuedSimpleRepoAttribute(
+                    oldRepoProp, resourceObjectAttribute, expectedRepoPropDef, expectedRepoPropRealValues);
         }
     }
 
@@ -412,7 +416,7 @@ class ShadowDeltaComputerAbsolute {
         var oldRepoRef = rawRepoShadow.getPrismObject().findReference(
                 ShadowType.F_REFERENCE_ATTRIBUTES.append(attrDef.getItemName()));
         if (oldRepoRef == null) {
-            replaceRepoAttribute(referenceAttribute, "the attribute in repo is missing");
+            replaceRepoAttribute(referenceAttribute, expectedRepoRefRealValues, "the attribute in repo is missing");
             return;
         }
 
@@ -423,7 +427,7 @@ class ShadowDeltaComputerAbsolute {
 
         // FIXME currently we'll simply create REPLACE deltas for both repo and in-memory version,
         //  please improve this for multi-valued attributes later
-        replaceRepoAttribute(referenceAttribute, "the attribute value is outdated");
+        replaceRepoAttribute(referenceAttribute, expectedRepoRefRealValues, "the attribute value is outdated");
     }
 
     //region Common support
@@ -444,11 +448,33 @@ class ShadowDeltaComputerAbsolute {
 
     private void replaceRepoAttribute(
             @NotNull ShadowAttribute<?, ?, ?, ?> resourceObjectAttribute,
+            @NotNull Collection<?> newRealValues,
             @NotNull String reason) throws SchemaException {
-        ShadowAttributeDefinition<?, ?, ?, ?> attrDef = resourceObjectAttribute.getDefinitionRequired();
-        LOGGER.trace("Going to set set/replace attribute {} to repo shadow, because {}", attrDef.getItemName(), reason);
-        computedModifications.add(resourceObjectAttribute.createReplaceDelta(), attrDef);
+
+        var attrDef = resourceObjectAttribute.getDefinitionRequired();
+        var attrName = attrDef.getItemName();
+        LOGGER.trace("Going to set set/replace attribute {} ({} values) to repo shadow, because {}",
+                attrName, newRealValues.size(), reason);
+
+        ItemDelta<?, ?> nonRawDelta = resourceObjectAttribute.createReplaceDelta();
+        ItemDelta<?, ?> rawDelta;
+        if (attrDef instanceof ShadowSimpleAttributeDefinition<?> simpleAttrDef) {
+            var repoAttrDef = simpleAttrDef.toNormalizationAware();
+            rawDelta = repoAttrDef.createEmptyDelta();
+            //noinspection unchecked,rawtypes
+            ((ItemDelta) rawDelta).setValuesToReplace(
+                    PrismContext.get().itemFactory().createPropertyValues(
+                            repoAttrDef.adoptRealValues(newRealValues)));
+        } else if (attrDef instanceof ShadowReferenceAttributeDefinition refAttrDef) {
+            var repoAttrDef = createRepoRefAttrDef(refAttrDef);
+            rawDelta = repoAttrDef.createEmptyDelta(ShadowType.F_REFERENCE_ATTRIBUTES.append(attrName));
+            //noinspection unchecked,rawtypes
+            ((ItemDelta) rawDelta).setValuesToReplace(
+                    PrismContext.get().itemFactory().createReferenceValues((Collection<Referencable>) newRealValues));
+        } else {
+            throw new AssertionError(attrDef);
+        }
+        computedModifications.add(nonRawDelta, rawDelta);
     }
     //endregion
-
 }
