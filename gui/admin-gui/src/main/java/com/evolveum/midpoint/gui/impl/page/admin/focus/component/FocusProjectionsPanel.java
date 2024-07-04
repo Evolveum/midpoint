@@ -11,6 +11,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.shadow.ShadowAssociationsPanel;
+
+import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -53,7 +57,7 @@ import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
-import com.evolveum.midpoint.gui.impl.prism.panel.ShadowPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.shadow.ShadowBasicPanel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
@@ -415,12 +419,31 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
                         ContainerPanelConfigurationType config = getBasicShadowPanelConfiguration(getModelObject().getRealValue());
-                        return new ShadowPanel(panelId, getParentModel(getModel()), config);
+                        return new ShadowBasicPanel(panelId, getParentModel(getModel()), config);
                     }
                 });
+                if (isAssociationsVisible(getParentModel(getModel()))) {
+                    tabs.add(new PanelTab(createStringResource("ShadowType.associations")) {
+                        @Override
+                        public WebMarkupContainer createPanel(String panelId) {
+                            return new ShadowAssociationsPanel(
+                                    panelId,
+                                    PrismContainerValueWrapperModel.fromContainerValueWrapper(getModel(), ShadowType.F_ASSOCIATIONS),
+                                    getParentModel(getModel()));
+                        }
+                    });
+                }
                 return tabs;
             }
         };
+    }
+
+    private boolean isAssociationsVisible(IModel<ShadowWrapper> shadowWrapperModel) {
+        ShadowType shadowType = shadowWrapperModel.getObject().getObjectOld().asObjectable();
+        return ProvisioningObjectsUtil.isAssociationSupported(
+                shadowType,
+                () -> WebModelServiceUtils.loadResource(shadowWrapperModel.getObject(), getPageBase()));
+
     }
 
     private ContainerPanelConfigurationType getBasicShadowPanelConfiguration(ShadowType shadowType) {

@@ -361,7 +361,7 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
                             createStringResource("PrismItemDefinitionsTable.modifyProperty")) {
                         @Override
                         protected WebMarkupContainer createPanel(String id) {
-                            return new BasicPrimsItemPanel(
+                            return new BasicPrimItemDefinitionPanel(
                                     (AssignmentHolderDetailsModel<SchemaType>) parent.getObjectDetailsModels(), valueModel) {
                                 @Override
                                 public String getId() {

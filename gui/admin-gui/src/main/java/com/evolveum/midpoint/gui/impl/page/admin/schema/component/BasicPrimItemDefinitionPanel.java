@@ -24,11 +24,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
         applicableForType = SchemaType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageSchema.wizard.step.complexType.prismItem.basicSettings", icon = "fa fa-circle"))
-public class BasicPrimsItemPanel extends BasicDefinitionPanel<PrismItemDefinitionType> {
+public class BasicPrimItemDefinitionPanel extends BasicDefinitionPanel<PrismItemDefinitionType> {
 
     public static final String PANEL_TYPE = "schema-complexType-prismItem-basic";
 
-    public BasicPrimsItemPanel(
+    public BasicPrimItemDefinitionPanel(
             AssignmentHolderDetailsModel<SchemaType> model,
             IModel<PrismContainerValueWrapper<PrismItemDefinitionType>> newValueModel) {
         super(model, newValueModel);

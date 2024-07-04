@@ -226,6 +226,10 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
                 managePopupDialogContent(pageBase, target);
             }
 
+            @Override
+            protected void onClickCancelButton(AjaxRequestTarget ajaxRequestTarget) {
+                managePopupDialogContent(pageBase, target);
+            }
         };
 
         if (parentPopupableDialog != null) {

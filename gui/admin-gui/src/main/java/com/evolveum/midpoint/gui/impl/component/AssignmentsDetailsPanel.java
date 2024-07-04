@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAssociationPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAttributePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.shadow.ResourceAssociationPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.shadow.ResourceAttributePanel;
 
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
