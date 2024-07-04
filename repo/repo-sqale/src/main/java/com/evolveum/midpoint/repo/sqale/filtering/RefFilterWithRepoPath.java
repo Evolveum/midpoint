@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.TypedItemPath;
 
+import com.evolveum.midpoint.prism.query.FilterItemPathTransformer;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -215,6 +217,10 @@ class RefFilterWithRepoPath implements RefFilter {
 
     @Override
     public void collectUsedPaths(TypedItemPath base, Consumer<TypedItemPath> pathConsumer, boolean expandReferences) {
+        // NOOP - never used outside repo.
+    }
+
+    public void transformItemPaths(ItemPath parentPath, ItemDefinition<?> parentDef, FilterItemPathTransformer transformer) {
         // NOOP - never used outside repo.
     }
 }

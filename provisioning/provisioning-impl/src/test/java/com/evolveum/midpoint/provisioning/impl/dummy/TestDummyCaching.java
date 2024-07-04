@@ -18,10 +18,16 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
+import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
+
+import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -46,9 +52,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -335,6 +338,28 @@ public class TestDummyCaching extends TestDummy {
         assertProtected(allShadows, 1);
 
         assertSteadyResource();
+    }
+
+
+    @Test
+    public void test700SearchUsingAssociations() throws Exception {
+        skipIfNotNativeRepository();
+
+        given();
+
+        var task = getTestTask();
+        var result = task.getResult();
+        var options = GetOperationOptionsBuilder.create().noFetch().build();
+        // associations/contract/objects/org/@/name = "Law"
+        var path = PrismContext.get().itemPathParser().asItemPath("associations/group/objects/group/@/name");
+        when("Searching for john using associations " + path.toString());
+        var query = Resource.of(resource)
+                .queryFor(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "default"))
+                .and().item(path).eq("fools")
+                .build();
+        var objects = provisioningService.searchObjects(ShadowType.class, query, options, task, result);
+        then("Will should be found.");
+        assertThat(objects).hasSize(1);
     }
 
     /**

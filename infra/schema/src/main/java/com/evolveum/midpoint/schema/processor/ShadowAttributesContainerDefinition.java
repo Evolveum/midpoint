@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
@@ -84,7 +85,11 @@ public interface ShadowAttributesContainerDefinition extends PrismContainerDefin
     <T> ShadowSimpleAttributeDefinition<T> findAttributeDefinition(ItemPath elementPath);
 
     @Override
-    @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getDefinitions();
+    @NotNull List<? extends ItemDefinition<?>> getDefinitions();
+
+    @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getSimpleAttributesDefinitions();
 
     @NotNull ResourceObjectDefinition getResourceObjectDefinition();
+
+    boolean isUsedInSimpleAssociationObject();
 }

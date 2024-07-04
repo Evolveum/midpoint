@@ -276,9 +276,8 @@ public class TestRefinedSchema extends AbstractUnitTest {
                         riUidAttrDef.canModify());
             }
 
-            Collection<? extends ShadowSimpleAttributeDefinition<?>> definitionsFromResAttrContainerDef =
-                    resAttrContainerDef.getDefinitions();
-            for (ShadowSimpleAttributeDefinition<?> definitionFromResAttrContainerDef : definitionsFromResAttrContainerDef) {
+            var definitionsFromResAttrContainerDef = resAttrContainerDef.getSimpleAttributesDefinitions();
+            for (var definitionFromResAttrContainerDef : definitionsFromResAttrContainerDef) {
                 assertRefinedToLayer(definitionFromResAttrContainerDef, sourceLayer);
             }
         }

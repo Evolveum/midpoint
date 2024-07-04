@@ -7,6 +7,7 @@
 <archetype oid="00000000-0000-0000-0000-000000000330"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Classification</name>
+    <description>Archetype for information classifications (labels, levels, compartments).</description>
     <archetypePolicy>
         <display>
             <label>Classification</label>
@@ -20,19 +21,7 @@
     <assignment id="1">
         <identifier>holderType</identifier>
         <assignmentRelation id="2">
-            <holderType>AbstractRoleType</holderType>
+            <holderType>PolicyType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement id="3">
-        <orderConstraint>
-            <order>2</order>
-        </orderConstraint>
-        <focusType>ServiceType</focusType>
-    </inducement>
-    <inducement id="4">
-        <orderConstraint>
-            <order>3</order>
-        </orderConstraint>
-        <focusType>UserType</focusType>
-    </inducement>
 </archetype>

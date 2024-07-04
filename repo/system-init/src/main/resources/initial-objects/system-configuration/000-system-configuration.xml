@@ -935,6 +935,34 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView id="98"> <!-- TODO: change id as needed -->
+                <identifier>application-roles-view</identifier>
+                <display>
+                    <label>Application roles</label>
+                    <singularLabel>Application role</singularLabel>
+                    <tooltip>Application roles</tooltip>
+                </display>
+                <displayOrder>180</displayOrder>
+                <type>RoleType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000328" relation="org:default" type="c:ArchetypeType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView id="99"> <!-- TODO: change id as needed -->
+                <identifier>business-roles-view</identifier>
+                <display>
+                    <label>Business roles</label>
+                    <singularLabel>Business role</singularLabel>
+                    <tooltip>Business roles</tooltip>
+                </display>
+                <displayOrder>190</displayOrder>
+                <type>RoleType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
             <objectCollectionView id="100"> <!-- TODO: change id as needed -->
                 <identifier>classification-view</identifier>
                 <display>
@@ -943,7 +971,7 @@
                     <tooltip>Information classifications (labels)</tooltip>
                 </display>
                 <displayOrder>200</displayOrder>
-                <type>RoleType</type> <!-- TODO: Change to PolicyType later -->
+                <type>PolicyType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000330" relation="org:default" type="c:ArchetypeType">
                     </collectionRef>
@@ -957,7 +985,7 @@
                     <tooltip>Security clearances</tooltip>
                 </display>
                 <displayOrder>210</displayOrder>
-                <type>RoleType</type> <!-- TODO: Change to PolicyType later -->
+                <type>PolicyType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000331" relation="org:default" type="c:ArchetypeType">
                     </collectionRef>

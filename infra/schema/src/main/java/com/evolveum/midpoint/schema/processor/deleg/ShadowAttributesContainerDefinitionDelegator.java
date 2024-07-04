@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.schema.processor.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -49,8 +50,13 @@ public interface ShadowAttributesContainerDefinitionDelegator
     }
 
     @Override
-    default @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getDefinitions() {
+    default @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
         return delegate().getDefinitions();
+    }
+
+    @Override
+    default @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getSimpleAttributesDefinitions() {
+        return delegate().getSimpleAttributesDefinitions();
     }
 
     @Override

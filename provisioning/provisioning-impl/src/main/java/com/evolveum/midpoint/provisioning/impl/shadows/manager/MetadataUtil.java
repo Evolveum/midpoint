@@ -40,8 +40,7 @@ class MetadataUtil {
         if (ValueMetadataTypeUtil.hasModifyTimestampDelta(modifications.getItemDeltas())) {
             return;
         }
-        LOGGER.debug("'modify timestamp' delta not found, adding it. Modifications:\n{}",
-                DebugUtil.debugDumpLazily(modifications, 1));
+        LOGGER.debug("'modify timestamp' delta not found, adding it");
         modifications.add(
                 ValueMetadataTypeUtil.createModifyTimestampDelta(
                         repoShadow.getBean(),
