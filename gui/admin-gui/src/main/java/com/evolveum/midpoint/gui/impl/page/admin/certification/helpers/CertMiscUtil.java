@@ -51,9 +51,8 @@ public class CertMiscUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(CertMiscUtil.class);
     private static final String OPERATION_LOAD_CAMPAIGNS_OIDS = "loadCampaignsOids";
-    private static final String OPERATION_LOAD_CASES_COUNT = "loadCampaignsOids";
-    private static final String OPERATION_RECORD_ACTION = "recordAction";
-    private static final String OPERATION_RECORD_ACTION_SELECTED = "recordActionSelected";
+    private static final String OPERATION_COUNT_CASES_PROGRESS = "countCasesProgress";
+    private static final String OPERATION_COUNT_WORK_ITEMS_PROGRESS = "countWorkItemsProgress";
 
     public static String getStopReviewOnText(List<AccessCertificationResponseType> stopOn, PageBase page) {
         if (stopOn == null) {
@@ -69,7 +68,7 @@ public class CertMiscUtil {
         }
     }
 
-    public static LoadableModel<List<ProgressBar>> createCampaignProgressBarModel(AccessCertificationCampaignType campaign,
+    public static LoadableModel<List<ProgressBar>> createCampaignWorkItemsProgressBarModel(AccessCertificationCampaignType campaign,
             MidPointPrincipal principal, PageBase pageBase) {
         return new LoadableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
@@ -79,8 +78,8 @@ public class CertMiscUtil {
                 int currentStage = campaign.getStageNumber();
                 int currentIteration = campaign.getIteration();
 
-                OperationResult result = new OperationResult(OPERATION_LOAD_CASES_COUNT);
-                Task task = pageBase.createSimpleTask(OPERATION_LOAD_CASES_COUNT);
+                OperationResult result = new OperationResult(OPERATION_COUNT_WORK_ITEMS_PROGRESS);
+                Task task = pageBase.createSimpleTask(OPERATION_COUNT_WORK_ITEMS_PROGRESS);
 
                 S_FilterExit queryBasePart = pageBase.getPrismContext().queryFor(AccessCertificationWorkItemType.class)
                         .ownerId(campaign.getOid())
@@ -138,6 +137,86 @@ public class CertMiscUtil {
                     }
 
                     float completed = (float) processedItemsCount / allItemsCount * 100;
+                    ProgressBar completedProgressBar = new ProgressBar(completed, ProgressBar.State.INFO);
+                    return Collections.singletonList(completedProgressBar);
+                } catch (Exception ex) {
+                    LOGGER.error("Couldn't count certification items", ex);
+                    pageBase.showResult(result);
+                }
+                return Collections.emptyList();
+            }
+        };
+    }
+
+    public static LoadableModel<List<ProgressBar>> createCampaignCasesProgressBarModel(AccessCertificationCampaignType campaign,
+            MidPointPrincipal principal, PageBase pageBase) {
+        return new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<ProgressBar> load() {
+                int currentStage = campaign.getStageNumber();
+                int currentIteration = campaign.getIteration();
+
+                OperationResult result = new OperationResult(OPERATION_COUNT_CASES_PROGRESS);
+                Task task = pageBase.createSimpleTask(OPERATION_COUNT_CASES_PROGRESS);
+
+                S_FilterExit queryBasePart = pageBase.getPrismContext().queryFor(AccessCertificationCaseType.class)
+                        .ownerId(campaign.getOid())
+                        .and()
+                        .item(AccessCertificationCaseType.F_ITERATION)
+                        .eq(currentIteration)
+                        .and()
+                        .item(AccessCertificationCaseType.F_STAGE_NUMBER)
+                        .eq(currentStage);
+
+                try {
+                    ObjectQuery allCases;
+                    if (principal != null) {
+                        allCases = queryBasePart
+                                .and()
+                                .item(ItemPath.create(AccessCertificationCaseType.F_WORK_ITEM, AbstractWorkItemType.F_ASSIGNEE_REF))
+                                .ref(principal.getOid())
+                                .build();
+                    } else {
+                        allCases = queryBasePart
+                                .build();
+                    }
+
+                    Integer allCasesCount = pageBase.getModelService()
+                            .countContainers(AccessCertificationCaseType.class, allCases, null, task, result);
+
+                    if (allCasesCount == null || allCasesCount == 0) {
+                        ProgressBar allCasesProgressBar = new ProgressBar(0, ProgressBar.State.SECONDARY);
+                        return Collections.singletonList(allCasesProgressBar);
+                    }
+
+                    S_FilterExit processedCasesQueryPart = queryBasePart
+                            .and()
+                            .not()
+                            .item(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME)
+                            .eq(OutcomeUtils.toUri(NO_RESPONSE));
+                    ObjectQuery processedCasesQuery;
+                    if (principal != null) {
+                        processedCasesQuery = processedCasesQueryPart
+                                .and()
+                                .item(ItemPath.create(AccessCertificationCaseType.F_WORK_ITEM, AccessCertificationWorkItemType.F_ASSIGNEE_REF))
+                                .ref(principal.getOid())
+                                .build();
+                    } else {
+                        processedCasesQuery = processedCasesQueryPart
+                                .build();
+                    }
+
+                    Integer processedCasesCount = pageBase.getModelService()
+                            .countContainers(AccessCertificationCaseType.class, processedCasesQuery, null, task, result);
+
+                    if (processedCasesCount == null) {
+                        ProgressBar progressBar = new ProgressBar(0, ProgressBar.State.SECONDARY);
+                        return Collections.singletonList(progressBar);
+                    }
+
+                    float completed = (float) processedCasesCount / allCasesCount * 100;
                     ProgressBar completedProgressBar = new ProgressBar(completed, ProgressBar.State.INFO);
                     return Collections.singletonList(completedProgressBar);
                 } catch (Exception ex) {

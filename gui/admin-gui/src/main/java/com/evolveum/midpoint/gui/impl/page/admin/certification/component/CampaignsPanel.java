@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
@@ -15,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -401,7 +403,15 @@ public class CampaignsPanel extends BasePanel {
 
     protected Component createCampaignTile(String id,
             IModel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> model) {
-        return new CampaignTilePanel(id, model);
+        return new CampaignTilePanel(id, model) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected LoadableModel<List<ProgressBar>> createCampaignProgressModel() {
+                return CertMiscUtil.createCampaignCasesProgressBarModel(getCampaign(), getPrincipal(), getPageBase());
+            }
+        };
     }
 
     protected WebMarkupContainer createNavigationPanel(String id) {
