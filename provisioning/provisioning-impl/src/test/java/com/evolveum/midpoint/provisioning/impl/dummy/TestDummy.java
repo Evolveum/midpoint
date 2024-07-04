@@ -2541,6 +2541,9 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertRepoShadowNew(ACCOUNT_WILL_OID)
                 .display()
                 .assertCachedRefValues(DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID);
+
+        and("search by references works");
+        assertSearchByReferenceAndAssociation(DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID, ACCOUNT_WILL_OID);
     }
 
     @Test
@@ -2594,12 +2597,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSteadyResource();
 
         and("cached shadow is OK");
-        checkWillAfter222();
-    }
-
-    private void checkWillAfter222() throws CommonException {
         assertRepoShadowNew(ACCOUNT_WILL_OID)
-                .display();
+                .display()
+                .assertCachedRefValues(DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID)
+                .assertCachedRefValues(ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID);
     }
 
     @Test
@@ -2643,6 +2644,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.assertSingleNotifySuccessOnly();
 
         assertSteadyResource();
+
+        assertRepoShadowNew(ACCOUNT_WILL_OID)
+                .display();
+//                .assertCachedRefValues(DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID)
+//                .assertCachedRefValues(ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID);
     }
 
     /**
@@ -2690,6 +2696,11 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         assertSteadyResource();
+
+        assertRepoShadowNew(ACCOUNT_WILL_OID)
+                .display()
+                .assertCachedRefValues(DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID)
+                .assertCachedRefValues(ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID, PRIVILEGE_BARGAIN_OID);
     }
 
     /**
@@ -2758,6 +2769,11 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         assertSteadyResource();
+
+        assertRepoShadowNew(ACCOUNT_WILL_OID)
+                .display()
+                .assertCachedRefValues(DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID, foolsShadow.getOid())
+                .assertCachedRefValues(ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID, PRIVILEGE_BARGAIN_OID);
     }
 
     /**
@@ -2825,13 +2841,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         assertSteadyResource();
 
-        and("cached shadow is OK");
-        checkWillAfter226();
-    }
-
-    private void checkWillAfter226() throws CommonException {
+        and("cached shadow is OK (no nonsense shadow OID should be there)");
         assertRepoShadowNew(ACCOUNT_WILL_OID)
-                .display();
+                .display()
+                .assertCachedRefValues(DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID, foolsShadow.getOid())
+                .assertCachedRefValues(ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID, PRIVILEGE_BARGAIN_OID);
     }
 
     @Test
@@ -2854,6 +2868,9 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSuccess(result);
         delta.checkConsistence();
         assertAccountPiratesDetitled();
+
+        assertRepoShadowNew(ACCOUNT_WILL_OID)
+                .display(); // TODO
     }
 
     /**
@@ -4776,5 +4793,50 @@ public class TestDummy extends AbstractBasicDummyTest {
         var object = objectDef.createBlankShadow();
         object.getAttributesContainer().addSimpleAttribute(identifierName, identifierValue);
         return createDetitleDelta(subjectOid, assocName, object);
+    }
+
+    /**
+     * Tries to search by both reference attribute (low-level) and the respective association (high-level).
+     * Checks also "not cached" scenario, where the search should yield no values.
+     * Only for native repository.
+     */
+    private void assertSearchByReferenceAndAssociation(QName refAttrName, String objectOid, String subjectOid)
+            throws CommonException {
+        if (!isNativeRepository()) {
+            return; // No ref attr indexing for generic repo
+        }
+        assertQueryResult(
+                createRefAttrQuery(refAttrName, objectOid),
+                subjectOid,
+                getCachedAccountAttributes().contains(refAttrName));
+//        assertQueryResult(
+//                createAssociationQuery(refAttrName, objectOid),
+//                subjectOid,
+//                getCachedAccountAttributes().contains(refAttrName));
+    }
+
+    private void assertQueryResult(@NotNull ObjectQuery query, String subjectOid, boolean refAttrCached) throws CommonException {
+        var objectsFound =
+                ObjectSet.ofPrismObjects(
+                        provisioningService.searchObjects(
+                                ShadowType.class, query, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
+        display("Searching by " + query + " yields " + objectsFound.size() + " shadows");
+        if (refAttrCached) {
+            assertThat(objectsFound.oidSet())
+                    .as("objects OIDs found by query " + query)
+                    .contains(subjectOid);
+        } else {
+            assertThat(objectsFound.oidSet())
+                    .as("objects OIDs found by query " + query)
+                    .isEmpty(); // Not only this set should not contain the subject, it should be empty
+        }
+    }
+
+    private ObjectQuery createRefAttrQuery(QName refAttrName, String objectOid) throws SchemaException, ConfigurationException {
+        return Resource.of(getResource())
+                .queryFor(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                .and().item(ShadowType.F_REFERENCE_ATTRIBUTES.append(refAttrName)) // FIXME TEMPORARY -> change to "attributes" later
+                .ref(objectOid)
+                .build();
     }
 }
