@@ -11,8 +11,6 @@ import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 
-import java.util.List;
-
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
@@ -111,7 +109,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
     static DeleteOperationState executeInRefresh(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
-            @NotNull PendingOperationType pendingOperation,
+            @NotNull PendingOperation pendingOperation,
             @Nullable ProvisioningOperationOptions options,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
@@ -130,11 +128,11 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
     static void executeInPropagation(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
-            List<PendingOperationType> sortedOperations,
+            @NotNull PendingOperations sortedOperations,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-        DeleteOperationState opState = new DeleteOperationState(repoShadow);
+        var opState = new DeleteOperationState(repoShadow);
         opState.setPropagatedPendingOperations(sortedOperations);
         new ShadowDeleteOperation(ctx, opState, null, null, true)
                 .execute(result);

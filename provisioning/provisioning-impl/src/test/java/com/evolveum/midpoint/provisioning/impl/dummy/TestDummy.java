@@ -4568,9 +4568,14 @@ public class TestDummy extends AbstractBasicDummyTest {
                             .assertModify();
         // @formatter:on
 
+        displayDumpable("repo shadow", getShadowRepo(accountAfter.getOid()));
+
         and("the association has correct definition");
         var associationValues = ShadowAssociationsCollection.ofShadow(accountAfter.asObjectable()).getAllIterableValues();
         assertThat(associationValues).as("associations").hasSize(1);
+        assertThat(associationValues.get(0).associationValue().getDefinition())
+                .as("definition of association")
+                .isInstanceOf(ShadowAssociationDefinition.class);
 
         and("the title has correct definition");
         PrismPropertyDefinition<Object> titleDefinition =

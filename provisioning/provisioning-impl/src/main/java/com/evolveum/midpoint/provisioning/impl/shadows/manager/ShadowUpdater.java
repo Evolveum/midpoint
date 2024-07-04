@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.PendingOperation;
 import com.evolveum.midpoint.repo.api.ModifyObjectResult;
 
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
@@ -55,7 +56,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -195,6 +195,7 @@ public class ShadowUpdater {
     }
 
     /** Does *not* update the in-memory object. */
+    @SuppressWarnings("UnusedReturnValue")
     private ModifyObjectResult<ShadowType> executeRepoShadowModificationsRaw(
             @NotNull RepoShadow repoShadow,
             @NotNull RepoShadowModifications modifications,
@@ -421,7 +422,7 @@ public class ShadowUpdater {
      * For more information, see {@link PendingOperationsHelper#checkAndRecordPendingOperationBeforeExecution(ProvisioningContext,
      * ObjectDelta, ProvisioningOperationState, OperationResult)}.
      */
-    public PendingOperationType checkAndRecordPendingOperationBeforeExecution(
+    public PendingOperation checkAndRecordPendingOperationBeforeExecution(
             @NotNull ProvisioningContext ctx,
             @NotNull ObjectDelta<ShadowType> proposedDelta,
             @NotNull ProvisioningOperationState<?> opState,

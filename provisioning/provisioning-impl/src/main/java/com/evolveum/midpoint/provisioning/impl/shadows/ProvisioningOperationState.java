@@ -91,13 +91,13 @@ public abstract class ProvisioningOperationState<RV extends AsynchronousOperatio
      * as a single delta. The code for updating the shadow is (currently) distinct from the one that uses this field.
      * See {@link #propagatedPendingOperations}.
      */
-    private PendingOperationType currentPendingOperation;
+    private PendingOperation currentPendingOperation;
 
     /**
      * List of pending operations executed during a propagation operation.
      * These are updated in a special way.
      */
-    private List<PendingOperationType> propagatedPendingOperations;
+    private PendingOperations propagatedPendingOperations;
 
     public ProvisioningOperationState() {
     }
@@ -182,7 +182,7 @@ public abstract class ProvisioningOperationState<RV extends AsynchronousOperatio
         this.repoShadow = repoShadow;
     }
 
-    public PendingOperationType getCurrentPendingOperation() {
+    public PendingOperation getCurrentPendingOperation() {
         return currentPendingOperation;
     }
 
@@ -190,7 +190,7 @@ public abstract class ProvisioningOperationState<RV extends AsynchronousOperatio
         return currentPendingOperation != null;
     }
 
-    public void setCurrentPendingOperation(@NotNull PendingOperationType pendingOperation) {
+    public void setCurrentPendingOperation(@NotNull PendingOperation pendingOperation) {
         stateCheck(currentPendingOperation == null,
                 "Current pending operation is already set! %s in %s", currentPendingOperation, repoShadow);
         stateCheck(propagatedPendingOperations == null,
@@ -199,11 +199,11 @@ public abstract class ProvisioningOperationState<RV extends AsynchronousOperatio
         currentPendingOperation = pendingOperation;
     }
 
-    public List<PendingOperationType> getPropagatedPendingOperations() {
+    public PendingOperations getPropagatedPendingOperations() {
         return propagatedPendingOperations;
     }
 
-    void setPropagatedPendingOperations(List<PendingOperationType> propagatedPendingOperations) {
+    void setPropagatedPendingOperations(PendingOperations propagatedPendingOperations) {
         this.propagatedPendingOperations = propagatedPendingOperations;
     }
 
@@ -281,7 +281,7 @@ public abstract class ProvisioningOperationState<RV extends AsynchronousOperatio
 
     private static <X extends ProvisioningOperationState<?>> X fromPendingOperationInternal(
             @NotNull RepoShadow repoShadow,
-            @NotNull PendingOperationType pendingOperation,
+            @NotNull PendingOperation pendingOperation,
             @NotNull Function<RepoShadow, X> newOpStateSupplier) {
         X newOpState = newOpStateSupplier.apply(repoShadow);
         newOpState.setCurrentPendingOperation(pendingOperation);
@@ -354,7 +354,7 @@ public abstract class ProvisioningOperationState<RV extends AsynchronousOperatio
         }
 
         static @NotNull AddOperationState fromPendingOperation(
-                @NotNull RepoShadow repoShadow, @NotNull PendingOperationType pendingOperation) {
+                @NotNull RepoShadow repoShadow, @NotNull PendingOperation pendingOperation) {
             return fromPendingOperationInternal(repoShadow, pendingOperation, AddOperationState::new);
         }
 
@@ -377,7 +377,7 @@ public abstract class ProvisioningOperationState<RV extends AsynchronousOperatio
         }
 
         static @NotNull ModifyOperationState fromPendingOperation(
-                @NotNull RepoShadow repoShadow, @NotNull PendingOperationType pendingOperation) {
+                @NotNull RepoShadow repoShadow, @NotNull PendingOperation pendingOperation) {
             return fromPendingOperationInternal(repoShadow, pendingOperation, ModifyOperationState::new);
         }
 
@@ -395,7 +395,7 @@ public abstract class ProvisioningOperationState<RV extends AsynchronousOperatio
         }
 
         static @NotNull DeleteOperationState fromPendingOperation(
-                @NotNull RepoShadow repoShadow, @NotNull PendingOperationType pendingOperation) {
+                @NotNull RepoShadow repoShadow, @NotNull PendingOperation pendingOperation) {
             return fromPendingOperationInternal(repoShadow, pendingOperation, DeleteOperationState::new);
         }
 

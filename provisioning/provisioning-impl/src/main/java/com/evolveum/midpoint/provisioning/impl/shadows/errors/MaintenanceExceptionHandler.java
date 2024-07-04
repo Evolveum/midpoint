@@ -30,6 +30,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
 /**
  * @author Martin Lizner
  */
@@ -102,7 +104,9 @@ class MaintenanceExceptionHandler extends ErrorHandler {
                 // TODO shouldn't we do something similar for other cases like this?
                 if (!opState.hasCurrentPendingOperation()) {
                     opState.setCurrentPendingOperation(
-                            liveShadow.findPendingAddOperation());
+                            stateNonNull(
+                                    liveShadow.findPendingAddOperation(),
+                                    "No pending ADD operation in %s", liveShadow));
                 }
             } else {
                 status = OperationResultStatus.IN_PROGRESS;

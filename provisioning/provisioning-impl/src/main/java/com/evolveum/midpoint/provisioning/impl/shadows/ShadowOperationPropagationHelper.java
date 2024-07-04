@@ -10,14 +10,8 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.getGroupingInterval;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTION_PENDING;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
-import com.evolveum.midpoint.schema.util.RawRepoShadow;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,18 +21,18 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -70,21 +64,20 @@ class ShadowOperationPropagationHelper {
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 
-        List<PendingOperationType> execPendingOperations = rawRepoShadow.getBean().getPendingOperation().stream()
-                .filter(op -> op.getExecutionStatus() == EXECUTION_PENDING)
-                .collect(Collectors.toList());
+        PendingOperations sortedOperations = PendingOperations.sorted(
+                rawRepoShadow.getBean().getPendingOperation().stream()
+                        .filter(op -> op.getExecutionStatus() == EXECUTION_PENDING)
+                        .toList());
 
-        if (execPendingOperations.isEmpty()) {
+        if (sortedOperations.isEmpty()) {
             LOGGER.debug("Skipping propagation of {} because there are no pending executions", rawRepoShadow);
             return;
         }
-        if (!isPropagationTriggered(execPendingOperations, operationGroupingInterval, now)) {
+        if (!isPropagationTriggered(sortedOperations, operationGroupingInterval, now)) {
             LOGGER.debug("Skipping propagation of {} because no pending operation triggered propagation", rawRepoShadow);
             return;
         }
-        LOGGER.debug("Propagating {} pending operations in {}", execPendingOperations.size(), rawRepoShadow);
-
-        List<PendingOperationType> sortedOperations = ShadowUtil.sortPendingOperations(execPendingOperations);
+        LOGGER.debug("Propagating {} pending operations in {}", sortedOperations.size(), rawRepoShadow);
 
         ProvisioningContext ctx = ctxFactory.createForShadow(rawRepoShadow.getBean(), task, result);
         ctx.setOperationContext(ProvisioningOperationContext.empty());
@@ -110,11 +103,11 @@ class ShadowOperationPropagationHelper {
 
     private @NotNull ObjectDelta<ShadowType> computeAggregatedDelta(
             @NotNull ProvisioningContext ctx,
-            @NotNull List<PendingOperationType> sortedOperations)
-            throws SchemaException, ConfigurationException {
+            @NotNull PendingOperations sortedOperations)
+            throws SchemaException {
         ObjectDelta<ShadowType> aggregateDelta = null;
-        for (PendingOperationType pendingOperation : sortedOperations) {
-            ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingOperation.getDelta());
+        for (var pendingOperation : sortedOperations) {
+            ObjectDelta<ShadowType> pendingDelta = pendingOperation.getDelta();
             ctx.applyCurrentDefinition(pendingDelta);
             if (aggregateDelta == null) {
                 aggregateDelta = pendingDelta;
@@ -127,9 +120,9 @@ class ShadowOperationPropagationHelper {
     }
 
     private boolean isPropagationTriggered(
-            List<PendingOperationType> operations, Duration operationGroupingInterval, XMLGregorianCalendar now) {
-        return operations.stream()
-                .map(PendingOperationType::getRequestTimestamp)
+            PendingOperations operations, Duration operationGroupingInterval, XMLGregorianCalendar now) {
+        return operations.getOperations().stream()
+                .map(PendingOperation::getRequestTimestamp)
                 .anyMatch(
                         timestamp -> timestamp != null
                                 && XmlTypeConverter.isAfterInterval(timestamp, operationGroupingInterval, now));
