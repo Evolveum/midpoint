@@ -49,24 +49,25 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.Certifica
 import com.evolveum.midpoint.web.page.admin.reports.ReportDownloadHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@PanelType(name = "certificationDetails") //TODO better name
-@PanelInstance(identifier = "certificationDetails", //TODO better name
+@PanelType(name = "certResponses")
+@PanelInstance(identifier = "certResponses",
         applicableForType = AccessCertificationCampaignType.class,
         defaultPanel = true,// change later to assignmentHolder type, probably we will want org assignments later
-        display = @PanelDisplay(label = "Responses" /*TODO better name*/, icon = GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON, order = 1))
+        display = @PanelDisplay(label = "ResponsesOverviewPanel.responsesPanel.label" /*TODO better name*/,
+                icon = GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON, order = 1))
 // TODO @Counter(provider = AssignmentCounter.class)
-public class CertificationDetailsPanel extends AbstractObjectMainPanel<AccessCertificationCampaignType, CertificationDetailsModel> {
+public class ResponsesOverviewPanel extends AbstractObjectMainPanel<AccessCertificationCampaignType, CertificationDetailsModel> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CertificationDetailsPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ResponsesOverviewPanel.class);
 
-    private static final String DOT_CLASS = CertificationDetailsPanel.class.getName() + ".";
+    private static final String DOT_CLASS = ResponsesOverviewPanel.class.getName() + ".";
 
     private static final String ID_RESPONSES_CONTAINER = "responsesContainer";
     private static final String ID_RESPONSES = "responses";
     private static final String ID_CREATED_REPORTS = "createdReports"; //todo temporary here
     private static final String ID_ITEMS_TABBED_PANEL = "itemsTabbedPanel";
 
-    public CertificationDetailsPanel(String id, CertificationDetailsModel model, ContainerPanelConfigurationType config) {
+    public ResponsesOverviewPanel(String id, CertificationDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
