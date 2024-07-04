@@ -12,16 +12,14 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.schema.processor.NormalizationAwareResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -64,11 +62,14 @@ public class ShadowsNormalizationUtil {
             return originalQuery;
         }
 
+        filter.transformItemPaths(ItemPath.EMPTY_PATH, objectDef.getPrismObjectDefinition(), new AssociationsToShadowReferencesTransformer());
+
+
         Visitor visitor = f -> {
             try {
                 // TODO what about other kinds of filters?
                 if (f instanceof EqualFilter<?> equalFilter) {
-                    transformEqFilter(equalFilter, objectDef);
+                    transformAttributesEqualsFilter(equalFilter, objectDef);
                 }
             } catch (SchemaException e) {
                 throw new SystemException(e);
@@ -78,7 +79,15 @@ public class ShadowsNormalizationUtil {
         return processedQuery;
     }
 
-    private static <T, N> void transformEqFilter(EqualFilter<T> eqFilter, @NotNull ResourceObjectDefinition objectDef)
+    private static boolean usesAssociations(ItemFilter itemFilter) {
+        var path = itemFilter.getFullPath();
+        if (path.startsWithName(ShadowType.F_ASSOCIATIONS)) {
+            return true;
+        }
+        return false;
+    }
+
+    private static <T, N> void transformAttributesEqualsFilter(EqualFilter<T> eqFilter, @NotNull ResourceObjectDefinition objectDef)
             throws SchemaException {
         if (!eqFilter.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
             return;
