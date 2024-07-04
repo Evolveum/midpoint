@@ -152,4 +152,9 @@ public class ShadowAttributesContainerDefinitionImpl
     public @NotNull ResourceObjectDefinition getResourceObjectDefinition() {
         return getComplexTypeDefinition().getResourceObjectDefinition();
     }
+
+    @Override
+    public boolean isUsedInSimpleAssociationObject() {
+        return complexTypeDefinition instanceof ShadowSingleReferenceAttributeComplexTypeDefinitionImpl;
+    }
 }

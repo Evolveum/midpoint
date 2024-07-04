@@ -90,4 +90,6 @@ public interface ShadowAttributesContainerDefinition extends PrismContainerDefin
     @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getSimpleAttributesDefinitions();
 
     @NotNull ResourceObjectDefinition getResourceObjectDefinition();
+
+    boolean isUsedInSimpleAssociationObject();
 }
