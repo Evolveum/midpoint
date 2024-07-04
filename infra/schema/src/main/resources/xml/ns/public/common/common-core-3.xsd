@@ -8884,6 +8884,9 @@
                </xsd:documentation>
            <xsd:appinfo>
                <a:container/>
+               <a:schemaContext>
+                   <a:algorithm>ShadowConstructionContextResolver</a:algorithm>
+               </a:schemaContext>
            </xsd:appinfo>
        </xsd:annotation>
         <xsd:complexContent>

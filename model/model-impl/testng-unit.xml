@@ -13,6 +13,7 @@
             <class name="com.evolveum.midpoint.model.impl.TestRefinedSchema"/>
             <class name="com.evolveum.midpoint.model.impl.TestFilterResolver"/>
             <class name="com.evolveum.midpoint.model.impl.TestFilterResolverQueryDsl"/>
+            <class name="com.evolveum.midpoint.model.impl.TestSchemaContext"/>
         </classes>
     </test>
     <test name="Expressions" preserve-order="true" parallel="none" verbose="10">
