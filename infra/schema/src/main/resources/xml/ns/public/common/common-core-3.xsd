@@ -8813,7 +8813,17 @@
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                    FIXME
+                    Object containing elements of business or governance policy.
+                    Policy objects usually contain policy rules.
+                    However, they may also be used to build up policy structures, such as classifications and clearances.
+                </p>
+                <p>
+                    Policy objects are usually used as meta-roles.
+                    They contain inducements, usually high-order inducements, which are applied to roles, users, services and other objects using the RBAC mechanisms.
+                    Policy objects technically act almost identically to roles.
+                    However, they have very different meaning and usage.
+                    Therefore, separate data type is created policy objects, to clearly distinguish them from ordinary roles.
+                    Such division is very helpful for presentation (user interface), reporting and general understanding of policy structures.
                 </p>
             </xsd:documentation>
         </xsd:annotation>
