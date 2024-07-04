@@ -943,7 +943,7 @@
                     <tooltip>Information classifications (labels)</tooltip>
                 </display>
                 <displayOrder>200</displayOrder>
-                <type>RoleType</type> <!-- TODO: Change to PolicyType later -->
+                <type>PolicyType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000330" relation="org:default" type="c:ArchetypeType">
                     </collectionRef>
@@ -957,7 +957,7 @@
                     <tooltip>Security clearances</tooltip>
                 </display>
                 <displayOrder>210</displayOrder>
-                <type>RoleType</type> <!-- TODO: Change to PolicyType later -->
+                <type>PolicyType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000331" relation="org:default" type="c:ArchetypeType">
                     </collectionRef>
