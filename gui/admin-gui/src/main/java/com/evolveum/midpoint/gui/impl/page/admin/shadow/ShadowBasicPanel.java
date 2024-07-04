@@ -1,12 +1,14 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.prism.panel;
+package com.evolveum.midpoint.gui.impl.page.admin.shadow;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -33,66 +35,30 @@ import org.apache.wicket.model.LoadableDetachableModel;
  * @author skublik
  *
  */
-public class ShadowPanel extends BasePanel<ShadowWrapper> {
+public class ShadowBasicPanel extends AbstractShadowPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ShadowPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowBasicPanel.class);
 
     private static final String ID_ATTRIBUTES = "attributes";
-    private static final String ID_ASSOCIATIONS = "associations";
     private static final String ID_ACTIVATION = "activation";
     private static final String ID_PASSWORD = "password";
     private static final String ID_POLICY_STATEMENT = "policyStatement";
 
     private ContainerPanelConfigurationType config;
-    private IModel<ResourceType> resourceModel;
 
-    public ShadowPanel(String id, IModel<ShadowWrapper> model, ContainerPanelConfigurationType config) {
+    public ShadowBasicPanel(String id, IModel<ShadowWrapper> model, ContainerPanelConfigurationType config) {
         super(id, model);
         this.config = config;
     }
 
-    public ShadowPanel(String id, IModel<ShadowWrapper> model) {
+    public ShadowBasicPanel(String id, IModel<ShadowWrapper> model) {
         super(id, model);
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-        setOutputMarkupId(true);
-
-        resourceModel = new LoadableDetachableModel<>() {
-
-            @Override
-            protected ResourceType load() {
-                ShadowWrapper shadowWrapper = getModelObject();
-                PrismReference resourceRef = shadowWrapper.getObject().findReference(ShadowType.F_RESOURCE_REF);
-                if (resourceRef == null) {
-                    return null;
-                }
-                PrismReferenceValue resourceRefVal = resourceRef.getValue();
-                if (resourceRefVal == null || resourceRefVal.getOid() == null) {
-                    return null;
-                }
-                if (resourceRefVal.getObject() != null) {
-                    return (ResourceType) resourceRefVal.getObject().asObjectable();
-                }
-
-                //TODO wouldn't be noFetch enough?
-                PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(resourceRefVal.asReferencable(), getPageBase());
-                if (resource == null) {
-                    return null;
-                }
-                return resource.asObjectable();
-            }
-        };
-    }
-
-    private void initLayout() {
-
-
+    protected void initLayout() {
         try {
 
             if (config != null) {
@@ -100,7 +66,7 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
 
                     @Override
                     protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
-                        return checkShadowContainerVisibility(itemWrapper, ShadowPanel.this.getModel());
+                        return checkShadowContainerVisibility(itemWrapper, ShadowBasicPanel.this.getModel());
                     }
                 };
                 add(attributesContainer);
@@ -111,16 +77,6 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
                         attributesSettingsBuilder.build());
                 add(attributesPanel);
             }
-
-            ItemPanelSettingsBuilder associationBuilder = new ItemPanelSettingsBuilder()
-                    .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
-            Panel associationsPanel = getPageBase().initItemPanel(
-                    ID_ASSOCIATIONS,
-                    ShadowAssociationValueType.COMPLEX_TYPE,
-                    PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ASSOCIATIONS),
-                    associationBuilder.build());
-            associationsPanel.add(new VisibleBehaviour(() -> checkAssociationsVisibility()));
-            add(associationsPanel);
 
             ItemPanelSettingsBuilder activationBuilder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
@@ -156,22 +112,14 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
         return ProvisioningObjectsUtil.checkShadowActivationAndPasswordVisibility(itemWrapper, shadowType);
     }
 
-    private boolean checkAssociationsVisibility() {
-
-        ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
-
-        return ProvisioningObjectsUtil.isAssociationSupported(shadowType, resourceModel);
-
-    }
-
     private boolean isActivationSupported() {
         ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
-        return ProvisioningObjectsUtil.isActivationSupported(shadowType, resourceModel);
+        return ProvisioningObjectsUtil.isActivationSupported(shadowType, getResourceModel());
     }
 
     private boolean isCredentialsSupported() {
         ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
-        return ProvisioningObjectsUtil.isPasswordSupported(shadowType, resourceModel);
+        return ProvisioningObjectsUtil.isPasswordSupported(shadowType, getResourceModel());
     }
 
     private boolean isPolicyStatementSupported() {

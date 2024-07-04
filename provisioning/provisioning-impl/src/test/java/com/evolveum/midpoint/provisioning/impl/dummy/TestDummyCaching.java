@@ -343,6 +343,8 @@ public class TestDummyCaching extends TestDummy {
 
     @Test
     public void test700SearchUsingAssociations() throws Exception {
+        skipIfNotNativeRepository();
+
         given();
 
         var task = getTestTask();

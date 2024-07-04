@@ -143,6 +143,7 @@ public class TestDummyAssociations extends AbstractDummyTest {
 
     @Test
     public void test120SearchJohnUsingContract() throws Exception {
+        skipIfNotNativeRepository();
 
         var task = getTestTask();
         var result = task.getResult();
@@ -157,8 +158,6 @@ public class TestDummyAssociations extends AbstractDummyTest {
         var objects = provisioningService.searchObjects(ShadowType.class, query, options, task, result);
         then("John should be found.");
         assertThat(objects).hasSize(1);
-
-
     }
 
     private String executeSearchForJohnWithAssociations(Collection<SelectorOptions<GetOperationOptions>> options)

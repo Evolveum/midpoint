@@ -23,7 +23,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAttributePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.shadow.ResourceAttributePanel;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;

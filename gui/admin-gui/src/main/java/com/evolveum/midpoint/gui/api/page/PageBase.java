@@ -456,6 +456,7 @@ public abstract class PageBase extends PageAdminLTE {
         MainPopupDialog mainPopup = new MainPopupDialog(ID_MAIN_POPUP);
 //        mainPopup.showUnloadConfirmation(false);
 //        mainPopup.setResizable(false);
+        mainPopup.setOutputMarkupId(true);
         add(mainPopup);
     }
 
