@@ -117,16 +117,12 @@ public class ShadowAttributesContainerDefinitionImpl
         }
     }
 
-    private List<? extends ShadowSimpleAttributeDefinition<?>> getAttributeDefinitions() {
-        return getComplexTypeDefinition().getSimpleAttributeDefinitions();
-    }
-
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         sb.append(DebugDumpable.INDENT_STRING.repeat(Math.max(0, indent)));
         sb.append(this);
-        for (ShadowSimpleAttributeDefinition<?> def : getDefinitions()) {
+        for (var def : getDefinitions()) {
             sb.append("\n");
             sb.append(def.debugDump(indent+1));
             if (getComplexTypeDefinition().isPrimaryIdentifier(def.getItemName())) {
@@ -142,10 +138,14 @@ public class ShadowAttributesContainerDefinitionImpl
         return "RACD: " + complexTypeDefinition;
     }
 
-    // Only attribute definitions should be here.
     @Override
-    public @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getDefinitions() {
-        return getAttributeDefinitions();
+    public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
+        return getComplexTypeDefinition().getDefinitions();
+    }
+
+    @Override
+    public @NotNull List<? extends ShadowSimpleAttributeDefinition<?>> getSimpleAttributesDefinitions() {
+        return getComplexTypeDefinition().getSimpleAttributeDefinitions();
     }
 
     @Override
