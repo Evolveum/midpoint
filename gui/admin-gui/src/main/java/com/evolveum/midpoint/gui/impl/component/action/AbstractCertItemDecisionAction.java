@@ -19,18 +19,18 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractCertItemAction extends AbstractGuiAction<AccessCertificationWorkItemType> {
+public abstract class AbstractCertItemDecisionAction extends AbstractGuiAction<AccessCertificationWorkItemType> {
 
     private static final String DOT_CLASS = CertItemResolveAction.class.getName() + ".";
     private static final String OPERATION_RECORD_ACTION = DOT_CLASS + "recordCertItemAction";
 
     String comment;
 
-    public AbstractCertItemAction() {
+    public AbstractCertItemDecisionAction() {
         super();
     }
 
-    public AbstractCertItemAction(GuiActionDto<AccessCertificationWorkItemType> actionDto) {
+    public AbstractCertItemDecisionAction(GuiActionDto<AccessCertificationWorkItemType> actionDto) {
         super(actionDto);
     }
 
