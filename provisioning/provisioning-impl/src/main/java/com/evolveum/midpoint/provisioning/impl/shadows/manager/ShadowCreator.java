@@ -28,7 +28,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -90,7 +89,7 @@ public class ShadowCreator {
                 // In propagation we already have pending operation present in opState.
             } else {
                 // The pending operation is most probably already in the shadow. Put it into opState to get it updated afterwards.
-                PendingOperationType pendingAddOperation = existingRepoShadow.findPendingAddOperation();
+                var pendingAddOperation = existingRepoShadow.findPendingAddOperation();
                 if (pendingAddOperation != null) {
                     opState.setCurrentPendingOperation(pendingAddOperation);
                 }
@@ -123,7 +122,7 @@ public class ShadowCreator {
         // We need the operation ID, hence the repo re-reading
         opState.setCurrentPendingOperation(
                 MiscUtil.extractSingletonRequired(
-                        shadowAfter.getBean().getPendingOperation(),
+                        shadowAfter.getPendingOperations().getOperations(),
                         () -> new IllegalStateException("multiple pending operations"),
                         () -> new IllegalStateException("no pending operations")));
     }

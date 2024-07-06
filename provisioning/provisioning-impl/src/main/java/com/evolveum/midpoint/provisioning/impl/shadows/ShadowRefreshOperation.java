@@ -7,59 +7,42 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.addDuration;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createSuccessOperationDescription;
-import static com.evolveum.midpoint.util.MiscUtil.or0;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType.RETRY;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
-import com.evolveum.midpoint.schema.util.RawRepoShadow;
-
-import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.processor.ShadowAttributesContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.OperationResultUtil;
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * The `refresh` operation - either full or quick.
@@ -199,7 +182,7 @@ class ShadowRefreshOperation {
             return;
         }
 
-        List<PendingOperationType> sortedOperations = shadow.getPendingOperationsSorted();
+        PendingOperations sortedOperations = shadow.getPendingOperationsSorted();
 
         LOGGER.trace("Pending operations refresh of {}, dead={}, {} pending operations",
                 shadow, isDead, sortedOperations.size());
@@ -216,22 +199,20 @@ class ShadowRefreshOperation {
      * This method will get new status from {@link ResourceObjectConverter} and it will process the
      * status in case that it has changed.
      */
-    private void refreshShadowAsyncStatus(List<PendingOperationType> sortedOperations, OperationResult result)
+    private void refreshShadowAsyncStatus(PendingOperations sortedOperations, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
-        Duration gracePeriod = ctx.getGracePeriod();
 
-        List<ObjectDelta<ShadowType>> notificationDeltas = new ArrayList<>();
-
-        boolean shadowInception = false;
+        var gracePeriod = ctx.getGracePeriod();
+        var notificationDeltas = new ArrayList<ObjectDelta<ShadowType>>();
+        var shadowInception = false;
         OperationResultStatusType shadowInceptionOutcome = null;
-        ObjectDelta<ShadowType> shadowDelta = shadow.getPrismObject().createModifyDelta();
-        for (PendingOperationType pendingOperation : sortedOperations) {
+        var shadowDelta = shadow.getPrismObject().createModifyDelta();
 
-            if (!needsRefresh(pendingOperation)) {
+        for (var pendingOperation : sortedOperations) {
+
+            if (!pendingOperation.isExecuting()) {
                 continue;
             }
-
-            ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
 
             String asyncRef = pendingOperation.getAsynchronousOperationReference();
             if (asyncRef == null) {
@@ -247,8 +228,7 @@ class ShadowRefreshOperation {
                 result.recordPartialError(e);
                 continue;
             }
-            OperationResultStatus newStatus = refreshAsyncResult.getOperationResult().getStatus();
-
+            var newStatus = refreshAsyncResult.getOperationResult().getStatus();
             if (newStatus == null) {
                 continue;
             }
@@ -263,113 +243,50 @@ class ShadowRefreshOperation {
 
             if (operationCompleted && gracePeriod == null) {
                 LOGGER.trace("Deleting pending operation because it is completed (no grace): {}", pendingOperation);
-                shadowDelta.addModificationDeleteContainer(ShadowType.F_PENDING_OPERATION, pendingOperation.clone());
-
-                ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
-                ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType);
-
-                if (pendingDelta.isAdd()) {
+                shadowDelta.addModification(pendingOperation.createDeleteDelta());
+                if (pendingOperation.isAdd()) {
                     shadowInception = true;
                     shadowInceptionOutcome = newStatusType;
-                }
-
-                if (pendingDelta.isDelete()) {
+                } else if (pendingOperation.isDelete()) {
                     shadowInception = false;
                     shadowDelta.addModifications(
                             b.shadowUpdater.createTombstoneDeltas(shadow));
                 }
                 continue;
-
-            } else {
-                PropertyDelta<OperationResultStatusType> resultStatusDelta =
-                        shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_RESULT_STATUS));
-                resultStatusDelta.setRealValuesToReplace(newStatusType);
-                shadowDelta.addModification(resultStatusDelta);
             }
 
+            shadowDelta.addModification(
+                    pendingOperation.createResultStatusDelta(newStatusType));
+
             if (operationCompleted) {
-                // Operation completed
+                shadowDelta.addModifications(
+                        pendingOperation.createCompletionDeltas(
+                                b.clock.currentTimeXMLGregorianCalendar()));
 
-                PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta =
-                        shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_EXECUTION_STATUS));
-                executionStatusDelta.setRealValuesToReplace(PendingOperationExecutionStatusType.COMPLETED);
-                shadowDelta.addModification(executionStatusDelta);
-
-                PropertyDelta<XMLGregorianCalendar> completionTimestampDelta =
-                        shadowDelta.createPropertyModification(
-                                containerPath.append(PendingOperationType.F_COMPLETION_TIMESTAMP));
-                completionTimestampDelta.setRealValuesToReplace(b.clock.currentTimeXMLGregorianCalendar());
-                shadowDelta.addModification(completionTimestampDelta);
-
-                ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingOperation.getDelta());
-
+                var pendingDelta = pendingOperation.getDelta();
                 if (pendingDelta.isAdd()) {
                     shadowInception = true;
                     shadowInceptionOutcome = newStatusType;
-                }
-
-                if (pendingDelta.isModify()) {
-
-                    // Apply shadow naming attribute modification
-                    ShadowAttributesContainerDefinition resourceAttrDefinition = shadow.getAttributesContainerDefinition();
-
-                    // If naming attribute is present in delta...
-                    ShadowSimpleAttributeDefinition<?> namingAttribute =
-                            resourceAttrDefinition.getResourceObjectDefinition().getNamingAttribute();
-                    if (namingAttribute != null) {
-                        ItemPath namingAttributePath =
-                                ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttribute.getItemName());
-                        if (pendingDelta.hasItemDelta(namingAttributePath)) {
-
-                            // Retrieve a possible changed name per the defined naming attribute for the resource
-                            ItemDelta<?, ?> namingAttributeDelta = pendingDelta.findItemDelta(namingAttributePath);
-                            Collection<?> valuesToReplace = namingAttributeDelta.getValuesToReplace();
-                            Optional<?> valueToReplace = valuesToReplace.stream().findFirst();
-
-                            if (valueToReplace.isPresent()) {
-                                Object valueToReplaceObj = ((PrismPropertyValue<?>) valueToReplace.get()).getValue();
-                                if (valueToReplaceObj instanceof String) {
-
-                                    // Apply the new naming attribute value to the shadow name by adding the change to the modification set for shadow delta
-                                    PropertyDelta<PolyString> nameDelta = shadowDelta.createPropertyModification(ItemPath.create(ShadowType.F_NAME));
-                                    Collection<PolyString> modificationSet = new ArrayList<>();
-                                    PolyString nameAttributeReplacement = new PolyString((String) valueToReplaceObj);
-                                    modificationSet.add(nameAttributeReplacement);
-                                    nameDelta.setValuesToReplace(PrismValueCollectionsUtil.createCollection(modificationSet));
-                                    shadowDelta.addModification(nameDelta);
-                                }
-                            }
-                        }
-                    }
-
-                    // Apply shadow attribute modifications
-                    for (ItemDelta<?, ?> pendingModification : pendingDelta.getModifications()) {
+                } else if (pendingDelta.isModify()) {
+                    for (var pendingModification : pendingDelta.getModifications()) {
                         shadowDelta.addModification(pendingModification.clone());
                     }
-                }
-
-                if (pendingDelta.isDelete()) {
+                } else if (pendingDelta.isDelete()) {
                     shadowInception = false;
                     shadowDelta.addModifications(
                             b.shadowUpdater.createTombstoneDeltas(shadow));
                 }
-
                 notificationDeltas.add(pendingDelta);
             }
-
         }
 
         if (shadowInception) {
             // We do not need to care about attributes in add deltas here. The add operation is already applied to
             // attributes. We need this to "allocate" the identifiers, so iteration mechanism in the
             // model can find unique values while taking pending create operations into consideration.
-            PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(ShadowType.F_EXISTS);
-            if (OperationResultUtil.isSuccessful(shadowInceptionOutcome)) {
-                existsDelta.setRealValuesToReplace(true);
-            } else {
-                existsDelta.setRealValuesToReplace(false);
-            }
-            shadowDelta.addModification(existsDelta);
+            shadowDelta.addModificationReplaceProperty(
+                    ShadowType.F_EXISTS,
+                    OperationResultUtil.isSuccessful(shadowInceptionOutcome));
         }
 
         expirePendingOperations(shadowDelta);
@@ -379,27 +296,13 @@ class ShadowRefreshOperation {
             b.shadowUpdater.modifyRepoShadow(ctx, shadow, shadowDelta.getModifications(), result);
         }
 
-        for (ObjectDelta<ShadowType> notificationDelta : notificationDeltas) {
+        for (var notificationDelta : notificationDeltas) {
             ResourceOperationDescription opDescription = createSuccessOperationDescription(ctx, shadow, notificationDelta);
             b.eventDispatcher.notifySuccess(opDescription, ctx.getTask(), result);
         }
-
-        if (!shadowDelta.isEmpty()) {
-            shadowDelta.applyTo(shadow.getPrismObject());// todo remove (already applied) MID-2119
-        }
     }
 
-    private boolean needsRefresh(PendingOperationType pendingOperation) {
-        PendingOperationExecutionStatusType executionStatus = pendingOperation.getExecutionStatus();
-        if (executionStatus == null) {
-            // LEGACY: 3.7 and earlier
-            return pendingOperation.getResultStatus() == OperationResultStatusType.IN_PROGRESS;
-        } else {
-            return executionStatus == PendingOperationExecutionStatusType.EXECUTING;
-        }
-    }
-
-    private void retryOperations(List<PendingOperationType> sortedOperations, OperationResult parentResult)
+    private void retryOperations(PendingOperations sortedOperations, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
 
         retriedOperationsResult = new OperationResult(OP_REFRESH_RETRY);
@@ -412,25 +315,19 @@ class ShadowRefreshOperation {
         Duration retryPeriod = ProvisioningUtil.getRetryPeriod(ctx);
         LOGGER.trace("Selecting operations to retry from {} one(s); retry period: {}", sortedOperations.size(), retryPeriod);
 
-        for (PendingOperationType pendingOperation : sortedOperations) {
+        for (var pendingOperation : sortedOperations) {
 
-            if (!RepoShadow.isRetryableOperation(pendingOperation)) {
+            if (!pendingOperation.canBeRetried()) {
                 LOGGER.trace("Skipping not retryable operation: {}", pendingOperation);
                 continue;
             }
 
             // We really want to get "now" here. Retrying operation may take some time. We want good timestamps that do not lie.
             XMLGregorianCalendar now = b.clock.currentTimeXMLGregorianCalendar();
-            if (!isAfterRetryPeriod(pendingOperation, retryPeriod, now)) {
-                if (pendingOperation.getType() != RETRY) { // TODO why this distinction?
-                    LOGGER.trace(
-                            "Skipping the non-RETRY-type operation whose retry time has not elapsed yet: {}", pendingOperation);
-                    continue;
-                }
-                if (!ProvisioningOperationOptions.isForceRetry(options)) {
-                    LOGGER.trace("Skipping the RETRY-type operation whose retry time has not elapsed yet: {}", pendingOperation);
-                    continue;
-                }
+            if (!pendingOperation.isAfterRetryPeriod(retryPeriod, now)
+                    && !ProvisioningOperationOptions.isForceRetry(options)) {
+                LOGGER.trace("Skipping the operation whose retry time has not elapsed yet: {}", pendingOperation);
+                continue;
             }
 
             LOGGER.trace("Going to retry operation {} on {}", pendingOperation, shadow);
@@ -438,33 +335,22 @@ class ShadowRefreshOperation {
             // Record attempt number and timestamp before the operation
             // TODO: later use this as an optimistic lock to make sure that two threads won't retry the operation at the same time
 
-            // TODO: move to a better place
-            ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
+            int attemptNumber = pendingOperation.getAttemptNumber() + 1; // "or0" is there just for sure (btw, default is 1)
+            var shadowModifications = RepoShadowModifications.of(
+                    pendingOperation.createNextAttemptDeltas(attemptNumber, now));
 
-            int attemptNumber = or0(pendingOperation.getAttemptNumber()) + 1; // "or0" is there just for sure (btw, default is 1)
-            List<ItemDelta<?, ?>> shadowDeltas = PrismContext.get().deltaFor(ShadowType.class)
-                    .item(containerPath.append(PendingOperationType.F_ATTEMPT_NUMBER))
-                    .replace(attemptNumber)
-                    .item(containerPath.append(PendingOperationType.F_LAST_ATTEMPT_TIMESTAMP))
-                    .replace(now)
-                    .item(containerPath.append(PendingOperationType.F_RESULT_STATUS))
-                    .replace(OperationResultStatusType.IN_PROGRESS)
-                    .asItemDeltas();
-
-            RepoShadowModifications shadowModifications = RepoShadowModifications.of(shadowDeltas);
             b.shadowUpdater.executeRepoShadowModifications(ctx, shadow, shadowModifications, parentResult);
+
             // The pending operation should be updated as part of the above call
             assert pendingOperation.getAttemptNumber() == attemptNumber;
 
             ctx.updateShadowState(shadow); // because pending operations were changed
 
-            ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingOperation.getDelta());
-
-            LOGGER.debug("Retrying operation {} on {}, attempt #{}", pendingDelta, shadow, attemptNumber);
+            LOGGER.debug("Retrying operation {} on {}, attempt #{}", pendingOperation, shadow, attemptNumber);
 
             OperationResult result = parentResult.createSubresult(OP_OPERATION_RETRY);
             try {
-                shadow = retryOperation(pendingDelta, pendingOperation, result);
+                shadow = retryOperation(pendingOperation, result);
                 result.computeStatus();
                 if (result.isError()) {
                     retriedOperationsResult.setStatus(result.getStatus());
@@ -476,13 +362,13 @@ class ShadowRefreshOperation {
                 // Therefore the operation is now completed - finished with an error.
                 // But we do not want to stop the task. Just log the error.
                 LOGGER.error("Operation {} on {} ended up with an error after {} retries: {}",
-                        pendingDelta, shadow, attemptNumber, e.getMessage(), e);
+                        pendingOperation.getDelta(), shadow, attemptNumber, e.getMessage(), e);
                 // The retry itself was a success. Operation that was retried might have failed.
                 // And that is recorded in the shadow. But we have successfully retried the operation.
                 result.recordHandledError(e);
                 retriedOperationsResult.recordFatalError(
                         "Operation %s on %s ended with an error after %d retries: %s".formatted(
-                                pendingDelta, shadow, attemptNumber, e.getMessage()));
+                                pendingOperation.getDelta(), shadow, attemptNumber, e.getMessage()));
             } catch (Throwable e) {
                 // This is unexpected error during retry. This means that there was other
                 // failure that we did not expected. This is likely to be bug - or maybe wrong
@@ -493,42 +379,34 @@ class ShadowRefreshOperation {
                 result.close(); // Status should be set by now, we just want to close the result
             }
 
-            ObjectDeltaOperation<ShadowType> objectDeltaOperation = new ObjectDeltaOperation<>(pendingDelta);
-            objectDeltaOperation.setExecutionResult(result);
-            retriedOperations.add(objectDeltaOperation);
+            retriedOperations.add(
+                    new ObjectDeltaOperation<>(pendingOperation.getDelta(), result));
         }
     }
 
     private @NotNull RepoShadow retryOperation(
-            @NotNull ObjectDelta<ShadowType> pendingDelta,
-            @NotNull PendingOperationType pendingOperation,
-            @NotNull OperationResult result)
+            @NotNull PendingOperation pendingOperation, @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException, EncryptionException {
 
         // TODO scripts, options
         ProvisioningOperationOptions options = ProvisioningOperationOptions.createForceRetry(false);
-        if (pendingDelta.isAdd()) {
+        if (pendingOperation.isAdd()) {
             return ShadowAddOperation
-                    .executeInRefresh(ctx, shadow, pendingDelta, pendingOperation, options, result)
+                    .executeInRefresh(ctx, shadow, pendingOperation, options, result)
                     .getRepoShadow();
-        } else if (pendingDelta.isModify()) {
+        } else if (pendingOperation.isModify()) {
             return ShadowModifyOperation
-                    .executeInRefresh(ctx, shadow, pendingDelta.getModifications(), pendingOperation, options, result)
+                    .executeInRefresh(ctx, shadow, pendingOperation, options, result)
                     .getRepoShadow();
-        } else if (pendingDelta.isDelete()) {
+        } else if (pendingOperation.isDelete()) {
             return ShadowDeleteOperation
                     .executeInRefresh(ctx, shadow, pendingOperation, options, result)
                     .getRepoShadow();
         } else {
-            throw new IllegalStateException("Unknown type of delta: " + pendingDelta);
+            throw new AssertionError(pendingOperation);
         }
-    }
-
-    private boolean isAfterRetryPeriod(PendingOperationType pendingOperation, Duration retryPeriod, XMLGregorianCalendar now) {
-        XMLGregorianCalendar scheduledRetryTime = addDuration(pendingOperation.getLastAttemptTimestamp(), retryPeriod);
-        return XmlTypeConverter.compare(now, scheduledRetryTime) == DatatypeConstants.GREATER;
     }
 
     private void deleteDeadShadowIfPossible(OperationResult result) {
@@ -571,17 +449,16 @@ class ShadowRefreshOperation {
                 shadow, lastActivityTimestamp, expirationPeriod);
     }
 
-    private void expirePendingOperations(ObjectDelta<ShadowType> shadowDelta)
-            throws SchemaException {
+    private void expirePendingOperations(ObjectDelta<ShadowType> shadowDelta) {
         var now = b.clock.currentTimeXMLGregorianCalendar();
         Duration gracePeriod = ctx.getGracePeriod();
         Duration pendingOperationRetentionPeriod = ProvisioningUtil.getPendingOperationRetentionPeriod(ctx);
         Duration expirePeriod = XmlTypeConverter.longerDuration(gracePeriod, pendingOperationRetentionPeriod);
-        for (PendingOperationType pendingOperation : shadow.getBean().getPendingOperation()) {
-            if (ProvisioningUtil.isCompletedAndOverPeriod(now, expirePeriod, pendingOperation)) {
+        for (var pendingOperation : shadow.getPendingOperations()) {
+            if (pendingOperation.isCompletedAndOverPeriod(now, expirePeriod)) {
                 LOGGER.trace("Deleting pending operation because it is completed '{}' and expired: {}",
                         pendingOperation.getResultStatus(), pendingOperation);
-                shadowDelta.addModificationDeleteContainer(ShadowType.F_PENDING_OPERATION, pendingOperation.clone());
+                shadowDelta.addModification(pendingOperation.createDeleteDelta());
             }
         }
     }

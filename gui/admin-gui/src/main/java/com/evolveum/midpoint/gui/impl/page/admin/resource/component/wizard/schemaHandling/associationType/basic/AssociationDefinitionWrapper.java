@@ -30,18 +30,19 @@ public class AssociationDefinitionWrapper implements Serializable {
 
     public AssociationDefinitionWrapper(
             ResourceObjectDefinition subject,
-            ShadowReferenceAttributeDefinition associationDef,
+            ShadowReferenceAttributeDefinition refAttrDef,
             CompleteResourceSchema resourceSchema) {
-        this.associationAttribute = associationDef.getItemName();
+        this.associationAttribute = refAttrDef.getItemName();
         if (subject instanceof ResourceObjectTypeDefinition subjectObjectTypeDef) {
             this.subject = new ParticipantWrapper(subjectObjectTypeDef.getKind(), subjectObjectTypeDef.getIntent(), subject.getObjectClassName());
         } else {
             this.subject = new ParticipantWrapper(subject.getObjectClassName());
         }
 
-        associationDef.getTargetParticipantTypes().forEach(objectParticipantDef -> {
+        refAttrDef.getTargetParticipantTypes().forEach(objectParticipantDef -> {
             @NotNull ResourceObjectDefinition objectDef = objectParticipantDef.getObjectDefinition();
-            if (objectDef instanceof ResourceObjectClassDefinition objectClassDef && objectClassDef.isAssociationObject()) {
+            if (objectDef.getObjectClassDefinition().isAssociationObject()) {
+                objectDef.getReferenceAttributeDefinitions();
                 return;
             }
 

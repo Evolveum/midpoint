@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
         identifier = "certItemNoResponse",
         applicableForType = AccessCertificationWorkItemType.class,
         display = @PanelDisplay(label = "PageCertDecisions.menu.noResponse", icon = "far fa-clock", order = 5))
-public class CertItemNoResponseAction extends AbstractCertItemAction {
+public class CertItemNoResponseAction extends AbstractCertItemDecisionAction {
 
     public CertItemNoResponseAction() {
         super();

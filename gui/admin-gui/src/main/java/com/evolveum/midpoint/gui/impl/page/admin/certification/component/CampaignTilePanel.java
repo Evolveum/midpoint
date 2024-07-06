@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -121,7 +122,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         add(description);
 
         ProgressBarPanel progressBar = new ProgressBarPanel(ID_PROGRESS_BAR,
-                CertMiscUtil.createCampaignProgressBarModel(getCampaign(), getPrincipal(), getPageBase()));
+                createCampaignProgressModel());
         progressBar.setOutputMarkupId(true);
         add(progressBar);
 
@@ -308,4 +309,15 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         CampaignProcessingHelper.campaignDetailsPerformed(getCampaign().getOid(), getPageBase());
     }
 
+    /**
+     * In case the campaign tile is a part of campaign view,
+     * the progress of the processed cases should be counted.
+     * In case the campaign tile is a part of certification items view,
+     * the progress of the processed cert. items should be counted.
+     *
+     * @return
+     */
+    protected LoadableModel<List<ProgressBar>> createCampaignProgressModel() {
+        return null;
+    }
 }

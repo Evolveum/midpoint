@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
         identifier = "certItemReduce",
         applicableForType = AccessCertificationWorkItemType.class,
         display = @PanelDisplay(label = "PageCertDecisions.menu.reduce", icon = "fa fa-rotate-left text-warning", order = 3))
-public class CertItemReduceAction extends AbstractCertItemAction {
+public class CertItemReduceAction extends AbstractCertItemDecisionAction {
 
     public CertItemReduceAction() {
         super();

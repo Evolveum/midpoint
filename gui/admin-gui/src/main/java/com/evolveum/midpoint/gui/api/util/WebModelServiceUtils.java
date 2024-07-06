@@ -10,6 +10,8 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -745,5 +747,26 @@ public class WebModelServiceUtils {
             return  prismLookupTable.asObjectable();
         }
         return null;
+    }
+
+    public static ResourceType loadResource(PrismObjectWrapper<ShadowType> shadowWrapper, PageBase pageBase) {
+        PrismReference resourceRef = shadowWrapper.getObject().findReference(ShadowType.F_RESOURCE_REF);
+        if (resourceRef == null) {
+            return null;
+        }
+        PrismReferenceValue resourceRefVal = resourceRef.getValue();
+        if (resourceRefVal == null || resourceRefVal.getOid() == null) {
+            return null;
+        }
+        if (resourceRefVal.getObject() != null) {
+            return (ResourceType) resourceRefVal.getObject().asObjectable();
+        }
+
+        //TODO wouldn't be noFetch enough?
+        PrismObject<ResourceType> resource = loadObject(resourceRefVal.asReferencable(), pageBase);
+        if (resource == null) {
+            return null;
+        }
+        return resource.asObjectable();
     }
 }

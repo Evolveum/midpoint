@@ -15,7 +15,7 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ResourceAttributeWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAttributeDefinitionPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.shadow.ResourceAttributeDefinitionPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeWrapperImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;

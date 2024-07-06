@@ -6,9 +6,15 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
+import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
+import com.evolveum.midpoint.prism.Referencable;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -78,9 +84,33 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
             return ProvisioningObjectsUtil.getPendingOperationLabel((PendingOperationType) realValue, this);
         }
 
+        if (ShadowAttributesType.class.isAssignableFrom(realValue.getClass())) {
+            return getAssociationLabel((PrismContainerValueWrapper<ShadowAttributesType>) object);
+        }
+
         return realValue.toString();
 
     }
+
+    private String getAssociationLabel(PrismContainerValueWrapper<ShadowAttributesType> object) {
+        StringBuilder sb = new StringBuilder();
+        Iterator<? extends ItemWrapper<?, ?>> iterator = object.getItems().iterator();
+        while (iterator.hasNext()) {
+            ItemWrapper<?, ?> itemWrapper = iterator.next();
+            if (itemWrapper.isMultiValue()
+                    || itemWrapper.getValues().isEmpty()
+                    || itemWrapper.getValues().get(0).getRealValue() == null) {
+                continue;
+            }
+            Referencable reference = (Referencable) itemWrapper.getValues().get(0).getRealValue();
+            sb.append(itemWrapper.getDisplayName())
+                    .append(" : ")
+                    .append(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(reference, false));
+        }
+
+        return sb.toString();
+    }
+
 
     private String getActivationLabelLabel(ActivationType activation) {
         if (activation.getAdministrativeStatus() != null) {

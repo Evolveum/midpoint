@@ -7,29 +7,28 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
-import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.isCompletedAndOverPeriod;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTION_PENDING;
 
-import java.util.List;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.processor.ShadowDefinitionApplicator;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.processor.ShadowDefinitionApplicator;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Computes the expected future state of a resource object or repo shadow by applying pending operations (from the repo shadow).
@@ -91,21 +90,21 @@ public class ResourceObjectFuturizer {
             return currentResourceObject;
         }
 
-        List<PendingOperationType> sortedOperations = repoShadow.getPendingOperationsSorted();
+        var sortedOperations = repoShadow.getPendingOperationsSorted();
         if (sortedOperations.isEmpty()) {
             return currentResourceObject;
         }
         var shadowDefinitionApplicator = new ShadowDefinitionApplicator(shadowCtx.getObjectDefinitionRequired());
         Duration gracePeriod = shadowCtx.getGracePeriod();
         boolean resourceReadIsCachingOnly = shadowCtx.isReadingCachingOnly();
-        for (PendingOperationType pendingOperation : sortedOperations) {
+        for (var pendingOperation : sortedOperations) {
             OperationResultStatusType resultStatus = pendingOperation.getResultStatus();
             PendingOperationExecutionStatusType executionStatus = pendingOperation.getExecutionStatus();
             if (resultStatus == NOT_APPLICABLE) {
                 // Not applicable means: "no point trying this, will not retry". Therefore it will not change future state.
                 continue;
             }
-            if (executionStatus == COMPLETED && isCompletedAndOverPeriod(now, gracePeriod, pendingOperation)) {
+            if (executionStatus == COMPLETED && pendingOperation.isCompletedAndOverPeriod(now, gracePeriod)) {
                 // Completed operations over grace period. They have already affected current state. They are already "applied".
                 continue;
             }
@@ -127,7 +126,7 @@ public class ResourceObjectFuturizer {
 
             ObjectDelta<ShadowType> pendingDelta =
                     DeltaConvertor.createObjectDelta(
-                            pendingOperation.getDelta(),
+                            pendingOperation.getDeltaBeanRequired(),
                             shadowCtx.getObjectDefinitionRequired().getPrismObjectDefinition(),
                             false);
 

@@ -193,10 +193,14 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
                 createStringResource("Button.cancel")) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                getPageBase().hideMainPopup(ajaxRequestTarget);
+                onClickCancelButton(ajaxRequestTarget);
             }
         };
         add(cancelButton);
+    }
+
+    protected void onClickCancelButton(AjaxRequestTarget ajaxRequestTarget) {
+        getPageBase().hideMainPopup(ajaxRequestTarget);
     }
 
     protected void onClick(AjaxRequestTarget target, O focus) {

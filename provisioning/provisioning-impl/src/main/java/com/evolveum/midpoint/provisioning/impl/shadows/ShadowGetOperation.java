@@ -324,9 +324,7 @@ class ShadowGetOperation {
             return primary;
         }
 
-        if (repoShadow.hasPendingAddOperation()
-                || repoShadow.hasPendingDeleteOperation()
-                || repoShadow.isDead()) {
+        if (repoShadow.hasPendingAddOrDeleteOperation() || repoShadow.isDead()) {
             if (ProvisioningUtil.isFuturePointInTime(options)) {
                 // Trying to get the future state of uncreated or dead shadow.
                 // But we cannot even try fetch operation here, as we do not have the identifiers.

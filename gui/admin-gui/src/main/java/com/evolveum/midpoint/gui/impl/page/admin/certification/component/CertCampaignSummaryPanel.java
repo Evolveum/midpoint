@@ -59,7 +59,7 @@ public class CertCampaignSummaryPanel extends ObjectVerticalSummaryPanel<AccessC
 
                     @Override
                     public Component createValueComponent(String id) {
-                        return new ProgressBarPanel(id, CertMiscUtil.createCampaignProgressBarModel(
+                        return new ProgressBarPanel(id, CertMiscUtil.createCampaignCasesProgressBarModel(
                                 getModelObject(), null, getPageBase()));
                     }
                 });

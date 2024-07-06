@@ -17,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
         applicableForType = AccessCertificationWorkItemType.class,
         display = @PanelDisplay(label = "PageCertDecisions.menu.revoke", icon = "fa fa-times text-danger", order = 2),
         button = true)
-public class CertItemRevokeAction extends AbstractCertItemAction {
+public class CertItemRevokeAction extends AbstractCertItemDecisionAction {
 
     public CertItemRevokeAction() {
         super();
