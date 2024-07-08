@@ -1,0 +1,28 @@
+= PolicyType
+:page-upkeep-status: yellow
+
+// This page is a temporary measure to provide at least some information about PolicyType.
+// This page should be generated from the schema, but we do not have that capability at the moment.
+// URL for this page is not correct. It will change in the future.
+
+`PolicyType` is a data type in midPoint schema, meant for objects that contain elements of business or governance policy.
+
+Policy objects usually contain policy rules.
+However, they may also be used to build up policy structures, such as classifications and clearances.
+
+Policy objects are usually used as meta-roles.
+They contain inducements, usually high-order inducements, which are applied to roles, users, services and other objects using the RBAC mechanisms.
+Policy objects technically act almost identically to roles.
+However, they have very different meaning and usage.
+Therefore, separate data type is created policy objects, to clearly distinguish them from ordinary roles.
+Such division is very helpful for presentation (user interface), reporting and general understanding of policy structures.
+
+// TODO: list of supposed uses of policy objects (with links):
+// * Classifications and clearances
+// * User-friendly policy selection (approvals)
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
+
+* xref:/midpoint/reference/roles-policies/classification/[]
