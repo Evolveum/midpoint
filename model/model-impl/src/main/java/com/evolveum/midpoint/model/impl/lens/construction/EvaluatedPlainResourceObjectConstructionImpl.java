@@ -13,6 +13,8 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -21,10 +23,6 @@ import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 /**
  * Evaluated resource object construction that is defined in the schemaHandling part of resource definition.
@@ -111,10 +109,26 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
                             + "execution mode", associationDefinition);
                 }
             }
+
             // modern association type definition
-            if (constructionEvaluation.projectionContext != null && associationDefinition.hasModernOutbound()) {
-                mappers.add(
-                        new AssociationMapper<>(constructionEvaluation, associationDefinition));
+            if (constructionEvaluation.projectionContext != null) {
+                for (var modernOutboundBean : associationDefinition.getModernOutbounds()) {
+                    if (modernOutboundBean.getExpression() == null) {
+                        mappers.add(
+                                new AssociationMapper<>(constructionEvaluation, associationDefinition, modernOutboundBean));
+                    } else {
+                        var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
+                        // FIXME either move other artefacts (strength, etc), or evaluate the expression-based mapping
+                        //  with other modern ones
+                        var artificialMappingBean = new MappingType()
+                                .expression(modernOutboundBean.getExpression());
+                        mappers.add(
+                                new AssociationMapper<>(
+                                        constructionEvaluation, associationDefinition,
+                                        MappingConfigItem.of(artificialMappingBean, origin),
+                                        OriginType.OUTBOUND, MappingKindType.OUTBOUND));
+                    }
+                }
             }
         }
         return mappers;

@@ -109,13 +109,14 @@ abstract class ShadowItemMapper
             @NotNull ConstructionEvaluation<AH, ?> constructionEvaluation,
             @NotNull ItemName itemName,
             @NotNull ItemPath itemPath,
-            @NotNull D itemDefinition) {
+            @NotNull D itemDefinition,
+            @NotNull AssociationOutboundMappingType outboundBean) {
         this.constructionEvaluation = constructionEvaluation;
         this.construction = constructionEvaluation.construction;
         this.itemName = itemName;
         this.itemPath = itemPath;
         this.itemDefinition = itemDefinition;
-        this.mapper = new AssociationTypeBasedMapper();
+        this.mapper = new AssociationTypeBasedMapper(outboundBean);
     }
 
     PrismValueDeltaSetTripleProducer<?, ?> getTripleProducer() {
@@ -272,16 +273,22 @@ abstract class ShadowItemMapper
     private class AssociationTypeBasedMapper
             implements Mapper {
 
+        @NotNull private final AssociationOutboundMappingType outboundBean;
+
         private PrismValueDeltaSetTriple<ShadowAssociationValue> computedTriple;
+
+        AssociationTypeBasedMapper(@NotNull AssociationOutboundMappingType outboundBean) {
+            this.outboundBean = outboundBean;
+        }
 
         @Override
         public boolean hasRangeSpecified() {
-            return false;
+            return false; // FIXME
         }
 
         @Override
         public MappingStrengthType getStrength() {
-            return MappingStrengthType.STRONG;
+            return MappingStrengthType.STRONG; // FIXME
         }
 
         @Override
@@ -289,7 +296,10 @@ abstract class ShadowItemMapper
                 throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
 
-            computedTriple = AssociationValuesTripleComputation.compute(getAssociationDefinition(), constructionEvaluation);
+            computedTriple = AssociationValuesTripleComputation.compute(
+                    getAssociationDefinition(),
+                    outboundBean,
+                    constructionEvaluation);
 
             return getTripleProducer();
         }

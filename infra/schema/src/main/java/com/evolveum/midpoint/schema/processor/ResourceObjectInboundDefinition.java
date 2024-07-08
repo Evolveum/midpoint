@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * Defines "complex inbound processing": correlation, synchronization reactions, inbounds for attributes and associations.
  *
@@ -50,8 +52,23 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         return bean != null ? new ComplexProcessingImplementation(bean) : empty();
     }
 
-    static ResourceObjectInboundDefinition forAssociation(@Nullable ShadowAssociationDefinitionType bean) {
-        return bean != null ? new AssociationProcessingImplementation(bean) : empty();
+    static Collection<ResourceObjectInboundDefinition> forAssociation(@NotNull ShadowAssociationDefinitionType bean) {
+        // These are (no longer) supported, although they are present in the schema
+        for (var itemDefBean : bean.getAttribute()) {
+            stateCheck(itemDefBean.getInbound().isEmpty(), "attribute/inbound is no longer supported");
+        }
+        for (var itemDefBean : bean.getObjectRef()) {
+            stateCheck(itemDefBean.getInbound().isEmpty(), "objectRef/inbound is no longer supported");
+        }
+        stateCheck(
+                bean.getCorrelation() == null,
+                "correlation right in the association def is no longer supported");
+        stateCheck(
+                bean.getSynchronization() == null,
+                "synchronization right in the association def is no longer supported");
+        return bean.getInbound().stream()
+                .map(b -> (ResourceObjectInboundDefinition) new AssociationProcessingImplementation(b))
+                .toList();
     }
 
     Collection<? extends ItemInboundDefinition> getAttributeDefinitions();
@@ -297,7 +314,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
 
     class AssociationProcessingImplementation implements ResourceObjectInboundDefinition {
 
-        @NotNull private final ShadowAssociationDefinitionType definitionBean;
+        @NotNull private final AssociationInboundMappingType definitionBean;
 
         @NotNull private final PathKeyedMap<ItemInboundDefinition> itemDefinitionsMap = new PathKeyedMap<>();
 
@@ -306,11 +323,12 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         /** This is the inbound provided by unnamed `objectRef` definition. */
         @Nullable private final ItemInboundDefinition defaultObjectRefDefinition;
 
-        AssociationProcessingImplementation(@NotNull ShadowAssociationDefinitionType definitionBean) {
+        AssociationProcessingImplementation(@NotNull AssociationInboundMappingType definitionBean) {
             this.definitionBean = definitionBean;
-            for (var itemDefBean : definitionBean.getAttribute()) {
-                var itemName = ItemPathTypeUtil.asSingleNameOrFail(itemDefBean.getRef()); // TODO error handling
-                itemDefinitionsMap.put(itemName, new AssociationBasedItemImplementation(itemDefBean));
+
+            for (var attrDefBean : definitionBean.getAttribute()) {
+                var itemName = ItemPathTypeUtil.asSingleNameOrFail(attrDefBean.getRef()); // TODO error handling
+                itemDefinitionsMap.put(itemName, new AssociationBasedItemImplementation(attrDefBean));
             }
             Collection<ItemInboundDefinition> defaultObjectRefDefinitions = new ArrayList<>();
             for (var objectRefBean : definitionBean.getObjectRef()) {
@@ -381,14 +399,14 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
 
                 @Override
                 public String getAssignmentSubtype() {
-                    var focusBean = definitionBean.getFocus();
-                    return focusBean != null ? focusBean.getAssignmentSubtype() : null;
+                    var targetBean = definitionBean.getTarget();
+                    return targetBean != null ? targetBean.getAssignmentSubtype() : null;
                 }
 
                 @Override
                 public QName getAssignmentTargetTypeName() {
-                    var focusBean = definitionBean.getFocus();
-                    return focusBean != null ? focusBean.getAssignmentTargetType() : null;
+                    var targetBean = definitionBean.getTarget();
+                    return targetBean != null ? targetBean.getAssignmentTargetType() : null;
                 }
 
                 @Override

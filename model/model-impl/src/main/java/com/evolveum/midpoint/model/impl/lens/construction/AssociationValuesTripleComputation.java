@@ -14,7 +14,6 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -43,7 +42,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.Delta
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
@@ -67,7 +65,7 @@ class AssociationValuesTripleComputation {
 
     private final boolean hasAssociationObject;
     @NotNull private final ShadowAssociationDefinition associationDefinition;
-    @NotNull private final ShadowAssociationDefinitionType associationDefinitionBean;
+    @NotNull private final AssociationOutboundMappingType outboundBean;
     @NotNull private final LensProjectionContext projectionContext;
     @NotNull private final MappingEvaluationEnvironment env;
     @NotNull private final OperationResult result;
@@ -76,13 +74,13 @@ class AssociationValuesTripleComputation {
 
     private AssociationValuesTripleComputation(
             @NotNull ShadowAssociationDefinition associationDefinition,
-            @NotNull ShadowAssociationDefinitionType associationDefinitionBean,
+            @NotNull AssociationOutboundMappingType outboundBean,
             @NotNull LensProjectionContext projectionContext,
             @NotNull MappingEvaluationEnvironment env,
             @NotNull OperationResult result) {
         this.hasAssociationObject = associationDefinition.hasAssociationObject();
         this.associationDefinition = associationDefinition;
-        this.associationDefinitionBean = associationDefinitionBean;
+        this.outboundBean = outboundBean;
         this.projectionContext = projectionContext;
         this.env = env;
         this.result = result;
@@ -92,12 +90,13 @@ class AssociationValuesTripleComputation {
     /** Assumes the existence of the projection context and association definition with a bean. */
     public static PrismValueDeltaSetTriple<ShadowAssociationValue> compute(
             @NotNull ShadowAssociationDefinition associationDefinition,
+            @NotNull AssociationOutboundMappingType outboundBean,
             @NotNull ConstructionEvaluation<?, ?> constructionEvaluation)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         var avc = new AssociationValuesTripleComputation(
                 associationDefinition,
-                Objects.requireNonNull(associationDefinition.getModernAssociationDefinitionBean()),
+                outboundBean,
                 constructionEvaluation.getProjectionContextRequired(),
                 new MappingEvaluationEnvironment(
                         "association computation",
@@ -110,29 +109,33 @@ class AssociationValuesTripleComputation {
     private PrismValueDeltaSetTriple<ShadowAssociationValue> compute()
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        try {
-            // We need to gather all relevant "magic assignments" here.
-            var lensContext = projectionContext.getLensContext();
-            lensContext.getEvaluatedAssignmentTriple().foreach(
-                    (eaSet, ea) ->
-                            ea.getRoles().foreach(
-                                    (targetSet, target) -> {
-                                        try {
-                                            var mode = PlusMinusZero.compute(eaSet, targetSet);
-                                            if (mode != null) {
-                                                processAssignmentTarget(mode, target);
+        if (outboundBean.getExpression() != null) {
+            throw new UnsupportedOperationException("This should be treated elsewhere"); // FIXME document or implement
+        } else {
+            try {
+                // We need to gather all relevant "magic assignments" here.
+                var lensContext = projectionContext.getLensContext();
+                lensContext.getEvaluatedAssignmentTriple().foreach(
+                        (eaSet, ea) ->
+                                ea.getRoles().foreach(
+                                        (targetSet, target) -> {
+                                            try {
+                                                var mode = PlusMinusZero.compute(eaSet, targetSet);
+                                                if (mode != null) {
+                                                    processAssignmentTarget(mode, target);
+                                                }
+                                            } catch (CommonException e) {
+                                                throw new LocalTunnelException(e);
                                             }
-                                        } catch (CommonException e) {
-                                            throw new LocalTunnelException(e);
                                         }
-                                    }
-                            )
-            );
-            return triple;
-        } catch (LocalTunnelException e) {
-            e.unwrapAndRethrow();
-            throw new NotHereAssertionError();
+                                )
+                );
+            } catch (LocalTunnelException e) {
+                e.unwrapAndRethrow();
+                throw new NotHereAssertionError();
+            }
         }
+        return triple;
     }
 
     /** @see LocalTunnelException#unwrapAndRethrow() */
@@ -212,10 +215,10 @@ class AssociationValuesTripleComputation {
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                 ConfigurationException, ObjectNotFoundException {
             if (hasAssociationObject) {
-                for (ResourceAttributeDefinitionType attrDefBean : associationDefinitionBean.getAttribute()) {
+                for (ResourceAttributeDefinitionType attrDefBean : outboundBean.getAttribute()) {
                     evaluateAttribute(attrDefBean, false);
                 }
-                for (ResourceAttributeDefinitionType attrDefBean : associationDefinitionBean.getObjectRef()) {
+                for (ResourceAttributeDefinitionType attrDefBean : outboundBean.getObjectRef()) {
                     evaluateAttribute(attrDefBean, true);
                 }
                 var associationObject = consolidate();

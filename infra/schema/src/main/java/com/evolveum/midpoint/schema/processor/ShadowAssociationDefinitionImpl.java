@@ -376,9 +376,6 @@ public class ShadowAssociationDefinitionImpl
         if (legacyInformation != null) {
             return legacyInformation.outboundMappingBean();
         }
-        if (modernAssociationDefinitionBean != null) {
-            return modernAssociationDefinitionBean.getExplicitOutbound();
-        }
         return null;
     }
 
@@ -823,10 +820,10 @@ public class ShadowAssociationDefinitionImpl
 
     @Override
     public @NotNull Collection<ResourceObjectInboundDefinition> getRelevantInboundDefinitions() {
-        if (hasModernInbound()) {
-            return List.of(ResourceObjectInboundDefinition.forAssociation(modernAssociationDefinitionBean));
-        } else {
+        if (modernAssociationDefinitionBean == null) {
             return List.of();
+        } else {
+            return ResourceObjectInboundDefinition.forAssociation(modernAssociationDefinitionBean);
         }
     }
 

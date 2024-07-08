@@ -271,6 +271,12 @@ public interface InboundSourceData extends DebugDumpable, Serializable {
         }
 
         @Override
+        public PrismObject<ShadowType> getShadowIfPresent() {
+            return associationValue.hasAssociationObject() ?
+                    associationValue.getAssociationObject().getPrismObject() : null;
+        }
+
+        @Override
         public ShadowAssociation getAssociation(ItemName assocName) {
             return null;
         }

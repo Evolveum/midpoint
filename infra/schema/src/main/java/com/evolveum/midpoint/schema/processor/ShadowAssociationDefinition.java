@@ -144,23 +144,10 @@ public interface ShadowAssociationDefinition
 
     @Nullable ShadowAssociationTypeDefinitionType getModernAssociationTypeDefinitionBean();
 
-    default boolean hasModernInbound() {
-        var bean = getModernAssociationDefinitionBean();
-        if (bean == null) {
-            return false;
-        }
-        return bean.getAttribute().stream().anyMatch(a -> a.getInbound() != null)
-                || bean.getObjectRef().stream().anyMatch(o -> o.getInbound() != null);
-    }
-
     // TODO find better place
-    default boolean hasModernOutbound() {
+    default Collection<AssociationOutboundMappingType> getModernOutbounds() {
         var bean = getModernAssociationDefinitionBean();
-        if (bean == null) {
-            return false;
-        }
-        return bean.getAttribute().stream().anyMatch(a -> a.getOutbound() != null)
-                || bean.getObjectRef().stream().anyMatch(o -> o.getOutbound() != null);
+        return bean != null ? bean.getOutbound() : List.of();
     }
 
     @Override
