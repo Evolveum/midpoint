@@ -3,12 +3,12 @@ layout: release
 release-version: '4.9'
 visibility: hidden
 ---
-= MidPoint 4.9 "TODO"
+= MidPoint 4.9 "Verne"
 :release-version: 4.9
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a fifty-TODO midPoint release, code-named _TODO_.
+Release {release-version} is a fifty-TODO midPoint release, code-named _Verne_.
 The {release-version} release brings TODO.
 
 ++++
@@ -18,7 +18,7 @@ The {release-version} release brings TODO.
 ++++
 {% capture dedicationContent %}
 <p>
-TODO
+<a href="https://en.wikipedia.org/wiki/Jules_Verne">Jules Gabriel Verne</a> (1828-1905) was ...
 </p>
 <p>
 TODO

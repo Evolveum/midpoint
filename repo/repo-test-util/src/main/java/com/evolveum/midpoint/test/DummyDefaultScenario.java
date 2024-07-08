@@ -65,7 +65,7 @@ public class DummyDefaultScenario extends AbstractDummyScenario {
 
         public static class LinkNames {
             public static final AssocName GROUP = AssocName.ri("group");
-            public static final AssocName MEMBERS_INVISIBLE = AssocName.ri("members-invisible"); // name is not important
+            public static final AssocName MEMBER_REF = AssocName.ri("memberRef"); // must not collide with "members"
         }
 
         @Override
@@ -111,7 +111,9 @@ public class DummyDefaultScenario extends AbstractDummyScenario {
                                     .build())
                             .withSecondParticipant(aParticipant()
                                     .withObjectClassNames(Group.OBJECT_CLASS_NAME.local())
-                                    .withInvisibleLinkAttributeName(Group.LinkNames.MEMBERS_INVISIBLE.local())
+                                    .withLinkAttributeName(Group.LinkNames.MEMBER_REF.local()) // visible because of tests
+                                    .withReturnedByDefault(false)
+                                    .withExpandedByDefault(false)
                                     .withMaxOccurs(-1)
                                     .build())
                             .build());

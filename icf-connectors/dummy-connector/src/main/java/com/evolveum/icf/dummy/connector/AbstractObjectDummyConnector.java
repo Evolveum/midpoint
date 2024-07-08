@@ -139,8 +139,8 @@ public abstract class AbstractObjectDummyConnector
             throw new SchemaViolationException("Reference attribute with non-reference value: " + referenceAttributeValue);
         }
         var referencedObjectClass = reference.getReferencedValue().getObjectClass();
-        var referencedObjectClassName = referencedObjectClass.getObjectClassValue();
-        var referencedObjectClassDef = resource.getStructuralObjectClass(referencedObjectClassName);
+        var referencedObjectClassNativeName = fromConnIdObjectClass(referencedObjectClass);
+        var referencedObjectClassDef = resource.getStructuralObjectClass(referencedObjectClassNativeName);
         DummyObject referencedObject;
         if (referencedObjectClassDef.isAssociationObject()) {
             var attributes = reference.getReferencedValue().getAttributes();
@@ -154,12 +154,12 @@ public abstract class AbstractObjectDummyConnector
             var uidAttr = (Uid) identification.getAttributeByName(Uid.NAME);
             var nameAttr = (Name) identification.getAttributeByName(Name.NAME);
             if (uidAttr != null) {
-                referencedObject = findObjectByUidRequired(referencedObjectClassName, uidAttr, false);
+                referencedObject = findObjectByUidRequired(referencedObjectClassNativeName, uidAttr, false);
             } else if (nameAttr != null) {
-                referencedObject = resource.getObjectByName(referencedObjectClassName, nameAttr.getNameValue(), false);
+                referencedObject = resource.getObjectByName(referencedObjectClassNativeName, nameAttr.getNameValue(), false);
                 if (referencedObject == null) {
                     throw new IllegalArgumentException( // todo reconsider ObjectNotFoundException here
-                            "Object of class " + referencedObjectClassName + " named " + nameAttr + " does not exist");
+                            "Object of class " + referencedObjectClassNativeName + " named " + nameAttr + " does not exist");
                 }
             } else {
                 throw new IllegalArgumentException("Neither UID nor NAME was provided in object reference: " + reference);

@@ -16,8 +16,6 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.impl.ItemPathParserImpl;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 
@@ -46,14 +44,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 /**
- * Testing the native associations.
+ * Testing the "rich" native associations.
  *
- * TEMPORARY. This functionality will be moved to standard {@link TestDummy} later:
- * see {@link TestDummyNativeAssociations} (currently failing).
+ * The trivial (no-object) associations are tested in the standard {@link TestDummy} suite (for simulated ones)
+ * and {@link TestDummyNativeAssociations} (for native ones).
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
-public class TestDummyAssociations extends AbstractDummyTest {
+public class TestDummyRichAssociations extends AbstractDummyTest {
 
     private static final File RESOURCE_DUMMY_HR_FILE = new File(TEST_DIR, "resource-dummy-hr.xml");
 

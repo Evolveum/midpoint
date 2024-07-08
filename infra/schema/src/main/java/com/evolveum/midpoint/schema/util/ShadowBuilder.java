@@ -27,9 +27,17 @@ public class ShadowBuilder {
         this.shadow = shadow;
     }
 
+    /**
+     * Creates a new shadow builder with the provided object definition.
+     *
+     * Unlike {@link ResourceObjectDefinition#createBlankShadow()}, this method sets kind/intent if known.
+     * Hence, please do not call it with a default-type definition for an object class if you don't want
+     * to instantiate a shadow with kind/intent.
+     */
     public static ShadowBuilder withDefinition(@NotNull ResourceObjectDefinition objectDefinition) {
-        return new ShadowBuilder(
-                objectDefinition.createBlankShadow().getBean());
+        var blankShadow = objectDefinition.createBlankShadow();
+        blankShadow.setObjectType(objectDefinition.getTypeIdentification());
+        return new ShadowBuilder(blankShadow.getBean());
     }
 
     // TODO consider removing

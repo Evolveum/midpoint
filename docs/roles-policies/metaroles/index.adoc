@@ -24,7 +24,7 @@ Metarole applies its characteristics to another role.
 This is perfectly possible in midPoint, as role can be applied to almost any midPoint object.
 Then why not apply a role to a another role? This may seem like a pretty useless exercise, but the truth is that metaroles are tremendously useful.
 
-Repetition is a daily bread in almost all IDM deployments.
+Repetition is daily bread in almost all IDM deployments.
 E.g. many business roles have something in common.
 For example the business roles have similar approval process.
 There may be role classes that have similar exclusion policies that are part of global segregation of duties (SoD) policy.
@@ -64,14 +64,15 @@ In metaroles, assignment is used instead of inducement:
 ----
 
 Metaroles may seem similar to a role hierarchy.
-But it is a completely different.
+However, it is a completely different concept.
 The crucial difference is that the metarole is applied to the role and not to the user.
 The inducements in the metarole often contain policies such as approval policy.
 Or construction clauses that create groups or organizational units.
 We usually do not want to create a group for each user.
 But we often want to create a group for a role.
-Thats what metarole can do.
+That's what metarole can do.
 
+Metaroles usually take form of xref:/midpoint/reference/schema/policy[policy objets], e.g. as xref:/midpoint/reference/roles-policies/classification/[classifications].
 
 == See Also
 
@@ -80,3 +81,7 @@ Thats what metarole can do.
 * xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
 
 * xref:/midpoint/reference/schema/archetypes/[Archetypes]
+
+* xref:/midpoint/reference/schema/policy[]
+
+* xref:/midpoint/reference/roles-policies/classification/[]
