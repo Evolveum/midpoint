@@ -60,6 +60,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     }
 
     // ridiculous name, but needed in order to match case.owner_oid
+    @Id
     @Override
     @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     //@OwnerIdGetter()            // this is not a single-valued owner id
@@ -78,8 +79,8 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     @OwnerGetter(ownerClass = RAccessCertificationCase.class)
     @JoinColumns(
             value = {
-                    @JoinColumn(name = "owner_owner_oid"),
-                    @JoinColumn(name = "owner_id")
+                    @JoinColumn(name = "owner_owner_oid", referencedColumnName = "owner_oid"),
+                    @JoinColumn(name = "owner_id", referencedColumnName = "id")
             },
             foreignKey = @ForeignKey(name = "fk_acc_cert_wi_owner")
     )
@@ -96,6 +97,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
         }
     }
 
+    @Id
     @Override
     @Column(name = "owner_id", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     //@OwnerIdGetter()            // this is not a single-valued owner id

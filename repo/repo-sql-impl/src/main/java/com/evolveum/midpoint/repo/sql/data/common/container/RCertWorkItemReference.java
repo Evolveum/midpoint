@@ -52,9 +52,9 @@ public class RCertWorkItemReference extends RReference {
     @NotQueryable
     @JoinColumns(
             value = {
-                    @JoinColumn(name = "owner_owner_owner_oid"),
-                    @JoinColumn(name = "owner_owner_id"),
-                    @JoinColumn(name = "owner_id")
+                    @JoinColumn(name = "owner_owner_owner_oid", referencedColumnName = "owner_owner_oid"),
+                    @JoinColumn(name = "owner_owner_id", referencedColumnName = "owner_id"),
+                    @JoinColumn(name = "owner_id", referencedColumnName = "id")
             },
             foreignKey = @ForeignKey(name = "fk_acc_cert_wi_ref_owner")
     )
@@ -71,6 +71,7 @@ public class RCertWorkItemReference extends RReference {
         }
     }
 
+    @Id
     @Column(name = "owner_owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     @NotQueryable
     public String getOwnerOwnerOwnerOid() {
@@ -81,6 +82,7 @@ public class RCertWorkItemReference extends RReference {
         this.ownerOwnerOwnerOid = ownerOwnerOwnerOid;
     }
 
+    @Id
     @Column(name = "owner_owner_id", length = RUtil.COLUMN_LENGTH_OID)
     @NotQueryable
     public Integer getOwnerOwnerId() {
@@ -91,6 +93,7 @@ public class RCertWorkItemReference extends RReference {
         this.ownerOwnerId = ownerOwnerId;
     }
 
+    @Id
     @Column(name = "owner_id")
     @NotQueryable
     public Integer getOwnerId() {

@@ -67,7 +67,7 @@ public class ROperationExecution implements Container<RObject> {
         this.setOwner(owner);
     }
 
-    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_op_exec_owner"))
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_op_exec_owner"))
     @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
