@@ -31,12 +31,12 @@ For general introduction to interface concepts please see xref:/midpoint/archite
 | Artifact | Path/Link | Description
 
 | Interface definition
-| link:https://github.com/Evolveum/midpoint/blob/{{midpointBranch}}/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/{{midpointBranch}}/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
+| link:https://github.com/Evolveum/midpoint/blob/{{page.midpointBranch}}/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java[https://github.com/Evolveum/midpoint/blob/{{page.midpointBranch}}/model/model-api/src/main/java/com/evolveum/midpoint/model/api/ModelService.java]
 | Well-commented Java definition of the interface.
 
 
 | Interface documentation
-| link:http://www.evolveum.com/downloads/midpoint/{{midpointVersion}}/midpoint-api-{{midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html[http://www.evolveum.com/downloads/midpoint/{{midpointVersion}}/midpoint-api-{{midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html]
+| link:http://www.evolveum.com/downloads/midpoint/{{page.midpointVersion}}/midpoint-api-{{page.midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html[http://www.evolveum.com/downloads/midpoint/{{page.midpointVersion}}/midpoint-api-{{page.midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html]
 | Javadoc description of the interface
 
 
