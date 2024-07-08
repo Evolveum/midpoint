@@ -46,7 +46,7 @@ public class RCaseWorkItem implements Container<RCase> {
 
     private RCase owner;
     private String ownerOid;
-    private Integer containerId;
+    private Integer id;
 
     private Integer stageNumber;
     private REmbeddedReference originalAssigneeRef;
@@ -62,8 +62,8 @@ public class RCaseWorkItem implements Container<RCase> {
     }
 
     @Override
-    @MapsId("ownerOid")
-    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_case_wi_owner"))
+    @MapsId
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_case_wi_owner"))
     @ManyToOne(fetch = FetchType.LAZY)
     @OwnerGetter(ownerClass = RCase.class)
     public RCase getOwner() {
@@ -78,6 +78,7 @@ public class RCaseWorkItem implements Container<RCase> {
         }
     }
 
+    @Id
     @Override
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
@@ -98,24 +99,12 @@ public class RCaseWorkItem implements Container<RCase> {
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
     @Column(name = "id")
     @IdQueryProperty
-    public Integer getContainerId() {
-        return containerId;
-    }
-
-    public void setContainerId(Integer id) {
-        this.containerId = id;
-    }
-
-    @Transient
-    @Override
     public Integer getId() {
-        return getContainerId();
+        return id;
     }
 
-    @Transient
-    @Override
     public void setId(Integer id) {
-        setContainerId(id);
+        this.id = id;
     }
 
     @Column
@@ -217,7 +206,7 @@ public class RCaseWorkItem implements Container<RCase> {
         if (!(o instanceof RCaseWorkItem)) { return false; }
         RCaseWorkItem that = (RCaseWorkItem) o;
         return Objects.equals(getOwnerOid(), that.getOwnerOid()) &&
-                Objects.equals(containerId, that.containerId) &&
+                Objects.equals(id, that.id) &&
                 Objects.equals(stageNumber, that.stageNumber) &&
                 Objects.equals(assigneeRef, that.assigneeRef) &&
                 Objects.equals(performerRef, that.performerRef) &&
@@ -230,7 +219,7 @@ public class RCaseWorkItem implements Container<RCase> {
     @Override
     public int hashCode() {
         return Objects
-                .hash(getOwnerOid(), containerId, stageNumber, assigneeRef, performerRef, outcome, closeTimestamp, createTimestamp, deadline);
+                .hash(getOwnerOid(), id, stageNumber, assigneeRef, performerRef, outcome, closeTimestamp, createTimestamp, deadline);
     }
 
     @Override
@@ -262,7 +251,7 @@ public class RCaseWorkItem implements Container<RCase> {
     private static void toRepo(RCaseWorkItem rWorkItem, CaseWorkItemType workItem, RepositoryContext context) {
         rWorkItem.setTransient(null);       // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
         Integer idInt = RUtil.toInteger(workItem.getId());
-        rWorkItem.setContainerId(idInt);
+        rWorkItem.setId(idInt);
         rWorkItem.setStageNumber(workItem.getStageNumber());
         rWorkItem.setOriginalAssigneeRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getOriginalAssigneeRef(), context.relationRegistry));
         rWorkItem.getAssigneeRef().addAll(RCaseWorkItemReference.safeListReferenceToSet(
@@ -282,7 +271,7 @@ public class RCaseWorkItem implements Container<RCase> {
                 "trans=" + trans +
                 ", owner=" + owner +
                 ", ownerOid='" + ownerOid + '\'' +
-                ", id=" + containerId +
+                ", id=" + id +
                 ", stageNumber=" + stageNumber +
                 ", originalAssigneeRef=" + originalAssigneeRef +
                 ", assigneeRef=" + assigneeRef +

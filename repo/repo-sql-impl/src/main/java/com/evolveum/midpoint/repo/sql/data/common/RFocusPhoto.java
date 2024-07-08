@@ -34,7 +34,7 @@ public class RFocusPhoto implements Serializable, EntityState {
     @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
-    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_focus_photo"))
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_focus_photo"))
     public RFocus getOwner() {
         return owner;
     }

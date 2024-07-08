@@ -67,8 +67,8 @@ public class RAssignmentExtension implements Serializable, EntityState {
     @NotQueryable
     @JoinColumns(
             value = {
-                    @JoinColumn(name = "owner_owner_oid"),
-                    @JoinColumn(name = "owner_id")
+                    @JoinColumn(name = "owner_owner_oid", referencedColumnName = "owner_oid"),
+                    @JoinColumn(name = "owner_id", referencedColumnName = "id")
             },
             foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT)
     )

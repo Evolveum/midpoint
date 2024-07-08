@@ -54,8 +54,8 @@ public class RCaseWorkItemReference extends RReference {
     @NotQueryable
     @JoinColumns(
             value = {
-                    @JoinColumn(name = "owner_owner_oid"),
-                    @JoinColumn(name = "owner_id")
+                    @JoinColumn(name = "owner_owner_oid", referencedColumnName = "owner_oid"),
+                    @JoinColumn(name = "owner_id", referencedColumnName = "id")
             },
             foreignKey = @ForeignKey(name = "fk_case_wi_reference_owner"))
     public RCaseWorkItem getOwner() {
@@ -66,7 +66,7 @@ public class RCaseWorkItemReference extends RReference {
         this.owner = owner;
         if (owner != null) {
             this.ownerOwnerOid = owner.getOwnerOid();
-            this.ownerId = owner.getContainerId();
+            this.ownerId = owner.getId();
         }
     }
 
@@ -87,7 +87,7 @@ public class RCaseWorkItemReference extends RReference {
     @NotQueryable
     public Integer getOwnerId() {
         if (ownerId == null && getOwner() != null) {
-            ownerId = getOwner().getContainerId();
+            ownerId = getOwner().getId();
         }
         return ownerId;
     }

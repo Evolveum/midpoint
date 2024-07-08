@@ -82,14 +82,15 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     }
 
     @Override
-    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_acc_cert_case_owner"))
-    @MapsId("ownerOid")
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_acc_cert_case_owner"))
+    @MapsId
     @ManyToOne(fetch = FetchType.LAZY)
     @OwnerGetter(ownerClass = RAccessCertificationCampaign.class)
     public RAccessCertificationCampaign getOwner() {
         return owner;
     }
 
+    @Id
     @Override
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
