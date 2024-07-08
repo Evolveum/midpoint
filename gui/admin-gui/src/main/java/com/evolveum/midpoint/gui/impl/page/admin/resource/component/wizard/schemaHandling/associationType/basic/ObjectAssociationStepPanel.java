@@ -2,6 +2,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -122,7 +123,9 @@ public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel 
         }
 
         referenceAttributes.forEach(referenceAttribute -> {
-            referenceAttribute.getTargetParticipantTypes().forEach(associationParticipantType -> {
+            List<ShadowRelationParticipantType> objectsDefs = ProvisioningObjectsUtil.getObjectsOfSubject(referenceAttribute);
+
+            objectsDefs.forEach(associationParticipantType -> {
                 ResourceObjectDefinition targetDef = associationParticipantType.getObjectDefinition();
 
                 if (associationParticipantType.getTypeIdentification() != null) {
