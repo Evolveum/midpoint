@@ -182,6 +182,11 @@ public class ShadowAssociationsTable extends ListItemWithPanelForItemPanel<Shado
                     protected List<InlineMenuItem> createInlineMenu() {
                         return getDefaultMenuActions();
                     }
+
+                    @Override
+                    protected boolean isDuplicationSupported() {
+                        return false;
+                    }
                 };
         table.add(AttributeAppender.append("class", "card"));
         table.add(AttributeAppender.append(
