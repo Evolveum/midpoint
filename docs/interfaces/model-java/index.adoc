@@ -35,10 +35,13 @@ For general introduction to interface concepts please see xref:/midpoint/archite
 | Well-commented Java definition of the interface.
 
 
+{% if page.midpointVersion == 'master' %}
+// TODO: javadoc link for master
+{% else %}
 | Interface documentation
 | link:http://www.evolveum.com/downloads/midpoint/{{page.midpointVersion}}/midpoint-api-{{page.midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html[http://www.evolveum.com/downloads/midpoint/{{page.midpointVersion}}/midpoint-api-{{page.midpointVersion}}-javadoc/com/evolveum/midpoint/model/api/ModelService.html]
 | Javadoc description of the interface
-
+{% endif %}
 
 |===
 
