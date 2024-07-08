@@ -100,8 +100,4 @@ public class ShadowManagerMiscUtil {
         //noinspection unchecked
         return (ShadowSimpleAttribute<String>) primaryIdentifiers.iterator().next();
     }
-
-    public static PendingOperationType findPendingAddOperation(ShadowType liveShadow) {
-        return PendingOperationsHelper.findPendingAddOperation(liveShadow);
-    }
 }

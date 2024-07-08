@@ -17,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
         applicableForType = AccessCertificationWorkItemType.class,
         display = @PanelDisplay(label = "PageCertDecisions.menu.accept", icon = "fa fa-check text-success", order = 1),
         button = true)
-public class CertItemAcceptAction extends AbstractCertItemAction {
+public class CertItemAcceptAction extends AbstractCertItemDecisionAction {
 
     public CertItemAcceptAction() {
         super();

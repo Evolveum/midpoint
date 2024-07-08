@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
         identifier = "certItemNotDecided",
         applicableForType = AccessCertificationWorkItemType.class,
         display = @PanelDisplay(label = "PageCertDecisions.menu.notDecided", icon = "fa fa-question text-info", order = 4))
-public class CertItemNotDecidedAction extends AbstractCertItemAction {
+public class CertItemNotDecidedAction extends AbstractCertItemDecisionAction {
 
     public CertItemNotDecidedAction() {
         super();

@@ -922,7 +922,7 @@ public class ColumnUtils {
                     String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
                 AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
                 ProgressBarPanel progressBar = new ProgressBarPanel(componentId,
-                        CertMiscUtil.createCampaignProgressBarModel(campaign, null, pageBase));
+                        CertMiscUtil.createCampaignCasesProgressBarModel(campaign, null, pageBase));
                 progressBar.setOutputMarkupId(true);
                 item.add(progressBar);
             }

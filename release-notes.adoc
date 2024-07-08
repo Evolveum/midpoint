@@ -38,7 +38,7 @@ TODO
 ** Changed storage strategy for complex container types - actual data stored inside their own table istead of parent object JSON.
 * Added support for external data in protected strings, that can be resolved via secrets providers.
 This allows to store secrets in external systems, such as HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, etc.
-For more information see xref:/midpoint/reference//security/credentials/secrets-provider-configuration.adoc[].
+For more information see xrefv:/midpoint/reference/master/security/credentials/secrets-provider-configuration.adoc[].
 ** Adding support for GUI of passwords in connector configuration and password of focus (visible only when it is configured in xml)
 * Improvements regard shadow associations (work in progress)
 ** Draft of the native associations support in ConnId (1.5.3.0-M1).
@@ -80,7 +80,7 @@ Tree node search is now same for all nodes.
 TODO
 
 * The indication of official vs. unofficial build was added to the About page.
-See xref:/midpoint/reference/support-4.8/admin-gui/midpoint-jar-signature-status/[MidPoint JAR Signature Status] for details.
+See xref:/midpoint/reference/admin-gui/midpoint-jar-signature-status/[MidPoint JAR Signature Status] for details.
 * We have added a new algorithm to detect which users are in the production-like environment. It would have the following impact, depending on your subscription status.
 - *active subscribers*: none
 - *subscribers who are in the renewal period*: none during the grace period of 90 days
@@ -193,7 +193,7 @@ We are positive that midPoint can be successfully installed on other operating s
 Such installations can be used to for evaluation, demonstration or development purposes.
 However, we do not support these operating systems for production environments.
 The tooling for production use is not maintained, such as various run control (start/stop) scripts, low-level administration and migration tools, backup and recovery support and so on.
-Please see xref:/midpoint/install/platform-support/[] for details.
+Please see xref:/midpoint/install/bare-installation/platform-support/[] for details.
 
 Note that production deployments in Windows environments are supported only for LTS releases.
 
@@ -395,7 +395,7 @@ The following list contains a description of changes to the initial objects in t
 The complete new set of initial objects is in the `config/initial-objects` directory in both the source and binary distributions.
 
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
-For more information see xref:/midpoint/reference/deployment/ninja/upgrade-with-ninja/#initial-objects[here].
+For more information see xref:/midpoint/reference/deployment/ninja/use-case/upgrade-with-ninja/#initial-objects[here].
 
 * 250-object-collection-resource.xml: The `All resources` object collection was updated with a filter to exclude resource templates.
 * 251-object-collection-resource-up.xml: The `Resources up` object collection was updated with a filter to exclude resource templates.

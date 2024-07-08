@@ -114,24 +114,16 @@ public enum OperationResultStatus {
             return null;
         }
 
-        switch (status) {
-            case SUCCESS:
-                return OperationResultStatusType.SUCCESS;
-            case WARNING:
-                return OperationResultStatusType.WARNING;
-            case FATAL_ERROR:
-                return OperationResultStatusType.FATAL_ERROR;
-            case PARTIAL_ERROR:
-                return OperationResultStatusType.PARTIAL_ERROR;
-            case HANDLED_ERROR:
-                return OperationResultStatusType.HANDLED_ERROR;
-            case NOT_APPLICABLE:
-                return OperationResultStatusType.NOT_APPLICABLE;
-            case IN_PROGRESS:
-                return OperationResultStatusType.IN_PROGRESS;
-            default:
-                return OperationResultStatusType.UNKNOWN;
-        }
+        return switch (status) {
+            case SUCCESS -> OperationResultStatusType.SUCCESS;
+            case WARNING -> OperationResultStatusType.WARNING;
+            case FATAL_ERROR -> OperationResultStatusType.FATAL_ERROR;
+            case PARTIAL_ERROR -> OperationResultStatusType.PARTIAL_ERROR;
+            case HANDLED_ERROR -> OperationResultStatusType.HANDLED_ERROR;
+            case NOT_APPLICABLE -> OperationResultStatusType.NOT_APPLICABLE;
+            case IN_PROGRESS -> OperationResultStatusType.IN_PROGRESS;
+            default -> OperationResultStatusType.UNKNOWN;
+        };
     }
 
     static OperationResultStatus forThrowable(Throwable cause) {

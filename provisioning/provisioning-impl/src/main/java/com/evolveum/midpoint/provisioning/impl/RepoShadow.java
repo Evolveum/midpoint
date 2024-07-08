@@ -7,10 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTING;
-
-import java.util.List;
 import java.util.Objects;
 
 import com.google.common.base.Preconditions;
@@ -19,8 +15,8 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.provisioning.impl.shadows.PendingOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.PendingOperations;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -123,9 +119,12 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
         return "%s on %s [%s] (repo)%s".formatted(bean, resource, getShadowLifecycleState(), deleted ? " (deleted)" : "");
     }
 
-    /** Returns freely modifiable (detached) list. */
-    public @NotNull List<PendingOperationType> getPendingOperationsSorted() {
-        return ShadowUtil.sortPendingOperations(bean.getPendingOperation());
+    public @NotNull PendingOperations getPendingOperationsSorted() {
+        return PendingOperations.sorted(bean.getPendingOperation());
+    }
+
+    public @NotNull PendingOperations getPendingOperations() {
+        return PendingOperations.of(bean.getPendingOperation());
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -147,26 +146,12 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
         return bean.getName();
     }
 
-    public PendingOperationType findPendingAddOperation() {
-        return ShadowManagerMiscUtil.findPendingAddOperation(bean);
+    public @Nullable PendingOperation findPendingAddOperation() {
+        return getPendingOperations().findPendingAddOperation();
     }
 
     public @NotNull String getResourceOid() {
         return Objects.requireNonNull(resource.getBean().getOid());
-    }
-
-    public boolean hasRetryableOperation() {
-        return emptyIfNull(bean.getPendingOperation()).stream()
-                .anyMatch(RepoShadow::isRetryableOperation);
-    }
-
-    /**
-     * The `true` return value currently implies the operation type is {@link PendingOperationTypeType#RETRY}.
-     * (Manual nor asynchronous operation have no attempt number set.)
-     */
-    public static boolean isRetryableOperation(PendingOperationType pendingOperation) {
-        return pendingOperation.getExecutionStatus() == EXECUTING
-                && pendingOperation.getAttemptNumber() != null;
     }
 
     public ResourceObjectShadow asResourceObject() throws SchemaException {
@@ -185,12 +170,9 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
         return ObjectTypeUtil.createObjectRef(bean);
     }
 
-    public boolean hasPendingAddOperation() {
-        return ProvisioningUtil.hasPendingAddOperation(bean);
-    }
-
-    public boolean hasPendingDeleteOperation() {
-        return ProvisioningUtil.hasPendingDeleteOperation(bean);
+    public boolean hasPendingAddOrDeleteOperation() {
+        return getPendingOperations().getOperations().stream()
+                .anyMatch(op -> op.isPendingAddOrDelete());
     }
 
     public boolean isInQuantumState() {

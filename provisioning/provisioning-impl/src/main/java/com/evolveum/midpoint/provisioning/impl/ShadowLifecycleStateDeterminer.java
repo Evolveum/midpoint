@@ -7,23 +7,20 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.provisioning.impl.shadows.PendingOperations;
 import com.evolveum.midpoint.schema.util.PendingOperationTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.List;
 
 /**
  * Determines the shadow lifecycle state according to https://docs.evolveum.com/midpoint/reference/resources/shadow/dead/.
@@ -98,30 +95,23 @@ public class ShadowLifecycleStateDeterminer {
             @NotNull ProvisioningContext ctx,
             @NotNull ShadowType shadow,
             @NotNull XMLGregorianCalendar now) {
-        List<PendingOperationType> pendingOperations = shadow.getPendingOperation();
+        var pendingOperations = PendingOperations.of(shadow.getPendingOperation());
         if (pendingOperations.isEmpty()) {
             return null;
         }
         Duration gracePeriod = ctx.getGracePeriod();
         ChangeTypeType found = null;
-        for (PendingOperationType pendingOperation : pendingOperations) {
-            ObjectDeltaType delta = pendingOperation.getDelta();
-            if (delta == null) {
+        for (var pendingOperation : pendingOperations) {
+            if (!pendingOperation.isAdd() && !pendingOperation.isDelete()) {
+                continue; // only ADD/DELETE are lifecycle operations
+            }
+            if (pendingOperation.isCompletedAndOverPeriod(now, gracePeriod)) {
                 continue;
             }
-            ChangeTypeType changeType = delta.getChangeType();
-            if (ChangeTypeType.MODIFY.equals(changeType)) {
-                continue; // MODIFY is not a lifecycle operation
-            }
-            if (ProvisioningUtil.isCompletedAndOverPeriod(now, gracePeriod, pendingOperation)) {
-                continue;
-            }
-            if (changeType == ChangeTypeType.DELETE) {
-                // DELETE always wins
-                return changeType;
+            if (pendingOperation.isDelete()) {
+                return ChangeTypeType.DELETE; // DELETE always wins
             } else {
-                // If there is an ADD then let's check for delete.
-                found = changeType;
+                found = ChangeTypeType.ADD; // If there is an ADD then let's check for delete.
             }
         }
         return found;

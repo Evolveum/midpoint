@@ -12,12 +12,7 @@ import static com.evolveum.midpoint.provisioning.impl.shadows.manager.MetadataUt
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 
 import java.util.ArrayList;
-import java.util.List;
 import javax.xml.datatype.Duration;
-
-import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
-import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,21 +22,23 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 import com.evolveum.midpoint.provisioning.impl.shadows.*;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -228,7 +225,7 @@ public class OperationResultRecorder {
         var shadowModifications = computePendingOperationsAndLifecycleStateModifications(operation);
         addModificationMetadataDeltas(shadowModifications, opState.getRepoShadow());
 
-        List<ItemDelta<?, ?>> logicalModifications = new ArrayList<>(shadowModifications.getItemDeltas());
+        var logicalModifications = new ArrayList<>(shadowModifications.getItemDeltas());
         if (repoShadow.getBean().getPrimaryIdentifierValue() != null) {
             // State goes to reaping or corpse or tombstone -> primaryIdentifierValue must be freed (if not done so yet)
             ItemDeltaCollectionsUtil.addNotEquivalent(

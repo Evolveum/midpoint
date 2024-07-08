@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
 import jakarta.annotation.PostConstruct;
@@ -449,7 +450,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             LOGGER.trace("modifyObject: object to modify (repository):\n{}.", repoShadow.debugDumpLazily());
 
             if (ShadowType.class.isAssignableFrom(type)) {
-                oid = shadowsFacade.modifyShadow((ShadowType) repoShadow, modifications, scripts, options, context, task, result);
+                oid = ShadowModifyOperation.executeDirectly(
+                        RawRepoShadow.of((ShadowType) repoShadow), modifications, scripts, options, context, task, result);
             } else {
                 repositoryService.modifyObject(type, oid, modifications, result);
             }
@@ -465,9 +467,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         } catch (GenericFrameworkException e) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw new CommunicationException(e.getMessage(), e);
-        } catch (EncryptionException e) {
-            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
-            throw new SystemException(e.getMessage(), e);
         } catch (ObjectAlreadyExistsException e) {
             ProvisioningUtil.recordExceptionWhileRethrowing(LOGGER, result, "Couldn't modify object: object"
                     + " after modification would conflict with another existing object: " + e.getMessage(), e);

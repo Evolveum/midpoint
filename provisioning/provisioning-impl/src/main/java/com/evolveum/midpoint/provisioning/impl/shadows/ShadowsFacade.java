@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -91,21 +90,6 @@ public class ShadowsFacade {
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException, EncryptionException {
         return ShadowAddOperation.executeDirectly(resourceObjectToAdd, scripts, options, context, task, result);
-    }
-
-    public String modifyShadow(
-            @NotNull ShadowType rawRepoShadow,
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            @Nullable OperationProvisioningScriptsType scripts,
-            @Nullable ProvisioningOperationOptions options,
-            @NotNull ProvisioningOperationContext context,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            EncryptionException, ObjectAlreadyExistsException {
-        return ShadowModifyOperation.executeDirectly(
-                RawRepoShadow.of(rawRepoShadow), modifications, scripts, options, context, task, result);
     }
 
     public ShadowType deleteShadow(

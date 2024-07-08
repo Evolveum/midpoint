@@ -25,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -119,15 +118,14 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
     static AddOperationState executeInRefresh(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
-            @NotNull ObjectDelta<ShadowType> pendingDelta,
-            @NotNull PendingOperationType pendingOperation,
+            @NotNull PendingOperation pendingOperation,
             ProvisioningOperationOptions options,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException, EncryptionException {
         var opState = AddOperationState.fromPendingOperation(repoShadow, pendingOperation);
-        var resourceObjectToAdd = pendingDelta.getObjectToAdd().asObjectable();
+        var resourceObjectToAdd = pendingOperation.getDelta().getObjectToAdd().asObjectable();
         ctx.applyDefinitionInNewCtx(resourceObjectToAdd);
         var resourceObject = ResourceObjectShadow.fromBean(resourceObjectToAdd, false, ctx.getObjectDefinitionRequired());
         new ShadowAddOperation(ctx, resourceObject, null, opState, options)
@@ -139,13 +137,13 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
             @NotNull ResourceObjectShadow resourceObjectToAdd, // May include e.g. additional modifications
-            @NotNull List<PendingOperationType> sortedOperations,
+            @NotNull PendingOperations sortedOperations,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException, EncryptionException {
         resourceObjectToAdd.setOid(repoShadow.getOid());
-        AddOperationState opState = new AddOperationState(repoShadow);
+        var opState = new AddOperationState(repoShadow);
         opState.setPropagatedPendingOperations(sortedOperations);
         new ShadowAddOperation(ctx, resourceObjectToAdd, null, opState, null)
                 .execute(result);

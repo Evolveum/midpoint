@@ -7,16 +7,12 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
-
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Objects;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +39,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -53,7 +50,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 public class ProvisioningUtil {
 
@@ -284,18 +280,6 @@ public class ProvisioningUtil {
         return period;
     }
 
-    public static boolean isCompletedAndOverPeriod(
-            XMLGregorianCalendar now, Duration period, PendingOperationType pendingOperation) {
-        if (!isCompleted(pendingOperation.getResultStatus())) {
-            return false;
-        }
-        XMLGregorianCalendar completionTimestamp = pendingOperation.getCompletionTimestamp();
-        if (completionTimestamp == null) {
-            return false;
-        }
-        return period == null || XmlTypeConverter.isAfterInterval(completionTimestamp, period, now);
-    }
-
     public static Duration getRetryPeriod(ProvisioningContext ctx) {
         Duration period = null;
         ResourceConsistencyType consistency = ctx.getResource().getConsistency();
@@ -328,26 +312,6 @@ public class ProvisioningUtil {
         return statusType != null
                 && statusType != OperationResultStatusType.IN_PROGRESS
                 && statusType != OperationResultStatusType.UNKNOWN;
-    }
-
-    public static boolean hasPendingAddOperation(ShadowType shadow) {
-        return shadow.getPendingOperation().stream()
-                .anyMatch(ProvisioningUtil::isPendingAddOperation);
-    }
-
-    public static boolean hasPendingDeleteOperation(ShadowType shadow) {
-        return shadow.getPendingOperation().stream()
-                .anyMatch(ProvisioningUtil::isPendingDeleteOperation);
-    }
-
-    private static boolean isPendingAddOperation(PendingOperationType pendingOperation) {
-        return pendingOperation.getDelta().getChangeType() == ChangeTypeType.ADD
-                && pendingOperation.getExecutionStatus() != COMPLETED;
-    }
-
-    private static boolean isPendingDeleteOperation(PendingOperationType pendingOperation) {
-        return pendingOperation.getDelta().getChangeType() == ChangeTypeType.DELETE
-                && pendingOperation.getExecutionStatus() != COMPLETED;
     }
 
     public static boolean isFuturePointInTime(Collection<SelectorOptions<GetOperationOptions>> options) {

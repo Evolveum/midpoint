@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createSuccessOperationDescription;
+
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
@@ -19,10 +26,9 @@ import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandlerLocator;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.OperationResultRecorder;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
-
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -31,19 +37,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
-
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createSuccessOperationDescription;
 
 /**
  * Superclass for "primitive" resource-updating operations: add, modify, delete [resource object / shadow].
@@ -248,8 +244,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
         if (resourceDelta.isEmpty()) {
             return false;
         }
-        PendingOperationType duplicateOperation =
-                shadowUpdater.checkAndRecordPendingOperationBeforeExecution(ctx, resourceDelta, opState, result);
+        var duplicateOperation = shadowUpdater.checkAndRecordPendingOperationBeforeExecution(ctx, resourceDelta, opState, result);
         if (duplicateOperation != null) {
             result.setInProgress();
             return true;

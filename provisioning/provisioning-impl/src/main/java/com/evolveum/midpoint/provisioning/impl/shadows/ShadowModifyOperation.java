@@ -54,8 +54,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * Represents/executes "modify" operation on a shadow - either invoked directly, or during refresh or propagation.
- * See the variants of the `execute` method.
+ * Represents/executes `modify` operation on a shadow - either invoked directly, or during refresh or propagation.
+ * See:
+ *
+ * - {@link #executeDirectly(RawRepoShadow, Collection, OperationProvisioningScriptsType, ProvisioningOperationOptions, ProvisioningOperationContext, Task, OperationResult)}
+ * - {@link #executeInRefresh(ProvisioningContext, RepoShadow, PendingOperation, ProvisioningOperationOptions, OperationResult)}
+ * - {@link #executeInPropagation(ProvisioningContext, RepoShadow, Collection, List, OperationResult)}
  */
 public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOperationState> {
 
@@ -108,8 +112,8 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
         return delta;
     }
 
-    /** Executes when called explicitly from the client. */
-    static String executeDirectly(
+    /** Executes the modify operation requested explicitly from the client. */
+    public static String executeDirectly(
             @NotNull RawRepoShadow rawRepoShadow,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @Nullable OperationProvisioningScriptsType scripts,
@@ -191,15 +195,16 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
     static ModifyOperationState executeInRefresh(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            @NotNull PendingOperationType pendingOperation,
+            @NotNull PendingOperation pendingOperation,
             @Nullable ProvisioningOperationOptions options,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
             ObjectAlreadyExistsException {
+        assert pendingOperation.isModify();
         ModifyOperationState opState = ModifyOperationState.fromPendingOperation(repoShadow, pendingOperation);
         if (repoShadow.doesExist()) {
+            var modifications = pendingOperation.getDelta().getModifications();
             ctx.applyCurrentDefinition(modifications);
             new ShadowModifyOperation(ctx, modifications, options, null, opState, true)
                 .execute(result);
@@ -213,13 +218,13 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            @NotNull List<PendingOperationType> pendingOperations,
+            @NotNull PendingOperations sortedOperations,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, GenericFrameworkException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException,
             PolicyViolationException, ObjectAlreadyExistsException {
-        ModifyOperationState opState = new ModifyOperationState(repoShadow);
-        opState.setPropagatedPendingOperations(pendingOperations);
+        var opState = new ModifyOperationState(repoShadow);
+        opState.setPropagatedPendingOperations(sortedOperations);
         ctx.applyCurrentDefinition(modifications);
         new ShadowModifyOperation(ctx, modifications, null, null, opState, true)
                 .execute(result);
@@ -274,7 +279,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
     private void refreshBeforeExecution(OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
         RepoShadow repoShadow = opState.getRepoShadowRequired();
-        if (inRefreshOrPropagation || !repoShadow.hasRetryableOperation()) {
+        if (inRefreshOrPropagation || !repoShadow.getPendingOperations().hasRetryableOperation()) {
             return;
         }
         LOGGER.trace("Refreshing shadow before executing the modification operation");
