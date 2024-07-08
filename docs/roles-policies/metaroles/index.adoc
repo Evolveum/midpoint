@@ -72,7 +72,7 @@ We usually do not want to create a group for each user.
 But we often want to create a group for a role.
 That's what metarole can do.
 
-Metaroles usually take form of xref:/midpoint/reference/schema/policy[policy objets], e.g. as xref:/midpoint/reference/support-4.8/roles-policies/classification/[classifications].
+Metaroles usually take form of xref:/midpoint/reference/schema/policy[policy objets], e.g. as xref:/midpoint/reference/roles-policies/classification/[classifications].
 
 == See Also
 
