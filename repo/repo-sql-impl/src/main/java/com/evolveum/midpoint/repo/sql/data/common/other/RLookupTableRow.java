@@ -8,9 +8,9 @@ package com.evolveum.midpoint.repo.sql.data.common.other;
 
 import java.util.Date;
 import java.util.Objects;
-import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 

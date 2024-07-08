@@ -83,7 +83,10 @@ public class CertificationCaseHelper {
         }
         if (campaign.getCase() != null) {
             for (RAccessCertificationCase aCase : campaign.getCase()) {
-                em.persist(aCase);
+                if (deleteBeforeAdd) {
+                    aCase.setTransient(true);
+                }
+                em.merge(aCase);
             }
         }
     }
@@ -107,7 +110,8 @@ public class CertificationCaseHelper {
             RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, createRepositoryContext());
             row.setId(RUtil.toInteger(caseType.getId()));
             affectedIds.add(caseType.getId());
-            em.persist(row);
+
+            em.merge(row);
         }
     }
 
