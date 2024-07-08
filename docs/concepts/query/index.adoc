@@ -12,11 +12,12 @@ Initial option for searching objects in GUI is *Basic search*.
 The basic search allows users to query objects in view by selecting values of preselected object attributes or relations. It is configurable by engineer.
 This search is designed for end users and is available only in GUI.
 
-The xref:midpoint-query-language/[*midPoint Query Language*] is universal language used to search for objects.
+Next is xref:midpoint-query-language/[*midPoint Query Language*]. It is universal language used to search for objects.
 It can be used in GUI, or in configuration objects - in all places where we need to look for an object. It can be used even in xref:midpoint-query-language/query-language-in-groovy.adoc[groovy scripts] within configuration.
 This query language is known as *Advanced search* in GUI.
+It is primary option for querying objects in configuration and scripts.
 
-You can use also xref:xml-query-language.adoc[*XML Query Language*]. This was the original option for querying data. It is not entirely user-friendly.
+You can still use also xref:xml-query-language.adoc[*XML Query Language*]. This was the original option for querying data. It is not entirely user-friendly.
 This language is *deprecated*. It is still supported, but we strongly recommend switch to midPoint Query Language.
 
 This section describes usage and configuration details of:
@@ -27,4 +28,4 @@ This section describes usage and configuration details of:
 
 It should be mentioned, that midPoint provides also xref:full-text-search.adoc[*Full text search*] option.
 It is available only for searching of specific data in GUI. The full text search is not enabled by default and must be configured by engineer.
-The full text search was introduces just for user convenience. It definitely does not provide options and power of midPoint Query Language.
+The full text search was introduced just for user convenience. It definitely does not provide options and power of midPoint Query Language.
