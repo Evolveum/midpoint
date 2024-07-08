@@ -376,6 +376,18 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
         return ShadowUtil.equalsByContent(this.getBean(), other.getBean());
     }
 
+    default void setObjectType(@Nullable ResourceObjectTypeIdentification typeIdentification) {
+        if (typeIdentification != null) {
+            getBean()
+                    .kind(typeIdentification.getKind())
+                    .intent(typeIdentification.getIntent());
+        } else {
+            getBean()
+                    .kind(null)
+                    .intent(null);
+        }
+    }
+
     /**
      * The default implementation. Other specific implementations reside in particular modules like `provisioning-impl`.
      * (At least for now, until they are stabilized and proved to be generally useful.

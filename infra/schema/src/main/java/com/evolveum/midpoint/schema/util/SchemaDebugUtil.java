@@ -601,11 +601,11 @@ public class SchemaDebugUtil {
         if (change == null) {
             return "null";
         }
-        StringBuilder sb = new StringBuilder("PropertyModification(");
+        StringBuilder sb = new StringBuilder("ItemDelta(");
         sb.append(change.getModificationType());
         sb.append(",");
         if (change.getPath() != null) {
-            sb.append(change.getPath().getItemPath());      // todo ... with declarations?
+            sb.append(change.getPath().getItemPath()); // todo ... with declarations?
         } else {
             sb.append("xpath=null");
         }
@@ -613,7 +613,7 @@ public class SchemaDebugUtil {
 
         List<RawType> values = change.getValue();
         for (RawType value : values) {
-            sb.append(prettyPrint(value.serializeToXNode()));       // todo implement correctly...
+            sb.append(prettyPrint(value.serializeToXNode())); // todo implement correctly...
             sb.append(",");
         }
 
