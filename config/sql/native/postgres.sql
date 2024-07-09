@@ -96,6 +96,7 @@ CREATE TYPE ReferenceType AS ENUM (
     'ARCHETYPE',
     'ASSIGNMENT_CREATE_APPROVER',
     'ASSIGNMENT_MODIFY_APPROVER',
+    'ASSIGNMENT_EFFECTIVE_MARK',
     'ACCESS_CERT_WI_ASSIGNEE',
     'ACCESS_CERT_WI_CANDIDATE',
     'CASE_WI_ASSIGNEE',
@@ -2025,6 +2026,20 @@ CREATE INDEX m_assignment_orgRefTargetOid_idx ON m_assignment (orgRefTargetOid);
 CREATE INDEX m_assignment_resourceRefTargetOid_idx ON m_assignment (resourceRefTargetOid);
 CREATE INDEX m_assignment_createTimestamp_idx ON m_assignment (createTimestamp);
 CREATE INDEX m_assignment_modifyTimestamp_idx ON m_assignment (modifyTimestamp);
+
+-- stores assignment/effectiveMarkRef
+CREATE TABLE m_ref_assignment_effective_mark (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    assignmentCid INTEGER NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_EFFECTIVE_MARK') STORED
+        CHECK (referenceType = 'ASSIGNMENT_EFFECTIVE_MARK'),
+    PRIMARY KEY (ownerOid, assignmentCid, relationId, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_assignment_effective_mark_targetOidRelationId_idx
+    ON m_ref_assignment_effective_mark (targetOid, relationId);
+
 
 ALTER TABLE "m_assignment_metadata"
 ADD FOREIGN KEY ("owneroid", "assignmentcid") REFERENCES "m_assignment" ("owneroid", "cid") ON DELETE CASCADE;

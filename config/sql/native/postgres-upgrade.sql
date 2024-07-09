@@ -624,6 +624,23 @@ call apply_change(37, $aa$
     CREATE INDEX m_shadow_ref_attribute_ownerOid_idx ON m_shadow_ref_attribute (ownerOid);
 $aa$);
 
+call apply_change(38, $aa$
+
+    ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'ASSIGNMENT_EFFECTIVE_MARK' AFTER 'ASSIGNMENT_MODIFY_APPROVER';
+
+    CREATE TABLE m_ref_assignment_effective_mark (
+        ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+        assignmentCid INTEGER NOT NULL,
+        referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_EFFECTIVE_MARK') STORED
+            CHECK (referenceType = 'ASSIGNMENT_EFFECTIVE_MARK'),
+        PRIMARY KEY (ownerOid, assignmentCid, relationId, targetOid)
+    )
+    INHERITS (m_reference);
+
+    CREATE INDEX m_ref_assignment_effective_mark_targetOidRelationId_idx
+        ON m_ref_assignment_effective_mark (targetOid, relationId);
+$aa$);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql
