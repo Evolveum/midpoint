@@ -90,6 +90,9 @@ public class PageCertItems extends PageAdminCertification {
     protected void onInitialize() {
         super.onInitialize();
 
+        isCampaignView = getCampaignOidsList() == null || getCampaignOidsList().size() != 1;
+        campaignOid = isCampaignView ? null :  getCampaignOidsList().get(0);
+
         singleCampaignModel = initSingleCampaignModel();
 
         initLayout();

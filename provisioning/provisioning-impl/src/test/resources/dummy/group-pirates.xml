@@ -15,6 +15,7 @@
     <resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" />
     <objectClass>ri:GroupObjectClass</objectClass>
     <kind>entitlement</kind>
+    <intent>group</intent>
     <attributes>
         <icfs:name>pirates</icfs:name>
         <ri:description>Scurvy pirates</ri:description>

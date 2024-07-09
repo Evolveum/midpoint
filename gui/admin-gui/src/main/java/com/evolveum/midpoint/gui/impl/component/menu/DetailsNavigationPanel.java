@@ -282,7 +282,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         return counter;
     }
 
-    private boolean isMenuItemVisible(ContainerPanelConfigurationType config) {
+    protected boolean isMenuItemVisible(ContainerPanelConfigurationType config) {
         if (config == null) {
             return true;
         }

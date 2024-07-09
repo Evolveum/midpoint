@@ -1,4 +1,4 @@
-= Advanced search - EXAMPLES
+= Query - EXAMPLES
 :page-wiki-metadata-create-user: mspanik
 :page-since: "4.4"
 :page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
@@ -150,6 +150,11 @@ This can't be used with assignments if roles have assigned archetypes.
 |Assignment attribute contains direct assignments only.
 
 Query is rather complex, because each user has at least one assignment assigned - archetype assignment.
+
+| Owners of roles (users with any role assigned as owner)
+| `assignment/targetRef matches (targetType=RoleType and relation=owner)`
+| Relation value is of QName type and therefore no quotation marks are used. The namespace (org:owner) is optional. +
+See xref:../introduction.adoc#_matches_filter_in_references[matches filter in references].
 
 |Users with account on specific resource
 |`linkRef/@ matches ( +
