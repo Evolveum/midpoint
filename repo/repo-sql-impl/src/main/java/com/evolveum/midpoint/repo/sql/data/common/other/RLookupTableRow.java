@@ -60,6 +60,11 @@ public class RLookupTableRow implements Container<RLookupTable> {
 
     @Id
     @Override
+    // todo this new way of creating generators @ContainerOidGenerator doesn't replace existing default
+    //  ForeignGenerator instance when used in conjunction with @MapsId probably related to https://hibernate.atlassian.net/browse/HHH-18124
+    // @ContainerOidGenerator
+    @GeneratedValue(generator = "ContainerOidGenerator")
+    @GenericGenerator(name = "ContainerOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.data.generator.ContainerOidGeneratorImpl")
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {
