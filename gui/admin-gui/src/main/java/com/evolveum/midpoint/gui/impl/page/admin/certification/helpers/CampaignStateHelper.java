@@ -26,11 +26,11 @@ public class CampaignStateHelper implements Serializable {
 
     static {
         Map<AccessCertificationCampaignStateType, String> map = new HashMap<>();
-        map.put(AccessCertificationCampaignStateType.CREATED, "colored-form-primary");
-        map.put(AccessCertificationCampaignStateType.IN_REVIEW_STAGE, "colored-form-info");
-        map.put(AccessCertificationCampaignStateType.IN_REMEDIATION, "colored-form-warning");
-        map.put(AccessCertificationCampaignStateType.REVIEW_STAGE_DONE, "colored-form-success");
-        map.put(AccessCertificationCampaignStateType.CLOSED, "colored-form-secondary");
+        map.put(AccessCertificationCampaignStateType.CREATED, "colored-form-primary rounded");
+        map.put(AccessCertificationCampaignStateType.IN_REVIEW_STAGE, "colored-form-info rounded");
+        map.put(AccessCertificationCampaignStateType.IN_REMEDIATION, "colored-form-warning rounded");
+        map.put(AccessCertificationCampaignStateType.REVIEW_STAGE_DONE, "colored-form-success rounded");
+        map.put(AccessCertificationCampaignStateType.CLOSED, "colored-form-secondary rounded");
 
         campaignStateClassMap = Collections.unmodifiableMap(map);
     }
@@ -116,11 +116,15 @@ public class CampaignStateHelper implements Serializable {
     }
 
     private final AccessCertificationCampaignStateType campaignState;
-    private final AccessCertificationCampaignType campaign;
+//    private final AccessCertificationCampaignType campaign;
+    private final int stageNumber;
+    private final int stageDefinitionSize;
 
     public CampaignStateHelper(AccessCertificationCampaignType campaign) {
         this.campaignState = campaign.getState();
-        this.campaign = campaign;
+        this.stageNumber = campaign.getStageNumber();
+        this.stageDefinitionSize = campaign.getStageDefinition().size();
+//        this.campaign = campaign;
     }
 
     public Badge createBadge() {
@@ -129,7 +133,10 @@ public class CampaignStateHelper implements Serializable {
 
     public CampaignAction getNextAction() {
         if (AccessCertificationCampaignStateType.REVIEW_STAGE_DONE.equals(campaignState)) {
-            if (campaign.getStageNumber() == campaign.getStageDefinition().size()) {
+//            if (campaign.getStageNumber() == campaign.getStageDefinition().size()) {
+//                return CampaignAction.CLOSE_CAMPAIGN;
+//            }
+            if (stageNumber == stageDefinitionSize) {
                 return CampaignAction.CLOSE_CAMPAIGN;
             }
         }
