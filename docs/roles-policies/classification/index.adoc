@@ -54,7 +54,9 @@ Clearances usually allow access to classified applications.
 
 The actual mechanism is based on combination of xref:../metaroles/[meta-roles] and xref:../policy-rules/[policy rules].
 Classifications act as meta-roles, specifying their security requirements in form of policy rules embedded in a second-level inducements.
-The policy rules often assert presence of clearances, which are represented by user assignments.
+The policy rules often assert presence of clearances, which are represented by assignments of clearance objects to users.
+
+Both classifications and clearances are supposed to be xref:/midpoint/reference/schema/policy[policy objects (PolicyType)].
 
 == Example
 
@@ -87,25 +89,25 @@ TIP: Full configuration files for this example can be found in xref:/midpoint/re
 === Classification Scheme
 
 Firstly, we set up a classification framework.
-We create three roles representing the three classification categories.
+We create three policy objects representing the three classification categories.
 
 .category-1.xml
 [source,xml]
 ----
-<role oid="91a1bdf1-addc-4d34-b834-190938be3aca">
+<policy oid="91a1bdf1-addc-4d34-b834-190938be3aca">
     <name>Category I</name>
     <description>Classified for public access.</description>
     <assignment>
         <!-- Classification archetype -->
         <targetRef oid="00000000-0000-0000-0000-000000000330" type="ArchetypeType"/>
     </assignment>
-</role>
+</policy>
 ----
 
 .category-2.xml
 [source,xml]
 ----
-<role oid="71a7cb99-3a69-48e3-9521-d9a933c2b5c5">
+<policy oid="71a7cb99-3a69-48e3-9521-d9a933c2b5c5">
     <name>Category II</name>
     <description>Classified for internal access.</description>
     <assignment>
@@ -114,15 +116,15 @@ We create three roles representing the three classification categories.
     </assignment>
     <inducement>
         <!-- Include Category I requirements -->
-        <targetRef oid="91a1bdf1-addc-4d34-b834-190938be3aca" type="RoleType"/>
+        <targetRef oid="91a1bdf1-addc-4d34-b834-190938be3aca" type="PolicyType"/>
     </inducement>
-</role>
+</policy>
 ----
 
 .category-3.xml
 [source,xml]
 ----
-<role oid="8296304e-4722-4792-b6bd-9693b2a42d70">
+<policy oid="8296304e-4722-4792-b6bd-9693b2a42d70">
     <name>Category III</name>
     <description>Classified for restricted access.</description>
     <assignment>
@@ -131,9 +133,9 @@ We create three roles representing the three classification categories.
     </assignment>
     <inducement>
         <!-- Include Category II requirements, which also includes Category I requirements -->
-        <targetRef oid="71a7cb99-3a69-48e3-9521-d9a933c2b5c5" type="RoleType"/>
+        <targetRef oid="71a7cb99-3a69-48e3-9521-d9a933c2b5c5" type="PolicyType"/>
     </inducement>
-</role>
+</policy>
 ----
 
 === Applications
@@ -154,7 +156,7 @@ Website application is classified as Category I:
     </assignment>
     <assignment>
         <!-- Category I classification -->
-        <targetRef oid="91a1bdf1-addc-4d34-b834-190938be3aca" type="RoleType" />
+        <targetRef oid="91a1bdf1-addc-4d34-b834-190938be3aca" type="PolicyType" />
     </assignment>
 </service>
 ----
@@ -173,7 +175,7 @@ Collaboration platform and management information system are classified as Categ
     </assignment>
     <assignment>
         <!-- Category II classification -->
-        <targetRef oid="71a7cb99-3a69-48e3-9521-d9a933c2b5c5" type="RoleType" />
+        <targetRef oid="71a7cb99-3a69-48e3-9521-d9a933c2b5c5" type="PolicyType" />
     </assignment>
 </service>
 ----
@@ -190,7 +192,7 @@ Collaboration platform and management information system are classified as Categ
     </assignment>
     <assignment>
         <!-- Category II classification -->
-        <targetRef oid="71a7cb99-3a69-48e3-9521-d9a933c2b5c5" type="RoleType" />
+        <targetRef oid="71a7cb99-3a69-48e3-9521-d9a933c2b5c5" type="PolicyType" />
     </assignment>
 </service>
 ----
@@ -209,7 +211,7 @@ Restricted research database is classified as Category III:
     </assignment>
     <assignment>
         <!-- Category III classification -->
-        <targetRef oid="8296304e-4722-4792-b6bd-9693b2a42d70" type="RoleType" />
+        <targetRef oid="8296304e-4722-4792-b6bd-9693b2a42d70" type="PolicyType" />
     </assignment>
 </service>
 ----
@@ -224,14 +226,14 @@ Therefore, we need to specify a `NDA` clearance first.
 .nda.xml
 [source,xml]
 ----
-<role oid="09360ff0-d506-4751-b13f-4e01422693ac">
+<policy oid="09360ff0-d506-4751-b13f-4e01422693ac">
     <name>NDA</name>
     <description>Non-disclosure agreement clearance, applied to organizations/users that have signed the agreement.</description>
     <assignment>
         <!-- Clearance archetype -->
         <targetRef oid="00000000-0000-0000-0000-000000000331" type="ArchetypeType"/>
     </assignment>
-</role>
+</policy>
 ----
 
 We will assign this clearance to users that have signed the NDA.
@@ -247,7 +249,7 @@ We will use xref:../policy-rules/[policy rule] for this purpose:
 .category-2.xml
 [source,xml]
 ----
-<role oid="71a7cb99-3a69-48e3-9521-d9a933c2b5c5">
+<policy oid="71a7cb99-3a69-48e3-9521-d9a933c2b5c5">
     <name>Category II</name>
     <description>Classified for internal access.</description>
     <assignment>
@@ -256,7 +258,7 @@ We will use xref:../policy-rules/[policy rule] for this purpose:
     </assignment>
     <inducement>
         <!-- Include Category I requirements -->
-        <targetRef oid="91a1bdf1-addc-4d34-b834-190938be3aca" type="RoleType"/>
+        <targetRef oid="91a1bdf1-addc-4d34-b834-190938be3aca" type="PolicyType"/>
     </inducement>
     <inducement>
         <orderConstraint>
@@ -272,7 +274,7 @@ We will use xref:../policy-rules/[policy rule] for this purpose:
                         </message>
                     </presentation>
                     <!-- NDA clearance -->
-                    <targetRef oid="09360ff0-d506-4751-b13f-4e01422693ac" type="RoleType" />
+                    <targetRef oid="09360ff0-d506-4751-b13f-4e01422693ac" type="PolicyType" />
                 </hasNoAssignment>
             </policyConstraints>
             <policyActions>
@@ -280,7 +282,7 @@ We will use xref:../policy-rules/[policy rule] for this purpose:
             </policyActions>
         </policyRule>
     </inducement>
-</role>
+</policy>
 ----
 
 The policy rule prohibits assignment of privilege (`policyAction` is set to `enforce`) in case where the user does not have `NDA` clearance already assigned.
@@ -304,7 +306,7 @@ The most natural way to do that is to include (induce) NDA clearance in `Employe
     <inducement>
         <description>Employees have non-disclosure clause in their contracts, therefore NDA clearance is assumed.</description>
         <!-- NDA clearance -->
-        <targetRef oid="09360ff0-d506-4751-b13f-4e01422693ac" type="RoleType"/>
+        <targetRef oid="09360ff0-d506-4751-b13f-4e01422693ac" type="PolicyType"/>
     </inducement>
 </archetype>
 ----
@@ -318,7 +320,7 @@ We define the clearance first:
 .special-cybersecurity-training.xml
 [source,xml]
 ----
-<role oid="5bb5c5b5-eca2-4129-b73f-34c0b0bd2736">
+<policy oid="5bb5c5b5-eca2-4129-b73f-34c0b0bd2736">
     <name>Special cybersecurity training</name>
     <description>
         Clearance that attests that the user passed through special training of information security practices.
@@ -328,15 +330,15 @@ We define the clearance first:
         <!-- Clearance archetype -->
         <targetRef oid="00000000-0000-0000-0000-000000000331" type="ArchetypeType"/>
     </assignment>
-</role>
+</policy>
 ----
 
-We can use the approach described above the place requirement for the special clearance to category III definition:
+We can use the approach described above to place requirement for the special clearance into category III definition:
 
 .category-3.xml
 [source,xml]
 ----
-<role oid="8296304e-4722-4792-b6bd-9693b2a42d70">
+<policy oid="8296304e-4722-4792-b6bd-9693b2a42d70">
     <name>Category III</name>
     <description>Classified for restricted access.</description>
     <assignment>
@@ -345,7 +347,7 @@ We can use the approach described above the place requirement for the special cl
     </assignment>
     <inducement>
         <!-- Include Category II requirements, which also includes Category I requirements -->
-        <targetRef oid="71a7cb99-3a69-48e3-9521-d9a933c2b5c5" type="RoleType"/>
+        <targetRef oid="71a7cb99-3a69-48e3-9521-d9a933c2b5c5" type="PolicyType"/>
     </inducement>
     <inducement>
         <orderConstraint>
@@ -361,7 +363,7 @@ We can use the approach described above the place requirement for the special cl
                         </message>
                     </presentation>
                     <!-- Special cybersecurity training clearance -->
-                    <targetRef oid="5bb5c5b5-eca2-4129-b73f-34c0b0bd2736" type="RoleType" />
+                    <targetRef oid="5bb5c5b5-eca2-4129-b73f-34c0b0bd2736" type="PolicyType" />
                 </hasNoAssignment>
             </policyConstraints>
             <policyActions>
@@ -369,7 +371,7 @@ We can use the approach described above the place requirement for the special cl
             </policyActions>
         </policyRule>
     </inducement>
-</role>
+</policy>
 ----
 
 The policy requires special security training to gain access to any category III system.
@@ -441,3 +443,5 @@ Generally speaking, visibility of policy rules and their execution is somehow li
 * xref:../metaroles/[]
 
 * xref:/midpoint/features/planned/classification/[]
+
+* xref:/midpoint/reference/schema/policy[]

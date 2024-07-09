@@ -25,7 +25,7 @@
         <icfc:configurationProperties>
             <icfi:instanceId></icfi:instanceId> <!-- Default instance -->
             <icfi:uselessString>Shiver me timbers!</icfi:uselessString>
-            <icfi:uselessGuardedString>       <!-- Add some whitespace -->
+            <icfi:uselessGuardedString> <!-- Add some whitespace -->
                 <clearValue>Dead men tell no tales</clearValue>
             </icfi:uselessGuardedString>
             <icfi:supportValidity>true</icfi:supportValidity>
@@ -180,6 +180,7 @@
                 </association>
             </subject>
             <object>
+                <ref>ri:group</ref>
                 <objectType>
                     <kind>entitlement</kind>
                     <intent>group</intent>
@@ -198,6 +199,7 @@
                 </association>
             </subject>
             <object>
+                <ref>ri:priv</ref>
                 <objectType>
                     <kind>entitlement</kind>
                     <intent>privilege</intent>

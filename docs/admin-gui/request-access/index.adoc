@@ -59,26 +59,24 @@ Results will be displayed in format `<USER_NAME> (<USER_OID>)`
 [source, xml]
 ----
 <group>
-    <identifier>kings</identifier>
-    <display>
-        <label>Kings</label>
-    </display>
-    <collection>
-        <collectionRef oid="1324096e-3b16-4097-86b2-47c43b1d2ad5" type="ArchetypeType"/>
-    </collection>
-    <autocompleteConfiguration>
-        <searchFilterTemplate>
-            <q:text xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-                givenName contains `"King " + input`
-            </q:text>
-        </searchFilterTemplate>
-        <displayExpression>
-            <script>
-                <code>return basic.stringify(object.name) + " (" + object.oid + ")"</code>
-            </script>
-        </displayExpression>
-        <autocompleteMinChars>1</autocompleteMinChars>
-    </autocompleteConfiguration>
+    <searchFilterTemplate>
+        <q:substring>
+            <q:path>givenName</q:path>
+            <expression>
+                <script>
+                    <code>
+                        return "King " + input
+                    </code>
+                </script>
+            </expression>
+        </q:substring>
+    </searchFilterTemplate>
+    <userDisplayName>
+        <script>
+            <code>return basic.stringify(object.name) + " (" + object.oid + ")"</code>
+        </script>
+    </userDisplayName>
+    <autocompleteMinChars>2</autocompleteMinChars>
 </group>
 ----
 
@@ -112,8 +110,6 @@ Set of relations, their label and icon can be configured, see xref:../../concept
 
 If there's only one relation to be selected, then this step is not visible (and skipped).
 
-List of available relations is based authorizations and first user that was added in `Person of interest` step.
-
 [NOTE]
 ====
 If relations are handled only implicitly via authorizations, then relation step will be visible at least when wizard is initialized.
@@ -143,14 +139,14 @@ Menu in role catalog consists of 3 types of items also defined in configuration:
 * Collections of objects
 * Roles of teammate
 
-=== Catalog
+=== Role catalog
 
 Role catalog is defined via reference to organization tree.
 Org. tree is then used to load hierarchical menu.
 By default, up to 3 levels, all roles on deeper levels are shown in that 3rd level menu.
 Assignable roles have to be part of this org. tree.
 
-Number of levels can be configured using `roleCatalogDepth` configuration option.
+NOTE: In 4.8 or later number of levels can be configured using `roleCatalogDepth` configuration option.
 
 === Collection of objects
 
@@ -163,7 +159,7 @@ Roles of teammate option can be disabled via configuration.
 
 Search for teammate will by default create filter using `user/name` property with `norm` poly-string matcher by default.
 
-Search behaviour can be customized using `autoCompleteConfiguration` configuration option, similar to auto-complete in <<Person of interest>> step.
+NOTE: Since 4.8 search behaviour can be customized using `autoCompleteConfiguration` configuration option.
 
 .Roles of teammate
 image::step-3-roles-of-teammate.png[Roles of teammate,100%]
@@ -177,10 +173,6 @@ Last step in request access wizard is checkout.
 In this step user can finalize whole request, review and solve conflicts if necessary.
 If configuration allows comment for this request can be added also with custom validity period for requested items.
 This can be done either globally for whole cart or for each item separately.
-
-If there are items in the cart that has to be approved and items that don't need approval process, then submit behavior can be configured using `systemConfiguration/roleManagement/defaultExecuteAfterAllApprovals` configuration option.
-This boolean flag defines whether all changes are applied after all approvals or items can be assigned immediately if they don't need approval process.
-This flag is global and can't be overridden via `adminGuiConfiguration/accessRequest` configuration.
 
 === Conflict solver
 

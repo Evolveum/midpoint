@@ -148,6 +148,10 @@ public class ShadowAssociationsTable extends ListItemWithPanelForItemPanel<Shado
                     protected List<IColumn<PrismContainerValueWrapper<ShadowAssociationValueType>, String>> createDefaultColumns() {
                         ArrayList<IColumn<PrismContainerValueWrapper<ShadowAssociationValueType>, String>> columns = new ArrayList<>();
 
+                        if (selectedItemModel.getObject() == null) {
+                            return columns;
+                        }
+
                         columns.add(new PrismContainerWrapperColumn<>(getContainerModel(), ShadowAssociationValueType.F_OBJECTS, getPageBase()));
 
                         ResourceType resource = resourceModel.getObject();
@@ -181,6 +185,11 @@ public class ShadowAssociationsTable extends ListItemWithPanelForItemPanel<Shado
                     @Override
                     protected List<InlineMenuItem> createInlineMenu() {
                         return getDefaultMenuActions();
+                    }
+
+                    @Override
+                    protected boolean isDuplicationSupported() {
+                        return false;
                     }
                 };
         table.add(AttributeAppender.append("class", "card"));

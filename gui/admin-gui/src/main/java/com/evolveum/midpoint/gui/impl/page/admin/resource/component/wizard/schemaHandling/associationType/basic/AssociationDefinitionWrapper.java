@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -31,7 +32,7 @@ public class AssociationDefinitionWrapper implements Serializable {
     public AssociationDefinitionWrapper(
             ResourceObjectDefinition subject,
             ShadowReferenceAttributeDefinition refAttrDef,
-            CompleteResourceSchema resourceSchema) {
+            ResourceSchema resourceSchema) {
         this.associationAttribute = refAttrDef.getItemName();
         if (subject instanceof ResourceObjectTypeDefinition subjectObjectTypeDef) {
             this.subject = new ParticipantWrapper(subjectObjectTypeDef.getKind(), subjectObjectTypeDef.getIntent(), subject.getObjectClassName());
@@ -39,22 +40,35 @@ public class AssociationDefinitionWrapper implements Serializable {
             this.subject = new ParticipantWrapper(subject.getObjectClassName());
         }
 
-        refAttrDef.getTargetParticipantTypes().forEach(objectParticipantDef -> {
-            @NotNull ResourceObjectDefinition objectDef = objectParticipantDef.getObjectDefinition();
-            if (objectDef.getObjectClassDefinition().isAssociationObject()) {
-                objectDef.getReferenceAttributeDefinitions();
-                return;
-            }
+        List<ShadowRelationParticipantType> objectsDefs = ProvisioningObjectsUtil.getObjectsOfSubject(refAttrDef);
+        objectsDefs.forEach(associationObjectParticipantDef -> createObjectItem(
+                associationObjectParticipantDef.getTypeIdentification(),
+                associationObjectParticipantDef.getObjectDefinition(),
+                subject.getObjectClassName()));
 
-            @Nullable ResourceObjectTypeIdentification typeIdentification = objectParticipantDef.getTypeIdentification();
-            if (typeIdentification != null) {
-                this.objects.add(new ParticipantWrapper(
-                        typeIdentification.getKind(),
-                        typeIdentification.getIntent(), subject.getObjectClassName()));
-            } else {
-                this.objects.add(new ParticipantWrapper(objectDef.getObjectClassName()));
+        if (objects.size() == 1) {
+            List<ResourceObjectTypeDefinition> foundObjectTypes = resourceSchema.getObjectTypeDefinitions().stream()
+                    .filter(objectType -> QNameUtil.match(objectType.getObjectClassName(), objects.get(0).getObjectClass()))
+                    .toList();
+            if (foundObjectTypes.size() == 1) {
+                ResourceObjectTypeDefinition foundObjectType = foundObjectTypes.get(0);
+                objects.clear();
+                objects.add(new ParticipantWrapper(foundObjectType.getKind(), foundObjectType.getIntent(), foundObjectType.getObjectClassName()));
             }
-        });
+        }
+    }
+
+    private void createObjectItem(
+            @Nullable ResourceObjectTypeIdentification typeIdentification,
+            ResourceObjectDefinition objectDef,
+            QName subjectObjectClassName) {
+        if (typeIdentification != null) {
+            this.objects.add(new ParticipantWrapper(
+                    typeIdentification.getKind(),
+                    typeIdentification.getIntent(), subjectObjectClassName));
+        } else {
+            this.objects.add(new ParticipantWrapper(objectDef.getObjectClassName()));
+        }
     }
 
     public QName getAssociationAttribute() {

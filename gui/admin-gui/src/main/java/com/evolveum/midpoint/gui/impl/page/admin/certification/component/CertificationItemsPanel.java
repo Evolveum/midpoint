@@ -26,15 +26,19 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ReportParameterTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -64,6 +68,7 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serial;
@@ -153,6 +158,7 @@ public class CertificationItemsPanel extends BasePanel<String> {
                         onNextPerformed(target);
                     }
                 };
+                button.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getCampaignOid())));
                 button.showTitleAsLabel(true);
                 button.add(AttributeModifier.append("class", "btn btn-secondary"));
                 return button;
@@ -609,14 +615,14 @@ public class CertificationItemsPanel extends BasePanel<String> {
         };
     }
 
-    //todo set campaign oid, assigneeRef as parameters
     private void runCertItemsReport(AjaxRequestTarget target) {
         Task task = getPageBase().createSimpleTask(OPERATION_RUN_REPORT);
         OperationResult result = task.getResult();
 
         try {
             PrismObject<ReportType> report = loadCertItemsReport();
-            getPageBase().getReportManager().runReport(report, null, task, result);
+            PrismContainer<ReportParameterType> params = createParameters();
+            getPageBase().getReportManager().runReport(report, params, task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
         } finally {
@@ -625,6 +631,39 @@ public class CertificationItemsPanel extends BasePanel<String> {
 
         showResult(result);
         target.add(getFeedbackPanel());
+    }
+
+    private PrismContainer<ReportParameterType> createParameters() {
+        PrismContainerValue<ReportParameterType> reportParamValue;
+        @NotNull PrismContainer<ReportParameterType> parameterContainer;
+        try {
+            PrismContainerDefinition<ReportParameterType> paramContainerDef = getPrismContext().getSchemaRegistry()
+                    .findContainerDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
+            parameterContainer = paramContainerDef.instantiate();
+
+            ReportParameterType reportParam = new ReportParameterType();
+
+            String campaignOid = getCampaignOid();
+            ObjectReferenceType campaignRef = new ObjectReferenceType()
+                    .oid(campaignOid)
+                    .type(AccessCertificationCampaignType.COMPLEX_TYPE);
+            ReportParameterTypeUtil.addParameter(reportParam, "campaignRef", campaignRef);
+
+            AccessCertificationCampaignType campaign = campaignModel.getObject();
+            int stageNumber = campaign.getStageNumber();
+            ReportParameterTypeUtil.addParameter(reportParam, "stageNumber", stageNumber);
+
+            int iteration = campaign.getIteration();
+            ReportParameterTypeUtil.addParameter(reportParam, "iteration", iteration);
+
+            reportParamValue = reportParam.asPrismContainerValue();
+            reportParamValue.revive(getPrismContext());
+            parameterContainer.add(reportParamValue);
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't create container for report parameters");
+            return null;
+        }
+        return parameterContainer;
     }
 
     private PrismObject<ReportType> loadCertItemsReport() {

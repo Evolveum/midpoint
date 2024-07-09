@@ -12,15 +12,13 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.BareResourceSchema;
@@ -142,8 +140,6 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     protected static DummyResource dummyResource;
     protected static DummyResourceContoller dummyResourceCtl;
 
-    protected boolean nativeAssociations;
-
     protected String accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD;
 
     protected static final TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
@@ -161,6 +157,10 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     @Override
     protected PrismObject<ResourceType> getResource() {
         return resource;
+    }
+
+    protected boolean areReferencesSupportedNatively() {
+        return false;
     }
 
     @Override
@@ -437,6 +437,28 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
     protected void assertNoMember(DummyGroup group, String accountId) {
         IntegrationTestTools.assertNoGroupMember(group, accountId);
+    }
+
+    /**
+     * Asserts privileges.
+     *
+     * The default implementation uses old-school simulation attribute.
+     * (Overridden by the use of links for native references.)
+     *
+     * Treats {@link #PRIVILEGE_NONSENSE_NAME} privilege specially.
+     */
+    protected void assertPrivileges(DummyAccount dummyAccount, String... expected) {
+        assertNotNull("Account is gone!", dummyAccount);
+        Set<String> accountPrivileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
+        PrismAsserts.assertSets(
+                "account privileges",
+                accountPrivileges,
+                Arrays.stream(expected)
+                        .map(origName ->
+                                PRIVILEGE_NONSENSE_NAME.equals(origName) ?
+                                        origName : // nonsense does not exist on resource, so it's not transformed
+                                        transformNameToResource(origName))
+                        .toList());
     }
 
     protected void assertGroupAssociation(AbstractShadow account, String entitlementOid) {

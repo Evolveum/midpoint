@@ -7,7 +7,14 @@
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyGroup;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -15,12 +22,12 @@ import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.test.DummyDefaultScenario;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * The same as {@link TestDummy} but with the dummy resource providing the associations natively.
  *
- * Currently does not pass, because there is no support for updating native associations yet.
- *
- * @see TestDummyAssociations
+ * @see TestDummyRichAssociations
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -31,10 +38,6 @@ public class TestDummyNativeAssociations extends TestDummy {
     @Override
     protected File getResourceDummyFile() {
         return RESOURCE_DUMMY_FILE;
-    }
-
-    public TestDummyNativeAssociations() {
-        nativeAssociations = true;
     }
 
     @Override
@@ -49,5 +52,56 @@ public class TestDummyNativeAssociations extends TestDummy {
         // schema is extended (account has +2 associations), displayOrders are changed
         dummyResourceCtl.assertDummyResourceSchemaSanityExtended(
                 resourceSchema, resourceType, false, 21);
+    }
+
+    /**
+     * Native associations currently do not update `member` group attribute. So, we have to check differently.
+     *
+     * This should be resolved somehow better in the future.
+     */
+    @Override
+    protected void assertMember(DummyGroup group, String accountId) {
+        assertThat(getGroupMembersNames(group))
+                .as("members of " + group)
+                .contains(accountId);
+    }
+
+    @Override
+    protected void assertNoMember(DummyGroup group, String accountId) {
+        assertThat(getGroupMembersNames(group))
+                .as("members of " + group)
+                .doesNotContain(accountId);
+    }
+
+    private static @NotNull Set<String> getGroupMembersNames(DummyGroup group) {
+        return group.getLinkedObjects(DummyDefaultScenario.Group.LinkNames.MEMBER_REF.local()).stream()
+                .map(member -> member.getName())
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Just like for members, the privileges are no longer provided in the `privileges` attribute.
+     *
+     * Moreover, the {@link #PRIVILEGE_NONSENSE_NAME} is not to be found there, as it does not exist as an object on the resource.
+     */
+    @Override
+    protected void assertPrivileges(DummyAccount dummyAccount, String... expected) {
+        var withoutNonsense = Arrays.stream(expected)
+                .filter(privilege -> !privilege.equals(PRIVILEGE_NONSENSE_NAME))
+                .toList();
+        assertThat(getAccountPrivilegesNames(dummyAccount))
+                .as("privileges of " + dummyAccount)
+                .containsExactlyInAnyOrderElementsOf(withoutNonsense);
+    }
+
+    private static @NotNull Set<String> getAccountPrivilegesNames(DummyAccount dummyAccount) {
+        return dummyAccount.getLinkedObjects(DummyDefaultScenario.Account.LinkNames.PRIV.local()).stream()
+                .map(member -> member.getName())
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    protected boolean areReferencesSupportedNatively() {
+        return true;
     }
 }

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
+import com.evolveum.midpoint.schema.util.ShadowBuilder;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -329,7 +330,11 @@ public interface ResourceObjectDefinition
     /**
      * Creates a blank, empty shadow.
      * It contains only the object class name and resource OID.
-     * Kind/intent are not set, even for object types (TODO WHY?!)
+     *
+     * Kind/intent are NOT set, because the definition may be a "default type definition for given object class"
+     * (which is sadly still supported); and we do not want to create typed shadows in such cases.
+     *
+     * {@link ShadowBuilder#withDefinition(ResourceObjectDefinition)} provides kind and intent.
      */
     default AbstractShadow createBlankShadow() {
         try {
