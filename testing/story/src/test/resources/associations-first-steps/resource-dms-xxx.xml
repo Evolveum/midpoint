@@ -122,7 +122,7 @@
                     <outbound>
                         <attribute>
                             <ref>ri:level</ref>
-                            <outbound>
+                            <mapping>
                                 <name>level</name>
                                 <source>
                                     <path>targetRef</path>
@@ -132,22 +132,22 @@
                                         <code>targetRef?.relation?.localPart</code>
                                     </script>
                                 </expression>
-                            </outbound>
+                            </mapping>
                         </attribute>
                         <objectRef>
                             <ref>ri:document</ref> <!-- TODO make optional if there's only one object -->
-                            <outbound>
+                            <mapping>
                                 <name>document</name>
                                 <expression>
                                     <associationFromLink/>
                                 </expression>
-                            </outbound>
+                            </mapping>
                         </objectRef>
                     </outbound>
                     <inbound>
                         <objectRef>
                             <ref>ri:document</ref> <!-- TODO make optional if there's only one object -->
-                            <inbound> <!-- not strictly necessary, just for illustration -->
+                            <mapping> <!-- not strictly necessary, just for illustration -->
                                 <name>documentName-and-level-into-assignment-identifier</name>
                                 <source>
                                     <path>$shadow/attributes/ri:level</path>
@@ -164,8 +164,8 @@
                                 <target>
                                     <path>identifier</path>
                                 </target>
-                            </inbound>
-                            <inbound>
+                            </mapping>
+                            <mapping>
                                 <name>document-and-level-to-assignment-targetRef</name>
                                 <source>
                                     <path>$shadow/attributes/ri:level</path>
@@ -180,7 +180,7 @@
                                 <target>
                                     <path>targetRef</path>
                                 </target>
-                            </inbound>
+                            </mapping>
                         </objectRef>
                         <correlation>
                             <correlators>

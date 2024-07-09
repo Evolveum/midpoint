@@ -135,7 +135,7 @@
                     <inbound>
                         <objectRef>
                             <ref>ri:document</ref>
-                            <inbound>
+                            <mapping>
                                 <name>document-to-targetRef</name>
                                 <expression>
                                     <shadowOwnerReferenceSearch/>
@@ -143,7 +143,7 @@
                                 <target>
                                     <path>targetRef</path>
                                 </target>
-                            </inbound>
+                            </mapping>
                         </objectRef>
                         <synchronization>
                             <reaction>

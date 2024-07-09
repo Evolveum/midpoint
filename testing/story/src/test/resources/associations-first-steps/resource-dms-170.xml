@@ -136,7 +136,7 @@
                         <objectRef>
                             <ref>ri:document</ref>
                             <correlator/>
-                            <inbound>
+                            <mapping>
                                 <name>document-to-targetRef</name>
                                 <source>
                                     <path>$shadow/attributes/ri:level</path>
@@ -151,7 +151,7 @@
                                 <target>
                                     <path>targetRef</path>
                                 </target>
-                            </inbound>
+                            </mapping>
                         </objectRef>
                         <synchronization>
                             <reaction>

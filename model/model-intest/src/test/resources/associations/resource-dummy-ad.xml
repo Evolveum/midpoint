@@ -126,25 +126,25 @@
                     <outbound>
                         <objectRef>
                             <ref>ri:group</ref>
-                            <outbound>
+                            <mapping>
                                 <expression>
                                     <associationFromLink/>
                                 </expression>
-                            </outbound>
+                            </mapping>
                         </objectRef>
                     </outbound>
                     <inbound>
                         <objectRef>
                             <ref>ri:group</ref>
                             <correlator/>
-                            <inbound>
+                            <mapping>
                                 <expression>
                                     <shadowOwnerReferenceSearch/>
                                 </expression>
                                 <target>
                                     <path>targetRef</path>
                                 </target>
-                            </inbound>
+                            </mapping>
                         </objectRef>
                         <synchronization>
                             <reaction>

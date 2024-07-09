@@ -127,7 +127,7 @@
                         <attribute>
                             <ref>icfs:uid</ref>
                             <correlator/>
-                            <inbound>
+                            <mapping>
                                 <strength>strong</strength>
                                 <expression>
                                     <script>
@@ -137,37 +137,37 @@
                                 <target>
                                     <path>identifier</path>
                                 </target>
-                            </inbound>
+                            </mapping>
                         </attribute>
                         <attribute>
                             <ref>ri:note</ref>
-                            <inbound>
+                            <mapping>
                                 <strength>strong</strength>
                                 <target>
                                     <path>description</path>
                                 </target>
-                            </inbound>
+                            </mapping>
                         </attribute>
                         <objectRef>
                             <ref>ri:org</ref>
-                            <documentation>
+                            <!--
                             This is the reference to the org unit. The whole shadow is not fetched by default. The mappings here
                             have only the cached shadow available. But that is enough to run some simple mappings:
                             for $focus/organization and for targetRef in the assignment.
-                        </documentation>
-                            <inbound>
+                            -->
+                            <mapping>
                                 <strength>strong</strength>
                                 <documentation>
-                                Puts the name of the org to the property of the user, i.e., not into the assignment.
-                            </documentation>
+                                    Puts the name of the org to the property of the user, i.e., not into the assignment.
+                                </documentation>
                                 <expression>
                                     <path>$object/attributes/icfs:name</path>
                                 </expression>
                                 <target>
                                     <path>$focus/organization</path>
                                 </target>
-                            </inbound>
-                            <inbound>
+                            </mapping>
+                            <mapping>
                                 <strength>strong</strength>
                                 <documentation>Provides targetRef for the assignment.</documentation>
                                 <source>
@@ -199,12 +199,12 @@
                                 <target>
                                     <path>targetRef</path>
                                 </target>
-                            </inbound>
+                            </mapping>
                         </objectRef>
                         <objectRef>
                             <ref>ri:costCenter</ref>
-                            <documentation>Just another association, to show a different mapping style.</documentation>
-                            <inbound>
+                            <!-- Just another association, to show a different mapping style. -->
+                            <mapping>
                                 <strength>strong</strength>
                                 <documentation>Just as mapping #1 for org.</documentation>
                                 <expression>
@@ -213,8 +213,8 @@
                                 <target>
                                     <path>extension/hr:costCenter</path>
                                 </target>
-                            </inbound>
-                            <inbound>
+                            </mapping>
+                            <mapping>
                                 <strength>strong</strength>
                                 <documentation>Creates assignment/orgRef based on the costCenter object. Uses shadowRef for this.</documentation>
                                 <expression>
@@ -223,7 +223,7 @@
                                 <target>
                                     <path>orgRef</path>
                                 </target>
-                            </inbound>
+                            </mapping>
                         </objectRef>
                         <activation>
                             <validFrom>

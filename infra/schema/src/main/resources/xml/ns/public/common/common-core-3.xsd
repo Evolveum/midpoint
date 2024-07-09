@@ -5124,7 +5124,8 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="AbstractMappingType">
+    <!-- TODO find a better name for this! -->
+    <xsd:complexType name="EvenMoreAbstractMappingType">
         <xsd:annotation>
             <xsd:documentation>
                 Defines how a value of a property (or attribute) should be
@@ -5150,33 +5151,13 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:displayName>MappingType.details</a:displayName>
-                <a:schemaMigration>
-                    <a:element>tns:tolerant</a:element>
-                    <a:version>4.0</a:version>
-                    <a:operation>removed</a:operation>
-                </a:schemaMigration>
-                <a:schemaMigration>
-                    <a:element>tns:inputFilter</a:element>
-                    <a:version>4.0</a:version>
-                    <a:operation>removed</a:operation>
-                </a:schemaMigration>
-                <a:schemaMigration>
-                    <a:element>tns:outputFilter</a:element>
-                    <a:version>4.0</a:version>
-                    <a:operation>removed</a:operation>
-                </a:schemaMigration>
-                <a:schemaMigration>
-                    <a:element>tns:range</a:element>
-                    <a:version>4.0</a:version>
-                    <a:operation>removed</a:operation>
-                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Short name of the mapping. Used for debugging purposes.
+                        Short name of the mapping. Used for provenance metadata management and debugging purposes.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayOrder>110</a:displayOrder>
@@ -5337,55 +5318,111 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="source" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:displayName>MappingType.source</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:displayName>MappingType.expression</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="target" type="tns:VariableBindingDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:displayName>MappingType.target</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:displayName>MappingType.condition</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Specifies if the mapping is enabled and is being evaluated. Default
-                            value is true. It means, that each defined mapping is by default enabled.
-                            To skip mapping evaluation, it has to be set to false.
-
-                            DEPRECATED. Use value DRAFT for lifecycleState element, that means same behaviour.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.8</a:deprecatedSince>
-                        <a:plannedRemoval>4.9</a:plannedRemoval>
-                        <a:displayName>MappingType.enabled</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="AbstractMappingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines how a value of a property (or attribute) should be
+                constructed. The value may be static or constructed as an
+                result of evaluating an expression.
+
+                This structure also defines a method how to merge several value
+                construction definitions, how to behave if a property already
+                has a value, etc.
+
+                This is reusable data structure, used in schemaHandling, roles
+                and it may also be used in may other places.
+
+                Motivation: We need to construct attribute or property values on
+                many places in midPoint. E.g. we need that in roles to generate
+                dynamic account attribute values, we need that to define "templates"
+                for identifiers and default values for attributes when creating a
+                new account. We also need that to specify values when creating a
+                new user (user templates). Having the same data structure for all of
+                these cases may simplify the code, as it all can be handled by a
+                generic library reused in many places through the system.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:displayName>MappingType.details</a:displayName>
+                <a:schemaMigration>
+                    <a:element>tns:tolerant</a:element>
+                    <a:version>4.0</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:inputFilter</a:element>
+                    <a:version>4.0</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:outputFilter</a:element>
+                    <a:version>4.0</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:range</a:element>
+                    <a:version>4.0</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:EvenMoreAbstractMappingType">
+                <xsd:sequence>
+                    <xsd:element name="source" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>MappingType.source</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>MappingType.expression</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="target" type="tns:VariableBindingDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>MappingType.target</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>MappingType.condition</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Specifies if the mapping is enabled and is being evaluated. Default
+                                    value is true. It means, that each defined mapping is by default enabled.
+                                    To skip mapping evaluation, it has to be set to false.
+
+                                    DEPRECATED. Use value DRAFT for lifecycleState element, that means same behaviour.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.8</a:deprecatedSince>
+                                <a:plannedRemoval>4.9</a:plannedRemoval>
+                                <a:displayName>MappingType.enabled</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="MappingType">

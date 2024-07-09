@@ -215,10 +215,10 @@ class AssociationValuesTripleComputation {
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                 ConfigurationException, ObjectNotFoundException {
             if (hasAssociationObject) {
-                for (ResourceAttributeDefinitionType attrDefBean : outboundBean.getAttribute()) {
+                for (var attrDefBean : outboundBean.getAttribute()) {
                     evaluateAttribute(attrDefBean, false);
                 }
-                for (ResourceAttributeDefinitionType attrDefBean : outboundBean.getObjectRef()) {
+                for (var attrDefBean : outboundBean.getObjectRef()) {
                     evaluateAttribute(attrDefBean, true);
                 }
                 var associationObject = consolidate();
@@ -235,67 +235,65 @@ class AssociationValuesTripleComputation {
             }
         }
 
-        private void evaluateAttribute(ResourceAttributeDefinitionType attrDefBean, boolean isObjectRef)
+        private void evaluateAttribute(AttributeOutboundMappingsDefinitionType attrDefBean, boolean isObjectRef)
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                 ConfigurationException, ObjectNotFoundException {
-            var outboundBean = attrDefBean.getOutbound();
-            if (outboundBean == null) {
-                return;
+            for (var outboundBean : attrDefBean.getMapping()) {
+                var targetItemName = attrDefBean.getRef().getItemPath().firstNameOrFail();
+                var targetItemPath = ShadowType.F_ATTRIBUTES.append(targetItemName);
+                var origin = ConfigurationItemOrigin.inResourceOrAncestor(projectionContext.getResourceRequired());
+                var mappingConfigItem = MappingConfigItem.of(outboundBean, origin);
+
+                MappingBuilder<PrismValue, ItemDefinition<?>> builder =
+                        b.mappingFactory.createMappingBuilder(mappingConfigItem, "association value computation");
+
+                var lensContext = projectionContext.getLensContext();
+                if (!builder.isApplicableToChannel(lensContext.getChannel())) {
+                    LOGGER.trace("Skipping outbound mapping for {} because the channel does not match", associationDefinition);
+                    continue;
+                }
+                if (!builder.isApplicableToExecutionMode(env.task.getExecutionMode())) {
+                    LOGGER.trace("Skipping outbound mapping for {} because the execution mode does not match", associationDefinition);
+                    continue;
+                }
+
+                var focusContext = lensContext.getFocusContextRequired();
+                ObjectDeltaObject<?> focusOdoAbsolute = focusContext.getObjectDeltaObjectAbsolute();
+
+                var magicAssignmentIdi = assignmentPathVariables.getMagicAssignment();
+
+                var outputDefinition = associationDefinition
+                        .getAssociationObjectDefinition() // FIXME this may fail for trivial associations
+                        .findAttributeDefinitionRequired(targetItemName);
+
+                builder = builder
+                        .targetItemName(targetItemName)
+                        .implicitTargetPath(targetItemPath)
+                        .defaultTargetPath(targetItemPath)
+                        .defaultTargetDefinition((ItemDefinition<?>) outputDefinition)
+                        .mappingKind(MappingKindType.OUTBOUND)
+                        .defaultSourceContextIdi(magicAssignmentIdi)
+                        .addRootVariableDefinition(magicAssignmentIdi)
+                        .addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, magicAssignmentIdi)
+                        .addVariableDefinition(ExpressionConstants.VAR_USER, focusOdoAbsolute)
+                        .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdoAbsolute)
+                        .addAliasRegistration(ExpressionConstants.VAR_ASSIGNMENT, null)
+                        .addVariableDefinition(
+                                ExpressionConstants.VAR_ASSOCIATION_DEFINITION,
+                                associationDefinition, ShadowReferenceAttributeDefinition.class)
+                        .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projectionContext.getResource(), ResourceType.class)
+                        .addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT, assignmentTarget, ObjectType.class);
+
+                builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
+                builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, lensContext.getSystemConfiguration(), SystemConfigurationType.class);
+                builder.now(env.now);
+
+                var mapping = builder.build();
+
+                b.mappingEvaluator.evaluateMapping(mapping, forProjectionContext(projectionContext), env.task, result);
+
+                tripleMap.putOrMerge(targetItemPath, ItemValueWithOrigin.createOutputTriple(mapping));
             }
-            var targetItemName = attrDefBean.getRef().getItemPath().firstNameOrFail();
-            var targetItemPath = ShadowType.F_ATTRIBUTES.append(targetItemName);
-            var origin = ConfigurationItemOrigin.inResourceOrAncestor(projectionContext.getResourceRequired());
-            var mappingConfigItem = MappingConfigItem.of(outboundBean, origin);
-
-            MappingBuilder<PrismValue, ItemDefinition<?>> builder =
-                    b.mappingFactory.createMappingBuilder(mappingConfigItem, "association value computation");
-
-            var lensContext = projectionContext.getLensContext();
-            if (!builder.isApplicableToChannel(lensContext.getChannel())) {
-                LOGGER.trace("Skipping outbound mapping for {} because the channel does not match", associationDefinition);
-                return;
-            }
-            if (!builder.isApplicableToExecutionMode(env.task.getExecutionMode())) {
-                LOGGER.trace("Skipping outbound mapping for {} because the execution mode does not match", associationDefinition);
-                return;
-            }
-
-            var focusContext = lensContext.getFocusContextRequired();
-            ObjectDeltaObject<?> focusOdoAbsolute = focusContext.getObjectDeltaObjectAbsolute();
-
-            var magicAssignmentIdi = assignmentPathVariables.getMagicAssignment();
-
-            var outputDefinition = associationDefinition
-                    .getAssociationObjectDefinition() // FIXME this may fail for trivial associations
-                    .findAttributeDefinitionRequired(targetItemName);
-
-            builder = builder
-                    .targetItemName(targetItemName)
-                    .implicitTargetPath(targetItemPath)
-                    .defaultTargetPath(targetItemPath)
-                    .defaultTargetDefinition((ItemDefinition<?>) outputDefinition)
-                    .mappingKind(MappingKindType.OUTBOUND)
-                    .defaultSourceContextIdi(magicAssignmentIdi)
-                    .addRootVariableDefinition(magicAssignmentIdi)
-                    .addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, magicAssignmentIdi)
-                    .addVariableDefinition(ExpressionConstants.VAR_USER, focusOdoAbsolute)
-                    .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdoAbsolute)
-                    .addAliasRegistration(ExpressionConstants.VAR_ASSIGNMENT, null)
-                    .addVariableDefinition(
-                            ExpressionConstants.VAR_ASSOCIATION_DEFINITION,
-                            associationDefinition, ShadowReferenceAttributeDefinition.class)
-                    .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projectionContext.getResource(), ResourceType.class)
-                    .addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT, assignmentTarget, ObjectType.class);
-
-            builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
-            builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, lensContext.getSystemConfiguration(), SystemConfigurationType.class);
-            builder.now(env.now);
-
-            var mapping = builder.build();
-
-            b.mappingEvaluator.evaluateMapping(mapping, forProjectionContext(projectionContext), env.task, result);
-
-            tripleMap.putOrMerge(targetItemPath, ItemValueWithOrigin.createOutputTriple(mapping));
         }
 
         private @NotNull ShadowType consolidate()

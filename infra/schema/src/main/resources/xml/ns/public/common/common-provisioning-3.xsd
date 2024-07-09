@@ -3372,13 +3372,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="focus" type="tns:ComplexProcessingFocusDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TO BE REMOVED
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="outbound" type="tns:AssociationOutboundMappingType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3414,52 +3407,47 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="correlation" type="tns:CorrelationDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TO BE REMOVED
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="synchronization" type="tns:ItemSynchronizationReactionsType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TO BE REMOVED
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="explicitOutbound" minOccurs="0" type="tns:MappingType">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:experimental>true</a:experimental>
-                    </xsd:appinfo>
-                    <xsd:documentation>
-                        TO BE REMOVED
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AssociationOutboundMappingType">
+    <xsd:complexType name="AbstractAssociationMappingType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Inbound or outbound mapping for the association as a whole.
+                See also AbstractMappingType.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.9</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractAssociationMappingType"/>
-        </xsd:complexContent>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Short name of the mapping. Used for provenance metadata management and debugging purposes.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Alternative representation of the outbound mapping: via explicit expression.
+                        Mutually exclusive with partial attribute/objectRef/validation mappings.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MappingType.expression</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="AssociationInboundMappingType">
+    <xsd:complexType name="AssociationOutboundMappingType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Outbound mapping for the association as a whole.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -3469,6 +3457,68 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractAssociationMappingType">
                 <xsd:sequence>
+                    <xsd:element name="attribute" type="tns:AttributeOutboundMappingsDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Outbound processing of given association attribute.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectRef" type="tns:AttributeOutboundMappingsDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Outbound processing of given object-side of this association.
+                                The object can be specified exactly (via "ref" property), or kept implicit, if there's only one object.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Outbound processing of the activation of this association.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AssociationInboundMappingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Inbound mapping for the association as a whole.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAssociationMappingType">
+                <xsd:sequence>
+                    <xsd:element name="attribute" type="tns:AttributeInboundMappingsDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Outbound processing of given association attribute.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectRef" type="tns:AttributeInboundMappingsDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Outbound processing of given object-side of this association.
+                                The object can be specified exactly (via "ref" property), or kept implicit, if there's only one object.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Outbound processing of the activation of this association.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="correlation" type="tns:CorrelationDefinitionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3494,6 +3544,86 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:complexType name="AttributeOutboundMappingsDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines outbound mapping(s) for an attribute.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ref" type="t:ItemPathType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the attribute that this definition describes.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AttributeOutboundMappingsDefinitionType.ref</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mapping" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The mappings for the attribute.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AttributeOutboundMappingsDefinitionType.mapping</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="attributeOutboundMappingsDefinition" type="tns:AttributeOutboundMappingsDefinitionType"/>
+
+    <xsd:complexType name="AttributeInboundMappingsDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines inbound mapping(s) for an attribute.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ref" type="t:ItemPathType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the attribute that this definition describes.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AttributeInboundMappingsDefinitionType.ref</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="correlator" type="tns:ItemCorrelatorDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Creates a single-item correlator for this attribute.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AttributeInboundMappingsDefinitionType.correlator</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mapping" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The mappings for the attribute.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AttributeInboundMappingsDefinitionType.mapping</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="attributeInboundMappingsDefinition" type="tns:AttributeInboundMappingsDefinitionType"/>
 
     <xsd:complexType name="AssociationInboundMappingTargetDefinitionType">
         <xsd:annotation>
@@ -3532,61 +3662,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="AbstractAssociationMappingType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.9</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:choice>
-                <xsd:sequence>
-                    <xsd:element name="attribute" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Processing of given association object attribute in the context of this association.
-                                (In the future, even appearance of the attribute can be redefined here - maybe!)
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="objectRef" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Processing of a reference to the object-side of this association.
-                                The object can be specified exactly (via "ref" property), or kept implicit, if there's only one object.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Definition of activation handling for this association.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-                <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <a:displayName>MappingType.expression</a:displayName>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
-            </xsd:choice>
         </xsd:sequence>
     </xsd:complexType>
 

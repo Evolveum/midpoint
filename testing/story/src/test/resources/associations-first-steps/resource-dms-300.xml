@@ -135,7 +135,7 @@
                     <outbound>
                         <attribute>
                             <ref>ri:level</ref>
-                            <outbound>
+                            <mapping>
                                 <name>level</name>
                                 <source>
                                     <path>targetRef</path>
@@ -145,23 +145,23 @@
                                         <code>targetRef?.relation?.localPart</code>
                                     </script>
                                 </expression>
-                            </outbound>
+                            </mapping>
                         </attribute>
                         <objectRef>
                             <ref>ri:document</ref>
-                            <outbound>
+                            <mapping>
                                 <name>document</name>
                                 <expression>
                                     <associationFromLink/>
                                 </expression>
-                            </outbound>
+                            </mapping>
                         </objectRef>
                     </outbound>
                     <inbound>
                         <objectRef>
                             <ref>ri:document</ref>
                             <correlator/>
-                            <inbound>
+                            <mapping>
                                 <name>document-to-targetRef</name>
                                 <source>
                                     <path>$shadow/attributes/ri:level</path>
@@ -176,7 +176,7 @@
                                 <target>
                                     <path>targetRef</path>
                                 </target>
-                            </inbound>
+                            </mapping>
                         </objectRef>
                         <synchronization>
                             <reaction>

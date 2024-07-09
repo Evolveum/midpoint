@@ -60,12 +60,6 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         for (var itemDefBean : bean.getObjectRef()) {
             stateCheck(itemDefBean.getInbound().isEmpty(), "objectRef/inbound is no longer supported");
         }
-        stateCheck(
-                bean.getCorrelation() == null,
-                "correlation right in the association def is no longer supported");
-        stateCheck(
-                bean.getSynchronization() == null,
-                "synchronization right in the association def is no longer supported");
         return bean.getInbound().stream()
                 .map(b -> (ResourceObjectInboundDefinition) new AssociationProcessingImplementation(b))
                 .toList();
@@ -446,15 +440,15 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
 
     class AssociationBasedItemImplementation implements ItemInboundDefinition {
 
-        private final ResourceAttributeDefinitionType definitionBean;
+        private final AttributeInboundMappingsDefinitionType definitionBean;
 
-        AssociationBasedItemImplementation(ResourceAttributeDefinitionType definitionBean) {
+        AssociationBasedItemImplementation(AttributeInboundMappingsDefinitionType definitionBean) {
             this.definitionBean = definitionBean;
         }
 
         @Override
         public @NotNull List<InboundMappingType> getInboundMappingBeans() {
-            return definitionBean.getInbound();
+            return definitionBean.getMapping();
         }
 
         @Override
