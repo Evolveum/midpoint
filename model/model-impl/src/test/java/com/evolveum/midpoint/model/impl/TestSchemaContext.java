@@ -45,7 +45,7 @@ public class TestSchemaContext extends AbstractInternalModelIntegrationTest {
     @Test
     public void testShadowConstructionContextResolver() {
         PrismObject<RoleType> roleObj = ROLE_JUDGE.get();
-        Item<?, ?> objectItem = roleObj.findItem(ItemPath.create(new QName("inducement"), 1L, new QName("construction")));
+        Item<?, ?> objectItem = roleObj.findItem(ItemPath.create(new QName("inducement"), 100L, new QName("construction")));
         PrismValue objectPrismValue = objectItem.getAnyValue();
         ItemDefinition<?> shadow = objectPrismValue.getSchemaContext().getItemDefinition();
         assertNotNull(shadow.findItemDefinition(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName("fullname")), ItemDefinition.class));
