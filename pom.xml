@@ -229,7 +229,7 @@
         197 is the last version that does not require code changes, but self-corrupts DB sometimes (MID-6510).
         193 was used for 4 years with few problems, so it's still here to stay.
         -->
-        <h2.version>1.4.193</h2.version>
+        <h2.version>2.2.224</h2.version>
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->

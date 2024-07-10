@@ -8,6 +8,11 @@ import java.lang.annotation.Target;
 import org.hibernate.annotations.IdGeneratorType;
 import org.hibernate.annotations.ValueGenerationType;
 
+/**
+ * FIXME this new way of creating generators @ContainerOidGenerator doesn't replace existing default
+ *  ForeignGenerator instance when used in conjunction with @MapsId probably related to
+ *  https://hibernate.atlassian.net/browse/HHH-18124
+ */
 @IdGeneratorType(ContainerOidGeneratorImpl.class)
 @ValueGenerationType(generatedBy = ContainerOidGeneratorImpl.class)
 @Retention(RetentionPolicy.RUNTIME)
