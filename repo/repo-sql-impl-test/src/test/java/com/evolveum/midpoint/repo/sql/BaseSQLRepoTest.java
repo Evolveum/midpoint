@@ -30,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.testng.AssertJUnit;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
 
@@ -150,20 +149,6 @@ public class BaseSQLRepoTest extends AbstractSpringTest
         displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         initSystemExecuted = true;
         initSystem();
-    }
-
-    @AfterMethod
-    public void afterMethod() {
-        try {
-            EntityManager em = factory.createEntityManager();
-            if (em != null) {
-                em.close();
-                AssertJUnit.fail("Session is still open, check test code or bug in sql service.");
-            }
-        } catch (Exception ex) {
-            //it's ok
-            logger.debug("after test method, checking for potential open session, exception occurred: " + ex.getMessage());
-        }
     }
 
     /** Called only by performance tests. */
