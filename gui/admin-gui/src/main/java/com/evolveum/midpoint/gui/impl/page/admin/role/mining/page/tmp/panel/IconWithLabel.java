@@ -19,6 +19,8 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
+import org.jetbrains.annotations.NotNull;
+
 public class IconWithLabel extends BasePanel<String> {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -46,22 +48,21 @@ public class IconWithLabel extends BasePanel<String> {
         subComponent.setOutputMarkupId(true);
         add(subComponent);
 
-        if (isLink()) {
-            AjaxLinkPanel components = new AjaxLinkPanel(ID_TEXT, getModel()) {
+        Component textComponent = createComponent(getModel());
+        add(textComponent);
+    }
 
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    onClickPerform(target);
-                }
-            };
-            components.setOutputMarkupId(true);
-            add(components);
-        } else {
-            Label label = new Label(ID_TEXT, getModel());
-            label.setOutputMarkupId(true);
-            add(label);
+    private @NotNull Component createComponent(IModel<String> model) {
+        Component component = isLink() ? new AjaxLinkPanel(IconWithLabel.ID_TEXT, model) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onClickPerform(target);
+            }
         }
-
+                : new Label(IconWithLabel.ID_TEXT, model);
+        component.setOutputMarkupId(true);
+        component.add(AttributeAppender.replace("class", getLabelComponentCssClass()));
+        return component;
     }
 
     protected String getComponentCssClass() {
@@ -78,6 +79,10 @@ public class IconWithLabel extends BasePanel<String> {
 
     protected String getIconCssClass() {
         return "";
+    }
+
+    protected String getLabelComponentCssClass() {
+        return null;
     }
 
     protected String getIconComponentCssStyle() {
