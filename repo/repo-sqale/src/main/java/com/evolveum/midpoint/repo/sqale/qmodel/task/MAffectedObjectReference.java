@@ -21,21 +21,11 @@ public class MAffectedObjectReference extends MReference {
     public String toString() {
         return "MAssignmentReference{" +
                 "ownerOid=" + ownerOid +
-                ", assignmentCid=" + affectedObjectCid +
+                ", affectedObjectCid=" + affectedObjectCid +
                 ", referenceType=" + referenceType +
                 ", targetOid=" + targetOid +
                 ", targetType=" + targetType +
                 ", relationId=" + relationId +
                 '}';
-    }
-
-    interface Owner {
-
-        /**
-         * Returns condition for owning reference
-         * @param ref
-         * @return
-         */
-        BooleanExpression owns(QAffectedObjectReference ref);
     }
 }

@@ -30,9 +30,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * Mapping between {@link QAffectedObjectReference} and {@link ObjectReferenceType}.
  */
 public class QAffectedObjectReferenceMapping
-        extends QReferenceMapping<QAffectedObjectReference<MAffectedObjects>, MAffectedObjectReference, QAffectedObjects, MAffectedObjects> {
+        extends QReferenceMapping<QAffectedObjectReference, MAffectedObjectReference, QAffectedObjects, MAffectedObjects> {
 
-    public static final Class<QAffectedObjectReference<MAffectedObjects>> TYPE = (Class) QAffectedObjectReference.class;
+    public static final Class<QAffectedObjectReference> TYPE = QAffectedObjectReference.class;
 
     public static QAffectedObjectReferenceMapping instance;
 
@@ -76,7 +76,7 @@ public class QAffectedObjectReferenceMapping
     }
 
     @Override
-    public BiFunction<QAffectedObjects, QAffectedObjectReference<MAffectedObjects>, Predicate> correlationPredicate() {
+    public BiFunction<QAffectedObjects, QAffectedObjectReference, Predicate> correlationPredicate() {
         return (a, r) -> a.ownerOid.eq(r.ownerOid)
                 .and(a.cid.eq(r.affectedObjectCid)
                 );
