@@ -21,6 +21,9 @@ import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+
 /**
  * @author lazyman
  */
@@ -60,7 +63,8 @@ public class ROExtReference extends ROExtBase<String> {
     }
 
     @Id
-    @Column(name = "ownerType", columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
+    @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
     public RObjectExtensionType getOwnerType() {
         return super.getOwnerType();
@@ -77,7 +81,7 @@ public class ROExtReference extends ROExtBase<String> {
         return value;
     }
 
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RObjectType getTargetType() {
         return targetType;

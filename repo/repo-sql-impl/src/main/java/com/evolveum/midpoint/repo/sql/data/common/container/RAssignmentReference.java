@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -20,6 +21,8 @@ import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 /**
  * @author lazyman
@@ -92,7 +95,8 @@ public class RAssignmentReference extends RContainerReference {
      *
      * @return null if not defined, otherwise value from {@link RObjectType} enum
      */
-    @Column(name = "targetType", columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
+    @Column(name = "targetType")
     @Enumerated(EnumType.ORDINAL)
     @Override
     public RObjectType getTargetType() {
@@ -100,7 +104,8 @@ public class RAssignmentReference extends RContainerReference {
     }
 
     @Id
-    @Column(name = REFERENCE_TYPE, nullable = false, columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
+    @Column(name = REFERENCE_TYPE, nullable = false)
     public RCReferenceType getReferenceType() {
         return super.getReferenceType();
     }

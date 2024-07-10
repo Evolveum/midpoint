@@ -18,6 +18,9 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+
 /**
  * Embeddable mapping for ActivationType, specific for R_FOCUS.
  * Other entities with activation has no need for lockout status.
@@ -28,7 +31,7 @@ public class RFocusActivation extends RActivation {
 
     private RLockoutStatus lockoutStatus;
 
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     public RLockoutStatus getLockoutStatus() {
         return lockoutStatus;
     }

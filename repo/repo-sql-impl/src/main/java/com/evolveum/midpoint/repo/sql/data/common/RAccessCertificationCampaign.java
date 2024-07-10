@@ -14,10 +14,9 @@ import java.util.Set;
 import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
-import org.hibernate.annotations.Type;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
@@ -33,6 +32,9 @@ import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 @Entity
 @Table(name = RAccessCertificationCampaign.TABLE_NAME,
@@ -93,7 +95,7 @@ public class RAccessCertificationCampaign extends RObject {
     @AttributeOverrides({
             @AttributeOverride(name = "relation", column = @Column(name = "ownerRef_relation", length = RUtil.COLUMN_LENGTH_QNAME)),
             @AttributeOverride(name = "targetOid", column = @Column(name = "ownerRef_targetOid", length = RUtil.COLUMN_LENGTH_OID)),
-            @AttributeOverride(name = "targetType", column = @Column(name = "ownerRef_targetType", columnDefinition = "int"))
+            @AttributeOverride(name = "targetType", column = @Column(name = "ownerRef_targetType"))
     })
     public REmbeddedReference getOwnerRefCampaign() {       // name changed because of collision with RAbstractRole.ownerRef
         return ownerRefCampaign;
@@ -117,7 +119,7 @@ public class RAccessCertificationCampaign extends RObject {
         return end;
     }
 
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     public RAccessCertificationCampaignState getState() {
         return state;
     }

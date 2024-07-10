@@ -35,6 +35,8 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAutoScalingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+
 @Entity
 @Table(name = "m_task", indexes = {
         @jakarta.persistence.Index(name = "iTaskObjectOid", columnList = "objectRef_targetOid"),
@@ -81,13 +83,13 @@ public class RTask extends RObject implements ROperationResultFull {
         return dependent;
     }
 
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RTaskWaitingReason getWaitingReason() {
         return waitingReason;
     }
 
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RTaskSchedulingState getSchedulingState() {
         return schedulingState;
@@ -95,7 +97,7 @@ public class RTask extends RObject implements ROperationResultFull {
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "mode", column = @Column(name = "autoScalingMode", columnDefinition = "int")),
+            @AttributeOverride(name = "mode", column = @Column(name = "autoScalingMode")),
     })
     public RTaskAutoScaling getAutoScaling() {
         return autoScaling;
@@ -106,7 +108,7 @@ public class RTask extends RObject implements ROperationResultFull {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     public RThreadStopAction getThreadStopAction() {
         return threadStopAction;
     }
@@ -121,7 +123,7 @@ public class RTask extends RObject implements ROperationResultFull {
     @AttributeOverrides({
             @AttributeOverride(name = "relation", column = @Column(name = "ownerRef_relation", length = RUtil.COLUMN_LENGTH_QNAME)),
             @AttributeOverride(name = "targetOid", column = @Column(name = "ownerRef_targetOid", length = RUtil.COLUMN_LENGTH_OID)),
-            @AttributeOverride(name = "targetType", column = @Column(name = "ownerRef_targetType", columnDefinition = "int"))
+            @AttributeOverride(name = "targetType", column = @Column(name = "ownerRef_targetType"))
     })
     public REmbeddedReference getOwnerRefTask() {
         return ownerRefTask;
@@ -134,21 +136,21 @@ public class RTask extends RObject implements ROperationResultFull {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     public RTaskBinding getBinding() {
         return binding;
     }
 
     @JaxbName(localPart = "executionState")
     @Enumerated(EnumType.ORDINAL)
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     public RTaskExecutionState getExecutionStatus() {
         return executionStatus;
     }
 
     @JaxbPath(itemPath = { @JaxbName(localPart = "schedule"), @JaxbName(localPart = "recurrence") })
     @Enumerated(EnumType.ORDINAL)
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     public RTaskRecurrence getRecurrence() {
         return recurrence;
     }
@@ -235,7 +237,7 @@ public class RTask extends RObject implements ROperationResultFull {
     @Override
     @JaxbName(localPart = "resultStatus")
     @Enumerated(EnumType.ORDINAL)
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     public ROperationResultStatus getStatus() {
         return status;
     }

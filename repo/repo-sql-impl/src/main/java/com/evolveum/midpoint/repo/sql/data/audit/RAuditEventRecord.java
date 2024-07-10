@@ -22,6 +22,9 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+
 @Ignore
 @Entity
 @Table(name = RAuditEventRecord.TABLE_NAME, indexes = {
@@ -180,13 +183,13 @@ public class RAuditEventRecord implements Serializable {
         return eventIdentifier;
     }
 
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RAuditEventStage getEventStage() {
         return eventStage;
     }
 
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RAuditEventType getEventType() {
         return eventType;
@@ -219,7 +222,7 @@ public class RAuditEventRecord implements Serializable {
         return initiatorName;
     }
 
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RObjectType getInitiatorType() {
         return initiatorType;
@@ -234,7 +237,7 @@ public class RAuditEventRecord implements Serializable {
         return attorneyName;
     }
 
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public ROperationResultStatus getOutcome() {
         return outcome;
@@ -253,7 +256,7 @@ public class RAuditEventRecord implements Serializable {
         return targetOid;
     }
 
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RObjectType getTargetType() {
         return targetType;
@@ -285,7 +288,7 @@ public class RAuditEventRecord implements Serializable {
         return timestamp;
     }
 
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RObjectType getTargetOwnerType() {
         return targetOwnerType;

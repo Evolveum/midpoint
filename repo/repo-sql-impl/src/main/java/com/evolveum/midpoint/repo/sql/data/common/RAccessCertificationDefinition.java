@@ -70,7 +70,7 @@ public class RAccessCertificationDefinition extends RObject {
     @AttributeOverrides({
             @AttributeOverride(name = "relation", column = @Column(name = "ownerRef_relation", length = RUtil.COLUMN_LENGTH_QNAME)),
             @AttributeOverride(name = "targetOid", column = @Column(name = "ownerRef_targetOid", length = RUtil.COLUMN_LENGTH_OID)),
-            @AttributeOverride(name = "targetType", column = @Column(name = "ownerRef_targetType", columnDefinition = "int"))
+            @AttributeOverride(name = "targetType", column = @Column(name = "ownerRef_targetType"))
     })
     public REmbeddedReference getOwnerRefDefinition() {
         return ownerRefDefinition;

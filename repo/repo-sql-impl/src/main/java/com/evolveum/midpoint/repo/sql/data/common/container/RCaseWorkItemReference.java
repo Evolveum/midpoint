@@ -14,6 +14,7 @@ import java.util.Set;
 
 import jakarta.persistence.*;
 import org.apache.commons.lang3.Validate;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -26,6 +27,8 @@ import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 /**
  * @author lazyman
@@ -123,7 +126,8 @@ public class RCaseWorkItemReference extends RReference {
     }
 
     @Id
-    @Column(name = REFERENCE_TYPE, nullable = false, columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
+    @Column(name = REFERENCE_TYPE, nullable = false)
     public RCaseWorkItemReferenceOwner getReferenceType() {
         return referenceType;
     }
@@ -132,7 +136,8 @@ public class RCaseWorkItemReference extends RReference {
         this.referenceType = referenceType;
     }
 
-    @Column(name = "targetType", columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
+    @Column(name = "targetType")
     @Enumerated(EnumType.ORDINAL)
     @Override
     public RObjectType getTargetType() {

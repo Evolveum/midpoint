@@ -36,6 +36,8 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+
 @JaxbType(type = AssignmentType.class)
 @Entity
 @IdClass(RContainerId.class)
@@ -121,7 +123,7 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         return id;
     }
 
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RAssignmentOwner getAssignmentOwner() {
         return assignmentOwner;

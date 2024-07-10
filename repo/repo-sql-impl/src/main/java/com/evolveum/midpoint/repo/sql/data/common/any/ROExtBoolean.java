@@ -17,6 +17,9 @@ import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+
 /**
  * @author lazyman
  */
@@ -52,7 +55,8 @@ public class ROExtBoolean extends ROExtBase<Boolean> {
     }
 
     @Id
-    @Column(name = "ownerType", columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
+    @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
     public RObjectExtensionType getOwnerType() {
         return super.getOwnerType();

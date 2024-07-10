@@ -20,6 +20,9 @@ import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+
 /**
  * @author lazyman
  */
@@ -77,7 +80,7 @@ public class RAExtReference extends RAExtBase<String> implements RAExtValue<Stri
         return value;
     }
 
-    @Column(columnDefinition = "int")
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RObjectType getTargetType() {
         return targetType;
