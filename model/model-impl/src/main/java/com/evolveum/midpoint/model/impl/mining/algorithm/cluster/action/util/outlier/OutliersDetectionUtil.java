@@ -32,13 +32,16 @@ public class OutliersDetectionUtil {
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisSessionType session,
             PrismObject<UserType> userTypeObject,
-            RoleAnalysisOutlierDescriptionType prepareRoleOutlier,
+            DetectedAnomalyResult prepareRoleOutlier,
             @NotNull Task task,
             OperationResult result) {
+
+        DetectedAnomalyStatistics statistics = prepareRoleOutlier.getStatistics();
+
         double itemFactorConfidence = calculateItemFactorConfidence(
                 session, prepareRoleOutlier, userTypeObject, roleAnalysisService, task, result);
-        double distributionConfidence = prepareRoleOutlier.getConfidenceDeviation();
-        double patternConfidence = prepareRoleOutlier.getPatternInfo().getConfidence();
+        double distributionConfidence = statistics.getConfidenceDeviation();
+        double patternConfidence = statistics.getPatternAnalysis().getConfidence();
         double roleMemberConfidence = calculateRoleCoverageConfidence(
                 prepareRoleOutlier, roleAnalysisService, task, result);
         double coverageConfidence = calculateOutlierPropertyCoverageConfidence(prepareRoleOutlier);
@@ -73,11 +76,9 @@ public class OutliersDetectionUtil {
     }
 
     //TODO this is just for USER MODE! Implement Role (Experimental)
-    static void detectAndLoadPatternAnalysis(
-            @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
+    static RoleAnalysisPatternAnalysis detectAndLoadPatternAnalysis(
+            @NotNull String userOid,
             @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks) {
-        ObjectReferenceType userRef = roleAnalysisOutlierType.getTargetObjectRef();
-        String userOid = userRef.getOid();
 
         DetectionOption detectionOption = new DetectionOption(
                 10, 100, 2, 2);
@@ -99,20 +100,19 @@ public class OutliersDetectionUtil {
         int clusterRelations = calculateOveralClusterRelationsCount(miningRoleTypeChunks);
         double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
 
-        RoleAnalysisPatternInfo patternInfo = new RoleAnalysisPatternInfo();
+        RoleAnalysisPatternAnalysis patternInfo = new RoleAnalysisPatternAnalysis();
         patternInfo.setConfidence(topPatternCoverage);
         patternInfo.setDetectedPatternCount(patternCount);
         patternInfo.setTopPatternRelation(topPatternRelation);
         patternInfo.setTotalRelations(totalRelations);
         patternInfo.setClusterRelations(clusterRelations);
-        roleAnalysisOutlierType.setPatternInfo(patternInfo);
+        return patternInfo;
     }
 
     //TODO this is just for USER MODE! Implement Role (Experimental)
-    static void detectAndLoadPatternAnalysis(
+    static RoleAnalysisPatternAnalysis detectAndLoadPatternAnalysis(
             @NotNull MiningRoleTypeChunk miningRoleTypeChunk,
             @NotNull String user,
-            @NotNull RoleAnalysisOutlierDescriptionType prepareRoleOutlier,
             @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks) {
         List<String> allowedProperties = miningRoleTypeChunk.getProperties();
         DetectionOption detectionOption = new DetectionOption(
@@ -133,14 +133,14 @@ public class OutliersDetectionUtil {
         }
 
         int clusterRelations = calculateOveralClusterRelationsCount(miningRoleTypeChunks);
-        RoleAnalysisPatternInfo patternInfo = new RoleAnalysisPatternInfo();
+        RoleAnalysisPatternAnalysis patternInfo = new RoleAnalysisPatternAnalysis();
         double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
         patternInfo.setConfidence(topPatternCoverage);
         patternInfo.setDetectedPatternCount(patternCount);
         patternInfo.setTopPatternRelation(topPatternRelation);
         patternInfo.setTotalRelations(totalRelations);
         patternInfo.setClusterRelations(clusterRelations);
-        prepareRoleOutlier.setPatternInfo(patternInfo);
+        return patternInfo;
     }
 
     //TODO this is just for USER MODE! Implement Role (Experimental)
@@ -160,13 +160,13 @@ public class OutliersDetectionUtil {
 
     private static double calculateItemFactorConfidence(
             @NotNull RoleAnalysisSessionType session,
-            @NotNull RoleAnalysisOutlierDescriptionType outlierResult,
+            DetectedAnomalyResult outlierResult,
             @NotNull PrismObject<UserType> userTypeObject,
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        ObjectReferenceType targetObjectRef = outlierResult.getObject();
+        ObjectReferenceType targetObjectRef = outlierResult.getTargetObjectRef();
         PrismObject<RoleType> roleTypeObject = roleAnalysisService.getRoleTypeObject(targetObjectRef.getOid(), task, result);
         if (roleTypeObject == null) {
             return 0;
@@ -194,16 +194,17 @@ public class OutliersDetectionUtil {
                 averageItemsOccurs += density;
             }
         }
-        outlierResult.setItemFactorConfidence(averageItemsOccurs / attributeAnalysis.size());
+
+        outlierResult.getStatistics().setItemFactorConfidence(averageItemsOccurs / attributeAnalysis.size());
         return averageItemsOccurs / attributeAnalysis.size();
     }
 
     public static double calculateRoleCoverageConfidence(
-            @NotNull RoleAnalysisOutlierDescriptionType outlierResult,
+            DetectedAnomalyResult outlierResult,
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        ObjectReferenceType targetObjectRef = outlierResult.getObject();
+        ObjectReferenceType targetObjectRef = outlierResult.getTargetObjectRef();
         int roleMemberCount;
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         roleAnalysisService.extractUserTypeMembers(
@@ -215,13 +216,13 @@ public class OutliersDetectionUtil {
         int userCountInRepo = roleAnalysisService.countObjects(UserType.class, null, null, task, result);
 
         double memberPercentageRepo = (((double) roleMemberCount / userCountInRepo) * 100);
-        outlierResult.setMemberCoverageConfidence(memberPercentageRepo);
+        outlierResult.getStatistics().setMemberCoverageConfidence(memberPercentageRepo);
         return memberPercentageRepo;
     }
 
-    public static double calculateOutlierPropertyCoverageConfidence(@NotNull RoleAnalysisOutlierDescriptionType outlierResult) {
-        double occurInCluster = outlierResult.getFrequency() * 100;
-        outlierResult.setOutlierCoverageConfidence(occurInCluster);
+    public static double calculateOutlierPropertyCoverageConfidence(DetectedAnomalyResult outlierResult) {
+        double occurInCluster = outlierResult.getStatistics().getFrequency() * 100;
+        outlierResult.getStatistics().setOutlierCoverageConfidence(occurInCluster);
         return occurInCluster;
     }
 

@@ -2180,23 +2180,18 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             double requiredConfidence) {
         //TODO TARGET OBJECT REF IS NECESSARY (check git history)
 
-        Double clusterConfidence = roleAnalysisOutlierType.getClusterConfidence();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = roleAnalysisOutlierType.getOutlierPartitions();
+
+        RoleAnalysisOutlierPartitionType partitionType = outlierPartitions.get(0);
+
+
+        Double clusterConfidence = partitionType.getPartitionAnalysis().getOverallConfidence();
         if (clusterConfidence == null) {
             clusterConfidence = 0.0;
         }
         if (clusterConfidence < requiredConfidence) {
             return;
         }
-
-        roleAnalysisOutlierType.setTargetSessionRef(new ObjectReferenceType()
-                .oid(session.getOid())
-                .targetName(session.getName())
-                .type(RoleAnalysisSessionType.COMPLEX_TYPE));
-
-        roleAnalysisOutlierType.setTargetClusterRef(new ObjectReferenceType()
-                .oid(cluster.getOid())
-                .targetName(cluster.getName())
-                .type(RoleAnalysisClusterType.COMPLEX_TYPE));
 
         ObjectReferenceType targetObjectRef = roleAnalysisOutlierType.getTargetObjectRef();
         PrismObject<FocusType> object = this
@@ -2572,10 +2567,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
 
             RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
-            ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
-            String oid = targetClusterRef.getOid();
-            if (clusterOid.equals(oid)) {
-                searchResultList.add(outlier.asObjectable());
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+            for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+                ObjectReferenceType targetClusterRef = outlierPartition.getTargetClusterRef();
+                String oid = targetClusterRef.getOid();
+                if (clusterOid.equals(oid)) {
+                    searchResultList.add(outlier.asObjectable());
+                }
             }
             return true;
         };

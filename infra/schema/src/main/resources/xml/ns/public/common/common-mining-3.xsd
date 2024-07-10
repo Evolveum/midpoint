@@ -276,7 +276,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="patternAnalysis" type="c:RoleAnalysisOutlierPatternAnalysisResult" minOccurs="0">
+            <xsd:element name="patternAnalysis" type="c:RoleAnalysisPatternAnalysis" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Pattern result.
@@ -436,6 +436,17 @@
                 </xsd:annotation>
             </xsd:element>
 
+            <xsd:element name="createTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When this object was created.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>DetectedAnomalyResult.createTimestamp</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="statistics" type="c:DetectedAnomalyStatistics" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -508,7 +519,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="patternInfo" type="c:RoleAnalysisPatternInfo" minOccurs="0">
+            <xsd:element name="patternAnalysis" type="c:RoleAnalysisPatternAnalysis" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Pattern result.
@@ -519,58 +530,6 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="detectedAnomalyStatistics" type="tns:DetectedAnomalyStatistics"/>
-
-    <xsd:complexType name="RoleAnalysisOutlierPatternAnalysisResult">
-        <xsd:annotation>
-            <xsd:documentation>
-                Contains detailed information about pattern analysis.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-
-            <xsd:element name="confidence" type="xsd:double" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Confidence level associated with the identified outlier.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="totalRelations" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Confidence level associated with the identified outlier.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="clusterRelations" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Confidence level associated with the identified outlier.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="topPatternRelation" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Confidence level associated with the identified outlier.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="detectedPatternCount" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Confidence level associated with the identified outlier.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-    <xsd:element name="roleAnalysisOutlierPatternAnalysisResult" type="tns:RoleAnalysisOutlierPatternAnalysisResult"/>
 
     <xsd:complexType name="RoleAnalysisOutlierSimilarObjectsAnalysisResult">
         <xsd:annotation>
@@ -588,7 +547,7 @@
             <!-- Lets store two types in case of USER MODE - RoleAnalysisClusterType and UserType,
             when similarObjects refs is size of 1 and type of RoleAnalysisClusterType we can return similar object from
             cluster object else we must to store similar user so UserType objects
-            also this can be decided from outlier category->
+            also this can be decided from outlier category -->
             <xsd:element name="similarObjects" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -632,7 +591,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-           TODO think about this, don't need to store this information? Maybe we can store it but in limited way (operation is time consuming).-->
+            <!-- TODO think about this, don't need to store this information? Maybe we can store it but in limited way (operation is time consuming).-->
             <xsd:element name="clusterStatistics" type="c:AnalysisClusterStatisticType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2211,7 +2170,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:complexType name="RoleAnalysisPatternInfo">
+    <xsd:complexType name="RoleAnalysisPatternAnalysis">
         <xsd:annotation>
             <xsd:documentation>
                 Contains detailed information about pattern analysis.
@@ -2261,7 +2220,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="roleAnalysisPatternInfo" type="tns:RoleAnalysisPatternInfo"/>
+    <xsd:element name="roleAnalysisPatternAnalysis" type="tns:RoleAnalysisPatternAnalysis"/>
 
     <xsd:complexType name="RoleAnalysisOptionType">
         <xsd:annotation>

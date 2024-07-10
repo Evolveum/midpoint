@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.jetbrains.annotations.NotNull;
@@ -158,124 +159,124 @@ public class ClusteringOutlierDetectionUtils {
         return jaccardCloseObject;
     }
 
-    public static void analyzeAnomalyMarkedRoleTypeChunk(
-            @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull RoleAnalysisSessionType session,
-            @NotNull Task task,
-            ObjectReferenceType analyzedObjectRef,
-            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
-            String memberOid,
-            ZScoreData zScoreData,
-            ObjectReferenceType clusterRef,
-            ObjectReferenceType sessionRef,
-            OperationResult result,
-            HashMap<String, RoleAnalysisOutlierType> map,
-            MutableDouble usedFrequency,
-            RoleAnalysisClusterType tempCluster,
-            List<String> jaccardCloseObject,
-            double density,
-            int countOfRoles) {
-        for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
-
-            FrequencyItem frequencyItem = miningRoleTypeChunk.getFrequencyItem();
-            if (!frequencyItem.getStatus().equals(FrequencyItem.Status.INCLUDE)
-                    && miningRoleTypeChunk.getProperties().contains(memberOid)) {
-
-                List<String> roles = miningRoleTypeChunk.getMembers();
-
-                List<RoleAnalysisOutlierDescriptionType> prepareRoleOutliers = new ArrayList<>();
-
-                roles.forEach(role -> {
-                    RoleAnalysisOutlierDescriptionType outlierDescription = new RoleAnalysisOutlierDescriptionType();
-                    outlierDescription.setCategory(OutlierCategory.OUTER_OUTLIER);
-                    outlierDescription.setObject(new ObjectReferenceType().
-                            oid(role)
-                            .type(RoleType.COMPLEX_TYPE));
-
-                    outlierDescription.setCreateTimestamp(
-                            XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
-
-                    double confidence = roleAnalysisService.calculateZScoreConfidence(miningRoleTypeChunk, zScoreData);
-                    outlierDescription.setConfidenceDeviation(confidence);
-                    outlierDescription.setFrequency(frequencyItem.getFrequency());
-
-                    outlierDescription.setCluster(clusterRef.clone());
-
-                    outlierDescription.setSession(sessionRef.clone());
-
-                    prepareRoleOutliers.add(outlierDescription);
-                });
-
-                PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(memberOid, task, result);
-                if (userTypeObject == null) {
-                    continue;
-                }
-
-                RoleAnalysisOutlierType userOutliers = map.get(memberOid);
-
-                if (userOutliers == null) {
-                    userOutliers = new RoleAnalysisOutlierType();
-                    userOutliers.setTargetObjectRef(new ObjectReferenceType().oid(memberOid).type(UserType.COMPLEX_TYPE));
-                }
-
-                Set<ObjectReferenceType> duplicateAssignment = resolveUserDuplicateAssignment(
-                        roleAnalysisService, userTypeObject.asObjectable(), task, result);
-
-                userOutliers.getDuplicatedRoleAssignment().addAll(duplicateAssignment);
-
-                String description = analyzedObjectRef.getDescription();
-
-                if (description != null && !description.equals("unknown")) {
-                    RoleAnalysisOutlierNoiseCategoryType roleAnalysisOutlierNoiseCategoryType =
-                            RoleAnalysisOutlierNoiseCategoryType.fromValue(description);
-                    userOutliers.setOutlierNoiseCategory(roleAnalysisOutlierNoiseCategoryType);
-                }
-
-                userOutliers.setSimilarObjectsThreshold(usedFrequency.doubleValue() * 100);
-                userOutliers.setClusterStatistics(tempCluster.getClusterStatistics());
-
-                userOutliers.setSimilarObjects(jaccardCloseObject.size());
-                userOutliers.setSimilarObjectsDensity(density);
-
-                List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
-                        session, UserType.COMPLEX_TYPE);
-
-                double averageItemFactor = resolveAttributeOutlierStats(roleAnalysisService,
-                        tempCluster,
-                        attributesForUserAnalysis,
-                        userTypeObject,
-                        userOutliers);
-
-                double assignmentFrequencyConfidence = calculateOutlierRoleAssignmentFrequencyConfidence(
-                        userTypeObject, countOfRoles);
-
-                userOutliers.setOutlierAssignmentFrequencyConfidence(assignmentFrequencyConfidence);
-
-                detectAndLoadPatternAnalysis(userOutliers, miningRoleTypeChunks);
-
-                double outlierConfidenceBasedAssignment = 0;
-                for (RoleAnalysisOutlierDescriptionType prepareRoleOutlier : prepareRoleOutliers) {
-                    detectAndLoadPatternAnalysis(miningRoleTypeChunk, memberOid, prepareRoleOutlier, miningRoleTypeChunks);
-                    double confidence = calculateAssignmentAnomalyConfidence(roleAnalysisService, session, userTypeObject,
-                            prepareRoleOutlier, task, result);
-                    outlierConfidenceBasedAssignment += confidence;
-                    prepareRoleOutlier.setConfidence(confidence);
-                    userOutliers.getResult().add(prepareRoleOutlier.clone());
-                }
-
-                outlierConfidenceBasedAssignment = outlierConfidenceBasedAssignment / prepareRoleOutliers.size();
-                userOutliers.setOutlierPropertyConfidence(outlierConfidenceBasedAssignment);
-
-                resolveOutlierConfidence(userOutliers,
-                        outlierConfidenceBasedAssignment,
-                        assignmentFrequencyConfidence,
-                        averageItemFactor);
-
-                map.put(memberOid, userOutliers);
-
-            }
-        }
-    }
+//    public static void analyzeAnomalyMarkedRoleTypeChunkOld(
+//            @NotNull RoleAnalysisService roleAnalysisService,
+//            @NotNull RoleAnalysisSessionType session,
+//            @NotNull Task task,
+//            ObjectReferenceType analyzedObjectRef,
+//            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
+//            String memberOid,
+//            ZScoreData zScoreData,
+//            ObjectReferenceType clusterRef,
+//            ObjectReferenceType sessionRef,
+//            OperationResult result,
+//            HashMap<String, RoleAnalysisOutlierType> map,
+//            MutableDouble usedFrequency,
+//            RoleAnalysisClusterType tempCluster,
+//            List<String> jaccardCloseObject,
+//            double density,
+//            int countOfRoles) {
+//        for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
+//
+//            FrequencyItem frequencyItem = miningRoleTypeChunk.getFrequencyItem();
+//            if (!frequencyItem.getStatus().equals(FrequencyItem.Status.INCLUDE)
+//                    && miningRoleTypeChunk.getProperties().contains(memberOid)) {
+//
+//                List<String> roles = miningRoleTypeChunk.getMembers();
+//
+//                List<RoleAnalysisOutlierDescriptionType> prepareRoleOutliers = new ArrayList<>();
+//
+//                roles.forEach(role -> {
+//                    RoleAnalysisOutlierDescriptionType outlierDescription = new RoleAnalysisOutlierDescriptionType();
+//                    outlierDescription.setCategory(OutlierCategory.OUTER_OUTLIER);
+//                    outlierDescription.setObject(new ObjectReferenceType().
+//                            oid(role)
+//                            .type(RoleType.COMPLEX_TYPE));
+//
+//                    outlierDescription.setCreateTimestamp(
+//                            XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+//
+//                    double confidence = roleAnalysisService.calculateZScoreConfidence(miningRoleTypeChunk, zScoreData);
+//                    outlierDescription.setConfidenceDeviation(confidence);
+//                    outlierDescription.setFrequency(frequencyItem.getFrequency());
+//
+//                    outlierDescription.setCluster(clusterRef.clone());
+//
+//                    outlierDescription.setSession(sessionRef.clone());
+//
+//                    prepareRoleOutliers.add(outlierDescription);
+//                });
+//
+//                PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(memberOid, task, result);
+//                if (userTypeObject == null) {
+//                    continue;
+//                }
+//
+//                RoleAnalysisOutlierType userOutliers = map.get(memberOid);
+//
+//                if (userOutliers == null) {
+//                    userOutliers = new RoleAnalysisOutlierType();
+//                    userOutliers.setTargetObjectRef(new ObjectReferenceType().oid(memberOid).type(UserType.COMPLEX_TYPE));
+//                }
+//
+//                Set<ObjectReferenceType> duplicateAssignment = resolveUserDuplicateAssignment(
+//                        roleAnalysisService, userTypeObject.asObjectable(), task, result);
+//
+//                userOutliers.getDuplicatedRoleAssignment().addAll(duplicateAssignment);
+//
+//                String description = analyzedObjectRef.getDescription();
+//
+//                if (description != null && !description.equals("unknown")) {
+//                    RoleAnalysisOutlierNoiseCategoryType roleAnalysisOutlierNoiseCategoryType =
+//                            RoleAnalysisOutlierNoiseCategoryType.fromValue(description);
+//                    userOutliers.setOutlierNoiseCategory(roleAnalysisOutlierNoiseCategoryType);
+//                }
+//
+//                userOutliers.setSimilarObjectsThreshold(usedFrequency.doubleValue() * 100);
+//                userOutliers.setClusterStatistics(tempCluster.getClusterStatistics());
+//
+//                userOutliers.setSimilarObjects(jaccardCloseObject.size());
+//                userOutliers.setSimilarObjectsDensity(density);
+//
+//                List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
+//                        session, UserType.COMPLEX_TYPE);
+//
+//                double averageItemFactor = resolveAttributeOutlierStats(roleAnalysisService,
+//                        tempCluster,
+//                        attributesForUserAnalysis,
+//                        userTypeObject,
+//                        userOutliers);
+//
+//                double assignmentFrequencyConfidence = calculateOutlierRoleAssignmentFrequencyConfidence(
+//                        userTypeObject, countOfRoles);
+//
+//                userOutliers.setOutlierAssignmentFrequencyConfidence(assignmentFrequencyConfidence);
+//
+//                RoleAnalysisPatternInfo roleAnalysisPatternInfo = detectAndLoadPatternAnalysis(userOutliers, miningRoleTypeChunks);
+//
+//                double outlierConfidenceBasedAssignment = 0;
+//                for (RoleAnalysisOutlierDescriptionType prepareRoleOutlier : prepareRoleOutliers) {
+//                    detectAndLoadPatternAnalysis(miningRoleTypeChunk, memberOid, prepareRoleOutlier, miningRoleTypeChunks);
+//                    double confidence = calculateAssignmentAnomalyConfidence(roleAnalysisService, session, userTypeObject,
+//                            prepareRoleOutlier, task, result);
+//                    outlierConfidenceBasedAssignment += confidence;
+//                    prepareRoleOutlier.setConfidence(confidence);
+//                    userOutliers.getResult().add(prepareRoleOutlier.clone());
+//                }
+//
+//                outlierConfidenceBasedAssignment = outlierConfidenceBasedAssignment / prepareRoleOutliers.size();
+//                userOutliers.setOutlierPropertyConfidence(outlierConfidenceBasedAssignment);
+//
+//                resolveOutlierConfidence(userOutliers,
+//                        outlierConfidenceBasedAssignment,
+//                        assignmentFrequencyConfidence,
+//                        averageItemFactor);
+//
+//                map.put(memberOid, userOutliers);
+//
+//            }
+//        }
+//    }
 
     public static void analyseOutlierClusterMembers(
             @NotNull RoleAnalysisService roleAnalysisService,
@@ -385,7 +386,7 @@ public class ClusteringOutlierDetectionUtils {
             AttributeAnalysis attributeAnalysis = new AttributeAnalysis();
             attributeAnalysis.setUserAttributeAnalysisResult(userAttributeAnalysisResult);
             attributeAnalysis.setUserClusterCompare(compareAttributeResult);
-            userOutliers.setAttributeAnalysis(attributeAnalysis);
+//            userOutliers.setAttributeAnalysis(attributeAnalysis);
         }
 
         return getAverageItemFactor(compareAttributeResult);
@@ -395,19 +396,175 @@ public class ClusteringOutlierDetectionUtils {
             double outlierConfidenceBasedAssignment,
             double assignmentFrequencyConfidence,
             double averageItemFactor) {
-        Double membershipDensity = userOutliers.getSimilarObjectsDensity();
-        Double outlierPatternConfidence = userOutliers.getPatternInfo().getConfidence();
-        double clusterConfidence = outlierConfidenceBasedAssignment
-                + assignmentFrequencyConfidence
-                + outlierPatternConfidence
-                + averageItemFactor;
+//        Double membershipDensity = userOutliers.getSimilarObjectsDensity();
+//        Double outlierPatternConfidence = userOutliers.getPatternInfo().getConfidence();
+//        double clusterConfidence = outlierConfidenceBasedAssignment
+//                + assignmentFrequencyConfidence
+//                + outlierPatternConfidence
+//                + averageItemFactor;
+//
+//        if (membershipDensity != null) {
+//            clusterConfidence += membershipDensity;
+//        }
+//
+//        clusterConfidence = clusterConfidence / 5;
+//        userOutliers.setClusterConfidence(clusterConfidence);
+    }
 
-        if (membershipDensity != null) {
-            clusterConfidence += membershipDensity;
+    public static void analyzeAnomalyMarkedRoleTypeChunk(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull Task task,
+            ObjectReferenceType analyzedObjectRef,
+            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
+            String memberOid,
+            ZScoreData zScoreData,
+            ObjectReferenceType clusterRef,
+            ObjectReferenceType sessionRef,
+            OperationResult result,
+            HashMap<String, RoleAnalysisOutlierType> map,
+            MutableDouble usedFrequency,
+            RoleAnalysisClusterType tempCluster,
+            List<String> jaccardCloseObject,
+            double density,
+            int countOfRoles) {
+
+        ListMultimap<String, DetectedAnomalyResult> userRoleMap = ArrayListMultimap.create();
+
+        for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
+
+            FrequencyItem frequencyItem = miningRoleTypeChunk.getFrequencyItem();
+            if (!frequencyItem.getStatus().equals(FrequencyItem.Status.INCLUDE)
+                    && miningRoleTypeChunk.getProperties().contains(memberOid)) {
+                List<String> roles = miningRoleTypeChunk.getMembers();
+                List<String> users = miningRoleTypeChunk.getProperties();
+
+                roles.forEach(role -> {
+                    DetectedAnomalyResult anomalyResult = new DetectedAnomalyResult();
+                    anomalyResult.setTargetObjectRef(new ObjectReferenceType().oid(role).type(RoleType.COMPLEX_TYPE));
+
+                    DetectedAnomalyStatistics statistics = new DetectedAnomalyStatistics();
+                    anomalyResult.setCreateTimestamp(
+                            XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+
+                    double confidence = roleAnalysisService.calculateZScoreConfidence(miningRoleTypeChunk, zScoreData);
+                    statistics.setConfidenceDeviation(confidence);
+                    statistics.setFrequency(frequencyItem.getFrequency());
+
+                    for (String user : users) {
+                        PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(
+                                user, task, result);
+                        RoleAnalysisPatternAnalysis patternAnalysis = detectAndLoadPatternAnalysis(
+                                miningRoleTypeChunk, user, miningRoleTypeChunks);
+                        double anomalyConfidence = calculateAssignmentAnomalyConfidence(
+                                roleAnalysisService, session, userTypeObject, anomalyResult, task, result);
+                        statistics.setConfidence(anomalyConfidence);
+                        statistics.setPatternAnalysis(patternAnalysis);
+                        userRoleMap.put(user, anomalyResult);
+                    }
+
+                });
+
+                HashMap<String, RoleAnalysisPartitionAnalysisType> userPartitionMap = new HashMap<>();
+
+                for (Map.Entry<String, DetectedAnomalyResult> entry : userRoleMap.entries()) {
+                    String userOid = entry.getKey();
+                    List<DetectedAnomalyResult> detectedAnomalyResults = userRoleMap.get(userOid);
+
+                    RoleAnalysisOutlierPartitionType partitionType = new RoleAnalysisOutlierPartitionType();
+                    partitionType.setTargetClusterRef(clusterRef.clone());
+                    partitionType.setTargetSessionRef(sessionRef.clone());
+                    partitionType.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+
+                    RoleAnalysisPartitionAnalysisType partitionAnalysis = new RoleAnalysisPartitionAnalysisType();
+
+                    String description = analyzedObjectRef.getDescription();
+
+                    if (description != null && !description.equals("unknown")) {
+                        RoleAnalysisOutlierNoiseCategoryType roleAnalysisOutlierNoiseCategoryType =
+                                RoleAnalysisOutlierNoiseCategoryType.fromValue(description);
+                        partitionAnalysis.setOutlierNoiseCategory(roleAnalysisOutlierNoiseCategoryType);
+                    }
+
+                    partitionAnalysis.setOutlierCategory(OutlierCategory.OUTER_OUTLIER);
+
+                    PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(userOid, task, result);
+                    if (userTypeObject == null) {
+                        continue;
+                    }
+
+                    //Resolve similar objects analysis
+                    RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = new RoleAnalysisOutlierSimilarObjectsAnalysisResult();
+                    similarObjectAnalysis.setSimilarObjectsThreshold(usedFrequency.doubleValue() * 100);
+                    similarObjectAnalysis.setSimilarObjectsCount(tempCluster.getMember().size());
+
+                    AnalysisClusterStatisticType clusterStatistics = tempCluster.getClusterStatistics();
+                    similarObjectAnalysis.setSimilarObjectsDensity(density);
+                    //TODO store just useful information
+                    similarObjectAnalysis.setClusterStatistics(clusterStatistics);
+                    similarObjectAnalysis.getSimilarObjects().addAll(tempCluster.getMember());
+                    partitionAnalysis.setSimilarObjectAnalysis(similarObjectAnalysis);
+
+                    List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
+                            session, UserType.COMPLEX_TYPE);
+
+                    RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics
+                            .getUserAttributeAnalysisResult();
+
+                    RoleAnalysisAttributeAnalysisResult compareAttributeResult = null;
+                    if (userAttributeAnalysisResult != null && attributesForUserAnalysis != null) {
+
+                        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService
+                                .resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
+
+                        compareAttributeResult = roleAnalysisService
+                                .resolveSimilarAspect(userAttributes, userAttributeAnalysisResult);
+
+                        AttributeAnalysis attributeAnalysis = new AttributeAnalysis();
+                        attributeAnalysis.setUserAttributeAnalysisResult(userAttributeAnalysisResult);
+                        attributeAnalysis.setUserClusterCompare(compareAttributeResult);
+                        partitionAnalysis.setAttributeAnalysis(attributeAnalysis);
+                    }
+
+                    double assignmentFrequencyConfidence = calculateOutlierRoleAssignmentFrequencyConfidence(
+                            userTypeObject, countOfRoles);
+                    partitionAnalysis.setOutlierAssignmentFrequencyConfidence(assignmentFrequencyConfidence);
+
+                    RoleAnalysisPatternAnalysis roleAnalysisPatternInfo = detectAndLoadPatternAnalysis(userOid, miningRoleTypeChunks);
+                    partitionAnalysis.setPatternAnalysis(roleAnalysisPatternInfo);
+
+                    double outlierConfidenceBasedAssignment = 0;
+                    for (DetectedAnomalyResult prepareRoleOutlier : detectedAnomalyResults) {
+                        Double confidence = prepareRoleOutlier.getStatistics().getConfidence();
+                        outlierConfidenceBasedAssignment += confidence;
+                    }
+
+                    partitionType.getDetectedAnomalyResult().addAll(detectedAnomalyResults);
+
+                    double averageItemFactor = getAverageItemFactor(compareAttributeResult);
+
+                    outlierConfidenceBasedAssignment = outlierConfidenceBasedAssignment / detectedAnomalyResults.size();
+                    partitionAnalysis.setAnomalyObjectsConfidence(outlierConfidenceBasedAssignment);
+
+                    Double outlierPatternConfidence = partitionAnalysis.getPatternAnalysis().getConfidence();
+                    double clusterConfidence = outlierConfidenceBasedAssignment
+                            + assignmentFrequencyConfidence
+                            + outlierPatternConfidence
+                            + averageItemFactor;
+
+                    clusterConfidence += density;
+                    clusterConfidence = clusterConfidence / 5;
+                    partitionAnalysis.setSimilarObjectsConfidence(clusterConfidence);
+                    //TODO
+                    partitionAnalysis.setOverallConfidence(clusterConfidence);
+
+                    partitionType.setPartitionAnalysis(partitionAnalysis);
+
+                    userPartitionMap.put(userOid, partitionAnalysis);
+                }
+
+            }
         }
-
-        clusterConfidence = clusterConfidence / 5;
-        userOutliers.setClusterConfidence(clusterConfidence);
     }
 
 }

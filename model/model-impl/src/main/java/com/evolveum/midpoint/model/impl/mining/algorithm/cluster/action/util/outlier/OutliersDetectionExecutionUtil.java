@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier;
 
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.BasicOutlierDetectionUtils.resolveRoleModeOutliers;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.BasicOutlierDetectionUtils.resolveUserModeOutliers;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.ClusteringOutlierDetectionUtils.analyseOutlierClusterMembers;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionUtil.prepareDetectionOptions;
@@ -27,7 +26,6 @@ import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 
 //TODO
 public class OutliersDetectionExecutionUtil {
@@ -75,13 +73,14 @@ public class OutliersDetectionExecutionUtil {
                     map,
                     similarityThreshold);
         } else if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            resolveRoleModeOutliers(roleAnalysisService,
-                    miningOperationChunk,
-                    frequencyRange,
-                    sensitivity,
-                    clusterRef,
-                    sessionRef,
-                    map);
+            //TODO temporary disabled
+//            resolveRoleModeOutliers(roleAnalysisService,
+//                    miningOperationChunk,
+//                    frequencyRange,
+//                    sensitivity,
+//                    clusterRef,
+//                    sessionRef,
+//                    map);
         }
 
         return map.values();
