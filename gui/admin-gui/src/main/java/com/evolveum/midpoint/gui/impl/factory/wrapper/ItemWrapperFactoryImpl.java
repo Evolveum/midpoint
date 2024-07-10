@@ -95,7 +95,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
         IW itemWrapper = createWrapperInternal(parent, (I) childItem, status, context);
         itemWrapper.setMetadata(context.isMetadata());
-        itemWrapper.setProcessProvenanceMetadata(context.isProcessMetadataFor(itemWrapper.getPath()));
+        itemWrapper.setProcessProvenanceMetadata(context.isProcessMetadataFor(itemWrapper));
 
         registerWrapperPanel(itemWrapper);
 

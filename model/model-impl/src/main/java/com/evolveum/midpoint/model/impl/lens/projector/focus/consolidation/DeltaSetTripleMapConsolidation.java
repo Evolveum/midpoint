@@ -162,7 +162,7 @@ public class DeltaSetTripleMapConsolidation<T extends Containerable> {
             this.result = parentResult.createMinorSubresult(OP_CONSOLIDATE);
             LOGGER.trace("Computing deltas in {}", env.contextDescription);
             for (var entry: outputTripleMap.entrySet()) {
-                consolidateItem(entry.getKey(), entry.getValue());
+                consolidateItem(entry.getKey(), itemDefinitionProvider.getDefinition(entry.getKey()), entry.getValue());
             }
             LOGGER.trace("Computed deltas in {}:\n{}", env.contextDescription, debugDumpLazily(itemDeltas, 1));
         } catch (Throwable t) {
@@ -174,13 +174,13 @@ public class DeltaSetTripleMapConsolidation<T extends Containerable> {
         }
     }
 
-    private void consolidateItem(ItemPath itemPath, DeltaSetTriple<ItemValueWithOrigin<?, ?>> deltaSetTriple)
+    private void consolidateItem(ItemPath itemPath, ItemDefinition<?> itemDefinition, DeltaSetTriple<ItemValueWithOrigin<?, ?>> deltaSetTriple)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         ConsolidationValueMetadataComputer valueMetadataComputer;
         if (lensContext != null) {
             valueMetadataComputer = LensMetadataUtil.createValueMetadataConsolidationComputer(
-                    itemPath, lensContext, beans, env, result);
+                    itemPath, itemDefinition, lensContext, beans, env, result);
         } else {
             LOGGER.trace("No lens context -> no value metadata consolidation computer");
             valueMetadataComputer = null;
