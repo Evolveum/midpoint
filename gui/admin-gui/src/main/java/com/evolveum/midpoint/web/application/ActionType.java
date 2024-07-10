@@ -44,7 +44,7 @@ public @interface ActionType {
     /**
      * If the action can be applied to a group of objects
      */
-    boolean bulkAction() default false;
+    boolean bulkAction() default true;
 
     String[] parameterName() default {};
 

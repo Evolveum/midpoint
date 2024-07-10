@@ -124,4 +124,10 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
         return actionParameters.stream()
                 .anyMatch(param -> parameterName.equals(param.getName()) && param.isMandatory());
     }
+
+    public boolean isBulkAction() {
+        ActionType actionType = AbstractGuiAction.this.getClass().getAnnotation(ActionType.class);
+        return actionType != null && actionType.bulkAction();
+    }
+
 }

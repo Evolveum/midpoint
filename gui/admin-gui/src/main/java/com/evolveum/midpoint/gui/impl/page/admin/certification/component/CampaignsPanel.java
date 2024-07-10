@@ -7,28 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
-import com.evolveum.midpoint.gui.impl.component.tile.*;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.component.data.column.*;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.session.CertCampaignsStorage;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -39,19 +20,40 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.io.Serial;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectObjectTileTablePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.session.CertCampaignsStorage;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 
-public class CampaignsPanel extends BasePanel {
+public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_CAMPAIGNS_PANEL = "campaignsPanel";
     private static final String ID_NAVIGATION_PANEL = "navigationPanel";
 
-    private LoadableDetachableModel<Search> searchModel;
-    private SelectableBeanObjectDataProvider<AccessCertificationCampaignType> provider;
+    private LoadableDetachableModel<Search<AccessCertificationCampaignType>> searchModel;
 
     public CampaignsPanel(String id) {
         super(id);
@@ -69,10 +71,10 @@ public class CampaignsPanel extends BasePanel {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected Search load() {
+            protected Search<AccessCertificationCampaignType> load() {
                 CertCampaignsStorage storage = getCampaignsStorage();
                 if (storage.getSearch() == null) {
-                    Search search = createSearch();
+                    Search<AccessCertificationCampaignType> search = createSearch();
                     storage.setSearch(search);
                     return search;
                 }
@@ -88,7 +90,6 @@ public class CampaignsPanel extends BasePanel {
         navigationPanel.setOutputMarkupId(true);
         add(navigationPanel);
 
-        provider = createProvider();
         MultiSelectObjectTileTablePanel<AccessCertificationCampaignType,
                         AccessCertificationCampaignType> tilesTable =
                 new MultiSelectObjectTileTablePanel<>(ID_CAMPAIGNS_PANEL, createViewToggleModel(), UserProfileStorage.TableId.PAGE_CAMPAIGNS) {
@@ -128,7 +129,7 @@ public class CampaignsPanel extends BasePanel {
 
                     @Override
                     public SelectableBeanObjectDataProvider<AccessCertificationCampaignType> createProvider() {
-                        return provider;
+                        return CampaignsPanel.this.createProvider();
                     }
 
                     @Override
@@ -138,7 +139,7 @@ public class CampaignsPanel extends BasePanel {
 
                     @Override
                     protected IModel<Search> createSearchModel() {
-                        return searchModel;
+                        return (IModel) searchModel;
                     }
 
                     @Override
@@ -179,7 +180,7 @@ public class CampaignsPanel extends BasePanel {
 
     private SelectableBeanObjectDataProvider<AccessCertificationCampaignType> createProvider() {
         SelectableBeanObjectDataProvider<AccessCertificationCampaignType> provider = new SelectableBeanObjectDataProvider<>(
-                getPageBase(), () -> searchModel.getObject(), null) {
+                getPageBase(), searchModel, null) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -233,6 +234,7 @@ public class CampaignsPanel extends BasePanel {
         return columns;
     }
 
+
     private List<InlineMenuItem> createInlineMenu() {
         List<InlineMenuItem> items = new ArrayList<>();
         items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.startSelected")) {
@@ -245,6 +247,7 @@ public class CampaignsPanel extends BasePanel {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+
                         CampaignProcessingHelper.startSelectedCampaignsPerformed(target, getSelectedCampaigns(), getPageBase());
                     }
                 };
@@ -386,15 +389,15 @@ public class CampaignsPanel extends BasePanel {
         return menuItems;
     }
 
-    private Search createSearch() {
-        SearchBuilder searchBuilder = new SearchBuilder(AccessCertificationCampaignType.class)
+    private Search<AccessCertificationCampaignType> createSearch() {
+        SearchBuilder<AccessCertificationCampaignType> searchBuilder = new SearchBuilder<>(AccessCertificationCampaignType.class)
                 .modelServiceLocator(getPageBase());
 
         return searchBuilder.build();
     }
 
     private List<AccessCertificationCampaignType> getSelectedCampaigns() {
-        return new ArrayList<>(provider.getSelected());
+        return new ArrayList<>(getCampaignsPanel().getProvider().getSelected());
     }
 
     protected ObjectQuery getCustomCampaignsQuery() {
@@ -414,11 +417,12 @@ public class CampaignsPanel extends BasePanel {
         };
     }
 
+    private MultiSelectObjectTileTablePanel<AccessCertificationCampaignType, AccessCertificationCampaignType> getCampaignsPanel() {
+        return (MultiSelectObjectTileTablePanel<AccessCertificationCampaignType, AccessCertificationCampaignType>) get(ID_CAMPAIGNS_PANEL);
+    }
+
     protected WebMarkupContainer createNavigationPanel(String id) {
         return new WebMarkupContainer(id);
     }
 
-    protected SelectableBeanObjectDataProvider<AccessCertificationCampaignType> getCampaignsProvider() {
-        return provider;
-    }
 }

@@ -91,7 +91,9 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
     @Override
     public void refresh(AjaxRequestTarget target) {
         super.refresh(target);
-        target.add(getSelectedItemPanel());
+        if (isSelectedItemsPanelVisible()) {
+            target.add(getSelectedItemPanel());
+        }
     }
 
     protected Component getSelectedItemPanel() {

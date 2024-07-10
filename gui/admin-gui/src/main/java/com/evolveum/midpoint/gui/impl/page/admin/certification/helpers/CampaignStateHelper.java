@@ -26,11 +26,11 @@ public class CampaignStateHelper implements Serializable {
 
     static {
         Map<AccessCertificationCampaignStateType, String> map = new HashMap<>();
-        map.put(AccessCertificationCampaignStateType.CREATED, "colored-form-primary");
-        map.put(AccessCertificationCampaignStateType.IN_REVIEW_STAGE, "colored-form-info");
-        map.put(AccessCertificationCampaignStateType.IN_REMEDIATION, "colored-form-warning");
-        map.put(AccessCertificationCampaignStateType.REVIEW_STAGE_DONE, "colored-form-success");
-        map.put(AccessCertificationCampaignStateType.CLOSED, "colored-form-secondary");
+        map.put(AccessCertificationCampaignStateType.CREATED, "colored-form-primary rounded");
+        map.put(AccessCertificationCampaignStateType.IN_REVIEW_STAGE, "colored-form-info rounded");
+        map.put(AccessCertificationCampaignStateType.IN_REMEDIATION, "colored-form-warning rounded");
+        map.put(AccessCertificationCampaignStateType.REVIEW_STAGE_DONE, "colored-form-success rounded");
+        map.put(AccessCertificationCampaignStateType.CLOSED, "colored-form-secondary rounded");
 
         campaignStateClassMap = Collections.unmodifiableMap(map);
     }
@@ -50,7 +50,7 @@ public class CampaignStateHelper implements Serializable {
                 .icon(new IconType().cssClass("fa fa-regular fa-circle-xmark"))),
         START_REMEDIATION(new DisplayType()
                 .label("CampaignAction.startRemediation")
-                .cssClass("btn-warning")
+                .cssClass("btn-primary")
                 .icon(new IconType().cssClass("fa fa-solid fa-badge-check"))),
         REITERATE_CAMPAIGN(new DisplayType()
                 .label("CampaignAction.reiterateCampaign")
@@ -108,7 +108,8 @@ public class CampaignStateHelper implements Serializable {
         map.put(AccessCertificationCampaignStateType.IN_REMEDIATION,
                 Arrays.asList(CampaignAction.CLOSE_STAGE, CampaignAction.REMOVE_CAMPAIGN));
         map.put(AccessCertificationCampaignStateType.REVIEW_STAGE_DONE,
-                Arrays.asList(CampaignAction.OPEN_NEXT_STAGE, CampaignAction.REMOVE_CAMPAIGN));
+                Arrays.asList(CampaignAction.OPEN_NEXT_STAGE, CampaignAction.START_REMEDIATION,
+                        CampaignAction.CLOSE_CAMPAIGN, CampaignAction.REMOVE_CAMPAIGN));
         map.put(AccessCertificationCampaignStateType.CLOSED,
                 Arrays.asList(CampaignAction.REITERATE_CAMPAIGN, CampaignAction.REMOVE_CAMPAIGN));
 
@@ -116,11 +117,15 @@ public class CampaignStateHelper implements Serializable {
     }
 
     private final AccessCertificationCampaignStateType campaignState;
-    private final AccessCertificationCampaignType campaign;
+//    private final AccessCertificationCampaignType campaign;
+    private final int stageNumber;
+    private final int stageDefinitionSize;
 
     public CampaignStateHelper(AccessCertificationCampaignType campaign) {
         this.campaignState = campaign.getState();
-        this.campaign = campaign;
+        this.stageNumber = campaign.getStageNumber();
+        this.stageDefinitionSize = campaign.getStageDefinition().size();
+//        this.campaign = campaign;
     }
 
     public Badge createBadge() {
@@ -129,8 +134,11 @@ public class CampaignStateHelper implements Serializable {
 
     public CampaignAction getNextAction() {
         if (AccessCertificationCampaignStateType.REVIEW_STAGE_DONE.equals(campaignState)) {
-            if (campaign.getStageNumber() == campaign.getStageDefinition().size()) {
-                return CampaignAction.CLOSE_CAMPAIGN;
+//            if (campaign.getStageNumber() == campaign.getStageDefinition().size()) {
+//                return CampaignAction.CLOSE_CAMPAIGN;
+//            }
+            if (stageNumber == stageDefinitionSize) {
+                return CampaignAction.START_REMEDIATION;
             }
         }
         return campaignStateNextActionMap.get(campaignState);
@@ -141,7 +149,19 @@ public class CampaignStateHelper implements Serializable {
     }
 
     public List<CampaignAction> getAvailableActions() {
-        return campaignStateAvailableActionsMap.get(campaignState);
+        List<CampaignAction> availableActions = campaignStateAvailableActionsMap.get(campaignState);
+        if (stageNumber == stageDefinitionSize) {
+            return availableActions
+                    .stream()
+                    .filter(action -> action != CampaignAction.OPEN_NEXT_STAGE)
+                    .toList();
+        } else if (stageNumber < stageDefinitionSize) {
+            return availableActions
+                    .stream()
+                    .filter(action -> action != CampaignAction.CLOSE_CAMPAIGN)
+                    .toList();
+        }
+        return availableActions;
     }
 
 }
