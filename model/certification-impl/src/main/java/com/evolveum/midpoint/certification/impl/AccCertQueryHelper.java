@@ -62,7 +62,7 @@ public class AccCertQueryHelper {
                 result);
     }
 
-    List<AccessCertificationCaseType> getAllCurrentIterationCases(
+    public List<AccessCertificationCaseType> getAllCurrentIterationCases(
             String campaignOid, int iteration, OperationResult result) throws SchemaException {
         return repositoryService.searchContainers(
                 AccessCertificationCaseType.class,

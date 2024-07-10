@@ -624,6 +624,27 @@ call apply_change(37, $aa$
     CREATE INDEX m_shadow_ref_attribute_ownerOid_idx ON m_shadow_ref_attribute (ownerOid);
 $aa$);
 
+call apply_change(38, $aa$
+ALTER TYPE ReferenceType ADD VALUE IF NOT EXISTS 'TASK_AFFECTED_OBJECT' AFTER 'ROLE_MEMBERSHIP';
+$aa$);
+
+call apply_change(39, $aa$
+CREATE TABLE m_ref_task_affected_object (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    affectedObjectCid INTEGER NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('TASK_AFFECTED_OBJECT') STORED
+        CHECK (referenceType = 'TASK_AFFECTED_OBJECT')
+)
+    INHERITS (m_reference);
+
+ALTER TABLE m_ref_task_affected_object ADD CONSTRAINT m_ref_task_affected_object_id_fk
+    FOREIGN KEY (ownerOid, affectedObjectCid) REFERENCES m_task_affected_objects (ownerOid, cid)
+        ON DELETE CASCADE;
+
+CREATE INDEX m_ref_task_affected_object_targetOidRelationId_idx
+    ON m_ref_task_affected_object (targetOid, relationId);
+$aa$);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

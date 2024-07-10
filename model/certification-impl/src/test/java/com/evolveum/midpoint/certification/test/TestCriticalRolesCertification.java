@@ -997,10 +997,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         display("campaign after remediation start", campaign);
         assertTrue("wrong campaign state: " + campaign.getState(), campaign.getState() == CLOSED || campaign.getState() == IN_REMEDIATION);
 
-        ObjectQuery query = prismContext.queryFor(TaskType.class)
-                .item(TaskType.F_OBJECT_REF).ref(campaign.getOid())
-                .build();
-        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        List<PrismObject<TaskType>> tasks = getRemediationTasks(campaignOid, result);
         assertEquals("unexpected number of related tasks", 1, tasks.size());
         waitForTaskFinish(tasks.get(0).getOid());
 

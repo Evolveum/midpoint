@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.certification.impl;
+package com.evolveum.midpoint.certification.impl.task.remediation;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
+import com.evolveum.midpoint.certification.impl.*;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -53,10 +54,33 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
     @Autowired private AccCertGeneralHelper helper;
     @Autowired private AccCertCaseOperationsHelper caseHelper;
     @Autowired private AccCertQueryHelper queryHelper;
-    @Autowired private PrismContext prismContext;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationRemediationTaskHandler.class);
+
+    public TaskManager getTaskManager() {
+        return taskManager;
+    }
+
+    public CertificationManagerImpl getCertificationManager() {
+        return certificationManager;
+    }
+
+    public AccCertGeneralHelper getHelper() {
+        return helper;
+    }
+
+    public AccCertCaseOperationsHelper getCaseHelper() {
+        return caseHelper;
+    }
+
+    public AccCertQueryHelper getQueryHelper() {
+        return queryHelper;
+    }
+
+    public RepositoryService getRepositoryService() {
+        return repositoryService;
+    }
 
     @PostConstruct
     private void initialize() {
@@ -147,38 +171,6 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
     @Override
     public void refreshStatus(Task task) {
         // Do nothing. Everything is fresh already.
-    }
-
-    void launch(AccessCertificationCampaignType campaign, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-
-        LOGGER.info("Launching remediation task handler for campaign {} as asynchronous task", ObjectTypeUtil.toShortString(campaign));
-
-        OperationResult result = parentResult.createSubresult(CLASS_DOT + "launch");
-        result.addParam("campaignOid", campaign.getOid());
-
-        Task task = taskManager.createTaskInstance();
-
-        // Set handler URI so we will be called back
-        task.setHandlerUri(HANDLER_URI);
-
-        // Readable task name
-        PolyStringType polyString = new PolyStringType("Remediation for " + campaign.getName());
-        task.setName(polyString);
-
-        // Set reference to the resource
-        task.setObjectRef(ObjectTypeUtil.createObjectRef(campaign));
-
-        task.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result));
-
-        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_CERTIFICATION_TASK.value());
-
-        taskManager.switchToBackground(task, result);
-        result.setBackgroundTaskOid(task.getOid());
-        if (result.isInProgress()) {
-            result.recordStatus(OperationResultStatus.IN_PROGRESS, "Remediation task "+task+" was successfully started, please use Server Tasks to see its status.");
-        }
-
-        LOGGER.trace("Remediation for {} switched to background, control thread returning with task {}", ObjectTypeUtil.toShortString(campaign), task);
     }
 
     @Override

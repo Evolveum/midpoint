@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
@@ -813,5 +814,33 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         // In some environments, the date format does not contain "2023" but only "23".
         return String.valueOf(
                 (Year.now().getValue() % 100));
+    }
+
+    protected List<PrismObject<TaskType>> getRemediationTasks(String campaignOid, OperationResult result) throws SchemaException {
+        if (isNativeRepository()) {
+            ObjectQuery query = prismContext.queryFor(TaskType.class)
+                    .item(
+                            ItemPath.create(
+                                    TaskType.F_AFFECTED_OBJECTS,
+                                    TaskAffectedObjectsType.F_ACTIVITY,
+                                    ActivityAffectedObjectsType.F_OBJECTS,
+                                    BasicObjectSetType.F_OBJECT_REF))
+                    .ref(campaignOid)
+                    .build();
+            return taskManager.searchObjects(TaskType.class, query, null, result);
+        }
+        ObjectQuery query = prismContext.queryFor(TaskType.class)
+                .item(TaskType.F_ARCHETYPE_REF)
+                .ref(SystemObjectsType.ARCHETYPE_CERTIFICATION_REMEDIATION_TASK.value())
+                .build();
+        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        return tasks.stream().filter(task ->
+                task.asObjectable().getActivity() != null
+                        && task.asObjectable().getActivity().getWork() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationRemediation() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationRemediation().getCertificationCampaignRef() != null
+                        && campaignOid.equals(task.asObjectable().getActivity().getWork().getCertificationRemediation().getCertificationCampaignRef().getOid())
+        ).toList();
+
     }
 }

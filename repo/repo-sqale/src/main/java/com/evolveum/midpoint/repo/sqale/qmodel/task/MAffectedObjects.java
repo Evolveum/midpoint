@@ -9,14 +9,14 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 import java.util.UUID;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PredefinedConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
-public class MAffectedObjects extends MContainer {
+import com.querydsl.core.types.dsl.BooleanExpression;
+
+public class MAffectedObjects extends MContainer implements MAffectedObjectReference.Owner{
 
     public Integer activityId;
 
@@ -37,4 +37,10 @@ public class MAffectedObjects extends MContainer {
 
     public ExecutionModeType executionMode;
     public PredefinedConfigurationType predefinedConfigurationToUse;
+
+    @Override
+    public BooleanExpression owns(QAffectedObjectReference ref) {
+        return ref.ownerOid.eq(ownerOid)
+                .and(ref.affectedObjectCid.eq(cid));
+    }
 }
