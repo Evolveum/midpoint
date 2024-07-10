@@ -248,10 +248,10 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         EntityManager em = open();
         try {
             Query query = em.createNativeQuery(
-                    "select count(*) from m_assignment where owner_oid=:oid and id=:id", Number.class);
+                    "select count(*) from m_assignment where owner_oid=:oid and id=:id", Integer.class);
             query.setParameter("oid", delta.getOid());
             query.setParameter("id", 4);
-            Number number = RUtil.getSingleResultOrNull(query);
+            Integer number = RUtil.getSingleResultOrNull(query);
             assertEquals(0, number.intValue());
         } finally {
             close(em);
