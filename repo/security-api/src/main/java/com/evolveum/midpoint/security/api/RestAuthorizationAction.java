@@ -53,7 +53,12 @@ public enum RestAuthorizationAction implements DisplayableValue<String> {
     GET_THREADS("getThreads", "Get threads", "GET_THREADS_HELP"),
     GET_TASKS_THREADS("getTasksThreads", "Get tasks threads", "GET_TASKS_THREADS_HELP"),
     GET_TASK_THREADS("getTaskThreads", "Get task threads", "GET_TASK_THREADS_HELP"),
-    GET_EXTENSION_SCHEMA("getExtensionSchema", "Get extension schema", "GET_EXTENSION_SCHEMA_HELP");
+    GET_EXTENSION_SCHEMA("getExtensionSchema", "Get extension schema", "GET_EXTENSION_SCHEMA_HELP"),
+    COMPLETE_WORK_ITEM("completeWorkItem", "Complete work item", "COMPLETE_WORK_ITEM_HELP"),
+    DELEGATE_WORK_ITEM("delegateWorkItem", "Delegate work item", "DELEGATE_WORK_ITEM_HELP"),
+    CLAIM_WORK_ITEM("claimWorkItem", "Claim work item", "CLAIM_WORK_ITEM_HELP"),
+    RELEASE_WORK_ITEM("releaseWorkItem", "Release work item", "RELEASE_WORK_ITEM_HELP"),
+    CANCEL_CASE("cancelCase", "Cancel case", "CANCEL_CASE_HELP");
 
     /** The local part of the corresponding action URI (used for authorizations). */
     @NotNull private final String uriLocalPart;
