@@ -15,14 +15,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.certification.impl.task.CertificationTaskLauncher;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 
 import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
 
 import com.evolveum.midpoint.task.api.TaskManager;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -133,7 +130,7 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult)
+    public void createCampaign(String definitionOid, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Validate.notNull(definitionOid, "definitionOid");
@@ -141,22 +138,17 @@ public class CertificationManagerImpl implements CertificationManager {
         Validate.notNull(parentResult, "parentResult");
 
         OperationResult result = parentResult.createSubresult(OPERATION_CREATE_CAMPAIGN);
-        try {
-            PrismObject<AccessCertificationDefinitionType> definition =
-                    repositoryService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, result);
-            securityEnforcer.authorize(
-                    ModelAuthorizationAction.CREATE_CERTIFICATION_CAMPAIGN.getUrl(),
-                    null,
-                    AuthorizationParameters.Builder.buildObject(definition),
-                    task,
-                    result);
-            return openerHelper.createCampaign(definition, result, task);
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't create certification campaign: unexpected exception: " + e.getMessage(), e);
-            throw e;
-        } finally {
-            result.computeStatusIfUnknown();
-        }
+
+        PrismObject<AccessCertificationDefinitionType> definition =
+                repositoryService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, result);
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.CREATE_CERTIFICATION_CAMPAIGN.getUrl(),
+                null,
+                AuthorizationParameters.Builder.buildObject(definition),
+                task,
+                result);
+
+        launcher.createCampaignTask(definition, task, parentResult);
     }
 
     /**
@@ -347,7 +339,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 updateHelper.modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
 
                 if (CertCampaignTypeUtil.isRemediationAutomatic(campaign)) {
-                    launcher.startRemediationAsynchronousTask(campaign, result);
+                    launcher.startRemediationTask(campaign, result);
                 } else {
                     result.recordWarning("The automated remediation is not configured. The campaign state was set to IN REMEDIATION, but all remediation actions have to be done by hand.");
                 }

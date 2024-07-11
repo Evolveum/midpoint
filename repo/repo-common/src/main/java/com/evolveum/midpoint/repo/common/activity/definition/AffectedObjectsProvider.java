@@ -10,7 +10,10 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Provides full {@link AffectedObjectsInformation}.
@@ -19,5 +22,5 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface AffectedObjectsProvider {
 
-    @NotNull AffectedObjectsInformation getAffectedObjectsInformation() throws SchemaException, ConfigurationException;
+    @NotNull AffectedObjectsInformation getAffectedObjectsInformation(@Nullable AbstractActivityWorkStateType state) throws SchemaException, ConfigurationException;
 }

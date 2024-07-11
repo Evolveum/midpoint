@@ -61,6 +61,7 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getRoleAnalysisPatternDetection());
         addTypedParameters(values, definitions.getShadowReclassification());
         addTypedParameters(values, definitions.getCertificationRemediation());
+        addTypedParameters(values, definitions.getCertificationCampaignCreation());
 
         addUntypedParameters(values, definitions.getExtension());
         return values;

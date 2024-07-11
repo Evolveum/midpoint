@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (c) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -74,7 +74,7 @@ public class AccessCertificationRemediationActivityHandler
     @PreDestroy
     public void unregister() {
         handlerRegistry.unregister(
-                FocusValidityScanWorkDefinitionType.COMPLEX_TYPE, AccessCertificationRemediationWorkDefinition.class);
+                CertificationRemediationWorkDefinitionType.COMPLEX_TYPE, AccessCertificationRemediationWorkDefinition.class);
     }
 
     @Override

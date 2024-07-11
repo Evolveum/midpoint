@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.util.DebugUtil;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Work definition for certification campaign remediation.
@@ -28,8 +29,8 @@ public class AccessCertificationRemediationWorkDefinition extends AbstractWorkDe
 
     AccessCertificationRemediationWorkDefinition(@NotNull WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
         super(info);
-        CertificationRemediationWorkDefinitionType typedDefinition = (CertificationRemediationWorkDefinitionType) info.getBean();
-        this.campaignRef = MiscUtil.configNonNull(typedDefinition.getCertificationCampaignRef(), () -> "No report definition");
+        CertificationRemediationWorkDefinitionType campaign = (CertificationRemediationWorkDefinitionType) info.getBean();
+        this.campaignRef = MiscUtil.configNonNull(campaign.getCertificationCampaignRef(), () -> "No campaign");
     }
 
     public @NotNull ObjectReferenceType getCertificationCampaignRef() {
@@ -41,7 +42,7 @@ public class AccessCertificationRemediationWorkDefinition extends AbstractWorkDe
     }
 
     @Override
-    public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() throws SchemaException, ConfigurationException {
+    public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation(@Nullable AbstractActivityWorkStateType state) throws SchemaException, ConfigurationException {
         return AffectedObjectsInformation.ObjectSet.repository(
                 new BasicObjectSetType()
                         .type(AccessCertificationCampaignType.COMPLEX_TYPE)

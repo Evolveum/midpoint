@@ -248,13 +248,12 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         try {
             Task task = createSimpleTask(OPERATION_CREATE_CAMPAIGN);
             if (!Boolean.TRUE.equals(definition.isAdHoc())) {
-                AccessCertificationCampaignType campaign = getCertificationService()
-                        .createCampaign(definition.getOid(), task, result);
-                result.setUserFriendlyMessage(
-                        new LocalizableMessageBuilder()
-                                .key("PageCertDefinitions.campaignWasCreated")
-                                .arg(getOrig(campaign.getName()))
-                                .build());
+                getCertificationService().createCampaign(definition.getOid(), task, result);
+//                result.setUserFriendlyMessage(
+//                        new LocalizableMessageBuilder()
+//                                .key("PageCertDefinitions.campaignWasCreated")
+//                                .arg(getOrig(campaign.getName()))
+//                                .build());
             } else {
                 result.recordWarning(createStringResource("PageCertDefinitions.message.createCampaignPerformed.warning", definition.getName()).getString());
             }

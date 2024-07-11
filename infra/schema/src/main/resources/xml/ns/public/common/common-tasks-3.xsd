@@ -2143,6 +2143,17 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="certificationCampaignCreation" type="tns:CertificationCampaignCreationWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Specified certification campaign definition for creation.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.9</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
             </xsd:choice>
             <xsd:element name="extension" type="tns:ExtensionType" minOccurs="0">
                 <xsd:annotation>
@@ -9363,5 +9374,63 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="certificationRemediationWorkDefinitionType" type="tns:CertificationRemediationWorkDefinitionType"/>
+    <xsd:element name="certificationRemediationWorkDefinition" type="tns:CertificationRemediationWorkDefinitionType"/>
+
+    <xsd:complexType name="CertificationCampaignCreationWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specified certification campaign definition for creation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="certificationCampaignDefinitionRef" type="tns:ObjectReferenceType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specified certification campaign definition for creation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:AccessCertificationDefinitionType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="certificationCampaignCreationWorkDefinition" type="tns:CertificationCampaignCreationWorkDefinitionType"/>
+
+    <xsd:complexType name="CertificationCampaignCreationWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                State of the certification campaign creation activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="createdCampaignRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Campaign that have been created.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="certificationCampaignCreationWorkState" type="tns:CertificationCampaignCreationWorkStateType" />
 </xsd:schema>

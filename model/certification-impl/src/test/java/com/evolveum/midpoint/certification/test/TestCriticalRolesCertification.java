@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.certification.test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -18,6 +17,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
 import java.util.*;
 
@@ -69,19 +69,26 @@ public class TestCriticalRolesCertification extends AbstractCertificationTest {
 
         // WHEN
         when();
-        AccessCertificationCampaignType campaign =
-                certificationManager.createCampaign(certificationDefinition.getOid(), task, result);
+        certificationManager.createCampaign(certificationDefinition.getOid(), task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
 
+        List<PrismObject<TaskType>> tasks = getCampaignCreationTasks(certificationDefinition.getOid(), result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        String foundTaskOid = tasks.get(0).getOid();
+        waitForTaskFinish(foundTaskOid);
+
+        TaskType foundTask = getObject(TaskType.class, foundTaskOid).asObjectable();
+
+        campaignOid = ((CertificationCampaignCreationWorkStateType)foundTask
+                .getActivityState().getActivity().getWorkState()).getCreatedCampaignRef().getOid();
+
+        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         assertNotNull("Created campaign is null", campaign);
 
-        campaignOid = campaign.getOid();
-
-        campaign = getCampaignWithCases(campaignOid);
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
 
@@ -980,6 +987,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test495StartRemediation() throws Exception {
         // GIVEN
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
@@ -997,7 +1005,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         display("campaign after remediation start", campaign);
         assertTrue("wrong campaign state: " + campaign.getState(), campaign.getState() == CLOSED || campaign.getState() == IN_REMEDIATION);
 
-        List<PrismObject<TaskType>> tasks = getRemediationTasks(campaignOid, result);
+        List<PrismObject<TaskType>> tasks = getRemediationTasks(campaignOid, startTime, result);
         assertEquals("unexpected number of related tasks", 1, tasks.size());
         waitForTaskFinish(tasks.get(0).getOid());
 

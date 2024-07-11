@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 public interface CertificationManager {
 
     /**
-     * Creates a certification campaign: creates AccessCertificationCampaignType object, based on
+     * Creates task that create a certification campaign: creates AccessCertificationCampaignType object, based on
      * general information in certification definition.
      *
      * Mandatory information in the certification definition are:
@@ -44,11 +44,9 @@ public interface CertificationManager {
      * The campaign will NOT be started upon creation. It should be started explicitly by calling openNextStage method.
      *
      * @param definitionOid OID of certification definition for this campaign.
-     * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
-     * @return Object for the created campaign. It will be stored in the repository as well.
      */
-    AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult)
+    void createCampaign(String definitionOid, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**

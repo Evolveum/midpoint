@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
-import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.distribution.WorkersReconciliation;
 import com.evolveum.midpoint.repo.common.activity.run.distribution.WorkersReconciliationOptions;
@@ -341,7 +340,8 @@ public class TaskActivityManager {
     }
 
     /** Computes affected objects for a given activity definition, either simple or composite. */
-    public @Nullable TaskAffectedObjectsType computeAffectedObjects(@Nullable ActivityDefinitionType activityDefinitionBean)
+    public @Nullable TaskAffectedObjectsType computeAffectedObjects(
+            @Nullable ActivityDefinitionType activityDefinitionBean, AbstractActivityWorkStateType state)
             throws SchemaException, ConfigurationException {
         if (activityDefinitionBean == null) {
             return null;
@@ -354,6 +354,6 @@ public class TaskActivityManager {
         }
         // Note: tailoring is currently ignored here; it is applied only when the activity is run, because
         // run-time child activities are known only then.
-        return definition.getAffectedObjectsInformation().toBean();
+        return definition.getAffectedObjectsInformation(state).toBean();
     }
 }
