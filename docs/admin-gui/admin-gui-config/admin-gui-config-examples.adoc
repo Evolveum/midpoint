@@ -1,14 +1,16 @@
 = Admin GUI Configuration - Examples
 :page-nav-title: Configuration - Examples
 :page-keywords: [ "adminGuiConfig", "examples" ]
-
 :page-toc: top
 
-== Show Only Some Default Forms
+== Display Some Default Panels Only
 
-Suppose you want to show only "Basic", "Password", "Activation" and "Assignment" panels in the user details page.
-Then you can define a role like this:
+Suppose you want to display only "Basic", "Password", "Activation" and "Assignment" panels in the user details page.
+Then you can define a role according the example.
 
+.Example
+[%collapsible]
+====
 [source,xml]
 ----
 <role>
@@ -50,17 +52,20 @@ Then you can define a role like this:
     </adminGuiConfiguration>
 </role>
 ----
+====
 
-If user has this role then he will see only basic, password, activation and assignments menu links.
+If user has this role assigned, he will see basic, password, activation and assignments panels only.
 The projections, history and other menu links will be hidden.
-Of course, if the user has more roles that gives access to more panels than he will see these tabs as well.
+
+Of course, if the user has other roles that give him access to more panels, than he will see these tabs as well.
 
 == Customize assignments views
 
-With new configuration there are several options how to cutomize assignments views. E.g.:
+There are several options how to customize assignments views.
 
-. Hiding "All assignments" panel.
-+
+.Example: Hiding "All assignments" panel.
+[%collapsible]
+====
 [source,xml]
 ----
 <adminGuiConfiguration>
@@ -78,10 +83,11 @@ With new configuration there are several options how to cutomize assignments vie
     </objectDetails>
 </adminGuiConfiguration>
 ----
+====
 
-
-. Hiding "All assignments" panel and showing its contents in "Assignments" directly
-+
+.Example: Hiding "All assignments" panel and showing its contents in "Assignments" directly
+[%collapsible]
+====
 [source,xml]
 ----
 <adminGuiConfiguration>
@@ -100,9 +106,11 @@ With new configuration there are several options how to cutomize assignments vie
     </objectDetails>
 </adminGuiConfiguration>
 ----
+====
 
-. Change display name and icon for "Service assignments".
-+
+.Example: Change display name and icon for "Service assignments".
+[%collapsible]
+====
 [source,xml]
 ----
 <adminGuiConfiguration>
@@ -125,9 +133,11 @@ With new configuration there are several options how to cutomize assignments vie
   </objectDetails>
 </adminGuiConfiguration>
 ----
+====
 
-. Define custom collection for role assignments with default role panel.
-+
+.Example: Define custom collection for role assignments with default role panel.
+[%collapsible]
+====
 [source,xml]
 ----
 <adminGuiConfiguration>
@@ -158,9 +168,11 @@ With new configuration there are several options how to cutomize assignments vie
   </objectDetails>
 </adminGuiConfiguration>
 ----
+====
 
-. Customize role assignment details by creating virtual sections.
-+
+.Example: Customize role assignment details by creating virtual sections.
+[%collapsible]
+====
 [source,xml]
 ----
 <adminGuiConfiguration>
@@ -190,9 +202,11 @@ With new configuration there are several options how to cutomize assignments vie
   </objectDetails>
 </adminGuiConfiguration>
 ----
+====
 
-. Customize assignment menu - show only role and org assignments on top level.
-+
+.Example: Customize assignment menu - show only role and org assignments on top level.
+[%collapsible]
+====
 [source,xml]
 ----
 <adminGuiConfiguration>
@@ -227,15 +241,79 @@ With new configuration there are several options how to cutomize assignments vie
   </objectDetails>
 </adminGuiConfiguration>
 ----
+====
+
+== Customize All Accesses panel
+
+All accesses panel displays all direct and indirect assignments in more "business" language. It displays how the assignment was assigned and why.
+It displays full path how the target role is assigned for indirect assignments - it means all the higher level roles and ORGs from the top level directly assigned to the user.
+
+Technically - the panel displays structure from roleMembershipRef user attribute.
+
+In default configuration midPoint displays all assignments.
+But, not every assignment of role may represent access. E.g. assignment with relation owner may or may not define access. This depends on your organization environment.
+
+MidPoint allows engineers to modify the All Accesses panel. This example hides original All accesses panel and creates custom panel filtered to assignments with relation=default. It adds relation column to the panel's view.
+
+.Example: Filtering set of assignments and adding custom column
+[%collapsible]
+====
+[source,xml]
+----
+    <panel>
+        <identifier>igaAccesses</identifier>
+        <documentation>Hide original All Acesses panel</documentation>
+        <visibility>hidden</visibility>
+    </panel>
+
+    <panel>
+        <identifier>all-accesses-custom</identifier>
+        <documentation>Custom all accesses panel - filtered to relation=default and added relation column</documentation>
+        <display>
+            <label>All Accesses</label>
+        </display>
+        <displayOrder>25</displayOrder>
+        <panelType>userAllAccesses</panelType>
+        <listView>
+            <identifier>addedRelationView</identifier>
+            <column>
+                <name>relationColumnName</name>
+                <display>
+                    <label>Relation</label>
+                </display>
+                <export>
+                    <expression>
+                        <script>
+                            <objectVariableMode>prismReference</objectVariableMode>
+                            <code>
+                                object.getRelation().getLocalPart()
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <includeDefaultColumns>true</includeDefaultColumns>
+            <type>c:ObjectReferenceType</type>
+            <collection>
+                <filter>
+                    <q:text>. matches (relation = org:default)</q:text>
+                </filter>
+            </collection>
+        </listView>
+    </panel>
+----
+====
+
 
 == Virtual sections for different panel
 
-Suppose you need to somehow re-arrange basic properties for object or you have a lot of extension attributes which need to be divided to different sections.
-Since midPoint 4.4 it is possible to use _virtual sections_ for different panels.
+Suppose you need to somehow re-arrange basic properties for object, or have a lot of extension attributes which need to be divided to different sections.
+It is possible to use _virtual sections_ for different panels.
 Below are some examples:
 
-. Virtual sections for user basic panel.
-+
+.Example: Virtual sections for user basic panel.
+[%collapsible]
+====
 [source,xml]
 ----
 <adminGuiConfiguration>
@@ -280,9 +358,11 @@ Below are some examples:
   </objectDetails>
 </adminGuiConfiguration>
 ----
+====
 
-. Custom panel with multi-value extension attribute
-+
+.Example: Custom panel with multi-value extension attribute
+[%collapsible]
+====
 [source,xml]
 ----
 <adminGuiConfiguration>
@@ -311,9 +391,11 @@ Below are some examples:
   </objectDetails>
 </adminGuiConfiguration>
 ----
+====
 
-. Virtual section on role assignment details panel
-+
+.Example: Virtual section on role assignment details panel
+[%collapsible]
+====
 [source,xml]
 ----
 <adminGuiConfiguration>
@@ -343,11 +425,14 @@ Below are some examples:
   </objectDetails>
 </adminGuiConfiguration>
 ----
+====
+
 
 == Change order in menu link
 
-Change ordering of the menu links in details panel.
-
+.Example: Change ordering of the menu links in details panel.
+[%collapsible]
+====
 [source,xml]
 ----
 <adminGuiConfiguration>
@@ -366,11 +451,15 @@ Change ordering of the menu links in details panel.
   </objectDetails>
 </adminGuiConfiguration>
 ----
+====
 
 == Change default panel
 
 Set another panel as `basic` panel to be shown as a default panel after opening user details page.
 
+.Example
+[%collapsible]
+====
 [source,xml]
 ----
 <adminGuiConfiguration>
@@ -389,12 +478,17 @@ Set another panel as `basic` panel to be shown as a default panel after opening 
   </objectDetails>
 </adminGuiConfiguration>
 ----
+====
+
 
 == Configure fullText search item on the members basic search panel
 
 Search configuration will be applied on the organization members panel. Such configuration gives the possibility to use fullText search together with specific member filters (such as scope, relation, direct/indirect etc.)
 Be aware that fullText must be enabled to make this configuration work.
 
+.Example
+[%collapsible]
+====
 [source,xml]
 ----
     <adminGuiConfiguration>
@@ -427,11 +521,11 @@ Be aware that fullText must be enabled to make this configuration work.
         </objectDetails>
     </adminGuiConfiguration>
 ----
+====
 
 == New Custom Form in a Role
 
-TODO:
-
+// TODO: intro, context ?
 
 
 Possible visibility values are:
@@ -457,7 +551,7 @@ This setting is easily overridden.
 
 | hidden
 | The element is never visible.
-Even if any other role specifies the element as visible then the element will still remain invisible.
+Even if any other role specifies the element as visible, then the element will still remain hidden.
 This setting cannot be overridden
 
 
@@ -499,6 +593,9 @@ Possible widget identifiers on the self dashboard page:
 
 To customize columns in the object list table, please, see the following example
 
+.Example
+[%collapsible]
+====
 [source,xml]
 ----
 <!-- configuring custom columns for the user objects table -->
@@ -531,6 +628,8 @@ To customize columns in the object list table, please, see the following example
    </objectCollectionViews>
 </adminGuiConfiguration>
 ----
+====
+
 
 image::custom-columns-2022-03-18.png[]
 
@@ -593,6 +692,9 @@ However, the algorithm should be deterministic: the same ordering should be used
 
 // TODO: intro, context?
 
+.Example
+[%collapsible]
+====
 [source,xml]
 ----
 <adminGuiConfiguration>
@@ -612,5 +714,6 @@ However, the algorithm should be deterministic: the same ordering should be used
    </objectLists>
 </adminGuiConfiguration>
 ----
+====
 
 See also: xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]
