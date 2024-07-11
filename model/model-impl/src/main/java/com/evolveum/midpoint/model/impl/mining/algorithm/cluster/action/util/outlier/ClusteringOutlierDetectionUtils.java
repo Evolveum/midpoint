@@ -10,6 +10,7 @@ import com.evolveum.midpoint.common.mining.objects.statistic.ClusterStatistic;
 import com.evolveum.midpoint.common.mining.utils.values.*;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -443,7 +444,8 @@ public class ClusteringOutlierDetectionUtils {
                     DetectedAnomalyResult anomalyResult = new DetectedAnomalyResult();
                     anomalyResult.setTargetObjectRef(new ObjectReferenceType().oid(role).type(RoleType.COMPLEX_TYPE));
 
-                    DetectedAnomalyStatistics statistics = new DetectedAnomalyStatistics();
+                    anomalyResult.setStatistics(new DetectedAnomalyStatistics());
+                    DetectedAnomalyStatistics statistics = anomalyResult.getStatistics();
                     anomalyResult.setCreateTimestamp(
                             XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
 
@@ -456,10 +458,10 @@ public class ClusteringOutlierDetectionUtils {
                                 user, task, result);
                         RoleAnalysisPatternAnalysis patternAnalysis = detectAndLoadPatternAnalysis(
                                 miningRoleTypeChunk, user, miningRoleTypeChunks);
+                        statistics.setPatternAnalysis(patternAnalysis);
                         double anomalyConfidence = calculateAssignmentAnomalyConfidence(
                                 roleAnalysisService, session, userTypeObject, anomalyResult, task, result);
                         statistics.setConfidence(anomalyConfidence);
-                        statistics.setPatternAnalysis(patternAnalysis);
                         userRoleMap.put(user, anomalyResult);
                     }
 
@@ -502,7 +504,8 @@ public class ClusteringOutlierDetectionUtils {
                     similarObjectAnalysis.setSimilarObjectsDensity(density);
                     //TODO store just useful information
                     similarObjectAnalysis.setClusterStatistics(clusterStatistics);
-                    similarObjectAnalysis.getSimilarObjects().addAll(tempCluster.getMember());
+
+                    similarObjectAnalysis.getSimilarObjects().addAll(CloneUtil.cloneCollectionMembers(tempCluster.getMember()));
                     partitionAnalysis.setSimilarObjectAnalysis(similarObjectAnalysis);
 
                     List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
@@ -539,7 +542,7 @@ public class ClusteringOutlierDetectionUtils {
                         outlierConfidenceBasedAssignment += confidence;
                     }
 
-                    partitionType.getDetectedAnomalyResult().addAll(detectedAnomalyResults);
+                    partitionType.getDetectedAnomalyResult().addAll(CloneUtil.cloneCollectionMembers(detectedAnomalyResults));
 
                     double averageItemFactor = getAverageItemFactor(compareAttributeResult);
 

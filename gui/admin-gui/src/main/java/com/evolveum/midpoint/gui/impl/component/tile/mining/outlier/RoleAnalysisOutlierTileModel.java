@@ -14,12 +14,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierDescriptionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -34,22 +29,24 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
 
     String icon;
     String name;
-    RoleAnalysisOutlierDescriptionType descriptionType;
+    DetectedAnomalyResult descriptionType;
     String processMode;
     RoleAnalysisOutlierType outlierParent;
-
     OutlierObjectModel outlierObjectModel;
+    RoleAnalysisOutlierPartitionType partition;
 
     public RoleAnalysisOutlierTileModel(String icon, String title) {
         super(icon, title);
     }
 
     public RoleAnalysisOutlierTileModel(
-            @NotNull RoleAnalysisOutlierDescriptionType descriptionType,
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull DetectedAnomalyResult descriptionType,
             @NotNull String name,
             @NotNull String processMode,
             @NotNull RoleAnalysisOutlierType outlierParent,
             @NotNull PageBase pageBase) {
+        this.partition = partition;
         this.icon = GuiStyleConstants.CLASS_ICON_OUTLIER;
         this.name = name;
         this.descriptionType = descriptionType;
@@ -59,7 +56,7 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
         Task task = pageBase.createSimpleTask("Load object");
 
-        ObjectReferenceType ref = descriptionType.getObject();
+        ObjectReferenceType ref = descriptionType.getTargetObjectRef();
         QName type = ref.getType();
 
         if (type.equals(UserType.COMPLEX_TYPE)) {
@@ -76,7 +73,7 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
         }
 
         this.outlierObjectModel = generateAssignmentOutlierResultModel(
-                roleAnalysisService, descriptionType, task, task.getResult(), userTypeObject, outlierParent);
+                roleAnalysisService, descriptionType,partition, task, task.getResult(), userTypeObject, outlierParent);
     }
 
     @Override
@@ -105,11 +102,11 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
         this.processMode = processMode;
     }
 
-    public RoleAnalysisOutlierDescriptionType getDescriptionType() {
+    public DetectedAnomalyResult getDescriptionType() {
         return descriptionType;
     }
 
-    public void setDescriptionType(RoleAnalysisOutlierDescriptionType descriptionType) {
+    public void setDescriptionType(DetectedAnomalyResult descriptionType) {
         this.descriptionType = descriptionType;
     }
 
@@ -125,4 +122,7 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
         return outlierObjectModel;
     }
 
+    public RoleAnalysisOutlierPartitionType getPartition() {
+        return partition;
+    }
 }

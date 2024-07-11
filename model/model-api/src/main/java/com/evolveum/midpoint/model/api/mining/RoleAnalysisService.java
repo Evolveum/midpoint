@@ -216,11 +216,12 @@ public interface RoleAnalysisService {
      * @param sessionOid The session OID.
      * @param task The task associated with this operation.
      * @param result The operation result.
+     * @param recomputeStatistics
      */
     void deleteSessionClustersMembers(
             @NotNull String sessionOid,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result, boolean recomputeStatistics);
 
     /**
      * Deletes a single RoleAnalysisClusterType object.
@@ -228,11 +229,12 @@ public interface RoleAnalysisService {
      * @param cluster The cluster to delete.
      * @param task The task associated with this operation.
      * @param result The operation result.
+     * @param recomputeStatistics
      */
     void deleteCluster(
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result, boolean recomputeStatistics);
 
     /**
      * Recomputes the statistics of a RoleAnalysisSessionType object.

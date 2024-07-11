@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
@@ -22,6 +24,8 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
+
+import java.util.List;
 
 @PanelType(name = "outlierOutlinePanel")
 @PanelInstance(
@@ -52,9 +56,13 @@ public class OutlierOutlineResultPanel extends AbstractObjectMainPanel<RoleAnaly
 
         ObjectDetailsModels<RoleAnalysisOutlierType> objectDetailsModels = getObjectDetailsModels();
         RoleAnalysisOutlierType outlier = objectDetailsModels.getObjectType();
-        ObjectReferenceType targetObjectRef = outlier.getTargetObjectRef();
 
-        ObjectReferenceType targetClusterRef = outlier.getTargetClusterRef();
+        //TODO temporary solution
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
+
+        ObjectReferenceType targetObjectRef = outlierPartitions.get(0).getTargetSessionRef();
+
+        ObjectReferenceType targetClusterRef = outlierPartitions.get(0).getTargetClusterRef();
 
         OutlierAnalyseActionDetailsPopupPanel component = new OutlierAnalyseActionDetailsPopupPanel(
                 ID_PANEL,

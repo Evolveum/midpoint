@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateRoleOutlierResultModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
 
 import java.io.Serial;
@@ -247,160 +246,159 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                 for (int i = 0; i < searchResultList.size(); i++) {
                     PrismObject<RoleAnalysisOutlierType> outlierTypePrismObject = searchResultList.get(i);
                     RoleAnalysisOutlierType outlierObject = outlierTypePrismObject.asObjectable();
-                    List<RoleAnalysisOutlierDescriptionType> outlierStatResult = outlierObject.getResult();
-                    Double clusterConfidence = outlierObject.getClusterConfidence();
-                    String formattedConfidence = String.format("%.2f", clusterConfidence);
-                    String label;
+                    List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+                    for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+                        List<DetectedAnomalyResult> outlierStatResult = outlierPartition.getDetectedAnomalyResult();
+                        RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
+                        Double clusterConfidence = partitionAnalysis.getOverallConfidence();
+                        String formattedConfidence = String.format("%.2f", clusterConfidence);
+                        String label;
 
-                    ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
-                    PrismObject<RoleAnalysisClusterType> prismCluster = roleAnalysisService
-                            .getClusterTypeObject(targetClusterRef.getOid(), task, result);
-                    String clusterName = "unknown";
-                    if (prismCluster != null && prismCluster.getName() != null) {
-                        clusterName = prismCluster.getName().getOrig();
-                    }
+                        ObjectReferenceType targetClusterRef = outlierPartition.getTargetClusterRef();
+                        PrismObject<RoleAnalysisClusterType> prismCluster = roleAnalysisService
+                                .getClusterTypeObject(targetClusterRef.getOid(), task, result);
+                        String clusterName = "unknown";
+                        if (prismCluster != null && prismCluster.getName() != null) {
+                            clusterName = prismCluster.getName().getOrig();
+                        }
 
-                    if (outlierStatResult.size() > 1) {
-                        label = outlierStatResult.size() + " anomalies "
-                                + "with confidence of " + formattedConfidence + "% (" + clusterName.toLowerCase() + ").";
-                    } else {
-                        label = "1 anomalies with confidence of " + formattedConfidence
-                                + "% (" + clusterName.toLowerCase() + ").";
-                    }
+                        if (outlierStatResult.size() > 1) {
+                            label = outlierStatResult.size() + " anomalies "
+                                    + "with confidence of " + formattedConfidence + "% (" + clusterName.toLowerCase() + ").";
+                        } else {
+                            label = "1 anomalies with confidence of " + formattedConfidence
+                                    + "% (" + clusterName.toLowerCase() + ").";
+                        }
 
-                    int finalI = i;
-                    String finalLabel = label;
-                    repeatingView.add(new RoleAnalysisInfoItem(repeatingView.newChildId(), Model.of(finalLabel)) {
+                        int finalI = i;
+                        String finalLabel = label;
+                        repeatingView.add(new RoleAnalysisInfoItem(repeatingView.newChildId(), Model.of(finalLabel)) {
 
-                        @Override
-                        protected String getIconBoxText() {
+                            @Override
+                            protected String getIconBoxText() {
 //                            return "#" + (finalI + 1);
-                            return null;
-                        }
-
-                        @Override
-                        protected String getIconClass() {
-                            return "fa-2x " + GuiStyleConstants.CLASS_OUTLIER_ICON;
-                        }
-
-                        @Override
-                        protected String getIconBoxIconStyle() {
-                            return super.getIconBoxIconStyle();
-                        }
-
-                        @Override
-                        protected String getIconContainerCssClass() {
-                            return "btn btn-outline-dark";
-                        }
-
-                        @Override
-                        protected void addDescriptionComponents() {
-                            appendText(finalLabel);
-                        }
-
-                        @Override
-                        protected IModel<String> getDescriptionModel() {
-                            return Model.of(finalLabel);
-                        }
-
-                        @Override
-                        protected IModel<String> getLinkModel() {
-                            IModel<String> linkModel = super.getLinkModel();
-                            return Model.of(linkModel.getObject() + " outlier #" + (finalI + 1));
-                        }
-
-                        @Override
-                        protected void onClickLinkPerform(AjaxRequestTarget target) {
-                            PageParameters parameters = new PageParameters();
-                            String outlierOid = outlierObject.getOid();
-                            parameters.add(OnePageParameterEncoder.PARAMETER, outlierOid);
-                            StringValue fullTableSetting = getPageBase().getPageParameters().get(PARAM_TABLE_SETTING);
-                            if (fullTableSetting != null && fullTableSetting.toString() != null) {
-                                parameters.add(PARAM_TABLE_SETTING, fullTableSetting.toString());
+                                return null;
                             }
 
-                            Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                                    .getObjectDetailsPage(RoleAnalysisOutlierType.class);
-                            getPageBase().navigateToNext(detailsPageClass, parameters);
-
-                        }
-
-                        @Override
-                        protected void onClickIconPerform(AjaxRequestTarget target) {
-                            OutlierObjectModel outlierObjectModel;
-
-                            PageBase pageBase = getPageBase();
-                            RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-                            Task task = pageBase.createSimpleTask("loadOutlierDetails");
-                            ObjectReferenceType targetSessionRef = outlierObject.getTargetSessionRef();
-                            PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
-                                    .getSessionTypeObject(targetSessionRef.getOid(), task, task.getResult());
-                            if (sessionTypeObject == null) {
-                                return;
+                            @Override
+                            protected String getIconClass() {
+                                return "fa-2x " + GuiStyleConstants.CLASS_OUTLIER_ICON;
                             }
-                            RoleAnalysisSessionType sessionType = sessionTypeObject.asObjectable();
-                            RoleAnalysisProcessModeType processMode = sessionType.getAnalysisOption().getProcessMode();
 
-                            ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
-                            PrismObject<RoleAnalysisClusterType> clusterTypeObject = roleAnalysisService
-                                    .getClusterTypeObject(targetClusterRef.getOid(), task, task.getResult());
-                            if (clusterTypeObject == null) {
-                                return;
+                            @Override
+                            protected String getIconBoxIconStyle() {
+                                return super.getIconBoxIconStyle();
                             }
-                            RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
-                            if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+
+                            @Override
+                            protected String getIconContainerCssClass() {
+                                return "btn btn-outline-dark";
+                            }
+
+                            @Override
+                            protected void addDescriptionComponents() {
+                                appendText(finalLabel);
+                            }
+
+                            @Override
+                            protected IModel<String> getDescriptionModel() {
+                                return Model.of(finalLabel);
+                            }
+
+                            @Override
+                            protected IModel<String> getLinkModel() {
+                                IModel<String> linkModel = super.getLinkModel();
+                                return Model.of(linkModel.getObject() + " outlier #" + (finalI + 1));
+                            }
+
+                            @Override
+                            protected void onClickLinkPerform(AjaxRequestTarget target) {
+                                PageParameters parameters = new PageParameters();
+                                String outlierOid = outlierObject.getOid();
+                                parameters.add(OnePageParameterEncoder.PARAMETER, outlierOid);
+                                StringValue fullTableSetting = getPageBase().getPageParameters().get(PARAM_TABLE_SETTING);
+                                if (fullTableSetting != null && fullTableSetting.toString() != null) {
+                                    parameters.add(PARAM_TABLE_SETTING, fullTableSetting.toString());
+                                }
+
+                                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                                        .getObjectDetailsPage(RoleAnalysisOutlierType.class);
+                                getPageBase().navigateToNext(detailsPageClass, parameters);
+
+                            }
+
+                            @Override
+                            protected void onClickIconPerform(AjaxRequestTarget target) {
+                                OutlierObjectModel outlierObjectModel;
+
+                                PageBase pageBase = getPageBase();
+                                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+                                Task task = pageBase.createSimpleTask("loadOutlierDetails");
+                                ObjectReferenceType targetSessionRef = outlierPartition.getTargetSessionRef();
+                                PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
+                                        .getSessionTypeObject(targetSessionRef.getOid(), task, task.getResult());
+                                if (sessionTypeObject == null) {
+                                    return;
+                                }
+                                RoleAnalysisSessionType sessionType = sessionTypeObject.asObjectable();
+                                RoleAnalysisProcessModeType processMode = sessionType.getAnalysisOption().getProcessMode();
+
+                                ObjectReferenceType targetClusterRef = outlierPartition.getTargetClusterRef();
+                                PrismObject<RoleAnalysisClusterType> clusterTypeObject = roleAnalysisService
+                                        .getClusterTypeObject(targetClusterRef.getOid(), task, task.getResult());
+                                if (clusterTypeObject == null) {
+                                    return;
+                                }
+                                RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
                                 outlierObjectModel = generateUserOutlierResultModel(
-                                        roleAnalysisService, outlierObject, task, task.getResult(), cluster);
-                            } else {
-                                outlierObjectModel = generateRoleOutlierResultModel(
-                                        roleAnalysisService, outlierObject, task, task.getResult(), cluster);
+                                        roleAnalysisService, outlierObject, task, task.getResult(), cluster, outlierPartition);
+
+                                if (outlierObjectModel == null) {
+                                    return;
+                                }
+                                String outlierName = outlierObjectModel.getOutlierName();
+                                double outlierConfidence = outlierObjectModel.getOutlierConfidence();
+                                String outlierDescription = outlierObjectModel.getOutlierDescription();
+                                String timeCreated = outlierObjectModel.getTimeCreated();
+
+                                OutlierResultPanel detailsPanel = new OutlierResultPanel(
+                                        ((PageBase) getPage()).getMainPopupBodyId(),
+                                        Model.of("Outlier details")) {
+
+                                    @Override
+                                    public String getCardCssClass() {
+                                        return "";
+                                    }
+
+                                    @Override
+                                    public Component getCardHeaderBody(String componentId) {
+                                        OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(componentId, outlierName,
+                                                outlierDescription, String.valueOf(outlierConfidence), timeCreated);
+                                        components.setOutputMarkupId(true);
+                                        return components;
+                                    }
+
+                                    @Override
+                                    public Component getCardBodyComponent(String componentId) {
+                                        //TODO just for testing
+                                        RepeatingView cardBodyComponent = (RepeatingView) super.getCardBodyComponent(componentId);
+                                        outlierObjectModel.getOutlierItemModels()
+                                                .forEach(outlierItemModel
+                                                        -> cardBodyComponent.add(
+                                                        new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel)));
+                                        return cardBodyComponent;
+                                    }
+
+                                    @Override
+                                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                                        super.onClose(ajaxRequestTarget);
+                                    }
+
+                                };
+                                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
                             }
-
-                            if (outlierObjectModel == null) {
-                                return;
-                            }
-                            String outlierName = outlierObjectModel.getOutlierName();
-                            double outlierConfidence = outlierObjectModel.getOutlierConfidence();
-                            String outlierDescription = outlierObjectModel.getOutlierDescription();
-                            String timeCreated = outlierObjectModel.getTimeCreated();
-
-                            OutlierResultPanel detailsPanel = new OutlierResultPanel(
-                                    ((PageBase) getPage()).getMainPopupBodyId(),
-                                    Model.of("Outlier details")) {
-
-                                @Override
-                                public String getCardCssClass() {
-                                    return "";
-                                }
-
-                                @Override
-                                public Component getCardHeaderBody(String componentId) {
-                                    OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(componentId, outlierName,
-                                            outlierDescription, String.valueOf(outlierConfidence), timeCreated);
-                                    components.setOutputMarkupId(true);
-                                    return components;
-                                }
-
-                                @Override
-                                public Component getCardBodyComponent(String componentId) {
-                                    //TODO just for testing
-                                    RepeatingView cardBodyComponent = (RepeatingView) super.getCardBodyComponent(componentId);
-                                    outlierObjectModel.getOutlierItemModels()
-                                            .forEach(outlierItemModel
-                                                    -> cardBodyComponent.add(
-                                                    new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel)));
-                                    return cardBodyComponent;
-                                }
-
-                                @Override
-                                public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                                    super.onClose(ajaxRequestTarget);
-                                }
-
-                            };
-                            ((PageBase) getPage()).showMainPopup(detailsPanel, target);
-                        }
-                    });
+                        });
+                    }
                 }
             }
 
@@ -527,14 +525,14 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
             RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
 
-            initOutliersAnalysisHeaders(headerItems, sessionClusters, processMode);
+            initOutliersAnalysisHeaders(headerItems, session, sessionClusters, processMode);
 
             emptyPanel(ID_CARD_TITLE, "Top session outlier", container);
 
             AjaxCompositedIconSubmitButton components = buildExplorePatternOutlier(topOutlier);
             container.add(components);
 
-            initOutlierPanel(container);
+            initOutlierPanel(container, session);
 
         } else {
             emptyPanel(ID_PANEL, "No data available", container);
@@ -670,6 +668,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
     private void initOutliersAnalysisHeaders(
             @NotNull RepeatingView headerItems,
+            @NotNull RoleAnalysisSessionType sessionObject,
             List<PrismObject<RoleAnalysisClusterType>> sessionClusters,
             @NotNull RoleAnalysisProcessModeType processMode) {
 
@@ -698,20 +697,26 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         PageBase pageBase = getPageBase();
         ModelService modelService = pageBase.getModelService();
 
+        String sessionOid = sessionObject.getOid();
         Task task = pageBase.createSimpleTask("Search outlier objects");
         ResultHandler<RoleAnalysisOutlierType> handler = (object, parentResult) -> {
             userOutlierCount++;
             RoleAnalysisOutlierType outlier = object.asObjectable();
-            List<RoleAnalysisOutlierDescriptionType> result = outlier.getResult();
-            if (result != null) {
-                assignmentAnomalyCount += result.size();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
 
-                Double clusterConfidence = outlier.getClusterConfidence();
-                if (clusterConfidence != null && clusterConfidence > topConfidence) {
-                    topConfidence = clusterConfidence.intValue();
-                    topOutlier = outlier;
+            for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+                List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+                RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
+                ObjectReferenceType targetSessionRef = outlierPartition.getTargetSessionRef();
+
+                if (targetSessionRef.getOid().equals(sessionOid)) {
+                    assignmentAnomalyCount += detectedAnomalyResult.size();
+                    Double clusterConfidence = partitionAnalysis.getOverallConfidence();
+                    if (clusterConfidence != null && clusterConfidence > topConfidence) {
+                        topConfidence = clusterConfidence.intValue();
+                        topOutlier = outlier;
+                    }
                 }
-
             }
             return true;
         };
@@ -872,7 +877,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
-    public void initOutlierPanel(WebMarkupContainer container) {
+    public void initOutlierPanel(WebMarkupContainer container, RoleAnalysisSessionType session) {
         OutlierObjectModel outlierObjectModel;
 
         PageBase pageBase = getPageBase();
@@ -883,18 +888,22 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             emptyPanel(ID_PANEL, "No data available", container);
             return;
         }
-        ObjectReferenceType targetSessionRef = outlierObject.getTargetSessionRef();
-        PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
-                .getSessionTypeObject(targetSessionRef.getOid(), task, task.getResult());
 
-        if (sessionTypeObject == null) {
-            emptyPanel(ID_PANEL, "No data available", container);
-            return;
+        ObjectReferenceType targetSessionRef = null;
+        ObjectReferenceType targetClusterRef = null;
+        String sessionOid = session.getOid();
+        RoleAnalysisOutlierPartitionType outlierPartition = null;
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+        for (RoleAnalysisOutlierPartitionType outlierPartitionNext : outlierPartitions) {
+            ObjectReferenceType partitionTargetSessionRef = outlierPartitionNext.getTargetSessionRef();
+            if (partitionTargetSessionRef.getOid().equals(sessionOid)) {
+                targetSessionRef = partitionTargetSessionRef;
+                targetClusterRef = outlierPartitionNext.getTargetClusterRef();
+                outlierPartition = outlierPartitionNext;
+                break;
+            }
         }
-        RoleAnalysisSessionType sessionType = sessionTypeObject.asObjectable();
-        RoleAnalysisProcessModeType processMode = sessionType.getAnalysisOption().getProcessMode();
 
-        ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
         PrismObject<RoleAnalysisClusterType> clusterTypeObject = roleAnalysisService
                 .getClusterTypeObject(targetClusterRef.getOid(), task, task.getResult());
         if (clusterTypeObject == null) {
@@ -902,13 +911,9 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             return;
         }
         RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
-        if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-            outlierObjectModel = generateUserOutlierResultModel(
-                    roleAnalysisService, outlierObject, task, task.getResult(), cluster);
-        } else {
-            outlierObjectModel = generateRoleOutlierResultModel(
-                    roleAnalysisService, outlierObject, task, task.getResult(), cluster);
-        }
+
+        outlierObjectModel = generateUserOutlierResultModel(
+                roleAnalysisService, outlierObject, task, task.getResult(), cluster, outlierPartition);
 
         if (outlierObjectModel == null) {
             emptyPanel(ID_PANEL, "No data available", container);

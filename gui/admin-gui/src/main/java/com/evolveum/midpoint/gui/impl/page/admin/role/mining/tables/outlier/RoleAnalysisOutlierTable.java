@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateRoleOutlierResultModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
 
 import java.util.*;
@@ -106,13 +105,57 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
 
                     @Override
                     public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
-                        return Model.of(iModel.getObject().getValue().getResult().size());
+                        RoleAnalysisOutlierType outlierObject = iModel.getObject().getValue();
+                        Set<String> anomalies = new HashSet<>();
+                        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+                        for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+                            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+                            for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
+                                anomalies.add(detectedAnomaly.getTargetObjectRef().getOid());
+                            }
+                        }
+                        return Model.of(anomalies.size());
                     }
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
-                        cellItem.add(new Label(componentId, model.getObject().getValue().getResult().size()));
+
+                        RoleAnalysisOutlierType outlierObject = model.getObject().getValue();
+                        Set<String> anomalies = new HashSet<>();
+                        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+                        for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+                            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+                            for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
+                                anomalies.add(detectedAnomaly.getTargetObjectRef().getOid());
+                            }
+                        }
+                        cellItem.add(new Label(componentId, anomalies.size()));
+                    }
+
+                    @Override
+                    public boolean isSortable() {
+                        return false;
+                    }
+
+                };
+                defaultColumns.add(column);
+                column = new AbstractExportableColumn<>(
+                        createStringResource("RoleAnalysisOutlierTable.outlier.partitions")) {
+
+                    @Override
+                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
+                        RoleAnalysisOutlierType outlierObject = iModel.getObject().getValue();
+                        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+                        return Model.of(outlierPartitions.size());
+                    }
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
+                        RoleAnalysisOutlierType outlierObject = model.getObject().getValue();
+                        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+                        cellItem.add(new Label(componentId, outlierPartitions.size()));
                     }
 
                     @Override
@@ -128,7 +171,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
 
                     @Override
                     public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
-                        return Model.of(iModel.getObject().getValue().getResult().size());
+                        return Model.of("");
                     }
 
                     @Override
@@ -137,48 +180,11 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
 
                         RoleAnalysisOutlierType outlier = model.getObject().getValue();
 
-                        Double clusterConfidence = outlier.getClusterConfidence();
+                        Double clusterConfidence = outlier.getOverallConfidence();
                         double clusterConfidenceValue = clusterConfidence != null ? clusterConfidence : 0;
 
                         String formattedClusterConfidence = String.format("%.2f", clusterConfidenceValue);
                         cellItem.add(new Label(componentId, formattedClusterConfidence + " %"));
-
-                    }
-
-                    @Override
-                    public boolean isSortable() {
-                        return false;
-                    }
-
-                };
-                defaultColumns.add(column);
-
-                column = new AbstractExportableColumn<>(
-                        createStringResource("RoleAnalysisOutlierTable.clusters.status.header")) {
-
-                    @Override
-                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
-                        return Model.of(iModel.getObject().getValue().getResult().size());
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
-                        List<RoleAnalysisOutlierDescriptionType> result = model.getObject().getValue().getResult();
-
-                        double min = Double.POSITIVE_INFINITY;
-                        double max = Double.NEGATIVE_INFINITY;
-
-                        Set<String> clusters = new HashSet<>();
-                        for (RoleAnalysisOutlierDescriptionType roleAnalysisOutlierDescriptionType : result) {
-                            clusters.add(roleAnalysisOutlierDescriptionType.getCluster().getOid());
-                        }
-
-                        if (clusters.size() == 1) {
-                            cellItem.add(new Label(componentId, "Single (" + clusters.size() + ")"));
-                        } else {
-                            cellItem.add(new Label(componentId, "Multiple (" + clusters.size() + ")"));
-                        }
 
                     }
 
@@ -208,16 +214,21 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
                         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
                         Task task = getPageBase().createSimpleTask("Load object");
                         ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
-                        PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(roleAnalysisSessionRef.getOid(), task, task.getResult());
+                        PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(
+                                roleAnalysisSessionRef.getOid(), task, task.getResult());
                         assert sessionTypeObject != null;
                         RoleAnalysisSessionType sessionType = sessionTypeObject.asObjectable();
                         RoleAnalysisProcessModeType processMode = sessionType.getAnalysisOption().getProcessMode();
-                        OutlierObjectModel outlierObjectModel;
+                        OutlierObjectModel outlierObjectModel = null;
                         RoleAnalysisOutlierType outlier = rowModel.getObject().getValue();
+
+                        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
+
                         if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-                            outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlier, task, task.getResult(), cluster);
+                            //TODO!
+                            outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlier, task, task.getResult(), cluster, outlierPartitions.get(0));
                         } else {
-                            outlierObjectModel = generateRoleOutlierResultModel(roleAnalysisService, outlier, task, task.getResult(), cluster);
+                            //TODO
                         }
 
                         String outlierName = outlierObjectModel.getOutlierName();
@@ -225,6 +236,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
                         String outlierDescription = outlierObjectModel.getOutlierDescription();
                         String timeCreated = outlierObjectModel.getTimeCreated();
 
+                        OutlierObjectModel finalOutlierObjectModel = outlierObjectModel;
                         cellItem.add(new AjaxLinkPanel(componentId, Model.of("Result")) {
                             @Override
                             public void onClick(AjaxRequestTarget target) {
@@ -244,7 +256,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
                                     public Component getCardBodyComponent(String componentId) {
                                         //TODO just for testing
                                         RepeatingView cardBodyComponent = (RepeatingView) super.getCardBodyComponent(componentId);
-                                        outlierObjectModel.getOutlierItemModels().forEach(outlierItemModel -> {
+                                        finalOutlierObjectModel.getOutlierItemModels().forEach(outlierItemModel -> {
                                             cardBodyComponent.add(new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel));
                                         });
                                         return cardBodyComponent;
@@ -344,33 +356,4 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
             }
         };
     }
-
-    @NotNull
-    private List<RoleAnalysisOutlierType> findClusterOutliers(@NotNull RoleAnalysisClusterType cluster) {
-        List<RoleAnalysisOutlierType> searchResultList = new ArrayList<>();
-        String clusterOid = cluster.getOid();
-        ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
-
-            RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
-            ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
-            String oid = targetClusterRef.getOid();
-            if (clusterOid.equals(oid)) {
-                searchResultList.add(outlier.asObjectable());
-            }
-            return true;
-        };
-
-        PageBase pageBase = getPageBase();
-        Task task = pageBase.createSimpleTask("Search outliers");
-        OperationResult result = task.getResult();
-
-        try {
-            pageBase.getModelService().searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
-                    null, task, result);
-        } catch (Exception ex) {
-            throw new RuntimeException("Couldn't search outliers", ex);
-        }
-        return searchResultList;
-    }
-
 }

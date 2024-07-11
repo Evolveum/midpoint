@@ -408,10 +408,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     public void deleteSessionClustersMembers(
             @NotNull String sessionOid,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            boolean recomputeStatistics) {
         ResultHandler<RoleAnalysisClusterType> resultHandler = (object, parentResult) -> {
             try {
-                deleteCluster(object.asObjectable(), task, result);
+                deleteCluster(object.asObjectable(), task, result, recomputeStatistics);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -436,7 +437,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     public void deleteCluster(
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            boolean recomputeStatistics) {
         String clusterOid = cluster.getOid();
         PrismObject<RoleAnalysisSessionType> sessionObject = getSessionTypeObject(
                 cluster.getRoleAnalysisSessionRef().getOid(), task, result
@@ -447,7 +449,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
 
         try {
-
             ObjectDelta<RoleAnalysisClusterType> deleteDelta = PrismContext.get().deltaFactory().object()
                     .createDeleteDelta(RoleAnalysisClusterType.class, clusterOid);
 
@@ -458,20 +459,22 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             LOGGER.error("Couldn't delete RoleAnalysisClusterType {}", clusterOid, e);
         }
 
-        try {
+        if (recomputeStatistics) {
+            try {
 
-            // FIXME
-            ObjectDelta<RoleAnalysisSessionType> delta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
-                    .item(RoleAnalysisSessionType.F_METADATA, F_MODIFY_TIMESTAMP).replace(getCurrentXMLGregorianCalendar())
-                    .asObjectDelta(sessionObject.getOid());
+                // FIXME
+                ObjectDelta<RoleAnalysisSessionType> delta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
+                        .item(RoleAnalysisSessionType.F_METADATA, F_MODIFY_TIMESTAMP).replace(getCurrentXMLGregorianCalendar())
+                        .asObjectDelta(sessionObject.getOid());
 
-            modelService.executeChanges(singleton(delta), null, task, result);
+                modelService.executeChanges(singleton(delta), null, task, result);
 
-            recomputeSessionStatics(sessionObject.getOid(), cluster, task, result);
+                recomputeSessionStatics(sessionObject.getOid(), cluster, task, result);
 
-        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
-            LOGGER.error("Couldn't recompute RoleAnalysisSessionStatistic {}", sessionObject.getOid(), e);
+            } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                    CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+                LOGGER.error("Couldn't recompute RoleAnalysisSessionStatistic {}", sessionObject.getOid(), e);
+            }
         }
     }
 
@@ -703,7 +706,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 deleteAllOutliers(task, result);
             }
 
-            deleteSessionClustersMembers(sessionOid, task, result);
+            deleteSessionClustersMembers(sessionOid, task, result, false);
 
             ObjectDelta<AssignmentHolderType> deleteDelta = PrismContext.get().deltaFactory().object()
                     .createDeleteDelta(AssignmentHolderType.class, sessionOid);
@@ -2183,7 +2186,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         List<RoleAnalysisOutlierPartitionType> outlierPartitions = roleAnalysisOutlierType.getOutlierPartitions();
 
         RoleAnalysisOutlierPartitionType partitionType = outlierPartitions.get(0);
-
 
         Double clusterConfidence = partitionType.getPartitionAnalysis().getOverallConfidence();
         if (clusterConfidence == null) {

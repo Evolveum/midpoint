@@ -785,7 +785,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                                 SelectableBean<RoleAnalysisClusterType> roleAnalysisSessionTypeSelectableBean = selectedObjects.get(0);
                                 roleAnalysisService
                                         .deleteCluster(
-                                                roleAnalysisSessionTypeSelectableBean.getValue(), task, result);
+                                                roleAnalysisSessionTypeSelectableBean.getValue(), task, result, true);
                             } catch (Exception e) {
                                 throw new RuntimeException("Couldn't delete selected cluster", e);
                             }
@@ -794,7 +794,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                                 IModel<SelectableBean<RoleAnalysisClusterType>> rowModel = getRowModel();
                                 roleAnalysisService
                                         .deleteCluster(
-                                                rowModel.getObject().getValue(), task, result);
+                                                rowModel.getObject().getValue(), task, result, true);
                             } catch (Exception e) {
                                 throw new RuntimeException("Couldn't delete selected cluster", e);
                             }
@@ -804,7 +804,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                                     RoleAnalysisClusterType roleAnalysisClusterType = selectedObject.getValue();
                                     roleAnalysisService
                                             .deleteCluster(
-                                                    roleAnalysisClusterType, task, result);
+                                                    roleAnalysisClusterType, task, result, true);
                                 } catch (Exception e) {
                                     throw new RuntimeException("Couldn't delete selected cluster", e);
                                 }

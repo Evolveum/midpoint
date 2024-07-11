@@ -101,8 +101,8 @@ public class AttributeAnalysisUtil {
             AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
                     value.getFrequencyMap().size(), usersCount, value.getTotalRelation(), key);
             attributeAnalysisStructure.setComplexType(UserType.COMPLEX_TYPE);
-            attributeAnalysisStructure.setDescription(
-                    generateFrequencyMapDescription(value.getFrequencyMap(), value.getMaximumFrequency()));
+//            attributeAnalysisStructure.setDescription(
+//                    generateFrequencyMapDescription(value.getFrequencyMap(), value.getMaximumFrequency()));
             generateAttributeAnalysisStructure(roleAnalysisService, UserType.class, value, attributeAnalysisStructure, usersCount,
                     task, result);
             attributeAnalysisStructures.add(attributeAnalysisStructure);
@@ -151,8 +151,8 @@ public class AttributeAnalysisUtil {
             AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
                     value.getFrequencyMap().size(), rolesCount, value.getTotalRelation(), key);
             attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
-            attributeAnalysisStructure.setDescription(
-                    generateFrequencyMapDescription(value.getFrequencyMap(), value.getMaximumFrequency()));
+//            attributeAnalysisStructure.setDescription(
+//                    generateFrequencyMapDescription(value.getFrequencyMap(), value.getMaximumFrequency()));
             generateAttributeAnalysisStructure(roleAnalysisService, RoleType.class, value, attributeAnalysisStructure, rolesCount,
                     task, result);
             attributeAnalysisStructures.add(attributeAnalysisStructure);

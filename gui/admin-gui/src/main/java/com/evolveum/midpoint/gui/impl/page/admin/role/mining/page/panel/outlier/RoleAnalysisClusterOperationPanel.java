@@ -119,7 +119,9 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
         Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECTS);
         RoleAnalysisOutlierType outlier = getObjectDetailsModels().getObjectType();
-        ObjectReferenceType targetClusterRef = outlier.getTargetClusterRef();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
+
+        ObjectReferenceType targetClusterRef = outlierPartitions.get(0).getTargetClusterRef();
         PrismObject<RoleAnalysisClusterType> clusterObject = roleAnalysisService.getClusterTypeObject(
                 targetClusterRef.getOid(), task, result);
         RoleAnalysisClusterType cluster = clusterObject.asObjectable();

@@ -78,7 +78,7 @@ import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
+public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<RoleAnalysisOutlierPartitionType> {
 
     private static final String ID_DATATABLE = "datatable";
     PageBase pageBase;
@@ -87,9 +87,9 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
     public RoleAnalysisOutlierPropertyTileTable(
             @NotNull String id,
             @NotNull PageBase pageBase,
-            @NotNull LoadableDetachableModel<List<RoleAnalysisOutlierDescriptionType>> outlierDescriptionList,
+            @NotNull IModel<RoleAnalysisOutlierPartitionType> outlierPartition,
             @NotNull RoleAnalysisOutlierType outlierParent) {
-        super(id);
+        super(id, outlierPartition);
         this.pageBase = pageBase;
         this.items = new LoadableModel<>(false) {
 
@@ -113,20 +113,28 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
                 return list;
             }
         };
-        add(initTable(outlierDescriptionList, outlierParent));
+
+        RoleAnalysisOutlierPartitionType object = outlierPartition.getObject();
+        List<DetectedAnomalyResult> detectedAnomalyResult = object.getDetectedAnomalyResult();
+        add(initTable(new LoadableDetachableModel<>() {
+            @Override
+            protected List<DetectedAnomalyResult> load() {
+                return detectedAnomalyResult;
+            }
+        }, outlierParent));
     }
 
-    public TileTablePanel<RoleAnalysisOutlierTileModel<RoleAnalysisOutlierDescriptionType>, RoleAnalysisOutlierDescriptionType> initTable(
-            @NotNull LoadableDetachableModel<List<RoleAnalysisOutlierDescriptionType>> outlierDescriptionList,
+    public TileTablePanel<RoleAnalysisOutlierTileModel<DetectedAnomalyResult>, DetectedAnomalyResult> initTable(
+            @NotNull LoadableDetachableModel<List<DetectedAnomalyResult>> outlierDescriptionList,
             @NotNull RoleAnalysisOutlierType outlierParent) {
 
-        RoleMiningProvider<RoleAnalysisOutlierDescriptionType> provider = new RoleMiningProvider<>(
+        RoleMiningProvider<DetectedAnomalyResult> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(outlierDescriptionList.getObject()) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void setObject(List<RoleAnalysisOutlierDescriptionType> object) {
+            public void setObject(List<DetectedAnomalyResult> object) {
                 super.setObject(object);
             }
 
@@ -143,7 +151,7 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
             }
 
             @Override
-            protected List<IColumn<RoleAnalysisOutlierDescriptionType, String>> createColumns() {
+            protected List<IColumn<DetectedAnomalyResult, String>> createColumns() {
                 return RoleAnalysisOutlierPropertyTileTable.this.initColumns(outlierParent);
             }
 
@@ -235,16 +243,17 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
             }
 
             @Override
-            protected PageableListView<?, ?> createTilesPanel(String tilesId, ISortableDataProvider<RoleAnalysisOutlierDescriptionType, String> provider1) {
+            protected PageableListView<?, ?> createTilesPanel(String tilesId, ISortableDataProvider<DetectedAnomalyResult, String> provider1) {
                 return super.createTilesPanel(tilesId, provider1);
             }
 
             @SuppressWarnings({ "rawtypes", "unchecked" })
             @Override
-            protected RoleAnalysisOutlierTileModel createTileObject(RoleAnalysisOutlierDescriptionType object) {
-                ObjectReferenceType ref = object.getObject();
+            protected RoleAnalysisOutlierTileModel createTileObject(DetectedAnomalyResult object) {
+                ObjectReferenceType ref = object.getTargetObjectRef();
                 String name = ref.getTargetName().toString();
-                return new RoleAnalysisOutlierTileModel<>(object, name, "TODO", outlierParent, getPageBase());
+                return new RoleAnalysisOutlierTileModel<>(RoleAnalysisOutlierPropertyTileTable.this.getModelObject(),
+                        object, name, "TODO", outlierParent, getPageBase());
             }
 
             @Override
@@ -263,7 +272,7 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
             }
 
             @Override
-            protected Component createTile(String id, IModel<RoleAnalysisOutlierTileModel<RoleAnalysisOutlierDescriptionType>> model) {
+            protected Component createTile(String id, IModel<RoleAnalysisOutlierTileModel<DetectedAnomalyResult>> model) {
                 return new RoleAnalysisOutlierTilePanel<>(id, model);
             }
         };
@@ -273,18 +282,18 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
         return null;
     }
 
-    public List<IColumn<RoleAnalysisOutlierDescriptionType, String>> initColumns(@NotNull RoleAnalysisOutlierType outlierParent) {
+    public List<IColumn<DetectedAnomalyResult, String>> initColumns(@NotNull RoleAnalysisOutlierType outlierParent) {
 
-        List<IColumn<RoleAnalysisOutlierDescriptionType, String>> columns = new ArrayList<>();
+        List<IColumn<DetectedAnomalyResult, String>> columns = new ArrayList<>();
 
         columns.add(new IconColumn<>(null) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected DisplayType getIconDisplayType(IModel<RoleAnalysisOutlierDescriptionType> rowModel) {
+            protected DisplayType getIconDisplayType(IModel<DetectedAnomalyResult> rowModel) {
 
-                RoleAnalysisOutlierDescriptionType result = rowModel.getObject();
-                ObjectReferenceType object = result.getObject();
+                DetectedAnomalyResult result = rowModel.getObject();
+                ObjectReferenceType object = result.getTargetObjectRef();
                 if (object.getType().equals(UserType.COMPLEX_TYPE)) {
                     return createDisplayType(GuiStyleConstants.CLASS_OBJECT_USER_ICON, "black", "");
                 }
@@ -301,11 +310,11 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item, String componentId,
-                    IModel<RoleAnalysisOutlierDescriptionType> rowModel) {
+            public void populateItem(Item<ICellPopulator<DetectedAnomalyResult>> item, String componentId,
+                    IModel<DetectedAnomalyResult> rowModel) {
 
-                RoleAnalysisOutlierDescriptionType result = rowModel.getObject();
-                ObjectReferenceType ref = result.getObject();
+                DetectedAnomalyResult result = rowModel.getObject();
+                ObjectReferenceType ref = result.getTargetObjectRef();
                 PolyStringType targetName = ref.getTargetName();
                 String oid = ref.getOid();
                 QName type = ref.getType();
@@ -361,11 +370,10 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item, String componentId,
-                    IModel<RoleAnalysisOutlierDescriptionType> rowModel) {
-
-                RoleAnalysisOutlierDescriptionType result = rowModel.getObject();
-                ObjectReferenceType ref = result.getSession();
+            public void populateItem(Item<ICellPopulator<DetectedAnomalyResult>> item, String componentId,
+                    IModel<DetectedAnomalyResult> rowModel) {
+                RoleAnalysisOutlierPartitionType modelObject = getModelObject();
+                ObjectReferenceType ref = modelObject.beginTargetSessionRef();
 
                 Task task = getPageBase().createSimpleTask("Load object");
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
@@ -402,11 +410,11 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item, String componentId,
-                    IModel<RoleAnalysisOutlierDescriptionType> rowModel) {
+            public void populateItem(Item<ICellPopulator<DetectedAnomalyResult>> item, String componentId,
+                    IModel<DetectedAnomalyResult> rowModel) {
 
-                RoleAnalysisOutlierDescriptionType result = rowModel.getObject();
-                ObjectReferenceType ref = result.getCluster();
+                RoleAnalysisOutlierPartitionType modelObject = getModelObject();
+                ObjectReferenceType ref = modelObject.getTargetClusterRef();
 
                 Task task = getPageBase().createSimpleTask("Load object");
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
@@ -446,7 +454,7 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
 
             @Override
             public String getSortProperty() {
-                return RoleAnalysisOutlierDescriptionType.F_CONFIDENCE_DEVIATION.getLocalPart();
+                return DetectedAnomalyStatistics.F_CONFIDENCE_DEVIATION.getLocalPart();
             }
 
             @Override
@@ -455,10 +463,12 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item, String componentId,
-                    IModel<RoleAnalysisOutlierDescriptionType> rowModel) {
-                if (rowModel.getObject() != null) {
-                    Double confidence = rowModel.getObject().getConfidenceDeviation();
+            public void populateItem(Item<ICellPopulator<DetectedAnomalyResult>> item, String componentId,
+                    IModel<DetectedAnomalyResult> rowModel) {
+                if (rowModel.getObject() != null && rowModel.getObject().getStatistics() != null) {
+                    DetectedAnomalyResult detectedAnomalyResult = rowModel.getObject();
+                    DetectedAnomalyStatistics statistics = detectedAnomalyResult.getStatistics();
+                    Double confidence = statistics.getConfidenceDeviation();
                     if (confidence != null) {
                         double confidencePercentage = confidence * 100.0;
                         confidencePercentage = confidencePercentage * 100.0 / 100.0;
@@ -491,14 +501,15 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item, String componentId,
-                    IModel<RoleAnalysisOutlierDescriptionType> rowModel) {
+            public void populateItem(Item<ICellPopulator<DetectedAnomalyResult>> item, String componentId,
+                    IModel<DetectedAnomalyResult> rowModel) {
 
                 Task task = getPageBase().createSimpleTask("Load object");
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
-                RoleAnalysisOutlierDescriptionType result = rowModel.getObject();
-                ObjectReferenceType clusterRef = result.getCluster();
+                DetectedAnomalyResult result = rowModel.getObject();
+                RoleAnalysisOutlierPartitionType modelObject = getModelObject();
+                ObjectReferenceType clusterRef = modelObject.getTargetClusterRef();
 
                 PrismObject<RoleAnalysisClusterType> object = roleAnalysisService
                         .getObject(RoleAnalysisClusterType.class, clusterRef.getOid(), task, task.getResult());
@@ -513,7 +524,7 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
 
-                        ObjectReferenceType propertyObjectRef = result.getObject();
+                        ObjectReferenceType propertyObjectRef = result.getTargetObjectRef();
                         QName type = propertyObjectRef.getType();
                         ObjectReferenceType targetObjectRef = outlierParent.getTargetObjectRef();
 
@@ -531,7 +542,7 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
                             return;
                         }
 
-                        ObjectReferenceType targetSessionRef = outlierParent.getTargetSessionRef();
+                        ObjectReferenceType targetSessionRef = modelObject.getTargetSessionRef();
                         PrismObject<RoleAnalysisSessionType> targetSession = roleAnalysisService
                                 .getObject(RoleAnalysisSessionType.class, targetSessionRef.getOid(), task, task.getResult());
 
@@ -632,11 +643,11 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item, String componentId,
-                    IModel<RoleAnalysisOutlierDescriptionType> rowModel) {
+            public void populateItem(Item<ICellPopulator<DetectedAnomalyResult>> item, String componentId,
+                    IModel<DetectedAnomalyResult> rowModel) {
 
-                RoleAnalysisOutlierDescriptionType result = rowModel.getObject();
-                ObjectReferenceType ref = result.getObject();
+                DetectedAnomalyResult result = rowModel.getObject();
+                ObjectReferenceType ref = result.getTargetObjectRef();
                 QName type = ref.getType();
 
                 if (type.equals(RoleType.COMPLEX_TYPE)) {
@@ -648,7 +659,7 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
             }
 
             private void roleAnalysisPanel(
-                    @NotNull Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item,
+                    @NotNull Item<ICellPopulator<DetectedAnomalyResult>> item,
                     @NotNull String componentId,
                     @NotNull ObjectReferenceType roleRef) {
                 Task task = getPageBase().createSimpleTask("Load object");
@@ -665,7 +676,8 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
                             return;
                         }
 
-                        ObjectReferenceType targetSessionRef = outlierParent.getTargetSessionRef();
+                        RoleAnalysisOutlierPartitionType modelObject = getModelObject();
+                        ObjectReferenceType targetSessionRef = modelObject.getTargetSessionRef();
                         PrismObject<RoleAnalysisSessionType> targetSession = roleAnalysisService
                                 .getObject(RoleAnalysisSessionType.class, targetSessionRef.getOid(), task, task.getResult());
 
@@ -733,7 +745,7 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
                 });
             }
 
-            private void userAnalysisPanel(@NotNull Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item,
+            private void userAnalysisPanel(@NotNull Item<ICellPopulator<DetectedAnomalyResult>> item,
                     @NotNull String componentId,
                     @NotNull ObjectReferenceType userRef) {
                 Task task = getPageBase().createSimpleTask("Load object");
@@ -751,7 +763,8 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
                             return;
                         }
 
-                        ObjectReferenceType targetSessionRef = outlierParent.getTargetSessionRef();
+                        RoleAnalysisOutlierPartitionType modelObject = getModelObject();
+                        ObjectReferenceType targetSessionRef = modelObject.getTargetSessionRef();
                         PrismObject<RoleAnalysisSessionType> targetSession = roleAnalysisService
                                 .getObject(RoleAnalysisSessionType.class, targetSessionRef.getOid(), task, task.getResult());
 
@@ -807,12 +820,12 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item, String componentId,
-                    IModel<RoleAnalysisOutlierDescriptionType> rowModel) {
+            public void populateItem(Item<ICellPopulator<DetectedAnomalyResult>> item, String componentId,
+                    IModel<DetectedAnomalyResult> rowModel) {
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
                 Task task = getPageBase().createSimpleTask("Load object");
 
-                ObjectReferenceType ref = rowModel.getObject().getObject();
+                ObjectReferenceType ref = rowModel.getObject().getTargetObjectRef();
                 QName type = ref.getType();
 
                 if (type.equals(UserType.COMPLEX_TYPE)) {
@@ -828,7 +841,7 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
                 }
 
                 OutlierObjectModel outlierObjectModel = generateAssignmentOutlierResultModel(
-                        roleAnalysisService, rowModel.getObject(), task, task.getResult(), userTypeObject, outlierParent);
+                        roleAnalysisService, rowModel.getObject(),getModelObject(), task, task.getResult(), userTypeObject, outlierParent);
 
                 String outlierName = outlierObjectModel.getOutlierName();
                 Double outlierConfidence = outlierObjectModel.getOutlierConfidence();
@@ -886,30 +899,6 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
 
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("")) {
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierDescriptionType>> item, String componentId,
-                    IModel<RoleAnalysisOutlierDescriptionType> rowModel) {
-
-                OutlierCategory category = rowModel.getObject().getCategory();
-                item.add(new Label(componentId, createStringResource(category != null ? category.value() : "")));
-
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new Label(
-                        componentId, createStringResource("RoleAnalysisOutlierPropertyTable.category.header"));
-            }
-
-        });
-
         return columns;
     }
 
@@ -936,4 +925,7 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<String> {
 
     }
 
+    public RoleAnalysisOutlierPartitionType getModelObject() {
+        return getModel().getObject();
+    }
 }

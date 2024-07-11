@@ -9,16 +9,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
 
-import java.text.DecimalFormat;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
@@ -26,6 +20,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
@@ -33,8 +28,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.web.component.ObjectVerticalSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.Nullable;
 
 public class RoleAnalysisOutlierSummaryPanel extends ObjectVerticalSummaryPanel<RoleAnalysisOutlierType> {
 
@@ -49,38 +42,22 @@ public class RoleAnalysisOutlierSummaryPanel extends ObjectVerticalSummaryPanel<
 
     @Override
     protected @NotNull IModel<List<DetailsTableItem>> createDetailsItems() {
-        List<RoleAnalysisOutlierDescriptionType> analysisResult = getModelObject().getResult();
-        if (analysisResult == null) {
-            return Model.ofList(List.of());
+        RoleAnalysisOutlierType modelObject = getModelObject();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = modelObject.getOutlierPartitions();
+
+        Set<String> anomalies = new HashSet<>();
+        for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+            for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
+                anomalies.add(detectedAnomaly.getTargetObjectRef().getOid());
+            }
         }
+        int numberOfPartitions = outlierPartitions.size();
+        int numberOfAnomalies = anomalies.size();
 
-        PageBase pageBase = getPageBase();
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        //TODO session not cluster
-        ObjectReferenceType targetClusterRef = getModelObject().getTargetSessionRef();
-        Task task = pageBase.createSimpleTask("loadDetailsModel");
-        OperationResult result = task.getResult();
-        @Nullable PrismObject<RoleAnalysisSessionType> sessionPrism = roleAnalysisService
-                .getSessionTypeObject(targetClusterRef.getOid(), task, result);
-        if (sessionPrism == null) {
-            return Model.ofList(List.of());
-        }
-        RoleAnalysisSessionType session = sessionPrism.asObjectable();
+        String mode = "Outlier/user";
 
-        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
-        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
-
-        String mode = Character.
-                toUpperCase(processMode.value().charAt(0))
-                + processMode.value().substring(1)
-                + "/"
-                + Character
-                .toUpperCase(analysisCategory.value().charAt(0))
-                + analysisCategory.value().substring(1);
-
-        double averageConfidence = getModelObject().getClusterConfidence();
-        String formattedConfidence = String.format("%.2f", averageConfidence);
+        String formattedConfidence = String.format("%.2f", modelObject.getOverallConfidence());
 
         List<DetailsTableItem> detailsModel = List.of(
                 new DetailsTableItem(createStringResource("Mode"),
@@ -91,7 +68,7 @@ public class RoleAnalysisOutlierSummaryPanel extends ObjectVerticalSummaryPanel<
                     }
                 },
                 new DetailsTableItem(createStringResource("Outlier properties"),
-                        Model.of(String.valueOf(analysisResult.size()))) {
+                        Model.of(String.valueOf(numberOfAnomalies))) {
                     @Override
                     public Component createValueComponent(String id) {
                         return new IconWithLabel(id, getValue()) {
@@ -107,8 +84,8 @@ public class RoleAnalysisOutlierSummaryPanel extends ObjectVerticalSummaryPanel<
                         };
                     }
                 },
-                new DetailsTableItem(createStringResource("Association"),
-                        Model.of(sessionPrism.getName().getOrig())) {
+                new DetailsTableItem(createStringResource("Partitions"),
+                        Model.of(String.valueOf(numberOfPartitions))) {
                     @Override
                     public Component createValueComponent(String id) {
                         return new IconWithLabel(id, getValue()) {

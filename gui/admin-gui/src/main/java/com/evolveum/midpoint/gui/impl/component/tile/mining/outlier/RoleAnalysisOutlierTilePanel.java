@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.component.tile.mining.outlier;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
@@ -98,9 +99,9 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
 
     private void initSecondCountPanel() {
         RoleAnalysisOutlierType outlierParent = getModelObject().getOutlierParent();
-        ObjectReferenceType targetClusterRef = outlierParent.getTargetClusterRef();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierParent.getOutlierPartitions();
 
-        IconWithLabel clusterCount = new IconWithLabel(ID_CLUSTER, () -> targetClusterRef.getTargetName().toString()) {
+        IconWithLabel clusterCount = new IconWithLabel(ID_CLUSTER, () -> String.valueOf(outlierPartitions.size())) {
             @Override
             public String getIconCssClass() {
                 return GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON;
@@ -113,26 +114,31 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
 
             @Override
             protected void onClickPerform(AjaxRequestTarget target) {
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, targetClusterRef.getOid());
-                parameters.add("panelId", "clusterDetails");
-                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                        .getObjectDetailsPage(RoleAnalysisClusterType.class);
-                getPageBase().navigateToNext(detailsPageClass, parameters);
+//                PageParameters parameters = new PageParameters();
+//                parameters.add(OnePageParameterEncoder.PARAMETER, targetClusterRef.getOid());
+//                parameters.add("panelId", "clusterDetails");
+//                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+//                        .getObjectDetailsPage(RoleAnalysisClusterType.class);
+//                getPageBase().navigateToNext(detailsPageClass, parameters);
             }
         };
 
         clusterCount.setOutputMarkupId(true);
-        clusterCount.add(AttributeAppender.replace("title", () -> "Cluster: " + targetClusterRef.getTargetName().toString()));
+        clusterCount.add(AttributeAppender.replace("title", () -> "Partitions: " + outlierPartitions.size()));
         clusterCount.add(new TooltipBehavior());
         add(clusterCount);
     }
 
     private void initFirstCountPanel() {
         RoleAnalysisOutlierType outlierParent = getModelObject().getOutlierParent();
-        ObjectReferenceType targetSessionRef = outlierParent.getTargetSessionRef();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierParent.getOutlierPartitions();
+        Set<String> anomalies = new HashSet<>();
+        for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+            detectedAnomalyResult.forEach(detectedAnomaly -> anomalies.add(detectedAnomaly.getTargetObjectRef().getOid()));
+        }
 
-        IconWithLabel clusterCount = new IconWithLabel(ID_SESSION, () -> targetSessionRef.getTargetName().toString()) {
+        IconWithLabel clusterCount = new IconWithLabel(ID_SESSION, () -> String.valueOf(anomalies.size())) {
             @Override
             public String getIconCssClass() {
                 return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
@@ -145,16 +151,16 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
 
             @Override
             protected void onClickPerform(AjaxRequestTarget target) {
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, targetSessionRef.getOid());
-                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                        .getObjectDetailsPage(RoleAnalysisSessionType.class);
-                getPageBase().navigateToNext(detailsPageClass, parameters);
+//                PageParameters parameters = new PageParameters();
+//                parameters.add(OnePageParameterEncoder.PARAMETER, targetSessionRef.getOid());
+//                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+//                        .getObjectDetailsPage(RoleAnalysisSessionType.class);
+//                getPageBase().navigateToNext(detailsPageClass, parameters);
             }
         };
 
         clusterCount.setOutputMarkupId(true);
-        clusterCount.add(AttributeAppender.replace("title", () -> "Session: " + targetSessionRef.getTargetName().toString()));
+        clusterCount.add(AttributeAppender.replace("title", () -> "Anomalies count: " + anomalies.size()));
         clusterCount.add(new TooltipBehavior());
         add(clusterCount);
     }
@@ -303,12 +309,13 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
 
                 Task task = getPageBase().createSimpleTask("Load object");
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-
-                RoleAnalysisOutlierDescriptionType result = getModelObject().getDescriptionType();
+                RoleAnalysisOutlierTileModel<T> modelObject = getModelObject();
+                DetectedAnomalyResult descriptionType = modelObject.getDescriptionType();
                 RoleAnalysisOutlierType outlierParent = getModelObject().getOutlierParent();
                 ObjectReferenceType outlierParentObjectRef = outlierParent.getTargetObjectRef();
-                ObjectReferenceType clusterRef = result.getCluster();
-                ObjectReferenceType sessionRef = result.getSession();
+                RoleAnalysisOutlierPartitionType partition = modelObject.getPartition();
+                ObjectReferenceType clusterRef = partition.getTargetClusterRef();
+                ObjectReferenceType sessionRef = partition.getTargetSessionRef();
 
                 PrismObject<RoleAnalysisClusterType> clusterPrism = roleAnalysisService.getClusterTypeObject(
                         clusterRef.getOid(), task, task.getResult());
@@ -319,10 +326,12 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                     return;
                 }
 
+                RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+
                 RoleAnalysisClusterType cluster = clusterPrism.asObjectable();
                 RoleAnalysisSessionType session = sessionPrism.asObjectable();
 
-                ObjectReferenceType propertyObjectRef = result.getObject();
+                ObjectReferenceType propertyObjectRef = descriptionType.getTargetObjectRef();
                 QName type = propertyObjectRef.getType();
 
                 PrismObject<UserType> userTypeObject;
@@ -349,7 +358,7 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                 AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
                 RoleAnalysisAttributeAnalysisResult clusterAttributes = null;
                 if (clusterStatistics == null || clusterStatistics.getUserAttributeAnalysisResult() == null) {
-                    AnalysisClusterStatisticType outlierParentClusterStatistics = outlierParent.getClusterStatistics();
+                    AttributeAnalysis outlierParentClusterStatistics = partitionAnalysis.getAttributeAnalysis();
                     if (outlierParentClusterStatistics != null && outlierParentClusterStatistics.getUserAttributeAnalysisResult() != null) {
                         clusterAttributes = outlierParentClusterStatistics.getUserAttributeAnalysisResult();
                     }
@@ -400,8 +409,8 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
     private void buildMembersAnalysisButton() {
 
         RoleAnalysisOutlierTileModel<T> modelObject = getModelObject();
-        RoleAnalysisOutlierDescriptionType descriptionType = modelObject.getDescriptionType();
-        ObjectReferenceType objectRef = descriptionType.getObject();
+        DetectedAnomalyResult descriptionType = modelObject.getDescriptionType();
+        ObjectReferenceType objectRef = descriptionType.getTargetObjectRef();
         ObjectReferenceType parentRef = modelObject.getOutlierParent().getTargetObjectRef();
         QName type = objectRef.getType();
         if (type.equals(RoleType.COMPLEX_TYPE)) {
@@ -435,8 +444,8 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
 
     private void navigateToRoleDetails() {
         RoleAnalysisOutlierTileModel<T> modelObject = getModelObject();
-        RoleAnalysisOutlierDescriptionType descriptionType = modelObject.getDescriptionType();
-        ObjectReferenceType objectRef = descriptionType.getObject();
+        DetectedAnomalyResult descriptionType = modelObject.getDescriptionType();
+        ObjectReferenceType objectRef = descriptionType.getTargetObjectRef();
         QName type = objectRef.getType();
 
         if (type.equals(RoleType.COMPLEX_TYPE)) {
@@ -469,7 +478,7 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
                 RoleAnalysisOutlierTileModel<T> modelObject = getModelObject();
-                ObjectReferenceType sessionRef = modelObject.getDescriptionType().getSession();
+                ObjectReferenceType sessionRef = modelObject.getPartition().getTargetSessionRef();
 
                 PrismObject<RoleAnalysisSessionType> sessionPrism = roleAnalysisService.getSessionTypeObject(
                         sessionRef.getOid(), task, task.getResult());
@@ -478,7 +487,8 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                     return;
                 }
 
-                List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(sessionPrism.asObjectable(), UserType.COMPLEX_TYPE);
+                List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService
+                        .resolveAnalysisAttributes(sessionPrism.asObjectable(), UserType.COMPLEX_TYPE);
                 if (attributesForUserAnalysis == null || attributesForUserAnalysis.isEmpty()) {
                     return;
                 }
@@ -567,7 +577,7 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                     return;
                 }
 
-                ObjectReferenceType sessionRef = getModelObject().getDescriptionType().getSession();
+                ObjectReferenceType sessionRef = getModelObject().getPartition().getTargetSessionRef();
 
                 PrismObject<RoleAnalysisSessionType> sessionPrism = roleAnalysisService.getSessionTypeObject(
                         sessionRef.getOid(), task, task.getResult());

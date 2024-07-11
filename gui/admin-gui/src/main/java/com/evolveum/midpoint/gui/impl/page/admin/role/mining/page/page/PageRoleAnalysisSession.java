@@ -82,7 +82,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         String sessionOid = session.getOid();
 
         roleAnalysisService
-                .deleteSessionClustersMembers(sessionOid, task, result);
+                .deleteSessionClustersMembers(sessionOid, task, result, false);
     }
 
     @Override

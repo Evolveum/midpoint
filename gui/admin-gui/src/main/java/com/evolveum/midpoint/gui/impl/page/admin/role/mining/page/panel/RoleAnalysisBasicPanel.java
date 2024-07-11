@@ -100,14 +100,6 @@ public class RoleAnalysisBasicPanel<AH extends AssignmentHolderType> extends Abs
             return ItemVisibility.AUTO;
         }
 
-        if (RoleAnalysisOutlierType.F_TARGET_CLUSTER_REF.equivalent(path)) {
-            return ItemVisibility.AUTO;
-        }
-
-        if (RoleAnalysisOutlierType.F_TARGET_SESSION_REF.equivalent(path)) {
-            return ItemVisibility.AUTO;
-        }
-
         return ItemVisibility.HIDDEN;
     }
 

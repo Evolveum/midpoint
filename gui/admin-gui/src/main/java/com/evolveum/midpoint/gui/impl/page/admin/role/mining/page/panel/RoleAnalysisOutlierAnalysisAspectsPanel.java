@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateRoleOutlierResultModel;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModelMain;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -25,12 +24,12 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierResultPanel;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
 @PanelType(name = "outlierOverView", defaultContainerPath = "empty")
 @PanelInstance(identifier = "outlierOverView",
@@ -45,12 +44,11 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
     private static final String ID_CONTAINER = "container";
     private static final String ID_HEADER_ITEMS = "header-items";
 
-
     public RoleAnalysisOutlierAnalysisAspectsPanel(String id, ObjectDetailsModels<RoleAnalysisOutlierType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
-    protected void initLayout(){
+    protected void initLayout() {
 
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
@@ -62,31 +60,8 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
         Task task = pageBase.createSimpleTask("loadOutlierDetails");
         RoleAnalysisOutlierType outlierObject = getObjectDetailsModels().getObjectType();
-        ObjectReferenceType targetSessionRef = outlierObject.getTargetSessionRef();
-        PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
-                .getSessionTypeObject(targetSessionRef.getOid(), task, task.getResult());
-        if (sessionTypeObject == null) {
-            Label label = new Label(ID_HEADER_ITEMS, "No session found");
-            container.add(label);
-            return;
-        }
-        RoleAnalysisSessionType sessionType = sessionTypeObject.asObjectable();
-        RoleAnalysisProcessModeType processMode = sessionType.getAnalysisOption().getProcessMode();
 
-        ObjectReferenceType targetClusterRef = outlierObject.getTargetClusterRef();
-        PrismObject<RoleAnalysisClusterType> clusterTypeObject = roleAnalysisService
-                .getClusterTypeObject(targetClusterRef.getOid(), task, task.getResult());
-        if (clusterTypeObject == null) {
-            Label label = new Label(ID_HEADER_ITEMS, "No cluster found");
-            container.add(label);
-            return;
-        }
-        RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
-        if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-            outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlierObject, task, task.getResult(), cluster);
-        } else {
-            outlierObjectModel = generateRoleOutlierResultModel(roleAnalysisService,outlierObject, task, task.getResult(), cluster);
-        }
+        outlierObjectModel = generateUserOutlierResultModelMain(roleAnalysisService, outlierObject, task, task.getResult());
 
         if (outlierObjectModel == null) {
             Label label = new Label(ID_HEADER_ITEMS, "No outlier model found");
@@ -122,7 +97,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                 outlierObjectModel.getOutlierItemModels()
                         .forEach(outlierItemModel
                                 -> cardBodyComponent.add(
-                                        new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel)));
+                                new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel)));
                 return cardBodyComponent;
             }
 

@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +64,8 @@ public class BasicOutlierDetectionUtils {
                     DetectedAnomalyResult anomalyResult = new DetectedAnomalyResult();
                     anomalyResult.setTargetObjectRef(new ObjectReferenceType().oid(role).type(RoleType.COMPLEX_TYPE));
 
-                    DetectedAnomalyStatistics statistics = new DetectedAnomalyStatistics();
+                    anomalyResult.setStatistics(new DetectedAnomalyStatistics());
+                    DetectedAnomalyStatistics statistics = anomalyResult.getStatistics();
                     anomalyResult.setCreateTimestamp(
                             XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
 
@@ -75,10 +78,10 @@ public class BasicOutlierDetectionUtils {
                                 user, task, result);
                         RoleAnalysisPatternAnalysis patternAnalysis = detectAndLoadPatternAnalysis(
                                 miningRoleTypeChunk, user, miningRoleTypeChunks);
+                        statistics.setPatternAnalysis(patternAnalysis);
                         double anomalyConfidence = calculateAssignmentAnomalyConfidence(
                                 roleAnalysisService, session, userTypeObject, anomalyResult, task, result);
                         statistics.setConfidence(anomalyConfidence);
-                        statistics.setPatternAnalysis(patternAnalysis);
                         userRoleMap.put(user, anomalyResult);
                     }
 
@@ -117,7 +120,8 @@ public class BasicOutlierDetectionUtils {
             similarObjectAnalysis.setSimilarObjectsDensity(membershipDensity);
             //TODO store just useful information
             similarObjectAnalysis.setClusterStatistics(cluster.getClusterStatistics());
-            similarObjectAnalysis.getSimilarObjects().addAll(cluster.getMember());
+
+            similarObjectAnalysis.getSimilarObjects().addAll(CloneUtil.cloneCollectionMembers(cluster.getMember()));
             partitionAnalysis.setSimilarObjectAnalysis(similarObjectAnalysis);
 
             List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
@@ -155,7 +159,7 @@ public class BasicOutlierDetectionUtils {
                 outlierConfidenceBasedAssignment += confidence;
             }
 
-            partitionType.getDetectedAnomalyResult().addAll(detectedAnomalyResults);
+            partitionType.getDetectedAnomalyResult().addAll(CloneUtil.cloneCollectionMembers(detectedAnomalyResults));
 
             double averageItemFactor = getAverageItemFactor(compareAttributeResult);
 
@@ -182,6 +186,7 @@ public class BasicOutlierDetectionUtils {
             userPartitionMap.put(userOid, partitionAnalysis);
         }
 
+        System.out.println("here");
         //TODO now we have all user partition analysis and we can create user outliers
 
     }

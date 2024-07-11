@@ -9,11 +9,13 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster
 
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -27,7 +29,6 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
 @PanelType(name = "outlierProperty")
@@ -57,30 +58,36 @@ public class OutlierPropertyPanel extends AbstractObjectMainPanel<RoleAnalysisOu
         container.setOutputMarkupId(true);
         add(container);
 
-        RoleAnalysisOutlierPropertyTileTable components = loadTable();
+        RepeatingView components = loadTable();
         container.add(components);
     }
 
-    @NotNull
-    private RoleAnalysisOutlierPropertyTileTable loadTable() {
+    private RepeatingView loadTable() {
         RoleAnalysisOutlierType outlierParent = getObjectDetailsModels().getObjectType();
-        List<RoleAnalysisOutlierDescriptionType> result = outlierParent.getResult();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierParent.getOutlierPartitions();
 
-        RoleAnalysisOutlierPropertyTileTable components = new RoleAnalysisOutlierPropertyTileTable(ID_PANEL, getPageBase(),
-                new LoadableDetachableModel<>() {
-                    @Override
-                    protected List<RoleAnalysisOutlierDescriptionType> load() {
-                        return result;
-                    }
-                }, outlierParent) {
+        RepeatingView repeatingView = new RepeatingView(ID_PANEL);
+        add(repeatingView);
 
-            @Override
-            protected void onRefresh(AjaxRequestTarget target) {
-                performOnRefresh();
-            }
-        };
-        components.setOutputMarkupId(true);
-        return components;
+        for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+            RoleAnalysisOutlierPropertyTileTable components = new RoleAnalysisOutlierPropertyTileTable(repeatingView.newChildId(), getPageBase(),
+                    new LoadableDetachableModel<>() {
+                        @Override
+                        protected RoleAnalysisOutlierPartitionType load() {
+                            return outlierPartition;
+                        }
+                    }, outlierParent) {
+
+                @Override
+                protected void onRefresh(AjaxRequestTarget target) {
+                    performOnRefresh();
+                }
+            };
+            components.setOutputMarkupId(true);
+            repeatingView.add(components);
+        }
+
+        return repeatingView;
     }
 
     private void performOnRefresh() {

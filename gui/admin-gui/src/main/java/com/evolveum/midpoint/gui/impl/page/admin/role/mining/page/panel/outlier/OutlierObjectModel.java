@@ -35,20 +35,20 @@ public class OutlierObjectModel implements Serializable {
 
     String timeCreated;
 
-    RoleAnalysisPatternInfo patternInfo;
+    RoleAnalysisPatternAnalysis patternAnalysis;
 
     public OutlierObjectModel(
             @NotNull String outlierName,
             @NotNull String outlierDescription,
             double outlierConfidence,
             String timeCreated,
-            RoleAnalysisPatternInfo patternInfo) {
+            RoleAnalysisPatternAnalysis patternAnalysis) {
         this.outlierName = outlierName;
         this.outlierDescription = outlierDescription;
         this.outlierConfidence = outlierConfidence;
         this.timeCreated = timeCreated;
         this.outlierItemModels = new ArrayList<>();
-        this.patternInfo = patternInfo;
+        this.patternAnalysis = patternAnalysis;
     }
 
     public void addOutlierItemModel(OutlierItemModel outlierItemModel) {
@@ -75,12 +75,12 @@ public class OutlierObjectModel implements Serializable {
         return timeCreated;
     }
 
-    public static @Nullable OutlierObjectModel generateUserOutlierResultModel(
+    public static @Nullable OutlierObjectModel generateUserOutlierResultModelMain(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisOutlierType outlierResult,
             @NotNull Task task,
-            @NotNull OperationResult result,
-            @NotNull RoleAnalysisClusterType cluster) {
+            @NotNull OperationResult result) {
+
         DecimalFormat decimalFormat = new DecimalFormat("#.##");
         decimalFormat.setGroupingUsed(false);
         decimalFormat.setRoundingMode(RoundingMode.DOWN);
@@ -97,17 +97,160 @@ public class OutlierObjectModel implements Serializable {
         }
 
         PolyString name = userTypeObject.getName();
-        Double clusterConfidence = outlierResult.getClusterConfidence();
+        Double clusterConfidence = outlierResult.getOverallConfidence();
         double clusterConfidenceDouble = clusterConfidence != null ? clusterConfidence : 0;
         int outlierConfidenceInt = (int) (clusterConfidenceDouble);
         String outlierDescription = "User has been marked as outlier object due to confidence score:";
-        RoleAnalysisPatternInfo patternInfo = outlierResult.getPatternInfo();
+        RoleAnalysisPatternAnalysis patternInfo = null;
         OutlierObjectModel outlierObjectModel = new OutlierObjectModel(
                 name.getOrig(), outlierDescription, outlierConfidenceInt, formattedDate, patternInfo);
 
-        List<RoleAnalysisOutlierDescriptionType> propertyOutlier = outlierResult.getResult();
-        int propertyCount = propertyOutlier.size();
-        Double outlierPropertyConfidence = outlierResult.getOutlierPropertyConfidence();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierResult.getOutlierPartitions();
+        Set<String> anomalies = new HashSet<>();
+        for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+            detectedAnomalyResult.forEach(detectedAnomaly -> {
+                anomalies.add(detectedAnomaly.getTargetObjectRef().getOid());
+            });
+        }
+
+        int propertyCount = anomalies.size();
+        Double outlierPropertyConfidence = outlierResult.getAnomalyObjectsConfidence();
+        double outlierPropertyConfidenceDouble = outlierPropertyConfidence != null ? outlierPropertyConfidence : 0;
+        String propertyConfidence = String.format("%.2f", outlierPropertyConfidenceDouble) + "%";
+        String propertyDescription;
+        if (propertyCount > 1) {
+            propertyDescription = "Has been detected multiple (" + propertyCount + ") "
+                    + "outlier assignment(s) anomaly with high confidence";
+        } else {
+            propertyDescription = "Has been detected single outlier assignment anomaly with high confidence";
+        }
+        OutlierItemModel outlierItemModel = new OutlierItemModel(propertyConfidence, propertyDescription, "fe fe-role");
+        outlierObjectModel.addOutlierItemModel(outlierItemModel);
+
+        if (patternInfo != null) {
+            Integer detectedPatternCount = patternInfo.getDetectedPatternCount();
+            Integer topPatternRelation = patternInfo.getTopPatternRelation();
+            Integer totalRelations = patternInfo.getTotalRelations();
+            String value = detectedPatternCount + " pattern(s) detected";
+            int averageRelation = 0;
+            if (totalRelations != 0 && detectedPatternCount != 0) {
+                averageRelation = totalRelations / detectedPatternCount;
+            }
+            String patternDescription = "Maximum coverage is " + String.format("%.2f", patternInfo.getConfidence())
+                    + "% (" + topPatternRelation + "relations) "
+                    + "and average relation per pattern is " + averageRelation;
+            OutlierItemModel patternItemModel = new OutlierItemModel(value, patternDescription, "fa fa-cubes");
+            outlierObjectModel.addOutlierItemModel(patternItemModel);
+        }
+
+        int partitions = outlierPartitions.size();
+        String clusterDescription = "Generated " + partitions + " partitions with high confidence";
+        OutlierItemModel clusterItemModel = new OutlierItemModel(partitions + " partition(s)",
+                clusterDescription, "fa fa-cubes");
+        outlierObjectModel.addOutlierItemModel(clusterItemModel);
+
+        List<ObjectReferenceType> duplicatedRoleAssignment = outlierResult.getDuplicatedRoleAssignment();
+        String duplicatedRoleAssignmentDescription = "Duplicated role assignments/inducements of the outlier object.";
+        int numberOfDuplicatedRoleAssignment = 0;
+        if (duplicatedRoleAssignment != null) {
+            if (duplicatedRoleAssignment.size() == 1) {
+                ObjectReferenceType ref = duplicatedRoleAssignment.get(0);
+                if (ref == null || ref.getOid() == null) {
+                    numberOfDuplicatedRoleAssignment = 0;
+                } else {
+                    numberOfDuplicatedRoleAssignment = 1;
+                }
+            } else {
+                numberOfDuplicatedRoleAssignment = duplicatedRoleAssignment.size();
+            }
+        }
+        OutlierItemModel duplicatedRoleAssignmentModel = new OutlierItemModel(String.valueOf(numberOfDuplicatedRoleAssignment),
+                duplicatedRoleAssignmentDescription, "fa fa-cogs");
+        outlierObjectModel.addOutlierItemModel(duplicatedRoleAssignmentModel);
+
+        List<String> rolesOid = getRolesOidAssignment(userTypeObject.asObjectable());
+
+        int directRoles = 0;
+        String directRolesDescription = "Direct role assignments of the outlier object.";
+        int indirectRoles = 0;
+        String indirectRolesDescription = "Indirect role assignments of the outlier object.";
+        for (String roleOid : rolesOid) {
+            PrismObject<RoleType> roleAssignment = roleAnalysisService.getRoleTypeObject(roleOid, task, result);
+            if (roleAssignment != null) {
+                RoleType role = roleAssignment.asObjectable();
+                List<AssignmentType> inducement = role.getInducement();
+                if (inducement != null && !inducement.isEmpty()) {
+                    indirectRoles += inducement.size();
+                } else {
+                    directRoles++;
+                }
+            }
+        }
+
+        OutlierItemModel directRolesItemModel = new OutlierItemModel(String.valueOf(directRoles),
+                directRolesDescription, "fe fe-role");
+        outlierObjectModel.addOutlierItemModel(directRolesItemModel);
+
+        OutlierItemModel indirectRolesItemModel = new OutlierItemModel(String.valueOf(indirectRoles),
+                indirectRolesDescription, "fe fe-role");
+        outlierObjectModel.addOutlierItemModel(indirectRolesItemModel);
+
+        int rolesByCondition = 0;
+        String rolesByConditionDescription = "Role assignments of the outlier object by condition. (?)";
+
+        OutlierItemModel rolesByConditionItemModel = new OutlierItemModel(String.valueOf(rolesByCondition),
+                rolesByConditionDescription, "fe fe-role");
+        outlierObjectModel.addOutlierItemModel(rolesByConditionItemModel);
+
+        int outdatedAccessRights = 0;
+        String outdatedAccessRightsDescription = "Outdated access rights of the outlier object.";
+
+        OutlierItemModel outdatedAccessRightsItemModel = new OutlierItemModel(String.valueOf(outdatedAccessRights),
+                outdatedAccessRightsDescription, "fa fa-key");
+        outlierObjectModel.addOutlierItemModel(outdatedAccessRightsItemModel);
+
+        return outlierObjectModel;
+    }
+
+    public static @Nullable OutlierObjectModel generateUserOutlierResultModel(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull RoleAnalysisOutlierType outlierResult,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisClusterType cluster,
+            @NotNull RoleAnalysisOutlierPartitionType partition) {
+
+        RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+        List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();
+        RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
+
+        DecimalFormat decimalFormat = new DecimalFormat("#.##");
+        decimalFormat.setGroupingUsed(false);
+        decimalFormat.setRoundingMode(RoundingMode.DOWN);
+
+        ObjectReferenceType targetObjectRef = outlierResult.getTargetObjectRef();
+        PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(targetObjectRef.getOid(), task, result);
+        XMLGregorianCalendar createTimestamp = partition.getCreateTimestamp();
+        GregorianCalendar gregorianCalendar = createTimestamp.toGregorianCalendar();
+        Date date = gregorianCalendar.getTime();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String formattedDate = sdf.format(date);
+        if (userTypeObject == null) {
+            return null;
+        }
+
+        PolyString name = userTypeObject.getName();
+        Double clusterConfidence = partitionAnalysis.getOverallConfidence();
+        double clusterConfidenceDouble = clusterConfidence != null ? clusterConfidence : 0;
+        int outlierConfidenceInt = (int) (clusterConfidenceDouble);
+        String outlierDescription = "User has been marked as outlier object due to confidence score:";
+        RoleAnalysisPatternAnalysis patternInfo = partitionAnalysis.getPatternAnalysis();
+        OutlierObjectModel outlierObjectModel = new OutlierObjectModel(
+                name.getOrig(), outlierDescription, outlierConfidenceInt, formattedDate, patternInfo);
+
+        int propertyCount = detectedAnomalyResult.size();
+        Double outlierPropertyConfidence = partitionAnalysis.getAnomalyObjectsConfidence();
         double outlierPropertyConfidenceDouble = outlierPropertyConfidence != null ? outlierPropertyConfidence : 0;
         String propertyConfidence = String.format("%.2f", outlierPropertyConfidenceDouble) + "%";
         String propertyDescription;
@@ -137,18 +280,18 @@ public class OutlierObjectModel implements Serializable {
         }
 
         int similarObjectCount = 0;
-        if (outlierResult.getSimilarObjects() != null) {
-            similarObjectCount = outlierResult.getSimilarObjects();
+        if (similarObjectAnalysis.getSimilarObjects() != null) {
+            similarObjectCount = similarObjectAnalysis.getSimilarObjectsCount();
         }
-        Double membershipDensity = outlierResult.getSimilarObjectsDensity();
+        Double membershipDensity = similarObjectAnalysis.getSimilarObjectsDensity();
         String clusterDescription = "Detected " + similarObjectCount + " similar objects with membership density "
                 + String.format("%.2f", membershipDensity) + "%"
-                + " and threshold above " + outlierResult.getSimilarObjectsThreshold() + "%. ";
+                + " and threshold above " + similarObjectAnalysis.getSimilarObjectsThreshold() + "%. ";
         OutlierItemModel clusterItemModel = new OutlierItemModel(similarObjectCount + " similar object(s)",
                 clusterDescription, "fa fa-cubes");
         outlierObjectModel.addOutlierItemModel(clusterItemModel);
 
-        AttributeAnalysis outlierAttributeAnalysis = outlierResult.getAttributeAnalysis();
+        AttributeAnalysis outlierAttributeAnalysis = partitionAnalysis.getAttributeAnalysis();
         RoleAnalysisAttributeAnalysisResult compareAttributeResult = null;
         if (outlierAttributeAnalysis != null) {
             compareAttributeResult = outlierAttributeAnalysis.getUserClusterCompare();
@@ -181,7 +324,7 @@ public class OutlierObjectModel implements Serializable {
 
         String assignmentsFrequencyDescription = "Assignment of the outlier object confidence in the cluster.";
         OutlierItemModel roleAssignmentsFrequencyItemModel = new OutlierItemModel(
-                String.format("%.2f", outlierResult.getOutlierAssignmentFrequencyConfidence())
+                String.format("%.2f", partitionAnalysis.getOutlierAssignmentFrequencyConfidence())
                         + "%", assignmentsFrequencyDescription, "fe fe-role");
         outlierObjectModel.addOutlierItemModel(roleAssignmentsFrequencyItemModel);
 
@@ -198,7 +341,7 @@ public class OutlierObjectModel implements Serializable {
 
         String outlierNoiseCategoryDescription = "Outlier noise category of the outlier object.";
 
-        RoleAnalysisOutlierNoiseCategoryType outlierNoiseCategory = outlierResult.getOutlierNoiseCategory();
+        RoleAnalysisOutlierNoiseCategoryType outlierNoiseCategory = partitionAnalysis.getOutlierNoiseCategory();
         if (outlierNoiseCategory != null && outlierNoiseCategory.value() != null) {
             OutlierItemModel noiseCategoryItemModel = new OutlierItemModel(outlierNoiseCategory.value(),
                     outlierNoiseCategoryDescription, "fa fa-cogs");
@@ -268,202 +411,205 @@ public class OutlierObjectModel implements Serializable {
         return outlierObjectModel;
     }
 
-    public static @Nullable OutlierObjectModel generateRoleOutlierResultModel(
+    //TODO temporary disabled
+//    public static @Nullable OutlierObjectModel generateRoleOutlierResultModel(
+//            @NotNull RoleAnalysisService roleAnalysisService,
+//            @NotNull RoleAnalysisOutlierType outlierResult,
+//            @NotNull Task task,
+//            @NotNull OperationResult result,
+//            @NotNull RoleAnalysisClusterType cluster) {
+//        DecimalFormat decimalFormat = new DecimalFormat("#.##");
+//        decimalFormat.setGroupingUsed(false);
+//        decimalFormat.setRoundingMode(RoundingMode.DOWN);
+//
+//        ObjectReferenceType targetObjectRef = outlierResult.getTargetObjectRef();
+//        PrismObject<RoleType> roleTypePrismObject = roleAnalysisService.getRoleTypeObject(targetObjectRef.getOid(), task, result);
+//        XMLGregorianCalendar createTimestamp = outlierResult.getMetadata().getCreateTimestamp();
+//        GregorianCalendar gregorianCalendar = createTimestamp.toGregorianCalendar();
+//        Date date = gregorianCalendar.getTime();
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//        String formattedDate = sdf.format(date);
+//        if (roleTypePrismObject == null) {
+//            return null;
+//        }
+//
+//        PolyString name = roleTypePrismObject.getName();
+//        List<RoleAnalysisOutlierDescriptionType> propertyOutlier = outlierResult.getResult();
+//
+//        double min = 100;
+//        double max = 0;
+//        double confidenceSum = 0;
+//        for (RoleAnalysisOutlierDescriptionType property : propertyOutlier) {
+//            Double confidence = property.getConfidence();
+//            if (confidence != null) {
+//                min = Math.min(min, confidence);
+//                max = Math.max(max, confidence);
+//                confidenceSum += confidence;
+//            }
+//        }
+//
+//        min = min * 100;
+//        max = max * 100;
+//
+//        int propertyCount = propertyOutlier.size();
+//        double outlierConfidence = confidenceSum / propertyCount;
+//        int outlierConfidenceInt = (int) (outlierConfidence * 100);
+//        String outlierDescription = "User has been marked as outlier object due to confidence score:";
+//        String propertyConfidenceRange = decimalFormat.format(min) + " - " + decimalFormat.format(max) + "%";
+//        String propertyDescription;
+//        if (propertyCount > 1) {
+//            propertyDescription = "Has been detected multiple (" + propertyCount + ") "
+//                    + "outlier assignment(s) anomaly with high confidence";
+//        } else {
+//            propertyDescription = "Has been detected single outlier assignment anomaly with high confidence";
+//        }
+//
+//        RoleAnalysisPatternInfo patternInfo = outlierResult.getPatternInfo();
+//        OutlierObjectModel outlierObjectModel = new OutlierObjectModel(
+//                name.getOrig(), outlierDescription, outlierConfidenceInt, formattedDate, patternInfo);
+//
+//        if (patternInfo != null) {
+//            Integer detectedPatternCount = patternInfo.getDetectedPatternCount();
+//            Integer topPatternRelation = patternInfo.getTopPatternRelation();
+//            Integer totalRelations = patternInfo.getTotalRelations();
+//            String value = detectedPatternCount + " pattern(s) detected";
+//            int averageRelation = 0;
+//            if (totalRelations != 0 && detectedPatternCount != 0) {
+//                averageRelation = totalRelations / detectedPatternCount;
+//            }
+//            String patternDescription = "Maximum coverage is " + String.format("%.2f", patternInfo.getConfidence())
+//                    + "% (" + topPatternRelation + "relations) "
+//                    + "and average relation per pattern is " + averageRelation;
+//            OutlierItemModel patternItemModel = new OutlierItemModel(value, patternDescription, "fa fa-cubes");
+//            outlierObjectModel.addOutlierItemModel(patternItemModel);
+//        }
+//
+//        int similarObjectCount = outlierResult.getSimilarObjects();
+//        Double membershipDensity = outlierResult.getSimilarObjectsDensity();
+//        String clusterDescription = "Detected " + similarObjectCount + " similar objects with membership density "
+//                + String.format("%.2f", membershipDensity) + "%";
+//        OutlierItemModel clusterItemModel = new OutlierItemModel(similarObjectCount
+//                + " similar object(s)", clusterDescription, "fa fa-cubes");
+//        outlierObjectModel.addOutlierItemModel(clusterItemModel);
+//
+//        OutlierItemModel outlierItemModel = new OutlierItemModel(propertyConfidenceRange, propertyDescription,
+//                "fe fe-role");
+//        outlierObjectModel.addOutlierItemModel(outlierItemModel);
+//
+//        AttributeAnalysis outlierAttributeAnalysis = outlierResult.getAttributeAnalysis();
+//        RoleAnalysisAttributeAnalysisResult compareAttributeResult = null;
+//        if (outlierAttributeAnalysis != null) {
+//            compareAttributeResult = outlierAttributeAnalysis.getUserClusterCompare();
+//        }
+//
+//        double averageItemsOccurs = 0;
+//        int attributeAboveThreshold = 0;
+//        int threshold = 80;
+//
+//        StringBuilder attributeDescriptionThreshold = new StringBuilder();
+//        attributeDescriptionThreshold.append("Attributes with occurrence above ").append(threshold).append("%: ");
+//        if (compareAttributeResult != null && compareAttributeResult.getAttributeAnalysis() != null) {
+//            List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
+//
+//            for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysis) {
+//                Double density = attribute.getDensity();
+//                if (density != null) {
+//                    if (density >= threshold) {
+//                        attributeAboveThreshold++;
+//                        attributeDescriptionThreshold.append(attribute.getItemPath()).append(", ");
+//                    }
+//                    averageItemsOccurs += density;
+//                }
+//            }
+//
+//            if (averageItemsOccurs != 0 && !attributeAnalysis.isEmpty()) {
+//                averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
+//            }
+//
+//        }
+//
+//        String assignmentsFrequencyDescription = "Assignment of the outlier object confidence in the cluster.";
+//        OutlierItemModel roleAssignmentsFrequencyItemModel = new OutlierItemModel(
+//                String.format("%.2f", outlierResult.getOutlierAssignmentFrequencyConfidence())
+//                        + "%", assignmentsFrequencyDescription, "fe fe-role");
+//        outlierObjectModel.addOutlierItemModel(roleAssignmentsFrequencyItemModel);
+//
+//        String attributeDescription = "Attribute factor difference outlier vs cluster. "
+//                + "(average overlap value of outlier attributes with similar objects.)";
+//
+//        OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs)
+//                + "%", attributeDescription, "fa fa-cogs");
+//        outlierObjectModel.addOutlierItemModel(attributeItemModel);
+//
+//        OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(attributeAboveThreshold
+//                + " attribute(s)", attributeDescriptionThreshold.toString(), "fa fa-cogs");
+//        outlierObjectModel.addOutlierItemModel(attributeItemModelThreshold);
+//
+//        List<String> rolesOid = Collections.singletonList(roleTypePrismObject.getOid());
+//
+//        int directRoles = 0;
+//        String directRolesDescription = "Direct role assignments of the outlier object.";
+//        int indirectRoles = 0;
+//        String indirectRolesDescription = "Indirect role assignments of the outlier object.";
+//        for (String roleOid : rolesOid) {
+//            PrismObject<RoleType> roleAssignment = roleAnalysisService.getRoleTypeObject(roleOid, task, result);
+//            if (roleAssignment != null) {
+//                RoleType role = roleAssignment.asObjectable();
+//                List<AssignmentType> inducement = role.getInducement();
+//                if (inducement != null && !inducement.isEmpty()) {
+//                    indirectRoles += inducement.size();
+//                } else {
+//                    directRoles++;
+//                }
+//            }
+//        }
+//
+//        OutlierItemModel directRolesItemModel = new OutlierItemModel(String.valueOf(directRoles),
+//                directRolesDescription, "fe fe-role");
+//        outlierObjectModel.addOutlierItemModel(directRolesItemModel);
+//
+//        OutlierItemModel indirectRolesItemModel = new OutlierItemModel(String.valueOf(indirectRoles),
+//                indirectRolesDescription, "fe fe-role");
+//        outlierObjectModel.addOutlierItemModel(indirectRolesItemModel);
+//
+//        int rolesByCondition = 0;
+//        String rolesByConditionDescription = "Role assignments of the outlier object by condition. (?)";
+//
+//        OutlierItemModel rolesByConditionItemModel = new OutlierItemModel(String.valueOf(rolesByCondition),
+//                rolesByConditionDescription, "fe fe-role");
+//        outlierObjectModel.addOutlierItemModel(rolesByConditionItemModel);
+//
+//        int outdatedAccessRights = 0;
+//        String outdatedAccessRightsDescription = "Outdated access rights of the outlier object.";
+//
+//        OutlierItemModel outdatedAccessRightsItemModel = new OutlierItemModel(String.valueOf(outdatedAccessRights),
+//                outdatedAccessRightsDescription, "fa fa-key");
+//        outlierObjectModel.addOutlierItemModel(outdatedAccessRightsItemModel);
+//
+//        return outlierObjectModel;
+//    }
+
+    public static @Nullable OutlierObjectModel generateAssignmentOutlierResultModel(
             @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull RoleAnalysisOutlierType outlierResult,
+            @NotNull DetectedAnomalyResult outlierResult,
+            @NotNull RoleAnalysisOutlierPartitionType partition,
             @NotNull Task task,
             @NotNull OperationResult result,
-            @NotNull RoleAnalysisClusterType cluster) {
+            @NotNull PrismObject<UserType> userTypeObject,
+            @NotNull RoleAnalysisOutlierType outlierParent) {
+        DetectedAnomalyStatistics outlierResultStatistics = outlierResult.getStatistics();
         DecimalFormat decimalFormat = new DecimalFormat("#.##");
         decimalFormat.setGroupingUsed(false);
         decimalFormat.setRoundingMode(RoundingMode.DOWN);
 
         ObjectReferenceType targetObjectRef = outlierResult.getTargetObjectRef();
-        PrismObject<RoleType> roleTypePrismObject = roleAnalysisService.getRoleTypeObject(targetObjectRef.getOid(), task, result);
-        XMLGregorianCalendar createTimestamp = outlierResult.getMetadata().getCreateTimestamp();
-        GregorianCalendar gregorianCalendar = createTimestamp.toGregorianCalendar();
-        Date date = gregorianCalendar.getTime();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String formattedDate = sdf.format(date);
-        if (roleTypePrismObject == null) {
-            return null;
-        }
-
-        PolyString name = roleTypePrismObject.getName();
-        List<RoleAnalysisOutlierDescriptionType> propertyOutlier = outlierResult.getResult();
-
-        double min = 100;
-        double max = 0;
-        double confidenceSum = 0;
-        for (RoleAnalysisOutlierDescriptionType property : propertyOutlier) {
-            Double confidence = property.getConfidence();
-            if (confidence != null) {
-                min = Math.min(min, confidence);
-                max = Math.max(max, confidence);
-                confidenceSum += confidence;
-            }
-        }
-
-        min = min * 100;
-        max = max * 100;
-
-        int propertyCount = propertyOutlier.size();
-        double outlierConfidence = confidenceSum / propertyCount;
-        int outlierConfidenceInt = (int) (outlierConfidence * 100);
-        String outlierDescription = "User has been marked as outlier object due to confidence score:";
-        String propertyConfidenceRange = decimalFormat.format(min) + " - " + decimalFormat.format(max) + "%";
-        String propertyDescription;
-        if (propertyCount > 1) {
-            propertyDescription = "Has been detected multiple (" + propertyCount + ") "
-                    + "outlier assignment(s) anomaly with high confidence";
-        } else {
-            propertyDescription = "Has been detected single outlier assignment anomaly with high confidence";
-        }
-
-        RoleAnalysisPatternInfo patternInfo = outlierResult.getPatternInfo();
-        OutlierObjectModel outlierObjectModel = new OutlierObjectModel(
-                name.getOrig(), outlierDescription, outlierConfidenceInt, formattedDate, patternInfo);
-
-        if (patternInfo != null) {
-            Integer detectedPatternCount = patternInfo.getDetectedPatternCount();
-            Integer topPatternRelation = patternInfo.getTopPatternRelation();
-            Integer totalRelations = patternInfo.getTotalRelations();
-            String value = detectedPatternCount + " pattern(s) detected";
-            int averageRelation = 0;
-            if (totalRelations != 0 && detectedPatternCount != 0) {
-                averageRelation = totalRelations / detectedPatternCount;
-            }
-            String patternDescription = "Maximum coverage is " + String.format("%.2f", patternInfo.getConfidence())
-                    + "% (" + topPatternRelation + "relations) "
-                    + "and average relation per pattern is " + averageRelation;
-            OutlierItemModel patternItemModel = new OutlierItemModel(value, patternDescription, "fa fa-cubes");
-            outlierObjectModel.addOutlierItemModel(patternItemModel);
-        }
-
-        int similarObjectCount = outlierResult.getSimilarObjects();
-        Double membershipDensity = outlierResult.getSimilarObjectsDensity();
-        String clusterDescription = "Detected " + similarObjectCount + " similar objects with membership density "
-                + String.format("%.2f", membershipDensity) + "%";
-        OutlierItemModel clusterItemModel = new OutlierItemModel(similarObjectCount
-                + " similar object(s)", clusterDescription, "fa fa-cubes");
-        outlierObjectModel.addOutlierItemModel(clusterItemModel);
-
-        OutlierItemModel outlierItemModel = new OutlierItemModel(propertyConfidenceRange, propertyDescription,
-                "fe fe-role");
-        outlierObjectModel.addOutlierItemModel(outlierItemModel);
-
-        AttributeAnalysis outlierAttributeAnalysis = outlierResult.getAttributeAnalysis();
-        RoleAnalysisAttributeAnalysisResult compareAttributeResult = null;
-        if (outlierAttributeAnalysis != null) {
-            compareAttributeResult = outlierAttributeAnalysis.getUserClusterCompare();
-        }
-
-        double averageItemsOccurs = 0;
-        int attributeAboveThreshold = 0;
-        int threshold = 80;
-
-        StringBuilder attributeDescriptionThreshold = new StringBuilder();
-        attributeDescriptionThreshold.append("Attributes with occurrence above ").append(threshold).append("%: ");
-        if (compareAttributeResult != null && compareAttributeResult.getAttributeAnalysis() != null) {
-            List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
-
-            for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysis) {
-                Double density = attribute.getDensity();
-                if (density != null) {
-                    if (density >= threshold) {
-                        attributeAboveThreshold++;
-                        attributeDescriptionThreshold.append(attribute.getItemPath()).append(", ");
-                    }
-                    averageItemsOccurs += density;
-                }
-            }
-
-            if (averageItemsOccurs != 0 && !attributeAnalysis.isEmpty()) {
-                averageItemsOccurs = averageItemsOccurs / attributeAnalysis.size();
-            }
-
-        }
-
-        String assignmentsFrequencyDescription = "Assignment of the outlier object confidence in the cluster.";
-        OutlierItemModel roleAssignmentsFrequencyItemModel = new OutlierItemModel(
-                String.format("%.2f", outlierResult.getOutlierAssignmentFrequencyConfidence())
-                        + "%", assignmentsFrequencyDescription, "fe fe-role");
-        outlierObjectModel.addOutlierItemModel(roleAssignmentsFrequencyItemModel);
-
-        String attributeDescription = "Attribute factor difference outlier vs cluster. "
-                + "(average overlap value of outlier attributes with similar objects.)";
-
-        OutlierItemModel attributeItemModel = new OutlierItemModel(String.format("%.2f", averageItemsOccurs)
-                + "%", attributeDescription, "fa fa-cogs");
-        outlierObjectModel.addOutlierItemModel(attributeItemModel);
-
-        OutlierItemModel attributeItemModelThreshold = new OutlierItemModel(attributeAboveThreshold
-                + " attribute(s)", attributeDescriptionThreshold.toString(), "fa fa-cogs");
-        outlierObjectModel.addOutlierItemModel(attributeItemModelThreshold);
-
-        List<String> rolesOid = Collections.singletonList(roleTypePrismObject.getOid());
-
-        int directRoles = 0;
-        String directRolesDescription = "Direct role assignments of the outlier object.";
-        int indirectRoles = 0;
-        String indirectRolesDescription = "Indirect role assignments of the outlier object.";
-        for (String roleOid : rolesOid) {
-            PrismObject<RoleType> roleAssignment = roleAnalysisService.getRoleTypeObject(roleOid, task, result);
-            if (roleAssignment != null) {
-                RoleType role = roleAssignment.asObjectable();
-                List<AssignmentType> inducement = role.getInducement();
-                if (inducement != null && !inducement.isEmpty()) {
-                    indirectRoles += inducement.size();
-                } else {
-                    directRoles++;
-                }
-            }
-        }
-
-        OutlierItemModel directRolesItemModel = new OutlierItemModel(String.valueOf(directRoles),
-                directRolesDescription, "fe fe-role");
-        outlierObjectModel.addOutlierItemModel(directRolesItemModel);
-
-        OutlierItemModel indirectRolesItemModel = new OutlierItemModel(String.valueOf(indirectRoles),
-                indirectRolesDescription, "fe fe-role");
-        outlierObjectModel.addOutlierItemModel(indirectRolesItemModel);
-
-        int rolesByCondition = 0;
-        String rolesByConditionDescription = "Role assignments of the outlier object by condition. (?)";
-
-        OutlierItemModel rolesByConditionItemModel = new OutlierItemModel(String.valueOf(rolesByCondition),
-                rolesByConditionDescription, "fe fe-role");
-        outlierObjectModel.addOutlierItemModel(rolesByConditionItemModel);
-
-        int outdatedAccessRights = 0;
-        String outdatedAccessRightsDescription = "Outdated access rights of the outlier object.";
-
-        OutlierItemModel outdatedAccessRightsItemModel = new OutlierItemModel(String.valueOf(outdatedAccessRights),
-                outdatedAccessRightsDescription, "fa fa-key");
-        outlierObjectModel.addOutlierItemModel(outdatedAccessRightsItemModel);
-
-        return outlierObjectModel;
-    }
-
-    public static @Nullable OutlierObjectModel generateAssignmentOutlierResultModel(
-            @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull RoleAnalysisOutlierDescriptionType outlierResult,
-            @NotNull Task task,
-            @NotNull OperationResult result,
-            @NotNull PrismObject<UserType> userTypeObject,
-            @NotNull RoleAnalysisOutlierType outlierParent) {
-        DecimalFormat decimalFormat = new DecimalFormat("#.##");
-        decimalFormat.setGroupingUsed(false);
-        decimalFormat.setRoundingMode(RoundingMode.DOWN);
-
-        ObjectReferenceType targetObjectRef = outlierResult.getObject();
         PrismObject<RoleType> roleTypeObject = roleAnalysisService.getRoleTypeObject(targetObjectRef.getOid(), task, result);
         if (roleTypeObject == null) {
             return null;
         }
 
         PolyString name = roleTypeObject.getName();
-        double confidence = 100 - outlierResult.getConfidenceDeviation();
+        double confidence = 100 - outlierResultStatistics.getConfidenceDeviation();
         int outlierConfidenceInt = (int) confidence;
         String description = "Assignment has been marked as outlier object due to confidence score:";
 
@@ -472,7 +618,7 @@ public class OutlierObjectModel implements Serializable {
         Date date = gregorianCalendar.getTime();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String formattedDate = sdf.format(date);
-        RoleAnalysisPatternInfo patternInfo = outlierResult.getPatternInfo();
+        RoleAnalysisPatternAnalysis patternInfo = outlierResultStatistics.getPatternAnalysis();
         OutlierObjectModel outlierObjectModel = new OutlierObjectModel(
                 name.getOrig(), description, outlierConfidenceInt, formattedDate, patternInfo);
 
@@ -491,7 +637,7 @@ public class OutlierObjectModel implements Serializable {
             OutlierItemModel patternItemModel = new OutlierItemModel(value, patternDescription, "fa fa-cubes");
             outlierObjectModel.addOutlierItemModel(patternItemModel);
         }
-        Double outlierCoverageConfidence = outlierResult.getOutlierCoverageConfidence();
+        Double outlierCoverageConfidence = outlierResultStatistics.getOutlierCoverageConfidence();
         double occurInCluster = outlierCoverageConfidence == null ? 0 : outlierCoverageConfidence;
 
         String descriptionOccurInCluster = "Outlier assignment coverage in cluster.";
@@ -500,7 +646,7 @@ public class OutlierObjectModel implements Serializable {
                 + "%", descriptionOccurInCluster, "fa fa-cubes");
         outlierObjectModel.addOutlierItemModel(occurInClusterItemModel);
 
-        Double memberCoverageConfidence = outlierResult.getMemberCoverageConfidence();
+        Double memberCoverageConfidence = outlierResultStatistics.getMemberCoverageConfidence();
         double memberPercentageRepo = memberCoverageConfidence == null ? 0 : memberCoverageConfidence;
 
         String memberPercentageRepoDescription = "Role member percentage compared to all users in the repository.";
@@ -509,7 +655,7 @@ public class OutlierObjectModel implements Serializable {
                 memberPercentageRepo) + "%", memberPercentageRepoDescription, "fa fa-users");
         outlierObjectModel.addOutlierItemModel(memberPercentageRepoItemModel);
 
-        ObjectReferenceType sessionRef = outlierResult.getSession();
+        ObjectReferenceType sessionRef = partition.getTargetSessionRef();
         PrismObject<RoleAnalysisSessionType> session = roleAnalysisService.getSessionTypeObject(sessionRef.getOid(), task, result);
 
         List<RoleAnalysisAttributeDef> attributesForUserAnalysis = null;
@@ -601,15 +747,15 @@ public class OutlierObjectModel implements Serializable {
         String deviationDescription = "Unreliability of assignment based on a standard distribution";
 
         double deviationConfidence = 0;
-        if (outlierResult.getConfidenceDeviation() != null) {
-            deviationConfidence = outlierResult.getConfidenceDeviation() * 100;
+        if (outlierResultStatistics.getConfidenceDeviation() != null) {
+            deviationConfidence = outlierResultStatistics.getConfidenceDeviation() * 100;
         }
 
         OutlierItemModel deviationItemModel = new OutlierItemModel(String.format("%.2f", deviationConfidence)
                 + "%", deviationDescription, "fa fa-key");
         outlierObjectModel.addOutlierItemModel(deviationItemModel);
 
-        Double totalConfidence = outlierResult.getConfidence();
+        Double totalConfidence = outlierResultStatistics.getConfidence();
         if (totalConfidence != null) {
             double totalConfidenceDouble = totalConfidence;
             int outlierAssignmentConfidence = (int) (totalConfidenceDouble);

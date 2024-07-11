@@ -104,7 +104,7 @@ public class ClusteringActionExecutor extends BaseAction {
                 return;
             }
 
-            roleAnalysisService.deleteSessionClustersMembers(prismSession.getOid(), task, result);
+            roleAnalysisService.deleteSessionClustersMembers(prismSession.getOid(), task, result, false);
 
             this.clusterable = new ClusteringBehavioralResolver();
 
