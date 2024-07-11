@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 
-public class MAffectedObjects extends MContainer implements MAffectedObjectReference.Owner{
+public class MAffectedObjects extends MContainer {
 
     public Integer activityId;
 
@@ -37,10 +37,4 @@ public class MAffectedObjects extends MContainer implements MAffectedObjectRefer
 
     public ExecutionModeType executionMode;
     public PredefinedConfigurationType predefinedConfigurationToUse;
-
-    @Override
-    public BooleanExpression owns(QAffectedObjectReference ref) {
-        return ref.ownerOid.eq(ownerOid)
-                .and(ref.affectedObjectCid.eq(cid));
-    }
 }

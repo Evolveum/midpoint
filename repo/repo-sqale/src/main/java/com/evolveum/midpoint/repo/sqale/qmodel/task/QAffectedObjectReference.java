@@ -19,7 +19,7 @@ import java.sql.Types;
 /**
  * Querydsl query type for affected object reference tables.
  */
-public class QAffectedObjectReference<O extends MAffectedObjectReference.Owner> extends QReference<MAffectedObjectReference, O> {
+public class QAffectedObjectReference extends QReference<MAffectedObjectReference, MAffectedObjects> {
 
     @Serial private static final long serialVersionUID = 3046837007769017218L;
 
@@ -41,7 +41,8 @@ public class QAffectedObjectReference<O extends MAffectedObjectReference.Owner> 
     }
 
     @Override
-    public BooleanExpression isOwnedBy(MAffectedObjectReference.Owner ownerRow) {
-        return ownerRow.owns(this);
+    public BooleanExpression isOwnedBy(MAffectedObjects ownerRow) {
+        return ownerOid.eq(ownerRow.ownerOid)
+                .and(affectedObjectCid.eq(ownerRow.cid));
     }
 }
