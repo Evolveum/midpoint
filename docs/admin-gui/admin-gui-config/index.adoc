@@ -19,7 +19,7 @@ The admin GUI configuration structure contains:
 * `*additionalMenuLink*`: Links that will be displayed as an additional items in the user interface menu.
 It can be used to point the user to other services in your deployment.
 
-* `*userDashboardLink*`: DEPRECATED (since 4.6 , DO NOT USE ANYMORE, see `homePage` configuration)
+* `*userDashboardLink*`: DEPRECATED (DO NOT USE ANYMORE, see `homePage` configuration)
 
 * `*objectCollectionViews*`: Specifies the set of pages that are used for displaying lists of objects such as Users, Roles, Orgs, ... Influences a list of links in sidebar menu for particular object. E.g. defining objectCollection for _Employees_ will create new link in sidebar menu under the _Users_, after clicking on the link, filtered list of the _Employees_ is shown
 
@@ -31,15 +31,15 @@ It can be used to point the user to other services in your deployment.
 
 * `*selfProfilePage*`: Specifies customizations for xref:/midpoint/reference/admin-gui/self-service/[Self-service Profile], which panels are shown, which attributes, collections, virtual sections, ...
 
-* `*userDashboard*`: DEPRECATED (since 4.6, DO NOT USE ANYMORE, see `homePage`)
+* `*userDashboard*`: DEPRECATED (DO NOT USE ANYMORE, see `homePage`)
 
 * `*defaultTimezone*`: Defines the timezone that will be used by the user interface to display date and time information.
 
-* `*preferredDataLanguage*`: (since midPoint 3.6) Defines the data language that will use used by the user interface to display content of objects (XML, JSON or YAML)
+* `*preferredDataLanguage*`: Defines the data language that will use used by the user interface to display content of objects (XML, JSON or YAML)
 
 * `*feedbackMessagesHook*`: Configuration for modifying of feedback messages showed in GUI.
 
-Since midPoint 4.4, the look and feel of GUI has been significantly changed. The aim was to provide better user experience and more configuration options. The old look is still available in midPoint for preview. It can be turned on in adminGuiConfiguration setting `useNewDesign` property to _false_. However, bugs and improvements will be fixed and implemented only for the new look and the old look will be completely removed in release 4.6. Old look is no more supported in 4.4. Please, migrate your configuration as soon as possible.
+Since midPoint 4.4, the look and feel of GUI has been significantly changed. The aim was to provide better user experience and more configuration options. The old look is still available in midPoint for preview. It can be turned on in adminGuiConfiguration setting `useNewDesign` property to _false_. However, bugs and improvements will be fixed and implemented only for the new look and the old look will be completely removed in release 4.6. Old look is no more supported Please, migrate your configuration as soon as possible.
 
 == How It Works
 
@@ -50,7 +50,7 @@ Following algorithm is used:
 
 * Admin GUI configuration in the xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object] is applied first (if present).
 
-* Admin GUI configuration from all of the active roles, orgs and services is applied on top of that. If the adminGuiConfiguration is specified in archetype directly (not in the archetypePolicy/adminGuiConfiguration), then this configuration is applied in this step too.
+* Admin GUI configuration from all active roles, orgs and services is applied on top of that. If the adminGuiConfiguration is specified in archetype directly (not in the archetypePolicy/adminGuiConfiguration), then this configuration is applied in this step too.
 
 
 ** The simple single-valued configuration properties such as default timezone are overwritten.
@@ -90,7 +90,7 @@ This may change in the future and the dashboards may become more flexible.
 But they are not that flexible yet.
 Therefore all the widgets need to be explicitly defined in order to appear in a customized dashboard.
 
-=== Object details
+== Object details
 
 Object details configuration influences the look and feel of the pages for creating and editing object. MidPoint comes with default panels and default pre-defined configuration for each object available to edit and create in GUI. It is basic configuration which might be adjusted according to customer's needs. Custom configuration defined by customer is merged with default pre-defined configuration according to the rules described in _How it works_.
 
@@ -104,11 +104,11 @@ Basis structure for object details configuration is:
 
 * `*summaryPanel*`: Specify the look and feel of the summary panel. Currently it is supported only partially.
 
-* `*saveMethod*` : Specifies the method how page save/preview buttons are shown and processed. Only few options are supported and might be changed in the future.
+* `*saveMethod*`: Specifies the method how page save/preview buttons are shown and processed. Only few options are supported and might be changed in the future.
 
-* `*panel*` : Definition of individual panels which will be used on details page. According to the panel definition, also link in the detail menu to corresponding panel is generated. One panel can be nested to another. In such a case, link in the detail navigation menu will be show as a submenu under the link of the parent panel.
+* `*panel*`: Definition of individual panels which will be used on details page. According to the panel definition, also link in the detail menu to corresponding panel is generated. One panel can be nested to another. In such a case, link in the detail navigation menu will be shown as a submenu under the link of the parent panel.
 
-==== Panel configuration
+=== Panel configuration
 
 `Panel` configuration contains information about two things:
 
@@ -391,6 +391,11 @@ Panels applicable only for users:
 
 |===
 | Panel | Identifier | Description | Default order
+
+| All Accesses
+| `igaAccesses`
+|
+|
 
 | Consent assignments
 | `gdprAssignments`
@@ -765,9 +770,7 @@ Panels applicable only for system configuration:
 | 30
 |===
 
-==== Object details for resource
-
-WARNING: This feature is available since midPoint 4.6
+=== Object details for resource
 
 For configuration of object details for resource (ResourceType) use tag `resourceDetailsPage` insteadof `objectDetailsPage`. Configuration contains all attribute as configuration for `objectDetailsPage` and additionally contains attribute `connectorRef` that define connector of resource fow which configuration of admin gui applies. We can use classic reference, or we can use filter in reference that will be resolved during processing of configuration.
 
@@ -844,17 +847,18 @@ Panels applicable only for resources (detail page):
 
 |===
 
-==== Wizard panels
-
-WARNING: This feature is available since midPoint 4.6
+=== Wizard panels
 
 Panel for wizard contains same configuration structure as xref:/midpoint/reference/admin-gui/admin-gui-config/#panel-configuration[panel configuration]. We can use configuration for collection with definitions for columns, or we can use container configuration for wizard panel, which show panel with form.
 
 Very important attribute is _applicableForOperation_, that have to have value *_wizard_* for wizard panels.
-This enum value is available since midPoint 4.7. This value specifies that the panel will only be used in the wizard and this panel will not appear in the detail menu.
+This value specifies that the panel will only be used in the wizard and this panel will not appear in the detail menu.
 
 Example of configuration for wizard panel, which display form with basic configuration of resource object type (visible only attributes _displayName_, _description_, _kind_, _intent_, _securityPolicyRef_ and _default_):
 
+.Example
+[%collapsible]
+====
 [source,xml]
 ----
 ...
@@ -901,6 +905,7 @@ Example of configuration for wizard panel, which display form with basic configu
     </resourceDetailsPage>
 ...
 ----
+====
 
 Panels applicable for resource wizard:
 [%autowidth]
@@ -1075,9 +1080,7 @@ Panels applicable for resource wizard:
 
 Panels applicable for role wizard:
 
-WARNING: This panels are available since midPoint 4.7
 [%autowidth]
-
 |===
 | Panel | Identifier | Description
 
@@ -1130,10 +1133,7 @@ WARNING: This panels are available since midPoint 4.7
 | Available from 4.8. Definition of the resource attributes description, exclusive, authoritative, channel and except channel
 |===
 
-
-==== Assignment Panels: Switching Data Provider
-
-WARNING: This feature is available since midPoint 4.6
+=== Assignment Panels: Switching Data Provider
 
 It is possible to switch implementation of data provider (search engine) in
 assignment panels. Currently, we support two implementations:
@@ -1162,6 +1162,8 @@ The configuration is done by setting `xsi:type` of `panel -> listView -> dataPro
 
 
 .Enabling repository search for Users -> Assignments -> All
+[%collapsible]
+====
 [source, xml]
 ----
 <systemConfiguration>
@@ -1185,13 +1187,18 @@ The configuration is done by setting `xsi:type` of `panel -> listView -> dataPro
     ...
 <systemConfiguration>
 ----
+====
+
 
 == Custom actions for object lists
 
-Starting from midpoint 3.9, there is a possibility to configure a custom action to be run from the object list table.
+MidPoint has an option to configure a custom action to be run from the object list table.
 This functionality is intended e.g. to start the specified task template for one object or for a group of the selected objects.
 To configure custom actions, please, use the following example
 
+.Example
+[%collapsible]
+====
 [source,xml]
 ----
 <adminGuiConfiguration>
@@ -1211,10 +1218,11 @@ To configure custom actions, please, use the following example
         </objectCollectionViews>
 </adminGuiConfiguration>
 ----
+====
 
-Xml for the task template object you can find by the link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/templates/task-template-change-description.xml[following link].
+You can find configuration of task template object at link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/templates/task-template-change-description.xml[following link].
 
-After custom action is configured in the admin gui configuration section, you can find action link among menu items on the appropriate type object list panel.
+After custom action is configured in the admin gui configuration section, you can find action link among menu items in the appropriate type object list panel.
 
 image::custom_action_screen.png[]
 
@@ -1225,6 +1233,7 @@ image::custom_action_screen.png[]
 In particular, if there is a Groovy code there, the `execute-script` authorization must be present.
 See also bug:MID-7831[] and bug:MID-6913[].
 (As this is very strong authorization, be sure to provide it to trustworthy users only!)
+
 
 == Admin GUI Configuration and Authorizations
 
@@ -1265,6 +1274,9 @@ Script should return OperationResultType.
 If script returns null, then result is dropped and not shown on page.
 To see changes made in this part of configuration, user needs to do logout/login as they are cached in session.
 
+.Example
+[%collapsible]
+====
 [source,xml]
 ----
 <adminGuiConfiguration>
@@ -1300,6 +1312,8 @@ To see changes made in this part of configuration, user needs to do logout/login
    </feedbackMessagesHook>
 </adminGuiConfiguration>
 ----
+====
+
 
 === Stack Trace Visibility
 'stackTraceVisibility' attribute configure visibility for stack trace in feedback messages of GUI.
@@ -1450,7 +1464,7 @@ The list of roles which affect the GUI is updated.
 
 == See Also
 
-* xref:./config-examples.adoc[Admin GUI Configuration - Examples]
+* xref:./admin-gui-config-examples.adoc[Admin GUI Configuration - Examples]
 
 * xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object]
 
