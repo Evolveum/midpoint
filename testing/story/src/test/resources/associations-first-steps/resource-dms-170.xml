@@ -133,41 +133,46 @@
                 <association>
                     <ref>ri:access</ref>
                     <inbound>
-                        <objectRef>
-                            <ref>ri:document</ref>
-                            <correlator/>
-                            <mapping>
-                                <name>document-to-targetRef</name>
-                                <source>
-                                    <path>$shadow/attributes/ri:level</path>
-                                </source>
-                                <expression>
-                                    <shadowOwnerReferenceSearch>
-                                        <relationExpression>
-                                            <path>$level</path>
-                                        </relationExpression>
-                                    </shadowOwnerReferenceSearch>
-                                </expression>
-                                <target>
-                                    <path>targetRef</path>
-                                </target>
-                            </mapping>
-                        </objectRef>
-                        <synchronization>
-                            <reaction>
-                                <situation>unmatched</situation>
-                                <actions>
-                                    <addFocusValue/>
-                                </actions>
-                            </reaction>
-                            <reaction>
-                                <situation>matched</situation>
-                                <actions>
-                                    <synchronize/>
-                                </actions>
-                            </reaction>
-                        </synchronization>
+                        <expression>
+                            <associationValueSynchronization>
+                                <objectRef>
+                                    <ref>ri:document</ref>
+                                    <correlator/>
+                                    <mapping>
+                                        <name>document-to-targetRef</name>
+                                        <source>
+                                            <path>$shadow/attributes/ri:level</path>
+                                        </source>
+                                        <expression>
+                                            <shadowOwnerReferenceSearch>
+                                                <relationExpression>
+                                                    <path>$level</path>
+                                                </relationExpression>
+                                            </shadowOwnerReferenceSearch>
+                                        </expression>
+                                        <target>
+                                            <path>targetRef</path>
+                                        </target>
+                                    </mapping>
+                                </objectRef>
+                                <synchronization>
+                                    <reaction>
+                                        <situation>unmatched</situation>
+                                        <actions>
+                                            <addFocusValue/>
+                                        </actions>
+                                    </reaction>
+                                    <reaction>
+                                        <situation>matched</situation>
+                                        <actions>
+                                            <synchronize/>
+                                        </actions>
+                                    </reaction>
+                                </synchronization>
+                            </associationValueSynchronization>
+                        </expression>
                         <target>
+                            <path>assignment</path>
                             <assignmentTargetType>ServiceType</assignmentTargetType>
                         </target>
                     </inbound>

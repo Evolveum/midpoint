@@ -20,9 +20,7 @@ import com.evolveum.midpoint.repo.common.expression.VariableProducer;
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.schema.processor.ShadowAssociation;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -36,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.repo.common.expression.ExpressionUtil.getPath;
@@ -53,9 +50,9 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
 
     private static final Trace LOGGER = TraceManager.getTrace(MappedItem.class);
 
-    private final MSource source;
-    private final Target<T> target;
-    private final Context context;
+    private final MappingSource source;
+    private final MappingTarget<T> target;
+    private final MappingContext context;
 
     /** [EP:M:IM] DONE These mappings must come from `source.resource`. Currently it seems so. */
     private final Collection<? extends AbstractMappingConfigItem<?>> mappings;
@@ -71,9 +68,9 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
     @NotNull private final ModelBeans beans = ModelBeans.get();
 
     MappedItem(
-            MSource source,
-            Target<T> target,
-            Context context,
+            MappingSource source,
+            MappingTarget<T> target,
+            MappingContext context,
             Collection<? extends AbstractMappingConfigItem<?>> mappings,
             ItemPath implicitSourcePath,
             String itemDescription,
@@ -130,7 +127,7 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
                         {}""",
                 mappings.size(),
                 itemDescription,
-                source.getProjectionHumanReadableNameLazy(),
+                source.getProjectionHumanReadableName(),
                 fromAbsoluteState ? "absolute mode" : "relative mode",
                 DebugUtil.debugDumpLazily(itemAPrioriDelta, 1),
                 DebugUtil.debugDumpLazily(currentProjectionItem, 1));

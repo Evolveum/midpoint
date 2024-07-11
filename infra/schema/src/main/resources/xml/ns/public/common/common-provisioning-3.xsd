@@ -3372,14 +3372,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="outbound" type="tns:AssociationOutboundMappingType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Outbound mapping(s) for the association.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="inbound" type="tns:AssociationInboundMappingType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="inbound" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Inbound mapping(s) for the association.
@@ -7227,4 +7227,97 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="AssociationValueConstructionExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Creates association values by constructing it via mappings for individual attributes and object references.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="attribute" type="tns:AttributeOutboundMappingsDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Outbound processing of given association attribute.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectRef" type="tns:AttributeOutboundMappingsDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Outbound processing of given object-side of this association.
+                        The object can be specified exactly (via "ref" property), or kept implicit, if there's only one object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Outbound processing of the activation of this association.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="associationValueConstruction" type="tns:AssociationValueConstructionExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+    <xsd:complexType name="AssociationValueSynchronizationExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Synchronizes association values by correlating and mapping them to values of respective focus item
+                (typically, an assignment).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="attribute" type="tns:AttributeInboundMappingsDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Outbound processing of given association attribute.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectRef" type="tns:AttributeInboundMappingsDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Outbound processing of given object-side of this association.
+                        The object can be specified exactly (via "ref" property), or kept implicit, if there's only one object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Outbound processing of the activation of this association.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="correlation" type="tns:CorrelationDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How objects of this type are correlated to focus objects?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="synchronization" type="tns:ItemSynchronizationReactionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="target" type="tns:AssociationInboundMappingTargetDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="associationValueSynchronization" type="tns:AssociationValueSynchronizationExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
 </xsd:schema>

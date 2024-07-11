@@ -27,7 +27,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 /**
  * Overall context of the mappings preparation: system configuration, environment (time, task), operation result, and the like.
  */
-abstract class Context implements ExecutionModeProvider {
+public abstract class MappingContext implements ExecutionModeProvider {
 
     /** The environment: context description, now (the clock), task. */
     @NotNull protected final MappingEvaluationEnvironment env;
@@ -37,7 +37,7 @@ abstract class Context implements ExecutionModeProvider {
     /** Useful Spring beans. */
     @NotNull final ModelBeans beans = ModelBeans.get();
 
-    Context(@NotNull MappingEvaluationEnvironment env, @NotNull AssignmentsProcessingContext assignmentsProcessingContext) {
+    MappingContext(@NotNull MappingEvaluationEnvironment env, @NotNull AssignmentsProcessingContext assignmentsProcessingContext) {
         this.env = env;
         this.assignmentsProcessingContext = assignmentsProcessingContext;
     }
@@ -66,5 +66,9 @@ abstract class Context implements ExecutionModeProvider {
 
     @NotNull TaskExecutionMode getTaskExecutionMode() {
         return env.task.getExecutionMode();
+    }
+
+    public @NotNull MappingEvaluationEnvironment getEnv() {
+        return env;
     }
 }

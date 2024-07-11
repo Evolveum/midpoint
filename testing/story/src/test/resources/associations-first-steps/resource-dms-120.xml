@@ -133,19 +133,24 @@
                 <association>
                     <ref>ri:access</ref>
                     <inbound>
-                        <objectRef>
-                            <ref>ri:document</ref>
-                            <mapping>
-                                <name>document-to-targetRef</name>
-                                <expression>
-                                    <shadowOwnerReferenceSearch/>
-                                </expression>
-                                <target>
-                                    <path>targetRef</path>
-                                </target>
-                            </mapping>
-                        </objectRef>
+                        <expression>
+                            <associationValueSynchronization>
+                                <objectRef>
+                                    <ref>ri:document</ref>
+                                    <mapping>
+                                        <name>document-to-targetRef</name>
+                                        <expression>
+                                            <shadowOwnerReferenceSearch/>
+                                        </expression>
+                                        <target>
+                                            <path>targetRef</path>
+                                        </target>
+                                    </mapping>
+                                </objectRef>
+                            </associationValueSynchronization>
+                        </expression>
                         <target>
+                            <path>assignment</path>
                             <assignmentTargetType>ServiceType</assignmentTargetType>
                         </target>
                     </inbound>

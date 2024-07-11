@@ -1403,6 +1403,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         context.setValuePolicySupplier(valuePolicySupplier);
         context.setExpressionFactory(ModelCommonBeans.get().expressionFactory);
         context.setMappingQName(targetItemName);
+        context.setTargetDefinitionBean(mappingBean.getTarget());
         context.setVariableProducer(variableProducer);
         context.setValueMetadataComputer(valueMetadataComputer);
         context.setLocalContextDescription("expression");

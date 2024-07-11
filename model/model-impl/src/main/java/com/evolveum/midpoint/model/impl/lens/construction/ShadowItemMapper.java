@@ -299,7 +299,10 @@ abstract class ShadowItemMapper
             computedTriple = AssociationValuesTripleComputation.compute(
                     getAssociationDefinition(),
                     outboundBean,
-                    constructionEvaluation);
+                    constructionEvaluation.getProjectionContextRequired(),
+                    constructionEvaluation.construction.now,
+                    constructionEvaluation.task,
+                    constructionEvaluation.result);
 
             return getTripleProducer();
         }

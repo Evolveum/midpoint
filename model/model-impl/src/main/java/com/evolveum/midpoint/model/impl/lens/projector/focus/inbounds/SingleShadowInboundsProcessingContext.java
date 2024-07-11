@@ -18,8 +18,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
 
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,16 +28,16 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * Everything necessary to carry out pre-clockwork inbounds evaluation.
+ * Everything necessary to carry out limited, single-shadow inbounds evaluation.
  *
- * It is to {@link LimitedInboundsProcessing} just like {@link LensContext} is to {@link FullInboundsProcessing}.
+ * It is to {@link SingleShadowInboundsProcessing} just like {@link LensContext} is to {@link FullInboundsProcessing}.
  *
  * It exists in more flavors depending on the situation: synchronization-time inbounds, or "extra" inbounds
  * e.g. invoked via {@link MidpointFunctions} or {@link CorrelationServiceImpl} method(s).
  *
  * @param <T> the target object type
  */
-public interface PreInboundsContext<T extends Containerable>
+public interface SingleShadowInboundsProcessingContext<T extends Containerable>
         extends ResourceObjectProcessingContext, DebugDumpable {
 
     @NotNull T getPreFocus();
@@ -57,11 +55,11 @@ public interface PreInboundsContext<T extends Containerable>
 
     @NotNull ResourceObjectInboundDefinition getInboundDefinition() throws SchemaException, ConfigurationException;
 
-    // TODO
-    default @Nullable ShadowAssociationDefinition getOwningAssociationDefinition() {
-        return null;
-    }
-
     /** Returns the archetype OID bound to the object type. Archetypes determined from the focus itself are not returned here. */
     @Nullable String getArchetypeOid();
+
+    // FIXME
+    default boolean isBeforeCorrelation() {
+        return true;
+    }
 }

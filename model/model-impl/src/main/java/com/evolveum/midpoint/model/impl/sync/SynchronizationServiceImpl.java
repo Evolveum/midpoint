@@ -356,7 +356,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         setupResourceRefInShadowIfNeeded(change);
 
-        evaluatePreMappings(syncCtx, result);
+        PreMappingsEvaluator.computePreFocus(syncCtx, result);
         setObjectTemplateForCorrelation(syncCtx, syncCtx.getTask(), result);
 
         if (syncCtx.isUpdatingCorrelatorsOnly()) {
@@ -397,13 +397,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                         null,
                         task,
                         result));
-    }
-
-    private <F extends FocusType> void evaluatePreMappings(SynchronizationContext<F> syncCtx, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
-        new PreMappingsEvaluation<>(syncCtx)
-                .evaluate(result);
     }
 
     // This is maybe not needed

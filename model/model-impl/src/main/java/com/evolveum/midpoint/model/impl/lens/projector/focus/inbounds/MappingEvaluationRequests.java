@@ -20,9 +20,9 @@ import com.evolveum.midpoint.prism.path.PathKeyedMap;
  *
  * NOTE: Actually, we do not utilize the fact that it is a map. It could be a plain list of mappings.
  */
-public class MappingEvaluationRequests extends PathKeyedMap<List<InboundMappingEvaluationRequest<?, ?>>> {
+public class MappingEvaluationRequests extends PathKeyedMap<List<MappingEvaluationRequest<?, ?>>> {
 
-    public void add(ItemPath targetPath, InboundMappingEvaluationRequest<?, ?> request) {
+    public void add(ItemPath targetPath, MappingEvaluationRequest<?, ?> request) {
         computeIfAbsent(targetPath, k -> new ArrayList<>())
                 .add(request);
     }

@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param <T> type of the object
  */
-abstract class Target<T extends Containerable> {
+public abstract class MappingTarget<T extends Containerable> {
 
     /**
      * Current target object.
@@ -37,7 +37,7 @@ abstract class Target<T extends Containerable> {
     /** Relative path of the default `$target` variable. TODO */
     @NotNull private final ItemPath targetPathPrefix;
 
-    Target(
+    MappingTarget(
             @Nullable PrismContainerValue<T> targetPcv,
             @NotNull PrismContainerDefinition<T> targetDefinition,
             @NotNull PathKeyedMap<ItemDefinition<?>> itemDefinitionMap,
@@ -48,7 +48,8 @@ abstract class Target<T extends Containerable> {
         this.targetPathPrefix = targetPathPrefix;
     }
 
-    @Nullable T getTargetRealValue() {
+    @Nullable
+    public T getTargetRealValue() {
         return targetPcv != null ? targetPcv.asContainerable() : null;
     }
 

@@ -9,12 +9,11 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.AssignmentsProcessingContext;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessingContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 import org.jetbrains.annotations.NotNull;
@@ -22,16 +21,16 @@ import org.jetbrains.annotations.NotNull;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 /**
- * A {@link Context} for inbound mappings evaluation that is used in "pre-inbounds" evaluation (i.e., before clockwork is run).
+ * A {@link MappingContext} for inbound mappings evaluation that is used in "pre-inbounds" evaluation (i.e., before clockwork is run).
  */
-public class LimitedContext extends Context {
+public class LimitedContext extends MappingContext {
 
-    @NotNull final PreInboundsContext<?> ctx;
+    @NotNull private final SingleShadowInboundsProcessingContext<?> ctx;
 
     @NotNull private final PathSet correlationItemPaths;
 
     public LimitedContext(
-            @NotNull PreInboundsContext<?> ctx,
+            @NotNull SingleShadowInboundsProcessingContext<?> ctx,
             @NotNull PathSet correlationItemPaths,
             @NotNull MappingEvaluationEnvironment env,
             @NotNull AssignmentsProcessingContext assignmentsProcessingContext) {

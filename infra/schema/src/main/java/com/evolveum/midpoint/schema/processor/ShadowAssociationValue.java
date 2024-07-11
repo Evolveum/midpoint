@@ -73,24 +73,18 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
                         ShadowReferenceAttribute.semanticEqualsChecker());
             };
 
+    @NotNull private ShadowAssociationDefinition definition;
+
     // FIXME decide on this
     private final boolean hasAssociationObject;
-
-//    private ShadowAssociationValue() {
-//        this(null, null, null, null,
-//                stateNonNull(
-//                        PrismContext.get().getSchemaRegistry()
-//                                .findComplexTypeDefinitionByCompileTimeClass(ShadowAssociationValueType.class),
-//                        "No CTD for ShadowAssociationValueType"));
-//    }
 
     private ShadowAssociationValue(
             OriginType type, Objectable source,
             PrismContainerable<?> container, Long id,
-            ComplexTypeDefinition complexTypeDefinition,
-            boolean hasAssociationObject) {
-        super(type, source, container, id, complexTypeDefinition);
-        this.hasAssociationObject = hasAssociationObject;
+            @NotNull ShadowAssociationDefinition definition) {
+        super(type, source, container, id, definition.getComplexTypeDefinition());
+        this.definition = definition;
+        this.hasAssociationObject = definition.hasAssociationObject();
     }
 
     /**
@@ -177,8 +171,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     /** We need the definition to provide correct CTD. */
     public static ShadowAssociationValue empty(@NotNull ShadowAssociationDefinition definition) {
         return new ShadowAssociationValue(
-                null, null, null, null,
-                definition.getComplexTypeDefinition(), definition.hasAssociationObject());
+                null, null, null, null, definition);
     }
 
     @Override
@@ -189,13 +182,23 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     @Override
     public ShadowAssociationValue cloneComplex(CloneStrategy strategy) {
         ShadowAssociationValue clone = new ShadowAssociationValue(
-                getOriginType(), getOriginObject(), getParent(), null, complexTypeDefinition, hasAssociationObject);
+                getOriginType(), getOriginObject(), getParent(), null, definition);
         copyValues(strategy, clone);
         return clone;
     }
 
+    protected void copyValues(CloneStrategy strategy, ShadowAssociationValue clone) {
+        super.copyValues(strategy, clone);
+        clone.definition = this.definition;
+    }
+
+    @Override
+    public @NotNull PrismContainerDefinition<ShadowAssociationValueType> getDefinition() {
+        return Objects.requireNonNull(definition);
+    }
+
     public @NotNull ShadowAssociationDefinition getDefinitionRequired() {
-        return stateNonNull((ShadowAssociationDefinition) getDefinition(), "No definition in %s", this);
+        return stateNonNull(definition, "No definition in %s", this);
     }
 
     @Nullable

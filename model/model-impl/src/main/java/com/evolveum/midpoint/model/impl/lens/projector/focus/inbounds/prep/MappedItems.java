@@ -45,11 +45,11 @@ class MappedItems<T extends Containerable> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappedItems.class);
 
-    @NotNull private final MSource source;
+    @NotNull private final MappingSource source;
 
-    @NotNull private final Target<T> target;
+    @NotNull private final MappingTarget<T> target;
 
-    @NotNull private final Context context;
+    @NotNull private final MappingContext context;
 
     @NotNull private final List<MappedItem<?, ?, T>> mappedItems = new ArrayList<>();
 
@@ -61,7 +61,7 @@ class MappedItems<T extends Containerable> {
                     .findObjectDefinitionByCompileTimeClass(ShadowType.class)
                     .findPropertyDefinition(ShadowType.F_AUXILIARY_OBJECT_CLASS));
 
-    MappedItems(@NotNull MSource source, @NotNull Target<T> target, @NotNull Context context) {
+    MappedItems(@NotNull MappingSource source, @NotNull MappingTarget<T> target, @NotNull MappingContext context) {
         this.source = source;
         this.target = target;
         this.context = context;

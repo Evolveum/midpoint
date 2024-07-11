@@ -146,8 +146,9 @@ public interface ShadowAssociationDefinition
 
     // TODO find better place
     default Collection<AssociationOutboundMappingType> getModernOutbounds() {
-        var bean = getModernAssociationDefinitionBean();
-        return bean != null ? bean.getOutbound() : List.of();
+        return List.of();
+//        var bean = getModernAssociationDefinitionBean();
+//        return bean != null ? bean.getOutbound() : List.of();
     }
 
     @Override

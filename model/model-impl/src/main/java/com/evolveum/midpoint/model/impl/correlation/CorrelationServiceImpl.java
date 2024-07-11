@@ -28,7 +28,7 @@ import com.evolveum.midpoint.model.api.correlator.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorFactoryRegistryImpl;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
-import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluation;
+import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -240,7 +240,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
             CommunicationException, ConfigurationException, ObjectNotFoundException {
-        FocusType preFocus = PreMappingsEvaluation.computePreFocus(
+        FocusType preFocus = PreMappingsEvaluator.computePreFocus(
                 shadowedResourceObject, synchronizationPolicy.getObjectTypeDefinition(), resource,
                 candidateOwner.getClass(), task, result);
         CompleteContext ctx = CompleteContext.forShadow(
@@ -373,7 +373,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                                 String.format("No %s/%s (kind/intent) type and synchronization definition in %s (for %s)",
                                         kind, intent, resource, shadow)));
 
-        FocusType preFocus = PreMappingsEvaluation.computePreFocus(
+        FocusType preFocus = PreMappingsEvaluator.computePreFocus(
                 shadow, policy.getObjectTypeDefinition(), resource, policy.getFocusClass(), task, result);
 
         return CompleteContext.forShadow(

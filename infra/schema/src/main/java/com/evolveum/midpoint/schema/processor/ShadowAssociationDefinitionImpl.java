@@ -384,7 +384,9 @@ public class ShadowAssociationDefinitionImpl
         if (legacyInformation != null) {
             return legacyInformation.inboundMappingBeans();
         }
-        // Also modern explicit inbounds?
+        if (modernAssociationDefinitionBean != null) {
+            return modernAssociationDefinitionBean.getInbound();
+        }
         return List.of();
     }
 

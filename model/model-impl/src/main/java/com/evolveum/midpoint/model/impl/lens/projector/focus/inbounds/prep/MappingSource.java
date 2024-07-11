@@ -19,12 +19,14 @@ import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingEvaluationRequest;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequest;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -48,9 +50,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Note that the name means "mapping source" and it's there to distinguish from {@link Source} (to avoid ugly qualified names).
  * TODO come with something more sensible
  */
-abstract class MSource implements IMSource {
+public abstract class MappingSource implements DebugDumpable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MSource.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MappingSource.class);
 
     /**
      * Current shadow object (in case of clockwork processing it may be full or repo-only, or maybe even null
@@ -58,27 +60,28 @@ abstract class MSource implements IMSource {
      */
     @NotNull InboundSourceData sourceData;
 
-    @Nullable PrismObject<ShadowType> currentShadow;
-
     /**
      * A priori delta is a delta that was executed in a previous "step".
      * That means it is either delta from a previous wave or a sync delta (in wave 0).
      */
     @Nullable final ObjectDelta<ShadowType> aPrioriDelta;
 
+    @NotNull private final ResourceType resource;
+
+    @NotNull final String humanReadableName;
+
     @NotNull final ResourceObjectInboundDefinition inboundDefinition;
 
-    // TODO
-    @Nullable private final ShadowAssociationDefinition owningAssociationDefinition;
-
-    MSource(
+    MappingSource(
             @NotNull InboundSourceData sourceData,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
-            @Nullable ShadowAssociationDefinition owningAssociationDefinition) {
+            @NotNull ResourceType resource,
+            @NotNull String humanReadableName) {
         this.sourceData = sourceData;
         this.aPrioriDelta = sourceData.getAPrioriDelta();
         this.inboundDefinition = inboundDefinition;
-        this.owningAssociationDefinition = owningAssociationDefinition;
+        this.resource = resource;
+        this.humanReadableName = humanReadableName;
     }
 
     /**
@@ -90,25 +93,19 @@ abstract class MSource implements IMSource {
     /**
      * Returns the resource object.
      */
-    @NotNull abstract ResourceType getResource();
-
-    /**
-     * Dumps the current processing context, e.g. lens context.
-     */
-    abstract Object getContextDump();
+    @NotNull ResourceType getResource() {
+        return resource;
+    }
 
     /** Returns human-readable name of the context, for logging/reporting purposes. */
-    abstract String getProjectionHumanReadableName();
-
-    /** Returns human-readable name of the context, for logging/reporting purposes. */
-    Object getProjectionHumanReadableNameLazy() {
-        return DebugUtil.lazy(this::getProjectionHumanReadableName);
+    @NotNull String getProjectionHumanReadableName() {
+        return humanReadableName;
     }
 
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "projection on", getProjectionHumanReadableName(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "projection on", humanReadableName, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "source data", sourceData, indent + 1);
         return sb.toString();
     }
@@ -142,6 +139,7 @@ abstract class MSource implements IMSource {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException;
 
+    // TODO move to context
     abstract String getChannel();
 
     /**
@@ -186,7 +184,7 @@ abstract class MSource implements IMSource {
      *
      * Currently relevant only for clockwork-based execution.
      */
-    abstract void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull Context context, OperationResult result)
+    abstract void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull MappingContext context, OperationResult result)
             throws SchemaException, StopProcessingProjectionException;
 
     /**
@@ -205,9 +203,9 @@ abstract class MSource implements IMSource {
             @NotNull Source<?, ?> source, @Nullable PrismValue value, @NotNull VariablesMap variables);
 
     /**
-     * Creates {@link InboundMappingEvaluationRequest} object by providing the appropriate context to the mapping.
+     * Creates {@link MappingEvaluationRequest} object by providing the appropriate context to the mapping.
      */
-    abstract <V extends PrismValue, D extends ItemDefinition<?>> InboundMappingEvaluationRequest<V, D>
+    abstract <V extends PrismValue, D extends ItemDefinition<?>> MappingEvaluationRequest<V, D>
     createMappingRequest(MappingImpl<V, D> mapping);
 
     /**
@@ -222,11 +220,10 @@ abstract class MSource implements IMSource {
             @NotNull List<InboundMappingConfigItem> mappings,
             boolean resourceItemLocalCorrelatorDefined,
             @NotNull Collection<ItemPath> correlationItemPaths) throws ConfigurationException {
-        InboundMappingEvaluationPhaseType currentPhase = getCurrentEvaluationPhase();
-        var filteredMappings =
-                new ApplicabilityEvaluator(
-                        getDefaultEvaluationPhases(), resourceItemLocalCorrelatorDefined, correlationItemPaths, currentPhase)
-                        .filterApplicableMappings(mappings);
+        var currentPhase = getCurrentEvaluationPhase();
+        var applicabilityEvaluator = new ApplicabilityEvaluator(
+                getDefaultEvaluationPhases(), resourceItemLocalCorrelatorDefined, correlationItemPaths, currentPhase);
+        var filteredMappings = applicabilityEvaluator.filterApplicableMappings(mappings);
         if (filteredMappings.size() < mappings.size()) {
             LOGGER.trace("{} out of {} mapping(s) for this item were filtered out because of evaluation phase '{}'",
                     mappings.size() - filteredMappings.size(), mappings.size(), currentPhase);
@@ -247,23 +244,27 @@ abstract class MSource implements IMSource {
 
     abstract ItemPath determineTargetPathExecutionOverride(ItemPath targetItemPath) throws ConfigurationException, SchemaException;
 
-    @Override
     public @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getSimpleAttributeDefinitions() {
         return sourceData.getSimpleAttributeDefinitions();
     }
 
-    @Override
-    public @NotNull Collection<? extends ShadowReferenceAttributeDefinition> getObjectReferenceAttributeDefinitions() {
+    @NotNull Collection<? extends ShadowReferenceAttributeDefinition> getObjectReferenceAttributeDefinitions() {
         return sourceData.getReferenceAttributeDefinitions();
     }
 
-    @Override
-    public @NotNull Collection<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
+    @NotNull Collection<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
         return sourceData.getAssociationDefinitions();
     }
 
-    @Override
     public @NotNull ResourceObjectInboundDefinition getInboundDefinition() {
         return inboundDefinition;
+    }
+
+    public @Nullable ObjectDelta<ShadowType> getAPrioriDelta() {
+        return aPrioriDelta;
+    }
+
+    public @NotNull InboundSourceData getSourceData() {
+        return sourceData;
     }
 }

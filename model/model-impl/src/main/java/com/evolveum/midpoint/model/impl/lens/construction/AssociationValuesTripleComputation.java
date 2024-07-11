@@ -27,6 +27,8 @@ import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 
+import com.evolveum.midpoint.task.api.Task;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
@@ -36,7 +38,7 @@ import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleMap;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleIvwoMap;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -55,11 +57,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 /**
  * TEMPORARY/EXPERIMENTAL class that provides a full computation of an association values triple,
  * based on "modern" configuration style of association type.
  */
-class AssociationValuesTripleComputation {
+public class AssociationValuesTripleComputation {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationValuesTripleComputation.class);
 
@@ -91,18 +95,18 @@ class AssociationValuesTripleComputation {
     public static PrismValueDeltaSetTriple<ShadowAssociationValue> compute(
             @NotNull ShadowAssociationDefinition associationDefinition,
             @NotNull AssociationOutboundMappingType outboundBean,
-            @NotNull ConstructionEvaluation<?, ?> constructionEvaluation)
+            @NotNull LensProjectionContext projectionContext,
+            @NotNull XMLGregorianCalendar now,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         var avc = new AssociationValuesTripleComputation(
                 associationDefinition,
                 outboundBean,
-                constructionEvaluation.getProjectionContextRequired(),
-                new MappingEvaluationEnvironment(
-                        "association computation",
-                        constructionEvaluation.construction.now,
-                        constructionEvaluation.task),
-                constructionEvaluation.result);
+                projectionContext,
+                new MappingEvaluationEnvironment("association computation", now, task),
+                result);
         return avc.compute();
     }
 
@@ -202,7 +206,7 @@ class AssociationValuesTripleComputation {
         @NotNull private final AssignmentPathVariables assignmentPathVariables;
 
         /** Values of individual items within the association. */
-        @NotNull private final DeltaSetTripleMap tripleMap = new DeltaSetTripleMap();
+        @NotNull private final DeltaSetTripleIvwoMap tripleMap = new DeltaSetTripleIvwoMap();
 
         ValueComputation(@NotNull EvaluatedAssignmentTargetImpl target) throws SchemaException {
             this.assignmentTarget = target.getTarget().asObjectable();

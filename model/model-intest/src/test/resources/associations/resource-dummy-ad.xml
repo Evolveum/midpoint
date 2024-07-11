@@ -124,43 +124,52 @@
                 <association>
                     <ref>ri:group</ref>
                     <outbound>
-                        <objectRef>
-                            <ref>ri:group</ref>
-                            <mapping>
-                                <expression>
-                                    <associationFromLink/>
-                                </expression>
-                            </mapping>
-                        </objectRef>
+                        <expression>
+                            <associationValueConstruction>
+                                <objectRef>
+                                    <ref>ri:group</ref>
+                                    <mapping>
+                                        <expression>
+                                            <associationFromLink/>
+                                        </expression>
+                                    </mapping>
+                                </objectRef>
+                            </associationValueConstruction>
+                        </expression>
                     </outbound>
                     <inbound>
-                        <objectRef>
-                            <ref>ri:group</ref>
-                            <correlator/>
-                            <mapping>
-                                <expression>
-                                    <shadowOwnerReferenceSearch/>
-                                </expression>
-                                <target>
-                                    <path>targetRef</path>
-                                </target>
-                            </mapping>
-                        </objectRef>
-                        <synchronization>
-                            <reaction>
-                                <situation>unmatched</situation>
-                                <actions>
-                                    <addFocusValue/>
-                                </actions>
-                            </reaction>
-                            <reaction>
-                                <situation>matched</situation>
-                                <actions>
-                                    <synchronize/>
-                                </actions>
-                            </reaction>
-                        </synchronization>
+                        <expression>
+                            <associationValueSynchronization>
+                                <objectRef>
+                                    <ref>ri:group</ref>
+                                    <correlator/>
+                                    <mapping>
+                                        <expression>
+                                            <shadowOwnerReferenceSearch/>
+                                        </expression>
+                                        <target>
+                                            <path>targetRef</path>
+                                        </target>
+                                    </mapping>
+                                </objectRef>
+                                <synchronization>
+                                    <reaction>
+                                        <situation>unmatched</situation>
+                                        <actions>
+                                            <addFocusValue/>
+                                        </actions>
+                                    </reaction>
+                                    <reaction>
+                                        <situation>matched</situation>
+                                        <actions>
+                                            <synchronize/>
+                                        </actions>
+                                    </reaction>
+                                </synchronization>
+                            </associationValueSynchronization>
+                        </expression>
                         <target>
+                            <path>assignment</path>
                             <assignmentSubtype>groupMembership</assignmentSubtype>
                         </target>
                     </inbound>
