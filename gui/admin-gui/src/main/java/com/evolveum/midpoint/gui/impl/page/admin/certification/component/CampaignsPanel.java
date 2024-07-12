@@ -11,6 +11,8 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -97,7 +99,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
                     @Serial private static final long serialVersionUID = 1L;
                     @Override
                     protected List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> createColumns() {
-                        return CampaignsPanel.this.initColumns();
+                        return CampaignsPanel.this.initColumns(getSelectedItemsModel());
                     }
 
                     @Override
@@ -153,8 +155,13 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
                     }
 
                     @Override
-                    protected IModel<List<AccessCertificationCampaignType>> getSelectedItemsModel() {
-                        return () -> new ArrayList<>(getProvider().getSelected());
+                    protected LoadableModel<List<AccessCertificationCampaignType>> getSelectedItemsModel() {
+                        return new LoadableModel<>() {
+                            @Override
+                            protected List<AccessCertificationCampaignType> load() {
+                                return new ArrayList<>(getProvider().getSelected());
+                            }
+                        };
                     }
 
                     @Override
@@ -220,12 +227,17 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
         return getPageBase().getSessionStorage().getCertCampaigns();
     }
 
-    private List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> initColumns() {
+    private List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> initColumns(
+            IModel<List<AccessCertificationCampaignType>> campaignsModel) {
         List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> columns =
                 ColumnUtils.getDefaultCertCampaignColumns(getPageBase());
 
-        List<InlineMenuItem> inlineMenuItems = createInlineMenu();
-        inlineMenuItems.addAll(createInlineMenuForItem());
+        List<CampaignStateHelper.CampaignAction> campaignActions = CampaignStateHelper.getAllCampaignActions();
+        List<InlineMenuItem> inlineMenuItems = campaignActions
+                .stream()
+                        .map(a -> CertMiscUtil.createCampaignMenuItem(campaignsModel, a, getPageBase()))
+                                .toList();
+//        inlineMenuItems.addAll(createInlineMenuForItem());
 
         InlineMenuButtonColumn<SelectableBean<AccessCertificationCampaignType>> actionsColumn =
                 new InlineMenuButtonColumn<>(inlineMenuItems, getPageBase());
