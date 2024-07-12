@@ -95,8 +95,7 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
         for (var associationDefinition : objectDefinition.getAssociationDefinitions()) {
-            var explicitOutboundMappingBean = associationDefinition.getExplicitOutboundMappingBean();
-            if (explicitOutboundMappingBean != null) {
+            for (var explicitOutboundMappingBean : associationDefinition.getExplicitOutboundMappingBeans()) {
                 if (associationDefinition.isVisible(constructionEvaluation.task)) {
                     var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
                     mappers.add(
@@ -110,23 +109,12 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
                 }
             }
 
-            // modern association type definition
+            // modern association type definition - TO BE REMOVED
             if (constructionEvaluation.projectionContext != null) {
                 for (var modernOutboundBean : associationDefinition.getModernOutbounds()) {
                     if (modernOutboundBean.getExpression() == null) {
                         mappers.add(
                                 new AssociationMapper<>(constructionEvaluation, associationDefinition, modernOutboundBean));
-                    } else {
-                        var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
-                        // FIXME either move other artefacts (strength, etc), or evaluate the expression-based mapping
-                        //  with other modern ones
-                        var artificialMappingBean = new MappingType()
-                                .expression(modernOutboundBean.getExpression());
-                        mappers.add(
-                                new AssociationMapper<>(
-                                        constructionEvaluation, associationDefinition,
-                                        MappingConfigItem.of(artificialMappingBean, origin),
-                                        OriginType.OUTBOUND, MappingKindType.OUTBOUND));
                     }
                 }
             }

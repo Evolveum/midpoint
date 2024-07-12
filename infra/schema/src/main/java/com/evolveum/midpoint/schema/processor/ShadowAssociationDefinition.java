@@ -156,9 +156,9 @@ public interface ShadowAssociationDefinition
         return ShadowItemDefinition.super.findItemDefinition(path, clazz);
     }
 
-    @Nullable MappingType getExplicitOutboundMappingBean();
+    @NotNull Collection<MappingType> getExplicitOutboundMappingBeans();
 
-    @NotNull Collection<InboundMappingType> getExplicitInboundMappingBean();
+    @NotNull Collection<InboundMappingType> getExplicitInboundMappingBeans();
 
     boolean isVisible(ExecutionModeProvider modeProvider);
 

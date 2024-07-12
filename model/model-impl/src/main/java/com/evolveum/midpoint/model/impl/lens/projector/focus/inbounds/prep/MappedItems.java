@@ -263,7 +263,7 @@ class MappedItems<T extends Containerable> {
 
         // 1. Definitions
 
-        var inboundMappingBeans = assocDef.getExplicitInboundMappingBean();
+        var inboundMappingBeans = assocDef.getExplicitInboundMappingBeans();
         if (inboundMappingBeans.isEmpty()) {
             return;
         }

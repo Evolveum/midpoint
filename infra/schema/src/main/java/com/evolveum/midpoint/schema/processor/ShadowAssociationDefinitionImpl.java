@@ -22,6 +22,8 @@ import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
@@ -372,15 +374,18 @@ public class ShadowAssociationDefinitionImpl
     }
 
     @Override
-    public @Nullable MappingType getExplicitOutboundMappingBean() {
+    public @NotNull Collection<MappingType> getExplicitOutboundMappingBeans() {
         if (legacyInformation != null) {
-            return legacyInformation.outboundMappingBean();
+            return MiscUtil.asListExceptForNull(legacyInformation.outboundMappingBean());
         }
-        return null;
+        if (modernAssociationDefinitionBean != null) {
+            return modernAssociationDefinitionBean.getOutbound();
+        }
+        return List.of();
     }
 
     @Override
-    public @NotNull Collection<InboundMappingType> getExplicitInboundMappingBean() {
+    public @NotNull Collection<InboundMappingType> getExplicitInboundMappingBeans() {
         if (legacyInformation != null) {
             return legacyInformation.inboundMappingBeans();
         }
