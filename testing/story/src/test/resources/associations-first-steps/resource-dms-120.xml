@@ -133,6 +133,7 @@
                 <association>
                     <ref>ri:access</ref>
                     <inbound>
+                        <name>access-inbound</name>
                         <expression>
                             <associationValueSynchronization>
                                 <objectRef>
@@ -150,9 +151,8 @@
                             </associationValueSynchronization>
                         </expression>
                         <target>
-                            <assignmentTargetType>ServiceType</assignmentTargetType>
-                            <set>
-                                <predefined>all</predefined>
+                            <set>  <!-- TEMPORARY! Will be turned on automatically soon. -->
+                                <predefined>matchingProvenance</predefined>
                             </set>
                         </target>
                     </inbound>

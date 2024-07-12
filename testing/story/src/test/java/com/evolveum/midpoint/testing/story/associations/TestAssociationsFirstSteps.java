@@ -87,6 +87,9 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
     private static final TestObject<ArchetypeType> ARCHETYPE_DOCUMENT = TestObject.file(
             TEST_DIR, "archetype-document.xml", "8c0b32f9-fadc-42cb-bc05-878ecfe001e8");
 
+    private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_USER = TestObject.file(
+            TEST_DIR, "object-template-user.xml", "1b69e78f-0954-49cb-92a0-ed9b6476a807");
+
     private static final DummyTestResource RESOURCE_DMS_100 = createDmsResource("resource-dms-100.xml");
     private static final DummyTestResource RESOURCE_DMS_120 = createDmsResource("resource-dms-120.xml");
     private static final DummyTestResource RESOURCE_DMS_130 = createDmsResource("resource-dms-130.xml");
@@ -125,7 +128,8 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        initTestObjects(initTask, initResult, ARCHETYPE_DOCUMENT);
+        initTestObjects(initTask, initResult,
+                ARCHETYPE_DOCUMENT, OBJECT_TEMPLATE_USER);
     }
 
     @Override

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.test.asserter.prism;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.Collection;
@@ -37,7 +39,7 @@ public abstract class PrismValueSetAsserter<V extends PrismValue,VA extends Pris
 
 
     public PrismValueSetAsserter<V,VA,RA> assertSize(int expected) {
-        assertEquals("Wrong number of values in " + desc(), expected, valueSet.size());
+        assertEquals("Wrong number of values in " + desc(), expected, emptyIfNull(valueSet).size());
         return this;
     }
 

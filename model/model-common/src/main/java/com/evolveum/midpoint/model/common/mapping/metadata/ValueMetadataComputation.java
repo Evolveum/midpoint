@@ -99,8 +99,8 @@ abstract public class ValueMetadataComputation {
         this.outputMetadata = new ValueMetadataType().asPrismContainerValue();
     }
 
-    @NotNull
-    public ValueMetadataType execute(OperationResult parentResult) throws CommunicationException, ObjectNotFoundException, SchemaException,
+    public @NotNull ValueMetadataType execute(OperationResult parentResult)
+            throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         result = parentResult.createMinorSubresult(OP_EXECUTE);
         try {

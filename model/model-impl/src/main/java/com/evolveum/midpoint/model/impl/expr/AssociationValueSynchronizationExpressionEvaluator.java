@@ -265,6 +265,7 @@ class AssociationValueSynchronizationExpressionEvaluator
             private void registerAssignmentsSeen(SimplifiedCorrelationResult correlationResult) {
                 var owner = correlationResult.getOwner();
                 if (owner != null) {
+                    // No metadata here - as for now; these assignments were not - in fact - created by this mapping
                     //noinspection unchecked
                     evaluatorResult.addToZeroSet(owner.asPrismContainerValue().clone());
                 }
@@ -322,8 +323,19 @@ class AssociationValueSynchronizationExpressionEvaluator
                         result);
                 LOGGER.trace("Going to ADD a new assignment for association: {}:\n{}",
                         associationDefinition, targetAssignment.debugDumpLazily(1));
+                setValueMetadata(targetAssignment.asPrismContainerValue(), result);
                 //noinspection unchecked
                 evaluatorResult.addToPlusSet(targetAssignment.asPrismContainerValue());
+            }
+
+            private void setValueMetadata(PrismContainerValue<?> pcv, OperationResult result)
+                    throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                    ConfigurationException, ObjectNotFoundException {
+                var metadataComputer = context.getValueMetadataComputer();
+                if (metadataComputer != null) {
+                    pcv.setValueMetadata(
+                            metadataComputer.compute(List.of(associationValue), result));
+                }
             }
 
             private void executeSynchronize(@NotNull SimplifiedCorrelationResult correlationResult, @NotNull OperationResult result)
