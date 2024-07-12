@@ -356,10 +356,8 @@ public class ClusteringOutlierDetectionUtils {
                     clusterRef,
                     sessionRef,
                     result,
-                    map,
                     usedFrequency,
                     tempCluster,
-                    jaccardCloseObject,
                     density,
                     countOfRoles);
         }
@@ -423,10 +421,8 @@ public class ClusteringOutlierDetectionUtils {
             ObjectReferenceType clusterRef,
             ObjectReferenceType sessionRef,
             OperationResult result,
-            HashMap<String, RoleAnalysisOutlierType> map,
             MutableDouble usedFrequency,
             RoleAnalysisClusterType tempCluster,
-            List<String> jaccardCloseObject,
             double density,
             int countOfRoles) {
 
@@ -466,107 +462,105 @@ public class ClusteringOutlierDetectionUtils {
                     }
 
                 });
-
-                HashMap<String, RoleAnalysisPartitionAnalysisType> userPartitionMap = new HashMap<>();
-
-                for (Map.Entry<String, DetectedAnomalyResult> entry : userRoleMap.entries()) {
-                    String userOid = entry.getKey();
-                    List<DetectedAnomalyResult> detectedAnomalyResults = userRoleMap.get(userOid);
-
-                    RoleAnalysisOutlierPartitionType partitionType = new RoleAnalysisOutlierPartitionType();
-                    partitionType.setTargetClusterRef(clusterRef.clone());
-                    partitionType.setTargetSessionRef(sessionRef.clone());
-                    partitionType.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
-
-                    RoleAnalysisPartitionAnalysisType partitionAnalysis = new RoleAnalysisPartitionAnalysisType();
-
-                    String description = analyzedObjectRef.getDescription();
-
-                    if (description != null && !description.equals("unknown")) {
-                        RoleAnalysisOutlierNoiseCategoryType roleAnalysisOutlierNoiseCategoryType =
-                                RoleAnalysisOutlierNoiseCategoryType.fromValue(description);
-                        partitionAnalysis.setOutlierNoiseCategory(roleAnalysisOutlierNoiseCategoryType);
-                    }
-
-                    partitionAnalysis.setOutlierCategory(OutlierCategory.OUTER_OUTLIER);
-
-                    PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(userOid, task, result);
-                    if (userTypeObject == null) {
-                        continue;
-                    }
-
-                    //Resolve similar objects analysis
-                    RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = new RoleAnalysisOutlierSimilarObjectsAnalysisResult();
-                    similarObjectAnalysis.setSimilarObjectsThreshold(usedFrequency.doubleValue() * 100);
-                    similarObjectAnalysis.setSimilarObjectsCount(tempCluster.getMember().size());
-
-                    AnalysisClusterStatisticType clusterStatistics = tempCluster.getClusterStatistics();
-                    similarObjectAnalysis.setSimilarObjectsDensity(density);
-                    //TODO store just useful information
-                    similarObjectAnalysis.setClusterStatistics(clusterStatistics);
-
-                    similarObjectAnalysis.getSimilarObjects().addAll(CloneUtil.cloneCollectionMembers(tempCluster.getMember()));
-                    partitionAnalysis.setSimilarObjectAnalysis(similarObjectAnalysis);
-
-                    List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
-                            session, UserType.COMPLEX_TYPE);
-
-                    RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics
-                            .getUserAttributeAnalysisResult();
-
-                    RoleAnalysisAttributeAnalysisResult compareAttributeResult = null;
-                    if (userAttributeAnalysisResult != null && attributesForUserAnalysis != null) {
-
-                        RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService
-                                .resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
-
-                        compareAttributeResult = roleAnalysisService
-                                .resolveSimilarAspect(userAttributes, userAttributeAnalysisResult);
-
-                        AttributeAnalysis attributeAnalysis = new AttributeAnalysis();
-                        attributeAnalysis.setUserAttributeAnalysisResult(userAttributeAnalysisResult);
-                        attributeAnalysis.setUserClusterCompare(compareAttributeResult);
-                        partitionAnalysis.setAttributeAnalysis(attributeAnalysis);
-                    }
-
-                    double assignmentFrequencyConfidence = calculateOutlierRoleAssignmentFrequencyConfidence(
-                            userTypeObject, countOfRoles);
-                    partitionAnalysis.setOutlierAssignmentFrequencyConfidence(assignmentFrequencyConfidence);
-
-                    RoleAnalysisPatternAnalysis roleAnalysisPatternInfo = detectAndLoadPatternAnalysis(userOid, miningRoleTypeChunks);
-                    partitionAnalysis.setPatternAnalysis(roleAnalysisPatternInfo);
-
-                    double outlierConfidenceBasedAssignment = 0;
-                    for (DetectedAnomalyResult prepareRoleOutlier : detectedAnomalyResults) {
-                        Double confidence = prepareRoleOutlier.getStatistics().getConfidence();
-                        outlierConfidenceBasedAssignment += confidence;
-                    }
-
-                    partitionType.getDetectedAnomalyResult().addAll(CloneUtil.cloneCollectionMembers(detectedAnomalyResults));
-
-                    double averageItemFactor = getAverageItemFactor(compareAttributeResult);
-
-                    outlierConfidenceBasedAssignment = outlierConfidenceBasedAssignment / detectedAnomalyResults.size();
-                    partitionAnalysis.setAnomalyObjectsConfidence(outlierConfidenceBasedAssignment);
-
-                    Double outlierPatternConfidence = partitionAnalysis.getPatternAnalysis().getConfidence();
-                    double clusterConfidence = outlierConfidenceBasedAssignment
-                            + assignmentFrequencyConfidence
-                            + outlierPatternConfidence
-                            + averageItemFactor;
-
-                    clusterConfidence += density;
-                    clusterConfidence = clusterConfidence / 5;
-                    partitionAnalysis.setSimilarObjectsConfidence(clusterConfidence);
-                    //TODO
-                    partitionAnalysis.setOverallConfidence(clusterConfidence);
-
-                    partitionType.setPartitionAnalysis(partitionAnalysis);
-
-                    userPartitionMap.put(userOid, partitionAnalysis);
-                }
-
             }
+        }
+
+        Set<String> keySet = userRoleMap.keySet();
+        for (String userOid : keySet) {
+            Collection<DetectedAnomalyResult> detectedAnomalyResults = userRoleMap.get(userOid);
+
+            RoleAnalysisOutlierPartitionType partitionType = new RoleAnalysisOutlierPartitionType();
+            partitionType.setTargetClusterRef(clusterRef.clone());
+            partitionType.setTargetSessionRef(sessionRef.clone());
+            partitionType.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+
+            RoleAnalysisPartitionAnalysisType partitionAnalysis = new RoleAnalysisPartitionAnalysisType();
+
+            String description = analyzedObjectRef.getDescription();
+
+            if (description != null && !description.equals("unknown")) {
+                RoleAnalysisOutlierNoiseCategoryType roleAnalysisOutlierNoiseCategoryType =
+                        RoleAnalysisOutlierNoiseCategoryType.fromValue(description);
+                partitionAnalysis.setOutlierNoiseCategory(roleAnalysisOutlierNoiseCategoryType);
+            }
+
+            partitionAnalysis.setOutlierCategory(OutlierCategory.OUTER_OUTLIER);
+
+            PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(userOid, task, result);
+            if (userTypeObject == null) {
+                continue;
+            }
+
+            //Resolve similar objects analysis
+            RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = new RoleAnalysisOutlierSimilarObjectsAnalysisResult();
+            similarObjectAnalysis.setSimilarObjectsThreshold(usedFrequency.doubleValue() * 100);
+            similarObjectAnalysis.setSimilarObjectsCount(tempCluster.getMember().size());
+
+            AnalysisClusterStatisticType clusterStatistics = tempCluster.getClusterStatistics();
+            similarObjectAnalysis.setSimilarObjectsDensity(density);
+            //TODO store just useful information
+            similarObjectAnalysis.setClusterStatistics(clusterStatistics);
+
+            similarObjectAnalysis.getSimilarObjects().addAll(CloneUtil.cloneCollectionMembers(tempCluster.getMember()));
+            partitionAnalysis.setSimilarObjectAnalysis(similarObjectAnalysis);
+
+            List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
+                    session, UserType.COMPLEX_TYPE);
+
+            RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics
+                    .getUserAttributeAnalysisResult();
+
+            RoleAnalysisAttributeAnalysisResult compareAttributeResult = null;
+            if (userAttributeAnalysisResult != null && attributesForUserAnalysis != null) {
+
+                RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService
+                        .resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
+
+                compareAttributeResult = roleAnalysisService
+                        .resolveSimilarAspect(userAttributes, userAttributeAnalysisResult);
+
+                AttributeAnalysis attributeAnalysis = new AttributeAnalysis();
+                attributeAnalysis.setUserAttributeAnalysisResult(userAttributeAnalysisResult);
+                attributeAnalysis.setUserClusterCompare(compareAttributeResult);
+                partitionAnalysis.setAttributeAnalysis(attributeAnalysis);
+            }
+
+            double assignmentFrequencyConfidence = calculateOutlierRoleAssignmentFrequencyConfidence(
+                    userTypeObject, countOfRoles);
+            partitionAnalysis.setOutlierAssignmentFrequencyConfidence(assignmentFrequencyConfidence);
+
+            RoleAnalysisPatternAnalysis roleAnalysisPatternInfo = detectAndLoadPatternAnalysis(userOid, miningRoleTypeChunks);
+            partitionAnalysis.setPatternAnalysis(roleAnalysisPatternInfo);
+
+            double outlierConfidenceBasedAssignment = 0;
+            for (DetectedAnomalyResult prepareRoleOutlier : detectedAnomalyResults) {
+                Double confidence = prepareRoleOutlier.getStatistics().getConfidence();
+                outlierConfidenceBasedAssignment += confidence;
+            }
+
+            partitionType.getDetectedAnomalyResult().addAll(CloneUtil.cloneCollectionMembers(detectedAnomalyResults));
+
+            double averageItemFactor = getAverageItemFactor(compareAttributeResult);
+
+            outlierConfidenceBasedAssignment = outlierConfidenceBasedAssignment / detectedAnomalyResults.size();
+            partitionAnalysis.setAnomalyObjectsConfidence(outlierConfidenceBasedAssignment);
+
+            Double outlierPatternConfidence = partitionAnalysis.getPatternAnalysis().getConfidence();
+            double clusterConfidence = outlierConfidenceBasedAssignment
+                    + assignmentFrequencyConfidence
+                    + outlierPatternConfidence
+                    + averageItemFactor;
+
+            clusterConfidence += density;
+            clusterConfidence = clusterConfidence / 5;
+
+            partitionAnalysis.setSimilarObjectsConfidence(clusterConfidence);
+            //TODO
+            partitionAnalysis.setOverallConfidence(clusterConfidence);
+
+            partitionType.setPartitionAnalysis(partitionAnalysis);
+
+            updateOrImportOutlierObject(roleAnalysisService, session, userOid, partitionType, task, result);
         }
     }
 

@@ -49,19 +49,19 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
     List<String> elements;
     Map<String, RoleAnalysisAttributeStatistics> map;
     String userOid;
-    String clusterOid;
-    int minMembers;
     int anomalyAssignmentCount = 0;
+    Set<String> similarObjects;
+    String sessionOid;
 
     public OutlierAnalyseActionDetailsPopupPanel(String id,
             IModel<String> messageModel,
             String userOid,
-            @NotNull String clusterOid,
-            int minMembers) {
+            @NotNull Set<String> similarObjects,
+            String sessionOid) {
         super(id, messageModel);
+        this.similarObjects = similarObjects;
         this.userOid = userOid;
-        this.clusterOid = clusterOid;
-        this.minMembers = minMembers;
+        this.sessionOid = sessionOid;
     }
 
     //TODO just for testing case (remove later)
@@ -74,27 +74,14 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         Task task = pageBase.createSimpleTask("Idk");
         OperationResult result = task.getResult();
 
-        PrismObject<RoleAnalysisClusterType> originalCluster = roleAnalysisService.getClusterTypeObject(clusterOid, task, result);
-        List<String> outliersMembers = new ArrayList<>();
+        PrismObject<RoleAnalysisSessionType> sessionObject = roleAnalysisService.getSessionTypeObject(sessionOid, task, result);
 
-        if (originalCluster == null) {
-            LOGGER.error("Cluster with oid {} not found", clusterOid);
+        if(sessionObject == null) {
+            LOGGER.error("Session object is null");
             return;
         }
 
-        ObjectReferenceType roleAnalysisSessionRef = originalCluster.asObjectable().getRoleAnalysisSessionRef();
-        PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(
-                roleAnalysisSessionRef.getOid(), task, result);
-
-        if (sessionTypeObject == null) {
-            LOGGER.error("Session with oid {} not found", roleAnalysisSessionRef.getOid());
-            return;
-        }
-
-        RoleAnalysisSessionType session = sessionTypeObject.asObjectable();
-        UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
-        RangeType propertiesRange = userModeOptions.getPropertiesRange();
-        Integer minMembersCount = userModeOptions.getMinMembersCount();
+        RoleAnalysisSessionType session = sessionObject.asObjectable();
         RoleAnalysisDetectionOptionType defaultDetectionOption = session.getDefaultDetectionOption();
 
         double minFrequency = 2;
@@ -112,27 +99,9 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
             }
         }
 
-        List<ObjectReferenceType> member = originalCluster.asObjectable().getMember();
-        for (ObjectReferenceType objectReferenceType : member) {
-            outliersMembers.add(objectReferenceType.getOid());
-        }
 
-        double minThreshold = 0.5;
 
-        ListMultimap<List<String>, String> chunkMap = roleAnalysisService.loadUserForOutlierComparison(
-                roleAnalysisService,
-                outliersMembers,
-                propertiesRange.getMin().intValue(), propertiesRange.getMax().intValue(),
-                userModeOptions.getQuery(), result, task);
-
-        MutableDouble usedFrequency = new MutableDouble(minThreshold);
-
-        elements = roleAnalysisService.findJaccardCloseObject(userOid,
-                chunkMap,
-                usedFrequency,
-                outliersMembers, minThreshold, minMembersCount, task,
-                result
-        );
+        elements = new ArrayList<>(similarObjects);
         elements.add(userOid);
 
         DisplayValueOption displayValueOption = new DisplayValueOption();
@@ -183,7 +152,7 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         headerItems.setOutputMarkupId(true);
         add(headerItems);
 
-        initOutlierAnalysisHeaderPanel(headerItems, userOid, usedFrequency, originalCluster.asObjectable());
+//        initOutlierAnalysisHeaderPanel(headerItems, userOid, usedFrequency, originalCluster.asObjectable());
     }
 
     @NotNull

@@ -28,6 +28,59 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 //TODO
 public class OutliersDetectionUtil {
 
+    public static void updateOrImportOutlierObject(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull String userOid,
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        RoleAnalysisDetectionOptionType detectionOption = session.getDefaultDetectionOption();
+        Double sensitivity = detectionOption.getSensitivity();
+        double requiredConfidence = roleAnalysisService.calculateOutlierConfidenceRequired(sensitivity);
+
+        //TODO temporary solution
+        requiredConfidence = requiredConfidence * 100;
+
+        Double clusterConfidence = partition.getPartitionAnalysis().getOverallConfidence();
+        Double clusterAnomalyObjectsConfidence = partition.getPartitionAnalysis().getAnomalyObjectsConfidence();
+        if (clusterConfidence == null
+                || clusterConfidence < requiredConfidence
+                || clusterAnomalyObjectsConfidence < requiredConfidence) {
+            return;
+        }
+
+        PrismObject<RoleAnalysisOutlierType> outlierObject = roleAnalysisService.searchOutlierObjectByUserOidClusters(
+                userOid, task, result);
+
+        if (outlierObject == null) {
+            RoleAnalysisOutlierType roleAnalysisOutlierType = new RoleAnalysisOutlierType();
+            roleAnalysisOutlierType.setTargetObjectRef(new ObjectReferenceType().oid(userOid).type(UserType.COMPLEX_TYPE));
+            roleAnalysisOutlierType.getOutlierPartitions().add(partition);
+            roleAnalysisOutlierType.setAnomalyObjectsConfidence(partition.getPartitionAnalysis().getAnomalyObjectsConfidence());
+            roleAnalysisOutlierType.setOverallConfidence(partition.getPartitionAnalysis().getOverallConfidence());
+            roleAnalysisService.resolveOutliers(roleAnalysisOutlierType, task, result);
+        } else {
+            RoleAnalysisOutlierType roleAnalysisOutlierType = outlierObject.asObjectable();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = roleAnalysisOutlierType.getOutlierPartitions();
+            //TODO just temporary confidence
+            double overallConfidence = 0;
+            double anomalyObjectsConfidence = 0;
+            for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+                overallConfidence += outlierPartition.getPartitionAnalysis().getOverallConfidence();
+                anomalyObjectsConfidence += outlierPartition.getPartitionAnalysis().getAnomalyObjectsConfidence();
+            }
+            overallConfidence += partition.getPartitionAnalysis().getOverallConfidence();
+            anomalyObjectsConfidence += partition.getPartitionAnalysis().getAnomalyObjectsConfidence();
+
+            overallConfidence = overallConfidence / (outlierPartitions.size() + 1);
+            anomalyObjectsConfidence = anomalyObjectsConfidence / (outlierPartitions.size() + 1);
+            roleAnalysisService.updateOutlierObject(
+                    roleAnalysisOutlierType.getOid(), partition, overallConfidence, anomalyObjectsConfidence, result);
+        }
+    }
+
     static double calculateAssignmentAnomalyConfidence(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisSessionType session,

@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierHeaderResultPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierItemResultPanel;
@@ -15,7 +17,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierResultPanel;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,8 +39,6 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -91,6 +91,25 @@ public class OutlierPartitionPanel extends AbstractObjectMainPanel<RoleAnalysisO
                 @Override
                 protected boolean isLink() {
                     return true;
+                }
+
+                @Override
+                protected void performOnAction(AjaxRequestTarget target) {
+
+                    RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
+                    RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
+                    List<ObjectReferenceType> similarObjects = similarObjectAnalysis.getSimilarObjects();
+                    Set<String> similarObjectOids = similarObjects.stream().map(ObjectReferenceType::getOid).collect(Collectors.toSet());
+                    OutlierAnalyseActionDetailsPopupPanel detailsPanel = new OutlierAnalyseActionDetailsPopupPanel(
+                            ((PageBase) getPage()).getMainPopupBodyId(),
+                            Model.of("Analyzed members details panel"), outlierParent.getTargetObjectRef().getOid(),
+                            similarObjectOids, outlierPartition.getTargetSessionRef().getOid()) {
+                        @Override
+                        public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+                            super.onClose(ajaxRequestTarget);
+                        }
+                    };
+                    ((PageBase) getPage()).showMainPopup(detailsPanel, target);
                 }
 
                 @Override

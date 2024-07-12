@@ -27,6 +27,7 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
     private static final String ID_PROGRESS_VALUE_LABEL = "progress-label";
     private static final String ID_ICON = "icon";
     private static final String ID_TIMESTAMP = "timestamp";
+    private static final String ID_ACTION = "action";
 
     String value;
     String valueDescription;
@@ -53,6 +54,16 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
 //        WebMarkupContainer iconContainer = createIconContainer(ID_ICON);
 //        iconContainer.setOutputMarkupId(true);
 //        itemBox.add(iconContainer);
+
+        AjaxLinkPanel actionPanel = new AjaxLinkPanel(ID_ACTION, Model.of("View analyzed cluster")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                performOnAction(target);
+            }
+        };
+
+        actionPanel.setOutputMarkupId(true);
+        itemBox.add(actionPanel);
 
         if (isLink()) {
             AjaxLinkPanel namePanel = new AjaxLinkPanel(ID_VALUE, Model.of(getValue())) {
@@ -120,6 +131,10 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
     }
 
     protected void performOnClick(AjaxRequestTarget target) {
+
+    }
+
+    protected void performOnAction(AjaxRequestTarget target) {
 
     }
 

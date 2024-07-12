@@ -697,6 +697,16 @@ public class RoleAnalysisUserBasedTable extends Panel {
             MiningUserTypeChunk colChunk = users.get(i);
             int membersSize = colChunk.getUsers().size();
             RoleAnalysisTableTools.StyleResolution styleWidth = RoleAnalysisTableTools.StyleResolution.resolveSize(membersSize);
+
+            boolean mark = false;
+            Set<String> markMemberObjects = getMarkMemberObjects();
+            Set<String> markPropertyObjects = getMarkPropertyObjects();
+            if (markMemberObjects != null && markMemberObjects.containsAll(colChunk.getMembers())) {
+                mark = true;
+            } else if (markPropertyObjects != null && markPropertyObjects.containsAll(colChunk.getProperties())) {
+                mark = true;
+            }
+            boolean finalMark = mark;
             column = new AbstractColumn<>(createStringResource("")) {
 
                 @Override
@@ -723,14 +733,8 @@ public class RoleAnalysisUserBasedTable extends Panel {
                         isRelationSelected = true;
                     }
 
-                    if (!isInclude.equals(Status.RELATION_NONE)) {
-                        Set<String> markMemberObjects = getMarkMemberObjects();
-                        Set<String> markPropertyObjects = getMarkPropertyObjects();
-                        if (markMemberObjects != null && markMemberObjects.containsAll(colChunk.getMembers())) {
-                            cellItem.add(AttributeAppender.append("style", "border: 5px solid #206f9d;"));
-                        } else if (markPropertyObjects != null && markPropertyObjects.containsAll(colChunk.getProperties())) {
-                            cellItem.add(AttributeAppender.append("style", "border: 5px solid #206f9d;"));
-                        }
+                    if (!isInclude.equals(Status.RELATION_NONE) && finalMark) {
+                        cellItem.add(AttributeAppender.append("style", "border: 5px solid #206f9d;"));
                     }
 
                     RoleAnalysisChunkAction chunkAction = displayValueOptionModel.getObject().getChunkAction();
@@ -797,20 +801,20 @@ public class RoleAnalysisUserBasedTable extends Panel {
                                 objects.add(getPageBase().getRoleAnalysisService()
                                         .getFocusTypeObject(objectOid, task, result));
                             }
-                            if (isOutlierDetection() && cluster.getOid() != null && !elements.isEmpty()) {
-
-                                //TODO session option min members
-
-                                OutlierAnalyseActionDetailsPopupPanel detailsPanel = new OutlierAnalyseActionDetailsPopupPanel(
-                                        ((PageBase) getPage()).getMainPopupBodyId(),
-                                        Model.of("Analyzed members details panel"), elements.get(0), cluster.getOid(), 10) {
-                                    @Override
-                                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                                        super.onClose(ajaxRequestTarget);
-                                    }
-                                };
-                                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
-                            } else {
+//                            if (isOutlierDetection() && cluster.getOid() != null && !elements.isEmpty()) {
+//
+//                                //TODO session option min members
+//
+//                                OutlierAnalyseActionDetailsPopupPanel detailsPanel = new OutlierAnalyseActionDetailsPopupPanel(
+//                                        ((PageBase) getPage()).getMainPopupBodyId(),
+//                                        Model.of("Analyzed members details panel"), elements.get(0), cluster.getOid(), 10) {
+//                                    @Override
+//                                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+//                                        super.onClose(ajaxRequestTarget);
+//                                    }
+//                                };
+//                                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+//                            } else {
                                 MembersDetailsPopupPanel detailsPanel = new MembersDetailsPopupPanel(
                                         ((PageBase) getPage()).getMainPopupBodyId(),
                                         Model.of("Analyzed members details panel"),
@@ -822,7 +826,7 @@ public class RoleAnalysisUserBasedTable extends Panel {
                                 };
                                 ((PageBase) getPage()).showMainPopup(detailsPanel, target);
                             }
-                        }
+//                        }
 
                     };
                 }

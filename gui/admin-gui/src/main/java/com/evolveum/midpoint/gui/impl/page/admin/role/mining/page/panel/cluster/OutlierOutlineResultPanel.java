@@ -41,10 +41,16 @@ public class OutlierOutlineResultPanel extends AbstractObjectMainPanel<RoleAnaly
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_PANEL = "panelId";
+    RoleAnalysisOutlierPartitionType partition;
 
-    public OutlierOutlineResultPanel(String id, ObjectDetailsModels<RoleAnalysisOutlierType> model,
+    public OutlierOutlineResultPanel(
+            String id,
+            ObjectDetailsModels<RoleAnalysisOutlierType> model,
+            RoleAnalysisOutlierPartitionType partition,
             ContainerPanelConfigurationType config) {
         super(id, model, config);
+        this.partition = partition;
+
     }
 
     @Override
@@ -64,15 +70,15 @@ public class OutlierOutlineResultPanel extends AbstractObjectMainPanel<RoleAnaly
 
         ObjectReferenceType targetClusterRef = outlierPartitions.get(0).getTargetClusterRef();
 
-        OutlierAnalyseActionDetailsPopupPanel component = new OutlierAnalyseActionDetailsPopupPanel(
-                ID_PANEL,
-                Model.of("Analyzed members details panel"), targetObjectRef.getOid(), targetClusterRef.getOid(), 10) {
-            @Override
-            public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                super.onClose(ajaxRequestTarget);
-            }
-        };
-        container.add(component);
+//        OutlierAnalyseActionDetailsPopupPanel component = new OutlierAnalyseActionDetailsPopupPanel(
+//                ID_PANEL,
+//                Model.of("Analyzed members details panel"), targetObjectRef.getOid(), targetClusterRef.getOid(), 10) {
+//            @Override
+//            public void onClose(AjaxRequestTarget ajaxRequestTarget) {
+//                super.onClose(ajaxRequestTarget);
+//            }
+//        };
+//        container.add(component);
     }
 
     public PageBase getPageBase() {

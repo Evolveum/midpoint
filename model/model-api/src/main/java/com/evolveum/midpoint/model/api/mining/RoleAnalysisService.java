@@ -951,7 +951,7 @@ public interface RoleAnalysisService {
             @NotNull String userOid,
             @NotNull Task task,
             @NotNull OperationResult result);
-    
+
     void updateOutlierObject(
             @NotNull String outlierOid,
             @NotNull RoleAnalysisOutlierPartitionType partition,

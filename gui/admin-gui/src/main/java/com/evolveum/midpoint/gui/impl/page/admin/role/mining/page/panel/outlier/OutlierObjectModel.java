@@ -590,19 +590,19 @@ public class OutlierObjectModel implements Serializable {
 
     public static @Nullable OutlierObjectModel generateAssignmentOutlierResultModel(
             @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull DetectedAnomalyResult outlierResult,
+            @NotNull DetectedAnomalyResult detectedAnomalyResult,
             @NotNull RoleAnalysisOutlierPartitionType partition,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull PrismObject<UserType> userTypeObject,
             @NotNull RoleAnalysisOutlierType outlierParent) {
-        DetectedAnomalyStatistics outlierResultStatistics = outlierResult.getStatistics();
+        DetectedAnomalyStatistics outlierResultStatistics = detectedAnomalyResult.getStatistics();
         DecimalFormat decimalFormat = new DecimalFormat("#.##");
         decimalFormat.setGroupingUsed(false);
         decimalFormat.setRoundingMode(RoundingMode.DOWN);
 
-        ObjectReferenceType targetObjectRef = outlierResult.getTargetObjectRef();
-        PrismObject<RoleType> roleTypeObject = roleAnalysisService.getRoleTypeObject(targetObjectRef.getOid(), task, result);
+        ObjectReferenceType anomalyObjectRef = detectedAnomalyResult.getTargetObjectRef();
+        PrismObject<RoleType> roleTypeObject = roleAnalysisService.getRoleTypeObject(anomalyObjectRef.getOid(), task, result);
         if (roleTypeObject == null) {
             return null;
         }
@@ -612,7 +612,7 @@ public class OutlierObjectModel implements Serializable {
         int outlierConfidenceInt = (int) confidence;
         String description = "Assignment has been marked as outlier object due to confidence score:";
 
-        XMLGregorianCalendar createTimestamp = outlierResult.getCreateTimestamp();
+        XMLGregorianCalendar createTimestamp = detectedAnomalyResult.getCreateTimestamp();
         GregorianCalendar gregorianCalendar = createTimestamp.toGregorianCalendar();
         Date date = gregorianCalendar.getTime();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -636,6 +636,25 @@ public class OutlierObjectModel implements Serializable {
             OutlierItemModel patternItemModel = new OutlierItemModel(value, patternDescription, "fa fa-cubes");
             outlierObjectModel.addOutlierItemModel(patternItemModel);
         }
+
+        int countDuplicatedAnomalyPartition = 0;
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierParent.getOutlierPartitions();
+        for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+            List<DetectedAnomalyResult> detectedAnomalies = outlierPartition.getDetectedAnomalyResult();
+            for (DetectedAnomalyResult detectedAnomaly : detectedAnomalies) {
+                ObjectReferenceType targetObjectRef = detectedAnomaly.getTargetObjectRef();
+                if (targetObjectRef.getOid().equals(anomalyObjectRef.getOid())) {
+                    countDuplicatedAnomalyPartition++;
+                }
+            }
+        }
+
+        String anomalyPartitionDescription = "Role anomaly occurs in " + countDuplicatedAnomalyPartition + " partition(s).";
+
+        OutlierItemModel anomalyPartitionItemModel = new OutlierItemModel(String.valueOf(countDuplicatedAnomalyPartition),
+                anomalyPartitionDescription, "fa fa-cogs");
+        outlierObjectModel.addOutlierItemModel(anomalyPartitionItemModel);
+
         Double outlierCoverageConfidence = outlierResultStatistics.getOutlierCoverageConfidence();
         double occurInCluster = outlierCoverageConfidence == null ? 0 : outlierCoverageConfidence;
 
