@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
-import com.evolveum.midpoint.util.QNameUtil;
+import java.util.List;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -23,9 +23,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.namespace.QName;
-import java.util.List;
 
 /**
  * @author semancik
@@ -249,37 +246,26 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
     }
 
     /**
-     * Item-specific specifications, e.g., assignment subtype or target type.
+     * Item-specific specifications, e.g., assignment subtype.
      * Probably temporary solution.
      */
     public record ExtraSetSpecification(
-            @Nullable String assignmentSubtype,
-            @Nullable QName assignmentTargetTypeName) {
+            @Nullable String assignmentSubtype) {
 
         public static ExtraSetSpecification fromBean(@NotNull VariableBindingDefinitionType defBean) {
             return new ExtraSetSpecification(
-                    defBean.getAssignmentSubtype(),
-                    defBean.getAssignmentTargetType());
+                    defBean.getAssignmentSubtype());
         }
 
         public boolean matches(PrismValue value) {
-            if (assignmentSubtype == null && assignmentTargetTypeName == null) {
+            if (assignmentSubtype == null) {
                 return true;
             }
             if (!(value instanceof PrismContainerValue<?> pcv) ||
                     !(pcv.asContainerable() instanceof AssignmentType assignment)) {
                 return false;
             }
-            if (assignmentSubtype != null && !assignment.getSubtype().contains(assignmentSubtype)) {
-                return false;
-            }
-            if (assignmentTargetTypeName != null) {
-                var targetRef = assignment.getTargetRef();
-                var targetTypeName = targetRef != null ? targetRef.getType() : null;
-                return QNameUtil.match(targetTypeName, assignmentTargetTypeName);
-            } else {
-                return true;
-            }
+            return assignment.getSubtype().contains(assignmentSubtype);
         }
     }
 }

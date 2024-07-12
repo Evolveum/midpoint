@@ -329,8 +329,4 @@ public class ResourceObjectClassDefinitionImpl
         return List.of();
     }
 
-    @Override
-    public boolean hasAnyInbounds() {
-        return false;
-    }
 }

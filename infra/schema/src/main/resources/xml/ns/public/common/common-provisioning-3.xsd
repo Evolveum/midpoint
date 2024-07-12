@@ -1739,114 +1739,6 @@
     </xsd:complexType>
     <xsd:element name="shadowAssociationTypeDefinition" type="tns:ShadowAssociationTypeDefinitionType"/>
 
-    <xsd:complexType name="ComplexProcessingType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Processing of a complex (structured) values.
-                HIGHLY EXPERIMENTAL. DO NOT USE.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:experimental>true</a:experimental>
-                <a:container/>
-                <a:since>4.9</a:since>
-                <a:naturalKey>tns:identifier</a:naturalKey>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Unique identifier for this configuration item.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element ref="tns:description" minOccurs="0"/>
-            <xsd:element ref="tns:documentation" minOccurs="0"/>
-            <xsd:element ref="tns:lifecycleState" minOccurs="0"/>
-            <xsd:element name="focus" type="tns:ComplexProcessingFocusDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The "focus side" of this mapping, i.e., to which part(s) of the focus object should be the given
-                        resource object item mapped.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="attribute" type="tns:ComplexProcessingResourceItemDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:elaborate>true</a:elaborate> <!-- because of recursion -->
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="association" type="tns:ComplexProcessingResourceItemDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:elaborate>true</a:elaborate> <!-- because of recursion -->
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Definition of activation handling for this account type.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="correlation" type="tns:CorrelationDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        How objects of this type are correlated to focus objects?
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="synchronization" type="tns:ItemSynchronizationReactionsType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-    <xsd:element name="complexProcessing" type="tns:ComplexProcessingType"/>
-
-    <xsd:complexType name="ComplexProcessingFocusDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                What parts of the focus objects are involved in the processing of association (or other) values?
-                We currently support only assignments here.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.9</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="assignmentSubtype" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If specified, only assignments with this subtype are considered for the processing.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="assignmentTargetType" type="xsd:QName" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TEMPORARY!
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="complexProcessingFocusDefinition" type="tns:ComplexProcessingFocusDefinitionType"/>
-
     <xsd:complexType name="ShadowAssociationTypeSubjectDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1925,15 +1817,6 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         The definition of the association as seen by this participant.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="source" type="t:ItemPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If this definition creates a virtual association (i.e., there is no reference attribute with the name
-                        provided in "association/ref"), this property specifies the reference (native or simulated) that
-                        should serve as the basis for this association.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2458,92 +2341,9 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="complexProcessing" type="tns:ComplexProcessingType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Complex mapping between the resource item and a focus item, including correlation
-                                and synchronization actions.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.9</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="ComplexProcessingResourceItemDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                How should be a resource attribute/association handled during the "complex processing".
-                (See ComplexProcessingType.)
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.9</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="ref" type="t:ItemPathType">
-                <xsd:annotation>
-                    <xsd:documentation> <!-- TODO could we change this into QName? -->
-                        Path of the attribute or association that this definition describes.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element ref="tns:description" minOccurs="0"/>
-            <xsd:element ref="tns:documentation" minOccurs="0"/>
-            <xsd:element ref="tns:lifecycleState" minOccurs="0"/>
-            <xsd:element name="correlator" type="tns:ItemCorrelatorDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Creates a single-item correlator for this item. See ItemRefinedDefinitionType.correlator.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>ItemRefinedDefinitionType.correlator</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defines how the attribute/association value is constructed in case of information flow from IDM to the
-                        resource, e.g. in case of provisioning.
-
-                        See ResourceItemDefinitionType.outbound.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>ResourceItemDefinitionType.outbound</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="inbound" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defines how the attribute/association values are used in case of information flow from resource
-                        to IDM, e.g. in case of synchronization, reconciliation or discovery.
-
-                        See ResourceItemDefinitionType.inbound.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>ResourceItemDefinitionType.inbound</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="complexProcessing" type="tns:ComplexProcessingType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Complex mapping between the resource item and a focus item, including correlation
-                        and synchronization actions.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.9</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ResourceAttributeDefinitionType">
@@ -3369,6 +3169,14 @@
                     <xsd:documentation>
                         Path of the association that this definition describes.
                         It may be the name of an existing reference attribute, or (in the future) it may be a separate one.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="sourceAttributeRef" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The name of the reference attribute this association is based on.
+                        The default is the name of the association.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

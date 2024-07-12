@@ -108,16 +108,6 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
                             + "execution mode", associationDefinition);
                 }
             }
-
-            // modern association type definition - TO BE REMOVED
-            if (constructionEvaluation.projectionContext != null) {
-                for (var modernOutboundBean : associationDefinition.getModernOutbounds()) {
-                    if (modernOutboundBean.getExpression() == null) {
-                        mappers.add(
-                                new AssociationMapper<>(constructionEvaluation, associationDefinition, modernOutboundBean));
-                    }
-                }
-            }
         }
         return mappers;
     }

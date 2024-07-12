@@ -152,12 +152,9 @@ class AssociationSynchronizationExpressionEvaluator
                 return assignments;
             }
             var assignmentSubtype = targetBean.getAssignmentSubtype();
-            var assignmentTargetTypeName = targetBean.getAssignmentTargetType();
             return assignments.stream()
                     .filter(a -> assignmentSubtype == null
                             || a.getSubtype().contains(assignmentSubtype))
-                    .filter(a -> assignmentTargetTypeName == null
-                            || a.getTargetRef() != null && QNameUtil.match(a.getTargetRef().getType(), assignmentTargetTypeName))
                     .toList();
         }
 

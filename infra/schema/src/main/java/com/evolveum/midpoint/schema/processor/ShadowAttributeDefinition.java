@@ -189,12 +189,6 @@ public interface ShadowAttributeDefinition<
      */
     @NotNull List<InboundMappingType> getInboundMappingBeans();
 
-    default boolean hasInboundMapping() {
-        return !getInboundMappingBeans().isEmpty();
-    }
-
-    @NotNull Collection<ResourceObjectInboundDefinition> getRelevantInboundDefinitions();
-
     /**
      * Drives behavior of strong and normal mappings for this attribute.
      *

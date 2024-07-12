@@ -5593,14 +5593,12 @@
             </xsd:element>
             <xsd:element name="assignmentSubtype" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        If the item is assignment, here we can restrict the set with specific assignment subtype.
+                        EXPERIMENTAL. Probably will be removed/replaced later.
+                    </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.9</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="assignmentTargetType" type="xsd:QName" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
                         <a:since>4.9</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>

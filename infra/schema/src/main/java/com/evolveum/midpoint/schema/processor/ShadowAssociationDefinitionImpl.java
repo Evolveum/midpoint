@@ -39,7 +39,6 @@ import com.evolveum.midpoint.prism.impl.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.config.ResourceObjectAssociationConfigItem;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -139,10 +138,6 @@ public class ShadowAssociationDefinitionImpl
                 associationDefinitionBean, associationTypeDefinitionBean, null, null);
     }
 
-    private static ResourceItemDefinitionType toExistingImmutable(@Nullable ResourceItemDefinitionType customizationBean) {
-        return CloneUtil.toImmutable(Objects.requireNonNullElseGet(customizationBean, ResourceItemDefinitionType::new));
-    }
-
     @Override
     public ItemProcessing getProcessing() {
         return null; // TODO implement if needed
@@ -192,22 +187,6 @@ public class ShadowAssociationDefinitionImpl
     public @NotNull PrismContainer<ShadowAssociationValueType> instantiate(QName name) throws SchemaException {
         return ShadowAssociation.empty(name, this);
     }
-
-//    @Override
-//    public @NotNull ShadowAssociationDefinitionImpl forLayer(@NotNull LayerType layer) {
-//        if (layer == currentLayer) {
-//            return this;
-//        } else {
-//            return new ShadowAssociationDefinitionImpl(
-//                    layer,
-//                    nativeDefinition,
-//                    customizationBean,
-//                    limitationsMap,
-//                    accessOverride.clone(), // TODO do we want to preserve also the access override?
-//                    referenceTypeDefinition,
-//                    maxOccurs);
-//        }
-//    }
 
     /**
      * We assume that the checks during the definition parsing were good enough to discover any problems
@@ -342,15 +321,6 @@ public class ShadowAssociationDefinitionImpl
     public void setMaxOccurs(int value) {
         checkMutable();
         maxOccurs = value;
-    }
-
-    public @Nullable ShadowAssociationDefinitionType getModernAssociationDefinitionBean() {
-        return modernAssociationDefinitionBean;
-    }
-
-    @Override
-    public @Nullable ShadowAssociationTypeDefinitionType getModernAssociationTypeDefinitionBean() {
-        return modernAssociationTypeDefinitionBean;
     }
 
     @Override
@@ -823,15 +793,6 @@ public class ShadowAssociationDefinitionImpl
     @Override
     public void setDiagrams(List<ItemDiagramSpecification> value) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public @NotNull Collection<ResourceObjectInboundDefinition> getRelevantInboundDefinitions() {
-        if (modernAssociationDefinitionBean == null) {
-            return List.of();
-        } else {
-            return ResourceObjectInboundDefinition.forAssociation(modernAssociationDefinitionBean);
-        }
     }
 
     @Override
