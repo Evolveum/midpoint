@@ -67,10 +67,10 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
 //                .toList();
     }
 
-    static ResourceObjectInboundDefinition forAssociationValueSynchronization(
-            @NotNull AssociationValueSynchronizationExpressionEvaluatorType bean,
+    static ResourceObjectInboundDefinition forAssociationSynchronization(
+            @NotNull AssociationSynchronizationExpressionEvaluatorType bean,
             @Nullable VariableBindingDefinitionType targetBean) {
-        return new AssociationValueSynchronizationImplementation(bean, targetBean);
+        return new AssociationSynchronizationImplementation(bean, targetBean);
     }
 
     Collection<? extends ItemInboundDefinition> getAttributeDefinitions();
@@ -446,9 +446,9 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         }
     }
 
-    class AssociationValueSynchronizationImplementation implements ResourceObjectInboundDefinition {
+    class AssociationSynchronizationImplementation implements ResourceObjectInboundDefinition {
 
-        @NotNull private final AssociationValueSynchronizationExpressionEvaluatorType definitionBean;
+        @NotNull private final AssociationSynchronizationExpressionEvaluatorType definitionBean;
         @Nullable private final VariableBindingDefinitionType targetBean;
 
         @NotNull private final PathKeyedMap<ItemInboundDefinition> itemDefinitionsMap = new PathKeyedMap<>();
@@ -458,8 +458,8 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
         /** This is the inbound provided by unnamed `objectRef` definition. */
         @Nullable private final ItemInboundDefinition defaultObjectRefDefinition;
 
-        AssociationValueSynchronizationImplementation(
-                @NotNull AssociationValueSynchronizationExpressionEvaluatorType definitionBean,
+        AssociationSynchronizationImplementation(
+                @NotNull AssociationSynchronizationExpressionEvaluatorType definitionBean,
                 @Nullable VariableBindingDefinitionType targetBean) {
             this.definitionBean = definitionBean;
             this.targetBean = targetBean;

@@ -135,7 +135,7 @@
                     <inbound>
                         <name>access-inbound</name>
                         <expression>
-                            <associationValueSynchronization>
+                            <associationSynchronization>
                                 <objectRef>
                                     <ref>ri:document</ref>
                                     <correlator/>
@@ -170,7 +170,7 @@
                                         </actions>
                                     </reaction>
                                 </synchronization>
-                            </associationValueSynchronization>
+                            </associationSynchronization>
                         </expression>
                         <target>
                             <set> <!-- TEMPORARY! Will be turned on automatically soon. -->

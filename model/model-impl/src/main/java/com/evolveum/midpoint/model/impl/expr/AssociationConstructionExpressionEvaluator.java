@@ -22,21 +22,21 @@ import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationOutboundMappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationValueConstructionExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationConstructionExpressionEvaluatorType;
 
 /**
  * Creates {@link ShadowAssociationValue}s by constructing them via mappings for individual attributes, object references,
  * and validity.
  */
-class AssociationValueConstructionExpressionEvaluator
+class AssociationConstructionExpressionEvaluator
         extends AbstractExpressionEvaluator<
         ShadowAssociationValue,
         ShadowAssociationDefinition,
-        AssociationValueConstructionExpressionEvaluatorType> {
+        AssociationConstructionExpressionEvaluatorType> {
 
-    AssociationValueConstructionExpressionEvaluator(
+    AssociationConstructionExpressionEvaluator(
             QName elementName,
-            AssociationValueConstructionExpressionEvaluatorType evaluatorBean,
+            AssociationConstructionExpressionEvaluatorType evaluatorBean,
             ShadowAssociationDefinition outputDefinition,
             Protector protector) {
         super(elementName, evaluatorBean, outputDefinition, protector);
@@ -69,6 +69,6 @@ class AssociationValueConstructionExpressionEvaluator
 
     @Override
     public String shortDebugDump() {
-        return "associationValueConstruction";
+        return "associationConstruction";
     }
 }

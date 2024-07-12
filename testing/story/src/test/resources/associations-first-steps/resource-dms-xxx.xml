@@ -134,7 +134,7 @@
                     <ref>ri:access</ref>
                     <outbound>
                         <expression>
-                            <associationValueConstruction>
+                            <associationConstruction>
                                 <attribute>
                                     <ref>ri:level</ref>
                                     <mapping>
@@ -158,12 +158,12 @@
                                         </expression>
                                     </mapping>
                                 </objectRef>
-                            </associationValueConstruction>
+                            </associationConstruction>
                         </expression>
                     </outbound>
                     <inbound>
                         <expression>
-                            <associationValueSynchronization>
+                            <associationSynchronization>
                                 <objectRef>
                                     <ref>ri:document</ref> <!-- TODO make optional if there's only one object -->
                                     <mapping> <!-- not strictly necessary, just for illustration -->
@@ -224,7 +224,7 @@
                                         </actions>
                                     </reaction>
                                 </synchronization>
-                            </associationValueSynchronization>
+                            </associationSynchronization>
                         </expression>
                         <target>
                             <assignmentTargetType>ServiceType</assignmentTargetType>

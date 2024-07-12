@@ -125,7 +125,7 @@
                     <ref>ri:group</ref>
                     <outbound>
                         <expression>
-                            <associationValueConstruction>
+                            <associationConstruction>
                                 <objectRef>
                                     <ref>ri:group</ref>
                                     <mapping>
@@ -134,12 +134,12 @@
                                         </expression>
                                     </mapping>
                                 </objectRef>
-                            </associationValueConstruction>
+                            </associationConstruction>
                         </expression>
                     </outbound>
                     <inbound>
                         <expression>
-                            <associationValueSynchronization>
+                            <associationSynchronization>
                                 <objectRef>
                                     <ref>ri:group</ref>
                                     <correlator/>
@@ -166,7 +166,7 @@
                                         </actions>
                                     </reaction>
                                 </synchronization>
-                            </associationValueSynchronization>
+                            </associationSynchronization>
                         </expression>
                         <target>
                             <assignmentSubtype>groupMembership</assignmentSubtype>

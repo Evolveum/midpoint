@@ -49,20 +49,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Synchronizes association values by correlating and mapping them to values of respective focus item - currently
  * fixed to {@link AssignmentType}.
  */
-class AssociationValueSynchronizationExpressionEvaluator
+class AssociationSynchronizationExpressionEvaluator
         extends AbstractExpressionEvaluator<
         PrismContainerValue<AssignmentType>,
         PrismContainerDefinition<AssignmentType>,
-        AssociationValueSynchronizationExpressionEvaluatorType> {
+        AssociationSynchronizationExpressionEvaluatorType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AssociationValueSynchronizationExpressionEvaluatorFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AssociationSynchronizationExpressionEvaluatorFactory.class);
 
-    private static final String OP_PROCESS_ASSOCIATION_VALUE = AssociationValueSynchronizationExpressionEvaluator.class.getName()
+    private static final String OP_PROCESS_ASSOCIATION_VALUE = AssociationSynchronizationExpressionEvaluator.class.getName()
             + ".processAssociationValue";
 
-    AssociationValueSynchronizationExpressionEvaluator(
+    AssociationSynchronizationExpressionEvaluator(
             QName elementName,
-            AssociationValueSynchronizationExpressionEvaluatorType evaluatorBean,
+            AssociationSynchronizationExpressionEvaluatorType evaluatorBean,
             PrismContainerDefinition<AssignmentType> outputDefinition,
             Protector protector) {
         super(elementName, evaluatorBean, outputDefinition, protector);
@@ -118,7 +118,7 @@ class AssociationValueSynchronizationExpressionEvaluator
             this.associationDefinition = associationDefinition;
             this.context = context;
             this.inboundDefinition =
-                    ResourceObjectInboundDefinition.forAssociationValueSynchronization(
+                    ResourceObjectInboundDefinition.forAssociationSynchronization(
                             expressionEvaluatorBean, context.getTargetDefinitionBean());
             this.candidateAssignments = getCandidateAssignments();
         }
@@ -372,6 +372,6 @@ class AssociationValueSynchronizationExpressionEvaluator
 
     @Override
     public String shortDebugDump() {
-        return "associationValueSynchronization";
+        return "associationSynchronization";
     }
 }

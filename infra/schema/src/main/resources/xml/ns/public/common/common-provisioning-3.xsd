@@ -7228,7 +7228,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="AssociationValueConstructionExpressionEvaluatorType">
+    <xsd:complexType name="AssociationConstructionExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
                 Creates association values by constructing it via mappings for individual attributes and object references.
@@ -7261,9 +7261,9 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="associationValueConstruction" type="tns:AssociationValueConstructionExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+    <xsd:element name="associationConstruction" type="tns:AssociationConstructionExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
-    <xsd:complexType name="AssociationValueSynchronizationExpressionEvaluatorType">
+    <xsd:complexType name="AssociationSynchronizationExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
                 Synchronizes association values by correlating and mapping them to values of respective focus item
@@ -7318,6 +7318,6 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="associationValueSynchronization" type="tns:AssociationValueSynchronizationExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+    <xsd:element name="associationSynchronization" type="tns:AssociationSynchronizationExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
 </xsd:schema>

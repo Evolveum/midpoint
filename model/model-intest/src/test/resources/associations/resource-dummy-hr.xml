@@ -125,7 +125,7 @@
                     <ref>ri:contract</ref>
                     <inbound>
                         <expression>
-                            <associationValueSynchronization>
+                            <associationSynchronization>
                                 <attribute>
                                     <ref>icfs:uid</ref>
                                     <correlator/>
@@ -258,7 +258,7 @@
                                         </actions>
                                     </reaction>
                                 </synchronization>
-                            </associationValueSynchronization>
+                            </associationSynchronization>
                         </expression>
                         <target>
                             <assignmentSubtype>contract</assignmentSubtype>
