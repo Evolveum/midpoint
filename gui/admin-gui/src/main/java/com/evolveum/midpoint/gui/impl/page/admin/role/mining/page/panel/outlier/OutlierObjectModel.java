@@ -218,7 +218,6 @@ public class OutlierObjectModel implements Serializable {
             @NotNull RoleAnalysisOutlierType outlierResult,
             @NotNull Task task,
             @NotNull OperationResult result,
-            @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisOutlierPartitionType partition) {
 
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();

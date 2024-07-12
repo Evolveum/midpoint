@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.u
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.ClusteringOutlierDetectionUtils.analyseOutlierClusterMembers;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionUtil.prepareDetectionOptions;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 //TODO
 public class OutliersDetectionExecutionUtil {
 
-    public static @NotNull Collection<RoleAnalysisOutlierType> executeBasicOutlierDetection(
+    public static void executeBasicOutlierDetection(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisSessionType session,
@@ -43,15 +42,15 @@ public class OutliersDetectionExecutionUtil {
         MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareCompressedMiningStructure(cluster, true,
                 processMode, result, task);
 
-        HashMap<String, RoleAnalysisOutlierType> map = new HashMap<>();
-
         ObjectReferenceType clusterRef = new ObjectReferenceType()
                 .oid(cluster.getOid())
-                .type(RoleAnalysisClusterType.COMPLEX_TYPE);
+                .type(RoleAnalysisClusterType.COMPLEX_TYPE)
+                .targetName(cluster.getName());
 
         ObjectReferenceType sessionRef = new ObjectReferenceType()
                 .oid(session.getOid())
-                .type(RoleAnalysisSessionType.COMPLEX_TYPE);
+                .type(RoleAnalysisSessionType.COMPLEX_TYPE)
+                .targetName(session.getName());
 
         RangeType frequencyRange = session.getDefaultDetectionOption().getFrequencyRange();
         Double sensitivity = session.getDefaultDetectionOption().getSensitivity();
@@ -70,7 +69,6 @@ public class OutliersDetectionExecutionUtil {
                     clusterRef,
                     sessionRef,
                     result,
-                    map,
                     similarityThreshold);
         } else if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
             //TODO temporary disabled
@@ -82,11 +80,9 @@ public class OutliersDetectionExecutionUtil {
 //                    sessionRef,
 //                    map);
         }
-
-        return map.values();
     }
 
-    public static @NotNull Collection<RoleAnalysisOutlierType> executeClusteringOutliersDetection(
+    public static void executeClusteringOutliersDetection(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisSessionType session,
@@ -128,7 +124,6 @@ public class OutliersDetectionExecutionUtil {
                 detectionOption,
                 map);
 
-        return map.values();
     }
 
 }

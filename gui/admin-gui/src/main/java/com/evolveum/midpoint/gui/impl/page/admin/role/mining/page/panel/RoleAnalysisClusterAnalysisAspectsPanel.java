@@ -574,7 +574,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                                 RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
                                 if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
                                     outlierObjectModel = generateUserOutlierResultModel(
-                                            roleAnalysisService, outlierObject, task, task.getResult(), cluster, outlierPartition);
+                                            roleAnalysisService, outlierObject, task, task.getResult(), outlierPartition);
                                 } else {
                                     //TODO
                                 }

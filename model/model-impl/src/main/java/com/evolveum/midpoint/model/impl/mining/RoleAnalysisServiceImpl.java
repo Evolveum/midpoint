@@ -2177,23 +2177,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     public void resolveOutliers(
             @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
             @NotNull Task task,
-            @NotNull OperationResult result,
-            @NotNull RoleAnalysisSessionType session,
-            @NotNull RoleAnalysisClusterType cluster,
-            double requiredConfidence) {
+            @NotNull OperationResult result) {
         //TODO TARGET OBJECT REF IS NECESSARY (check git history)
-
-        List<RoleAnalysisOutlierPartitionType> outlierPartitions = roleAnalysisOutlierType.getOutlierPartitions();
-
-        RoleAnalysisOutlierPartitionType partitionType = outlierPartitions.get(0);
-
-        Double clusterConfidence = partitionType.getPartitionAnalysis().getOverallConfidence();
-        if (clusterConfidence == null) {
-            clusterConfidence = 0.0;
-        }
-        if (clusterConfidence < requiredConfidence) {
-            return;
-        }
 
         ObjectReferenceType targetObjectRef = roleAnalysisOutlierType.getTargetObjectRef();
         PrismObject<FocusType> object = this
@@ -2201,7 +2186,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
         roleAnalysisOutlierType.setName(object != null && object.getName() != null
                 ? PolyStringType.fromOrig(object.getName() + " (outlier)")
-                : PolyStringType.fromOrig("outlier_" + session.getName() + "_" + UUID.randomUUID()));
+                : PolyStringType.fromOrig("outlier_" + UUID.randomUUID()));
 
         this.importOutlier(roleAnalysisOutlierType, task, result);
 
@@ -2587,6 +2572,62 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             throw new RuntimeException("Couldn't search outliers", ex);
         }
         return searchResultList;
+    }
+
+    @Override
+    public PrismObject<RoleAnalysisOutlierType> searchOutlierObjectByUserOidClusters(
+            @NotNull String userOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
+                .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF)
+                .ref(userOid).build();
+
+        try {
+            //TODO there should be only one outlier object per user
+            SearchResultList<PrismObject<RoleAnalysisOutlierType>> prismObjects = modelService.searchObjects(RoleAnalysisOutlierType.class, query, null,
+                    task, result);
+            if (prismObjects == null || prismObjects.isEmpty()) {
+                return null;
+            }
+
+            return modelService.searchObjects(RoleAnalysisOutlierType.class, query, null,
+                    task, result).get(0);
+        } catch (SchemaException | ConfigurationException | CommunicationException | SecurityViolationException |
+                ExpressionEvaluationException e) {
+            throw new RuntimeException("Couldn't search outlier object associated for user with oid: " + userOid, e);
+        } catch (ObjectNotFoundException e) {
+            return null;
+        }
+
+    }
+
+    @Override
+    public void updateOutlierObject(
+            @NotNull String outlierOid,
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            double overallConfidence,
+            double anomalyConfidence,
+            @NotNull OperationResult result) {
+
+        try {
+            List<ItemDelta<?, ?>> modifications = new ArrayList<>();
+            modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
+                    .item(RoleAnalysisOutlierType.F_OUTLIER_PARTITIONS).add(partition.clone())
+                    .asItemDelta());
+
+            modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
+                    .item(RoleAnalysisOutlierType.F_OVERALL_CONFIDENCE).replace(overallConfidence).asItemDelta());
+
+            modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
+                    .item(RoleAnalysisOutlierType.F_ANOMALY_OBJECTS_CONFIDENCE).replace(anomalyConfidence).asItemDelta());
+
+            repositoryService.modifyObject(RoleAnalysisOutlierType.class, outlierOid, modifications, result);
+        } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+            LOGGER.error("Couldn't update RoleAnalysisOutlierType {}", outlierOid, e);
+        }
+
     }
 
 }

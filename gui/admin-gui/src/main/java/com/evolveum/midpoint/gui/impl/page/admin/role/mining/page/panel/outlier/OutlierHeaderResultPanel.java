@@ -7,7 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
 
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.Model;
@@ -51,9 +54,21 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
 //        iconContainer.setOutputMarkupId(true);
 //        itemBox.add(iconContainer);
 
-        Label value = new Label(ID_VALUE, Model.of(getValue()));
-        value.setOutputMarkupId(true);
-        itemBox.add(value);
+        if (isLink()) {
+            AjaxLinkPanel namePanel = new AjaxLinkPanel(ID_VALUE, Model.of(getValue())) {
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    performOnClick(target);
+                }
+            };
+            namePanel.setOutputMarkupId(true);
+            itemBox.add(namePanel);
+
+        } else {
+            Label namePanel = new Label(ID_VALUE, Model.of(getValue()));
+            namePanel.setOutputMarkupId(true);
+            itemBox.add(namePanel);
+        }
 
         Label timestamp = new Label(ID_TIMESTAMP, Model.of(this.timestamp));
         timestamp.setOutputMarkupId(true);
@@ -98,6 +113,14 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
         WebMarkupContainer iconContainer = new WebMarkupContainer(componentId);
         iconContainer.add(AttributeModifier.replace("class", getIcon()));
         return iconContainer;
+    }
+
+    protected boolean isLink() {
+        return false;
+    }
+
+    protected void performOnClick(AjaxRequestTarget target) {
+
     }
 
     public String getIcon() {

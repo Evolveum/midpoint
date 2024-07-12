@@ -216,12 +216,13 @@ public interface RoleAnalysisService {
      * @param sessionOid The session OID.
      * @param task The task associated with this operation.
      * @param result The operation result.
-     * @param recomputeStatistics
+     * @param recomputeStatistics Recompute statistics flag.
      */
     void deleteSessionClustersMembers(
             @NotNull String sessionOid,
             @NotNull Task task,
-            @NotNull OperationResult result, boolean recomputeStatistics);
+            @NotNull OperationResult result,
+            boolean recomputeStatistics);
 
     /**
      * Deletes a single RoleAnalysisClusterType object.
@@ -229,12 +230,13 @@ public interface RoleAnalysisService {
      * @param cluster The cluster to delete.
      * @param task The task associated with this operation.
      * @param result The operation result.
-     * @param recomputeStatistics
+     * @param recomputeStatistics Recompute statistics flag.
      */
     void deleteCluster(
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull Task task,
-            @NotNull OperationResult result, boolean recomputeStatistics);
+            @NotNull OperationResult result,
+            boolean recomputeStatistics);
 
     /**
      * Recomputes the statistics of a RoleAnalysisSessionType object.
@@ -840,17 +842,11 @@ public interface RoleAnalysisService {
      * @param roleAnalysisOutlierType The role analysis outlier type containing the outlier information.
      * @param task The task associated with the operation.
      * @param result The operation result.
-     * @param session The role analysis session type containing the session information.
-     * @param cluster The role analysis cluster type containing the cluster information.
-     * @param requiredConfidence The required confidence for the outlier.
      */
     void resolveOutliers(
             @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
             @NotNull Task task,
-            @NotNull OperationResult result,
-            @NotNull RoleAnalysisSessionType session,
-            @NotNull RoleAnalysisClusterType cluster,
-            double requiredConfidence);
+            @NotNull OperationResult result);
 
     /**
      * Search for the top detected patterns over all clusters
@@ -918,11 +914,11 @@ public interface RoleAnalysisService {
      * The range is adjusted based on the provided sensitivity.
      *
      * @param sensitivity The sensitivity for outlier detection. It should be a value between 0.0 and 100.
-     *                    If the provided value is outside this range, it will be set to 0.0.
-     *                    The sensitivity is used to adjust the threshold for outlier detection.
+     * If the provided value is outside this range, it will be set to 0.0.
+     * The sensitivity is used to adjust the threshold for outlier detection.
      * @param range The initial range for outlier detection. It should be a RangeType object with min and max values.
-     *              If the min or max values are null, they will be set to 2.0.
-     *              Note: The range is expected to have both values positive.
+     * If the min or max values are null, they will be set to 2.0.
+     * Note: The range is expected to have both values positive.
      * @return The adjusted range for outlier detection. It's a RangeType object with the min and max values
      * adjusted based on the sensitivity.
      */
@@ -949,5 +945,17 @@ public interface RoleAnalysisService {
     List<RoleAnalysisOutlierType> findClusterOutliers(
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull Task task,
+            @NotNull OperationResult result);
+
+    PrismObject<RoleAnalysisOutlierType> searchOutlierObjectByUserOidClusters(
+            @NotNull String userOid,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+    
+    void updateOutlierObject(
+            @NotNull String outlierOid,
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            double overallConfidence,
+            double anomalyConfidence,
             @NotNull OperationResult result);
 }

@@ -98,10 +98,8 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
     }
 
     private void initSecondCountPanel() {
-        RoleAnalysisOutlierType outlierParent = getModelObject().getOutlierParent();
-        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierParent.getOutlierPartitions();
-
-        IconWithLabel clusterCount = new IconWithLabel(ID_CLUSTER, () -> String.valueOf(outlierPartitions.size())) {
+        RoleAnalysisOutlierPartitionType partition = getModelObject().getPartition();
+        IconWithLabel clusterCount = new IconWithLabel(ID_CLUSTER, () -> String.valueOf(partition.getTargetClusterRef().getTargetName())) {
             @Override
             public String getIconCssClass() {
                 return GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON;
@@ -114,31 +112,23 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
 
             @Override
             protected void onClickPerform(AjaxRequestTarget target) {
-//                PageParameters parameters = new PageParameters();
-//                parameters.add(OnePageParameterEncoder.PARAMETER, targetClusterRef.getOid());
-//                parameters.add("panelId", "clusterDetails");
-//                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-//                        .getObjectDetailsPage(RoleAnalysisClusterType.class);
-//                getPageBase().navigateToNext(detailsPageClass, parameters);
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, partition.getTargetClusterRef().getOid());
+                parameters.add("panelId", "clusterDetails");
+                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                        .getObjectDetailsPage(RoleAnalysisClusterType.class);
+                getPageBase().navigateToNext(detailsPageClass, parameters);
             }
         };
 
         clusterCount.setOutputMarkupId(true);
-        clusterCount.add(AttributeAppender.replace("title", () -> "Partitions: " + outlierPartitions.size()));
         clusterCount.add(new TooltipBehavior());
         add(clusterCount);
     }
 
     private void initFirstCountPanel() {
-        RoleAnalysisOutlierType outlierParent = getModelObject().getOutlierParent();
-        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierParent.getOutlierPartitions();
-        Set<String> anomalies = new HashSet<>();
-        for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
-            detectedAnomalyResult.forEach(detectedAnomaly -> anomalies.add(detectedAnomaly.getTargetObjectRef().getOid()));
-        }
-
-        IconWithLabel clusterCount = new IconWithLabel(ID_SESSION, () -> String.valueOf(anomalies.size())) {
+        RoleAnalysisOutlierPartitionType partition = getModelObject().getPartition();
+        IconWithLabel clusterCount = new IconWithLabel(ID_SESSION, () -> String.valueOf(partition.getTargetSessionRef().getTargetName())) {
             @Override
             public String getIconCssClass() {
                 return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
@@ -151,16 +141,15 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
 
             @Override
             protected void onClickPerform(AjaxRequestTarget target) {
-//                PageParameters parameters = new PageParameters();
-//                parameters.add(OnePageParameterEncoder.PARAMETER, targetSessionRef.getOid());
-//                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-//                        .getObjectDetailsPage(RoleAnalysisSessionType.class);
-//                getPageBase().navigateToNext(detailsPageClass, parameters);
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, partition.getTargetSessionRef().getOid());
+                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                        .getObjectDetailsPage(RoleAnalysisSessionType.class);
+                getPageBase().navigateToNext(detailsPageClass, parameters);
             }
         };
 
         clusterCount.setOutputMarkupId(true);
-        clusterCount.add(AttributeAppender.replace("title", () -> "Anomalies count: " + anomalies.size()));
         clusterCount.add(new TooltipBehavior());
         add(clusterCount);
     }

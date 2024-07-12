@@ -36,7 +36,6 @@ import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -45,8 +44,6 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
 
 public class RoleAnalysisOutlierTable extends BasePanel<String> {
 
@@ -226,7 +223,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
 
                         if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
                             //TODO!
-                            outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlier, task, task.getResult(), cluster, outlierPartitions.get(0));
+                            outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlier, task, task.getResult(), outlierPartitions.get(0));
                         } else {
                             //TODO
                         }

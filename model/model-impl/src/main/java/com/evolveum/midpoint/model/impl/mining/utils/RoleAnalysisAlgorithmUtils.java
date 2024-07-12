@@ -585,21 +585,14 @@ public class RoleAnalysisAlgorithmUtils {
             }
 
             if (cluster.getCategory().equals(RoleAnalysisClusterCategory.OUTLIERS) && detailedAnalysis) {
-                roleAnalysisOutlierTypes = executeClusteringOutliersDetection(
+                executeClusteringOutliersDetection(
                         roleAnalysisService, cluster, session, task);
             } else {
-                roleAnalysisOutlierTypes = executeBasicOutlierDetection(
+                executeBasicOutlierDetection(
                         roleAnalysisService, cluster, session, analysisOption, task);
             }
 
-            Double sensitivity = detectionOption.getSensitivity();
-            double requiredConfidence = roleAnalysisService.calculateOutlierConfidenceRequired(sensitivity);
 
-            //TODO temporary solution
-            requiredConfidence = requiredConfidence * 100;
-            for (RoleAnalysisOutlierType roleAnalysisOutlierType : roleAnalysisOutlierTypes) {
-                roleAnalysisService.resolveOutliers(roleAnalysisOutlierType, task, result, session, cluster, requiredConfidence);
-            }
         }
     }
 }
