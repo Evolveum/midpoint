@@ -102,6 +102,7 @@ Now password propagation to resource takes into account the script, defined in r
 It is possible to configure now if the notification message should be generated once and sent to all recipients in the same form or if the message should be generated for each recipient separately.
 More details can be found in the xrefv:/midpoint/reference/master/misc/notifications/general/#basic-structure-of-the-notification-definition[Basic structure of the notification definition].
 * Role wizard is now supported also for children of application and business roles (archetypes).
+* Implementation of new task activities for certification campaign creation and certification remediation. More details can be found in the xrefv:/midpoint/reference/tasks/activities/work/[Work Definition (Types of Activities)].
 
 === Releases Of Other Components
 
