@@ -57,7 +57,8 @@ public abstract class GuiActionColumn<T extends Serializable, C extends Containe
 
     @Override
     public Component getHeader(String componentId) {
-        return new ActionsPanel<C>(componentId, Model.ofList(actionList)) {
+        List<AbstractGuiAction<C>> headerActions = getHeaderActions();
+        return new ActionsPanel<C>(componentId, Model.ofList(headerActions)) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -65,6 +66,13 @@ public abstract class GuiActionColumn<T extends Serializable, C extends Containe
                 return getSelectedItems();
             }
         };
+    }
+
+    private List<AbstractGuiAction<C>> getHeaderActions() {
+        return actionList
+                .stream()
+                .filter(AbstractGuiAction::isBulkAction)
+                .toList();
     }
 
     protected abstract C unwrapRowModelObject(T rowModelObject);

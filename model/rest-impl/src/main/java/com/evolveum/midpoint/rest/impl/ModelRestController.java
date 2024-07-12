@@ -6,21 +6,15 @@
  */
 package com.evolveum.midpoint.rest.impl;
 
-import static com.evolveum.midpoint.security.api.RestAuthorizationAction.*;
-
 import static org.springframework.http.ResponseEntity.status;
+
+import static com.evolveum.midpoint.security.api.RestAuthorizationAction.*;
 
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
-
-import com.evolveum.midpoint.security.api.RestHandlerMethod;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
@@ -41,10 +35,18 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.DefinitionProcessingOption;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.security.api.RestHandlerMethod;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -70,6 +72,7 @@ public class ModelRestController extends AbstractRestController {
     @Autowired private ModelService modelService;
     @Autowired private BulkActionsService bulkActionsService;
     @Autowired private TaskService taskService;
+    @Autowired private CaseService caseService;
 
     @RestHandlerMethod(authorization = GENERATE_VALUE)
     @PostMapping("/{type}/{oid}/generate")
@@ -822,7 +825,6 @@ public class ModelRestController extends AbstractRestController {
 
     @RestHandlerMethod(authorization = COMPARE_OBJECT)
     @PostMapping("/rpc/compare")
-//    @Consumes({ "application/xml" }) TODO do we need to limit it to XML?
     public <T extends ObjectType> ResponseEntity<?> compare(
             @RequestParam(value = "readOptions", required = false) List<String> restReadOptions,
             @RequestParam(value = "compareOptions", required = false) List<String> restCompareOptions,
@@ -983,6 +985,126 @@ public class ModelRestController extends AbstractRestController {
             response = handleExceptionNoLog(result, ex);
         }
         result.computeStatus();
+        finishRequest(task, result);
+        return response;
+    }
+
+    @RestHandlerMethod(authorization = COMPLETE_WORK_ITEM)
+    @PostMapping("/cases/{oid}/workItems/{id}/complete")
+    public ResponseEntity<?> completeWorkItem(
+            @PathVariable("oid") String caseOid,
+            @PathVariable("id") Long workItemId,
+            @RequestBody AbstractWorkItemOutputType output
+    ) {
+        Task task = initRequest();
+        OperationResult result = task.getResult().createSubresult("completeWorkItem");
+
+        ResponseEntity<?> response;
+        try {
+            WorkItemId id = WorkItemId.of(caseOid, workItemId);
+            caseService.completeWorkItem(id, output, task, result);
+
+            result.computeStatus();
+            response = createResponse(HttpStatus.NO_CONTENT, task, result);
+        } catch (Exception ex) {
+            response = handleException(result, ex);
+        }
+
+        finishRequest(task, result);
+        return response;
+    }
+
+    @RestHandlerMethod(authorization = DELEGATE_WORK_ITEM)
+    @PostMapping("/cases/{oid}/workItems/{id}/delegate")
+    public ResponseEntity<?> delegateWorkItem(
+            @PathVariable("oid") String caseOid,
+            @PathVariable("id") Long workItemId,
+            @RequestBody WorkItemDelegationRequestType delegationRequest
+    ) {
+        Task task = initRequest();
+        OperationResult result = task.getResult().createSubresult("delegateWorkItem");
+
+        ResponseEntity<?> response;
+        try {
+            WorkItemId id = WorkItemId.of(caseOid, workItemId);
+            caseService.delegateWorkItem(id, delegationRequest, task, result);
+
+            result.computeStatus();
+            response = createResponse(HttpStatus.NO_CONTENT, task, result);
+        } catch (Exception ex) {
+            response = handleException(result, ex);
+        }
+
+        finishRequest(task, result);
+        return response;
+    }
+
+    @RestHandlerMethod(authorization = CLAIM_WORK_ITEM)
+    @PostMapping("/cases/{oid}/workItems/{id}/claim")
+    public ResponseEntity<?> claimWorkItem(
+            @PathVariable("oid") String caseOid,
+            @PathVariable("id") Long workItemId
+    ) {
+        Task task = initRequest();
+        OperationResult result = task.getResult().createSubresult("claimWorkItem");
+
+        ResponseEntity<?> response;
+        try {
+            WorkItemId id = WorkItemId.of(caseOid, workItemId);
+            caseService.claimWorkItem(id, task, result);
+
+            result.computeStatus();
+            response = createResponse(HttpStatus.NO_CONTENT, task, result);
+        } catch (Exception ex) {
+            response = handleException(result, ex);
+        }
+
+        finishRequest(task, result);
+        return response;
+    }
+
+    @RestHandlerMethod(authorization = RELEASE_WORK_ITEM)
+    @PostMapping("/cases/{oid}/workItems/{id}/release")
+    public ResponseEntity<?> releaseWorkItem(
+            @PathVariable("oid") String caseOid,
+            @PathVariable("id") Long workItemId
+    ) {
+        Task task = initRequest();
+        OperationResult result = task.getResult().createSubresult("releaseWorkItem");
+
+        ResponseEntity<?> response;
+        try {
+            WorkItemId id = WorkItemId.of(caseOid, workItemId);
+            caseService.releaseWorkItem(id, task, result);
+
+            result.computeStatus();
+            response = createResponse(HttpStatus.NO_CONTENT, task, result);
+        } catch (Exception ex) {
+            response = handleException(result, ex);
+        }
+
+        finishRequest(task, result);
+        return response;
+    }
+
+    @RestHandlerMethod(authorization = CANCEL_CASE)
+    @PostMapping("/cases/{oid}/cancel")
+    public ResponseEntity<?> cancelCase(
+            @PathVariable("oid") String caseOid
+    ) {
+        Task task = initRequest();
+        OperationResult result = task.getResult().createSubresult("cancelCase");
+
+        ResponseEntity<?> response;
+        try {
+            caseService.cancelCase(caseOid, task, result);
+
+            result.computeStatus();
+            response = createResponse(HttpStatus.NO_CONTENT, task, result);
+        } catch (Exception ex) {
+            response = handleException(result, ex);
+        }
+
         finishRequest(task, result);
         return response;
     }

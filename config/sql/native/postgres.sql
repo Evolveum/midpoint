@@ -110,7 +110,8 @@ CREATE TYPE ReferenceType AS ENUM (
     'PROCESSED_OBJECT_EVENT_MARK',
     'PROJECTION',
     'RESOURCE_BUSINESS_CONFIGURATION_APPROVER',
-    'ROLE_MEMBERSHIP');
+    'ROLE_MEMBERSHIP',
+    'TASK_AFFECTED_OBJECT');
 
 CREATE TYPE ExtItemHolderType AS ENUM (
     'EXTENSION',
@@ -1498,6 +1499,20 @@ CREATE TABLE m_task_affected_objects (
     PRIMARY KEY (ownerOid, cid)
 ) INHERITS(m_container);
 
+CREATE TABLE m_ref_task_affected_object (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    affectedObjectCid INTEGER NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('TASK_AFFECTED_OBJECT') STORED
+        CHECK (referenceType = 'TASK_AFFECTED_OBJECT')
+)
+    INHERITS (m_reference);
+
+ALTER TABLE m_ref_task_affected_object ADD CONSTRAINT m_ref_task_affected_object_id_fk
+    FOREIGN KEY (ownerOid, affectedObjectCid) REFERENCES m_task_affected_objects (ownerOid, cid)
+        ON DELETE CASCADE;
+
+CREATE INDEX m_ref_task_affected_object_targetOidRelationId_idx
+    ON m_ref_task_affected_object (targetOid, relationId);
 -- endregion
 
 -- region cases
@@ -2337,4 +2352,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(37, $$ SELECT 1 $$, true);
+call apply_change(39, $$ SELECT 1 $$, true);

@@ -62,7 +62,9 @@ public abstract class MultiSelectObjectTileTablePanel<E extends Serializable, O 
                 getModelObject().getValue().setSelected(getModelObject().isSelected());
 
                 processSelectOrDeselectItem(getModelObject().getValue(), getProvider(), target);
-                target.add(getSelectedItemPanel());
+                if (isSelectedItemsPanelVisible()) {
+                    target.add(getSelectedItemPanel());
+                }
             }
         };
     }

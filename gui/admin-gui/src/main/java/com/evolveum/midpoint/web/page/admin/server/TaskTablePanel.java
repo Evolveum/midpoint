@@ -180,7 +180,8 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     protected boolean isCollectionViewWithoutMorePossibleNewType(CompiledObjectCollectionView collectionView) {
         if (isViewForObjectCollectionType(collectionView, "00000000-0000-0000-0002-000000000007", ObjectCollectionType.COMPLEX_TYPE)
                 || isViewForObjectCollectionType(collectionView, SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(), ArchetypeType.COMPLEX_TYPE)
-                || isViewForObjectCollectionType(collectionView, SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value(), ArchetypeType.COMPLEX_TYPE)) {
+                || isViewForObjectCollectionType(collectionView, SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value(), ArchetypeType.COMPLEX_TYPE)
+                || isViewForObjectCollectionType(collectionView, "00000000-0000-0000-0002-000000000008", ObjectCollectionType.COMPLEX_TYPE)) {
             return false;
         }
         return true;
@@ -193,6 +194,10 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
         if (isViewForObjectCollectionType(objectCollectionView, "00000000-0000-0000-0002-000000000007", ObjectCollectionType.COMPLEX_TYPE)) {
             return getNewTaskInfluencesList(TaskOperationUtils.getReportArchetypesList());
+        }
+
+        if (isViewForObjectCollectionType(objectCollectionView, "00000000-0000-0000-0002-000000000008", ObjectCollectionType.COMPLEX_TYPE)) {
+            return getNewTaskInfluencesList(TaskOperationUtils.getCertificationArchetypesList());
         }
 
         if (isViewForObjectCollectionType(objectCollectionView, SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(), ArchetypeType.COMPLEX_TYPE)) {
