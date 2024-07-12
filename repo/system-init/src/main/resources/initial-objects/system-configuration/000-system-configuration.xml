@@ -1013,6 +1013,24 @@
                     <collectionRef oid="00000000-0000-0000-0000-000000000523" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView id="259">
+                <identifier>certification-campaign-creation-tasks-view</identifier>
+                <applicableForOperation>add</applicableForOperation>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000534" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView id="260">
+                <identifier>certification-campaign-creation-tasks-view</identifier>
+                <applicableForOperation>add</applicableForOperation>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000535" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
         </objectCollectionViews>
         <objectDetails>
             <objectDetailsPage id="83">
