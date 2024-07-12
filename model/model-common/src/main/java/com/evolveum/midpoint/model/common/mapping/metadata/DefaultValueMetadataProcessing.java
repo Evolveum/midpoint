@@ -56,9 +56,9 @@ public abstract class DefaultValueMetadataProcessing {
         return new DefaultValueMetadataProcessing() {
             @Override
             boolean isEnabledFor(ItemPath dataPath, ItemDefinition<?> dataDefinition) {
-                //return ItemPath.equivalent(AssignmentHolderType.F_ASSIGNMENT, dataPath);
+                return ItemPath.equivalent(AssignmentHolderType.F_ASSIGNMENT, dataPath);
 
-                return dataDefinition.isMultiValue();
+                //return dataDefinition.isMultiValue();
             }
         };
     };
