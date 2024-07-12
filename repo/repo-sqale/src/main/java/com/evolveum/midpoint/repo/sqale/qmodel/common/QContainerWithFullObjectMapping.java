@@ -45,6 +45,9 @@ public abstract class QContainerWithFullObjectMapping<S extends Containerable, Q
                 updateContext.findValueOrItem(getItemPath());
         // row in context already knows its CID
         PrismContainerValue<AssignmentType> pcv = identityContainer.findValue(updateContext.row().cid);
+        if (pcv == null) {
+            return;
+        }
         byte[] fullObject = createFullObject(pcv.asContainerable());
         updateContext.set(updateContext.entityPath().fullObject, fullObject);
     }

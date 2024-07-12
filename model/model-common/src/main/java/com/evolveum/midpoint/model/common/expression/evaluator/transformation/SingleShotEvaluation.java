@@ -63,6 +63,7 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
 
         addValueMetadata(outputTriple.getPlusSet(),parentResult);
         addValueMetadata(outputTriple.getZeroSet(), parentResult);
+        //addValueMetadata(outputTriple.getMinusSet(), parentResult);
         recordEvaluationEnd(outputTriple);
         return outputTriple;
     }
@@ -191,7 +192,9 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
                 metadata.addMetadataValue(outputValueMetadata.asPrismContainerValue());
                 var iter = output.iterator();
                 for (var oVal: output)  {
-                    oVal.setValueMetadata(metadata.clone());
+                    if (oVal != null) {
+                        oVal.setValueMetadata(metadata.clone());
+                    }
                 }
             } else {
                 // TODO clear existing metadata?
