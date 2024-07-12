@@ -263,6 +263,9 @@
                         <target>
                             <path>assignment</path>
                             <assignmentSubtype>contract</assignmentSubtype>
+                            <set>
+                                <predefined>all</predefined>
+                            </set>
                         </target>
                     </inbound>
                 </association>

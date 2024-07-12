@@ -171,6 +171,9 @@
                         <target>
                             <path>assignment</path>
                             <assignmentSubtype>groupMembership</assignmentSubtype>
+                            <set>
+                                <predefined>all</predefined>
+                            </set>
                         </target>
                     </inbound>
                 </association>

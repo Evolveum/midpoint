@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.ValueSetDefinition;
+import com.evolveum.midpoint.repo.common.expression.ValueSetDefinition.ExtraSetSpecification;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
@@ -138,7 +139,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
     }
 
     private <IV extends PrismValue, ID extends ItemDefinition<?>> Source<IV, ID> parseSource(
-            VariableBindingDefinitionType sourceDefinition, OperationResult result)
+            @NotNull VariableBindingDefinitionType sourceDefinition, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         ItemPath path = getSourcePath(sourceDefinition);
@@ -193,6 +194,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
         if (domainSetType != null) {
             ValueSetDefinition<IV, ID> setDef = new ValueSetDefinition<>(
                     domainSetType,
+                    ExtraSetSpecification.fromBean(sourceDefinition),
                     sourceItemDefinition,
                     m.valueMetadataDefinition,
                     m.getExpressionProfile(),

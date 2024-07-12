@@ -963,6 +963,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
         ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(
                 rangeSetDefBean,
+                ValueSetDefinition.ExtraSetSpecification.fromBean(target),
                 getOutputDefinition(),
                 valueMetadataDefinition,
                 getExpressionProfile(),
@@ -1651,7 +1652,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     public boolean isPushChanges() {
         return pushChanges;
     }
-
 
     boolean shouldUseMatchingProvenance() {
         return getOutputDefinition().isMultiValue() && mappingBean.getName() != null;

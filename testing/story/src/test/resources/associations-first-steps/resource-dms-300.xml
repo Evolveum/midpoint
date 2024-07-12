@@ -203,6 +203,9 @@
                         <target>
                             <path>assignment</path>
                             <assignmentTargetType>ServiceType</assignmentTargetType>
+                            <set>
+                                <predefined>all</predefined>
+                            </set>
                         </target>
                     </inbound>
                 </association>

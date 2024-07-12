@@ -216,6 +216,9 @@
                         <target>
                             <path>assignment</path>
                             <assignmentSubtype>documentAccess</assignmentSubtype>
+                            <set>
+                                <predefined>all</predefined>
+                            </set>
                         </target>
                     </inbound>
                 </association>

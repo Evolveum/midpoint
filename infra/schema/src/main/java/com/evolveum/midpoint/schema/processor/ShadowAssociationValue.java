@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
@@ -382,6 +383,18 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
                 CloneUtil.cloneCloneable(
                         associationObject.getBean().getActivation()));
         return this;
+    }
+
+    @Override
+    protected boolean equalsItems(
+            PrismContainerValue<ShadowAssociationValueType> other, ParameterizedEquivalenceStrategy strategy) {
+        // BRUTAL HACK; the idea is that we want to compare the values semantically e.g. when doing IDI->triple conversion
+        if (!(other instanceof ShadowAssociationValue otherSav)
+                || strategy.isLiteralDomComparison()
+                || strategy.isConsideringOperationalData()) {
+            return super.equalsItems(other, strategy);
+        }
+        return semanticEqualsChecker().test(this, otherSav);
     }
 
     /** TODO better name */
