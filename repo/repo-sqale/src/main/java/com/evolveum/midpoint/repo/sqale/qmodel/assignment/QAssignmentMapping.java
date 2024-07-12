@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_EFFECTIVE_MARK_REF;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -153,6 +155,10 @@ public class QAssignmentMapping<OR extends MObject>
                 q -> q.tenantRefRelationId,
                 QOrgMapping::getOrgMapping);
         addItemMapping(F_POLICY_SITUATION, multiUriMapper(q -> q.policySituations));
+
+        addRefMapping(F_EFFECTIVE_MARK_REF,
+                QAssignmentMarkReferenceMapping.initForEffectiveMark(repositoryContext));
+
         addItemMapping(F_SUBTYPE, multiStringMapper(q -> q.subtypes));
 
         addExtensionMapping(F_EXTENSION, MExtItemHolderType.EXTENSION, q -> q.ext);
@@ -300,6 +306,8 @@ public class QAssignmentMapping<OR extends MObject>
         if (!metadata.asPrismContainerValue().isEmpty()) {
             assignment.metadata(metadata);
         }
+
+
         return assignment;
     }
     // about duplication see the comment in QObjectMapping.toRowObjectWithoutFullObject
@@ -382,6 +390,9 @@ public class QAssignmentMapping<OR extends MObject>
                 QAssignmentMetadataMapping.get().insert(valueMetadata, row, jdbcSession);
             }
         }
+
+        storeRefs(row, assignment.getEffectiveMarkRef(),
+                QAssignmentMarkReferenceMapping.getForEffectiveMark(), jdbcSession);
 
         return row;
     }
