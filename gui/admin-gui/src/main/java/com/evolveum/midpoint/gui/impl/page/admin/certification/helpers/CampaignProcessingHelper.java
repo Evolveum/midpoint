@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -79,6 +80,11 @@ public class CampaignProcessingHelper implements Serializable {
     public static void closeCampaignConfirmation(AjaxRequestTarget target, AccessCertificationCampaignType campaign,
             PageBase pageBase) {
         pageBase.showMainPopup(getCloseCampaignConfirmationPanel(campaign, pageBase), target);
+    }
+
+    public static void campaignRemediationConfirmation(AjaxRequestTarget target, AccessCertificationCampaignType campaign,
+            PageBase pageBase) {
+        pageBase.showMainPopup(getRemediationConfirmationPanel(campaign, pageBase), target);
     }
 
     public static void reiterateCampaignConfirmation(AjaxRequestTarget target, AccessCertificationCampaignType campaign,
@@ -145,6 +151,23 @@ public class CampaignProcessingHelper implements Serializable {
     public static void deleteCampaignConfirmedPerformed(AjaxRequestTarget target, AccessCertificationCampaignType campaign,
             PageBase pageBase) {
         deleteCampaignsPerformed(target, Collections.singletonList(campaign), pageBase);
+    }
+
+    public static Popupable getRemediationConfirmationPanel(AccessCertificationCampaignType campaign, PageBase pageBase) {
+        return new ConfirmationPanel(pageBase.getMainPopupBodyId(), createRemediationCampaignConfirmString(campaign, pageBase)) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("PageCertCampaigns.dialog.title.confirmCampaignRemediation");
+            }
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                startRemediationPerformed(target, campaign, pageBase);
+            }
+
+        };
     }
 
     public static void startRemediationPerformed(AjaxRequestTarget target,
@@ -291,7 +314,11 @@ public class CampaignProcessingHelper implements Serializable {
 
     public static void campaignActionPerformed(@NotNull List<AccessCertificationCampaignType> campaigns,
             CampaignStateHelper.CampaignAction action, PageBase pageBase, AjaxRequestTarget target) {
-        int processed = 0;
+        if (CollectionUtils.isEmpty(campaigns)) {
+            pageBase.warn(pageBase.getString("PageCertCampaigns.message.noCampaignsSelected"));
+            target.add(pageBase.getFeedbackPanel());
+            return;
+        }
         AccessCertificationService acs = pageBase.getCertificationService();
 
         String operationName = LocalizationUtil.translate(action.getActionLabelKey());
@@ -299,25 +326,20 @@ public class CampaignProcessingHelper implements Serializable {
 
         for (AccessCertificationCampaignType campaign : campaigns) {
             try {
-                Task task = pageBase.createSimpleTask(operationName);
                 if (CampaignStateHelper.CampaignAction.START_CAMPAIGN.equals(action)) {
-                    acs.openNextStage(campaign.getOid(), task, result);
-                    processed++;
+                    openNextStagePerformed(target, campaign, pageBase);
                 } else if (CampaignStateHelper.CampaignAction.CLOSE_CAMPAIGN.equals(action)) {
-                    acs.closeCampaign(campaign.getOid(), task, result);
-                    processed++;
+                    closeCampaignConfirmation(target, campaign, pageBase);
+                } else if (CampaignStateHelper.CampaignAction.START_REMEDIATION.equals(action)) {
+                    campaignRemediationConfirmation(target, campaign, pageBase);
                 } else if (CampaignStateHelper.CampaignAction.CLOSE_STAGE.equals(action)) {
-                    acs.closeCurrentStage(campaign.getOid(), task, result);
-                    processed++;
+                    closeStageConfirmation(target, campaign, pageBase);
                 } else if (CampaignStateHelper.CampaignAction.REITERATE_CAMPAIGN.equals(action)) {
-                    acs.reiterateCampaign(campaign.getOid(), task, result);
-                    processed++;
+                    reiterateCampaignConfirmation(target, campaign, pageBase);
                 } else if (CampaignStateHelper.CampaignAction.OPEN_NEXT_STAGE.equals(action)) {
-                    acs.openNextStage(campaign.getOid(), task, result);
-                    processed++;
+                    openNextStagePerformed(target, campaign, pageBase);
                 } else if (CampaignStateHelper.CampaignAction.REMOVE_CAMPAIGN.equals(action)) {
                     deleteCampaignConfirmation(target, campaign, pageBase);
-                    return;
                 } else {
                     throw new IllegalStateException("Unknown action: " + operationName);
                 }
@@ -327,20 +349,6 @@ public class CampaignProcessingHelper implements Serializable {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't process campaign", ex);
             }
         }
-        if (processed == 0) {
-            pageBase.warn(pageBase.getString("PageCertCampaigns.message.noCampaignsSelected"));
-            target.add(pageBase.getFeedbackPanel());
-            return;
-        }
-
-        result.recomputeStatus();
-        if (result.isSuccess()) {
-            result.recordStatus(OperationResultStatus.SUCCESS, pageBase.createStringResource(
-                    "PageCertCampaigns.message.actOnCampaignsPerformed.success", processed).getString());
-        }
-        WebComponentUtil.safeResultCleanup(result, LOGGER);
-        pageBase.showResult(result);
-        target.add(pageBase);
     }
 
     public static IModel<String> createCloseStageConfirmString(AccessCertificationCampaignType campaign, PageBase pageBase) {
@@ -390,6 +398,11 @@ public class CampaignProcessingHelper implements Serializable {
 
     public static IModel<String> createDeleteCampaignConfirmString(AccessCertificationCampaignType campaign, PageBase pageBase) {
         return () -> pageBase.createStringResource("PageCertCampaigns.message.deleteCampaignConfirmSingle",
+                campaign.getName()).getString();
+    }
+
+    public static IModel<String> createRemediationCampaignConfirmString(AccessCertificationCampaignType campaign, PageBase pageBase) {
+        return () -> pageBase.createStringResource("PageCertCampaigns.message.remediationConfirmSingle",
                 campaign.getName()).getString();
     }
 

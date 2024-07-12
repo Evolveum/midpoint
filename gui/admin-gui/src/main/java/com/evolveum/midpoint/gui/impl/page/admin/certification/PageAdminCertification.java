@@ -11,6 +11,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 /**
  * @author lazyman
  */
@@ -56,4 +58,12 @@ public class PageAdminCertification extends PageAdmin {
     public static final String AUTH_MY_CERTIFICATION_DECISIONS = AuthorizationConstants.AUTZ_UI_MY_CERTIFICATION_DECISIONS_URL;
     public static final String AUTH_MY_CERTIFICATION_DECISIONS_LABEL = "PageAdminCertification.auth.myCertificationDecisions.label";
     public static final String AUTH_MY_CERTIFICATION_DECISIONS_DESCRIPTION = "PageAdminCertification.auth.myCertificationDecisions.description";
+
+    public PageAdminCertification() {
+        super();
+    }
+
+    public PageAdminCertification(PageParameters parameters) {
+        super(parameters);
+    }
 }
