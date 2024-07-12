@@ -227,7 +227,6 @@
                             </associationValueSynchronization>
                         </expression>
                         <target>
-                            <path>assignment</path>
                             <assignmentTargetType>ServiceType</assignmentTargetType>
                         </target>
                     </inbound>

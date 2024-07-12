@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.common.expression.VariableProducer;
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -248,14 +249,23 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
 
     private @NotNull ItemPath getTargetFullPath(AbstractMappingType mappingBean, String errorCtxDesc)
             throws ConfigurationException {
+
         ItemPath path = getPath(mappingBean.getTarget());
-        QName variable = path != null ? path.firstToVariableNameOrNull() : null;
-        String varLocalPart = variable != null ? variable.getLocalPart() : null;
-        ItemPath pathAfterVariable = path != null ? path.stripVariableSegment() : null;
-        if (ItemPath.isEmpty(pathAfterVariable)) {
-            throw new ConfigurationException("Empty target path in " + errorCtxDesc);
+        if (path == null) {
+            if (isAssociation()) {
+                return AssignmentHolderType.F_ASSIGNMENT;
+            } else {
+                throw new ConfigurationException("No target path in " + errorCtxDesc);
+            }
         }
 
+        QName variable = path.firstToVariableNameOrNull();
+        ItemPath pathAfterVariable = path.stripVariableSegment();
+        if (ItemPath.isEmpty(pathAfterVariable)) {
+            throw new ConfigurationException("Empty target path in " + errorCtxDesc + " (after stripping variable segment)");
+        }
+
+        String varLocalPart = variable != null ? variable.getLocalPart() : null;
         if (varLocalPart == null || VAR_TARGET.equals(varLocalPart)) {
             return target.getTargetPathPrefix().append(pathAfterVariable);
         } else if (VAR_USER.equals(varLocalPart) || VAR_FOCUS.equals(varLocalPart)) {
@@ -265,6 +275,10 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, T extends Co
                     "Unsupported variable in target path '%s' in %s. Only $focus, $user, and $target are allowed here.",
                             path, errorCtxDesc));
         }
+    }
+
+    private boolean isAssociation() {
+        return itemDefinition instanceof ShadowAssociationDefinition;
     }
 
     private PrismObjectDefinition<ShadowType> getShadowDefinition(PrismObject<ShadowType> shadowNew) {

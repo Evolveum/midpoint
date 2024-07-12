@@ -245,7 +245,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
         context.checkConsistenceIfNeeded();
 
         medic.traceContext(LOGGER, activityDescription, "focus processing", false, context, false);
-        LensUtil.checkContextSanity(context, "focus processing", result);
+        LensUtil.checkContextSanity(context, "focus processing");
     }
 
     ExpressionFactory getExpressionFactory() {

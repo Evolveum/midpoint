@@ -89,7 +89,7 @@ class MappedItems<T extends Containerable> {
         }
 
         for (var assocDef : source.getAssociationDefinitions()) {
-            createMappedItemForAssociationExplicitInbounds(assocDef);
+            createMappedItemForAssociation(assocDef);
         }
 
         // Note that associations are treated later
@@ -258,7 +258,7 @@ class MappedItems<T extends Containerable> {
      * @see #createMappedItemForSimpleAttribute(ShadowSimpleAttributeDefinition, ItemInboundDefinition)
      * @see #createMappedItemForAuxObjectClasses()
      */
-    private void createMappedItemForAssociationExplicitInbounds(ShadowAssociationDefinition assocDef)
+    private void createMappedItemForAssociation(ShadowAssociationDefinition assocDef)
             throws SchemaException, ConfigurationException {
 
         // 1. Definitions
