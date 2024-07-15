@@ -95,7 +95,7 @@ public class TestSqlRepositoryBeanConfig {
      */
     @Bean
     @Primary
-    public LocalContainerEntityManagerFactoryBean sessionFactory(DataSource dataSource, SqlRepositoryConfiguration configuration) {
+    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(DataSource dataSource, SqlRepositoryConfiguration configuration) {
 
         LocalContainerEntityManagerFactoryBean factoryBean = new SqlRepositoryBeanConfig().entityManagerFactoryBean(
                 dataSource, configuration);
