@@ -176,9 +176,9 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpLabelLn(sb, getClass().getSimpleName(), indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "work", workDefinition, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "control flow", controlFlowDefinition, indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "distribution", distributionDefinition, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "work", workDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "control flow", controlFlowDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "distribution", distributionDefinition, indent + 1);
         return sb.toString();
     }
 
@@ -241,18 +241,22 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         }
     }
 
-    public @NotNull AffectedObjectsInformation getAffectedObjectsInformation() throws SchemaException, ConfigurationException {
+    public @NotNull AffectedObjectsInformation getAffectedObjectsInformation(@Nullable AbstractActivityWorkStateType state) throws SchemaException, ConfigurationException {
         if (workDefinition instanceof AffectedObjectsProvider affectedObjectsProvider) {
             // If the definition does provide everything needed, we can use it.
-            return affectedObjectsProvider.getAffectedObjectsInformation();
+            return affectedObjectsProvider.getAffectedObjectsInformation(state);
         } else {
             // Otherwise, we need to complete the information ourselves.
-            var objectSet = workDefinition.getAffectedObjectSetInformation();
-            return AffectedObjectsInformation.simple(
-                    workDefinition.getActivityTypeName(),
-                    objectSet,
-                    executionModeDefinition.getMode(),
-                    executionModeDefinition.getPredefinedConfiguration());
+            var objectSets = workDefinition.getListOfAffectedObjectSetInformation(state);
+            return AffectedObjectsInformation.complex(
+                    objectSets.stream()
+                            .map(objectSet ->
+                                    AffectedObjectsInformation.simple(
+                                            workDefinition.getActivityTypeName(),
+                                            objectSet,
+                                            executionModeDefinition.getMode(),
+                                            executionModeDefinition.getPredefinedConfiguration()))
+                            .toList());
         }
     }
 

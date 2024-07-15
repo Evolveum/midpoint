@@ -39,7 +39,6 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -66,7 +65,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -125,10 +123,10 @@ public class LensUtil {
         if (projSecondaryDelta == null) {
             return;
         }
-        Collection<? extends ItemDelta> modifications = projSecondaryDelta.getModifications();
-        Iterator<? extends ItemDelta> iterator = modifications.iterator();
+        var modifications = projSecondaryDelta.getModifications();
+        var iterator = modifications.iterator();
         while (iterator.hasNext()) {
-            ItemDelta projModification = iterator.next();
+            var projModification = iterator.next();
             LOGGER.trace("MOD: {}\n{}", projModification.getPath(), projModification.debugDumpLazily());
             if (projModification.getPath().equivalent(SchemaConstants.PATH_TRIGGER)) {
                 focusCtx.swallowToSecondaryDelta(projModification);
@@ -181,7 +179,7 @@ public class LensUtil {
      * Extracts the delta from this projection context and also from all other projection contexts that have
      * equivalent discriminator.
      */
-    public static <F extends ObjectType, T> ObjectDelta<ShadowType> findAPrioriDelta(LensContext<F> context,
+    public static <F extends ObjectType> ObjectDelta<ShadowType> findAPrioriDelta(LensContext<F> context,
             LensProjectionContext projCtx) throws SchemaException {
         ObjectDelta<ShadowType> aPrioriDelta = null;
         for (LensProjectionContext aProjCtx: context.findRelatedContexts(projCtx)) {
@@ -201,10 +199,9 @@ public class LensUtil {
             LensElementContext<T> objectContext, String oid) {
         objectContext.setOid(oid);
         // Check if we need to propagate this oid also to higher-order contexts
-        if (!(objectContext instanceof LensProjectionContext)) {
+        if (!(objectContext instanceof LensProjectionContext refProjCtx)) {
             return;
         }
-        LensProjectionContext refProjCtx = (LensProjectionContext)objectContext;
         ProjectionContextKey refKey = refProjCtx.getKey();
         for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
             ProjectionContextKey aKey = aProjCtx.getKey();
@@ -212,15 +209,6 @@ public class LensUtil {
                 aProjCtx.setOid(oid);
             }
         }
-    }
-
-    public static <F extends FocusType> PrismObjectDefinition<F> getFocusDefinition(LensContext<F> context) {
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            return null;
-        }
-        Class<F> typeClass = focusContext.getObjectTypeClass();
-        return PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(typeClass);
     }
 
     public static IterationSpecificationType getIterationSpecification(ObjectTemplateType objectTemplate) {
@@ -231,7 +219,7 @@ public class LensUtil {
         return iterationSpecType != null ? or0(iterationSpecType.getMaxIterations()) : 0;
     }
 
-    public static <F extends ObjectType> String formatIterationToken(
+    public static String formatIterationToken(
             LensElementContext<?> accountContext,
             IterationSpecificationType iterationSpec,
             int iteration,
@@ -476,6 +464,7 @@ public class LensUtil {
             vars.setThisAssignment(thisAssignment);
 
             if (iterator.hasNext() && segmentSource instanceof AbstractRoleType) {
+                //noinspection unchecked
                 vars.setImmediateRole((PrismObject<? extends AbstractRoleType>) segmentSource.asPrismObject());
             }
         }
@@ -570,8 +559,7 @@ public class LensUtil {
         return variablesMap;
     }
 
-    public static <F extends ObjectType> void checkContextSanity(
-            LensContext<F> context, String activityDescription, OperationResult result)
+    public static <F extends ObjectType> void checkContextSanity(LensContext<F> context, String activityDescription)
             throws SchemaException, PolicyViolationException {
         LensFocusContext<F> focusContext = context.getFocusContext();
         if (focusContext != null) {
@@ -719,6 +707,7 @@ public class LensUtil {
             PolyString name = object.getName();
             if (name == null && object.asObjectable() instanceof ShadowType) {
                 try {
+                    //noinspection unchecked
                     name = ShadowUtil.determineShadowName((PrismObject<ShadowType>) object);
                     if (name == null) {
                         LOGGER.debug("No name for shadow:\n{}", object.debugDump());
@@ -751,26 +740,12 @@ public class LensUtil {
         return objectDeltaOp;
     }
 
-    public static void checkMaxIterations(int iteration, int maxIterations, String conflictMessage, SingleLocalizableMessage humanReadableReason, String humanReadableName)
+    public static void checkMaxIterations(
+            int iteration, int maxIterations, String conflictMessage, SingleLocalizableMessage humanReadableReason)
             throws ObjectAlreadyExistsException {
         if (iteration > maxIterations) {
-            StringBuilder sb = new StringBuilder();
-            if (iteration == 1) {
-                sb.append("Error processing ");
-            } else {
-                sb.append("Too many iterations (").append(iteration).append(") for ");
-            }
-            sb.append(humanReadableName);
-            if (iteration == 1) {
-                sb.append(": constraint violation: ");
-            } else {
-                sb.append(": cannot determine values that satisfy constraints: ");
-            }
-            if (conflictMessage != null) {
-                sb.append(conflictMessage);
-            }
-            SingleLocalizableMessage message = new SingleLocalizableMessage(humanReadableReason.getKey(), humanReadableReason.getArgs(), conflictMessage);
-            throw new ObjectAlreadyExistsException(message);
+            throw new ObjectAlreadyExistsException(
+                    new SingleLocalizableMessage(humanReadableReason.getKey(), humanReadableReason.getArgs(), conflictMessage));
         }
     }
 
@@ -795,7 +770,7 @@ public class LensUtil {
     }
 
     public static <F extends ObjectType> void reclaimSequences(
-            LensContext<F> context, RepositoryService repositoryService, Task task, OperationResult result)
+            LensContext<F> context, RepositoryService repositoryService, OperationResult result)
             throws SchemaException {
         if (context == null) {
             return;
@@ -822,7 +797,7 @@ public class LensUtil {
         context.getSequences().clear();
     }
 
-    public static <AH extends AssignmentHolderType> void applyObjectPolicyConstraints(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy) throws SchemaException, ConfigurationException {
+    public static <AH extends AssignmentHolderType> void applyObjectPolicyConstraints(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy) throws SchemaException {
         if (archetypePolicy == null) {
             return;
         }
@@ -838,7 +813,7 @@ public class LensUtil {
         }
     }
 
-    private static <AH extends AssignmentHolderType> void applyObjectPolicyItemConstraint(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy, PrismObject<AH> focusNew, ItemConstraintType itemConstraintType) throws SchemaException, ConfigurationException {
+    private static <AH extends AssignmentHolderType> void applyObjectPolicyItemConstraint(LensFocusContext<AH> focusContext, ArchetypePolicyType archetypePolicy, PrismObject<AH> focusNew, ItemConstraintType itemConstraintType) throws SchemaException {
         if (itemConstraintType.getPath() == null) {
             LOGGER.error("Invalid configuration. Path is mandatory for property constraint definition in {} defined in system configuration", archetypePolicy);
             throw new SchemaException("Invalid configuration. Path is mandatory for property constraint definition in " + archetypePolicy + " defined in system configuration.");
@@ -883,28 +858,13 @@ public class LensUtil {
     }
 
     @NotNull
-    static <O extends ObjectType> Set<String> determineExplicitArchetypeOidsFromAssignments(AssignmentHolderType object) {
+    static Set<String> determineExplicitArchetypeOidsFromAssignments(AssignmentHolderType object) {
         return object.getAssignment().stream()
                 .map(AssignmentType::getTargetRef)
                 .filter(Objects::nonNull)
                 .filter(ref -> QNameUtil.match(ArchetypeType.COMPLEX_TYPE, ref.getType()))
                 .map(ObjectReferenceType::getOid)
                 .collect(Collectors.toSet());
-    }
-
-    public static @NotNull<M extends MappingType> M setMappingTarget(@NotNull M mapping, ItemPathType path) {
-        VariableBindingDefinitionType existingTarget = mapping.getTarget();
-        if (existingTarget == null) {
-            //noinspection unchecked
-            return (M) CloneUtil.cloneIfImmutable(mapping)
-                    .target(new VariableBindingDefinitionType().path(path));
-        } else if (existingTarget.getPath() == null) {
-            //noinspection unchecked
-            return (M) CloneUtil.cloneIfImmutable(mapping)
-                    .target(existingTarget.clone().path(path));
-        } else {
-            return mapping;
-        }
     }
 
     public static void rejectNonTolerantSettingIfPresent(ObjectTemplateItemDefinitionType templateItemDefinition,

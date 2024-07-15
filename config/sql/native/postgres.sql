@@ -96,6 +96,7 @@ CREATE TYPE ReferenceType AS ENUM (
     'ARCHETYPE',
     'ASSIGNMENT_CREATE_APPROVER',
     'ASSIGNMENT_MODIFY_APPROVER',
+    'ASSIGNMENT_EFFECTIVE_MARK',
     'ACCESS_CERT_WI_ASSIGNEE',
     'ACCESS_CERT_WI_CANDIDATE',
     'CASE_WI_ASSIGNEE',
@@ -110,7 +111,8 @@ CREATE TYPE ReferenceType AS ENUM (
     'PROCESSED_OBJECT_EVENT_MARK',
     'PROJECTION',
     'RESOURCE_BUSINESS_CONFIGURATION_APPROVER',
-    'ROLE_MEMBERSHIP');
+    'ROLE_MEMBERSHIP',
+    'TASK_AFFECTED_OBJECT');
 
 CREATE TYPE ExtItemHolderType AS ENUM (
     'EXTENSION',
@@ -1498,6 +1500,20 @@ CREATE TABLE m_task_affected_objects (
     PRIMARY KEY (ownerOid, cid)
 ) INHERITS(m_container);
 
+CREATE TABLE m_ref_task_affected_object (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    affectedObjectCid INTEGER NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('TASK_AFFECTED_OBJECT') STORED
+        CHECK (referenceType = 'TASK_AFFECTED_OBJECT')
+)
+    INHERITS (m_reference);
+
+ALTER TABLE m_ref_task_affected_object ADD CONSTRAINT m_ref_task_affected_object_id_fk
+    FOREIGN KEY (ownerOid, affectedObjectCid) REFERENCES m_task_affected_objects (ownerOid, cid)
+        ON DELETE CASCADE;
+
+CREATE INDEX m_ref_task_affected_object_targetOidRelationId_idx
+    ON m_ref_task_affected_object (targetOid, relationId);
 -- endregion
 
 -- region cases
@@ -2026,6 +2042,20 @@ CREATE INDEX m_assignment_resourceRefTargetOid_idx ON m_assignment (resourceRefT
 CREATE INDEX m_assignment_createTimestamp_idx ON m_assignment (createTimestamp);
 CREATE INDEX m_assignment_modifyTimestamp_idx ON m_assignment (modifyTimestamp);
 
+-- stores assignment/effectiveMarkRef
+CREATE TABLE m_ref_assignment_effective_mark (
+    ownerOid UUID NOT NULL REFERENCES m_object_oid(oid) ON DELETE CASCADE,
+    assignmentCid INTEGER NOT NULL,
+    referenceType ReferenceType GENERATED ALWAYS AS ('ASSIGNMENT_EFFECTIVE_MARK') STORED
+        CHECK (referenceType = 'ASSIGNMENT_EFFECTIVE_MARK'),
+    PRIMARY KEY (ownerOid, assignmentCid, relationId, targetOid)
+)
+    INHERITS (m_reference);
+
+CREATE INDEX m_ref_assignment_effective_mark_targetOidRelationId_idx
+    ON m_ref_assignment_effective_mark (targetOid, relationId);
+
+
 ALTER TABLE "m_assignment_metadata"
 ADD FOREIGN KEY ("owneroid", "assignmentcid") REFERENCES "m_assignment" ("owneroid", "cid") ON DELETE CASCADE;
 
@@ -2337,4 +2367,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(37, $$ SELECT 1 $$, true);
+call apply_change(41, $$ SELECT 1 $$, true);

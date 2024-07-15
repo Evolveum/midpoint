@@ -13,18 +13,16 @@ import java.io.Serial;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ItemMerger;
-import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
+import com.evolveum.midpoint.prism.delta.ItemMerger;
 import com.evolveum.midpoint.prism.impl.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -583,26 +581,6 @@ public abstract class ShadowAttributeDefinitionImpl<
     public boolean accept(Visitor<Definition> visitor, SmartVisitation<Definition> visitation) {
         //return nativeDefinition.accept(visitor, visitation);
         return true; // FIXME
-    }
-
-//    public ResourceAttributeDefinition<T> spawnModifyingRaw(
-//            @NotNull Consumer<NativeShadowAttributeDefinitionImpl<T>> rawPartCustomizer) {
-//        try {
-//            return ShadowItemDefinitionImpl.create(
-//                    NativeShadowAttributeDefinitionImpl.spawn(nativeDefinition, rawPartCustomizer),
-//                    customizationBean);
-//        } catch (SchemaException e) {
-//            // The customization bean should not have any schema problems at this time.
-//            throw new IllegalStateException("Unexpected schema exception: " + e.getMessage(), e);
-//        }
-//    }
-
-    @Override
-    public @NotNull Collection<ResourceObjectInboundDefinition> getRelevantInboundDefinitions() {
-        return customizationBean.getComplexProcessing().stream()
-                .map(bean -> ResourceObjectInboundDefinition.forComplexProcessing(bean))
-                .filter(ResourceObjectInboundDefinition::hasAnyInbounds)
-                .toList();
     }
 
     @Override

@@ -91,8 +91,8 @@ public class ResourceAssociationTypeWizardPanel extends SchemaHandlingTypeWizard
                         createHelper(
                                 ItemPath.create(
                                         ShadowAssociationTypeDefinitionType.F_SUBJECT,
-                                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
-                                        ShadowAssociationDefinitionType.F_CORRELATION),
+                                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION),
+                                        //ShadowAssociationDefinitionType.F_CORRELATION),
                                 false))
         );
     }
@@ -105,8 +105,8 @@ public class ResourceAssociationTypeWizardPanel extends SchemaHandlingTypeWizard
                         createHelper(
                                 ItemPath.create(
                                         ShadowAssociationTypeDefinitionType.F_SUBJECT,
-                                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
-                                        ShadowAssociationDefinitionType.F_SYNCHRONIZATION),
+                                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION),
+                                        //ShadowAssociationDefinitionType.F_SYNCHRONIZATION),
                                 false))
         );
     }

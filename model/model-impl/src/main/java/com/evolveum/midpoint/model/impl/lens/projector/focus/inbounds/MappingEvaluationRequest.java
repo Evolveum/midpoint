@@ -26,7 +26,7 @@ import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEv
  * @param <V> type of mapping output value
  * @param <D> type of mapping output value definition (property, container, ...)
  */
-public class InboundMappingEvaluationRequest<V extends PrismValue, D extends ItemDefinition<?>> {
+public class MappingEvaluationRequest<V extends PrismValue, D extends ItemDefinition<?>> {
 
     /** Mapping to be evaluated. */
     @NotNull private final MappingImpl<V, D> mapping;
@@ -37,7 +37,7 @@ public class InboundMappingEvaluationRequest<V extends PrismValue, D extends Ite
     /** The context to be fed to the mapping evaluator. */
     @NotNull private final MappingEvaluator.EvaluationContext<V, D> evaluationContext;
 
-    public InboundMappingEvaluationRequest(
+    public MappingEvaluationRequest(
             @NotNull MappingImpl<V, D> mapping,
             boolean sourceIsBeingDeleted,
             @Nullable LensProjectionContext projectionContext) {

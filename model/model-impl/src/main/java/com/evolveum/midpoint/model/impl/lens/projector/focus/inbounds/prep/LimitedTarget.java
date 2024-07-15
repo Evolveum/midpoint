@@ -13,9 +13,9 @@ import com.evolveum.midpoint.prism.path.PathKeyedMap;
 
 import org.jetbrains.annotations.NotNull;
 
-class LimitedTarget<T extends Containerable> extends Target<T> {
+public class LimitedTarget<T extends Containerable> extends MappingTarget<T> {
 
-    LimitedTarget(
+    public LimitedTarget(
             @NotNull PrismContainerValue<T> target,
             @NotNull PrismContainerDefinition<T> targetDefinition,
             @NotNull PathKeyedMap<ItemDefinition<?>> itemDefinitionMap) {

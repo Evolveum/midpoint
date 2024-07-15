@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -141,7 +142,7 @@ public class RoleAnalysisPatternDetectionActivityHandler
         }
 
         @Override
-        public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
+        public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation(@Nullable AbstractActivityWorkStateType state) {
             return AffectedObjectsInformation.ObjectSet.notSupported();
         }
     }

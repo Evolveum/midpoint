@@ -12,8 +12,11 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlation.CorrelatorContextCreator;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleIvwoMap;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.APrioriDeltaProvider;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.*;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -27,8 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.LimitedContext;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.LimitedInboundsPreparation;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -45,37 +46,95 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 
 /**
- * Evaluation of inbound mappings for a single shadow only, mainly for the purposes of correlation.
+ * Evaluation of inbound mappings for a single shadow only, e.g., for the purposes of correlation
+ * or association value synchronization.
  */
-public class LimitedInboundsProcessing<T extends Containerable> extends AbstractInboundsProcessing<T> {
+public class SingleShadowInboundsProcessing<T extends Containerable> extends AbstractInboundsProcessing<T> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(LimitedInboundsProcessing.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SingleShadowInboundsProcessing.class);
 
-    @NotNull private final PreInboundsContext<T> ctx;
+    private static final String OP_EVALUATE = SingleShadowInboundsProcessing.class.getName() + ".evaluate";
 
-    public LimitedInboundsProcessing(
-            @NotNull PreInboundsContext<T> ctx,
+    @NotNull private final SingleShadowInboundsProcessingContext<T> ctx;
+
+    private SingleShadowInboundsProcessing(
+            @NotNull SingleShadowInboundsProcessingContext<T> ctx,
             @NotNull MappingEvaluationEnvironment env) {
         super(env);
         this.ctx = ctx;
     }
 
+    public static <C extends Containerable> C evaluate(SingleShadowInboundsProcessingContext<C> ctx, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        OperationResult result = parentResult.subresult(OP_EVALUATE)
+                .addArbitraryObjectAsParam("shadow", ctx.getShadowLikeValue())
+                .build();
+        try {
+
+            new SingleShadowInboundsProcessing<>(ctx, createEnv(ctx))
+                    .executeCompletely(result);
+
+            var focus = ctx.getPreFocus();
+            LOGGER.debug("Focus:\n{}", focus.debugDumpLazily(1));
+            return focus;
+
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    public static DeltaSetTripleIvwoMap evaluateToTripleMap(
+            SingleShadowInboundsProcessingContext<?> ctx, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        OperationResult result = parentResult.subresult(OP_EVALUATE)
+                .addArbitraryObjectAsParam("shadow", ctx.getShadowLikeValue())
+                .build();
+        try {
+
+            var processing = new SingleShadowInboundsProcessing<>(ctx, createEnv(ctx));
+            processing.executeToTriples(result);
+            var tripleMap = processing.getOutputTripleMap();
+
+            LOGGER.debug("Triple map:\n{}", DebugUtil.debugDumpLazily(tripleMap, 1));
+            return tripleMap;
+
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    private static <C extends Containerable> @NotNull MappingEvaluationEnvironment createEnv(
+            SingleShadowInboundsProcessingContext<C> ctx) {
+        return new MappingEvaluationEnvironment(
+                "inbounds processing of " + ctx.getShadowLikeValue(),
+                ModelBeans.get().clock.currentTimeXMLGregorianCalendar(),
+                ctx.getTask());
+    }
+
     /**
      * Collects mappings for the given shadow.
      */
-    void collectMappings(OperationResult result)
+    void prepareMappings(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
 
         try {
             var preFocusPcv = ctx.getPreFocusAsPcv();
-            new LimitedInboundsPreparation<>(
+            new SingleShadowInboundsPreparation<>(
                     evaluationRequests,
-                    itemDefinitionMap,
+                    new LimitedSource(ctx),
+                    new LimitedTarget<>(preFocusPcv, getFocusDefinition(preFocusPcv), itemDefinitionMap),
                     new LimitedContext(ctx, getCorrelationItemPaths(result), env, assignmentsProcessingContext),
-                    preFocusPcv,
-                    getFocusDefinition(preFocusPcv))
-                    .collectOrEvaluate(result);
+                    lResult -> {})
+                    .prepareOrEvaluate(result);
         } catch (StopProcessingProjectionException e) {
             // Should be used only in clockwork processing.
             throw new IllegalStateException("Unexpected 'stop processing' exception: " + e.getMessage(), e);

@@ -319,7 +319,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             iteration++;
             iterationToken = null;
             //TODO use conflict message and human readable conflict message
-            LensUtil.checkMaxIterations(iteration, maxIterations, conflictMessage, new SingleLocalizableMessage(conflictMessage), projContext.getHumanReadableName());
+            LensUtil.checkMaxIterations(iteration, maxIterations, conflictMessage, new SingleLocalizableMessage(conflictMessage));
 
             cleanupContext(projContext, null, rememberedProjectionState);
             context.checkConsistenceIfNeeded();

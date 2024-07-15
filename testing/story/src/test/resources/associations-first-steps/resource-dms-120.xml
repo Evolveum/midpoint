@@ -132,21 +132,30 @@
                 </objectType>
                 <association>
                     <ref>ri:access</ref>
-                    <focus>
-                        <assignmentTargetType>ServiceType</assignmentTargetType>
-                    </focus>
-                    <objectRef>
-                        <ref>ri:document</ref>
-                        <inbound>
-                            <name>document-to-targetRef</name>
-                            <expression>
-                                <shadowOwnerReferenceSearch/>
-                            </expression>
-                            <target>
-                                <path>targetRef</path>
-                            </target>
-                        </inbound>
-                    </objectRef>
+                    <inbound>
+                        <name>access-inbound</name>
+                        <expression>
+                            <associationSynchronization>
+                                <objectRef>
+                                    <ref>ri:document</ref>
+                                    <mapping>
+                                        <name>document-to-targetRef</name>
+                                        <expression>
+                                            <shadowOwnerReferenceSearch/>
+                                        </expression>
+                                        <target>
+                                            <path>targetRef</path>
+                                        </target>
+                                    </mapping>
+                                </objectRef>
+                            </associationSynchronization>
+                        </expression>
+                        <target>
+                            <set>  <!-- TEMPORARY! Will be turned on automatically soon. -->
+                                <predefined>matchingProvenance</predefined>
+                            </set>
+                        </target>
+                    </inbound>
                 </association>
             </subject>
         </associationType>

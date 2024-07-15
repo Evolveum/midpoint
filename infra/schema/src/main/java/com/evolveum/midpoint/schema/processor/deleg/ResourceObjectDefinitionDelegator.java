@@ -333,8 +333,4 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
         return delegate().getCorrelation();
     }
 
-    @Override
-    default boolean hasAnyInbounds() {
-        return delegate().hasAnyInbounds();
-    }
 }

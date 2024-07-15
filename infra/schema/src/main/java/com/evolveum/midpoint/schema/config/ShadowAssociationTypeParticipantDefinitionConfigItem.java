@@ -50,9 +50,12 @@ public interface ShadowAssociationTypeParticipantDefinitionConfigItem<PT extends
 
     /** Returns the name of the reference attribute (native/simulated) this association type participation is based on. */
     default @NotNull ItemName getReferenceAttributeNameRequired() throws ConfigurationException {
-        var refAttrName = value().getSource();
-        if (refAttrName != null) {
-            return singleNameRequired(refAttrName, "sourceItemRef");
+        var association = value().getAssociation();
+        if (association != null) {
+            var refAttrName = association.getSourceAttributeRef();
+            if (refAttrName != null) {
+                return singleNameRequired(refAttrName, "sourceAttributeRef");
+            }
         }
         return getAssociationNameRequired();
     }

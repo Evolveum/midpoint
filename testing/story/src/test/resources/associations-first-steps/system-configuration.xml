@@ -9,6 +9,10 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:dms="http://midpoint.evolveum.com/xml/ns/samples/dms">
     <name>SystemConfiguration</name>
+    <defaultObjectPolicyConfiguration>
+        <type>UserType</type>
+        <objectTemplateRef oid="1b69e78f-0954-49cb-92a0-ed9b6476a807"/>
+    </defaultObjectPolicyConfiguration>
     <roleManagement>
         <relations>
             <relation>

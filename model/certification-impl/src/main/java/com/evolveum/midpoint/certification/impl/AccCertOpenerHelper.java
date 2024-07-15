@@ -90,7 +90,7 @@ public class AccCertOpenerHelper {
 
     //region ================================ Campaign create ================================
 
-    AccessCertificationCampaignType createCampaign(PrismObject<AccessCertificationDefinitionType> definition,
+    public AccessCertificationCampaignType createCampaign(PrismObject<AccessCertificationDefinitionType> definition,
             OperationResult result, Task task)
             throws SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ObjectNotFoundException {
         AccessCertificationCampaignType newCampaign = createCampaignObject(definition.asObjectable(), task, result);

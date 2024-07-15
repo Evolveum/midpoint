@@ -13,10 +13,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.certification.impl.task.CertificationTaskLauncher;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 
 import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
+
+import com.evolveum.midpoint.task.api.TaskManager;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -101,8 +104,9 @@ public class CertificationManagerImpl implements CertificationManager {
     @Autowired protected AccCertOpenerHelper openerHelper;
     @Autowired protected AccCertCloserHelper closerHelper;
     @Autowired protected AccCertCaseOperationsHelper operationsHelper;
-    @Autowired private AccessCertificationRemediationTaskHandler remediationTaskHandler;
+    @Autowired protected TaskManager taskManager;
     @Autowired private AccessCertificationClosingTaskHandler closingTaskHandler;
+    @Autowired private CertificationTaskLauncher launcher;
 
     private final Map<String,CertificationHandler> registeredHandlers = new HashMap<>();
 
@@ -113,7 +117,7 @@ public class CertificationManagerImpl implements CertificationManager {
         registeredHandlers.put(handlerUri, handler);
     }
 
-    CertificationHandler findCertificationHandler(AccessCertificationCampaignType campaign) {
+    public CertificationHandler findCertificationHandler(AccessCertificationCampaignType campaign) {
         if (StringUtils.isBlank(campaign.getHandlerUri())) {
             throw new IllegalArgumentException(
                     "No handler URI for access certification campaign " + ObjectTypeUtil.toShortString(campaign));
@@ -126,7 +130,7 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult)
+    public void createCampaign(String definitionOid, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Validate.notNull(definitionOid, "definitionOid");
@@ -134,22 +138,17 @@ public class CertificationManagerImpl implements CertificationManager {
         Validate.notNull(parentResult, "parentResult");
 
         OperationResult result = parentResult.createSubresult(OPERATION_CREATE_CAMPAIGN);
-        try {
-            PrismObject<AccessCertificationDefinitionType> definition =
-                    repositoryService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, result);
-            securityEnforcer.authorize(
-                    ModelAuthorizationAction.CREATE_CERTIFICATION_CAMPAIGN.getUrl(),
-                    null,
-                    AuthorizationParameters.Builder.buildObject(definition),
-                    task,
-                    result);
-            return openerHelper.createCampaign(definition, result, task);
-        } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't create certification campaign: unexpected exception: " + e.getMessage(), e);
-            throw e;
-        } finally {
-            result.computeStatusIfUnknown();
-        }
+
+        PrismObject<AccessCertificationDefinitionType> definition =
+                repositoryService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, result);
+        securityEnforcer.authorize(
+                ModelAuthorizationAction.CREATE_CERTIFICATION_CAMPAIGN.getUrl(),
+                null,
+                AuthorizationParameters.Builder.buildObject(definition),
+                task,
+                result);
+
+        launcher.createCampaignTask(definition, task, parentResult);
     }
 
     /**
@@ -340,7 +339,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 updateHelper.modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
 
                 if (CertCampaignTypeUtil.isRemediationAutomatic(campaign)) {
-                    remediationTaskHandler.launch(campaign, result);
+                    launcher.startRemediationTask(campaign, result);
                 } else {
                     result.recordWarning("The automated remediation is not configured. The campaign state was set to IN REMEDIATION, but all remediation actions have to be done by hand.");
                 }
@@ -355,6 +354,8 @@ public class CertificationManagerImpl implements CertificationManager {
             result.computeStatusIfUnknown();
         }
     }
+
+
 
     @Override
     public void recordDecision(

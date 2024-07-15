@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.impl.lens.tasks;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,9 +85,26 @@ public class TaskOperationalDataManager implements DeltaExecutionPreprocessor {
                         computeAffectedObjectsChecked(expectedNew, result)));
     }
 
+    /**
+     * return modification delta for "affected objects" data on task.
+     *
+     * @return delta for task affected objects
+     */
+    public Collection<? extends ItemDelta<?, ?>> getModifyDeltaForAffectedObjects(
+            TaskType taskBean, OperationResult result) throws SchemaException {
+        return computeAffectedObjectsDeltas(
+                taskBean,
+                computeAffectedObjectsChecked(taskBean, result));
+    }
+
     private @Nullable TaskAffectedObjectsType computeAffectedObjectsChecked(TaskType task, OperationResult result) {
         try {
-            return activityManager.computeAffectedObjects(task.getActivity());
+            AbstractActivityWorkStateType workState = null;
+            if (task.getActivityState() != null && task.getActivityState().getActivity() != null) {
+                workState = task.getActivityState().getActivity().getWorkState();
+            }
+
+            return activityManager.computeAffectedObjects(task.getActivity(), workState);
         } catch (CommonException e) {
             // This can happen e.g. if the task is misconfigured. We don't want the operation to fail here.
             LoggingUtils.logException(LOGGER, "Couldn't compute affected objects for task {}", e, task);

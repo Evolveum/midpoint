@@ -25,13 +25,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * (This is probably the hardest part of the inbound processing.)
  *
- * This is an abstract class that has two subclasses:
- *
- * - {@link FullInboundsPreparation} - the "full" inbounds preparation that takes place during clockwork execution
- * (namely, within the projector)
- * - {@link LimitedInboundsPreparation} - the "pre-inbounds" where we construct preliminary focus object to be
- * used during correlation
- *
  * There are currently rather strong _limitations_ related to pre-inbounds stage, e.g.
  *
  *  * only attribute mappings are evaluated there (no associations, credentials, activation, nor auxiliary object class ones);
@@ -39,41 +32,46 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * To reduce complexity, the majority of the work is delegated to smaller classes:
  *
- *  * {@link MSource}, {@link Target}, {@link Context} describing the environment in which mappings are to be evaluated
+ *  * {@link MappingSource}, {@link MappingTarget}, {@link MappingContext} describing the environment in which mappings are to be evaluated
  *  * {@link MappedItems} containing {@link MappedItem} instances - intermediate structures helping with the mapping preparation
  *
  * FIXME Special mappings i.e. password and activation ones, are evaluated immediately and using different code path.
  *  This should be unified.
  *
- * TODO should the {@link Context} be both included in {@link MSource} and here?!
+ * TODO should the {@link MappingContext} be both included in {@link MappingSource} and here?!
  */
-abstract class InboundsPreparation<T extends Containerable> {
+public class SingleShadowInboundsPreparation<T extends Containerable> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(InboundsPreparation.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SingleShadowInboundsPreparation.class);
 
-    private static final String OP_COLLECT_OR_EVALUATE = InboundsPreparation.class.getName() + ".collectOrEvaluate";
+    private static final String OP_PREPARE_OR_EVALUATE = SingleShadowInboundsPreparation.class.getName() + ".prepareOrEvaluate";
 
     /** Place where the prepared mappings are gathered. */
-    @NotNull final MappingEvaluationRequests evaluationRequestsBeingCollected;
+    @NotNull private final MappingEvaluationRequests evaluationRequestsBeingCollected;
 
     /** Source - i.e. the resource object along with the whole context (like lens context for Clockwork execution). */
-    @NotNull final MSource source;
+    @NotNull private final MappingSource source;
 
     /** Target - the focus including supporting data. */
-    @NotNull final Target<T> target;
+    @NotNull private final MappingTarget<T> target;
 
     /** Context of the execution (mapping evaluation environment, operation result). */
-    @NotNull final Context context;
+    @NotNull private final MappingContext context;
 
-    InboundsPreparation(
+    /** Temporary */
+    @NotNull private final SpecialInboundsEvaluator specialInboundsEvaluator;
+
+    public SingleShadowInboundsPreparation(
             @NotNull MappingEvaluationRequests evaluationRequestsBeingCollected,
-            @NotNull MSource source,
-            @NotNull Target<T> target,
-            @NotNull Context context) {
+            @NotNull MappingSource source,
+            @NotNull MappingTarget<T> target,
+            @NotNull MappingContext context,
+            @NotNull SpecialInboundsEvaluator specialInboundsEvaluator) {
         this.evaluationRequestsBeingCollected = evaluationRequestsBeingCollected;
         this.source = source;
         this.target = target;
         this.context = context;
+        this.specialInboundsEvaluator = specialInboundsEvaluator;
     }
 
     /**
@@ -81,15 +79,15 @@ abstract class InboundsPreparation<T extends Containerable> {
      *
      * TODO collect all the mappings (using the same mechanism), not evaluate anything here
      */
-    public void collectOrEvaluate(OperationResult parentResult)
+    public void prepareOrEvaluate(OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, StopProcessingProjectionException {
 
-        OperationResult result = parentResult.subresult(OP_COLLECT_OR_EVALUATE)
+        OperationResult result = parentResult.subresult(OP_PREPARE_OR_EVALUATE)
                 .addArbitraryObjectAsParam("source", source)
                 .build();
         try {
-            LOGGER.trace("Going to collect/evaluate of inbound mappings for:\n{}", source.debugDumpLazily(1));
+            LOGGER.trace("Going to prepare/evaluate inbound mappings for:\n{}", source.debugDumpLazily(1));
 
             // Preliminary checks
             if (!source.isEligibleForInboundProcessing(result)) {
@@ -108,14 +106,11 @@ abstract class InboundsPreparation<T extends Containerable> {
 
             // Evaluation of special mappings. This part will be transformed to the same style as the other mappings (eventually).
             if (!source.isProjectionBeingDeleted()) {
-                evaluateSpecialInbounds(result);
+                specialInboundsEvaluator.evaluateSpecialInbounds(result);
             } else {
                 // TODO why we are skipping this evaluation?
                 LOGGER.trace("Skipping evaluation of special inbounds because of projection DELETE delta");
             }
-
-            processAssociations(result);
-
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -124,14 +119,13 @@ abstract class InboundsPreparation<T extends Containerable> {
         }
     }
 
-    /**
-     * Evaluates special inbounds (password, activation). Temporary. Implemented only for the full processing case.
-     */
-    abstract void evaluateSpecialInbounds(OperationResult result) throws SchemaException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+    /** FIXME TEMPORARY */
+    public interface SpecialInboundsEvaluator {
 
-    /** Complex processing for shadow attributes. Only for the full processing case. Currently limited to reference ones. */
-    abstract void processAssociations(OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, StopProcessingProjectionException;
+        /**
+         * Evaluates special inbounds (password, activation). Temporary. Implemented only for the full processing case.
+         */
+        void evaluateSpecialInbounds(OperationResult result) throws SchemaException, ExpressionEvaluationException,
+                CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+    }
 }

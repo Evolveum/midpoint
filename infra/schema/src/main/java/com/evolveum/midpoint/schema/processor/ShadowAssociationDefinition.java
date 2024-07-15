@@ -14,7 +14,6 @@ import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -64,25 +63,6 @@ public interface ShadowAssociationDefinition
      * type definition.
      */
     @NotNull Multimap<QName, ShadowRelationParticipantType> getObjectParticipants(@NotNull CompleteResourceSchema resourceSchema);
-
-//    default Set<ShadowRelationParticipantType> getObjectDefinitionsFor(
-//            @NotNull ItemName refAttrName, @NotNull CompleteResourceSchema resourceSchema) {
-//        var bean = getModernAssociationTypeDefinitionBean();
-//        if (bean != null) {
-//            var objectDefs = bean.getObject().stream()
-//                    .filter(objectDef -> objectDef.getRef() == null || QNameUtil.match(refAttrName, objectDef.getRef()))
-//                    .toList();
-//            var objectDef = MiscUtil.extractSingleton(objectDefs);
-//            if (objectDef != null && !objectDef.getObjectType().isEmpty()) {
-//                return objectDef.getObjectType().stream()
-//                        .map(typeBean -> ResourceObjectTypeIdentification.of(typeBean))
-//                        .map(typeId -> resourceSchema.getObjectTypeDefinitionRequired(typeId))
-//                        .map(typeDef -> ShadowRelationParticipantType.forObjectType(typeDef))
-//                        .collect(Collectors.toSet());
-//            }
-//        }
-//        return new HashSet<>(getReferenceAttributeDefinition().getTargetParticipantTypes());
-//    }
 
     default boolean matches(@NotNull ShadowType potentialTarget) {
         return getReferenceAttributeDefinition().getTargetParticipantTypes().stream()
@@ -140,41 +120,16 @@ public interface ShadowAssociationDefinition
     @NotNull
     ShadowAssociationDefinition clone();
 
-    @Nullable ShadowAssociationDefinitionType getModernAssociationDefinitionBean();
-
-    @Nullable ShadowAssociationTypeDefinitionType getModernAssociationTypeDefinitionBean();
-
-    default boolean hasModernInbound() {
-        var bean = getModernAssociationDefinitionBean();
-        if (bean == null) {
-            return false;
-        }
-        return bean.getAttribute().stream().anyMatch(a -> a.getInbound() != null)
-                || bean.getObjectRef().stream().anyMatch(o -> o.getInbound() != null);
-    }
-
-    // TODO find better place
-    default boolean hasModernOutbound() {
-        var bean = getModernAssociationDefinitionBean();
-        if (bean == null) {
-            return false;
-        }
-        return bean.getAttribute().stream().anyMatch(a -> a.getOutbound() != null)
-                || bean.getObjectRef().stream().anyMatch(o -> o.getOutbound() != null);
-    }
-
     @Override
     default <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
         return ShadowItemDefinition.super.findItemDefinition(path, clazz);
     }
 
-    @Nullable MappingType getExplicitOutboundMappingBean();
+    @NotNull Collection<MappingType> getExplicitOutboundMappingBeans();
 
-    @NotNull Collection<InboundMappingType> getExplicitInboundMappingBean();
+    @NotNull Collection<InboundMappingType> getExplicitInboundMappingBeans();
 
     boolean isVisible(ExecutionModeProvider modeProvider);
-
-    @NotNull Collection<ResourceObjectInboundDefinition> getRelevantInboundDefinitions();
 
     @NotNull ShadowReferenceAttributeDefinition getReferenceAttributeDefinition();
 

@@ -9,12 +9,15 @@ package com.evolveum.midpoint.certification.test;
 
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -64,19 +67,25 @@ public class TestEscalation extends AbstractCertificationTest {
 
         // WHEN
         when();
-        AccessCertificationCampaignType campaign =
-                certificationService.createCampaign(certificationDefinition.getOid(), task, result);
+        certificationService.createCampaign(certificationDefinition.getOid(), task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
 
-        assertNotNull("Created campaign is null", campaign);
+        List<PrismObject<TaskType>> tasks = getCampaignCreationTasks(certificationDefinition.getOid(), result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        String foundTaskOid = tasks.get(0).getOid();
+        waitForTaskFinish(foundTaskOid);
 
-        campaignOid = campaign.getOid();
+        TaskType foundTask = getObject(TaskType.class, foundTaskOid).asObjectable();
 
-        campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
+        campaignOid = ((CertificationCampaignCreationWorkStateType)foundTask
+                .getActivityState().getActivity().getWorkState()).getCreatedCampaignRef().getOid();
+
+        @NotNull AccessCertificationCampaignType campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
+
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
         assertPercentCompleteAll(campaign, 100, 100, 100); // no cases

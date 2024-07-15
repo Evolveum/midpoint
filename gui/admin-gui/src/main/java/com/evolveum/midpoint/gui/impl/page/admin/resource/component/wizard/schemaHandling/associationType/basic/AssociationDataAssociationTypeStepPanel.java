@@ -46,8 +46,8 @@ public class AssociationDataAssociationTypeStepPanel
                 newValueModel,
                 ItemPath.create(
                         ShadowAssociationTypeDefinitionType.F_SUBJECT,
-                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
-                        ShadowAssociationDefinitionType.F_FOCUS));
+                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION));
+                        //ShadowAssociationDefinitionType.F_FOCUS));
     }
 
     @Override

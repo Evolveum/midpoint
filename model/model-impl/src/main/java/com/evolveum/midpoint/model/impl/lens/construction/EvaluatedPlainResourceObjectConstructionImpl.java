@@ -13,6 +13,8 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -21,10 +23,6 @@ import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 /**
  * Evaluated resource object construction that is defined in the schemaHandling part of resource definition.
@@ -97,8 +95,7 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
 
         ResourceObjectDefinition objectDefinition = construction.getResourceObjectDefinitionRequired();
         for (var associationDefinition : objectDefinition.getAssociationDefinitions()) {
-            var explicitOutboundMappingBean = associationDefinition.getExplicitOutboundMappingBean();
-            if (explicitOutboundMappingBean != null) {
+            for (var explicitOutboundMappingBean : associationDefinition.getExplicitOutboundMappingBeans()) {
                 if (associationDefinition.isVisible(constructionEvaluation.task)) {
                     var origin = ConfigurationItemOrigin.inResourceOrAncestor(construction.getResource());
                     mappers.add(
@@ -110,11 +107,6 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
                     LOGGER.trace("Skipping processing outbound mapping for association {} because it is not visible in current "
                             + "execution mode", associationDefinition);
                 }
-            }
-            // modern association type definition
-            if (constructionEvaluation.projectionContext != null && associationDefinition.hasModernOutbound()) {
-                mappers.add(
-                        new AssociationMapper<>(constructionEvaluation, associationDefinition));
             }
         }
         return mappers;

@@ -11,9 +11,12 @@ import com.evolveum.midpoint.repo.sqale.delta.item.SinglePathItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.TypeQNameItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetypeMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QProcessedObjectEventMarkReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityAffectedObjectsType;
@@ -27,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.querydsl.core.types.dsl.EnumPath;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.function.Function;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.BasicResourceObjectSetType.*;
@@ -34,13 +38,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationRes
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityAffectedObjectsType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.BasicObjectSetType.*;
 
-
 public class QAffectedObjectsMapping extends QContainerMapping<ActivityAffectedObjectsType, QAffectedObjects, MAffectedObjects, MTask> {
 
     public static final String DEFAULT_ALIAS_NAME = "tao";
 
     private static QAffectedObjectsMapping instance;
-
 
     // Explanation in class Javadoc for SqaleTableMapping
     public static QAffectedObjectsMapping init(@NotNull SqaleRepoContext repositoryContext) {
@@ -67,7 +69,9 @@ public class QAffectedObjectsMapping extends QContainerMapping<ActivityAffectedO
                         q -> q.archetypeRefTargetOid,
                         q -> q.archetypeRefTargetType,
                         q -> q.archetypeRefRelationId,
-                        QArchetypeMapping::getArchetypeMapping);
+                        QArchetypeMapping::getArchetypeMapping)
+                .addRefMapping(F_OBJECT_REF, QAffectedObjectReferenceMapping.init(repositoryContext));
+
         addNestedMapping(F_RESOURCE_OBJECTS, BasicResourceObjectSetType.class)
                 .addItemMapping(F_OBJECTCLASS, uriMapper(q -> q.objectClassId))
                 .addRefMapping(F_RESOURCE_REF,
@@ -124,7 +128,7 @@ public class QAffectedObjectsMapping extends QContainerMapping<ActivityAffectedO
         var resource = activity.getResourceObjects();
         if (resource != null) {
             setReference(resource.getResourceRef(),
-                    o -> row.resourceRefTargetOid = o ,
+                    o -> row.resourceRefTargetOid = o,
                     t -> row.resourceRefTargetType = t,
                     r -> row.resourceRefRelationId = r
             );
@@ -133,6 +137,11 @@ public class QAffectedObjectsMapping extends QContainerMapping<ActivityAffectedO
             row.objectClassId = processCacheableUri(resource.getObjectclass());
         }
         insert(row, jdbcSession);
-        return  row;
+
+        if (object != null) {
+            storeRefs(row, object.getObjectRef(), QAffectedObjectReferenceMapping.getInstance(), jdbcSession);
+        }
+
+        return row;
     }
 }

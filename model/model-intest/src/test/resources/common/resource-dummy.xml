@@ -513,7 +513,7 @@
                 </objectType>
                 <association>
                     <ref>ri:group</ref>
-                    <explicitOutbound> <!-- TODO remove -->
+                    <outbound>
                         <expression>
                             <value xsi:type="ShadowAssociationValueType">
                                 <objects>
@@ -521,7 +521,7 @@
                                 </objects>
                             </value>
                         </expression>
-                    </explicitOutbound>
+                    </outbound>
                 </association>
             </subject>
         </associationType>

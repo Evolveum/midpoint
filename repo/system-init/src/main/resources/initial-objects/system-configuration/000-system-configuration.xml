@@ -761,10 +761,24 @@
             </objectCollectionView>
             <objectCollectionView id="69">
                 <identifier>certification-tasks-view</identifier>
+                <display>
+                    <label>Certification-related task</label>
+                    <pluralLabel>
+                        <orig>Certification-related tasks</orig>
+                        <norm>certificationrelated tasks</norm>
+                        <translation>
+                            <key>CertificationRelatedTasks.title</key>
+                        </translation>
+                    </pluralLabel>
+                    <icon>
+                        <cssClass>fa fa-certificate</cssClass>
+                        <color>green</color>
+                    </icon>
+                </display>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
                 <collection>
-                    <collectionRef oid="00000000-0000-0000-0000-000000000520" relation="org:default" type="c:ArchetypeType"/>
+                    <collectionRef oid="00000000-0000-0000-0002-000000000008" relation="org:default" type="c:ObjectCollectionType"/>
                 </collection>
             </objectCollectionView>
             <objectCollectionView id="70">
@@ -997,6 +1011,24 @@
                 <type>TaskType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000523" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView id="259">
+                <identifier>certification-campaign-creation-tasks-view</identifier>
+                <applicableForOperation>add</applicableForOperation>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000534" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView id="260">
+                <identifier>certification-campaign-creation-tasks-view</identifier>
+                <applicableForOperation>add</applicableForOperation>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000535" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
         </objectCollectionViews>
