@@ -10,7 +10,7 @@
  *
  * (With the exception of password/activation mappings, that are - temporarily - evaluated here.)
  *
- * The main class is {@link com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.InboundsPreparation}
+ * The main class is {@link com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.SingleShadowInboundsPreparation}
  * (with two subclasses for full/limited situations).
  *
  * See its javadoc for the description of the further decomposition of the work.

@@ -11,7 +11,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleMap;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleIvwoMap;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.APrioriDeltaProvider;
 import com.evolveum.midpoint.prism.*;
@@ -41,10 +41,11 @@ import java.util.function.Function;
  *
  * 1. *Full processing*: takes all the mappings, from all available projections, from all embedded shadows, evaluates them,
  * and consolidates them. Always executed under the clockwork. Always targeted to the focus object (user, role, and so on).
+ * See {@link FullInboundsProcessing}.
  *
  * 2. *Limited processing*: converts just a single shadow into a (fragment of) the target value. This is used for correlation
  * purposes. May execute within or outside the clockwork. May target any object: user, role, but also specific assignment
- * or a custom structure.
+ * or a custom structure. See {@link SingleShadowInboundsProcessing}.
  *
  * Responsibility of this class:
  *
@@ -71,7 +72,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
      * Output triples for individual target paths. This is the actual result of mapping evaluation.
      * They are converted into deltas by consolidation.
      */
-    private final DeltaSetTripleMap outputTripleMap = new DeltaSetTripleMap();
+    @NotNull private final DeltaSetTripleIvwoMap outputTripleMap = new DeltaSetTripleIvwoMap();
 
     final AssignmentsProcessingContext assignmentsProcessingContext = new AssignmentsProcessingContext();
 
@@ -81,12 +82,18 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
         this.env = env;
     }
 
-    public void collectAndEvaluateMappings(OperationResult result)
+    public void executeCompletely(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        collectMappings(result);
-        evaluateMappings(result);
+        executeToTriples(result);
         consolidateTriples(result);
+    }
+
+    void executeToTriples(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        prepareMappings(result);
+        evaluateMappings(result);
     }
 
     /**
@@ -94,7 +101,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
      *
      * In the former case, special mappings are evaluated here (until fixed).
      */
-    abstract void collectMappings(OperationResult result)
+    abstract void prepareMappings(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException;
 
@@ -109,9 +116,9 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
                 .build();
         try {
             for (var entry : evaluationRequests.entrySet()) {
-                List<InboundMappingEvaluationRequest<?, ?>> mappings = entry.getValue();
+                List<MappingEvaluationRequest<?, ?>> mappings = entry.getValue();
                 assert !mappings.isEmpty();
-                for (InboundMappingEvaluationRequest<?, ?> mapping : mappings) {
+                for (var mapping : mappings) {
                     evaluateMapping(entry.getKey(), mapping, result);
                 }
             }
@@ -124,7 +131,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     }
 
     private <V extends PrismValue, D extends ItemDefinition<?>> void evaluateMapping(
-            ItemPath targetPath, InboundMappingEvaluationRequest<V, D> evaluationRequest, OperationResult result)
+            ItemPath targetPath, MappingEvaluationRequest<V, D> evaluationRequest, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, CommunicationException {
         LOGGER.trace("Starting evaluation of {}", evaluationRequest);
@@ -214,4 +221,9 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     abstract @Nullable LensContext<?> getLensContextIfPresent();
 
     abstract void applyComputedDeltas(Collection<? extends ItemDelta<?,?>> itemDeltas) throws SchemaException;
+
+    @NotNull
+    DeltaSetTripleIvwoMap getOutputTripleMap() {
+        return outputTripleMap;
+    }
 }

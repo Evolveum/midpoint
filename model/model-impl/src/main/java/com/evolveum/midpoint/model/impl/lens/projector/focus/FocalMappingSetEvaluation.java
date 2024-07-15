@@ -101,7 +101,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
      */
     private final boolean doingChaining;
 
-    private final DeltaSetTripleMap outputTripleMap = new DeltaSetTripleMap();
+    private final DeltaSetTripleIvwoMap outputTripleMap = new DeltaSetTripleIvwoMap();
 
     /**
      * Customizes triples produced by mappings before they are aggregated into overall triple map.
@@ -380,7 +380,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
     private ObjectDeltaObject<F> getUpdatedFocusOdo(
             LensContext<F> context,
             ObjectDeltaObject<F> focusOdo,
-            DeltaSetTripleMap outputTripleMap,
+            DeltaSetTripleIvwoMap outputTripleMap,
             FocalMappingEvaluationRequest<?, ?> evaluationRequest,
             String contextDesc,
             OperationResult result)
@@ -396,7 +396,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
 
     private void updateSource(LensContext<F> context, ObjectDeltaObject<F> focusOdo,
             Holder<ObjectDeltaObject<F>> focusOdoClonedHolder,
-            DeltaSetTripleMap outputTripleMap, String contextDesc,
+            DeltaSetTripleIvwoMap outputTripleMap, String contextDesc,
             VariableBindingDefinitionType source, OperationResult result) throws ExpressionEvaluationException,
             SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, SecurityViolationException {
@@ -469,7 +469,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
         void accept(MappingImpl<?, ?> mapping, FocalMappingEvaluationRequest<?, ?> request);
     }
 
-    DeltaSetTripleMap getOutputTripleMap() {
+    DeltaSetTripleIvwoMap getOutputTripleMap() {
         return outputTripleMap;
     }
 

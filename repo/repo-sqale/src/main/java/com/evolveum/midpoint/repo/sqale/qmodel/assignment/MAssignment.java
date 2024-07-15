@@ -64,6 +64,8 @@ public class MAssignment extends MContainerWithFullObject implements MAssignment
     public Integer modifierRefRelationId;
     public Integer modifyChannelId;
     public Instant modifyTimestamp;
+    // marks
+
 
     @Override
     public BooleanExpression owns(QAssignmentReference ref) {

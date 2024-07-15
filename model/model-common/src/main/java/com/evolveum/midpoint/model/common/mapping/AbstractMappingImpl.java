@@ -176,7 +176,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * Default target path if "target" or "target/path" in the mapping bean is missing.
      * Used e.g. for outbound mappings.
      */
-    @Deprecated // use targetPathOverride instead
     final ItemPath defaultTargetPath;
 
     /**
@@ -184,7 +183,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * (For some cases it perhaps could be derived using {@link #defaultTargetPath} but we currently
      * do not use this option.)
      */
-    @Deprecated // use targetPathOverride instead
     final D defaultTargetDefinition;
 
     /**
@@ -963,6 +961,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
         ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(
                 rangeSetDefBean,
+                ValueSetDefinition.ExtraSetSpecification.fromBean(target),
                 getOutputDefinition(),
                 valueMetadataDefinition,
                 getExpressionProfile(),
@@ -1403,6 +1402,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         context.setValuePolicySupplier(valuePolicySupplier);
         context.setExpressionFactory(ModelCommonBeans.get().expressionFactory);
         context.setMappingQName(targetItemName);
+        context.setTargetDefinitionBean(mappingBean.getTarget());
         context.setVariableProducer(variableProducer);
         context.setValueMetadataComputer(valueMetadataComputer);
         context.setLocalContextDescription("expression");
@@ -1650,7 +1650,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     public boolean isPushChanges() {
         return pushChanges;
     }
-
 
     boolean shouldUseMatchingProvenance() {
         return getOutputDefinition().isMultiValue() && mappingBean.getName() != null;

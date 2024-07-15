@@ -12,6 +12,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
@@ -20,7 +21,7 @@ import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 /**
  * Work definition that can provide object set specification.
  *
- * It has to be aware of an activity type name because of the default implementation of {@link #getAffectedObjectSetInformation()}.
+ * It has to be aware of an activity type name because of the default implementation of {@link AffectedObjectSetProvider#getAffectedObjectSetInformation(AbstractActivityWorkStateType)}.
  */
 public interface ResourceObjectSetSpecificationProvider
         extends AffectedObjectSetProvider, FailedObjectsSelectorProvider {
@@ -29,7 +30,7 @@ public interface ResourceObjectSetSpecificationProvider
 
     /** Provided here to avoid code duplication in individual work definition implementations. */
     @Override
-    default @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
+    default @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation(@Nullable AbstractActivityWorkStateType state) {
         ResourceObjectSetType set = getResourceObjectSetSpecification();
 
         // Currently, all object classes are in ri: namespace. (Otherwise we'd have a big problem,

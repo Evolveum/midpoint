@@ -25,6 +25,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
@@ -113,6 +116,9 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     protected static final File TASK_TRIGGER_SCANNER_FILE = new File(COMMON_DIR, "task-trigger-scanner-manual.xml");
     protected static final String TASK_TRIGGER_SCANNER_OID = "00000000-0000-0000-0000-000000000007";
 
+    public static final File ARCHETYPE_CERTIFICATION_REMEDIATION = new File(COMMON_DIR, "archetype-remediation.xml");
+    public static final File ARCHETYPE_CERTIFICATION_CAMPAIGN_CREATION = new File(COMMON_DIR, "archetype-campaign-creation.xml");
+
     // report columns: certification definitions
     static final int C_DEF_NAME = 0;
     static final int C_DEF_OWNER = 1;
@@ -197,6 +203,9 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         logger.trace("initSystem");
         super.initSystem(initTask, initResult);
+
+        repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_REMEDIATION, ArchetypeType.class, initResult);
+        repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_CAMPAIGN_CREATION, ArchetypeType.class, initResult);
 
         // roles
         repoAddObjectFromFile(METAROLE_CXO_FILE, RoleType.class, initResult);
@@ -813,5 +822,120 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         // In some environments, the date format does not contain "2023" but only "23".
         return String.valueOf(
                 (Year.now().getValue() % 100));
+    }
+
+    protected List<PrismObject<TaskType>> getRemediationTasks(String campaignOid, XMLGregorianCalendar startTime, OperationResult result) throws SchemaException {
+        if (isNativeRepository()) {
+            ObjectQuery query = prismContext.queryFor(TaskType.class)
+                    .item(
+                            ItemPath.create(
+                                    TaskType.F_AFFECTED_OBJECTS,
+                                    TaskAffectedObjectsType.F_ACTIVITY,
+                                    ActivityAffectedObjectsType.F_OBJECTS,
+                                    BasicObjectSetType.F_OBJECT_REF))
+                    .ref(campaignOid)
+                    .and()
+                    .item(
+                            ItemPath.create(
+                                    TaskType.F_AFFECTED_OBJECTS,
+                                    TaskAffectedObjectsType.F_ACTIVITY,
+                                    ActivityAffectedObjectsType.F_OBJECTS,
+                                    BasicObjectSetType.F_TYPE))
+                    .eq(AccessCertificationCampaignType.COMPLEX_TYPE)
+                    .and()
+                    .block()
+                    .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                    .isNull()
+                    .or()
+                    .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                    .ge(startTime)
+                    .endBlock()
+                    .build();
+            return taskManager.searchObjects(TaskType.class, query, null, result);
+        }
+        ObjectQuery query = prismContext.queryFor(TaskType.class)
+                .item(TaskType.F_ARCHETYPE_REF)
+                .ref(SystemObjectsType.ARCHETYPE_CERTIFICATION_REMEDIATION_TASK.value())
+                .and()
+                .block()
+                .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                .isNull()
+                .or()
+                .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                .ge(startTime)
+                .endBlock()
+                .build();
+        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        return tasks.stream().filter(task ->
+                task.asObjectable().getActivity() != null
+                        && task.asObjectable().getActivity().getWork() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationRemediation() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationRemediation().getCertificationCampaignRef() != null
+                        && campaignOid.equals(task.asObjectable().getActivity().getWork().getCertificationRemediation().getCertificationCampaignRef().getOid())
+        ).toList();
+    }
+
+    protected List<PrismObject<TaskType>> getCampaignCreationTasks(String campaignDefOid, OperationResult result) throws SchemaException {
+        return getCampaignCreationTasks(campaignDefOid, null, result);
+    }
+
+    protected List<PrismObject<TaskType>> getCampaignCreationTasks(String campaignDefOid, XMLGregorianCalendar startTime, OperationResult result) throws SchemaException {
+        if (isNativeRepository()) {
+            S_FilterExit filter = prismContext.queryFor(TaskType.class)
+                    .item(
+                            ItemPath.create(
+                                    TaskType.F_AFFECTED_OBJECTS,
+                                    TaskAffectedObjectsType.F_ACTIVITY,
+                                    ActivityAffectedObjectsType.F_OBJECTS,
+                                    BasicObjectSetType.F_OBJECT_REF))
+                    .ref(campaignDefOid)
+                    .and()
+                    .item(
+                            ItemPath.create(
+                                    TaskType.F_AFFECTED_OBJECTS,
+                                    TaskAffectedObjectsType.F_ACTIVITY,
+                                    ActivityAffectedObjectsType.F_OBJECTS,
+                                    BasicObjectSetType.F_TYPE))
+                    .eq(AccessCertificationDefinitionType.COMPLEX_TYPE);
+            if (startTime != null) {
+                filter = filter
+                        .and()
+                        .block()
+                        .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                        .isNull()
+                        .or()
+                        .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                        .ge(startTime)
+                        .endBlock();
+            }
+            ObjectQuery query = filter.build();
+            return taskManager.searchObjects(TaskType.class, query, null, result);
+        }
+
+        S_FilterExit filter = prismContext.queryFor(TaskType.class)
+                .item(TaskType.F_ARCHETYPE_REF)
+                .ref(SystemObjectsType.ARCHETYPE_CERTIFICATION_CAMPAIGN_CREATION_TASK.value());
+        if (startTime != null) {
+            filter = filter
+                    .and()
+                    .block()
+                    .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                    .isNull()
+                    .or()
+                    .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                    .ge(startTime)
+                    .endBlock();
+        }
+        ObjectQuery query = filter.build();
+
+        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        return tasks.stream().filter(task ->
+                task.asObjectable().getActivity() != null
+                        && task.asObjectable().getActivity().getWork() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationCampaignCreation() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationCampaignCreation().getCertificationCampaignDefinitionRef() != null
+                        && campaignDefOid.equals(task.asObjectable().getActivity().getWork().getCertificationCampaignCreation().getCertificationCampaignDefinitionRef().getOid())
+        ).toList();
+
     }
 }

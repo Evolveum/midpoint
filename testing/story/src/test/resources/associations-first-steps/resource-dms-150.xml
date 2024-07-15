@@ -132,36 +132,44 @@
                 </objectType>
                 <association>
                     <ref>ri:access</ref>
-                    <focus>
-                        <assignmentTargetType>ServiceType</assignmentTargetType>
-                    </focus>
-                    <objectRef>
-                        <ref>ri:document</ref>
-                        <correlator/>
-                        <inbound>
-                            <name>document-to-targetRef</name>
-                            <expression>
-                                <shadowOwnerReferenceSearch/>
-                            </expression>
-                            <target>
-                                <path>targetRef</path>
-                            </target>
-                        </inbound>
-                    </objectRef>
-                    <synchronization>
-                        <reaction>
-                            <situation>unmatched</situation>
-                            <actions>
-                                <addFocusValue/>
-                            </actions>
-                        </reaction>
-                        <reaction>
-                            <situation>matched</situation>
-                            <actions>
-                                <synchronize/>
-                            </actions>
-                        </reaction>
-                    </synchronization>
+                    <inbound>
+                        <name>access-inbound</name>
+                        <expression>
+                            <associationSynchronization>
+                                <objectRef>
+                                    <ref>ri:document</ref>
+                                    <mapping>
+                                        <name>document-to-targetRef</name>
+                                        <expression>
+                                            <shadowOwnerReferenceSearch/>
+                                        </expression>
+                                        <target>
+                                            <path>targetRef</path>
+                                        </target>
+                                    </mapping>
+                                </objectRef>
+                                <synchronization>
+                                    <reaction>
+                                        <situation>unmatched</situation>
+                                        <actions>
+                                            <addFocusValue/>
+                                        </actions>
+                                    </reaction>
+                                    <reaction>
+                                        <situation>matched</situation>
+                                        <actions>
+                                            <synchronize/>
+                                        </actions>
+                                    </reaction>
+                                </synchronization>
+                            </associationSynchronization>
+                        </expression>
+                        <target>
+                            <set> <!-- TEMPORARY! Will be turned on automatically soon. -->
+                                <predefined>matchingProvenance</predefined>
+                            </set>
+                        </target>
+                    </inbound>
                 </association>
             </subject>
         </associationType>

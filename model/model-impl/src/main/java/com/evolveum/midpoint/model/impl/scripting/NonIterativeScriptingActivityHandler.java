@@ -14,6 +14,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInfo
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -146,7 +147,7 @@ public class NonIterativeScriptingActivityHandler
         }
 
         @Override
-        public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
+        public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation(@Nullable AbstractActivityWorkStateType state) {
             return AffectedObjectsInformation.ObjectSet.notSupported(); // not feasibly describable
         }
 

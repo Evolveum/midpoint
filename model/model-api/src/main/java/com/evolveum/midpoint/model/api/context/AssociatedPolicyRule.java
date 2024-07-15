@@ -12,6 +12,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -90,6 +91,8 @@ public interface AssociatedPolicyRule extends DebugDumpable, Serializable, Clone
 
     /** Returns the policy situation connected to this rule. Will be replaced by object marks. */
     @Nullable String getPolicySituation();
+
+    @NotNull List<ObjectReferenceType> getPolicyMarkRef();
 
     /**
      * Serializes the policy rule into bean form ({@link EvaluatedPolicyRuleType}).

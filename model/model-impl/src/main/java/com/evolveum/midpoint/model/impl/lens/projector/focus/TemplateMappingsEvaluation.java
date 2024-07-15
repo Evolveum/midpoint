@@ -285,7 +285,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
 
     private void consolidateToItemDeltas() throws ExpressionEvaluationException, SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-        DeltaSetTripleMap outputTripleMap = mappingSetEvaluation.getOutputTripleMap();
+        DeltaSetTripleIvwoMap outputTripleMap = mappingSetEvaluation.getOutputTripleMap();
         LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLineLazily(outputTripleMap));
 
         // TODO for chained mappings: what exactly should be the target object?

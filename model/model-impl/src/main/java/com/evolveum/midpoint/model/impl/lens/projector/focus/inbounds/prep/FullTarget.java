@@ -21,11 +21,11 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Target in the "full mode". It is always the focal object, e.g., a user.
  */
-class FullTarget<F extends FocusType> extends Target<F> {
+public class FullTarget<F extends FocusType> extends MappingTarget<F> {
 
     @NotNull private final LensContext<F> lensContext;
 
-    FullTarget(
+    public FullTarget(
             @NotNull LensContext<F> lensContext,
             @Nullable PrismObject<F> focus,
             @NotNull PrismObjectDefinition<F> focusDefinition,

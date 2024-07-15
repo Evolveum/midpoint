@@ -14,7 +14,6 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -28,6 +27,8 @@ import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 
+import com.evolveum.midpoint.task.api.Task;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
@@ -37,13 +38,12 @@ import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleMap;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleIvwoMap;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
@@ -57,17 +57,19 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 /**
  * TEMPORARY/EXPERIMENTAL class that provides a full computation of an association values triple,
  * based on "modern" configuration style of association type.
  */
-class AssociationValuesTripleComputation {
+public class AssociationValuesTripleComputation {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationValuesTripleComputation.class);
 
     private final boolean hasAssociationObject;
     @NotNull private final ShadowAssociationDefinition associationDefinition;
-    @NotNull private final ShadowAssociationDefinitionType associationDefinitionBean;
+    @NotNull private final AssociationOutboundMappingType outboundBean;
     @NotNull private final LensProjectionContext projectionContext;
     @NotNull private final MappingEvaluationEnvironment env;
     @NotNull private final OperationResult result;
@@ -76,13 +78,13 @@ class AssociationValuesTripleComputation {
 
     private AssociationValuesTripleComputation(
             @NotNull ShadowAssociationDefinition associationDefinition,
-            @NotNull ShadowAssociationDefinitionType associationDefinitionBean,
+            @NotNull AssociationOutboundMappingType outboundBean,
             @NotNull LensProjectionContext projectionContext,
             @NotNull MappingEvaluationEnvironment env,
             @NotNull OperationResult result) {
         this.hasAssociationObject = associationDefinition.hasAssociationObject();
         this.associationDefinition = associationDefinition;
-        this.associationDefinitionBean = associationDefinitionBean;
+        this.outboundBean = outboundBean;
         this.projectionContext = projectionContext;
         this.env = env;
         this.result = result;
@@ -92,47 +94,52 @@ class AssociationValuesTripleComputation {
     /** Assumes the existence of the projection context and association definition with a bean. */
     public static PrismValueDeltaSetTriple<ShadowAssociationValue> compute(
             @NotNull ShadowAssociationDefinition associationDefinition,
-            @NotNull ConstructionEvaluation<?, ?> constructionEvaluation)
+            @NotNull AssociationOutboundMappingType outboundBean,
+            @NotNull LensProjectionContext projectionContext,
+            @NotNull XMLGregorianCalendar now,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         var avc = new AssociationValuesTripleComputation(
                 associationDefinition,
-                Objects.requireNonNull(associationDefinition.getModernAssociationDefinitionBean()),
-                constructionEvaluation.getProjectionContextRequired(),
-                new MappingEvaluationEnvironment(
-                        "association computation",
-                        constructionEvaluation.construction.now,
-                        constructionEvaluation.task),
-                constructionEvaluation.result);
+                outboundBean,
+                projectionContext,
+                new MappingEvaluationEnvironment("association computation", now, task),
+                result);
         return avc.compute();
     }
 
     private PrismValueDeltaSetTriple<ShadowAssociationValue> compute()
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        try {
-            // We need to gather all relevant "magic assignments" here.
-            var lensContext = projectionContext.getLensContext();
-            lensContext.getEvaluatedAssignmentTriple().foreach(
-                    (eaSet, ea) ->
-                            ea.getRoles().foreach(
-                                    (targetSet, target) -> {
-                                        try {
-                                            var mode = PlusMinusZero.compute(eaSet, targetSet);
-                                            if (mode != null) {
-                                                processAssignmentTarget(mode, target);
+        if (outboundBean.getExpression() != null) {
+            throw new UnsupportedOperationException("This should be treated elsewhere"); // FIXME document or implement
+        } else {
+            try {
+                // We need to gather all relevant "magic assignments" here.
+                var lensContext = projectionContext.getLensContext();
+                lensContext.getEvaluatedAssignmentTriple().foreach(
+                        (eaSet, ea) ->
+                                ea.getRoles().foreach(
+                                        (targetSet, target) -> {
+                                            try {
+                                                var mode = PlusMinusZero.compute(eaSet, targetSet);
+                                                if (mode != null) {
+                                                    processAssignmentTarget(mode, target);
+                                                }
+                                            } catch (CommonException e) {
+                                                throw new LocalTunnelException(e);
                                             }
-                                        } catch (CommonException e) {
-                                            throw new LocalTunnelException(e);
                                         }
-                                    }
-                            )
-            );
-            return triple;
-        } catch (LocalTunnelException e) {
-            e.unwrapAndRethrow();
-            throw new NotHereAssertionError();
+                                )
+                );
+            } catch (LocalTunnelException e) {
+                e.unwrapAndRethrow();
+                throw new NotHereAssertionError();
+            }
         }
+        return triple;
     }
 
     /** @see LocalTunnelException#unwrapAndRethrow() */
@@ -199,7 +206,7 @@ class AssociationValuesTripleComputation {
         @NotNull private final AssignmentPathVariables assignmentPathVariables;
 
         /** Values of individual items within the association. */
-        @NotNull private final DeltaSetTripleMap tripleMap = new DeltaSetTripleMap();
+        @NotNull private final DeltaSetTripleIvwoMap tripleMap = new DeltaSetTripleIvwoMap();
 
         ValueComputation(@NotNull EvaluatedAssignmentTargetImpl target) throws SchemaException {
             this.assignmentTarget = target.getTarget().asObjectable();
@@ -212,10 +219,10 @@ class AssociationValuesTripleComputation {
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                 ConfigurationException, ObjectNotFoundException {
             if (hasAssociationObject) {
-                for (ResourceAttributeDefinitionType attrDefBean : associationDefinitionBean.getAttribute()) {
+                for (var attrDefBean : outboundBean.getAttribute()) {
                     evaluateAttribute(attrDefBean, false);
                 }
-                for (ResourceAttributeDefinitionType attrDefBean : associationDefinitionBean.getObjectRef()) {
+                for (var attrDefBean : outboundBean.getObjectRef()) {
                     evaluateAttribute(attrDefBean, true);
                 }
                 var associationObject = consolidate();
@@ -232,67 +239,65 @@ class AssociationValuesTripleComputation {
             }
         }
 
-        private void evaluateAttribute(ResourceAttributeDefinitionType attrDefBean, boolean isObjectRef)
+        private void evaluateAttribute(AttributeOutboundMappingsDefinitionType attrDefBean, boolean isObjectRef)
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                 ConfigurationException, ObjectNotFoundException {
-            var outboundBean = attrDefBean.getOutbound();
-            if (outboundBean == null) {
-                return;
+            for (var outboundBean : attrDefBean.getMapping()) {
+                var targetItemName = attrDefBean.getRef().getItemPath().firstNameOrFail();
+                var targetItemPath = ShadowType.F_ATTRIBUTES.append(targetItemName);
+                var origin = ConfigurationItemOrigin.inResourceOrAncestor(projectionContext.getResourceRequired());
+                var mappingConfigItem = MappingConfigItem.of(outboundBean, origin);
+
+                MappingBuilder<PrismValue, ItemDefinition<?>> builder =
+                        b.mappingFactory.createMappingBuilder(mappingConfigItem, "association value computation");
+
+                var lensContext = projectionContext.getLensContext();
+                if (!builder.isApplicableToChannel(lensContext.getChannel())) {
+                    LOGGER.trace("Skipping outbound mapping for {} because the channel does not match", associationDefinition);
+                    continue;
+                }
+                if (!builder.isApplicableToExecutionMode(env.task.getExecutionMode())) {
+                    LOGGER.trace("Skipping outbound mapping for {} because the execution mode does not match", associationDefinition);
+                    continue;
+                }
+
+                var focusContext = lensContext.getFocusContextRequired();
+                ObjectDeltaObject<?> focusOdoAbsolute = focusContext.getObjectDeltaObjectAbsolute();
+
+                var magicAssignmentIdi = assignmentPathVariables.getMagicAssignment();
+
+                var outputDefinition = associationDefinition
+                        .getAssociationObjectDefinition() // FIXME this may fail for trivial associations
+                        .findAttributeDefinitionRequired(targetItemName);
+
+                builder = builder
+                        .targetItemName(targetItemName)
+                        .implicitTargetPath(targetItemPath)
+                        .defaultTargetPath(targetItemPath)
+                        .defaultTargetDefinition((ItemDefinition<?>) outputDefinition)
+                        .mappingKind(MappingKindType.OUTBOUND)
+                        .defaultSourceContextIdi(magicAssignmentIdi)
+                        .addRootVariableDefinition(magicAssignmentIdi)
+                        .addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, magicAssignmentIdi)
+                        .addVariableDefinition(ExpressionConstants.VAR_USER, focusOdoAbsolute)
+                        .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdoAbsolute)
+                        .addAliasRegistration(ExpressionConstants.VAR_ASSIGNMENT, null)
+                        .addVariableDefinition(
+                                ExpressionConstants.VAR_ASSOCIATION_DEFINITION,
+                                associationDefinition, ShadowReferenceAttributeDefinition.class)
+                        .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projectionContext.getResource(), ResourceType.class)
+                        .addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT, assignmentTarget, ObjectType.class);
+
+                builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
+                builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, lensContext.getSystemConfiguration(), SystemConfigurationType.class);
+                builder.now(env.now);
+
+                var mapping = builder.build();
+
+                b.mappingEvaluator.evaluateMapping(mapping, forProjectionContext(projectionContext), env.task, result);
+
+                tripleMap.putOrMerge(targetItemPath, ItemValueWithOrigin.createOutputTriple(mapping));
             }
-            var targetItemName = attrDefBean.getRef().getItemPath().firstNameOrFail();
-            var targetItemPath = ShadowType.F_ATTRIBUTES.append(targetItemName);
-            var origin = ConfigurationItemOrigin.inResourceOrAncestor(projectionContext.getResourceRequired());
-            var mappingConfigItem = MappingConfigItem.of(outboundBean, origin);
-
-            MappingBuilder<PrismValue, ItemDefinition<?>> builder =
-                    b.mappingFactory.createMappingBuilder(mappingConfigItem, "association value computation");
-
-            var lensContext = projectionContext.getLensContext();
-            if (!builder.isApplicableToChannel(lensContext.getChannel())) {
-                LOGGER.trace("Skipping outbound mapping for {} because the channel does not match", associationDefinition);
-                return;
-            }
-            if (!builder.isApplicableToExecutionMode(env.task.getExecutionMode())) {
-                LOGGER.trace("Skipping outbound mapping for {} because the execution mode does not match", associationDefinition);
-                return;
-            }
-
-            var focusContext = lensContext.getFocusContextRequired();
-            ObjectDeltaObject<?> focusOdoAbsolute = focusContext.getObjectDeltaObjectAbsolute();
-
-            var magicAssignmentIdi = assignmentPathVariables.getMagicAssignment();
-
-            var outputDefinition = associationDefinition
-                    .getAssociationObjectDefinition() // FIXME this may fail for trivial associations
-                    .findAttributeDefinitionRequired(targetItemName);
-
-            builder = builder
-                    .targetItemName(targetItemName)
-                    .implicitTargetPath(targetItemPath)
-                    .defaultTargetPath(targetItemPath)
-                    .defaultTargetDefinition((ItemDefinition<?>) outputDefinition)
-                    .mappingKind(MappingKindType.OUTBOUND)
-                    .defaultSourceContextIdi(magicAssignmentIdi)
-                    .addRootVariableDefinition(magicAssignmentIdi)
-                    .addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, magicAssignmentIdi)
-                    .addVariableDefinition(ExpressionConstants.VAR_USER, focusOdoAbsolute)
-                    .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdoAbsolute)
-                    .addAliasRegistration(ExpressionConstants.VAR_ASSIGNMENT, null)
-                    .addVariableDefinition(
-                            ExpressionConstants.VAR_ASSOCIATION_DEFINITION,
-                            associationDefinition, ShadowReferenceAttributeDefinition.class)
-                    .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projectionContext.getResource(), ResourceType.class)
-                    .addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT, assignmentTarget, ObjectType.class);
-
-            builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
-            builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, lensContext.getSystemConfiguration(), SystemConfigurationType.class);
-            builder.now(env.now);
-
-            var mapping = builder.build();
-
-            b.mappingEvaluator.evaluateMapping(mapping, forProjectionContext(projectionContext), env.task, result);
-
-            tripleMap.putOrMerge(targetItemPath, ItemValueWithOrigin.createOutputTriple(mapping));
         }
 
         private @NotNull ShadowType consolidate()

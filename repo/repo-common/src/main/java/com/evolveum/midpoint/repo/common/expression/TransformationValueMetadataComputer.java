@@ -27,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 @Experimental
 public interface TransformationValueMetadataComputer {
 
-    ValueMetadataType compute(@NotNull List<PrismValue> inputValues, @NotNull OperationResult result)
+    @NotNull ValueMetadataType compute(@NotNull List<PrismValue> inputValues, @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException;
 

@@ -313,7 +313,7 @@ public class ClockworkClick<F extends ObjectType> {
      */
     private void reclaimSequencesIfPossible(OperationResult result) throws SchemaException {
         if (!context.wasAnythingExecuted()) {
-            LensUtil.reclaimSequences(context, beans.cacheRepositoryService, task, result);
+            LensUtil.reclaimSequences(context, beans.cacheRepositoryService, result);
         } else {
             LOGGER.trace("Something was executed, so we are not reclaiming sequence values");
         }

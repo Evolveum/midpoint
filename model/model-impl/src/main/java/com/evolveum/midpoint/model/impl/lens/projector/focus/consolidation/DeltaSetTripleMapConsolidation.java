@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleMap;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleIvwoMap;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
@@ -38,7 +38,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 
 /**
- * Responsible for consolidation of a {@link DeltaSetTripleMap} (plus, minus, zero sets for individual items) to item deltas.
+ * Responsible for consolidation of a {@link DeltaSetTripleIvwoMap} (plus, minus, zero sets for individual items) to item deltas.
  *
  * The consolidation itself is delegated to {@link IvwoConsolidator}.
  */
@@ -51,7 +51,7 @@ public class DeltaSetTripleMapConsolidation<T extends Containerable> {
     /**
      * Item path-keyed map of output delta set triples.
      */
-    private final DeltaSetTripleMap outputTripleMap;
+    private final DeltaSetTripleIvwoMap outputTripleMap;
 
     /**
      * Target PCV, for which deltas are to be produced.
@@ -128,7 +128,7 @@ public class DeltaSetTripleMapConsolidation<T extends Containerable> {
     @NotNull private final Collection<ItemDelta<?,?>> itemDeltas = new ArrayList<>();
 
     public DeltaSetTripleMapConsolidation(
-            @NotNull DeltaSetTripleMap outputTripleMap,
+            @NotNull DeltaSetTripleIvwoMap outputTripleMap,
             @Nullable PrismContainerValue<T> targetPcv,
             @NotNull APrioriDeltaProvider aPrioriItemDeltaProvider,
             @NotNull Function<ItemPath, Boolean> itemDeltaExistsProvider,

@@ -148,13 +148,9 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         when("user is assigned 'test' account");
-        traced(createModelAndProvisioningLoggingTracingProfile(),
-                () -> executeChanges(
+        executeChanges(
                 createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, ACCOUNT_INTENT_TEST, true),
-                null, task, result));
-//        executeChanges(
-//                createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, ACCOUNT_INTENT_TEST, true),
-//                null, task, result);
+                null, task, result);
 
         // THEN
         then();

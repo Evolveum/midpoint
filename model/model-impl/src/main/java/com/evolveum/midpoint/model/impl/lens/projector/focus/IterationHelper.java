@@ -287,7 +287,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
     void incrementIterationCounter() throws ObjectAlreadyExistsException {
         iteration++;
         iterationToken = null;
-        LensUtil.checkMaxIterations(iteration, maxIterations, reIterationReason, humanReadableReason, focusContext.getHumanReadableName());
+        LensUtil.checkMaxIterations(iteration, maxIterations, reIterationReason, humanReadableReason);
     }
 
     boolean didResetOnRenameOccur() {

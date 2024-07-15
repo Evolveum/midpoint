@@ -288,7 +288,7 @@ public abstract class ActivityState implements DebugDumpable {
         }
     }
 
-    private @NotNull ItemPath getWorkStateItemPath() {
+    @NotNull ItemPath getWorkStateItemPath() {
         return stateItemPath.append(ActivityStateType.F_WORK_STATE);
     }
     //endregion

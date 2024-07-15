@@ -27,6 +27,9 @@ import java.util.List;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
+import com.evolveum.midpoint.util.exception.*;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -43,8 +46,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Very simple certification test.
@@ -89,18 +93,24 @@ public class TestCertificationBasic extends AbstractCertificationTest {
                 AccessCertificationDefinitionType.class, result).asObjectable();
 
         when();
-        AccessCertificationCampaignType campaign =
-                certificationService.createCampaign(roleInducementCertDefinition.getOid(), task, result);
+        certificationService.createCampaign(roleInducementCertDefinition.getOid(), task, result);
 
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
 
-        assertNotNull("Created campaign is null", campaign);
+        List<PrismObject<TaskType>> tasks = getCampaignCreationTasks(roleInducementCertDefinition.getOid(), result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        String foundTaskOid = tasks.get(0).getOid();
+        waitForTaskFinish(foundTaskOid);
 
-        roleInducementCampaignOid = campaign.getOid();
+        TaskType foundTask = getObject(TaskType.class, foundTaskOid).asObjectable();
 
-        campaign = getCampaignWithCases(roleInducementCampaignOid);
+        roleInducementCampaignOid = ((CertificationCampaignCreationWorkStateType)foundTask
+                .getActivityState().getActivity().getWorkState()).getCreatedCampaignRef().getOid();
+
+        @NotNull AccessCertificationCampaignType campaign = getCampaignWithCases(roleInducementCampaignOid);
+
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, roleInducementCertDefinition);
         assertCasesCount(campaign.getOid(), 0);
@@ -165,18 +175,31 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         login(getUserFromRepo(USER_BOB_DEPUTY_FULL_OID));
 
         when();
-        AccessCertificationCampaignType campaign =
-                certificationService.createCampaign(certificationDefinition.getOid(), task, result);
+        certificationService.createCampaign(certificationDefinition.getOid(), task, result);
 
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
 
-        assertNotNull("Created campaign is null", campaign);
+        List<PrismObject<TaskType>> tasks = getCampaignCreationTasks(certificationDefinition.getOid(), result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        String foundTaskOid = tasks.get(0).getOid();
+        waitForTaskFinish(foundTaskOid);
 
-        campaignOid = campaign.getOid();
+        TaskType foundTask = runPrivileged(() -> {
+            try {
+                return getObject(TaskType.class, foundTaskOid).asObjectable();
+            } catch (CommonException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        assertNotNull(foundTask);
 
-        campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
+        campaignOid = ((CertificationCampaignCreationWorkStateType)foundTask
+                .getActivityState().getActivity().getWorkState()).getCreatedCampaignRef().getOid();
+
+        @NotNull AccessCertificationCampaignType campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
+
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
         assertPercentCompleteAll(campaign, 100, 100, 100); // no cases
@@ -189,24 +212,37 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
     @Test
     public void test011CreateCampaignAllowed() throws Exception {
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         login(getUserFromRepo(USER_BOB_OID));
 
         when();
-        AccessCertificationCampaignType campaign =
-                certificationService.createCampaign(certificationDefinition.getOid(), task, result);
+        certificationService.createCampaign(certificationDefinition.getOid(), task, result);
 
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
 
-        assertNotNull("Created campaign is null", campaign);
+        List<PrismObject<TaskType>> tasks = getCampaignCreationTasks(certificationDefinition.getOid(), startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        String foundTaskOid = tasks.get(0).getOid();
+        waitForTaskFinish(foundTaskOid);
 
-        campaignOid = campaign.getOid();
+        TaskType foundTask = runPrivileged(() -> {
+            try {
+                return getObject(TaskType.class, foundTaskOid).asObjectable();
+            } catch (CommonException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
-        campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
+        campaignOid = ((CertificationCampaignCreationWorkStateType)foundTask
+                .getActivityState().getActivity().getWorkState()).getCreatedCampaignRef().getOid();
+
+        @NotNull AccessCertificationCampaignType campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
+
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
         assertPercentCompleteAll(campaign, 100, 100, 100); // no cases
@@ -760,6 +796,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
     @Test
     public void test205StartRemediationAllow() throws Exception {
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         login(getUserFromRepo(USER_BOB_OID));
 
         given();
@@ -778,10 +815,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         display("campaign after remediation start", campaign);
         assertTrue("wrong campaign state: " + campaign.getState(), campaign.getState() == CLOSED || campaign.getState() == IN_REMEDIATION);
 
-        ObjectQuery query = prismContext.queryFor(TaskType.class)
-                .item(TaskType.F_OBJECT_REF).ref(campaign.getOid())
-                .build();
-        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        List<PrismObject<TaskType>> tasks = getRemediationTasks(campaignOid, startTime, result);
         assertEquals("unexpected number of related tasks", 1, tasks.size());
         waitForTaskFinish(tasks.get(0).getOid());
 

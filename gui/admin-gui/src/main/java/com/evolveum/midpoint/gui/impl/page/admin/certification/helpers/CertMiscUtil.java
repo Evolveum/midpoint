@@ -30,6 +30,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.ActionType;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.wicket.chartjs.ChartData;
@@ -41,6 +45,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
@@ -492,4 +498,52 @@ public class CertMiscUtil {
         }
     }
 
+    public static InlineMenuItem createCampaignMenuItem(IModel<List<AccessCertificationCampaignType>> selectedCampaignsModel,
+            CampaignStateHelper.CampaignAction action, PageBase pageBase) {
+        InlineMenuItem item = new InlineMenuItem(pageBase.createStringResource(action.getActionLabelKey())) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        List<AccessCertificationCampaignType> campaigns = selectedCampaignsModel.getObject();
+                        if (campaigns.isEmpty()) {
+                            IModel<?> rowModel = getRowModel();
+                            if (rowModel == null || rowModel.getObject() == null) {
+                                pageBase.warn(pageBase.getString("PageCertCampaigns.message.noCampaignsSelected"));
+                                target.add(pageBase.getFeedbackPanel());
+                                return;
+                            }
+                            AccessCertificationCampaignType campaign =
+                                    (AccessCertificationCampaignType) ((SelectableBean) rowModel.getObject()).getValue();
+                            campaigns = Collections.singletonList(campaign);
+                        }
+                        CampaignProcessingHelper.campaignActionPerformed(campaigns, action, pageBase, target);
+                    }
+                };
+            }
+
+            @Override
+            public boolean isHeaderMenuItem(){
+                return action.isBulkAction();
+            }
+        };
+
+        item.setVisibilityChecker((rowModel, isHeader) -> isMenuItemVisible(rowModel, action, isHeader));
+        return item;
+    }
+
+    private static boolean isMenuItemVisible(IModel<?> rowModel, CampaignStateHelper.CampaignAction action, boolean isHeader) {
+        if (rowModel == null || rowModel.getObject() == null) {
+            return true;
+        }
+        AccessCertificationCampaignType campaign = (AccessCertificationCampaignType) ((SelectableBean) rowModel.getObject()).getValue();
+        CampaignStateHelper helper = new CampaignStateHelper(campaign);
+        List<CampaignStateHelper.CampaignAction> actionsList = helper.getAvailableActions();
+        return actionsList.contains(action);
+    }
 }

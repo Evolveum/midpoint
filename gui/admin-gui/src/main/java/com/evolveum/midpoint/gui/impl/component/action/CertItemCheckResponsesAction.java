@@ -27,6 +27,7 @@ import java.util.List;
 @ActionType(
         identifier = "certItemHistory",
         applicableForType = AccessCertificationWorkItemType.class,
+        bulkAction = false,
         display = @PanelDisplay(label = "CertItemCheckResponsesAction.label", icon = "fa fa-check text-success", order = 10))
 public class CertItemCheckResponsesAction extends AbstractGuiAction<AccessCertificationWorkItemType> {
 

@@ -22,9 +22,13 @@ import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelColumn;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectClassDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.SelectObjectClassesStepPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
@@ -44,6 +48,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
@@ -928,55 +933,6 @@ public class ColumnUtils {
             }
         };
         columns.add(column);
-
-//        column = new SingleButtonColumn<>(new Model<>(), null) {
-//
-//            @Override
-//            public boolean isButtonEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> model) {
-//                //todo fix
-////                final AccessCertificationCampaignType campaign = model.getObject().getValue();
-////                String button = determineAction(campaign);
-////                return button != null;
-//                return true;
-//            }
-//
-//            @Override
-//            public boolean isButtonVisible(IModel<SelectableBean<AccessCertificationCampaignType>> model) {
-//                final AccessCertificationCampaignType campaign = model.getObject().getValue();
-//
-//                return campaign.getState() != AccessCertificationCampaignStateType.IN_REMEDIATION
-//                        && campaign.getState() != AccessCertificationCampaignStateType.CLOSED;
-//            }
-//
-//            @Override
-//            public String getCaption() {
-//                //todo fix
-////                AccessCertificationCampaignType campaign = getRowModel().getObject().getValue();
-////                String button = determineAction(campaign);
-////                if (button != null) {
-////                    return CampaignsPanel.this.createStringResource(button).getString();
-////                } else {
-//                return "";
-////                }
-//            }
-//
-//            @Override
-//            public String getButtonCssColorClass() {
-//                return DoubleButtonColumn.ButtonColorClass.PRIMARY.toString();
-//            }
-//
-//            @Override
-//            public String getButtonCssSizeClass() {
-//                return DoubleButtonColumn.ButtonSizeClass.SMALL.toString();
-//            }
-//
-//            @Override
-//            public void clickPerformed(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> model) {
-//                AccessCertificationCampaignType campaign = model.getObject().getValue();
-//                CampaignProcessingHelper.campaignActionPerformed(campaign, pageBase, target);
-//            }
-//        };
-//        columns.add(column);
 
         return columns;
     }
