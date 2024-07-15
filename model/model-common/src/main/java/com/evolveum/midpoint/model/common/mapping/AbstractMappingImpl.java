@@ -1041,7 +1041,12 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         for (V negativeValue : outputTriple.getMinusSet()) {
             LOGGER.trace("restrictNegativeValuesToOwnYield processing negative value of {}", negativeValue);
             if (negativeValue != null) {
-                assert !negativeValue.hasValueMetadata();
+                if (!negativeValue.hasValueMetadata()) {
+                    // Negative value does not have metadata - should be removed?
+                    negativeValue.hasValueMetadata();
+                    //assert !negativeValue.hasValueMetadata();
+
+                }
                 List<V> matchingOriginalValues = originalTargetValues.stream()
                         .filter(originalValue ->
                                 negativeValue.equals(originalValue, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS))

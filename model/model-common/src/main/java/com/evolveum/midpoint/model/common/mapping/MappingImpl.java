@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.common.mapping;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.mapping.metadata.TransformationalMetadataComputation;
@@ -20,7 +19,6 @@ import com.evolveum.midpoint.repo.common.expression.TransformationValueMetadataC
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.jetbrains.annotations.NotNull;
@@ -78,13 +76,14 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition<?>> exte
     private ItemValueMetadataProcessingSpec createProcessingSpec(OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
-        ItemValueMetadataProcessingSpec processingSpec = ItemValueMetadataProcessingSpec.forScope(TRANSFORMATION);
+        var processingSpec = ItemValueMetadataProcessingSpec.forScope(TRANSFORMATION, canUseDefaultsForMetadataProcessing());
         processingSpec.addPathsToIgnore(mappingBean.getIgnoreMetadataProcessing());
         // TODO What about persona mappings? outbound mappings? We should not use object template for that.
         ItemPath outputPath = parser.getOutputPath();
+        D outputDefinition = parser.getOutputDefinition();
         if (outputPath != null) { // can it ever be null?
             processingSpec.populateFromCurrentFocusTemplate(
-                    outputPath, ModelCommonBeans.get().objectResolver,
+                    outputPath, outputDefinition,  ModelCommonBeans.get().objectResolver,
                     getMappingContextDescription(), task, result);
         }
         processingSpec.addMetadataMappings(
@@ -92,6 +91,10 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition<?>> exte
                 // [EP:M:MM] DONE (mappingCI is assumed to be OK)
                 mappingConfigItem.originProviderFor(MappingType.F_METADATA_MAPPING));
         return processingSpec;
+    }
+
+    private boolean canUseDefaultsForMetadataProcessing() {
+        return true;
     }
 
     @Override
