@@ -68,36 +68,40 @@ class GeneralUpdate extends BaseUpdate {
     }
 
     void handleItemDelta() throws SchemaException {
-        while (segmentsIterator.hasNext()) {
-            Object currentPathSegment = segmentsIterator.next();
-            if (!ItemPath.isName(currentPathSegment)) {
-                // TODO Why is this? Shouldn't we throw an exception instead?
-                LOGGER.trace("Segment {} in path {} is not name item, finishing entity update for delta", currentPathSegment, path);
-                break;
-            }
-            currentItemName = ItemPath.toName(currentPathSegment);
-
-            LOGGER.trace("handleItemDelta: current item name = {}, currentBean = {}, currentBeanType = {}",
-                    currentItemName, currentBean, currentBeanType.getJavaType());
-
-            if (currentBean instanceof RAssignment) {
-                if (handleAssignment(currentItemName)) {
+        try {
+            while (segmentsIterator.hasNext()) {
+                Object currentPathSegment = segmentsIterator.next();
+                if (!ItemPath.isName(currentPathSegment)) {
+                    // TODO Why is this? Shouldn't we throw an exception instead?
+                    LOGGER.trace("Segment {} in path {} is not name item, finishing entity update for delta", currentPathSegment, path);
                     break;
                 }
-            }
+                currentItemName = ItemPath.toName(currentPathSegment);
 
-            Attribute attribute = findAttributeForCurrentState();
-            if (attribute == null) {
-                // there's no table/column that needs update
-                break;
-            }
+                LOGGER.trace("handleItemDelta: current item name = {}, currentBean = {}, currentBeanType = {}",
+                        currentItemName, currentBean, currentBeanType.getJavaType());
 
-            if (segmentsIterator.hasNext()) {
-                stepThroughAttribute(attribute);
-            } else {
-                updateAttribute(attribute);
-                updateNameCopyAttribute(attribute);
+                if (currentBean instanceof RAssignment) {
+                    if (handleAssignment(currentItemName)) {
+                        break;
+                    }
+                }
+
+                Attribute attribute = findAttributeForCurrentState();
+                if (attribute == null) {
+                    // there's no table/column that needs update
+                    break;
+                }
+
+                if (segmentsIterator.hasNext()) {
+                    stepThroughAttribute(attribute);
+                } else {
+                    updateAttribute(attribute);
+                    updateNameCopyAttribute(attribute);
+                }
             }
+        } catch (ContainerMissingException e) {
+            LOGGER.debug("Delta Item Path: {} to non-existing container" , path, e);
         }
     }
 
@@ -175,7 +179,7 @@ class GeneralUpdate extends BaseUpdate {
         return beans.entityRegistry.findAttributePathOverride(currentBeanType, subPath);
     }
 
-    private void stepThroughAttribute(Attribute attribute) {
+    private void stepThroughAttribute(Attribute attribute) throws ContainerMissingException {
         Method method = (Method) attribute.getJavaMember();
 
         switch (attribute.getPersistentAttributeType()) {
@@ -224,7 +228,7 @@ class GeneralUpdate extends BaseUpdate {
         }
     }
 
-    private void stepIntoContainerValue(Attribute attribute, Method method, Long id) {
+    private void stepIntoContainerValue(Attribute attribute, Method method, Long id) throws ContainerMissingException {
         Class clazz = getAttributeValueType(attribute);
         Collection c = (Collection) invoke(method);
         if (!Container.class.isAssignableFrom(clazz)) {
@@ -242,7 +246,7 @@ class GeneralUpdate extends BaseUpdate {
             }
         }
 
-        throw new RuntimeException("Couldn't find container of type '" + getAttributeValueType(attribute)
+        throw new ContainerMissingException("Couldn't find container of type '" + getAttributeValueType(attribute)
                 + "' with id '" + id + "'");
     }
 
@@ -359,6 +363,13 @@ class GeneralUpdate extends BaseUpdate {
             return method.invoke(currentBean);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             throw new SystemException("Couldn't invoke method '" + method.getName() + "' on object '" + currentBean + "'", ex);
+        }
+    }
+
+    private static class ContainerMissingException extends Exception {
+
+        public ContainerMissingException(String message) {
+            super(message);
         }
     }
 }
