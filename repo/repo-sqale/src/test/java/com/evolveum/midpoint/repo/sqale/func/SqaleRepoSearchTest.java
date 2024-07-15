@@ -269,6 +269,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .lifecycleState("assignment1-1")
                         .orgRef(org1Oid, OrgType.COMPLEX_TYPE, relation1)
                         // similar target ref like for user3, but to different role
+                        .effectiveMarkRef(markProtectedOid, MarkType.COMPLEX_TYPE)
                         .targetRef(roleOtherOid, RoleType.COMPLEX_TYPE, relation2)
                         .activation(new ActivationType()
                                 .validFrom("2021-03-01T00:00:00Z")
@@ -372,10 +373,12 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 .assignment(new AssignmentType()
                         .lifecycleState("ls-user3-ass2")
                         .targetRef(roleAvIOid, RoleType.COMPLEX_TYPE, relation2)
+                        .effectiveMarkRef(markProtectedOid, MarkType.COMPLEX_TYPE)
                         .metadata(new MetadataType()
                                 .creatorRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT))
                         .activation(new ActivationType()
                                 .validTo("2022-01-01T00:00:00Z")))
+
                 .operationExecution(new OperationExecutionType()
                         .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
                         .status(OperationResultStatusType.WARNING)
@@ -943,6 +946,14 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         searchUsersTest("having assignment with any of specified subtypes",
                 f -> f.item(UserType.F_ASSIGNMENT, AssignmentType.F_SUBTYPE)
                         .eq("ass-subtype-1", "ass-subtype-2"),
+                user1Oid, user3Oid);
+    }
+
+    @Test
+    public void test192SearchUsersByAssignmentEffectiveMarkRef() throws Exception {
+        searchUsersTest("having assignment with any of specified subtypes",
+                f -> f.item(UserType.F_ASSIGNMENT, AssignmentType.F_EFFECTIVE_MARK_REF)
+                        .ref(markProtectedOid),
                 user1Oid, user3Oid);
     }
 

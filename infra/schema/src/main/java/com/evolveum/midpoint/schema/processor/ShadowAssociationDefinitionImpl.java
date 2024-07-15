@@ -22,6 +22,8 @@ import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
@@ -37,7 +39,6 @@ import com.evolveum.midpoint.prism.impl.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.config.ResourceObjectAssociationConfigItem;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -137,10 +138,6 @@ public class ShadowAssociationDefinitionImpl
                 associationDefinitionBean, associationTypeDefinitionBean, null, null);
     }
 
-    private static ResourceItemDefinitionType toExistingImmutable(@Nullable ResourceItemDefinitionType customizationBean) {
-        return CloneUtil.toImmutable(Objects.requireNonNullElseGet(customizationBean, ResourceItemDefinitionType::new));
-    }
-
     @Override
     public ItemProcessing getProcessing() {
         return null; // TODO implement if needed
@@ -190,22 +187,6 @@ public class ShadowAssociationDefinitionImpl
     public @NotNull PrismContainer<ShadowAssociationValueType> instantiate(QName name) throws SchemaException {
         return ShadowAssociation.empty(name, this);
     }
-
-//    @Override
-//    public @NotNull ShadowAssociationDefinitionImpl forLayer(@NotNull LayerType layer) {
-//        if (layer == currentLayer) {
-//            return this;
-//        } else {
-//            return new ShadowAssociationDefinitionImpl(
-//                    layer,
-//                    nativeDefinition,
-//                    customizationBean,
-//                    limitationsMap,
-//                    accessOverride.clone(), // TODO do we want to preserve also the access override?
-//                    referenceTypeDefinition,
-//                    maxOccurs);
-//        }
-//    }
 
     /**
      * We assume that the checks during the definition parsing were good enough to discover any problems
@@ -342,15 +323,6 @@ public class ShadowAssociationDefinitionImpl
         maxOccurs = value;
     }
 
-    public @Nullable ShadowAssociationDefinitionType getModernAssociationDefinitionBean() {
-        return modernAssociationDefinitionBean;
-    }
-
-    @Override
-    public @Nullable ShadowAssociationTypeDefinitionType getModernAssociationTypeDefinitionBean() {
-        return modernAssociationTypeDefinitionBean;
-    }
-
     @Override
     public boolean isValidFor(@NotNull QName elementQName, @NotNull Class<? extends ItemDefinition<?>> clazz, boolean caseInsensitive) {
         Preconditions.checkArgument(!caseInsensitive, "Case-insensitive search is not supported");
@@ -372,22 +344,24 @@ public class ShadowAssociationDefinitionImpl
     }
 
     @Override
-    public @Nullable MappingType getExplicitOutboundMappingBean() {
+    public @NotNull Collection<MappingType> getExplicitOutboundMappingBeans() {
         if (legacyInformation != null) {
-            return legacyInformation.outboundMappingBean();
+            return MiscUtil.asListExceptForNull(legacyInformation.outboundMappingBean());
         }
         if (modernAssociationDefinitionBean != null) {
-            return modernAssociationDefinitionBean.getExplicitOutbound();
+            return modernAssociationDefinitionBean.getOutbound();
         }
-        return null;
+        return List.of();
     }
 
     @Override
-    public @NotNull Collection<InboundMappingType> getExplicitInboundMappingBean() {
+    public @NotNull Collection<InboundMappingType> getExplicitInboundMappingBeans() {
         if (legacyInformation != null) {
             return legacyInformation.inboundMappingBeans();
         }
-        // Also modern explicit inbounds?
+        if (modernAssociationDefinitionBean != null) {
+            return modernAssociationDefinitionBean.getInbound();
+        }
         return List.of();
     }
 
@@ -819,15 +793,6 @@ public class ShadowAssociationDefinitionImpl
     @Override
     public void setDiagrams(List<ItemDiagramSpecification> value) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public @NotNull Collection<ResourceObjectInboundDefinition> getRelevantInboundDefinitions() {
-        if (hasModernInbound()) {
-            return List.of(ResourceObjectInboundDefinition.forAssociation(modernAssociationDefinitionBean));
-        } else {
-            return List.of();
-        }
     }
 
     @Override

@@ -59,7 +59,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -369,7 +368,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     .build();
             mappingSetEvaluation.evaluateMappingsToTriples();
 
-            DeltaSetTripleMap focusOutputTripleMap = mappingSetEvaluation.getOutputTripleMap();
+            DeltaSetTripleIvwoMap focusOutputTripleMap = mappingSetEvaluation.getOutputTripleMap();
 
             logOutputTripleMap(focusOutputTripleMap);
 
@@ -397,7 +396,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    private void logOutputTripleMap(DeltaSetTripleMap focusOutputTripleMap) {
+    private void logOutputTripleMap(DeltaSetTripleIvwoMap focusOutputTripleMap) {
         if (LOGGER.isTraceEnabled()) {
             for (var entry : focusOutputTripleMap.entrySet()) {
                 LOGGER.trace("Resulting output triple for {}:\n{}", entry.getKey(), entry.getValue().debugDump(1));

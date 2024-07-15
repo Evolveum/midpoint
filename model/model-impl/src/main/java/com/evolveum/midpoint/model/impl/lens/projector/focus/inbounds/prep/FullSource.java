@@ -14,7 +14,7 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingEvaluationRequest;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequest;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -45,10 +45,10 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 /**
- * Inbound mapping source ({@link MSource}) that is used in clockwork-based inbound mapping evaluation.
+ * Inbound mapping source ({@link MappingSource}) that is used in clockwork-based inbound mapping evaluation.
  * This is the standard situation. The other one is e.g. pre-inbounds (correlation-time) evaluation.
  */
-class FullSource extends MSource {
+public class FullSource extends MappingSource {
 
     private static final Trace LOGGER = TraceManager.getTrace(FullSource.class);
 
@@ -58,40 +58,28 @@ class FullSource extends MSource {
 
     @NotNull private final ModelBeans beans = ModelBeans.get();
 
-    @NotNull private final Context context;
+    @NotNull private final MappingContext context;
 
     @NotNull private final IdentityManagementConfiguration identityManagementConfiguration;
 
-    FullSource(
+    public FullSource(
             @NotNull InboundSourceData sourceData,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
             @NotNull LensProjectionContext projectionContext,
-            @NotNull Context context,
-            @Nullable ShadowAssociationDefinition owningAssociationDefinition) throws ConfigurationException {
-        super(sourceData, inboundDefinition, owningAssociationDefinition);
+            @NotNull MappingContext context) throws ConfigurationException {
+        super(
+                sourceData,
+                inboundDefinition,
+                projectionContext.getResourceRequired(),
+                projectionContext.getHumanReadableName());
         this.projectionContext = projectionContext;
         this.context = context;
         this.identityManagementConfiguration = getFocusContext().getIdentityManagementConfiguration();
     }
 
     @Override
-    protected String getProjectionHumanReadableName() {
-        return projectionContext.getHumanReadableName();
-    }
-
-    @Override
     boolean isClockwork() {
         return true;
-    }
-
-    @Override
-    @NotNull ResourceType getResource() {
-        return projectionContext.getResourceRequired();
-    }
-
-    @Override
-    Object getContextDump() {
-        return projectionContext.getLensContext().debugDumpLazily();
     }
 
     @Override
@@ -223,21 +211,21 @@ class FullSource extends MSource {
     }
 
     @Override
-    void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull Context context, OperationResult result)
+    void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull MappingContext context, OperationResult result)
             throws SchemaException, StopProcessingProjectionException {
         if (projectionContext.isFullShadow()) { // FIXME BEWARE, we may deal with a different shadow!
             return;
         }
         if (projectionContext.isGone()) {
-            LOGGER.trace("Not loading {} because the resource object is gone", getProjectionHumanReadableNameLazy());
+            LOGGER.trace("Not loading {} because the resource object is gone", humanReadableName);
         }
         if (fullStateRequired) {
-            LOGGER.trace("Loading {} because full state is required", getProjectionHumanReadableNameLazy());
+            LOGGER.trace("Loading {} because full state is required", humanReadableName);
             doLoad(context, result);
         }
     }
 
-    private void doLoad(@NotNull Context context, OperationResult result)
+    private void doLoad(@NotNull MappingContext context, OperationResult result)
             throws SchemaException, StopProcessingProjectionException {
         try {
             beans.contextLoader.loadFullShadow(projectionContext, "inbound", context.env.task, result);
@@ -371,8 +359,8 @@ class FullSource extends MSource {
     }
 
     @Override
-    <V extends PrismValue, D extends ItemDefinition<?>> InboundMappingEvaluationRequest<V, D> createMappingRequest(MappingImpl<V, D> mapping) {
-        return new InboundMappingEvaluationRequest<>(mapping, projectionContext.isDelete(), projectionContext);
+    <V extends PrismValue, D extends ItemDefinition<?>> MappingEvaluationRequest<V, D> createMappingRequest(MappingImpl<V, D> mapping) {
+        return new MappingEvaluationRequest<>(mapping, projectionContext.isDelete(), projectionContext);
     }
 
     @Override

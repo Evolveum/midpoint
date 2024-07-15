@@ -13,9 +13,15 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
 
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
+
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -159,7 +165,9 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
                         return new LoadableModel<>() {
                             @Override
                             protected List<AccessCertificationCampaignType> load() {
-                                return new ArrayList<>(getProvider().getSelected());
+                                List<IModel<SelectableBeanImpl<AccessCertificationCampaignType>>> selected =
+                                        TableUtil.getAvailableData(getTable().getDataTable());
+                                return selected.stream().map(s -> s.getObject().getValue()).toList();
                             }
                         };
                     }
@@ -237,7 +245,6 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
                 .stream()
                         .map(a -> CertMiscUtil.createCampaignMenuItem(campaignsModel, a, getPageBase()))
                                 .toList();
-//        inlineMenuItems.addAll(createInlineMenuForItem());
 
         InlineMenuButtonColumn<SelectableBean<AccessCertificationCampaignType>> actionsColumn =
                 new InlineMenuButtonColumn<>(inlineMenuItems, getPageBase());
@@ -246,160 +253,6 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
         return columns;
     }
 
-
-    private List<InlineMenuItem> createInlineMenu() {
-        List<InlineMenuItem> items = new ArrayList<>();
-        items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.startSelected")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new HeaderMenuAction(CampaignsPanel.this) {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-
-                        CampaignProcessingHelper.startSelectedCampaignsPerformed(target, getSelectedCampaigns(), getPageBase());
-                    }
-                };
-            }
-
-        });
-        items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.closeSelected")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new HeaderMenuAction(CampaignsPanel.this) {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        CampaignProcessingHelper.closeSelectedCampaignsConfirmation(target, getSelectedCampaigns(), getPageBase());
-                    }
-                };
-            }
-
-        });
-        items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.reiterateSelected")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new HeaderMenuAction(CampaignsPanel.this) {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        CampaignProcessingHelper.reiterateSelectedCampaignsConfirmation(target, getSelectedCampaigns(),
-                                getPageBase());
-                    }
-                };
-            }
-
-        });
-        items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.deleteSelected")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new HeaderMenuAction(CampaignsPanel.this) {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        CampaignProcessingHelper.deleteSelectedCampaignsConfirmation(target, getSelectedCampaigns(), getPageBase());
-                    }
-                };
-            }
-
-        });
-        return items;
-    }
-
-    private List<InlineMenuItem> createInlineMenuForItem() {
-
-        List<InlineMenuItem> menuItems = new ArrayList<>();
-        InlineMenuItem item = new InlineMenuItem(createStringResource("PageCertCampaigns.menu.close")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<AccessCertificationCampaignType>>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null) {
-                            return;
-                        }
-                        CampaignProcessingHelper.closeCampaignConfirmation(target, getRowModel().getObject().getValue(), getPageBase());
-                    }
-                };
-            }
-
-            @Override
-            public boolean isHeaderMenuItem() {
-                return false;
-            }
-
-        };
-//        item.setVisibilityChecker((rowModel, header) -> isNotClosed(rowModel));
-        menuItems.add(item);
-
-        item = new InlineMenuItem(createStringResource("PageCertCampaigns.menu.reiterate")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<AccessCertificationCampaignType>>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null) {
-                            return;
-                        }
-                        CampaignProcessingHelper.reiterateCampaignConfirmation(target, getRowModel().getObject().getValue(), getPageBase());
-                    }
-                };
-            }
-
-            @Override
-            public boolean isHeaderMenuItem() {
-                return false;
-            }
-        };
-//        item.setVisibilityChecker((rowModel, header) -> isReiterable(rowModel));
-        menuItems.add(item);
-
-        menuItems.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.delete")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<AccessCertificationCampaignType>>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null) {
-                            return;
-                        }
-                        CampaignProcessingHelper.deleteCampaignConfirmation(target, getRowModel().getObject().getValue(), getPageBase());
-                    }
-                };
-            }
-
-            @Override
-            public boolean isHeaderMenuItem() {
-                return false;
-            }
-
-        });
-        return menuItems;
-    }
 
     private Search<AccessCertificationCampaignType> createSearch() {
         SearchBuilder<AccessCertificationCampaignType> searchBuilder = new SearchBuilder<>(AccessCertificationCampaignType.class)

@@ -64,7 +64,7 @@ public class ShadowAssociation
                         ShadowAssociationValue.semanticEqualsChecker());
             };
 
-    private ShadowAssociation(QName name, ShadowAssociationDefinition definition) {
+    private ShadowAssociation(@NotNull QName name, @NotNull ShadowAssociationDefinition definition) {
         super(name, definition);
     }
 

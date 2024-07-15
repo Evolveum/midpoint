@@ -27,13 +27,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Minimalistic context needed to evaluate inbound mappings outside of both {@link LensContext}
  * and {@link SynchronizationContext}.
  *
- * It is used e.g. when a correlation is invoked as part
- * of {@link MidpointFunctions#findCandidateOwners(Class, ShadowType, String, ShadowKindType, String)}
- * or {@link CorrelationServiceImpl#checkCandidateOwner(ShadowType, ResourceType, SynchronizationPolicy, FocusType, Task,
- * OperationResult)} method call.
+ * It is used e.g. when a mappings evaluation is invoked as part of
+ *
+ * - {@link MidpointFunctions#findCandidateOwners(Class, ShadowType, String, ShadowKindType, String)},
+ * - {@link CorrelationServiceImpl#checkCandidateOwner(ShadowType, ResourceType, SynchronizationPolicy, FocusType, Task,
+ * OperationResult)},
+ * - or association value synchronization.
  */
-public class SimplePreInboundsContextImpl<T extends Containerable>
-        implements PreInboundsContext<T> {
+public class DefaultSingleShadowInboundsProcessingContextImpl<T extends Containerable>
+        implements SingleShadowInboundsProcessingContext<T> {
 
     @NotNull private final ShadowLikeValue shadowLikeValue;
 
@@ -49,9 +51,9 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
 
     @NotNull private final ResourceObjectInboundDefinition inboundDefinition;
 
-    @Nullable private final ShadowAssociationDefinition owningAssociationDefinition;
+    private final boolean beforeCorrelation;
 
-    public SimplePreInboundsContextImpl(
+    public DefaultSingleShadowInboundsProcessingContextImpl(
             @NotNull ShadowLikeValue shadowLikeValue,
             @NotNull ResourceType resource,
             @NotNull T preFocus,
@@ -59,7 +61,7 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
             @NotNull Task task,
             @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
-            @Nullable ShadowAssociationDefinition owningAssociationDefinition) {
+            boolean beforeCorrelation) {
         this.shadowLikeValue = shadowLikeValue;
         this.resource = resource;
         this.preFocus = preFocus;
@@ -67,7 +69,7 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
         this.task = task;
         this.objectDefinition = objectDefinition;
         this.inboundDefinition = inboundDefinition;
-        this.owningAssociationDefinition = owningAssociationDefinition;
+        this.beforeCorrelation = beforeCorrelation;
     }
 
     @Override
@@ -109,11 +111,6 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
     }
 
     @Override
-    public @Nullable ShadowAssociationDefinition getOwningAssociationDefinition() {
-        return owningAssociationDefinition;
-    }
-
-    @Override
     public @Nullable String getArchetypeOid() {
         return inboundDefinition.getFocusSpecification().getArchetypeOid();
     }
@@ -122,6 +119,11 @@ public class SimplePreInboundsContextImpl<T extends Containerable>
     public String getChannel() {
         // This is an approximation. (Normally, the channel comes as part of the resource object change information.)
         return task.getChannel();
+    }
+
+    @Override
+    public boolean isBeforeCorrelation() {
+        return beforeCorrelation;
     }
 
     @Override

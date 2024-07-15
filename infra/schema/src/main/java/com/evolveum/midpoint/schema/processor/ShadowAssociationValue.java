@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
@@ -73,24 +74,18 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
                         ShadowReferenceAttribute.semanticEqualsChecker());
             };
 
+    @NotNull private ShadowAssociationDefinition definition;
+
     // FIXME decide on this
     private final boolean hasAssociationObject;
-
-//    private ShadowAssociationValue() {
-//        this(null, null, null, null,
-//                stateNonNull(
-//                        PrismContext.get().getSchemaRegistry()
-//                                .findComplexTypeDefinitionByCompileTimeClass(ShadowAssociationValueType.class),
-//                        "No CTD for ShadowAssociationValueType"));
-//    }
 
     private ShadowAssociationValue(
             OriginType type, Objectable source,
             PrismContainerable<?> container, Long id,
-            ComplexTypeDefinition complexTypeDefinition,
-            boolean hasAssociationObject) {
-        super(type, source, container, id, complexTypeDefinition);
-        this.hasAssociationObject = hasAssociationObject;
+            @NotNull ShadowAssociationDefinition definition) {
+        super(type, source, container, id, definition.getComplexTypeDefinition());
+        this.definition = definition;
+        this.hasAssociationObject = definition.hasAssociationObject();
     }
 
     /**
@@ -177,8 +172,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     /** We need the definition to provide correct CTD. */
     public static ShadowAssociationValue empty(@NotNull ShadowAssociationDefinition definition) {
         return new ShadowAssociationValue(
-                null, null, null, null,
-                definition.getComplexTypeDefinition(), definition.hasAssociationObject());
+                null, null, null, null, definition);
     }
 
     @Override
@@ -189,13 +183,23 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     @Override
     public ShadowAssociationValue cloneComplex(CloneStrategy strategy) {
         ShadowAssociationValue clone = new ShadowAssociationValue(
-                getOriginType(), getOriginObject(), getParent(), null, complexTypeDefinition, hasAssociationObject);
+                getOriginType(), getOriginObject(), getParent(), null, definition);
         copyValues(strategy, clone);
         return clone;
     }
 
+    protected void copyValues(CloneStrategy strategy, ShadowAssociationValue clone) {
+        super.copyValues(strategy, clone);
+        clone.definition = this.definition;
+    }
+
+    @Override
+    public @NotNull PrismContainerDefinition<ShadowAssociationValueType> getDefinition() {
+        return Objects.requireNonNull(definition);
+    }
+
     public @NotNull ShadowAssociationDefinition getDefinitionRequired() {
-        return stateNonNull((ShadowAssociationDefinition) getDefinition(), "No definition in %s", this);
+        return stateNonNull(definition, "No definition in %s", this);
     }
 
     @Nullable
@@ -379,6 +383,18 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
                 CloneUtil.cloneCloneable(
                         associationObject.getBean().getActivation()));
         return this;
+    }
+
+    @Override
+    protected boolean equalsItems(
+            PrismContainerValue<ShadowAssociationValueType> other, ParameterizedEquivalenceStrategy strategy) {
+        // BRUTAL HACK; the idea is that we want to compare the values semantically e.g. when doing IDI->triple conversion
+        if (!(other instanceof ShadowAssociationValue otherSav)
+                || strategy.isLiteralDomComparison()
+                || strategy.isConsideringOperationalData()) {
+            return super.equalsItems(other, strategy);
+        }
+        return semanticEqualsChecker().test(this, otherSav);
     }
 
     /** TODO better name */

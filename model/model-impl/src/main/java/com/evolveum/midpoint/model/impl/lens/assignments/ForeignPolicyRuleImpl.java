@@ -16,6 +16,8 @@ import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
@@ -112,6 +114,11 @@ public class ForeignPolicyRuleImpl implements AssociatedPolicyRule {
     @Override
     public @Nullable String getPolicySituation() {
         return evaluatedPolicyRule.getPolicySituation();
+    }
+
+    @Override
+    public @NotNull List<ObjectReferenceType> getPolicyMarkRef() {
+        return evaluatedPolicyRule.getPolicyMarkRef();
     }
 
     @Override

@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContext;
 import com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessingContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -56,7 +56,7 @@ import static java.util.Objects.requireNonNull;
  * @param <F> Type of the matching focus object
  */
 public abstract class SynchronizationContext<F extends FocusType>
-        implements PreInboundsContext<F>, ResourceObjectProcessingContext {
+        implements SingleShadowInboundsProcessingContext<F>, ResourceObjectProcessingContext {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
 

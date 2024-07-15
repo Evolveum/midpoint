@@ -330,21 +330,11 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     public @NotNull FocusSpecification getFocusSpecification() {
         return new FocusSpecification() {
-            @Override
-            public ItemPath getFocusItemPath() {
-                var focusSpec = getDefinitionBean().getFocus();
-                return focusSpec != null && focusSpec.getItemPath() != null ? focusSpec.getItemPath().getItemPath() : null;
-            }
 
             @Override
             public String getAssignmentSubtype() {
                 var focusSpec = getDefinitionBean().getFocus();
                 return focusSpec != null ? focusSpec.getAssignmentSubtype() : null;
-            }
-
-            @Override
-            public QName getAssignmentTargetTypeName() {
-                return null;
             }
 
             @Override
@@ -416,9 +406,4 @@ public final class ResourceObjectTypeDefinitionImpl
         return identification.toString();
     }
 
-    @Override
-    public boolean hasAnyInbounds() {
-        return getAttributeDefinitions().stream()
-                .anyMatch(def -> def.hasInboundMapping());
-    }
 }

@@ -14,6 +14,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.expression.evaluator.AsIsExpressionEvaluator;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
@@ -73,6 +76,9 @@ public class ExpressionEvaluationContext {
      * Yet another field with unclear meaning. Seems to be used as an association name. TODO Clarify.
      */
     private QName mappingQName;
+
+    @Experimental
+    private VariableBindingDefinitionType targetDefinitionBean;
 
     /**
      * Free-form context description for diagnostic purposes.
@@ -211,6 +217,14 @@ public class ExpressionEvaluationContext {
         this.mappingQName = mappingQName;
     }
 
+    public VariableBindingDefinitionType getTargetDefinitionBean() {
+        return targetDefinitionBean;
+    }
+
+    public void setTargetDefinitionBean(VariableBindingDefinitionType targetDefinitionBean) {
+        this.targetDefinitionBean = targetDefinitionBean;
+    }
+
     public String getLocalContextDescription() {
         return localContextDescription;
     }
@@ -278,6 +292,7 @@ public class ExpressionEvaluationContext {
         clone.expressionFactory = this.expressionFactory;
         clone.defaultSource = this.defaultSource;
         clone.mappingQName = this.mappingQName;
+        clone.targetDefinitionBean = this.targetDefinitionBean;
         clone.additionalConvertor = this.additionalConvertor;
         clone.variableProducer = this.variableProducer;
         clone.valueMetadataComputer = this.valueMetadataComputer;

@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition;
-import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluation;
+import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluator;
 import com.evolveum.midpoint.prism.path.ItemName;
 
 import com.evolveum.midpoint.util.QNameUtil;
@@ -535,7 +535,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         SynchronizationPolicy synchronizationPolicy = getSynchronizationPolicy();
 
         UserType preFocus =
-                PreMappingsEvaluation.computePreFocus(
+                PreMappingsEvaluator.computePreFocus(
                         account.getShadow(),
                         synchronizationPolicy.getObjectTypeDefinition(), resource,
                         UserType.class,
