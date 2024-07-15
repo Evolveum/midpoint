@@ -947,15 +947,46 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
+    /**
+     * Searches for an outlier object associated with a specific user.
+     *
+     * @param userOid The OID of the user for whom the outlier object is to be searched.
+     * @param task The task in which the operation is performed.
+     * @param result The operation result.
+     * @return The outlier object associated with the user if found, null otherwise.
+     * @throws RuntimeException if there is an issue with the search operation.
+     */
     PrismObject<RoleAnalysisOutlierType> searchOutlierObjectByUserOidClusters(
             @NotNull String userOid,
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    void updateOutlierObject(
+    /**
+     * Updates the specified outlier object in the repository.
+     * The method retrieves the existing outlier object based on the provided OID and updates the partition and metrics data.
+     *
+     * @param outlierOid The OID of the outlier object to be updated.
+     * @param partition The partition data to be added to the outlier object.
+     * @param overallConfidence The overall confidence value to be set in the outlier object.
+     * @param anomalyConfidence The anomaly confidence value to be set in the outlier object.
+     * @param result The operation result.
+     */
+    void addOutlierPartition(
             @NotNull String outlierOid,
             @NotNull RoleAnalysisOutlierPartitionType partition,
             double overallConfidence,
             double anomalyConfidence,
+            @NotNull OperationResult result);
+
+    /**
+     * Deletes the outlier or partition of a given cluster and update statistic metrics.
+     *
+     * @param cluster The cluster whose outlier is to be deleted.
+     * @param task The task in which the operation is performed.
+     * @param result The operation result.
+     */
+    void deleteClusterOutlierOrPartition(
+            @NotNull RoleAnalysisClusterType cluster,
+            @NotNull Task task,
             @NotNull OperationResult result);
 }

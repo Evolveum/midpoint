@@ -13,6 +13,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,15 +56,20 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
 //        iconContainer.setOutputMarkupId(true);
 //        itemBox.add(iconContainer);
 
-        AjaxLinkPanel actionPanel = new AjaxLinkPanel(ID_ACTION, Model.of("View analyzed cluster")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                performOnAction(target);
-            }
-        };
+        if (isViewAnalyzedClusterEnable()) {
+            AjaxLinkPanel actionPanel = new AjaxLinkPanel(ID_ACTION, Model.of("View analyzed cluster")) {
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    performOnAction(target);
+                }
+            };
 
-        actionPanel.setOutputMarkupId(true);
-        itemBox.add(actionPanel);
+            actionPanel.setOutputMarkupId(true);
+            itemBox.add(actionPanel);
+        } else {
+            EmptyPanel actionPanel = new EmptyPanel(ID_ACTION);
+            itemBox.add(actionPanel);
+        }
 
         if (isLink()) {
             AjaxLinkPanel namePanel = new AjaxLinkPanel(ID_VALUE, Model.of(getValue())) {
@@ -136,6 +142,10 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
 
     protected void performOnAction(AjaxRequestTarget target) {
 
+    }
+
+    protected boolean isViewAnalyzedClusterEnable() {
+        return false;
     }
 
     public String getIcon() {

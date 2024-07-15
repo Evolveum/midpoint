@@ -76,7 +76,7 @@ public class OutliersDetectionUtil {
 
             overallConfidence = overallConfidence / (outlierPartitions.size() + 1);
             anomalyObjectsConfidence = anomalyObjectsConfidence / (outlierPartitions.size() + 1);
-            roleAnalysisService.updateOutlierObject(
+            roleAnalysisService.addOutlierPartition(
                     roleAnalysisOutlierType.getOid(), partition, overallConfidence, anomalyObjectsConfidence, result);
         }
     }

@@ -80,7 +80,6 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
         RoleAnalysisSessionType session = getModelWrapperObject().getObjectOld().asObjectable();
         String sessionOid = session.getOid();
-
         roleAnalysisService
                 .deleteSessionClustersMembers(sessionOid, task, result, false);
     }

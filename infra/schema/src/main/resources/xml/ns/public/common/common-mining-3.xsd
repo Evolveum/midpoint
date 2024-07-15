@@ -90,6 +90,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+
                     <xsd:element name="overallConfidence" type="xsd:double" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -100,6 +101,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+
                     <xsd:element name="anomalyObjectsConfidence" type="xsd:double" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -110,11 +112,12 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+
                     <xsd:element name="duplicatedRoleAssignment" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Contains information about the duplicated role assignment.
+                                    Contains reference to duplicated role assignment.
                                 </p>
                             </xsd:documentation>
                         </xsd:annotation>
@@ -216,14 +219,6 @@
         </xsd:annotation>
         <xsd:sequence>
 
-            <!--TODO think about this -->
-            <xsd:element name="outlierCategory" type="tns:OutlierCategory" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Category classification of the anomaly.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="overallConfidence" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -234,6 +229,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+
             <xsd:element name="similarObjectsConfidence" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -244,6 +240,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+
             <xsd:element name="anomalyObjectsConfidence" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -254,21 +251,23 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+
             <xsd:element name="outlierAssignmentFrequencyConfidence" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Confidence level associated with the identified outlier.
+                        Confidence level associated with the frequency of the assignment for similar objects group.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>RoleAnalysisOutlierType.outlierAssignmentFrequencyConfidence</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+
             <xsd:element name="attributeAnalysis" type="c:AttributeAnalysis" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Contains information about the attribute analysis result.
+                            Contains information about the user(outlier) attribute analysis result.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -276,17 +275,29 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+
+            <!--TODO move to similarObjectAnalysis-->
             <xsd:element name="patternAnalysis" type="c:RoleAnalysisPatternAnalysis" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Pattern result.
+                        Pattern analysis result above the similar object group.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+
             <xsd:element name="similarObjectAnalysis" type="c:RoleAnalysisOutlierSimilarObjectsAnalysisResult" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Pattern result.
+                        Analysis of similar objects.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <!--TODO think about this -->
+            <xsd:element name="outlierCategory" type="tns:OutlierCategory" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Category classification of the anomaly.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -474,7 +485,7 @@
             <xsd:element name="confidenceDeviation" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Confidence level associated with the identified outlier.
+                        Confidence level associated with the standard deviation.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -482,7 +493,7 @@
             <xsd:element name="confidence" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Confidence level associated with the identified outlier.
+                        Confidence level associated with the identified anomaly.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -490,7 +501,7 @@
             <xsd:element name="itemFactorConfidence" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Confidence level associated with the identified outlier.
+                        Confidence level associated with the attribute factor.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -514,7 +525,7 @@
             <xsd:element name="frequency" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Frequency of the outlier.
+                        Frequency of the outlier for the given similar objects group.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

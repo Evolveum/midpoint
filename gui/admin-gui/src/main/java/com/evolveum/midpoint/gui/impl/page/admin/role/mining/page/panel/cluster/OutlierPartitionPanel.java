@@ -94,6 +94,11 @@ public class OutlierPartitionPanel extends AbstractObjectMainPanel<RoleAnalysisO
                 }
 
                 @Override
+                protected boolean isViewAnalyzedClusterEnable() {
+                    return true;
+                }
+
+                @Override
                 protected void performOnAction(AjaxRequestTarget target) {
 
                     RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();

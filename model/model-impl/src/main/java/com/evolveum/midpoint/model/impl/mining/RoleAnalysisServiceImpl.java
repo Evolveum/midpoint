@@ -434,6 +434,83 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     @Override
+    public void deleteClusterOutlierOrPartition(
+            @NotNull RoleAnalysisClusterType cluster,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        List<ObjectReferenceType> member = cluster.getMember();
+
+        ResultHandler<RoleAnalysisOutlierType> resultHandler = (object, parentResult) -> {
+            RoleAnalysisOutlierType outlierObject = object.asObjectable();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+
+            try {
+
+                if (outlierPartitions == null || outlierPartitions.size() == 1) {
+                    repositoryService.deleteObject(RoleAnalysisOutlierType.class, outlierObject.getOid(), result);
+                } else {
+
+                    RoleAnalysisOutlierPartitionType partitionToDelete = null;
+
+                    double overallConfidence = 0;
+                    double anomalyObjectsConfidence = 0;
+                    for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+                        if (outlierPartition.getTargetClusterRef().getOid().equals(cluster.getOid())) {
+                            partitionToDelete = outlierPartition;
+                        } else {
+                            overallConfidence += outlierPartition.getPartitionAnalysis().getOverallConfidence();
+                            anomalyObjectsConfidence += outlierPartition.getPartitionAnalysis().getAnomalyObjectsConfidence();
+                        }
+                    }
+
+                    overallConfidence = overallConfidence / outlierPartitions.size();
+                    anomalyObjectsConfidence = anomalyObjectsConfidence / outlierPartitions.size();
+
+                    if (partitionToDelete == null) {
+                        return true;
+                    }
+
+                    List<ItemDelta<?, ?>> modifications = new ArrayList<>();
+                    var finalPartitionToDelete = new RoleAnalysisOutlierPartitionType()
+                            .id(partitionToDelete.getId());
+                    modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
+                            .item(RoleAnalysisOutlierType.F_OUTLIER_PARTITIONS).delete(
+                                    finalPartitionToDelete)
+                            .asItemDelta());
+
+                    modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
+                            .item(RoleAnalysisOutlierType.F_OVERALL_CONFIDENCE).replace(overallConfidence).asItemDelta());
+
+                    modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
+                            .item(RoleAnalysisOutlierType.F_ANOMALY_OBJECTS_CONFIDENCE)
+                            .replace(anomalyObjectsConfidence).asItemDelta());
+
+                    repositoryService.modifyObject(RoleAnalysisOutlierType.class, outlierObject.getOid(), modifications, result);
+
+                }
+            } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+                LOGGER.error("Couldn't update RoleAnalysisOutlierType {}", outlierObject, e);
+            }
+            return true;
+        };
+
+        ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
+                .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF).ref(member.stream()
+                        .map(AbstractReferencable::getOid).distinct().toArray(String[]::new))
+                .build();
+
+        try {
+            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, query, resultHandler, null,
+                    task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't deleteRoleAnalysisSessionClusters", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+    }
+
+    @Override
     public void deleteCluster(
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull Task task,
@@ -444,8 +521,15 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 cluster.getRoleAnalysisSessionRef().getOid(), task, result
         );
 
-        if (sessionObject == null) {
-            return;
+        RoleAnalysisCategoryType analysisCategory = null;
+        if (sessionObject != null) {
+            RoleAnalysisSessionType session = sessionObject.asObjectable();
+            RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+            analysisCategory = analysisOption.getAnalysisCategory();
+        }
+
+        if (analysisCategory == null || analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            deleteClusterOutlierOrPartition(cluster, task, result);
         }
 
         try {
@@ -698,12 +782,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             PrismObject<RoleAnalysisSessionType> prismSession = this.getSessionTypeObject(sessionOid, task, result);
             if (prismSession == null) {
                 return;
-            }
-            RoleAnalysisSessionType session = prismSession.asObjectable();
-            RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-            RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
-            if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-                deleteAllOutliers(task, result);
             }
 
             deleteSessionClustersMembers(sessionOid, task, result, false);
@@ -2604,7 +2682,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     @Override
-    public void updateOutlierObject(
+    public void addOutlierPartition(
             @NotNull String outlierOid,
             @NotNull RoleAnalysisOutlierPartitionType partition,
             double overallConfidence,

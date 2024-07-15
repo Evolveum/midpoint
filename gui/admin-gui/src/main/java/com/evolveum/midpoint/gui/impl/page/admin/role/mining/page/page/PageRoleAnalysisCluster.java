@@ -49,8 +49,6 @@ import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
 //TODO correct authorizations
 @PageDescriptor(
         urls = {
@@ -175,6 +173,18 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
         roleAnalysisService.recomputeSessionStatics(
                 roleAnalysisSessionRef.getOid(), cluster, task, result);
+
+        PrismObject<RoleAnalysisSessionType> session = roleAnalysisService.getSessionTypeObject(roleAnalysisSessionRef.getOid(), task, result);
+
+        if (session == null) {
+            return;
+        }
+
+        RoleAnalysisOptionType analysisOption = session.asObjectable().getAnalysisOption();
+        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            roleAnalysisService.deleteClusterOutlierOrPartition(cluster, task, result);
+        }
     }
 
     public PageRoleAnalysisCluster() {
