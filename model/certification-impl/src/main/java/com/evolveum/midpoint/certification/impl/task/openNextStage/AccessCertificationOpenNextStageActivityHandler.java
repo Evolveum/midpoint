@@ -4,10 +4,9 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.certification.impl.task.nextStage;
+package com.evolveum.midpoint.certification.impl.task.openNextStage;
 
 import com.evolveum.midpoint.certification.impl.*;
-import com.evolveum.midpoint.model.impl.lens.tasks.TaskOperationalDataManager;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
@@ -24,27 +23,16 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AccessCertificationNextStageActivityHandler
-        extends ModelActivityHandler<AccessCertificationNextStageWorkDefinition, AccessCertificationNextStageActivityHandler> {
+public class AccessCertificationOpenNextStageActivityHandler
+        extends ModelActivityHandler<AccessCertificationOpenNextStageWorkDefinition, AccessCertificationOpenNextStageActivityHandler> {
 
-    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_CERTIFICATION_CAMPAIGN_CREATION_TASK.value();
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_CERTIFICATION_OPEN_NEXT_STAGE_TASK.value();
 
     @Autowired private TaskManager taskManager;
     @Autowired private CertificationManagerImpl certificationManager;
     @Autowired private AccCertGeneralHelper helper;
-    @Autowired private AccCertCaseOperationsHelper caseHelper;
     @Autowired private AccCertQueryHelper queryHelper;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
-    @Autowired private AccCertOpenerHelper openerHelper;
-    @Autowired private TaskOperationalDataManager taskOperationalDataManager;
-
-    public AccCertOpenerHelper getOpenerHelper() {
-        return openerHelper;
-    }
-
-    public TaskOperationalDataManager getTaskOperationalDataManager() {
-        return taskOperationalDataManager;
-    }
 
     public TaskManager getTaskManager() {
         return taskManager;
@@ -58,10 +46,6 @@ public class AccessCertificationNextStageActivityHandler
         return helper;
     }
 
-    public AccCertCaseOperationsHelper getCaseHelper() {
-        return caseHelper;
-    }
-
     public AccCertQueryHelper getQueryHelper() {
         return queryHelper;
     }
@@ -73,26 +57,26 @@ public class AccessCertificationNextStageActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                CertificationNextStageWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_CERTIFICATION_NEXT_STAGE,
-                AccessCertificationNextStageWorkDefinition.class, AccessCertificationNextStageWorkDefinition::new, this);
+                CertificationOpenNextStageWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_CERTIFICATION_OPEN_NEXT_STAGE,
+                AccessCertificationOpenNextStageWorkDefinition.class, AccessCertificationOpenNextStageWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
         handlerRegistry.unregister(
-                CertificationNextStageWorkDefinitionType.COMPLEX_TYPE, AccessCertificationNextStageWorkDefinition.class);
+                CertificationOpenNextStageWorkDefinitionType.COMPLEX_TYPE, AccessCertificationOpenNextStageWorkDefinition.class);
     }
 
     @Override
-    public AbstractActivityRun<AccessCertificationNextStageWorkDefinition, AccessCertificationNextStageActivityHandler, ?> createActivityRun(
-            @NotNull ActivityRunInstantiationContext<AccessCertificationNextStageWorkDefinition, AccessCertificationNextStageActivityHandler> context,
+    public AbstractActivityRun<AccessCertificationOpenNextStageWorkDefinition, AccessCertificationOpenNextStageActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<AccessCertificationOpenNextStageWorkDefinition, AccessCertificationOpenNextStageActivityHandler> context,
             @NotNull OperationResult result) {
-        return new AccessCertificationNextStageRun(context);
+        return new AccessCertificationOpenNextStageRun(context);
     }
 
     @Override
     public String getIdentifierPrefix() {
-        return "certification-campaign-creation";
+        return "certification-next-stage";
     }
 
     @Override

@@ -113,6 +113,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test002OpenFirstForeignStage() throws Exception {
         given();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
@@ -122,7 +123,11 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getNextStageTasks(roleInducementCampaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(roleInducementCampaignOid);
         display("campaign in stage 1", campaign);
@@ -271,6 +276,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test021OpenFirstStageAllowed() throws Exception {
         given();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         login(getUserFromRepo(USER_BOB_OID));
@@ -281,7 +287,11 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);

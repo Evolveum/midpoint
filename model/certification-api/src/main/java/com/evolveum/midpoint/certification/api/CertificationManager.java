@@ -52,7 +52,7 @@ public interface CertificationManager {
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
-     * Opens the next review stage in the certification campaign.
+     * Opens the next review stage in the certification campaign via task in background.
      *
      * If the stage being opened is the first stage, certification cases will be generated for the campaign,
      * depending on the certification definition (scope and handler). In all stages, reviewers will be assigned
@@ -61,7 +61,7 @@ public interface CertificationManager {
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      */
-    void openNextStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+    void createNextStageTask(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Opens the next stage in the certification campaign.

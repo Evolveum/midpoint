@@ -20,7 +20,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -33,6 +32,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Very simple certification test.
@@ -115,6 +116,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
     @Test
     public void test021OpenFirstStageAllowed() throws Exception {
         // GIVEN
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         login(getUserFromRepo(USER_BOB_OID));
@@ -126,7 +128,11 @@ public class TestManualEscalation extends AbstractCertificationTest {
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);

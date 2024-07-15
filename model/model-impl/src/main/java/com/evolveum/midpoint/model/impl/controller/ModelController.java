@@ -2534,7 +2534,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Override
     public void openNextStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getCertificationManagerRequired().openNextStage(campaignOid, task, parentResult);
+        getCertificationManagerRequired().createNextStageTask(campaignOid, task, parentResult);
     }
 
     @Override

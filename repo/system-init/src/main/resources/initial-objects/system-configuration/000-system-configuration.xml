@@ -1014,7 +1014,7 @@
                 </collection>
             </objectCollectionView>
             <objectCollectionView id="259">
-                <identifier>certification-campaign-creation-tasks-view</identifier>
+                <identifier>certification-campaign-open-next-stage-tasks-view</identifier>
                 <applicableForOperation>add</applicableForOperation>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
@@ -1023,7 +1023,7 @@
                 </collection>
             </objectCollectionView>
             <objectCollectionView id="260">
-                <identifier>certification-campaign-creation-tasks-view</identifier>
+                <identifier>certification-campaign-remediation-tasks-view</identifier>
                 <applicableForOperation>add</applicableForOperation>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>

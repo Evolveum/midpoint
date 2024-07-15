@@ -2143,7 +2143,7 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="certificationNextStage" type="tns:CertificationNextStageWorkDefinitionType"
+                <xsd:element name="certificationOpenNextStage" type="tns:CertificationOpenNextStageWorkDefinitionType"
                         minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
@@ -9366,7 +9366,7 @@
                                 Specified certification campaign definition for operation.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:AccessCertificationDefinitionType</a:objectReferenceTargetType>
+                                <a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -9392,10 +9392,10 @@
     </xsd:complexType>
     <xsd:element name="certificationRemediationWorkDefinition" type="tns:CertificationRemediationWorkDefinitionType"/>
 
-    <xsd:complexType name="CertificationNextStageWorkDefinitionType">
+    <xsd:complexType name="CertificationOpenNextStageWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Specified certification campaign definition for creation.
+                Specified certification campaign for opening next stage.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -9407,5 +9407,5 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="certificationNextStageWorkDefinition" type="tns:CertificationNextStageWorkDefinitionType"/>
+    <xsd:element name="certificationNextStageWorkDefinition" type="tns:CertificationOpenNextStageWorkDefinitionType"/>
 </xsd:schema>

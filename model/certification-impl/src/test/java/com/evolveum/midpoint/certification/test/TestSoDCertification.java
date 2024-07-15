@@ -221,6 +221,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test020OpenFirstStage() throws Exception {
         // GIVEN
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
@@ -229,12 +230,16 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         // WHEN
         when();
-        certificationManager.openNextStage(campaignOid, task, result);
+        certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);

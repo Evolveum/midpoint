@@ -109,6 +109,7 @@ jack->CTO                   none (A) -> A
     @Test
     public void test020OpenFirstStage() throws Exception {
         // GIVEN
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
@@ -116,12 +117,16 @@ jack->CTO                   none (A) -> A
 
         // WHEN
         when();
-        certificationManager.openNextStage(campaignOid, task, result);
+        certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
@@ -249,6 +254,7 @@ jack->CTO                   none (A) -> A
     @Test
     public void test200OpenSecondStage() throws Exception {
         // GIVEN
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
@@ -256,12 +262,16 @@ jack->CTO                   none (A) -> A
 
         // WHEN
         when();
-        certificationManager.openNextStage(campaignOid, task, result);
+        certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 2", campaign);
@@ -499,6 +509,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
     @Test
     public void test300OpenThirdStage() throws Exception {
         // GIVEN
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
@@ -506,12 +517,16 @@ jack->CTO                   none (A) -> A       none (A) -> A
 
         // WHEN
         when();
-        certificationManager.openNextStage(campaignOid, task, result);
+        certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 3", campaign);
@@ -740,6 +755,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test400OpenFourthStage() throws Exception {
         // GIVEN
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
@@ -747,12 +763,16 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
         // WHEN
         when();
-        certificationManager.openNextStage(campaignOid, task, result);
+        certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 4", campaign);
@@ -1171,6 +1191,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test510OpenNextStage() throws Exception {           // next stage is 2 (because the first one has no work items)
         // GIVEN
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
@@ -1178,12 +1199,16 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
         // WHEN
         when();
-        certificationManager.openNextStage(campaignOid, task, result);
+        certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 2", campaign);

@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
-import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
