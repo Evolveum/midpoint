@@ -27,6 +27,7 @@ public class MAssignmentReference extends MReference {
                 ", targetOid=" + targetOid +
                 ", targetType=" + targetType +
                 ", relationId=" + relationId +
+                ", metadataCid=" + metadataCid +
                 '}';
     }
 

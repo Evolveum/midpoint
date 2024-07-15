@@ -11,7 +11,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.api.InboundSourceData;
 import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessingContext;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
@@ -23,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundMappingEvaluationRequest;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -32,20 +34,19 @@ import com.evolveum.midpoint.schema.processor.PropertyLimitations;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+public class LimitedSource extends MappingSource {
 
-class LimitedSource extends MSource {
+    @NotNull private final SingleShadowInboundsProcessingContext<?> ctx;
 
-    @NotNull private final PreInboundsContext<?> ctx;
-
-    LimitedSource(@NotNull PreInboundsContext<?> ctx) throws SchemaException, ConfigurationException {
+    public LimitedSource(@NotNull SingleShadowInboundsProcessingContext<?> ctx) throws SchemaException, ConfigurationException {
         super(
                 InboundSourceData.forShadowLikeValue(
                         ctx.getShadowLikeValue(),
                         ctx.getResourceObjectDelta(),
                         ctx.getObjectDefinitionRequired()),
                 ctx.getInboundDefinition(),
-                ctx.getOwningAssociationDefinition());
+                ctx.getResource(),
+                ctx.toString());
         this.ctx = ctx;
     }
 
@@ -55,23 +56,8 @@ class LimitedSource extends MSource {
     }
 
     @Override
-    @NotNull ResourceType getResource() {
-        return ctx.getResource();
-    }
-
-    @Override
-    Object getContextDump() {
-        return ctx.debugDumpLazily();
-    }
-
-    @Override
-    String getProjectionHumanReadableName() {
-        return ctx.toString();
-    }
-
-    @Override
     boolean isClockwork() {
-        return false;
+        return !ctx.isBeforeCorrelation();
     }
 
     @Override
@@ -110,7 +96,7 @@ class LimitedSource extends MSource {
     }
 
     @Override
-    void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull Context context, OperationResult result) {
+    void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull MappingContext context, OperationResult result) {
         // Nothing to do here
     }
 
@@ -118,7 +104,7 @@ class LimitedSource extends MSource {
     void resolveInputEntitlements(
             ContainerDelta<ShadowAssociationValueType> associationAPrioriDelta,
             ShadowAssociation currentAssociation) {
-        // Associations are not yet supported in pre-mappings
+        // Associations are not yet supported in limited processing
     }
 
     @Override
@@ -126,18 +112,24 @@ class LimitedSource extends MSource {
             com.evolveum.midpoint.repo.common.expression.@NotNull Source<?, ?> source,
             @Nullable PrismValue value,
             @NotNull VariablesMap variables) {
-        // Associations are not yet supported in pre-mappings
+        // Associations are not yet supported in limited processing
     }
 
     @Override
-    <V extends PrismValue, D extends ItemDefinition<?>> InboundMappingEvaluationRequest<V, D> createMappingRequest(
+    <V extends PrismValue, D extends ItemDefinition<?>> MappingEvaluationRequest<V, D> createMappingRequest(
             MappingImpl<V, D> mapping) {
-        return new InboundMappingEvaluationRequest<>(mapping, false, null);
+        // The projection context may come from embedding mapping (e.g., for associations).
+        return new MappingEvaluationRequest<>(
+                mapping,
+                false,
+                (LensProjectionContext) ModelExpressionThreadLocalHolder.getProjectionContext());
     }
 
     @Override
     @NotNull InboundMappingEvaluationPhaseType getCurrentEvaluationPhase() {
-        return InboundMappingEvaluationPhaseType.BEFORE_CORRELATION;
+        return ctx.isBeforeCorrelation() ?
+                InboundMappingEvaluationPhaseType.BEFORE_CORRELATION :
+                InboundMappingEvaluationPhaseType.CLOCKWORK;
     }
 
     @Override

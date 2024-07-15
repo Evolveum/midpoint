@@ -156,6 +156,20 @@
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
+    <bean id="associationConstructionExpressionEvaluatorFactory"
+            class="com.evolveum.midpoint.model.impl.expr.AssociationConstructionExpressionEvaluatorFactory">
+        <constructor-arg ref="expressionFactory"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <property name="objectResolver" ref="modelObjectResolver"/>
+    </bean>
+
+    <bean id="associationSynchronizationExpressionEvaluatorFactory"
+            class="com.evolveum.midpoint.model.impl.expr.AssociationSynchronizationExpressionEvaluatorFactory">
+        <constructor-arg ref="expressionFactory"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <property name="objectResolver" ref="modelObjectResolver"/>
+    </bean>
+
     <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory">
         <constructor-arg ref="securityContextManager"/>
         <constructor-arg ref="localizationService"/>

@@ -9,12 +9,12 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 import java.util.UUID;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PredefinedConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
+import com.querydsl.core.types.dsl.BooleanExpression;
 
 public class MAffectedObjects extends MContainer {
 

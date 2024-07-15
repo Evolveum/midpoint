@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.cleanup;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +35,7 @@ public class CleanupWorkDefinition extends AbstractWorkDefinition {
     }
 
     @Override
-    public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation() {
+    public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation(@Nullable AbstractActivityWorkStateType state) {
         return AffectedObjectsInformation.ObjectSet.notSupported(); // not easily determinable nor describable
     }
 

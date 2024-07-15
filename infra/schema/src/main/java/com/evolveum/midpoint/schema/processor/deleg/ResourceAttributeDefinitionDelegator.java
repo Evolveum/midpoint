@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.schema.processor.deleg;
 
-import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -148,11 +147,6 @@ public interface ResourceAttributeDefinitionDelegator<T>
     @Override
     default @NotNull List<InboundMappingType> getInboundMappingBeans() {
         return delegate().getInboundMappingBeans();
-    }
-
-    @Override
-    default @NotNull Collection<ResourceObjectInboundDefinition> getRelevantInboundDefinitions() {
-        return delegate().getRelevantInboundDefinitions();
     }
 
     @Override

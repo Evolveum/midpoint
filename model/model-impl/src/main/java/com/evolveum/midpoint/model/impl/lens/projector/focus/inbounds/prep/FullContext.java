@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
-public class FullContext extends Context {
+public class FullContext extends MappingContext {
 
     @NotNull private final LensContext<?> lensContext;
 
@@ -47,7 +47,7 @@ public class FullContext extends Context {
     }
 
     @Override
-    ConfigurableValuePolicySupplier createValuePolicySupplier() {
+    public ConfigurableValuePolicySupplier createValuePolicySupplier() {
         return new ConfigurableValuePolicySupplier() {
             private ItemDefinition<?> outputDefinition;
 

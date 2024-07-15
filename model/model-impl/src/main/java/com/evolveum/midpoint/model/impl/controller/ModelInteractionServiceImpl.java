@@ -218,7 +218,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
             schemaTransformer.applySecurityToLensContext(context, task, result);
         } finally {
-            LensUtil.reclaimSequences(context, cacheRepositoryService, task, result);
+            LensUtil.reclaimSequences(context, cacheRepositoryService, result);
 
             RepositoryCache.exitLocalCaches();
 

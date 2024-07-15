@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
  * TODO explain this class
  */
 @Experimental
-public class DeltaSetTripleMap extends PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> {
+public class DeltaSetTripleIvwoMap extends PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> {
 
     /** Puts the specified triple into the map; either "as is", or merging it with existing triple for the given path. */
     public <V extends PrismValue, D extends ItemDefinition<?>> void putOrMerge(
@@ -45,6 +45,12 @@ public class DeltaSetTripleMap extends PathKeyedMap<DeltaSetTriple<ItemValueWith
             } else {
                 mapTriple.merge(outputTriple);
             }
+        }
+    }
+
+    public void putOrMergeAll(DeltaSetTripleIvwoMap otherMap) {
+        for (var entry : otherMap.entrySet()) {
+            putOrMergeInternal(entry.getKey(), entry.getValue());
         }
     }
 }

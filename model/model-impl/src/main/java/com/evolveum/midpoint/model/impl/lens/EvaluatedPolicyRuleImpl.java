@@ -285,6 +285,11 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
         return getSituationFromConstraints(policyConstraints);
     }
 
+    @Override
+    public @NotNull List<ObjectReferenceType> getPolicyMarkRef() {
+        return policyRuleBean.getMarkRef(); //TODO
+    }
+
     @Nullable
     private String getSituationFromConstraints(PolicyConstraintsType policyConstraints) {
         if (!policyConstraints.getExclusion().isEmpty()) {

@@ -50,7 +50,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition<?>> exte
         } else {
             return new TransformationValueMetadataComputer() {
                 @Override
-                public ValueMetadataType compute(@NotNull List<PrismValue> inputValues,
+                public @NotNull ValueMetadataType compute(@NotNull List<PrismValue> inputValues,
                         @NotNull OperationResult computationOpResult)
                         throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
                         ConfigurationException, ExpressionEvaluationException {

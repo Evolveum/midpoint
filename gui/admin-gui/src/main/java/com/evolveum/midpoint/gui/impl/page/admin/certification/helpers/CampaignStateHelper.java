@@ -39,36 +39,45 @@ public class CampaignStateHelper implements Serializable {
         START_CAMPAIGN(new DisplayType()
                 .label("CampaignAction.startCampaign")
                 .cssClass("btn-primary")
-                .icon(new IconType().cssClass("fa fa-play"))),
+                .icon(new IconType().cssClass("fa fa-play")),
+                true),
         OPEN_NEXT_STAGE(new DisplayType()
                 .label("CampaignAction.openNextStage")
                 .cssClass("btn-primary")
-                .icon(new IconType().cssClass("fa fa-play"))),
+                .icon(new IconType().cssClass("fa fa-play")),
+                false),
         CLOSE_STAGE(new DisplayType()
                 .label("CampaignAction.closeStage")
                 .cssClass("btn-secondary")
-                .icon(new IconType().cssClass("fa fa-regular fa-circle-xmark"))),
+                .icon(new IconType().cssClass("fa fa-regular fa-circle-xmark")),
+                false),
         START_REMEDIATION(new DisplayType()
                 .label("CampaignAction.startRemediation")
                 .cssClass("btn-primary")
-                .icon(new IconType().cssClass("fa fa-solid fa-badge-check"))),
+                .icon(new IconType().cssClass("fa fa-solid fa-badge-check")),
+                false),
         REITERATE_CAMPAIGN(new DisplayType()
                 .label("CampaignAction.reiterateCampaign")
                 .cssClass("btn-primary")
-                .icon(new IconType().cssClass("fa fa-rotate-right"))),
+                .icon(new IconType().cssClass("fa fa-rotate-right")),
+                true),
         CLOSE_CAMPAIGN(new DisplayType()
                 .label("CampaignAction.closeCampaign")
                 .cssClass("btn-secondary")
-                .icon(new IconType().cssClass("fa fa-solid fa-circle-xmark"))),
+                .icon(new IconType().cssClass("fa fa-solid fa-circle-xmark")),
+                true),
         REMOVE_CAMPAIGN(new DisplayType()
                 .label("CampaignAction.removeCampaign")
                 .cssClass("btn-danger")
-                .icon(new IconType().cssClass("fa fa-minus-circle")));
+                .icon(new IconType().cssClass("fa fa-minus-circle")),
+                true);
 
         private DisplayType displayType;
+        private boolean isBulkAction;
 
-        CampaignAction(DisplayType displayType) {
+        CampaignAction(DisplayType displayType, boolean isBulkAction) {
             this.displayType = displayType;
+            this.isBulkAction = isBulkAction;
         }
 
         public String getActionLabelKey() {
@@ -81,6 +90,10 @@ public class CampaignStateHelper implements Serializable {
 
         public IconType getActionIcon() {
             return displayType.getIcon();
+        }
+
+        public boolean isBulkAction() {
+            return isBulkAction;
         }
     }
 
@@ -164,4 +177,7 @@ public class CampaignStateHelper implements Serializable {
         return availableActions;
     }
 
+    public static List<CampaignStateHelper.CampaignAction> getAllCampaignActions() {
+        return Arrays.stream(CampaignAction.values()).sorted().toList();
+    }
 }

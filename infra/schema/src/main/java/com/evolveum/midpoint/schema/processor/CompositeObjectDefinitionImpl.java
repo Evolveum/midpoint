@@ -787,11 +787,6 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public boolean hasAnyInbounds() {
-        return structuralDefinition.hasAnyInbounds();
-    }
-
-    @Override
     public @Nullable ItemMerger getMergerInstance(@NotNull MergeStrategy strategy, @Nullable OriginMarker originMarker) {
         return structuralDefinition.getMergerInstance(strategy, originMarker);
     }

@@ -41,6 +41,7 @@ import org.apache.wicket.model.Model;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.List;
 
 public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> {
@@ -232,30 +233,14 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
             @Override
             protected List<InlineMenuItem> load() {
+                List<AccessCertificationCampaignType> campaignList = Collections.singletonList(getCampaign());
                 List<CampaignStateHelper.CampaignAction> actionsList = campaignStateHelper.getAvailableActions();
                 return actionsList
                         .stream()
-                        .map(this::createMenuItem)
+                        .map(a -> CertMiscUtil.createCampaignMenuItem(Model.ofList(campaignList), a, getPageBase()))
                         .toList();
             }
 
-            private InlineMenuItem createMenuItem(CampaignStateHelper.CampaignAction action) {
-                return new InlineMenuItem(createStringResource(action.getActionLabelKey())) {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public InlineMenuItemAction initAction() {
-                        return new InlineMenuItemAction() {
-                            @Serial private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public void onClick(AjaxRequestTarget target) {
-                                CampaignProcessingHelper.campaignActionPerformed(getCampaign(), action, getPageBase(), target);
-                            }
-                        };
-                    }
-                };
-            }
         };
     }
 

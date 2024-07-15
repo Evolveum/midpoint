@@ -45,7 +45,7 @@ public class AccCertGeneralHelper {
     }
 
     @SuppressWarnings("SameParameterValue")
-    AccessCertificationCampaignType getCampaign(String campaignOid, Collection<SelectorOptions<GetOperationOptions>> options,
+    public AccessCertificationCampaignType getCampaign(String campaignOid, Collection<SelectorOptions<GetOperationOptions>> options,
             @SuppressWarnings("unused") Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         return repositoryService
                 .getObject(AccessCertificationCampaignType.class, campaignOid, options, parentResult).asObjectable();

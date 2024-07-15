@@ -105,6 +105,7 @@ It is possible to configure now if the notification message should be generated 
 More details can be found in the xrefv:/midpoint/reference/master/misc/notifications/general/#basic-structure-of-the-notification-definition[Basic structure of the notification definition].
 * Role wizard is now supported also for children of application and business roles (archetypes).
 * Dedicated data type for policy objects (xref:/midpoint/reference/schema/policy/[PolicyType])
+* Implementation of new task activities for certification campaign creation and certification remediation. More details can be found in the xrefv:/midpoint/reference/tasks/activities/work/[Work Definition (Types of Activities)].
 
 === Releases Of Other Components
 

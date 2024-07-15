@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationOutboundMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -56,12 +57,14 @@ class AssociationMapper<AH extends AssignmentHolderType>
      */
     AssociationMapper(
             @NotNull ConstructionEvaluation<AH, ?> constructionEvaluation,
-            @NotNull ShadowAssociationDefinition associationDefinition) {
+            @NotNull ShadowAssociationDefinition associationDefinition,
+            @NotNull AssociationOutboundMappingType outboundBean) {
         super(
                 constructionEvaluation,
                 associationDefinition.getItemName(),
                 ShadowType.F_ASSOCIATIONS.append(associationDefinition.getItemName()),
-                associationDefinition);
+                associationDefinition,
+                outboundBean);
     }
 
     @Override

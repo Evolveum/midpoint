@@ -14,7 +14,6 @@ import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.FullInboundsProcessing;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;

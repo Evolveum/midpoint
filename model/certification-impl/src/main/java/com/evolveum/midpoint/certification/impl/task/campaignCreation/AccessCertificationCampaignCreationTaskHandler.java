@@ -1,12 +1,17 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.certification.impl;
+package com.evolveum.midpoint.certification.impl.task.campaignCreation;
 
+import com.evolveum.midpoint.certification.impl.AccCertOpenerHelper;
+import com.evolveum.midpoint.certification.impl.AccessCertificationConstants;
+import com.evolveum.midpoint.certification.impl.CertificationManagerImpl;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.Operation;
@@ -18,6 +23,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +43,8 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
 
     @Autowired private TaskManager taskManager;
     @Autowired private CertificationManagerImpl certificationManager;
+    @Autowired private RepositoryService repositoryService;
+    @Autowired private AccCertOpenerHelper openerHelper;
 
     private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationCampaignCreationTaskHandler.class);
 
@@ -70,7 +79,9 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
         AccessCertificationCampaignType campaign;
         try {
             LOGGER.debug("Creating campaign with definition of {}", definitionOid);
-            campaign = certificationManager.createCampaign(definitionOid, task, opResult);
+            PrismObject<AccessCertificationDefinitionType> definition =
+                    repositoryService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, opResult);
+            campaign = openerHelper.createCampaign(definition, opResult, task);
             LOGGER.info("Campaign {} was created.", ObjectTypeUtil.toShortString(campaign));
         } catch (Exception e) {
             LoggingUtils.logException(LOGGER, "Error while executing 'create campaign' task handler", e);

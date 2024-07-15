@@ -149,7 +149,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
         try {
             if (!combinatorialEvaluation.evaluator.isIncludeNullInputs() && MiscUtil.isAllNull(valuesTuple)) {
                 // The case that all the sources are null. There is no point executing the expression.
-                setTraceComment("All sources are null and includeNullInputs is true.");
+                setTraceComment("All sources are null and includeNullInputs is false.");
                 return;
             }
             VariablesMap staticVariables = createStaticVariablesFromSources();
