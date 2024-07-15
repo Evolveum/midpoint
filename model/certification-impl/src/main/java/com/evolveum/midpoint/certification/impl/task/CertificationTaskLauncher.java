@@ -115,9 +115,9 @@ public class CertificationTaskLauncher {
         FocusType owner;
         try {
 
-            activityDef.beginWork()
-                    .beginCertificationCampaignCreation()
-                    .certificationCampaignDefinitionRef(definition.getOid(), AccessCertificationDefinitionType.COMPLEX_TYPE);
+//            activityDef.beginWork()
+//                    .beginCertificationCampaignCreation()
+//                    .certificationCampaignDefinitionRef(definition.getOid(), AccessCertificationDefinitionType.COMPLEX_TYPE);
             task.flushPendingModifications(result);
 
             // Readable task name

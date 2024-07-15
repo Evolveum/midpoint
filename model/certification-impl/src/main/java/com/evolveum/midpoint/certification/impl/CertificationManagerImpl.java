@@ -130,7 +130,7 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public void createCampaign(String definitionOid, Task task, OperationResult parentResult)
+    public AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Validate.notNull(definitionOid, "definitionOid");
@@ -138,17 +138,22 @@ public class CertificationManagerImpl implements CertificationManager {
         Validate.notNull(parentResult, "parentResult");
 
         OperationResult result = parentResult.createSubresult(OPERATION_CREATE_CAMPAIGN);
-
-        PrismObject<AccessCertificationDefinitionType> definition =
-                repositoryService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, result);
-        securityEnforcer.authorize(
-                ModelAuthorizationAction.CREATE_CERTIFICATION_CAMPAIGN.getUrl(),
-                null,
-                AuthorizationParameters.Builder.buildObject(definition),
-                task,
-                result);
-
-        launcher.createCampaignTask(definition, task, parentResult);
+        try {
+            PrismObject<AccessCertificationDefinitionType> definition =
+                    repositoryService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, result);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.CREATE_CERTIFICATION_CAMPAIGN.getUrl(),
+                    null,
+                    AuthorizationParameters.Builder.buildObject(definition),
+                    task,
+                    result);
+            return openerHelper.createCampaign(definition, result, task);
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't create certification campaign: unexpected exception: " + e.getMessage(), e);
+            throw e;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     /**

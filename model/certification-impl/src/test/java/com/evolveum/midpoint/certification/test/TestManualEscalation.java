@@ -71,25 +71,19 @@ public class TestManualEscalation extends AbstractCertificationTest {
 
         // WHEN
         when();
-        certificationService.createCampaign(certificationDefinition.getOid(), task, result);
+        AccessCertificationCampaignType campaign =
+                certificationService.createCampaign(certificationDefinition.getOid(), task, result);
 
         // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        List<PrismObject<TaskType>> tasks = getCampaignCreationTasks(certificationDefinition.getOid(), result);
-        assertEquals("unexpected number of related tasks", 1, tasks.size());
-        String foundTaskOid = tasks.get(0).getOid();
-        waitForTaskFinish(foundTaskOid);
+        assertNotNull("Created campaign is null", campaign);
 
-        TaskType foundTask = getObject(TaskType.class, foundTaskOid).asObjectable();
+        campaignOid = campaign.getOid();
 
-        campaignOid = ((CertificationCampaignCreationWorkStateType)foundTask
-                .getActivityState().getActivity().getWorkState()).getCreatedCampaignRef().getOid();
-
-        @NotNull AccessCertificationCampaignType campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
-
+        campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
         assertPercentCompleteAll(campaign, 100, 100, 100);      // no cases, no problems

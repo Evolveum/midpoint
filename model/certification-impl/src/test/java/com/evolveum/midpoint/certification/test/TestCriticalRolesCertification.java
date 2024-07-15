@@ -69,26 +69,19 @@ public class TestCriticalRolesCertification extends AbstractCertificationTest {
 
         // WHEN
         when();
-        certificationManager.createCampaign(certificationDefinition.getOid(), task, result);
+        AccessCertificationCampaignType campaign =
+                certificationManager.createCampaign(certificationDefinition.getOid(), task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertInProgressOrSuccess(result);
+        TestUtil.assertSuccess(result);
 
-        List<PrismObject<TaskType>> tasks = getCampaignCreationTasks(certificationDefinition.getOid(), result);
-        assertEquals("unexpected number of related tasks", 1, tasks.size());
-        String foundTaskOid = tasks.get(0).getOid();
-        waitForTaskFinish(foundTaskOid);
-
-        TaskType foundTask = getObject(TaskType.class, foundTaskOid).asObjectable();
-
-        campaignOid = ((CertificationCampaignCreationWorkStateType)foundTask
-                .getActivityState().getActivity().getWorkState()).getCreatedCampaignRef().getOid();
-
-        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         assertNotNull("Created campaign is null", campaign);
 
+        campaignOid = campaign.getOid();
+
+        campaign = getCampaignWithCases(campaignOid);
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
 

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2010-2024 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.certification.impl.task.campaignCreation;
+package com.evolveum.midpoint.certification.impl.task.nextStage;
 
 import com.evolveum.midpoint.certification.impl.*;
 import com.evolveum.midpoint.model.impl.lens.tasks.TaskOperationalDataManager;
@@ -12,7 +12,6 @@ import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -25,8 +24,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AccessCertificationCampaignCreationActivityHandler
-        extends ModelActivityHandler<AccessCertificationCampaignCreationWorkDefinition, AccessCertificationCampaignCreationActivityHandler> {
+public class AccessCertificationNextStageActivityHandler
+        extends ModelActivityHandler<AccessCertificationNextStageWorkDefinition, AccessCertificationNextStageActivityHandler> {
 
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_CERTIFICATION_CAMPAIGN_CREATION_TASK.value();
 
@@ -74,21 +73,21 @@ public class AccessCertificationCampaignCreationActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                CertificationCampaignCreationWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_CERTIFICATION_CAMPAIGN_CREATION,
-                AccessCertificationCampaignCreationWorkDefinition.class, AccessCertificationCampaignCreationWorkDefinition::new, this);
+                CertificationNextStageWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_CERTIFICATION_NEXT_STAGE,
+                AccessCertificationNextStageWorkDefinition.class, AccessCertificationNextStageWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
         handlerRegistry.unregister(
-                CertificationCampaignCreationWorkDefinitionType.COMPLEX_TYPE, AccessCertificationCampaignCreationWorkDefinition.class);
+                CertificationNextStageWorkDefinitionType.COMPLEX_TYPE, AccessCertificationNextStageWorkDefinition.class);
     }
 
     @Override
-    public AbstractActivityRun<AccessCertificationCampaignCreationWorkDefinition, AccessCertificationCampaignCreationActivityHandler, ?> createActivityRun(
-            @NotNull ActivityRunInstantiationContext<AccessCertificationCampaignCreationWorkDefinition, AccessCertificationCampaignCreationActivityHandler> context,
+    public AbstractActivityRun<AccessCertificationNextStageWorkDefinition, AccessCertificationNextStageActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<AccessCertificationNextStageWorkDefinition, AccessCertificationNextStageActivityHandler> context,
             @NotNull OperationResult result) {
-        return new AccessCertificationCampaignCreationRun(context);
+        return new AccessCertificationNextStageRun(context);
     }
 
     @Override
@@ -99,10 +98,5 @@ public class AccessCertificationCampaignCreationActivityHandler
     @Override
     public String getDefaultArchetypeOid() {
         return ARCHETYPE_OID;
-    }
-
-    @Override
-    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
-        return ActivityStateDefinition.normal(CertificationCampaignCreationWorkStateType.COMPLEX_TYPE);
     }
 }
