@@ -8,10 +8,9 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.util.HashSet;
 import java.util.Set;
-import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.hibernate.annotations.Cascade;
+import jakarta.persistence.*;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
@@ -126,9 +125,8 @@ public class RCase extends RObject {
     }
 
     @JaxbName(localPart = "workItem")
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = CascadeType.ALL)
     @org.hibernate.annotations.ForeignKey(name = "none")
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RCaseWorkItem> getWorkItems() {
         return workItems;
     }

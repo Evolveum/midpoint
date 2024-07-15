@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.repo.sql.data.common.container.RCaseWorkItem
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Table;
@@ -127,9 +129,8 @@ public class RCaseWorkItem implements Container<RCase> {
 
     @Where(clause = RCaseWorkItemReference.REFERENCE_TYPE + "= 0")
     @JaxbName(localPart = "assigneeRef")
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = CascadeType.ALL)
     @org.hibernate.annotations.ForeignKey(name = "none")
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RCaseWorkItemReference> getAssigneeRef() {
         return assigneeRef;
     }
@@ -140,9 +141,8 @@ public class RCaseWorkItem implements Container<RCase> {
 
     @Where(clause = RCaseWorkItemReference.REFERENCE_TYPE + "= 1")
     @JaxbName(localPart = "candidateRef")
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = CascadeType.ALL)
     @org.hibernate.annotations.ForeignKey(name = "none")
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RCaseWorkItemReference> getCandidateRef() {
         return candidateRef;
     }

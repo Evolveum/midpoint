@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Table;
@@ -144,9 +146,8 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     }
 
     @JaxbName(localPart = "assigneeRef")
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = CascadeType.ALL)
     @org.hibernate.annotations.ForeignKey(name = "none")
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RCertWorkItemReference> getAssigneeRef() {
         return assigneeRef;
     }

@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
@@ -112,8 +113,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     }
 
     @JaxbName(localPart = "workItem")
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
+    @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<RAccessCertificationWorkItem> getWorkItems() {
         return workItems;
     }
