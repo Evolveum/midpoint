@@ -77,6 +77,11 @@ Tree node search is now same for all nodes.
 
 * xref:/midpoint/reference/roles-policies/classification/[Information Classification and Clearances]
 
+* Object marks
+** Supported for all object types including assignments when executed via policy rules
+** GUI support for adding/removing marks for focus objects and shadows
+** GUI Support to show mark in the focus and shadow tables
+
 === Other Improvements
 
 TODO
