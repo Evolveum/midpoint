@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.mapping.ContainerTableRelationResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemRelationResolver;
 import com.evolveum.midpoint.repo.sqale.mapping.UpdatableItemSqlMapper;
+import com.evolveum.midpoint.repo.sqale.update.NestedContainerUpdateContext;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterProcessor;
@@ -104,6 +105,10 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
                 context.addSubcontext(subcontextPath, subcontext);
             }
             context = subcontext;
+            if (path.firstToIdOrNull() != null && context instanceof NestedContainerUpdateContext<?,?,?>) {
+                // Skip id (We are nesting inside virtual multivalue container
+                path = path.rest();
+            }
         }
         return path.asSingleName();
     }

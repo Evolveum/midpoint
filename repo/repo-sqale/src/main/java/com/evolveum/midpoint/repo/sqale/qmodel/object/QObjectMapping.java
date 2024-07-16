@@ -234,7 +234,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
     private void upgradeLegacyMetadataToValueMetadata(S ret) {
         var legacyMeta = ret.getMetadata();
-        if (legacyMeta == null) {
+        if (legacyMeta == null || !ret.asPrismContainerValue().getValueMetadata().isEmpty()) {
             return;
         }
 
@@ -242,7 +242,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         converted.setId(1L);
 
         try {
-            ret.asPrismContainerValue().getValueMetadata().setRealValue(converted);
+            ret.asPrismContainerValue().getValueMetadata().add(converted.asPrismContainerValue());
             ret.setMetadata(null);
             ret.asPrismObject().setUserData(SqaleUtils.REINDEX_NEEDED, true);
 

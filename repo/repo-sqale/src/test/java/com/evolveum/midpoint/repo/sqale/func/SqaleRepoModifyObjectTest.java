@@ -1315,7 +1315,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
         assertThat(userObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(userObject.getMetadata().getCreateApproverRef()).hasSize(2)
+        assertThat(ValueMetadataTypeUtil.getCreateApproverRefs(userObject)).hasSize(2)
                 .anyMatch(refMatcher(approverOid1, refRelation))
                 .anyMatch(refMatcher(approverOid2, refRelation));
 
@@ -1772,7 +1772,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(taskObject.getMetadata().getCreateChannel()).isEqualTo("any://channel");
+        assertThat(ValueMetadataTypeUtil.getStorageMetadata(taskObject).getCreateChannel()).isEqualTo("any://channel");
 
         and("externalized column is updated");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
@@ -1787,7 +1787,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata/createChannel status replace to null ('delete') for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE,  MetadataType.F_CREATE_CHANNEL)
                 .replace()
                 .asObjectDelta(task1Oid);
 
@@ -1805,8 +1805,9 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertTrue(taskObject.getMetadata() == null // if removed with last item
-                || taskObject.getMetadata().getCreateChannel() == null);
+        var storageMeta = ValueMetadataTypeUtil.getStorageMetadata(taskObject);
+        assertTrue(storageMeta == null // if removed with last item
+                || storageMeta.getCreateChannel() == null);
 
         and("externalized column is set to NULL");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
@@ -1821,7 +1822,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata/createChannel (multi-part path) change for task 1 adding value");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ObjectType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE, MetadataType.F_CREATE_CHANNEL)
                 .replace("any://channel")
                 .asObjectDelta(task1Oid);
 
@@ -1839,7 +1840,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(taskObject.getMetadata().getCreateChannel()).isEqualTo("any://channel");
+        assertThat(ValueMetadataTypeUtil.getStorageMetadata(taskObject).getCreateChannel()).isEqualTo("any://channel");
 
         and("externalized column is updated");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
@@ -1854,7 +1855,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata add with no value for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ObjectType.F_METADATA).add()
+                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE).add()
                 .asObjectDelta(task1Oid);
 
         and("task row previously having some value in metadata container");
@@ -1871,7 +1872,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version));
-        assertThat(taskObject.getMetadata().getCreateChannel()).isEqualTo("any://channel");
+        assertThat(ValueMetadataTypeUtil.getStorageMetadata(taskObject).getCreateChannel()).isEqualTo("any://channel");
 
         MTask row = selectObjectByOid(QTask.class, task1Oid);
         assertThat(row.version).isEqualTo(originalRow.version);
@@ -1889,7 +1890,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID modifierRefOid = UUID.randomUUID();
         QName modifierRelation = QName.valueOf("{https://random.org/ns}modifier-rel");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ObjectType.F_METADATA).add(new MetadataType()
+                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE).add(new StorageMetadataType()
                         .modifyChannel("any://modify-channel")
                         .modifierRef(modifierRefOid.toString(),
                                 UserType.COMPLEX_TYPE, modifierRelation))
@@ -1908,10 +1909,12 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
+
+        var storage = ValueMetadataTypeUtil.getStorageMetadata(taskObject);
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(taskObject.getMetadata().getCreateChannel()).isNull();
-        assertThat(taskObject.getMetadata().getModifyChannel()).isEqualTo("any://modify-channel");
-        assertThat(taskObject.getMetadata().getModifierRef()).isNotNull(); // details checked in row
+        assertThat(storage.getCreateChannel()).isNull();
+        assertThat(storage.getModifyChannel()).isEqualTo("any://modify-channel");
+        assertThat(storage.getModifierRef()).isNotNull(); // details checked in row
 
         and("externalized column is updated");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
@@ -1933,7 +1936,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID creatorRefOid = UUID.randomUUID();
         QName creatorRelation = QName.valueOf("{https://random.org/ns}modifier-rel");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ObjectType.F_METADATA).replace(new MetadataType()
+                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE).replace(new StorageMetadataType()
                         .createChannel("any://create-channel")
                         .modifyChannel("any://modify2-channel")
                         .creatorRef(creatorRefOid.toString(),
@@ -1949,11 +1952,12 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         and("serialized form (fullObject) is updated");
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
+        var storage = ValueMetadataTypeUtil.getStorageMetadata(taskObject);
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(taskObject.getMetadata().getCreateChannel()).isEqualTo("any://create-channel");
-        assertThat(taskObject.getMetadata().getModifyChannel()).isEqualTo("any://modify2-channel");
-        assertThat(taskObject.getMetadata().getCreatorRef()).isNotNull(); // details checked in row
-        assertThat(taskObject.getMetadata().getModifierRef()).isNull();
+        assertThat(storage.getCreateChannel()).isEqualTo("any://create-channel");
+        assertThat(storage.getModifyChannel()).isEqualTo("any://modify2-channel");
+        assertThat(storage.getCreatorRef()).isNotNull(); // details checked in row
+        assertThat(storage.getModifierRef()).isNull();
 
         and("externalized column is updated");
         MTask row = selectObjectByOid(QTask.class, task1Oid);
@@ -2014,7 +2018,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata replaced with no value for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ObjectType.F_METADATA).replace(new MetadataType())
+                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE).replace(new StorageMetadataType())
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -2027,7 +2031,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(taskObject.getMetadata()).isNotNull()
+        assertThat(ValueMetadataTypeUtil.getStorageMetadata(taskObject)).isNotNull()
                 .matches(m -> m.asPrismContainerValue().isEmpty());
 
         and("all externalized columns for metadata are cleared");
@@ -2053,7 +2057,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta replacing metadata with nothing for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ObjectType.F_METADATA).replace()
+                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE).replace()
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -2077,7 +2081,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with empty metadata added for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(ObjectType.F_METADATA).add(new MetadataType())
+                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE).add(new StorageMetadataType())
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -2090,7 +2094,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         TaskType taskObject = repositoryService.getObject(TaskType.class, task1Oid, null, result)
                 .asObjectable();
         assertThat(taskObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(taskObject.getMetadata()).isNotNull()
+        assertThat(ValueMetadataTypeUtil.getStorageMetadata(taskObject)).isNotNull()
                 .matches(m -> m.asPrismContainerValue().isEmpty());
     }
 

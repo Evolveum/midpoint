@@ -36,6 +36,14 @@ import static com.evolveum.midpoint.util.MiscUtil.*;
 
 public class ValueMetadataTypeUtil {
 
+    private static final Function<ObjectReferenceType, ObjectReferenceType> OBJECT_REFERENCE_COPY = (o) -> {
+        if (o == null) {
+            return null;
+        }
+        return (ObjectReferenceType) o.asReferenceValue().clone().asReferencable();
+    };
+
+
     public static @NotNull StorageMetadataType getOrCreateStorageMetadata(@NotNull PrismObject<? extends ObjectType> object) {
         return getOrCreateStorageMetadata(
                 getOrCreateMetadata(object.asObjectable()));
@@ -494,13 +502,17 @@ public class ValueMetadataTypeUtil {
                 // Create metadata
                 .createChannel(legacy.getCreateChannel())
                 .createTimestamp(legacy.getCreateTimestamp())
-                .creatorRef(legacy.getCreatorRef().clone())
-                .createTaskRef(legacy.getCreateTaskRef().clone())
+                .creatorRef(copyValue(legacy.getCreatorRef()))
+                .createTaskRef(copyValue(legacy.getCreateTaskRef()))
                 // Modify metadata
                 .modifyChannel(legacy.getModifyChannel())
                 .modifyTimestamp(legacy.getModifyTimestamp())
                 .modifierRef(legacy.getModifierRef())
                 .modifyTaskRef(legacy.getModifyTaskRef());
+    }
+
+    private static ObjectReferenceType copyValue(ObjectReferenceType ort) {
+        return ort != null ? ort.clone() : null;
     }
 
     private static ProcessMetadataType processMetadataFrom(MetadataType legacy) {
@@ -520,12 +532,12 @@ public class ValueMetadataTypeUtil {
                 .certificationFinishedTimestamp(legacy.getCertificationFinishedTimestamp())
                 .certificationOutcome(legacy.getCertificationOutcome())
                 ;
-        copyValuesTo(process::createApproverRef,legacy.getCreateApproverRef());
-        copyValuesTo(process::createApprovalComment,legacy.getCreateApprovalComment());
-        copyValuesTo(process::modifyApproverRef, legacy.getModifyApproverRef());
-        copyValuesTo(process::modifyApprovalComment, legacy.getModifyApprovalComment());
-        copyValuesTo(process::certifierRef, legacy.getCertifierRef());
-        copyValuesTo(process::certifierComment, legacy.getCertifierComment());
+        copyValuesTo(process::createApproverRef,legacy.getCreateApproverRef(), OBJECT_REFERENCE_COPY);
+        copyValuesTo(process::createApprovalComment,legacy.getCreateApprovalComment(), Function.identity());
+        copyValuesTo(process::modifyApproverRef, legacy.getModifyApproverRef(), OBJECT_REFERENCE_COPY);
+        copyValuesTo(process::modifyApprovalComment, legacy.getModifyApprovalComment(), Function.identity());
+        copyValuesTo(process::certifierRef, legacy.getCertifierRef(), OBJECT_REFERENCE_COPY);
+        copyValuesTo(process::certifierComment, legacy.getCertifierComment(), Function.identity());
 
         return process;
     }
@@ -555,9 +567,9 @@ public class ValueMetadataTypeUtil {
         return container;
     }
 
-    private static <I,O> void copyValuesTo(Function<I,O> func, Collection<I> values) {
+    private static <I,O> void copyValuesTo(Function<I,O> addFunc, Collection<I> values, Function<I,I> copyFunc) {
         for (var v : values) {
-            func.apply(CloneUtil.clone(v));
+            addFunc.apply(copyFunc.apply(v));
         }
     }
 }
