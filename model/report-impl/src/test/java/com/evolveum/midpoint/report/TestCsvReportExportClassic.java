@@ -73,6 +73,7 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         repoAdd(OBJECT_COLLECTION_ALL_ASSIGNMENT_HOLDER, initResult);
         repoAdd(OBJECT_COLLECTION_ALL_TASK, initResult);
         repoAdd(OBJECT_COLLECTION_SHADOW_OF_RESOURCE, initResult);
+        repoAdd(REPORT_OBJECT_COLLECTION_WITH_VALUE_METADATA, initResult);
 
         repoAdd(DASHBOARD_DEFAULT_COLUMNS, initResult);
         repoAdd(DASHBOARD_EMPTY, initResult);
@@ -140,6 +141,8 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         testClassicExport(REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION, 2, 2, null);
     }
 
+
+
     @Test
     public void test115ObjectCollectionReportWithCondition() throws Exception {
         testClassicExport(REPORT_OBJECT_COLLECTION_WITH_CONDITION, 2, 5, null);
@@ -180,6 +183,11 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         testClassicExport(REPORT_USER_LIST_SCRIPT, 54, 5, null);
         File targetFile = new File(MidPointTestConstants.TARGET_DIR_PATH, "report-users");
         assertTrue("Target file is not there", targetFile.exists());
+    }
+
+    @Test
+    public void test125ObjectCollectionReportWithValueMetadata() throws Exception {
+        testClassicExport(REPORT_OBJECT_COLLECTION_WITH_VALUE_METADATA, 54, 3, null);
     }
 
     @Test
@@ -239,4 +247,6 @@ public class TestCsvReportExportClassic extends TestCsvReport {
 
         testClassicExport(REPORT_SUBREPORT_AUDIT, 5, 4, null, parameters);
     }
+
+
 }
