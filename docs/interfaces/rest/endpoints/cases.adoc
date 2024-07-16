@@ -67,6 +67,7 @@ User can fill in outcome and other fields. Outcome is mandatory:
 
 * Approve `http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve`
 * Reject `http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#reject`
+* Skip `http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#skip`
 
 .*Complete work item*
 [source,bash]
@@ -151,7 +152,7 @@ The response is an HTTP 204 code in case of success *without* a response body.
 
 Work item can be released by sending a POST request to the specific work item URL.
 
-.*Claim work item*
+.*Release work item*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \
@@ -166,7 +167,7 @@ The response is an HTTP 204 code in case of success *without* a response body.
 
 Case can be canceled by sending a POST request to the specific case URL.
 
-.*Claim work item*
+.*Cancel case*
 [source,bash]
 ----
 curl --user administrator:y0uR_P455woR*d \
