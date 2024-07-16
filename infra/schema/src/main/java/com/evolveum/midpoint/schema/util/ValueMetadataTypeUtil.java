@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.util;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -471,5 +472,92 @@ public class ValueMetadataTypeUtil {
                 .map(ProcessMetadataType::getCertifierComment)
                 .flatMap(strings -> strings.stream())
                 .collect(Collectors.toSet());
+    }
+
+    public static ValueMetadataType fromLegacy(@NotNull MetadataType legacy) {
+        var storage = storageMetadataFrom(legacy);
+        var process = processMetadataFrom(legacy);
+        var provenance = provenanceMetadataFrom(legacy);
+        var provisioning = provisioningMetadataFrom(legacy);
+        var transformation = transformationMetadataFrom(legacy);
+        return  new ValueMetadataType()
+                .storage(nullIfEmpty(storage))
+                .process(nullIfEmpty(process))
+                .provenance(nullIfEmpty(provenance))
+                .provisioning(nullIfEmpty(provisioning))
+                .transformation(nullIfEmpty(transformation));
+    }
+
+
+    private static StorageMetadataType storageMetadataFrom(MetadataType legacy) {
+        return  new StorageMetadataType()
+                // Create metadata
+                .createChannel(legacy.getCreateChannel())
+                .createTimestamp(legacy.getCreateTimestamp())
+                .creatorRef(legacy.getCreatorRef().clone())
+                .createTaskRef(legacy.getCreateTaskRef().clone())
+                // Modify metadata
+                .modifyChannel(legacy.getModifyChannel())
+                .modifyTimestamp(legacy.getModifyTimestamp())
+                .modifierRef(legacy.getModifierRef())
+                .modifyTaskRef(legacy.getModifyTaskRef());
+    }
+
+    private static ProcessMetadataType processMetadataFrom(MetadataType legacy) {
+        var process = new ProcessMetadataType()
+                .requestTimestamp(legacy.getRequestTimestamp())
+                .requestorRef(legacy.getRequestorRef())
+                .requestorComment(legacy.getRequestorComment())
+                //createApproverRef
+                //createApprovalComment
+                .createApprovalTimestamp(legacy.getCreateApprovalTimestamp())
+                //modifyApproverRef
+                //modifyApprovalComment
+
+                .modifyApprovalTimestamp(legacy.getModifyTimestamp())
+                //certifierRef
+                //certifierComment
+                .certificationFinishedTimestamp(legacy.getCertificationFinishedTimestamp())
+                .certificationOutcome(legacy.getCertificationOutcome())
+                ;
+        copyValuesTo(process::createApproverRef,legacy.getCreateApproverRef());
+        copyValuesTo(process::createApprovalComment,legacy.getCreateApprovalComment());
+        copyValuesTo(process::modifyApproverRef, legacy.getModifyApproverRef());
+        copyValuesTo(process::modifyApprovalComment, legacy.getModifyApprovalComment());
+        copyValuesTo(process::certifierRef, legacy.getCertifierRef());
+        copyValuesTo(process::certifierComment, legacy.getCertifierComment());
+
+        return process;
+    }
+
+    private static ProvenanceMetadataType provenanceMetadataFrom(MetadataType legacy) {
+        // Legacy Metadata can not be mapped to provenance
+        return new ProvenanceMetadataType();
+    }
+
+
+    private static ProvisioningMetadataType provisioningMetadataFrom(MetadataType legacy) {
+        return new ProvisioningMetadataType()
+                .lastProvisioningTimestamp(legacy.getLastProvisioningTimestamp());
+    }
+
+    private static TransformationMetadataType transformationMetadataFrom(MetadataType legacy) {
+        // Legacy Metadata can not be mapped to provenance
+        return new TransformationMetadataType();
+
+    }
+
+
+    private static <T extends Containerable> T nullIfEmpty(T container) {
+        if (container == null || container.asPrismContainerValue().isEmpty()) {
+            return null;
+        }
+        return container;
+    }
+
+    private static <I,O> void copyValuesTo(Function<I,O> func, Collection<I> values) {
+        for (var v : values) {
+            func.apply(CloneUtil.clone(v));
+        }
     }
 }

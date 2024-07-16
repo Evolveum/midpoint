@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -221,11 +222,34 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         byte[] fullObject = Objects.requireNonNull(row.get(entityPath.fullObject));
         UUID oid = Objects.requireNonNull(row.get(entityPath.oid));
         S ret = parseSchemaObject(fullObject, oid.toString());
+
+        upgradeLegacyMetadataToValueMetadata(ret);
+
         if (GetOperationOptions.isAttachDiagData(SelectorOptions.findRootOptions(options))) {
             RepositoryObjectDiagnosticData diagData = new RepositoryObjectDiagnosticData(fullObject.length);
             ret.asPrismContainer().setUserData(RepositoryService.KEY_DIAG_DATA, diagData);
         }
         return ret;
+    }
+
+    private void upgradeLegacyMetadataToValueMetadata(S ret) {
+        var legacyMeta = ret.getMetadata();
+        if (legacyMeta == null) {
+            return;
+        }
+
+        var converted = ValueMetadataTypeUtil.fromLegacy(legacyMeta);
+        converted.setId(1L);
+
+        try {
+            ret.asPrismContainerValue().getValueMetadata().setRealValue(converted);
+            ret.setMetadata(null);
+            ret.asPrismObject().setUserData(SqaleUtils.REINDEX_NEEDED, true);
+
+        } catch (SchemaException e) {
+            e.getMessage(); // Should not happen.
+        }
+
     }
 
     /**
