@@ -316,6 +316,8 @@ public class ObjectUpdater {
             closureContext = closureManager.onBeginTransactionDelete(em, actualType, oid);
             closureManager.updateOrgClosure(null, null, em, oid, actualType, OrgClosureManager.Operation.DELETE, closureContext);
 
+            // TODO why is this needed, how to do it "better". Needed to avoid exception about working with detached instance
+            object = em.merge(object);
             em.remove(object);
             if (LookupTableType.class.equals(actualType)) {
                 lookupTableHelper.deleteLookupTableRows(em, oid);

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sql.helpers;
 
 import java.util.*;
 
+import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
@@ -268,7 +270,11 @@ public class CertificationCaseHelper {
                 generator.generate(aCase);
 
                 RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, createRepositoryContext());
-                em.merge(rCase);
+
+                // TODO this is wrong, but merge works afterwards (removes work items...)... remove this one, figure out how to do it properly
+                em.find(RAccessCertificationCase.class, new RContainerId(rCase.getId(), rCase.getOwnerOid()));
+
+                rCase = em.merge(rCase);
 
                 LOGGER.trace("Access certification case {} merged", rCase);
                 casesModified.add(aCase.getId());
@@ -290,7 +296,7 @@ public class CertificationCaseHelper {
                 Long id = aCase.getId();
                 if (id != null && casesAddedOrDeleted != null && !casesAddedOrDeleted.contains(id) && !casesModified.contains(id)) {
                     RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, createRepositoryContext());
-                    em.merge(rCase);
+                    rCase = em.merge(rCase);
                     LOGGER.trace("Access certification case {} refreshed", rCase);
                 }
             }
