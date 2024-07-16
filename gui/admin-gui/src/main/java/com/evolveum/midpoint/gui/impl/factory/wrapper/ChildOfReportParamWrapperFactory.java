@@ -75,7 +75,7 @@ public class ChildOfReportParamWrapperFactory<R extends Referencable> extends Pr
 
         PrismReferenceWrapper<R> itemWrapper = createWrapperInternal(parent, newItem, ItemStatus.NOT_CHANGED, context);
         itemWrapper.setMetadata(context.isMetadata());
-        itemWrapper.setProcessProvenanceMetadata(context.isProcessMetadataFor(itemWrapper.getPath()));
+        itemWrapper.setProcessProvenanceMetadata(context.isProcessMetadataFor(itemWrapper));
 
         registerWrapperPanel(itemWrapper);
 

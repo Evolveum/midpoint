@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.factory.wrapper;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
@@ -180,12 +181,12 @@ public class WrapperContext {
         this.metadataItemProcessingSpec = metadataItemProcessingSpec;
     }
 
-    public boolean isProcessMetadataFor(ItemPath path) throws SchemaException {
+    public boolean isProcessMetadataFor(ItemWrapper<?,?> wrapper) throws SchemaException {
         if (metadataItemProcessingSpec == null) {
             return false;
         }
 
-        return metadataItemProcessingSpec.isFullProcessing(path);
+        return metadataItemProcessingSpec.isFullProcessing(wrapper.getPath(), wrapper);
     }
 
     public PrismObject<?> getObject() {

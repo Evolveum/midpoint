@@ -55,8 +55,9 @@ public interface AccessCertificationService {
      * @param definitionOid OID of certification definition for this campaign.
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
+     * @return Object for the created campaign. It will be stored in the repository as well.
      */
-    void createCampaign(String definitionOid, Task task, OperationResult parentResult)
+    AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
     /**

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.certification.impl.AccCertCaseOperationsHelper;
 import com.evolveum.midpoint.certification.impl.AccCertGeneralHelper;
 import com.evolveum.midpoint.certification.impl.AccCertQueryHelper;
 import com.evolveum.midpoint.certification.impl.CertificationManagerImpl;
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.task.api.TaskManager;
 
@@ -39,6 +40,7 @@ public class AccessCertificationRemediationActivityHandler
     @Autowired private AccCertCaseOperationsHelper caseHelper;
     @Autowired private AccCertQueryHelper queryHelper;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired public LocalizationService localizationService;
 
     public TaskManager getTaskManager() {
         return taskManager;
@@ -62,6 +64,10 @@ public class AccessCertificationRemediationActivityHandler
 
     public RepositoryService getRepositoryService() {
         return repositoryService;
+    }
+
+    public LocalizationService getLocalizationService() {
+        return localizationService;
     }
 
     @PostConstruct

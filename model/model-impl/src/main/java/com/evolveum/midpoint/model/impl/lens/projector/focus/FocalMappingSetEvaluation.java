@@ -424,7 +424,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
         ItemDefinition<?> itemDefinition = getObjectDefinition(focusClass).findItemDefinition(path);
 
         ConsolidationValueMetadataComputer valueMetadataComputer = LensMetadataUtil.createValueMetadataConsolidationComputer(
-                path, context, beans, env, result);
+                path, itemDefinition, context, beans, env, result);
 
         // TODO not much sure about the parameters
         //noinspection unchecked,rawtypes

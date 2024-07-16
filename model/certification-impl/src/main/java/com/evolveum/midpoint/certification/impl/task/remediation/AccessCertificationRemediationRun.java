@@ -14,6 +14,9 @@ import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
+import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
+import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -95,9 +98,17 @@ public final class AccessCertificationRemediationRun
             activityState.flushPendingTaskModifications(opResult);
 
             for (AccessCertificationCaseType acase : caseList) {
+                final Long caseId = acase.asPrismContainerValue().getId();
+                String caseName = handler.getLocalizationService().translate(
+                        "AccessCertificationRemediationRun.case",
+                        new Object[]{caseId},
+                        handler.getLocalizationService().getDefaultLocale());
+                IterativeOperationStartInfo startInfo = new IterativeOperationStartInfo(
+                        new IterationItemInformation(String.valueOf(caseId), caseName, AccessCertificationCaseType.COMPLEX_TYPE, null));
+                startInfo.setSimpleCaller(true);
+                Operation op = recordIterativeOperationStart(startInfo);
                 if (OutcomeUtils.isRevoke(acase, campaign)) {
                     OperationResult caseResult = opResult.createMinorSubresult(opResult.getOperation()+".revoke");
-                    final Long caseId = acase.asPrismContainerValue().getId();
                     caseResult.addContext("caseId", caseId);
                     try {
                         manager.doRevoke(acase, campaign, getRunningTask(), caseResult);
@@ -105,13 +116,17 @@ public final class AccessCertificationRemediationRun
                         caseResult.computeStatus();
                         revokedOk++;
                         getRunningTask().incrementLegacyProgressAndStoreStatisticsIfTimePassed(opResult);
+                        op.succeeded();
                     } catch (CommonException | RuntimeException e) {
                         String message = "Couldn't revoke case " + caseId + ": " + e.getMessage();
                         LoggingUtils.logUnexpectedException(LOGGER, message, e);
                         caseResult.recordPartialError(message, e);
                         revokedError++;
+                        op.failed(e);
                     }
                     opResult.summarize();
+                } else {
+                    op.skipped();
                 }
             }
             opResult.computeStatus();

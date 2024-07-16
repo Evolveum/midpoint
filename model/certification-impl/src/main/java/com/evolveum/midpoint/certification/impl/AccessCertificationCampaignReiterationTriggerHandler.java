@@ -36,7 +36,7 @@ public class AccessCertificationCampaignReiterationTriggerHandler implements Sin
     private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationCampaignReiterationTriggerHandler.class);
 
     @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
-    @Autowired private CertificationManager certificationManager;
+    @Autowired private CertificationManagerImpl certificationManager;
 
     @PostConstruct
     private void initialize() {

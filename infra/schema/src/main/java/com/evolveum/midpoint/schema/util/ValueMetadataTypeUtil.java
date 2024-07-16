@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.util;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -34,6 +35,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
 public class ValueMetadataTypeUtil {
+
+    private static final Function<ObjectReferenceType, ObjectReferenceType> OBJECT_REFERENCE_COPY = (o) -> {
+        if (o == null) {
+            return null;
+        }
+        return (ObjectReferenceType) o.asReferenceValue().clone().asReferencable();
+    };
+
 
     public static @NotNull StorageMetadataType getOrCreateStorageMetadata(@NotNull PrismObject<? extends ObjectType> object) {
         return getOrCreateStorageMetadata(
@@ -471,5 +480,96 @@ public class ValueMetadataTypeUtil {
                 .map(ProcessMetadataType::getCertifierComment)
                 .flatMap(strings -> strings.stream())
                 .collect(Collectors.toSet());
+    }
+
+    public static ValueMetadataType fromLegacy(@NotNull MetadataType legacy) {
+        var storage = storageMetadataFrom(legacy);
+        var process = processMetadataFrom(legacy);
+        var provenance = provenanceMetadataFrom(legacy);
+        var provisioning = provisioningMetadataFrom(legacy);
+        var transformation = transformationMetadataFrom(legacy);
+        return  new ValueMetadataType()
+                .storage(nullIfEmpty(storage))
+                .process(nullIfEmpty(process))
+                .provenance(nullIfEmpty(provenance))
+                .provisioning(nullIfEmpty(provisioning))
+                .transformation(nullIfEmpty(transformation));
+    }
+
+
+    private static StorageMetadataType storageMetadataFrom(MetadataType legacy) {
+        return  new StorageMetadataType()
+                // Create metadata
+                .createChannel(legacy.getCreateChannel())
+                .createTimestamp(legacy.getCreateTimestamp())
+                .creatorRef(copyValue(legacy.getCreatorRef()))
+                .createTaskRef(copyValue(legacy.getCreateTaskRef()))
+                // Modify metadata
+                .modifyChannel(legacy.getModifyChannel())
+                .modifyTimestamp(legacy.getModifyTimestamp())
+                .modifierRef(legacy.getModifierRef())
+                .modifyTaskRef(legacy.getModifyTaskRef());
+    }
+
+    private static ObjectReferenceType copyValue(ObjectReferenceType ort) {
+        return ort != null ? ort.clone() : null;
+    }
+
+    private static ProcessMetadataType processMetadataFrom(MetadataType legacy) {
+        var process = new ProcessMetadataType()
+                .requestTimestamp(legacy.getRequestTimestamp())
+                .requestorRef(legacy.getRequestorRef())
+                .requestorComment(legacy.getRequestorComment())
+                //createApproverRef
+                //createApprovalComment
+                .createApprovalTimestamp(legacy.getCreateApprovalTimestamp())
+                //modifyApproverRef
+                //modifyApprovalComment
+
+                .modifyApprovalTimestamp(legacy.getModifyTimestamp())
+                //certifierRef
+                //certifierComment
+                .certificationFinishedTimestamp(legacy.getCertificationFinishedTimestamp())
+                .certificationOutcome(legacy.getCertificationOutcome())
+                ;
+        copyValuesTo(process::createApproverRef,legacy.getCreateApproverRef(), OBJECT_REFERENCE_COPY);
+        copyValuesTo(process::createApprovalComment,legacy.getCreateApprovalComment(), Function.identity());
+        copyValuesTo(process::modifyApproverRef, legacy.getModifyApproverRef(), OBJECT_REFERENCE_COPY);
+        copyValuesTo(process::modifyApprovalComment, legacy.getModifyApprovalComment(), Function.identity());
+        copyValuesTo(process::certifierRef, legacy.getCertifierRef(), OBJECT_REFERENCE_COPY);
+        copyValuesTo(process::certifierComment, legacy.getCertifierComment(), Function.identity());
+
+        return process;
+    }
+
+    private static ProvenanceMetadataType provenanceMetadataFrom(MetadataType legacy) {
+        // Legacy Metadata can not be mapped to provenance
+        return new ProvenanceMetadataType();
+    }
+
+
+    private static ProvisioningMetadataType provisioningMetadataFrom(MetadataType legacy) {
+        return new ProvisioningMetadataType()
+                .lastProvisioningTimestamp(legacy.getLastProvisioningTimestamp());
+    }
+
+    private static TransformationMetadataType transformationMetadataFrom(MetadataType legacy) {
+        // Legacy Metadata can not be mapped to provenance
+        return new TransformationMetadataType();
+
+    }
+
+
+    private static <T extends Containerable> T nullIfEmpty(T container) {
+        if (container == null || container.asPrismContainerValue().isEmpty()) {
+            return null;
+        }
+        return container;
+    }
+
+    private static <I,O> void copyValuesTo(Function<I,O> addFunc, Collection<I> values, Function<I,I> copyFunc) {
+        for (var v : values) {
+            addFunc.apply(copyFunc.apply(v));
+        }
     }
 }

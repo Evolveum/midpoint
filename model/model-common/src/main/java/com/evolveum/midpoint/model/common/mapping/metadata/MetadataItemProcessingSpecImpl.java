@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
@@ -42,9 +43,12 @@ public class MetadataItemProcessingSpecImpl implements MetadataItemProcessingSpe
     @NotNull private final ItemPath metadataItemPath;
 
     private final List<ProcessingSpec> processingSpecs = new ArrayList<>();
+    private final DefaultValueMetadataProcessing defaultProcessing;
 
     public MetadataItemProcessingSpecImpl(@NotNull ItemPath metadataItemPath) {
         this.metadataItemPath = metadataItemPath;
+        this.defaultProcessing = DefaultValueMetadataProcessing.forMetadataItem(metadataItemPath.firstName());
+
     }
 
     @Override
@@ -53,6 +57,20 @@ public class MetadataItemProcessingSpecImpl implements MetadataItemProcessingSpe
             if (processingSpec.processing == ItemProcessingType.FULL && processingSpec.appliesTo(dataItemPath)) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isFullProcessing(ItemPath dataItemPath, ItemDefinition<?> definition) throws SchemaException {
+        // FIXME: Maybe first we should check if it is enabled by default or check if it is explicitly disabled?
+        for (ProcessingSpec processingSpec : processingSpecs) {
+            if (processingSpec.processing == ItemProcessingType.FULL && processingSpec.appliesTo(dataItemPath)) {
+                return true;
+            }
+        }
+        if (defaultProcessing.isEnabledFor(dataItemPath, definition)) {
+            return true;
         }
         return false;
     }
