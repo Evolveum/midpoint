@@ -100,10 +100,26 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="requirement" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Requirement constraint.
+                                Constraint that mandates that this object to be assigned together with other object.
+                                It can be used to require presence of clearances, job roles, require assignment is specific organization units, etc.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.9</a:since>
+                                <a:displayName>PolicyConstraintsType.requirement</a:displayName>
+                                <a:help>PolicyConstraintsType.requirement.help</a:help>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Exclusion constraint. Constraint that forbids this object to be assigned together with other object.
+                                Exclusion constraint.
+                                Constraint that forbids this object to be assigned together with other object.
+                                It is usually used to enforce segregation of duty (SoD) policies.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>PolicyConstraintsType.exclusion</a:displayName>
@@ -600,6 +616,11 @@
             <xsd:documentation>
                 Container that defines exclusion of entities (e.g. roles).
                 It is a part of Segregation of Duties (SoD) mechanism.
+
+                or
+
+                Container that defines requirement between entities (e.g. roles, clearances).
+                It is a part of classification/clearance mechanism.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -622,11 +643,13 @@
                                 Filter in the reference may be used to dynamically exclude broader
                                 range of roles - assuming that runtime resolution is used.
 
+                                or
+
                                 If script expression is used in the filter, following variables are available:
                                 - `policyRule`: currently evaluated policy rule (type EvaluatedPolicyRule)
                             </xsd:documentation>
                             <xsd:appinfo>
-                                 <a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
+                                <a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
                                 <a:displayName>ExclusionPolicyConstraintType.targetRef</a:displayName>
                                 <a:help>ExclusionPolicyConstraintType.targetRef.help</a:help>
                             </xsd:appinfo>
