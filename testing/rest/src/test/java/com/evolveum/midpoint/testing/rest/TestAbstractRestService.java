@@ -11,14 +11,10 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-
-import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext;
 
 import jakarta.ws.rs.core.Response;
 import jakarta.xml.bind.JAXBElement;
@@ -35,6 +31,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -1699,19 +1696,43 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     }
 
     @Test
-    public void test700CompleteWorkItemAccept() throws Exception {
-        // given
+    public void test700CompleteWorkItemReject() throws Exception {
+        testCompletionWorkItem(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
+    }
+
+    @Test
+    public void test705CompleteWorkItemAccept() throws Exception {
+        testCompletionWorkItem(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
+    }
+
+    private void removeApprovedRole(String userOid, Task task) throws Exception {
+        PrismObject<UserType> jack = getUser(userOid);
+        PrismContainerValue<AssignmentType> c1 = jack.asObjectable().getAssignment().stream()
+                .filter(a -> Objects.equals(a.getTargetRef().getOid(), ROLE_TO_APPROVE_OID))
+                .map(a -> a.asPrismContainerValue())
+                .findFirst()
+                .orElse(null);
+
+        if (c1 == null) {
+            return;
+        }
+        ObjectDelta<UserType> delta = jack.createModifyDelta();
+        delta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, c1);
+
+        executeChanges(delta, ModelExecuteOptions.create(), task, task.getResult());
+    }
+
+    private CaseType createCase(String userOid, Task task) throws Exception {
+        OperationResult result = task.getResult();
 
         PrismContainerValue<AssignmentType> c1 = new AssignmentType()
                 .targetRef(ROLE_TO_APPROVE_OID, RoleType.COMPLEX_TYPE)
                 .asPrismContainerValue();
 
-        PrismObject<UserType> jack = getUser(USER_JACK_OID);
+        PrismObject<UserType> jack = getUser(userOid);
         ObjectDelta<UserType> delta = jack.createModifyDelta();
         delta.addModificationAddContainer(UserType.F_ASSIGNMENT, c1);
 
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
         executeChanges(delta, ModelExecuteOptions.create(), task, result);
 
         ObjectQuery query = getPrismContext().queryFor(CaseType.class)
@@ -1725,15 +1746,28 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         SearchResultList<PrismObject<CaseType>> cases = modelService.searchObjects(CaseType.class, query, null, task, result);
         AssertJUnit.assertEquals(1, cases.size());
 
-        CaseType c = cases.get(0).asObjectable();
+        return cases.get(0).asObjectable();
+    }
+
+    private void testCompletionWorkItem(String outcome) throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        removeApprovedRole(USER_JACK_OID, task);
+
+        // given
+        CaseType c = createCase(USER_JACK_OID, task);
+        AssertJUnit.assertEquals(1, c.getWorkItem().size());
+
         String caseOid = c.getOid();
         Long workItemId = c.getWorkItem().get(0).getId();
 
         // when
+        final String comment = "sample comment";
 
         AbstractWorkItemOutputType data = new AbstractWorkItemOutputType();
-        data.setComment("sample comment");
-        data.setOutcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
+        data.setComment(comment);
+        data.setOutcome(outcome);
 
         WebClient client = prepareClient();
         client.path("/cases/" + caseOid + "/workItems/" + workItemId + "/complete");
@@ -1741,40 +1775,36 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         // then
         assertStatus(response, 204);
+
+        CaseType changed = modelService.getObject(CaseType.class, caseOid, null, task, result).asObjectable();
+        assertEquals(SchemaConstants.CASE_STATE_CLOSED, changed.getState());
+        assertEquals(outcome, changed.getOutcome());
+
+        CaseWorkItemType workItem = changed.getWorkItem().get(0);
+        AbstractWorkItemOutputType output = workItem.getOutput();
+
+        assertEquals(comment, output.getComment());
+        assertEquals(outcome, output.getOutcome());
     }
 
     @Test
-    public void test705CompleteWorkItemReject() throws Exception {
+    public void test710AttempToCompleteNonExistingWorkItem() throws Exception {
+        Task task = getTestTask();
 
-    }
+        removeApprovedRole(USER_JACK_OID, task);
+        CaseType c = createCase(USER_JACK_OID, task);
 
-    @Test
-    public void test710CompleteWorkItemNonExistent() throws Exception {
+        AbstractWorkItemOutputType data = new AbstractWorkItemOutputType();
+        data.setOutcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
 
-    }
+        long nonExistingId = 29389283;
 
-    @Test
-    public void test715CompleteWorkItemNoAccess() throws Exception {
+        WebClient client = prepareClient();
+        client.path("/cases/" + c.getOid() + "/workItems/" + nonExistingId + "/complete");
+        Response response = client.post(data);
+        assertStatus(response, 500);
 
-    }
-
-    @Test
-    public void test720DelegateWorkItem() throws Exception {
-
-    }
-
-    @Test
-    public void test725ClaimWorkItem() throws Exception {
-
-    }
-
-    @Test
-    public void test730ReleaseWorkItem() throws Exception {
-
-    }
-
-    @Test
-    public void test735CancelCase() throws Exception {
-
+        OperationResultType result = response.readEntity(OperationResultType.class);
+        AssertJUnit.assertTrue(result.getMessage().contains("No work item " + nonExistingId));
     }
 }
