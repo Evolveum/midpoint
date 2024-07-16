@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.util.ObjectTemplateIncludeProcessor;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.path.PathSet;
@@ -61,42 +62,64 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
      * This processing spec will contain mappings targeted at this scope.
      */
     @NotNull private final MetadataMappingScopeType scope;
+    final boolean useDefaults;
 
     /**
      * Item processing for given metadata items. Lazily evaluated.
      */
     private Map<ItemPath, ItemProcessingType> itemProcessingMap;
 
-    private ItemValueMetadataProcessingSpec(@NotNull MetadataMappingScopeType scope) {
+    private ItemValueMetadataProcessingSpec(@NotNull MetadataMappingScopeType scope, boolean useDefaults) {
+        this.useDefaults = useDefaults;
         this.scope = scope;
     }
 
     public static ItemValueMetadataProcessingSpec forScope(@NotNull MetadataMappingScopeType scope) {
-        return new ItemValueMetadataProcessingSpec(scope);
+        return new ItemValueMetadataProcessingSpec(scope, true);
+    }
+
+    public static ItemValueMetadataProcessingSpec forScope(@NotNull MetadataMappingScopeType scope, boolean useDefaults) {
+        return new ItemValueMetadataProcessingSpec(scope, useDefaults);
     }
 
     public void populateFromCurrentFocusTemplate(
-            @NotNull ItemPath dataPath, ObjectResolver objectResolver, String contextDesc,
+            @NotNull ItemPath dataPath, ItemDefinition<?> dataDefinition, ObjectResolver objectResolver, String contextDesc,
             Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         populateFromCurrentFocusTemplate(
-                ModelExpressionThreadLocalHolder.getLensContext(), dataPath, objectResolver, contextDesc, task, result);
+                ModelExpressionThreadLocalHolder.getLensContext(), dataPath,  dataDefinition, objectResolver, contextDesc, task, result);
     }
 
     public void populateFromCurrentFocusTemplate(
-            ModelContext<?> lensContext, @NotNull ItemPath dataPath, ObjectResolver objectResolver, String contextDesc,
+            ModelContext<?> lensContext, @NotNull ItemPath dataPath, ItemDefinition<?> dataDefinition, ObjectResolver objectResolver, String contextDesc,
             Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         if (lensContext != null) {
             ObjectTemplateType focusTemplate = lensContext.getFocusTemplate();
+
+
+
+
             if (focusTemplate != null) {
                 addFromObjectTemplate(focusTemplate, dataPath, objectResolver, contextDesc, task, result);
             } else {
-                LOGGER.trace("No focus template for {}, no metadata handling from this source", lensContext);
+                LOGGER.trace("No focus template for {}, using default provenance handling", lensContext);
+            }
+            // should be provenance enabled by default?
+
+            if (useDefaults &&
+                    DefaultValueMetadataProcessing.forMetadataItem(ValueMetadataType.F_PROVENANCE).isEnabledFor(dataPath, dataDefinition)) {
+                itemDefinitions.add(defaultProvenanceBehaviour());
             }
         } else {
             LOGGER.trace("No current lens context, no metadata handling");
         }
+    }
+
+    private MetadataItemDefinitionType defaultProvenanceBehaviour() {
+        return new MetadataItemDefinitionType()
+                .ref(new ItemPathType(ValueMetadataType.F_PROVENANCE))
+                .limitations(new PropertyLimitationsType().processing(ItemProcessingType.FULL));
     }
 
     public boolean isEmpty() {

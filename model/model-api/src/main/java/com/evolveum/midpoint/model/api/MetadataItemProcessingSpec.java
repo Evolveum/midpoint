@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.api;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -23,4 +24,11 @@ public interface MetadataItemProcessingSpec extends DebugDumpable {
      * @return true if the given dataItem (e.g. fullName) supports full processing of the relevant metadata (e.g. provenance).
      */
     boolean isFullProcessing(ItemPath dataItem) throws SchemaException;
+
+    /**
+     * @return true if the given dataItem (e.g. fullName) supports full processing of the relevant metadata (e.g. provenance).
+     */
+    default boolean isFullProcessing(ItemPath dataItem, ItemDefinition<?> definition) throws SchemaException {
+        return isFullProcessing(dataItem);
+    }
 }

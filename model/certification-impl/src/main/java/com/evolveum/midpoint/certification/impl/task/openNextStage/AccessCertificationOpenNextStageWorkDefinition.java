@@ -5,20 +5,20 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.certification.impl.task.remediation;
-
-import org.jetbrains.annotations.NotNull;
+package com.evolveum.midpoint.certification.impl.task.openNextStage;
 
 import com.evolveum.midpoint.certification.impl.task.AccessCertificationCampaignWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Work definition for certification campaign remediation.
  */
-public final class AccessCertificationRemediationWorkDefinition extends AccessCertificationCampaignWorkDefinition {
+public final class AccessCertificationOpenNextStageWorkDefinition extends AccessCertificationCampaignWorkDefinition {
 
-    public AccessCertificationRemediationWorkDefinition(@NotNull WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
+    public AccessCertificationOpenNextStageWorkDefinition(@NotNull WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
         super(info);
     }
 }

@@ -59,6 +59,125 @@ include::../operations/examples/raw/delete-case.adoc[]
 
 - xref:/midpoint/reference/interfaces/rest/operations/delete-op-rest/[Delete Operation]
 
+=== Complete Work Item
+
+Work item can be completed by sending a POST request to the specific work item URL.
+Body contains object of type `AbstractWorkItemOutputType`.
+User can fill in outcome and other fields. Outcome is mandatory:
+
+* Approve `http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve`
+* Reject `http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#reject`
+* Skip `http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#skip`
+
+.*Complete work item*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/cases/<CASE_OID>/workItems/<WORK_ITEM_IDENTIFIER>/complete \
+-v \
+--data-binary @./samples/rest/approve-work-item.json
+----
+
+.*Show* data source example | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/approve-work-item.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+    "output" : {
+        "@type" : "c:AbstractWorkItemOutputType",
+        "comment" : "sample comment",
+        "outcome" : "http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve"
+    }
+}
+----
+====
+
+The response is an HTTP 204 code in case of success *without* a response body.
+
+=== Delegate Work Item
+
+Work item can be delegated by sending a POST request to the specific work item URL.
+Body contains object of type `WorkItemDelegationRequestType`.
+
+.*Delegate work item*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/cases/<CASE_OID>/workItems/<WORK_ITEM_IDENTIFIER>/delegate \
+-v \
+--data-binary @./samples/rest/delegate-work-item.json
+----
+
+.*Show* data source example | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/delegate-work-item.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+    "delegate" : {
+        "@type" : "c:WorkItemDelegationRequestType",
+        "comment" : "Delegating this item to you",
+        "delegate" : {
+            "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+            "oid" : "229487cb-59b6-490b-879d-7a6d925dd08c",
+            "type" : "c:UserType"
+        },
+        "method" : "addAssignees"
+    }
+}
+----
+====
+
+The response is an HTTP 204 code in case of success *without* a response body.
+
+=== Claim Work Item
+
+Work item can be claimed by sending a POST request to the specific work item URL.
+
+.*Claim work item*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/cases/<CASE_OID>/workItems/<WORK_ITEM_IDENTIFIER>/claim \
+-v
+----
+
+The response is an HTTP 204 code in case of success *without* a response body.
+
+=== Release Work Item
+
+Work item can be released by sending a POST request to the specific work item URL.
+
+.*Release work item*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/cases/<CASE_OID>/workItems/<WORK_ITEM_IDENTIFIER>/release \
+-v
+----
+
+The response is an HTTP 204 code in case of success *without* a response body.
+
+=== Cancel Case
+
+Case can be canceled by sending a POST request to the specific case URL.
+
+.*Cancel case*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/midpoint/ws/rest/cases/<CASE_OID>/cancel \
+-v
+----
+
+The response is an HTTP 204 code in case of success *without* a response body.
+
 === Generate and Validate Operations for Case Objects
 
 - xref:/midpoint/reference/interfaces/rest/operations/generate-and-validate-concrete-op-rest/[Generate and Validate Operations]

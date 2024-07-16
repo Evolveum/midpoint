@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.metadata.ConsolidationMetadataComputation;
 import com.evolveum.midpoint.model.common.mapping.metadata.ItemValueMetadataProcessingSpec;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ConsolidationValueMetadataComputer;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -33,13 +34,14 @@ public class LensMetadataUtil {
 
     public static ConsolidationValueMetadataComputer createValueMetadataConsolidationComputer(
             @NotNull ItemPath itemPath,
+            ItemDefinition<?> itemDefinition,
             LensContext<?> lensContext,
             ModelBeans beans,
             MappingEvaluationEnvironment env,
             OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        ItemValueMetadataProcessingSpec processingSpec = createProcessingSpec(itemPath, lensContext, beans, env, result);
+        ItemValueMetadataProcessingSpec processingSpec = createProcessingSpec(itemPath, itemDefinition, lensContext, beans, env, result);
         LOGGER.trace("Value metadata processing spec:\n{}", processingSpec.debugDumpLazily(1));
         if (processingSpec.isEmpty()) {
             return null;
@@ -54,13 +56,13 @@ public class LensMetadataUtil {
 
     @NotNull
     private static ItemValueMetadataProcessingSpec createProcessingSpec(
-            @NotNull ItemPath itemPath, LensContext<?> lensContext, ModelBeans beans,
+            @NotNull ItemPath itemPath, ItemDefinition<?> itemDefinition,  LensContext<?> lensContext, ModelBeans beans,
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
         ItemValueMetadataProcessingSpec processingSpec = ItemValueMetadataProcessingSpec.forScope(CONSOLIDATION);
         // TODO What about persona mappings? outbound mappings? We should not use object template for that.
-        processingSpec.populateFromCurrentFocusTemplate(lensContext, itemPath, beans.modelObjectResolver,
+        processingSpec.populateFromCurrentFocusTemplate(lensContext, itemPath, itemDefinition, beans.modelObjectResolver,
                 env.contextDescription, env.task, result);
         return processingSpec;
     }

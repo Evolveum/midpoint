@@ -534,4 +534,28 @@ public class WebPrismUtil {
         });
     }
 
+    public static PrismContainerValue findContainerValueParent(@NotNull PrismContainerValue child, Class<? extends Containerable> clazz) {
+        PrismContainerable parent = child.getParent();
+        if (parent == null || !(parent instanceof Item parentItem) ) {
+            return null;
+        }
+        return findContainerValueParent(parentItem, clazz);
+    }
+
+    public static PrismContainerValue findContainerValueParent(@NotNull Item child, Class<? extends Containerable> clazz) {
+        @Nullable PrismContainerValue parent = child.getParent();
+        if (parent == null) {
+            return null;
+        }
+        if (clazz.equals(parent.getDefinition().getTypeClass())) {
+            return parent;
+        }
+
+        if (parent.getParent() == null || !(parent.getParent() instanceof Item parentItem)) {
+            return null;
+        }
+
+        return findContainerValueParent(parentItem, clazz);
+    }
+
 }
