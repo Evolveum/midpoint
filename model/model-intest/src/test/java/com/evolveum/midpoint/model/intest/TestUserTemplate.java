@@ -265,7 +265,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     /**
      * Switch employeeType from PIRATE to BUCCANEER. This makes one condition to go false and the other to go
-     * true. For the same role assignment value. So nothing should be changed.
+     * true. For the same role assignment value.
+     *
      */
     @Test
     public void test102ModifyUserEmployeeTypeBuccaneer() throws Exception {
@@ -293,7 +294,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                     .assertAssignments(2)
                     .by().roleOid(ROLE_PIRATE_OID).find()
                         // the value was already there; so the identifier should remain intact
-                        .assertOriginMappingName("assignment-from-subtype")
+                        .assertOriginMappingName("assignment-from-subtype-buccaneer")
                     .end()
                     .by().accountOn(RESOURCE_DUMMY_BLUE_OID).find().end()
                 .end()

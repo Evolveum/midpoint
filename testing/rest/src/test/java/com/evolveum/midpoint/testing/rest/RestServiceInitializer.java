@@ -6,33 +6,62 @@
  */
 package com.evolveum.midpoint.testing.rest;
 
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public abstract class RestServiceInitializer extends AbstractRestServiceInitializer {
 
+    private <O extends ObjectType> void addObjectViaRepository(
+            PrismObject<O> object, RepoAddOptions options, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException {
+
+        repositoryService.addObject(object, options, result);
+    }
+
     @Override
     public void initSystem(Task initTask, OperationResult result) throws Exception {
+        if (!CommonTaskBeans.get().repositoryService.isNative()) {
+            // Role has to be uploaded again, because for non-native repository, don't support
+            // PolicyType ref which is contained in super user role imported during initial import
+            PrismObject<RoleType> superRole = parseObject(ROLE_SUPERUSER_FILE);
+            addObjectViaRepository(superRole, RepoAddOptions.createOverwrite(), result);
+
+            // Same for user - since authorizations through model wouldn't work correctly
+            PrismObject<UserType> adminUser = parseObject(USER_ADMINISTRATOR_FILE);
+            CryptoUtil.encryptValues(protector, adminUser);
+            addObjectViaRepository(adminUser, RepoAddOptions.createOverwrite(), result);
+        }
+
         super.initSystem(initTask, result);
         logger.trace("initSystem");
 
         InternalsConfig.encryptionChecks = false;
 
-        PrismObject<RoleType> superRole = parseObject(ROLE_SUPERUSER_FILE);
-        addObject(superRole, executeOptions().overwrite(), initTask, result);
+        if (CommonTaskBeans.get().repositoryService.isNative()) {
+            PrismObject<RoleType> superRole = parseObject(ROLE_SUPERUSER_FILE);
+            addObject(superRole, executeOptions().overwrite(), initTask, result);
+        }
         PrismObject<RoleType> endRole = parseObject(ROLE_ENDUSER_FILE);
         addObject(endRole, executeOptions().overwrite(), initTask, result);
         addObject(ROLE_REST_FILE, initTask, result);
         addObject(ROLE_REST_LIMITED_FILE, initTask, result);
         addObject(ROLE_READER_FILE, initTask, result);
-        PrismObject<UserType> adminUser = parseObject(USER_ADMINISTRATOR_FILE);
-        addObject(adminUser, executeOptions().overwrite(), initTask, result);
+        if (CommonTaskBeans.get().repositoryService.isNative()) {
+            PrismObject<UserType> adminUser = parseObject(USER_ADMINISTRATOR_FILE);
+            addObject(adminUser, executeOptions().overwrite(), initTask, result);
+        }
         addObject(USER_NOBODY_FILE, initTask, result);
         addObject(USER_CYCLOPS_FILE, initTask, result);
         addObject(USER_SOMEBODY_FILE, initTask, result);
@@ -45,6 +74,9 @@ public abstract class RestServiceInitializer extends AbstractRestServiceInitiali
         addObject(parseObject(SECURITY_POLICY), executeOptions().overwrite(), initTask, result);
         PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
         addObject(systemConfig, executeOptions().overwrite(), initTask, result);
+
+        addObject(ROLE_META_APPROVAL, initTask, result);
+        addObject(ROLE_TO_APPROVE, initTask, result);
 
         InternalMonitor.reset();
 

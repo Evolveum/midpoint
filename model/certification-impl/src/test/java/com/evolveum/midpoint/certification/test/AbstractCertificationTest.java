@@ -26,8 +26,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
-import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
@@ -117,7 +115,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     protected static final String TASK_TRIGGER_SCANNER_OID = "00000000-0000-0000-0000-000000000007";
 
     public static final File ARCHETYPE_CERTIFICATION_REMEDIATION = new File(COMMON_DIR, "archetype-remediation.xml");
-    public static final File ARCHETYPE_CERTIFICATION_CAMPAIGN_CREATION = new File(COMMON_DIR, "archetype-campaign-creation.xml");
+    public static final File ARCHETYPE_CERTIFICATION_CAMPAIGN_NEXT_STAGE = new File(COMMON_DIR, "archetype-campaign-next-stage.xml");
 
     // report columns: certification definitions
     static final int C_DEF_NAME = 0;
@@ -205,7 +203,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         super.initSystem(initTask, initResult);
 
         repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_REMEDIATION, ArchetypeType.class, initResult);
-        repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_CAMPAIGN_CREATION, ArchetypeType.class, initResult);
+        repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_CAMPAIGN_NEXT_STAGE, ArchetypeType.class, initResult);
 
         // roles
         repoAddObjectFromFile(METAROLE_CXO_FILE, RoleType.class, initResult);
@@ -826,45 +824,10 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
     protected List<PrismObject<TaskType>> getRemediationTasks(String campaignOid, XMLGregorianCalendar startTime, OperationResult result) throws SchemaException {
         if (isNativeRepository()) {
-            ObjectQuery query = prismContext.queryFor(TaskType.class)
-                    .item(
-                            ItemPath.create(
-                                    TaskType.F_AFFECTED_OBJECTS,
-                                    TaskAffectedObjectsType.F_ACTIVITY,
-                                    ActivityAffectedObjectsType.F_OBJECTS,
-                                    BasicObjectSetType.F_OBJECT_REF))
-                    .ref(campaignOid)
-                    .and()
-                    .item(
-                            ItemPath.create(
-                                    TaskType.F_AFFECTED_OBJECTS,
-                                    TaskAffectedObjectsType.F_ACTIVITY,
-                                    ActivityAffectedObjectsType.F_OBJECTS,
-                                    BasicObjectSetType.F_TYPE))
-                    .eq(AccessCertificationCampaignType.COMPLEX_TYPE)
-                    .and()
-                    .block()
-                    .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
-                    .isNull()
-                    .or()
-                    .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
-                    .ge(startTime)
-                    .endBlock()
-                    .build();
+            ObjectQuery query = getNewRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_REMEDIATION_TASK.value(), startTime, campaignOid);
             return taskManager.searchObjects(TaskType.class, query, null, result);
         }
-        ObjectQuery query = prismContext.queryFor(TaskType.class)
-                .item(TaskType.F_ARCHETYPE_REF)
-                .ref(SystemObjectsType.ARCHETYPE_CERTIFICATION_REMEDIATION_TASK.value())
-                .and()
-                .block()
-                .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
-                .isNull()
-                .or()
-                .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
-                .ge(startTime)
-                .endBlock()
-                .build();
+        ObjectQuery query = getOldRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_REMEDIATION_TASK.value(), startTime);
         List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
         return tasks.stream().filter(task ->
                 task.asObjectable().getActivity() != null
@@ -875,67 +838,65 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         ).toList();
     }
 
-    protected List<PrismObject<TaskType>> getCampaignCreationTasks(String campaignDefOid, OperationResult result) throws SchemaException {
-        return getCampaignCreationTasks(campaignDefOid, null, result);
+    private ObjectQuery getOldRepoTaskQuery(String archetypeOid, XMLGregorianCalendar startTime) {
+        return prismContext.queryFor(TaskType.class)
+                .item(TaskType.F_ARCHETYPE_REF)
+                .ref(archetypeOid)
+                .and()
+                .block()
+                .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                .isNull()
+                .or()
+                .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                .ge(startTime)
+                .endBlock()
+                .build();
     }
 
-    protected List<PrismObject<TaskType>> getCampaignCreationTasks(String campaignDefOid, XMLGregorianCalendar startTime, OperationResult result) throws SchemaException {
+    protected List<PrismObject<TaskType>> getNextStageTasks(String campaignOid, XMLGregorianCalendar startTime, OperationResult result) throws SchemaException {
         if (isNativeRepository()) {
-            S_FilterExit filter = prismContext.queryFor(TaskType.class)
-                    .item(
-                            ItemPath.create(
-                                    TaskType.F_AFFECTED_OBJECTS,
-                                    TaskAffectedObjectsType.F_ACTIVITY,
-                                    ActivityAffectedObjectsType.F_OBJECTS,
-                                    BasicObjectSetType.F_OBJECT_REF))
-                    .ref(campaignDefOid)
-                    .and()
-                    .item(
-                            ItemPath.create(
-                                    TaskType.F_AFFECTED_OBJECTS,
-                                    TaskAffectedObjectsType.F_ACTIVITY,
-                                    ActivityAffectedObjectsType.F_OBJECTS,
-                                    BasicObjectSetType.F_TYPE))
-                    .eq(AccessCertificationDefinitionType.COMPLEX_TYPE);
-            if (startTime != null) {
-                filter = filter
-                        .and()
-                        .block()
-                        .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
-                        .isNull()
-                        .or()
-                        .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
-                        .ge(startTime)
-                        .endBlock();
-            }
-            ObjectQuery query = filter.build();
+            ObjectQuery query = getNewRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_OPEN_NEXT_STAGE_TASK.value(), startTime, campaignOid);
             return taskManager.searchObjects(TaskType.class, query, null, result);
         }
-
-        S_FilterExit filter = prismContext.queryFor(TaskType.class)
-                .item(TaskType.F_ARCHETYPE_REF)
-                .ref(SystemObjectsType.ARCHETYPE_CERTIFICATION_CAMPAIGN_CREATION_TASK.value());
-        if (startTime != null) {
-            filter = filter
-                    .and()
-                    .block()
-                    .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
-                    .isNull()
-                    .or()
-                    .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
-                    .ge(startTime)
-                    .endBlock();
-        }
-        ObjectQuery query = filter.build();
-
+        ObjectQuery query = getOldRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_OPEN_NEXT_STAGE_TASK.value(), startTime);
         List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
         return tasks.stream().filter(task ->
                 task.asObjectable().getActivity() != null
                         && task.asObjectable().getActivity().getWork() != null
-                        && task.asObjectable().getActivity().getWork().getCertificationCampaignCreation() != null
-                        && task.asObjectable().getActivity().getWork().getCertificationCampaignCreation().getCertificationCampaignDefinitionRef() != null
-                        && campaignDefOid.equals(task.asObjectable().getActivity().getWork().getCertificationCampaignCreation().getCertificationCampaignDefinitionRef().getOid())
+                        && task.asObjectable().getActivity().getWork().getCertificationOpenNextStage() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationOpenNextStage().getCertificationCampaignRef() != null
+                        && campaignOid.equals(task.asObjectable().getActivity().getWork().getCertificationOpenNextStage().getCertificationCampaignRef().getOid())
         ).toList();
+    }
 
+    private ObjectQuery getNewRepoTaskQuery(String archetypeOid, XMLGregorianCalendar startTime, String campaignOid) {
+        return prismContext.queryFor(TaskType.class)
+                .item(TaskType.F_ARCHETYPE_REF)
+                .ref(archetypeOid)
+                .and()
+                .item(
+                        ItemPath.create(
+                                TaskType.F_AFFECTED_OBJECTS,
+                                TaskAffectedObjectsType.F_ACTIVITY,
+                                ActivityAffectedObjectsType.F_OBJECTS,
+                                BasicObjectSetType.F_OBJECT_REF))
+                .ref(campaignOid)
+                .and()
+                .item(
+                        ItemPath.create(
+                                TaskType.F_AFFECTED_OBJECTS,
+                                TaskAffectedObjectsType.F_ACTIVITY,
+                                ActivityAffectedObjectsType.F_OBJECTS,
+                                BasicObjectSetType.F_TYPE))
+                .eq(AccessCertificationCampaignType.COMPLEX_TYPE)
+                .and()
+                .block()
+                .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                .isNull()
+                .or()
+                .item(TaskType.F_LAST_RUN_START_TIMESTAMP)
+                .ge(startTime)
+                .endBlock()
+                .build();
     }
 }

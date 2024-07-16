@@ -7,14 +7,14 @@
 <archetype oid="00000000-0000-0000-0000-000000000534"
            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>Certification-campaign-creation-related task</name>
+    <name>Certification-campaign-open-next-stage task</name>
     <archetypePolicy>
         <display>
-            <label>Certification campaign creation related task</label>
+            <label>Certification campaign open next stage related task</label>
             <pluralLabel>
-                <orig>Certification-campaign-creation-related tasks</orig>
+                <orig>Certification-campaign-open-next-stage-related tasks</orig>
                 <translation>
-                    <key>CertificationCampaignCreationRelatedTasks.title</key>
+                    <key>CertificationCampaignOpenNextStageRelatedTasks.title</key>
                 </translation>
             </pluralLabel>
             <icon>
@@ -32,8 +32,8 @@
                     <panel id="2">
                         <identifier>work</identifier>
                         <container id="3">
-                            <identifier>certificationCampaignCreation</identifier>
-                            <path>activity/work/certificationCampaignCreation</path>
+                            <identifier>certificationOpenNextStage</identifier>
+                            <path>activity/work/certificationOpenNextStage</path>
                         </container>
                     </panel>
                 </panel>

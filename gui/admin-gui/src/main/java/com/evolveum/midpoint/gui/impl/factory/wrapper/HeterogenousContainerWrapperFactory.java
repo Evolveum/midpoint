@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.annotation.PostConstruct;
@@ -55,7 +56,7 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> extend
      * match single value containers which contains a looot of other conainers, e.g. policy rule, policy action, notification configuration, etc
      */
     @Override
-    public boolean match(ItemDefinition<?> itemDef) {
+    public <C extends Containerable> boolean match(ItemDefinition<?> itemDef, PrismContainerValue<C> parent) {
         if (itemDef.getTypeClass() != null
                 && (itemDef.getTypeClass().isAssignableFrom(CompositeCorrelatorType.class)
                 || itemDef.getTypeClass().isAssignableFrom(SecretsProvidersType.class)
@@ -85,7 +86,9 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> extend
             return false;
         }
 
-        if (containerDef.isElaborate()) {
+        if (containerDef.isElaborate()
+                && parent.getCompileTimeClass() != null
+                && WebPrismUtil.findContainerValueParent(parent, parent.getCompileTimeClass()) != null) {
             return true;
         }
 

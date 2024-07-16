@@ -130,7 +130,7 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public void createCampaign(String definitionOid, Task task, OperationResult parentResult)
+    public AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Validate.notNull(definitionOid, "definitionOid");
@@ -138,17 +138,22 @@ public class CertificationManagerImpl implements CertificationManager {
         Validate.notNull(parentResult, "parentResult");
 
         OperationResult result = parentResult.createSubresult(OPERATION_CREATE_CAMPAIGN);
-
-        PrismObject<AccessCertificationDefinitionType> definition =
-                repositoryService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, result);
-        securityEnforcer.authorize(
-                ModelAuthorizationAction.CREATE_CERTIFICATION_CAMPAIGN.getUrl(),
-                null,
-                AuthorizationParameters.Builder.buildObject(definition),
-                task,
-                result);
-
-        launcher.createCampaignTask(definition, task, parentResult);
+        try {
+            PrismObject<AccessCertificationDefinitionType> definition =
+                    repositoryService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, result);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.CREATE_CERTIFICATION_CAMPAIGN.getUrl(),
+                    null,
+                    AuthorizationParameters.Builder.buildObject(definition),
+                    task,
+                    result);
+            return openerHelper.createCampaign(definition, result, task);
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't create certification campaign: unexpected exception: " + e.getMessage(), e);
+            throw e;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     /**
@@ -217,7 +222,6 @@ public class CertificationManagerImpl implements CertificationManager {
         }
     }
 
-    @Override
     public void openNextStage(@NotNull String campaignOid, @NotNull Task task, @NotNull OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
@@ -253,6 +257,30 @@ public class CertificationManagerImpl implements CertificationManager {
                 CertificationHandler handler = findCertificationHandler(campaign);
                 openerHelper.openNextStage(campaign, handler, task, result);
             }
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't move to the next certification campaign stage: unexpected exception: " + e.getMessage(), e);
+            throw e;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    @Override
+    public void createNextStageTask(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        OperationResult result = parentResult.createSubresult(OPERATION_OPEN_NEXT_STAGE);
+        result.addParam("campaignOid", campaignOid);
+
+        try {
+            AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
+            result.addParam("campaign", ObjectTypeUtil.toShortString(campaign));
+
+            LOGGER.debug("openNextStage starting for {}", ObjectTypeUtil.toShortStringLazy(campaign));
+
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.OPEN_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
+                    AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
+
+            launcher.openNextStageCampaignTask(campaign, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't move to the next certification campaign stage: unexpected exception: " + e.getMessage(), e);
             throw e;

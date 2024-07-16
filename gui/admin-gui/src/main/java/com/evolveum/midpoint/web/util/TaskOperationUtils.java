@@ -47,7 +47,7 @@ public class TaskOperationUtils {
             SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK.value());
 
     private static final List<String> CERTIFICATION_ARCHETYPES = Arrays.asList(
-            SystemObjectsType.ARCHETYPE_CERTIFICATION_CAMPAIGN_CREATION_TASK.value(),
+            SystemObjectsType.ARCHETYPE_CERTIFICATION_OPEN_NEXT_STAGE_TASK.value(),
             SystemObjectsType.ARCHETYPE_CERTIFICATION_REMEDIATION_TASK.value());
 
     private static final List<String> UTILITY_ARCHETYPES = Arrays.asList(

@@ -20,7 +20,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -33,6 +32,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Very simple certification test.
@@ -71,25 +72,19 @@ public class TestManualEscalation extends AbstractCertificationTest {
 
         // WHEN
         when();
-        certificationService.createCampaign(certificationDefinition.getOid(), task, result);
+        AccessCertificationCampaignType campaign =
+                certificationService.createCampaign(certificationDefinition.getOid(), task, result);
 
         // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        List<PrismObject<TaskType>> tasks = getCampaignCreationTasks(certificationDefinition.getOid(), result);
-        assertEquals("unexpected number of related tasks", 1, tasks.size());
-        String foundTaskOid = tasks.get(0).getOid();
-        waitForTaskFinish(foundTaskOid);
+        assertNotNull("Created campaign is null", campaign);
 
-        TaskType foundTask = getObject(TaskType.class, foundTaskOid).asObjectable();
+        campaignOid = campaign.getOid();
 
-        campaignOid = ((CertificationCampaignCreationWorkStateType)foundTask
-                .getActivityState().getActivity().getWorkState()).getCreatedCampaignRef().getOid();
-
-        @NotNull AccessCertificationCampaignType campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
-
+        campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
         assertPercentCompleteAll(campaign, 100, 100, 100);      // no cases, no problems
@@ -121,6 +116,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
     @Test
     public void test021OpenFirstStageAllowed() throws Exception {
         // GIVEN
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         login(getUserFromRepo(USER_BOB_OID));
@@ -132,7 +128,11 @@ public class TestManualEscalation extends AbstractCertificationTest {
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
