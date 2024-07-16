@@ -32,36 +32,20 @@ public abstract class RestServiceInitializer extends AbstractRestServiceInitiali
 
     @Override
     public void initSystem(Task initTask, OperationResult result) throws Exception {
-        if (!CommonTaskBeans.get().repositoryService.isNative()) {
-            // Role has to be uploaded again, because for non-native repository, don't support
-            // PolicyType ref which is contained in super user role imported during initial import
-            PrismObject<RoleType> superRole = parseObject(ROLE_SUPERUSER_FILE);
-            addObjectViaRepository(superRole, RepoAddOptions.createOverwrite(), result);
-
-            // Same for user - since authorizations through model wouldn't work correctly
-            PrismObject<UserType> adminUser = parseObject(USER_ADMINISTRATOR_FILE);
-            CryptoUtil.encryptValues(protector, adminUser);
-            addObjectViaRepository(adminUser, RepoAddOptions.createOverwrite(), result);
-        }
-
         super.initSystem(initTask, result);
         logger.trace("initSystem");
 
         InternalsConfig.encryptionChecks = false;
 
-        if (CommonTaskBeans.get().repositoryService.isNative()) {
-            PrismObject<RoleType> superRole = parseObject(ROLE_SUPERUSER_FILE);
-            addObject(superRole, executeOptions().overwrite(), initTask, result);
-        }
+        PrismObject<RoleType> superRole = parseObject(ROLE_SUPERUSER_FILE);
+        addObject(superRole, executeOptions().overwrite(), initTask, result);
         PrismObject<RoleType> endRole = parseObject(ROLE_ENDUSER_FILE);
         addObject(endRole, executeOptions().overwrite(), initTask, result);
         addObject(ROLE_REST_FILE, initTask, result);
         addObject(ROLE_REST_LIMITED_FILE, initTask, result);
         addObject(ROLE_READER_FILE, initTask, result);
-        if (CommonTaskBeans.get().repositoryService.isNative()) {
-            PrismObject<UserType> adminUser = parseObject(USER_ADMINISTRATOR_FILE);
-            addObject(adminUser, executeOptions().overwrite(), initTask, result);
-        }
+        PrismObject<UserType> adminUser = parseObject(USER_ADMINISTRATOR_FILE);
+        addObject(adminUser, executeOptions().overwrite(), initTask, result);
         addObject(USER_NOBODY_FILE, initTask, result);
         addObject(USER_CYCLOPS_FILE, initTask, result);
         addObject(USER_SOMEBODY_FILE, initTask, result);

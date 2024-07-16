@@ -66,6 +66,9 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
             "report-object-collection-with-view.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85de");
     static final TestObject<ReportType> REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW = TestObject.file(TEST_DIR_REPORTS,
             "report-object-collection-with-double-view.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85ef");
+
+    static final TestObject<ReportType> REPORT_OBJECT_COLLECTION_WITH_VALUE_METADATA = TestObject.file(TEST_DIR_REPORTS,
+            "report-object-collection-with-value-metadata.xml","ecdc4f14-5fd0-412a-aab6-02a5d474b209");
     static final TestObject<ReportType> REPORT_OBJECT_COLLECTION_WITH_FILTER = TestObject.file(TEST_DIR_REPORTS,
             "report-object-collection-with-filter.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85ac");
     static final TestObject<ReportType> REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION = TestObject.file(TEST_DIR_REPORTS,

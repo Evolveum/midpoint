@@ -24,6 +24,7 @@ import com.querydsl.core.types.dsl.ComparablePath;
 import com.querydsl.sql.PrimaryKey;
 import com.querydsl.sql.SQLQuery;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +55,6 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
@@ -132,8 +132,6 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     }
 
     public void setFactory(EntityManagerFactory factory) {
-        RUtil.fixCompositeIDHandling(factory);
-
         this.factory = factory;
     }
 

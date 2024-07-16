@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report oid="ecdc4f14-5fd0-412a-aab6-02a5d474b209">
+    <name>Object Collection report with value metadata</name>
+    <objectCollection>
+        <collection>
+            <collectionRef oid="11b1f98e-f587-4b9f-b92b-72e251dbb266" type="ObjectCollectionType"/>
+        </collection>
+        <view>
+            <column>
+                <name>nameColumn</name>
+                <path>name</path>
+                <display>
+                    <label>Name</label>
+                </display>
+            </column>
+            <column>
+                <name>createTimestamp</name>
+                <path>@metadata/storage/createTimestamp</path>
+                <display>
+                    <label>Created on</label>
+                </display>
+                <previousColumn>nameColumn</previousColumn>
+            </column>
+        </view>
+    </objectCollection>
+</report>
