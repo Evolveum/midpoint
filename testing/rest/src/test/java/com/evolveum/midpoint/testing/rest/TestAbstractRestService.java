@@ -1717,7 +1717,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
             return;
         }
         ObjectDelta<UserType> delta = jack.createModifyDelta();
-        delta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, c1);
+        delta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, c1.clone());
 
         executeChanges(delta, ModelExecuteOptions.create(), task, task.getResult());
     }
@@ -1806,5 +1806,32 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         OperationResultType result = response.readEntity(OperationResultType.class);
         AssertJUnit.assertTrue(result.getMessage().contains("No work item " + nonExistingId));
+
+        modelService.executeChanges(List.of(c.asPrismObject().createDeleteDelta()), null, task, task.getResult());
+    }
+
+    @Test
+    public void test720DelegateWorkItem() throws Exception {
+        Task task = getTestTask();
+
+        removeApprovedRole(USER_JACK_OID, task);
+        CaseType c = createCase(USER_JACK_OID, task);
+        CaseWorkItemType workItem = c.getWorkItem().get(0);
+
+        final String comment = "Delegating this item to you";
+
+        WorkItemDelegationRequestType data = new WorkItemDelegationRequestType();
+        data.setComment(comment);
+        data.getDelegate().add(new ObjectReferenceType().oid(USER_JACK_OID).type(UserType.COMPLEX_TYPE));
+        data.setMethod(WorkItemDelegationMethodType.ADD_ASSIGNEES);
+
+        WebClient client = prepareClient();
+        client.path("/cases/" + c.getOid() + "/workItems/" + workItem.getId() + "/delegate");
+        Response response = client.post(data);
+        assertStatus(response, 204);
+
+        CaseType changed = modelService.getObject(CaseType.class, c.getOid(), null, task, task.getResult()).asObjectable();
+        CaseWorkItemType changedWorkItem = changed.getWorkItem().get(0);
+        AssertJUnit.assertEquals(2, changedWorkItem.getAssigneeRef().size());
     }
 }
