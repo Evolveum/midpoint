@@ -78,6 +78,21 @@ curl --user administrator:y0uR_P455woR*d \
 --data-binary @./samples/rest/approve-work-item.json
 ----
 
+.*Show* data source example | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/approve-work-item.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+    "output" : {
+        "@type" : "c:AbstractWorkItemOutputType",
+        "comment" : "sample comment",
+        "outcome" : "http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve"
+    }
+}
+----
+====
+
 The response is an HTTP 204 code in case of success *without* a response body.
 
 === Delegate Work Item
@@ -94,6 +109,26 @@ curl --user administrator:y0uR_P455woR*d \
 -v \
 --data-binary @./samples/rest/delegate-work-item.json
 ----
+
+.*Show* data source example | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/delegate-work-item.json[GitHub]
+[%collapsible]
+====
+[source, json]
+----
+{
+    "delegate" : {
+        "@type" : "c:WorkItemDelegationRequestType",
+        "comment" : "Delegating this item to you",
+        "delegate" : {
+            "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+            "oid" : "229487cb-59b6-490b-879d-7a6d925dd08c",
+            "type" : "c:UserType"
+        },
+        "method" : "addAssignees"
+    }
+}
+----
+====
 
 The response is an HTTP 204 code in case of success *without* a response body.
 
