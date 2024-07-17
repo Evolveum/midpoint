@@ -7,14 +7,17 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+
+import com.evolveum.midpoint.util.exception.*;
+
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -56,7 +59,6 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -86,6 +88,9 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     private static final String DOT_CLASS = MainObjectListPanel.class.getName() + ".";
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
+
+    private static final String OPERATION_MARK_OBJECT = DOT_CLASS + "markObject";
+    private static final String OPERATION_UNMARK_OBJECT = DOT_CLASS + "unmarkObject";
 
     private final LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
@@ -587,4 +592,224 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         }
     }
 
+    public InlineMenuItem createMarkInlineMenuAction() {
+        return new InlineMenuItem(createStringResource("pageContentAccounts.menu.mark"), true) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<O>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target) {
+
+                        var selected = isAnythingSelected(getRowModel());
+//                        var selected = getSelectedShadowsList(getRowModel());
+
+                        if (selected.isEmpty()) {
+                            warn(getString("pageContentAccounts.message.noAccountSelected"));
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+
+                        ObjectFilter marksFilter = PrismContext.get().queryFor(MarkType.class)
+                                .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+                                .ref(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value())
+                                .buildFilter();
+
+                        ObjectBrowserPanel<MarkType> browser = new ObjectBrowserPanel<>(
+                                getPageBase().getMainPopupBodyId(), MarkType.class,
+                                Collections.singletonList(MarkType.COMPLEX_TYPE), true, getPageBase(), marksFilter) {
+
+                            protected void addPerformed(AjaxRequestTarget target, QName type, List<MarkType> selected) {
+                                LOGGER.debug("Selected marks: {}", selected);
+
+                                List<String> markOids = Lists.transform(selected, MarkType::getOid);
+                                markObjects(getRowModel(), markOids, target);
+                                super.addPerformed(target, type, selected);
+                            }
+
+                            public org.apache.wicket.model.StringResourceModel getTitle() {
+                                return createStringResource("pageContentAccounts.menu.mark.select");
+                            }
+                        };
+
+                        getPageBase().showMainPopup(browser, target);
+                    }
+                };
+            }
+        };
+    }
+
+    protected void markObjects(IModel<SelectableBean<O>> rowModel, List<String> markOids, AjaxRequestTarget target) {
+        Task task = getPageBase().createSimpleTask(OPERATION_MARK_OBJECT);
+        OperationResult result = task.getResult();
+
+        var selected = isAnythingSelected(rowModel);
+
+        if (selected == null || selected.isEmpty()) {
+            result.recordWarning(createStringResource("ResourceContentPanel.message.markShadowPerformed.warning").getString());
+            getPageBase().showResult(result);
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        for (SelectableBean<O> shadow : selected) {
+            List<PolicyStatementType> statements = new ArrayList<>();
+            // We recreate statements (can not reuse them between multiple objects - we can create new or clone
+            // but for each delta we need separate statement
+            for (String oid : markOids) {
+                statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
+                        .type(PolicyStatementTypeType.APPLY));
+            }
+            try {
+                var delta = getPageBase().getPrismContext().deltaFactory().object()
+                        .createModificationAddContainer(getType(),
+                                shadow.getValue().getOid(), ObjectType.F_POLICY_STATEMENT,
+                                statements.toArray(new PolicyStatementType[0]));
+                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+            } catch (Exception e) {
+                result.recordPartialError(
+                        createStringResource(
+                                "ResourceContentPanel.message.markShadowPerformed.partialError", shadow)
+                                .getString(),
+                        e);
+                LOGGER.error("Could not mark shadow {} with marks {}", shadow, markOids, e);
+            }
+        }
+
+        result.computeStatusIfUnknown();
+        getPageBase().showResult(result);
+        refreshTable(target);
+        target.add(getPageBase().getFeedbackPanel());
+    }
+
+    public InlineMenuItem createUnmarkInlineMenuAction() {
+        return new InlineMenuItem(createStringResource("pageContentAccounts.menu.mark.remove"), true) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<O>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target) {
+
+                        var selected = isAnythingSelected(getRowModel());
+
+                        if (selected.isEmpty()) {
+                            warn(getString("pageContentAccounts.message.noAccountSelected"));
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+
+                        var selectedMarks = collectExistingMarks(selected);
+
+                        if (selectedMarks.length == 0) {
+                            warn(getString("pageContentAccounts.message.noMarkOnSelectedAccount"));
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+
+                        ObjectFilter marksFilter = PrismContext.get().queryFor(MarkType.class)
+                                .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+                                .ref(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value())
+                                .and()
+                                .id(selectedMarks)
+                                .buildFilter();
+
+                        ObjectBrowserPanel<MarkType> browser = new ObjectBrowserPanel<>(
+                                getPageBase().getMainPopupBodyId(), MarkType.class,
+                                Collections.singletonList(MarkType.COMPLEX_TYPE), true, getPageBase(), marksFilter) {
+
+                            protected void addPerformed(AjaxRequestTarget target, QName type, List<MarkType> selected) {
+                                LOGGER.warn("Selected marks: {}", selected);
+
+                                List<String> markOids = Lists.transform(selected, MarkType::getOid);
+                                removeObjectMarks(getRowModel(), markOids, target);
+                                super.addPerformed(target, type, selected);
+                            }
+
+                            public org.apache.wicket.model.StringResourceModel getTitle() {
+                                return createStringResource("pageContentAccounts.menu.mark.select.remove");
+                            }
+
+                            protected org.apache.wicket.model.StringResourceModel getAddButtonTitle() {
+                                return createStringResource("pageContentAccounts.menu.mark.remove");
+                            }
+
+                            ;
+                        };
+
+                        getPageBase().showMainPopup(browser, target);
+                    }
+
+                };
+            }
+        };
+    }
+
+    private String[] collectExistingMarks(List<SelectableBean<O>> selected) {
+        Set<String> marks = new HashSet<>();
+        for (SelectableBean<O> shadow : selected) {
+            for (var statement : shadow.getValue().getPolicyStatement()) {
+//                if (PolicyStatementTypeType.APPLY.equals(statement.getType())) {
+                    marks.add(statement.getMarkRef().getOid());
+//                }
+            }
+        }
+        return marks.toArray(new String[] {});
+    }
+
+    private void removeObjectMarks(IModel<SelectableBean<O>> rowModel, List<String> markOids,
+            AjaxRequestTarget target) {
+        Task task = getPageBase().createSimpleTask(OPERATION_UNMARK_OBJECT);
+        OperationResult result = task.getResult();
+
+        var selected = isAnythingSelected(rowModel);
+        if (selected == null || selected.isEmpty()) {
+            result.recordWarning(createStringResource("ResourceContentPanel.message.markShadowPerformed.warning").getString());
+            getPageBase().showResult(result);
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        for (SelectableBean<O> object : selected) {
+            List<PolicyStatementType> statements = new ArrayList<>();
+            // We recreate statements (can not reuse them between multiple objects - we can create new or clone
+            // but for each delta we need separate statement
+
+            for (var statement : object.getValue().getPolicyStatement()) {
+//                if (!PolicyStatementTypeType.APPLY.equals(statement.getType())) {
+//                    continue;
+//                }
+                if (markOids.contains(statement.getMarkRef().getOid())) {
+                    statements.add(statement.clone());
+                }
+            }
+            try {
+                var delta = getPageBase().getPrismContext().deltaFactory().object()
+                        .createModificationDeleteContainer(getType(),
+                                object.getValue().getOid(), ObjectType.F_POLICY_STATEMENT,
+                                statements.toArray(new PolicyStatementType[0]));
+                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+            } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                    | PolicyViolationException | SecurityViolationException e) {
+                result.recordPartialError(
+                        createStringResource(
+                                "ResourceContentPanel.message.markShadowPerformed.partialError", object)
+                                .getString(),
+                        e);
+                LOGGER.error("Could not mark shadow {} with marks {}", object, markOids, e);
+            }
+        }
+
+        result.computeStatusIfUnknown();
+        getPageBase().showResult(result);
+        refreshTable(target);
+        target.add(getPageBase().getFeedbackPanel());
+    }
 }
