@@ -76,4 +76,9 @@ public final class AccessCertificationOpenNextStageRun
             return standardRunResult(runResult.getStatus());
         }
     }
+
+    @Override
+    protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
+        return getWorkDefinition().getCertificationCampaignRef();
+    }
 }

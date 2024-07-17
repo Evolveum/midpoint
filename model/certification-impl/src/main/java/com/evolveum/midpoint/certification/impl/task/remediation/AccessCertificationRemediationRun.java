@@ -146,4 +146,9 @@ public final class AccessCertificationRemediationRun
             return standardRunResult(runResult.getStatus());
         }
     }
+
+    @Override
+    protected @NotNull ObjectReferenceType getDesiredTaskObjectRef() {
+        return getWorkDefinition().getCertificationCampaignRef();
+    }
 }
