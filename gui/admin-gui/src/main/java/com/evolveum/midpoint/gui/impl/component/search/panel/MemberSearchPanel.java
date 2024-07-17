@@ -118,7 +118,7 @@ public class MemberSearchPanel extends AbstractSearchItemPanel<AbstractRoleSearc
     }
 
     private boolean isProjectVisible() {
-        return getModelObject().isTenantVisible();
+        return getModelObject().isProjectVisible();
     }
 
 }
