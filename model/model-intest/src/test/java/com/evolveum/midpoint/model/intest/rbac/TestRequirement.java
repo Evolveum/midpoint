@@ -142,7 +142,7 @@ public class TestRequirement extends AbstractInitializedModelIntegrationTest {
             fail("Expected policy violation after adding navy captain role, but it went well");
         } catch (PolicyViolationException e) {
             System.out.println("Got expected exception: " + e + ": " + e.getMessage());
-            assertMessage(e, "Policy requirement not met: role \"Skipper\" requires policy \"Skipper license\"");
+            assertMessage(e, "Policy requirement not met: role \"Skipper\" (Navy captain -> Skipper) requires policy \"Skipper license\"");
             result.computeStatus();
             assertFailure(result);
         }
@@ -224,4 +224,5 @@ public class TestRequirement extends AbstractInitializedModelIntegrationTest {
 
     // TODO: unassign both license and skipper in one operation
 
+    // TODO: business roles that contains both license and role skipper
 }
