@@ -115,4 +115,9 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
 
         return pageRole;
     }
+
+    protected void choiceArchetype(int order) {
+        String tabPath = "detailsView:template:list:" + order + ":tile";
+        tester.executeAjaxEvent(tabPath, "click");
+    }
 }
