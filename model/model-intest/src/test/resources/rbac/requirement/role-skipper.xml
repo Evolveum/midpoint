@@ -1,0 +1,26 @@
+<!--
+  ~ Copyright (c) 2015-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="bbfe9846-427e-11ef-a31c-53388393ba50"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <name>Skipper</name>
+    <assignment>
+        <policyRule>
+            <name>require-skipper-license</name>
+            <policyConstraints>
+                <requirement>
+                    <targetRef oid="25f26c46-427f-11ef-9666-f352a031a80e" type="PolicyType"/>
+                </requirement>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

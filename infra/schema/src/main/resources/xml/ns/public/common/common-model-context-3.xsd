@@ -706,6 +706,17 @@
     </xsd:complexType>
     <xsd:element name="evaluatedExclusionTrigger" type="tns:EvaluatedExclusionTriggerType"/>
 
+    <xsd:complexType name="EvaluatedRequirementTriggerType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+                <xsd:sequence>
+                    <xsd:element name="requirementObjectRef" type="c:ObjectReferenceType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="evaluatedRequirementTrigger" type="tns:EvaluatedExclusionTriggerType"/>
+
     <!-- IMPORTANT: when adding attributes here, update also PolicyRuleTypeUtil.triggerCollectionsEqual -->
     <xsd:complexType name="EvaluatedSituationTriggerType">
         <xsd:complexContent>

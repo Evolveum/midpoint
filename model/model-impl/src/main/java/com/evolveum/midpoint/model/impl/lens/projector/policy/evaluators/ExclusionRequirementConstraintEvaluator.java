@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,6 +11,11 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -37,30 +42,28 @@ import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 
 /**
- * Evaluates exclusion policy constraints.
+ * Evaluates exclusion and requirement policy constraints.
  */
 @Component
-public class ExclusionConstraintEvaluator
-        implements PolicyConstraintEvaluator<ExclusionPolicyConstraintType, EvaluatedExclusionTrigger> {
+public class ExclusionRequirementConstraintEvaluator
+        implements PolicyConstraintEvaluator<ExclusionPolicyConstraintType, EvaluatedExclusionRequirementTrigger> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ExclusionConstraintEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ExclusionRequirementConstraintEvaluator.class);
 
-    private static final String OP_EVALUATE = ExclusionConstraintEvaluator.class.getName() + ".evaluate";
+    private static final String OP_EVALUATE = ExclusionRequirementConstraintEvaluator.class.getName() + ".evaluate";
 
-    private static final String CONSTRAINT_KEY = "exclusion";
+    private static final String CONSTRAINT_KEY_EXCLUSION = "exclusion";
+    private static final String CONSTRAINT_KEY_REQUIREMENT = "requirement";
 
     @Autowired private ConstraintEvaluatorHelper evaluatorHelper;
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private ModelObjectResolver objectResolver;
 
     @Override
-    public @NotNull <O extends ObjectType> Collection<EvaluatedExclusionTrigger> evaluate(
+    public @NotNull <O extends ObjectType> Collection<EvaluatedExclusionRequirementTrigger> evaluate(
             @NotNull JAXBElement<ExclusionPolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             OperationResult parentResult)
@@ -69,8 +72,12 @@ public class ExclusionConstraintEvaluator
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
                 .build();
+
+        boolean isExclusion = QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_EXCLUSION);
+
         try {
-            LOGGER.trace("Evaluating exclusion constraint {} on {}",
+            LOGGER.trace("Evaluating {}} constraint {} on {}",
+                    isExclusion ? "exclusion" : "requirement",
                     lazy(() -> PolicyRuleTypeUtil.toShortString(constraint)), rctx);
             if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
                 return List.of();
@@ -88,10 +95,10 @@ public class ExclusionConstraintEvaluator
             }
 
             /*
-             * Now let us check the exclusions.
+             * Now let us check the exclusions/requirements.
              *
-             * Assignment A is the current evaluated assignment. It has directly or indirectly attached the exclusion policy rule.
-             * We now go through all other assignments B and check the exclusions.
+             * Assignment A is the current evaluated assignment. It has directly or indirectly attached the exclusion/requirement policy rule.
+             * We now go through all other assignments B and check the exclusions/requirements.
              */
 
             List<OrderConstraintsType> targetOrderConstraints = defaultIfEmpty(constraint.getValue().getTargetOrderConstraint());
@@ -99,7 +106,9 @@ public class ExclusionConstraintEvaluator
             ConstraintReferenceMatcher<?> refMatcher = new ConstraintReferenceMatcher<>(
                     ctx, constraint.getValue().getTargetRef(), expressionFactory, result, LOGGER);
 
-            List<EvaluatedExclusionTrigger> triggers = new ArrayList<>();
+            boolean requirementMet = false;
+            List<EvaluatedExclusionRequirementTrigger> triggers = new ArrayList<>();
+            targetA:
             for (EvaluatedAssignmentImpl<?> assignmentB : ctx.evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
                 if (assignmentB == ctx.evaluatedAssignment) { // currently there is no other way of comparing the evaluated assignments
                     continue;
@@ -107,12 +116,12 @@ public class ExclusionConstraintEvaluator
                 targetB:
                 for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegativeTargets()) {
                     if (!pathMatches(targetB.getAssignmentPath(), targetOrderConstraints)) {
-                        LOGGER.trace("Skipping considering exclusion target {} because it does not match target path constraints."
+                        LOGGER.trace("Skipping considering exclusion/requirement target {} because it does not match target path constraints."
                                 + " Path={}, constraints={}", targetB, targetB.getAssignmentPath(), targetOrderConstraints);
                         continue;
                     }
                     if (!refMatcher.refMatchesTarget(targetB.getTarget(), "exclusion constraint")) {
-                        LOGGER.trace("Target {} OID does not match exclusion filter", targetB);
+                        LOGGER.trace("Target {} OID does not match exclusion/requirement filter", targetB);
                         continue;
                     }
                     // To avoid false positives let us check if this target is not already covered by assignment being evaluated
@@ -121,15 +130,30 @@ public class ExclusionConstraintEvaluator
                             continue targetB;
                         }
                     }
-                    triggers.add(
-                            createTrigger(ctx.evaluatedAssignment, assignmentB, targetB, constraint, ctx, result));
+
+                    // We have a match.
+
+                    if (isExclusion) {
+                        // If this is exclusion, we should report it, by creating a trigger.
+                        triggers.add(
+                                createExclusionTrigger(ctx.evaluatedAssignment, assignmentB, targetB, constraint, ctx, result));
+                    } else {
+                        // If this is requirement, just mark that it is met and we are done.
+                        requirementMet = true;
+                        break targetA;
+                    }
                 }
+            }
+
+            if (!isExclusion && !requirementMet) {
+                triggers.add(
+                        createRequirementTrigger(ctx.evaluatedAssignment, constraint, ctx, result));
             }
 
             result.addArbitraryObjectCollectionAsReturn(
                     "trigger",
                     triggers.stream()
-                            .map(EvaluatedExclusionTrigger::toDiagShortcut)
+                            .map(EvaluatedExclusionRequirementTrigger::toDiagShortcut)
                             .collect(Collectors.toList()));
 
             return triggers;
@@ -220,7 +244,7 @@ public class ExclusionConstraintEvaluator
         return Collections.singletonList(new OrderConstraintsType().order(1));
     }
 
-    private EvaluatedExclusionTrigger createTrigger(
+    private EvaluatedExclusionRequirementTrigger createExclusionTrigger(
             EvaluatedAssignmentImpl<?> assignmentA,
             @NotNull EvaluatedAssignmentImpl<?> assignmentB,
             EvaluatedAssignmentTargetImpl targetB,
@@ -245,8 +269,8 @@ public class ExclusionConstraintEvaluator
         stateCheck(objectB != null,
                 "Conflicting object for exclusion constraint cannot be determined: %s", ctx);
 
-        LocalizableMessage message = createMessage(infoA, infoB, constraintElement, ctx, result);
-        LocalizableMessage shortMessage = createShortMessage(infoA, infoB, constraintElement, ctx, result);
+        LocalizableMessage message = createMessage(infoA, infoB, constraintElement, ctx, CONSTRAINT_KEY_EXCLUSION, result);
+        LocalizableMessage shortMessage = createShortMessage(infoA, infoB, constraintElement, ctx, CONSTRAINT_KEY_EXCLUSION, result);
         return new EvaluatedExclusionTrigger(
                 constraintElement.getValue(), message, shortMessage,
                 assignmentA, assignmentB,
@@ -254,26 +278,60 @@ public class ExclusionConstraintEvaluator
                 false);
     }
 
+    private EvaluatedExclusionRequirementTrigger createRequirementTrigger(
+            EvaluatedAssignmentImpl<?> assignmentA,
+            JAXBElement<ExclusionPolicyConstraintType> constraintElement,
+            AssignmentPolicyRuleEvaluationContext<?> ctx,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+
+        EvaluatedPolicyRule policyRule = ctx.policyRule;
+        AssignmentPath pathA = policyRule.getAssignmentPath();
+        LocalizableMessage infoA = createObjectInfo(pathA, assignmentA.getTarget(), false);
+        ObjectType objectA = getConflictingObject(pathA, assignmentA.getTarget());
+        ObjectReferenceType requiredObjectRef = constraintElement.getValue().getTargetRef();
+        Object infoB;
+        try {
+            @NotNull ObjectType requiredObject = objectResolver.resolve(requiredObjectRef, ObjectType.class, null, "requirement policy rule", ctx.getTask(), result);
+            infoB = createObjectInfo(null, requiredObject.asPrismObject(), false);
+        } catch (ObjectNotFoundException e) {
+            infoB = requiredObjectRef.getOid();
+        }
+
+        stateCheck(pathA != null,
+                "Assignment path for requirement constraint cannot be determined: %s", ctx);
+        stateCheck(objectA != null,
+                "Object for requirement constraint cannot be determined: %s", ctx);
+
+        LocalizableMessage message = createMessage(infoA, infoB, constraintElement, ctx, CONSTRAINT_KEY_REQUIREMENT, result);
+        LocalizableMessage shortMessage = createShortMessage(infoA, infoB, constraintElement, ctx, CONSTRAINT_KEY_REQUIREMENT, result);
+        return new EvaluatedRequirementTrigger(
+                constraintElement.getValue(), message, shortMessage,
+                assignmentA,
+                objectA, requiredObjectRef, pathA, false);
+    }
+
     @NotNull
     private <AH extends AssignmentHolderType> LocalizableMessage createMessage(
-            LocalizableMessage infoA, LocalizableMessage infoB,
+            LocalizableMessage infoA, Object infoB,
             JAXBElement<ExclusionPolicyConstraintType> constraintElement,
-            PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
+            PolicyRuleEvaluationContext<AH> ctx, String constraintKey, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
-                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
+                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + constraintKey)
                 .args(infoA, infoB)
                 .build();
         return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
     }
 
     @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createShortMessage(LocalizableMessage infoA, LocalizableMessage infoB,
-            JAXBElement<ExclusionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
+    private <AH extends AssignmentHolderType> LocalizableMessage createShortMessage(LocalizableMessage infoA, Object infoB,
+            JAXBElement<ExclusionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> ctx, String constraintKey, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
-                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
+                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + constraintKey)
                 .args(infoA, infoB)
                 .build();
         return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
