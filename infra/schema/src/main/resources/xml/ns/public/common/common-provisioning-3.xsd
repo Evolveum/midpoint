@@ -7041,6 +7041,9 @@
             <xsd:documentation>
                 Creates association values by constructing it via mappings for individual attributes and object references.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>
@@ -7077,6 +7080,9 @@
                 Synchronizes association values by correlating and mapping them to values of respective focus item
                 (typically, an assignment).
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>

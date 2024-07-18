@@ -12,25 +12,20 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardChoicePanel;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class ResourceAssociationTypeWizardPreviewPanel
-        extends ResourceWizardChoicePanel<ResourceAssociationTypeWizardPreviewPanel.ResourceAssociationTypePreviewTileType> {
+public abstract class ResourceAssociationTypeWizardChoicePanelOld
+        extends ResourceWizardChoicePanel<ResourceAssociationTypeWizardChoicePanelOld.ResourceAssociationTypePreviewTileType> {
 
     private final WizardPanelHelper<ShadowAssociationTypeDefinitionType, ResourceDetailsModel> helper;
 
-    public ResourceAssociationTypeWizardPreviewPanel(
+    public ResourceAssociationTypeWizardChoicePanelOld(
             String id,
             WizardPanelHelper<ShadowAssociationTypeDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper.getDetailsModel(), ResourceAssociationTypePreviewTileType.class);

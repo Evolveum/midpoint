@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
@@ -34,8 +36,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
-public class MappingTilePanel extends TemplateTilePanel<PrismContainerValueWrapper<
-        ? extends Containerable>, MappingTile<PrismContainerValueWrapper<? extends Containerable>>> {
+public class MappingTilePanel<C extends Containerable> extends TemplateTilePanel<PrismContainerValueWrapper<C>, MappingTile<PrismContainerValueWrapper<C>>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingTilePanel.class);
     private static final String ID_CONFIGURE_BUTTON = "configureButton";
@@ -43,7 +44,7 @@ public class MappingTilePanel extends TemplateTilePanel<PrismContainerValueWrapp
     private static final String ID_HELP = "help";
     private static final String ID_REMOVE_BUTTON = "removeButton";
 
-    public MappingTilePanel(String id, IModel<MappingTile<PrismContainerValueWrapper<? extends Containerable>>> model) {
+    public MappingTilePanel(String id, IModel<MappingTile<PrismContainerValueWrapper<C>>> model) {
         super(id, model);
     }
 
@@ -137,7 +138,14 @@ public class MappingTilePanel extends TemplateTilePanel<PrismContainerValueWrapp
     }
 
     protected void onRemovePerformed(PrismContainerValueWrapper<? extends Containerable> value, AjaxRequestTarget target) {
-
+        if (value.getStatus() == ValueStatus.ADDED) {
+            PrismContainerWrapper wrapper = value.getParent();
+            if (wrapper != null) {
+                wrapper.getValues().remove(value);
+            }
+        } else {
+            value.setStatus(ValueStatus.DELETED);
+        }
     }
 
     protected boolean isHelpTextVisible() {

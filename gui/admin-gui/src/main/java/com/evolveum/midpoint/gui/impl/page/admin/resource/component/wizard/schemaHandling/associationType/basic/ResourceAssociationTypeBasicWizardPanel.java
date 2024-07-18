@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -59,7 +60,7 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
                     new WizardPanel(
                             getIdOfWizardPanel(),
                             new WizardModel(
-                                    createBasicSteps(true, true)))));
+                                    createBasicStepsForModify()))));
         }
     }
 
@@ -127,7 +128,7 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
             showWizardFragment(target,
                     new WizardPanel(
                             getIdOfWizardPanel(),
-                            new WizardModel(createBasicSteps(selectSubject, selectObject))));
+                            new WizardModel(createBasicStepsForCreate(selectSubject, selectObject))));
 
         } catch (SchemaException e) {
             LOGGER.error("Couldn't save association configuration.", e);
@@ -154,7 +155,7 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
         container.getValues().add(valueWrapper);
     }
 
-    private List<WizardStep> createBasicSteps(boolean selectSubject, boolean selectObject) {
+    private List<WizardStep> createBasicStepsForCreate(boolean selectSubject, boolean selectObject) {
         List<WizardStep> steps = new ArrayList<>();
 
         steps.add(new BasicSettingResourceAssociationTypeStepPanel(getAssignmentHolderModel(), getValueModel()) {
@@ -176,7 +177,11 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
         });
 
         if (selectSubject) {
-            steps.add(new SubjectAssociationStepPanel(getAssignmentHolderModel(), getValueModel()) {
+            steps.add(new SubjectAssociationStepPanel(
+                    getAssignmentHolderModel(),
+                    PrismContainerValueWrapperModel.fromContainerValueWrapper(
+                            getValueModel(),
+                            ShadowAssociationTypeDefinitionType.F_SUBJECT)) {
                 @Override
                 protected void onExitPerformed(AjaxRequestTarget target) {
                     ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);
@@ -185,7 +190,11 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
         }
 
         if(selectObject) {
-            steps.add(new ObjectAssociationStepPanel(getAssignmentHolderModel(), getValueModel()) {
+            steps.add(new ObjectAssociationStepPanel(
+                    getAssignmentHolderModel(),
+                    PrismContainerValueWrapperModel.fromContainerValueWrapper(
+                            getValueModel(),
+                            ShadowAssociationTypeDefinitionType.F_OBJECT)) {
                 @Override
                 protected void onExitPerformed(AjaxRequestTarget target) {
                     ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);
@@ -212,6 +221,39 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
             }
         });
 
+        return steps;
+    }
+
+    private List<WizardStep> createBasicStepsForModify() {
+        List<WizardStep> steps = new ArrayList<>();
+        steps.add(new BasicSettingResourceAssociationTypeStepPanel(getAssignmentHolderModel(), getValueModel()) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);
+            }
+
+            @Override
+            public boolean onBackPerformed(AjaxRequestTarget target) {
+                onExitPerformed(target);
+                return false;
+            }
+
+            @Override
+            protected void onSubmitPerformed(AjaxRequestTarget target) {
+                OperationResult result = ResourceAssociationTypeBasicWizardPanel.this.onSavePerformed(target);
+                if (result == null || result.isError()) {
+                    target.add(getFeedback());
+                    refresh(target);
+                } else {
+                    onExitPerformed(target);
+                }
+            }
+
+            @Override
+            public VisibleEnableBehaviour getBackBehaviour() {
+                return new VisibleBehaviour(() -> showChoicePanel);
+            }
+        });
         return steps;
     }
 }

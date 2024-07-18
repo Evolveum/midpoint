@@ -33,20 +33,15 @@ import java.util.Objects;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.associationType.object", icon = "fa fa-list"),
         containerPath = "empty")
-public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel {
+public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel<ShadowAssociationTypeObjectDefinitionType> {
 
     protected static final Trace LOGGER = TraceManager.getTrace(ObjectAssociationStepPanel.class);
 
     public static final String PANEL_TYPE = "rw-association-object";
 
     public ObjectAssociationStepPanel(
-            ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel) {
+            ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ShadowAssociationTypeObjectDefinitionType>> valueModel) {
         super(model, valueModel);
-    }
-
-    @Override
-    protected ItemPath getPathForValueContainer() {
-        return ItemPath.create(ShadowAssociationTypeDefinitionType.F_OBJECT, ShadowAssociationTypeSubjectDefinitionType.F_OBJECT_TYPE);
     }
 
     @Override
@@ -83,7 +78,7 @@ public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel 
         List<PrismContainerValueWrapper<ResourceObjectTypeIdentificationType>> values = new ArrayList<>();
 
         PrismContainerWrapper<ShadowAssociationTypeObjectDefinitionType> objectContainer =
-                getValueModel().getObject().findContainer(ShadowAssociationTypeDefinitionType.F_OBJECT);
+                getValueModel().getObject().getParent();
         if (objectContainer == null) {
             return values;
         }
@@ -102,9 +97,7 @@ public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel 
     protected List<ResourceObjectTypeDefinition> getListOfSupportedObjectTypeDef() throws SchemaException, ConfigurationException {
         List<ResourceObjectTypeDefinition> values = new ArrayList<>();
         PrismContainerWrapper<ResourceObjectTypeIdentificationType> objectTypeOfSubject =
-                getValueModel().getObject().findContainer(ItemPath.create(
-                        ShadowAssociationTypeDefinitionType.F_SUBJECT,
-                        ShadowAssociationTypeSubjectDefinitionType.F_OBJECT_TYPE));
+                getValueModel().getObject().findContainer(ShadowAssociationTypeSubjectDefinitionType.F_OBJECT_TYPE);
 
         if (objectTypeOfSubject == null || objectTypeOfSubject.getValues().isEmpty()) {
             return values;
@@ -150,15 +143,15 @@ public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel 
     }
 
     protected void performSelectedObjects() {
-        List<ObjectTypeWrapper> selectedNewItems = new ArrayList<>(getSelectedItemsModel().getObject());
+        List<ParticipantObjectTypeWrapper> selectedNewItems = new ArrayList<>(getSelectedItemsModel().getObject());
 
-        PrismContainerWrapper<ShadowAssociationTypeObjectDefinitionType> objectParticipantContainer;
-        try {
-            objectParticipantContainer = getValueModel().getObject().findContainer(ShadowAssociationTypeDefinitionType.F_OBJECT);
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't find object container in " + getValueModel().getObject());
-            return;
-        }
+        PrismContainerWrapper<ShadowAssociationTypeObjectDefinitionType> objectParticipantContainer = getValueModel().getObject().getParent();
+//        try {
+//            objectParticipantContainer = getValueModel().getObject().findContainer(ShadowAssociationTypeDefinitionType.F_OBJECT);
+//        } catch (SchemaException e) {
+//            LOGGER.error("Couldn't find object container in " + getValueModel().getObject());
+//            return;
+//        }
         for (PrismContainerValueWrapper<ShadowAssociationTypeObjectDefinitionType> objectValue : objectParticipantContainer.getValues()) {
             PrismContainerValueWrapper<ResourceObjectTypeIdentificationType> value;
             try {

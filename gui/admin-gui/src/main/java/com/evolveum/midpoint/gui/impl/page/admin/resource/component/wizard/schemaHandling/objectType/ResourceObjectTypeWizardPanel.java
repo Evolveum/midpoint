@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.SchemaHandlingTypeWizardPanel;
@@ -21,24 +20,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.credentials.CredentialsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.synchronization.SynchronizationWizardPanel;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 /**
@@ -58,8 +42,8 @@ public class ResourceObjectTypeWizardPanel extends SchemaHandlingTypeWizardPanel
     }
 
     @Override
-    protected ResourceObjectTypeWizardPreviewPanel createTypePreview() {
-        return new ResourceObjectTypeWizardPreviewPanel(getIdOfChoicePanel(), createHelper(false)) {
+    protected ResourceObjectTypeWizardChoicePanel createTypePreview() {
+        return new ResourceObjectTypeWizardChoicePanel(getIdOfChoicePanel(), createHelper(false)) {
             @Override
             protected void onTileClickPerformed(ResourceObjectTypePreviewTileType value, AjaxRequestTarget target) {
                 switch (value) {

@@ -48,7 +48,7 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractSpecificMappingTileTable<C extends Containerable> extends TileTablePanel
-        <MappingTile<PrismContainerValueWrapper<? extends Containerable>>, PrismContainerValueWrapper> {
+        <MappingTile<PrismContainerValueWrapper<Containerable>>, PrismContainerValueWrapper> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractSpecificMappingTileTable.class);
     private static final String ID_ADD_RULE_CONTAINER = "addRuleContainer";
@@ -99,8 +99,8 @@ public abstract class AbstractSpecificMappingTileTable<C extends Containerable> 
             case CONFIGURED:
                 tile.setTitle(GuiDisplayNameUtil.getDisplayName(
                         (MappingType) object.getRealValue()));
-                tile.setDescription(createDescription((MappingType) object.getRealValue()));
-                tile.setHelp(createStrengthHelp((MappingType) object.getRealValue()));
+                tile.setDescription(WebPrismUtil.createMappingTypeDescription((MappingType) object.getRealValue()));
+                tile.setHelp(WebPrismUtil.createMappingTypeStrengthHelp((MappingType) object.getRealValue()));
                 break;
             case PREDEFINED:
                 tile.setTitle(GuiDisplayNameUtil.getDisplayName(
@@ -114,14 +114,9 @@ public abstract class AbstractSpecificMappingTileTable<C extends Containerable> 
         return tile;
     }
 
-    private String createStrengthHelp(MappingType mapping) {
-        String strength = translateStrength(mapping);
-        return getPageBase().createStringResource("AbstractSpecificMappingTileTable.tile.help", strength).getString();
-    }
-
     @Override
-    protected Component createTile(String id, IModel<MappingTile<PrismContainerValueWrapper<? extends Containerable>>> model) {
-        MappingTilePanel tilePanel = new MappingTilePanel(id, model) {
+    protected Component createTile(String id, IModel<MappingTile<PrismContainerValueWrapper<Containerable>>> model) {
+        MappingTilePanel<Containerable> tilePanel = new MappingTilePanel<>(id, model) {
             @Override
             protected <T extends PrismContainerValueWrapper<? extends Containerable>> void onConfigureClick(AjaxRequestTarget target, MappingTile<T> tile) {
                 switch (tile.getMappingDefinitionType()) {
@@ -140,14 +135,7 @@ public abstract class AbstractSpecificMappingTileTable<C extends Containerable> 
 
             @Override
             protected void onRemovePerformed(PrismContainerValueWrapper<? extends Containerable> value, AjaxRequestTarget target) {
-                if (value.getStatus() == ValueStatus.ADDED) {
-                    PrismContainerWrapper wrapper = value.getParent();
-                    if (wrapper != null) {
-                        wrapper.getValues().remove(value);
-                    }
-                } else {
-                    value.setStatus(ValueStatus.DELETED);
-                }
+                super.onRemovePerformed(value, target);
                 getTilesModel().detach();
                 refresh(target);
             }
@@ -156,43 +144,7 @@ public abstract class AbstractSpecificMappingTileTable<C extends Containerable> 
         return tilePanel;
     }
 
-    private String translateStrength(MappingType mapping) {
-        MappingStrengthType strengthBean = mapping.getStrength();
-        if (strengthBean == null) {
-            strengthBean = MappingStrengthType.NORMAL;
-        }
-        return PageBase.createStringResourceStatic(null, strengthBean).getString().toLowerCase();
-    }
 
-    private String createDescription(MappingType mapping) {
-        if (StringUtils.isNotEmpty(mapping.getDescription())) {
-            return mapping.getDescription();
-        }
-        String strength = translateStrength(mapping);
-
-        ExpressionType expressionBean = mapping.getExpression();
-        String description = LocalizationUtil.translate(
-                "AbstractSpecificMappingTileTable.tile.description.prefix",
-                new Object[] {strength});
-
-        ExpressionUtil.ExpressionEvaluatorType evaluatorType = null;
-        if (expressionBean != null) {
-            String expression = ExpressionUtil.loadExpression(expressionBean, PrismContext.get(), LOGGER);
-            evaluatorType = ExpressionUtil.getExpressionType(expression);
-
-        }
-
-        if (evaluatorType == null) {
-            evaluatorType = ExpressionUtil.ExpressionEvaluatorType.AS_IS;
-        }
-
-        String evaluator = PageBase.createStringResourceStatic(null, evaluatorType).getString();
-
-        description += " " + LocalizationUtil.translate(
-                "AbstractSpecificMappingTileTable.tile.description.suffix",
-                new Object[] {evaluator});
-        return description;
-    }
 
     @Override
     protected WebMarkupContainer createTilesContainer(

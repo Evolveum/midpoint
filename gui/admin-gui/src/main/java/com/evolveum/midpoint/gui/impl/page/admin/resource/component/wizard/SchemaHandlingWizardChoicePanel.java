@@ -6,21 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 
 import org.jetbrains.annotations.NotNull;
 
-public abstract class ResourceWizardPreviewPanel extends ResourceWizardChoicePanel<ResourceWizardPreviewPanel.PreviewTileType> {
+public abstract class SchemaHandlingWizardChoicePanel extends ResourceWizardChoicePanel<SchemaHandlingWizardChoicePanel.PreviewTileType> {
 
-    public ResourceWizardPreviewPanel(String id, ResourceDetailsModel resourceModel) {
+    public SchemaHandlingWizardChoicePanel(String id, ResourceDetailsModel resourceModel) {
         super(id, resourceModel, PreviewTileType.class);
     }
 

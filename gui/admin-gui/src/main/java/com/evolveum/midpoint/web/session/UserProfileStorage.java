@@ -152,6 +152,8 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PANEL_MIGRATED_ROLES,
         PANEL_CANDIDATE_ROLES,
         PANEL_OUTLIER_PROPERTIES,
+        PANEL_ASSOCIATION_INBOUND,
+        PANEL_ASSOCIATION_OUTBOUND,
     }
 
     private final Map<String, Integer> tables = new HashMap<>();

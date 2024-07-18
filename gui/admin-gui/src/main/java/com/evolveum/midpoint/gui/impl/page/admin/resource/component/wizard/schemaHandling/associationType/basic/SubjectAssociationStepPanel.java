@@ -27,14 +27,14 @@ import java.util.*;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.associationType.subject", icon = "fa fa-list"),
         containerPath = "empty")
-public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel {
+public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel<ShadowAssociationTypeSubjectDefinitionType> {
 
     protected static final Trace LOGGER = TraceManager.getTrace(SubjectAssociationStepPanel.class);
 
     public static final String PANEL_TYPE = "rw-association-subject";
 
     public SubjectAssociationStepPanel(
-            ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel) {
+            ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ShadowAssociationTypeSubjectDefinitionType>> valueModel) {
         super(model, valueModel);
     }
 
@@ -87,14 +87,14 @@ public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel
     }
 
     protected void performSelectedObjects() {
-        List<ObjectTypeWrapper> selectedNewItems = new ArrayList<>(getSelectedItemsModel().getObject());
+        List<ParticipantObjectTypeWrapper> selectedNewItems = new ArrayList<>(getSelectedItemsModel().getObject());
 
         ItemPath containerPath = getPathForValueContainer();
         PrismContainerWrapper<ResourceObjectTypeIdentificationType> container;
         try {
             container = getValueModel().getObject().findContainer(containerPath);
         } catch (SchemaException e) {
-            LOGGER.error("Couldn't find object type subcontainer of " + getNameOfParticipant() + " container in " + getValueModel().getObject());
+            LOGGER.error("Couldn't find object type subcontainer " + containerPath + " container in " + getValueModel().getObject());
             return;
         }
         container.getValues().forEach(value -> {

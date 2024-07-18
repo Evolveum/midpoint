@@ -25,12 +25,12 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class ResourceObjectTypeWizardPreviewPanel
-        extends ResourceWizardChoicePanel<ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType> {
+public abstract class ResourceObjectTypeWizardChoicePanel
+        extends ResourceWizardChoicePanel<ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType> {
 
     private final WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper;
 
-    public ResourceObjectTypeWizardPreviewPanel(
+    public ResourceObjectTypeWizardChoicePanel(
             String id,
             WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper.getDetailsModel(), ResourceObjectTypePreviewTileType.class);

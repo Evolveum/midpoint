@@ -22,10 +22,10 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
-public abstract class RoleWizardPreviewPanel<T extends TileEnum>
+public abstract class RoleWizardChoicePanel<T extends TileEnum>
         extends EnumWizardChoicePanel<T, AssignmentHolderDetailsModel<RoleType>> {
 
-    public RoleWizardPreviewPanel(String id, AssignmentHolderDetailsModel<RoleType> roleModel, Class<T> type) {
+    public RoleWizardChoicePanel(String id, AssignmentHolderDetailsModel<RoleType> roleModel, Class<T> type) {
         super(id, roleModel, type);
     }
 
