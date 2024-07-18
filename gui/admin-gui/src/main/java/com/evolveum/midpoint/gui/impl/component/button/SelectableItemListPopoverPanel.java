@@ -143,10 +143,9 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
                 };
                 item.add(propLink);
 
-                Label name = new Label(ID_ITEM_NAME, getItemName(item.getModelObject()));
-                name.setOutputMarkupId(true);
-                name.setRenderBodyOnly(true);
+                Label name = new Label(ID_ITEM_NAME, () -> getItemName(item.getModelObject()));
                 propLink.add(name);
+                propLink.setOutputMarkupId(true);
 
                 check.add(AttributeModifier.append("aria-labelledby", name.getMarkupId()));
 
