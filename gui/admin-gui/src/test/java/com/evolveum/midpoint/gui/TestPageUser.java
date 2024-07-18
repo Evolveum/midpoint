@@ -71,6 +71,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     @Test
     public void test002testBasicTab() {
         renderPage(PageUser.class);
+        choiceArchetype(1);
 
         tester.assertComponent(MAIN_PANEL, AssignmentHolderBasicPanel.class);
     }
@@ -97,8 +98,8 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test004renderAssignmentsTab() {
         renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
 
-        clickOnDetailsMenu(2);
-        String submenu = "detailsView:mainForm:navigation:menu:2:navLinkStyle:subNavigation:menu:0:navLinkStyle:navItemLink";
+        clickOnDetailsMenu(3);
+        String submenu = "detailsView:mainForm:navigation:menu:3:navLinkStyle:subNavigation:menu:0:navLinkStyle:navItemLink";
         tester.clickLink(submenu);
         tester.assertComponent(MAIN_PANEL, AllAssignmentsPanel.class);
     }
@@ -115,7 +116,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test012renderActivationTab() {
         renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
 
-        clickOnDetailsMenu(3);
+        clickOnDetailsMenu(4);
         tester.assertComponent(MAIN_PANEL, FocusActivationPanel.class);
     }
 
@@ -123,7 +124,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test013renderCredentialsTab() {
         renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
 
-        clickOnDetailsMenu(4);
+        clickOnDetailsMenu(5);
         tester.assertComponent(MAIN_PANEL, FocusPasswordPanel.class);
     }
 
@@ -131,7 +132,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test014renderHistoryTab() {
         renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
 
-        clickOnDetailsMenu(5);
+        clickOnDetailsMenu(6);
         tester.assertComponent(MAIN_PANEL, FocusHistoryPanel.class);
     }
 
@@ -139,7 +140,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test015renderCasesTab() {
         renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
 
-        clickOnDetailsMenu(6);
+        clickOnDetailsMenu(7);
         tester.assertComponent(MAIN_PANEL, FocusCasesPanel.class);
     }
 
@@ -147,7 +148,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test016renderPersonasTab() {
         renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
 
-        clickOnDetailsMenu(7);
+        clickOnDetailsMenu(8);
         tester.assertComponent(MAIN_PANEL, UserPersonasPanel.class);
     }
 
@@ -155,7 +156,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test017renderDelegationsTab() {
         renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
 
-        clickOnDetailsMenu(8);
+        clickOnDetailsMenu(9);
         tester.assertComponent(MAIN_PANEL, UserDelegationsPanel.class);
     }
 
@@ -163,7 +164,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test018renderDelegatedToMeTab() {
         renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
 
-        clickOnDetailsMenu(9);
+        clickOnDetailsMenu(10);
         tester.assertComponent(MAIN_PANEL, DelegatedToMePanel.class);
     }
 
@@ -171,7 +172,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     public void test019renderTriggersTab() {
         renderPage(PageUser.class, USER_ADMINISTRATOR_OID);
 
-        clickOnDetailsMenu(10);
+        clickOnDetailsMenu(11);
         tester.assertComponent(MAIN_PANEL, FocusTriggersPanel.class);
     }
 

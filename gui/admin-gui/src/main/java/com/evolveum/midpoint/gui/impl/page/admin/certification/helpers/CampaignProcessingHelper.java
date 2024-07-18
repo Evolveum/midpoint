@@ -271,7 +271,7 @@ public class CampaignProcessingHelper implements Serializable {
         });
         WebComponentUtil.safeResultCleanup(result, LOGGER);
         pageBase.showResult(result);
-        target.add(pageBase);   //todo reload only component + feedback?
+        target.add(pageBase);
     }
 
     public static void campaignDetailsPerformed(String oid, PageBase pageBase) {

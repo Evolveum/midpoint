@@ -143,16 +143,14 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                CampaignProcessingHelper.campaignActionPerformed(getModelObjectType(), PageCertCampaign.this, ajaxRequestTarget);
+                AccessCertificationCampaignType campaign = getModelObjectType();
 
-                //todo fix reloading of the page
                 getObjectDetailsModels().reloadPrismObjectModel();
                 PageCertCampaign.this.getModel().detach();
-
                 buttonCssModel.detach();
                 buttonLabelModel.detach();
 
-                ajaxRequestTarget.add(PageCertCampaign.this);
+                CampaignProcessingHelper.campaignActionPerformed(campaign, PageCertCampaign.this, ajaxRequestTarget);
             }
         };
         button.showTitleAsLabel(true);

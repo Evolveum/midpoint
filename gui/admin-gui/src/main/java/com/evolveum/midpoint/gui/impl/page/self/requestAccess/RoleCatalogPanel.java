@@ -11,8 +11,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.*;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +51,7 @@ import com.evolveum.midpoint.gui.impl.component.menu.listGroup.CustomListGroupMe
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuPanel;
+import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
@@ -71,6 +70,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
@@ -149,6 +149,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             throw new RestartResponseException(new PageRequestAccess(params, getWizard()));
         }
+
+        ListGroupMenu<RoleCatalogQueryItem> menu = menuModel.getObject();
+        ListGroupMenuItem<RoleCatalogQueryItem> active = menu.getActiveMenu();
+        if (active == null) {
+            active = menu.activateFirstAvailableItem();
+        }
+        updateQueryModelSearchAndParameters(active);
 
         super.onBeforeRender();
     }
@@ -244,8 +251,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 return;
             }
 
+            QName relation = getModelObject().getRelation();
+
             String[] oids = user.asObjectable().getAssignment().stream()
                     .filter(a -> a.getTargetRef() != null)
+                    .filter(a -> QNameUtil.match(relation, a.getTargetRef().getRelation()))
                     .map(a -> a.getTargetRef().getOid())
                     .toArray(String[]::new);
 
@@ -415,7 +425,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                 ObjectQuery query = catalogQuery.getQuery();
                 if (query != null) {
-                query = query.clone();
+                    query = query.clone();
                 } else if (catalogQuery.getParent() != null) {
                     // this is quite a mess since query couldn't be created at during building RoleCatalogQuery
                     // since scope might have changes in search panel and queryModel wouldn't know...
