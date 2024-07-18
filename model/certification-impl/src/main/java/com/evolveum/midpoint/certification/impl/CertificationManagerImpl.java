@@ -262,6 +262,10 @@ public class CertificationManagerImpl implements CertificationManager {
             throw e;
         } finally {
             result.computeStatusIfUnknown();
+            //TODO quick fix for avoiding big task result
+            result.cleanupResultDeeply();
+            result.summarize();
+
         }
     }
 
