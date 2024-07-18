@@ -1097,6 +1097,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         modifyUserAssignment(userOid, archetypeOid, ArchetypeType.COMPLEX_TYPE, null, task, (Consumer<AssignmentType>) null, false, result);
     }
 
+    protected void assignPolicy(String userOid, String policyOid, Task task, OperationResult result) throws ObjectNotFoundException,
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+            PolicyViolationException, SecurityViolationException {
+        modifyUserAssignment(userOid, policyOid, PolicyType.COMPLEX_TYPE, null, task, (Consumer<AssignmentType>) null, true, result);
+    }
+
+    protected void unassignPolicy(String userOid, String policyOid, Task task, OperationResult result) throws ObjectNotFoundException,
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+            PolicyViolationException, SecurityViolationException {
+        modifyUserAssignment(userOid, policyOid, PolicyType.COMPLEX_TYPE, null, task, (Consumer<AssignmentType>) null, false, result);
+    }
+
     protected void induceRole(String focusRoleOid, String targetRoleOid, Task task, OperationResult result) throws ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException {
@@ -2707,6 +2719,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected <F extends FocusType> void assertAssignedNoRole(PrismObject<F> user) {
         assertAssignedNo(user, RoleType.COMPLEX_TYPE);
+    }
+
+    protected void assertAssignedNoPolicy(String userOid, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+        assertAssignedNoPolicy(user);
+    }
+
+    protected <F extends FocusType> void assertAssignedNoPolicy(PrismObject<F> user) {
+        assertAssignedNo(user, PolicyType.COMPLEX_TYPE);
     }
 
     protected <F extends FocusType> void assertAssignedNo(PrismObject<F> user, QName refType) {
