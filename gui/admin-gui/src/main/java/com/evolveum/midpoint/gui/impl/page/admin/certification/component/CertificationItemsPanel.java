@@ -7,34 +7,39 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
-import com.evolveum.midpoint.cases.api.util.QueryUtils;
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.IconComponent;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
-import com.evolveum.midpoint.gui.impl.component.data.provider.ContainerListDataProvider;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.report.api.ReportConstants;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportParameterTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -43,39 +48,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
-import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.AvailableResponses;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.web.session.CertDecisionsStorage;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serial;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
 
 public class CertificationItemsPanel extends BasePanel<String> {
 
@@ -86,8 +67,7 @@ public class CertificationItemsPanel extends BasePanel<String> {
     private static final String OPERATION_LOAD_CAMPAIGN = DOT_CLASS + "loadCampaign";
     private static final String OPERATION_LOAD_REPORT = DOT_CLASS + "loadCertItemsReport";
     private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runCertItemsReport";
-    private static final String OPERATION_LOAD_ACCESS_CERT_DEFINITION = DOT_CLASS + "loadAccessCertificationDefinition";
-    private static final String OPERATION_RECORD_COMMENT = DOT_CLASS + "recordComment";
+
 
     private static final String ID_NAVIGATION_PANEL = "navigationPanel";
     private static final String ID_MAIN_FORM = "mainForm";
@@ -174,126 +154,11 @@ public class CertificationItemsPanel extends BasePanel<String> {
     }
 
     private void initTablePanel() {
-        MidpointForm mainForm = new MidpointForm(ID_MAIN_FORM);
+        MidpointForm<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 
-        ContainerableListPanel<AccessCertificationWorkItemType, PrismContainerValueWrapper<AccessCertificationWorkItemType>> table =
-                new ContainerableListPanel<>(ID_DECISIONS_TABLE, AccessCertificationWorkItemType.class) {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createDefaultColumns() {
-                        return createColumns();
-                    }
-
-                    @Override
-                    protected ISelectableDataProvider<PrismContainerValueWrapper<AccessCertificationWorkItemType>> createProvider() {
-                        return CertificationItemsPanel.this.createProvider(getSearchModel());
-                    }
-
-                    @Override
-                    public List<AccessCertificationWorkItemType> getSelectedRealObjects() {
-                        List<PrismContainerValueWrapper<AccessCertificationWorkItemType>> selectedObjects = getSelectedObjects();
-                        return selectedObjects.stream().map(PrismValueWrapper::getRealValue).collect(Collectors.toList());
-                    }
-
-                    @Override
-                    protected UserProfileStorage.TableId getTableId() {
-                        return UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL;
-                    }
-
-                    @Override
-                    protected IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String> createCheckboxColumn() {
-                        if (!isPreview()) {
-                            return new CheckBoxHeaderColumn<>();
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    protected IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String> createIconColumn() {
-                        return new IconColumn<>(Model.of("")) {
-
-                            @Serial private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
-                                return GuiDisplayTypeUtil.createDisplayType(
-                                        IconAndStylesUtil.createDefaultBlackIcon(AccessCertificationWorkItemType.COMPLEX_TYPE));
-                            }
-
-                        };
-                    }
-
-                    private List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createColumns() {
-                        return ColumnUtils.getDefaultCertWorkItemColumns(!isMyCertItems(), showOnlyNotDecidedItems());
-                    }
-
-                    private List<AbstractGuiAction<AccessCertificationWorkItemType>> getCertItemActions() {
-                        List<AccessCertificationResponseType> availableResponses = new AvailableResponses(getPageBase()).getResponseValues();   //from sys config
-                        if (CollectionUtils.isEmpty(availableResponses)) {
-                            availableResponses = Arrays.stream(values()).filter(r -> r != DELEGATE).collect(Collectors.toList());
-                        }
-                        List<GuiActionType> actions = getCertItemsViewActions();
-                        return CertMiscUtil.mergeCertItemsResponses(availableResponses, actions, getPageBase());
-                    }
-
-                    private List<GuiActionType> getCertItemsViewActions() {
-                        CompiledObjectCollectionView collectionView = getObjectCollectionView();
-                        return collectionView == null ? new ArrayList<>() : collectionView.getActions();
-                    }
-
-                    @Override
-                    public CompiledObjectCollectionView getObjectCollectionView() {
-                        return loadCampaignView();
-                     }
-
-                     @Override
-                     protected IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String> createActionsColumn() {
-                         List<AbstractGuiAction<AccessCertificationWorkItemType>> actions = getCertItemActions();
-                         if (CollectionUtils.isNotEmpty(actions)) {
-                             return new GuiActionColumn<>(actions, getPageBase()) {
-                                 @Serial private static final long serialVersionUID = 1L;
-
-                                 @Override
-                                 protected AccessCertificationWorkItemType unwrapRowModelObject(
-                                         PrismContainerValueWrapper<AccessCertificationWorkItemType> rowModelObject) {
-                                     return rowModelObject.getRealValue();
-                                 }
-
-                                 @Override
-                                 protected List<AccessCertificationWorkItemType> getSelectedItems() {
-                                     return getSelectedRealObjects();
-                                 }
-                             };
-                         }
-                         return null;
-                     }
-
-                     @Override
-                     protected IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String> createCustomExportableColumn(
-                            IModel<String> displayModel, GuiObjectColumnType guiObjectColumn, ExpressionType expression) {
-                        ItemPath path = WebComponentUtil.getPath(guiObjectColumn);
-
-                        if (ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_COMMENT)
-                                .equivalent(path)) {
-                            String propertyExpression = "realValue" + "." + AccessCertificationWorkItemType.F_OUTPUT.getLocalPart() + "."
-                                    + AbstractWorkItemOutputType.F_COMMENT.getLocalPart();
-                            return new DirectlyEditablePropertyColumn<>(
-                                    createStringResource("PageCertDecisions.table.comment"), propertyExpression) {
-                                @Serial private static final long serialVersionUID = 1L;
-
-                                @Override
-                                public void onBlur(AjaxRequestTarget target,
-                                        IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> model) {
-                                    recordCommentPerformed(target, model.getObject());
-                                }
-                            };
-                        }
-                        return super.createCustomExportableColumn(displayModel, guiObjectColumn, expression);
-                    }
-                };
+        CertificationWorkItemTable table = new CertificationWorkItemTable(ID_DECISIONS_TABLE);
         table.setOutputMarkupId(true);
         mainForm.add(table);
     }
@@ -302,51 +167,13 @@ public class CertificationItemsPanel extends BasePanel<String> {
         return null;
     }
 
-    private ContainerListDataProvider<AccessCertificationWorkItemType> createProvider(IModel<Search<AccessCertificationWorkItemType>> searchModel) {
-        Collection<SelectorOptions<GetOperationOptions>> options = CertificationItemsPanel.this.getPageBase()
-                .getOperationOptionsBuilder()
-                .resolveNames()
-                .build();
-        ContainerListDataProvider<AccessCertificationWorkItemType> provider = new ContainerListDataProvider<>(this,
-                searchModel, options) {
-            @Serial private static final long serialVersionUID = 1L;
 
-            @Override
-            protected PageStorage getPageStorage() {
-                return null;
-            }
-
-            @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                return getOpenCertWorkItemsQuery();
-            }
-
-        };
-//        provider.setSort(CaseWorkItemType.F_DEADLINE.getLocalPart(), SortOrder.DESCENDING);
-        return provider;
-    }
-
-
-    protected ObjectQuery getOpenCertWorkItemsQuery() {
-        ObjectQuery query;
-        if (StringUtils.isNotEmpty(getCampaignOid())) {
-            query = QueryUtils.createQueryForOpenWorkItemsForCampaigns(Collections.singletonList(getCampaignOid()),
-                    getPageBase().getPrincipal(), false);
-        } else {
-            query = PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
-                    .build();
-        }
-        MidPointPrincipal principal = null;
-        if (isMyCertItems()) {
-            principal = getPageBase().getPrincipal();
-        }
-        return QueryUtils.createQueryForOpenWorkItems(query, principal, false);
-    }
-
+    //TODO
     protected boolean isMyCertItems() {
         return true;
     }
 
+    //TODO
     protected boolean showOnlyNotDecidedItems() {
         return false;
     }
@@ -444,7 +271,7 @@ public class CertificationItemsPanel extends BasePanel<String> {
 
                     @Override
                     public Component createValueComponent(String id) {
-                        DeadlinePanel deadlinePanel = new DeadlinePanel(id, new LoadableModel<XMLGregorianCalendar>() {
+                        DeadlinePanel deadlinePanel = new DeadlinePanel(id, new LoadableModel<>() {
                             @Override
                             protected XMLGregorianCalendar load() {
                                 return campaign != null ? CampaignProcessingHelper.computeDeadline(
@@ -610,7 +437,7 @@ public class CertificationItemsPanel extends BasePanel<String> {
             if (campaign == null) {
                 return "";
             }
-            XMLGregorianCalendar startDate = campaign != null ? campaign.getStartTimestamp() : null;
+            XMLGregorianCalendar startDate = campaign.getStartTimestamp();
             return WebComponentUtil.getLocalizedDate(startDate, DateLabelComponent.SHORT_NOTIME_STYLE);
         };
     }
@@ -686,63 +513,13 @@ public class CertificationItemsPanel extends BasePanel<String> {
         return true;
     }
 
+    //TODO
     protected String getCampaignOid() {
         return null;
     }
 
     protected void onBackPerformed(AjaxRequestTarget target) {
         getPageBase().redirectBack();
-    }
-
-    private CompiledObjectCollectionView loadCampaignView() {
-        AccessCertificationCampaignType campaign = campaignModel.getObject();
-        if (campaign == null) {
-            return null;
-        }
-        var definitionRef = campaign.getDefinitionRef();
-        if (definitionRef == null) {
-            return null;
-        }
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ACCESS_CERT_DEFINITION);
-        OperationResult result = task.getResult();
-        var definitionObj = WebModelServiceUtils.loadObject(definitionRef, getPageBase(), task, result);
-        if (definitionObj == null) {
-            return null;
-        }
-        AccessCertificationDefinitionType definition = (AccessCertificationDefinitionType) definitionObj.asObjectable();
-        GuiObjectListViewType view = definition.getView();
-        return WebComponentUtil.getCompiledObjectCollectionView(view, new ContainerPanelConfigurationType(), getPageBase());
-    }
-
-    private void recordCommentPerformed(AjaxRequestTarget target, PrismContainerValueWrapper<AccessCertificationWorkItemType> certItemWrapper) {
-        if (certItemWrapper == null) {
-            return;
-        }
-        OperationResult result = new OperationResult(OPERATION_RECORD_COMMENT);
-        try {
-            AccessCertificationWorkItemType certItem = certItemWrapper.getRealValue();
-            if (certItem == null) {
-                return;
-            }
-            //todo check if comment was really changed
-            //for now certItemWrapper.findProperty(ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_COMMENT))
-            //returns null so that we cannot analyze the delta
-            Task task = getPageBase().createSimpleTask(OPERATION_RECORD_COMMENT);
-            String comment = certItem.getOutput() != null ? certItem.getOutput().getComment() : null;
-            CertMiscUtil.recordCertItemResponse(
-                    certItem, null, comment, result, task, getPageBase());
-
-        } catch (Exception ex) {
-            LOGGER.error("Couldn't record comment for certification work item", ex);
-            result.recordFatalError(ex);
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-
-        if (!result.isSuccess()) {
-            showResult(result);
-        }
-        target.add(this);
     }
 
 }
