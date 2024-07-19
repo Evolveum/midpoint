@@ -115,6 +115,7 @@ public class TestEscalation extends AbstractCertificationTest {
     @Test
     public void test021OpenFirstStage() throws Exception {
         // GIVEN
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
@@ -665,6 +666,7 @@ public class TestEscalation extends AbstractCertificationTest {
     @Test
     public void test320OpenFirstStage() throws Exception {
         // GIVEN
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());

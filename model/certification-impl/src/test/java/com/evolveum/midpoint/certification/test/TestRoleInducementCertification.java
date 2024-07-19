@@ -122,6 +122,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test020OpenFirstStage() throws Exception {
         // GIVEN
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
@@ -461,6 +462,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test200OpenSecondStage() throws Exception {
         // GIVEN
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
@@ -743,6 +745,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
     @Test
     public void test300StartRemediation() throws Exception {
         // GIVEN
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
