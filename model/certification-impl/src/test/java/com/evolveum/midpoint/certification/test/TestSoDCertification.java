@@ -221,6 +221,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test020OpenFirstStage() throws Exception {
         // GIVEN
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
@@ -389,6 +390,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test200StartRemediation() throws Exception {
         // GIVEN
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());

@@ -109,6 +109,7 @@ jack->CTO                   none (A) -> A
     @Test
     public void test020OpenFirstStage() throws Exception {
         // GIVEN
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
@@ -254,6 +255,7 @@ jack->CTO                   none (A) -> A
     @Test
     public void test200OpenSecondStage() throws Exception {
         // GIVEN
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
@@ -509,6 +511,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
     @Test
     public void test300OpenThirdStage() throws Exception {
         // GIVEN
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
@@ -755,6 +758,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test400OpenFourthStage() throws Exception {
         // GIVEN
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
@@ -1000,6 +1004,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test495StartRemediation() throws Exception {
         // GIVEN
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
@@ -1191,6 +1196,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test510OpenNextStage() throws Exception {           // next stage is 2 (because the first one has no work items)
         // GIVEN
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
