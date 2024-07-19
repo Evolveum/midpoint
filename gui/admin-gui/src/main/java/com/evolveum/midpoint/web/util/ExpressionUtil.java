@@ -623,6 +623,26 @@ public class ExpressionUtil {
         return null;
     }
 
+    public static AssociationSynchronizationExpressionEvaluatorType getAssociationSynchronizationExpressionValue(ExpressionType expression) throws SchemaException {
+        List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_SYNCHRONIZATION);
+        for (JAXBElement<?> element : elements) {
+            if (element.getValue() instanceof AssociationSynchronizationExpressionEvaluatorType evaluator) {
+                return evaluator;
+            }
+        }
+        return null;
+    }
+
+    public static AssociationConstructionExpressionEvaluatorType getAssociationConstructionExpressionValue(ExpressionType expression) throws SchemaException {
+        List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_CONSTRUCTION);
+        for (JAXBElement<?> element : elements) {
+            if (element.getValue() instanceof AssociationConstructionExpressionEvaluatorType evaluator) {
+                return evaluator;
+            }
+        }
+        return null;
+    }
+
     public static void updateLiteralExpressionValue(ExpressionType expression, List<String> values, PrismContext prismContext) {
         if (expression == null) {
             expression = new ExpressionType();      // TODO ??? this is thrown away
@@ -681,6 +701,18 @@ public class ExpressionUtil {
             ExpressionType expression, GenerateExpressionEvaluatorType evaluator) throws SchemaException {
         updateExpressionEvaluator(
                 expression, evaluator, GenerateExpressionEvaluatorType.class, SchemaConstantsGenerated.C_GENERATE);
+    }
+
+    public static void updateAssociationSynchronizationExpressionValue(
+            ExpressionType expression, AssociationSynchronizationExpressionEvaluatorType evaluator) throws SchemaException {
+        updateExpressionEvaluator(
+                expression, evaluator, AssociationSynchronizationExpressionEvaluatorType.class, SchemaConstantsGenerated.C_ASSOCIATION_SYNCHRONIZATION);
+    }
+
+    public static void updateAssociationConstructionExpressionValue(
+            ExpressionType expression, AssociationConstructionExpressionEvaluatorType evaluator) throws SchemaException {
+        updateExpressionEvaluator(
+                expression, evaluator, AssociationConstructionExpressionEvaluatorType.class, SchemaConstantsGenerated.C_ASSOCIATION_CONSTRUCTION);
     }
 
     public static void addAsIsExpressionValue(ExpressionType expression) {

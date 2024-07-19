@@ -10,7 +10,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.SchemaHandlingTypeWizardPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardChoicePanelWithSeparatedCreatePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.basic.ResourceObjectTypeBasicWizardPanel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.activation.ActivationsWizardPanel;
@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
 /**
  * @author lskublik
  */
-public class ResourceObjectTypeWizardPanel extends SchemaHandlingTypeWizardPanel<ResourceObjectTypeDefinitionType> {
+public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWithSeparatedCreatePanel<ResourceObjectTypeDefinitionType> {
 
     public ResourceObjectTypeWizardPanel(
             String id,

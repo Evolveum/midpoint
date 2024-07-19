@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.activation;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -52,7 +52,13 @@ public class MappingTilePanel<C extends Containerable> extends TemplateTilePanel
     protected void onInitialize() {
         super.onInitialize();
 
+        getIcon().add(new VisibleBehaviour(MappingTilePanel.this::isIconVisible));
+
         initLifeCycleStatePanel();
+    }
+
+    protected boolean isIconVisible() {
+        return true;
     }
 
     private void initLifeCycleStatePanel() {
@@ -133,8 +139,6 @@ public class MappingTilePanel<C extends Containerable> extends TemplateTilePanel
         };
         removeButton.showTitleAsLabel(true);
         add(removeButton);
-
-        get(ID_DESCRIPTION).add(AttributeAppender.append("title", getModelObject().getDescription()));
     }
 
     protected void onRemovePerformed(PrismContainerValueWrapper<? extends Containerable> value, AjaxRequestTarget target) {

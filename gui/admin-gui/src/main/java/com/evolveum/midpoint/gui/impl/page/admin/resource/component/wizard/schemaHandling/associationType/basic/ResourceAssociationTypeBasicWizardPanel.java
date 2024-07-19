@@ -177,11 +177,7 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
         });
 
         if (selectSubject) {
-            steps.add(new SubjectAssociationStepPanel(
-                    getAssignmentHolderModel(),
-                    PrismContainerValueWrapperModel.fromContainerValueWrapper(
-                            getValueModel(),
-                            ShadowAssociationTypeDefinitionType.F_SUBJECT)) {
+            steps.add(new SubjectAssociationStepPanel(getAssignmentHolderModel(), getValueModel()) {
                 @Override
                 protected void onExitPerformed(AjaxRequestTarget target) {
                     ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);
@@ -190,11 +186,7 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
         }
 
         if(selectObject) {
-            steps.add(new ObjectAssociationStepPanel(
-                    getAssignmentHolderModel(),
-                    PrismContainerValueWrapperModel.fromContainerValueWrapper(
-                            getValueModel(),
-                            ShadowAssociationTypeDefinitionType.F_OBJECT)) {
+            steps.add(new ObjectAssociationStepPanel(getAssignmentHolderModel(), getValueModel()) {
                 @Override
                 protected void onExitPerformed(AjaxRequestTarget target) {
                     ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);

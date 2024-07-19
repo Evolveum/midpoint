@@ -74,7 +74,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
             @Override
             protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
                 ResourceObjectTypeWizardPanel wizard = createObjectTypeWizard(valueModel);
-                wizard.setShowTypePreview(true);
+                wizard.setShowChoicePanel(true);
                 showChoiceFragment(target, wizard);
             }
 

@@ -6,14 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.SchemaHandlingTypeWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.ResourceAssociationTypeSubjectWizardPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -21,27 +17,23 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.checkerframework.checker.units.qual.A;
 
 /**
  * @author lskublik
  */
-public abstract class AbstractWizardPanelWithChoicePanel<C extends Containerable, AHD extends AssignmentHolderDetailsModel> extends AbstractWizardPanel<C, AHD> {
+public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD extends AssignmentHolderDetailsModel> extends AbstractWizardPanel<C, AHD> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractWizardPanelWithChoicePanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractWizardWithChoicePanel.class);
 
-    private boolean showTypePreview = false;
+    private boolean showChoicePanel = false;
 
-    public AbstractWizardPanelWithChoicePanel(
+    public AbstractWizardWithChoicePanel(
             String id,
             WizardPanelHelper<C, AHD> helper) {
         super(id, helper);
@@ -50,19 +42,19 @@ public abstract class AbstractWizardPanelWithChoicePanel<C extends Containerable
     @Override
     protected void onBeforeRender() {
         super.onBeforeRender();
-        if (isShowTypePreview()) {
+        if (isShowChoicePanel()) {
             addOrReplace(createChoiceFragment(createTypePreview()));
         }
     }
 
     protected abstract Component createTypePreview();
 
-    private boolean isShowTypePreview() {
-        return showTypePreview;
+    private boolean isShowChoicePanel() {
+        return showChoicePanel;
     }
 
-    public void setShowTypePreview(boolean showTypePreview) {
-        this.showTypePreview = showTypePreview;
+    public void setShowChoicePanel(boolean showChoicePanel) {
+        this.showChoicePanel = showChoicePanel;
     }
 
     protected  <V extends Containerable> WizardPanelHelper<V, AHD> createHelper(ItemPath path, boolean isWizardFlow) {
@@ -74,12 +66,12 @@ public abstract class AbstractWizardPanelWithChoicePanel<C extends Containerable
 
             @Override
             public IModel<PrismContainerValueWrapper<V>> getValueModel() {
-                return PrismContainerValueWrapperModel.fromContainerValueWrapper(AbstractWizardPanelWithChoicePanel.this.getValueModel(), path);
+                return PrismContainerValueWrapperModel.fromContainerValueWrapper(AbstractWizardWithChoicePanel.this.getValueModel(), path);
             }
 
             @Override
             public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
-                OperationResult result = AbstractWizardPanelWithChoicePanel.this.onSavePerformed(target);
+                OperationResult result = AbstractWizardWithChoicePanel.this.onSavePerformed(target);
                 if (isWizardFlow && result != null && !result.isError()) {
                     refreshValueModel();
                     showTypePreviewFragment(target);
@@ -99,12 +91,12 @@ public abstract class AbstractWizardPanelWithChoicePanel<C extends Containerable
 
             @Override
             public IModel<PrismContainerValueWrapper<C>> getValueModel() {
-                return AbstractWizardPanelWithChoicePanel.this.getValueModel();
+                return AbstractWizardWithChoicePanel.this.getValueModel();
             }
 
             @Override
             public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
-                OperationResult result = AbstractWizardPanelWithChoicePanel.this.onSavePerformed(target);
+                OperationResult result = AbstractWizardWithChoicePanel.this.onSavePerformed(target);
                 if (isWizardFlow && result != null && !result.isError()) {
                     refreshValueModel();
                     showTypePreviewFragment(target);

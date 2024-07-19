@@ -12,9 +12,8 @@ import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectContainerTileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.AbstractSpecificMappingTileTable;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.activation.MappingTile;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.activation.MappingTilePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingTile;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingTilePanel;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.Containerable;
@@ -66,6 +65,11 @@ public class MappingContainerTablePanel extends SingleSelectContainerTileTablePa
             @Override
             protected void onConfigureClick(AjaxRequestTarget target, MappingTile modelObject) {
                 onTileClick(target, modelObject);
+            }
+
+            @Override
+            protected boolean isIconVisible() {
+                return false;
             }
         };
     }

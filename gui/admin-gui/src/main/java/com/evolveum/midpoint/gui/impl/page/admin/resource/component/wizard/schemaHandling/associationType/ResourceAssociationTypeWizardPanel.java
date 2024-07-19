@@ -20,7 +20,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.SchemaHandlingTypeWizardPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardChoicePanelWithSeparatedCreatePanel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public class ResourceAssociationTypeWizardPanel extends SchemaHandlingTypeWizardPanel<ShadowAssociationTypeDefinitionType> {
+public class ResourceAssociationTypeWizardPanel extends AbstractWizardChoicePanelWithSeparatedCreatePanel<ShadowAssociationTypeDefinitionType> {
 
     public ResourceAssociationTypeWizardPanel(
             String id,
@@ -99,11 +99,7 @@ public class ResourceAssociationTypeWizardPanel extends SchemaHandlingTypeWizard
 
     private List<WizardStep> createObjectStep() {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new ObjectAssociationStepPanel(
-                getAssignmentHolderModel(),
-                PrismContainerValueWrapperModel.fromContainerValueWrapper(
-                        getValueModel(),
-                        ShadowAssociationTypeDefinitionType.F_OBJECT)) {
+        steps.add(new ObjectAssociationStepPanel(getAssignmentHolderModel(), getValueModel()) {
             @Override
             public boolean onBackPerformed(AjaxRequestTarget target) {
                 onExitPerformed(target);

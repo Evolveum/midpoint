@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -42,16 +43,16 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public abstract class ParticipantAssociationStepPanel<P extends ShadowAssociationTypeParticipantDefinitionType>
+public abstract class ParticipantAssociationStepPanel
         extends MultiSelectContainerTileWizardStepPanel<ParticipantObjectTypeWrapper, ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
 
     protected static final Trace LOGGER = TraceManager.getTrace(ParticipantAssociationStepPanel.class);
 
-    private final IModel<PrismContainerValueWrapper<P>> valueModel;
+    private final IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel;
     private final IModel<List<ParticipantObjectTypeWrapper>> selectedItems = Model.ofList(new ArrayList<>());
 
     public ParticipantAssociationStepPanel(
-            ResourceDetailsModel model, IModel<PrismContainerValueWrapper<P>> valueModel) {
+            ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel) {
         super(model);
         this.valueModel = valueModel;
     }
@@ -63,7 +64,7 @@ public abstract class ParticipantAssociationStepPanel<P extends ShadowAssociatio
         add(AttributeAppender.append("class", "col-12"));
     }
 
-    protected final IModel<PrismContainerValueWrapper<P>> getValueModel() {
+    protected final IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> getValueModel() {
         return valueModel;
     }
 
@@ -110,11 +111,21 @@ public abstract class ParticipantAssociationStepPanel<P extends ShadowAssociatio
 
     protected List<PrismContainerValueWrapper<ResourceObjectTypeIdentificationType>> getInitValues() throws SchemaException {
         ItemPath containerPath = getPathForValueContainer();
-        PrismContainerWrapper<ResourceObjectTypeIdentificationType> container = getValueModel().getObject().findContainer(containerPath);
+        PrismContainerWrapper<ShadowAssociationTypeParticipantDefinitionType> container = getValueModel().getObject().findContainer(containerPath);
         if (container == null) {
             return Collections.emptyList();
         }
-        return container.getValues();
+        List<PrismContainerValueWrapper<ResourceObjectTypeIdentificationType>> list = new ArrayList<>();
+        container.getValues().forEach(value -> {
+            try {
+                PrismContainerWrapper<ResourceObjectTypeIdentificationType> subContainer =
+                        value.findContainer(ShadowAssociationTypeParticipantDefinitionType.F_OBJECT_TYPE);
+                list.addAll(subContainer.getValues());
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't find sub container " + ShadowAssociationTypeParticipantDefinitionType.F_OBJECT_TYPE + " in " + container);
+            }
+        });
+        return list;
     }
 
     @Override

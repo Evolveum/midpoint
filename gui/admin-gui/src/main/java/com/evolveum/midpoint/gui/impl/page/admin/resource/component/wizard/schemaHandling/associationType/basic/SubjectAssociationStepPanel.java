@@ -27,14 +27,14 @@ import java.util.*;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.associationType.subject", icon = "fa fa-list"),
         containerPath = "empty")
-public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel<ShadowAssociationTypeSubjectDefinitionType> {
+public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel {
 
     protected static final Trace LOGGER = TraceManager.getTrace(SubjectAssociationStepPanel.class);
 
     public static final String PANEL_TYPE = "rw-association-subject";
 
     public SubjectAssociationStepPanel(
-            ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ShadowAssociationTypeSubjectDefinitionType>> valueModel) {
+            ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel) {
         super(model, valueModel);
     }
 
@@ -90,11 +90,20 @@ public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel
         List<ParticipantObjectTypeWrapper> selectedNewItems = new ArrayList<>(getSelectedItemsModel().getObject());
 
         ItemPath containerPath = getPathForValueContainer();
-        PrismContainerWrapper<ResourceObjectTypeIdentificationType> container;
+
+        PrismContainerWrapper<ShadowAssociationTypeParticipantDefinitionType> participant;
         try {
-            container = getValueModel().getObject().findContainer(containerPath);
+            participant = getValueModel().getObject().findContainer(containerPath);
         } catch (SchemaException e) {
             LOGGER.error("Couldn't find object type subcontainer " + containerPath + " container in " + getValueModel().getObject());
+            return;
+        }
+
+        PrismContainerWrapper<ResourceObjectTypeIdentificationType> container;
+        try {
+            container = participant.findContainer(ShadowAssociationTypeParticipantDefinitionType.F_OBJECT_TYPE);
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't find object type subcontainer " + ShadowAssociationTypeParticipantDefinitionType.F_OBJECT_TYPE + " container in " + participant);
             return;
         }
         container.getValues().forEach(value -> {

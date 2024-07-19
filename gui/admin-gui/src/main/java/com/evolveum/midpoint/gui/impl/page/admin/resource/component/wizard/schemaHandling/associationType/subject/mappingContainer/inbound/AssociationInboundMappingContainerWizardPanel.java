@@ -14,14 +14,15 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.*;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.activation.MappingTile;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingTile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationDefinitionType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
@@ -40,40 +41,43 @@ public class AssociationInboundMappingContainerWizardPanel extends AbstractWizar
 
     private Component createTableWizardPanel() {
         return new AssociationInboundMappingContainerTableWizardPanel(getIdOfChoicePanel(), getHelper()) {
+
             @Override
             protected void onClickCreateMapping(PrismContainerValueWrapper<MappingType> valueWrapper, AjaxRequestTarget target) {
-                showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicStep(valueWrapper))));
+                showWizardPanel(target, valueWrapper, false);
             }
 
             @Override
             protected void onTileClick(AjaxRequestTarget target, MappingTile modelObject) {
-
+                showWizardPanel(target, (PrismContainerValueWrapper<MappingType>) modelObject.getValue(), true);
             }
         };
     }
 
-    private List<WizardStep> createBasicStep(PrismContainerValueWrapper<MappingType> valueWrapper) {
-        List<WizardStep> steps = new ArrayList<>();
-
-        steps.add(new BasicAssociationInboundStepPanel(getAssignmentHolderModel(), Model.of(valueWrapper)) {
-
+    private void showWizardPanel(AjaxRequestTarget target, PrismContainerValueWrapper<MappingType> value, boolean showChoicePanel) {
+        WizardPanelHelper<MappingType, ResourceDetailsModel> helper = new WizardPanelHelper<>(getAssignmentHolderModel()) {
             @Override
-            protected void onSubmitPerformed(AjaxRequestTarget target) {
-                OperationResult result = AssociationInboundMappingContainerWizardPanel.this.onSavePerformed(target);
-                if (result == null || result.isError()) {
-                    target.add(getFeedback());
-                    refresh(target);
-                } else {
-                    onExitPerformed(target);
-                }
-            }
-
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
+            public void onExitPerformed(AjaxRequestTarget target) {
                 showChoiceFragment(target, createTableWizardPanel());
             }
-        });
 
-        return steps;
+            @Override
+            public IModel<PrismContainerValueWrapper<MappingType>> getValueModel() {
+                return new LoadableDetachableModel<>() {
+                    @Override
+                    protected PrismContainerValueWrapper<MappingType> load() {
+                        return value;
+                    }
+                };
+            }
+
+            @Override
+            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
+                return AssociationInboundMappingContainerWizardPanel.this.onSavePerformed(target);
+            }
+        };
+        AssociationInboundEvaluatorWizardPanel panel = new AssociationInboundEvaluatorWizardPanel(getIdOfChoicePanel(), helper);
+        panel.setShowChoicePanel(showChoicePanel);
+        showChoiceFragment(target, panel);
     }
 }
