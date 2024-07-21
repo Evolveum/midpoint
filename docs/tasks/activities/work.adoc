@@ -307,13 +307,13 @@ the activity can be interrupted only in "hard" way, i.e. by sending the Java int
 Finally, `full` means that the activity can be interrupted any time.
 | `none`
 
-| `certificationCampaignCreation`
-| Create a certification campaign based on the campaign definition.
+| `certificationNextStage`
+| Open a next stage of campaign based.
 | Simple
 | N
 | N
-| `certificationCampaignDefinitionRef`
-| Specified certification campaign definition for creation.
+| `certificationCampaignRef`
+| Specified certification campaign for opening next stage.
 | None.
 
 | `certificationRemediation`

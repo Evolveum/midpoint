@@ -203,7 +203,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                     }
 
                     @Override
-                    protected void onTitleClicked(AjaxRequestTarget target) {
+                    protected void onTitleClicked() {
                         onObjectNameClicked(rowModel.getObject());
                     }
 
@@ -258,10 +258,10 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
             return null;
         }
 
-        if (!ShadowType.class.equals(obj.getType())) {
-            // we don't currently support marking other objects - only shadows
-            return null;
-        }
+//        if (!ShadowType.class.equals(obj.getType())) {
+//            // we don't currently support marking other objects - only shadows
+//            return null;
+//        }
 
         PageBase page = getPageBase();
         Task task = page.getPageTask();

@@ -77,6 +77,11 @@ Tree node search is now same for all nodes.
 
 * xref:/midpoint/reference/roles-policies/classification/[Information Classification and Clearances]
 
+* Object marks
+** Supported for all object types including assignments when executed via policy rules
+** GUI support for adding/removing marks for focus objects and shadows
+** GUI Support to show mark in the focus and shadow tables
+
 === Other Improvements
 
 TODO
@@ -105,7 +110,7 @@ It is possible to configure now if the notification message should be generated 
 More details can be found in the xrefv:/midpoint/reference/master/misc/notifications/general/#basic-structure-of-the-notification-definition[Basic structure of the notification definition].
 * Role wizard is now supported also for children of application and business roles (archetypes).
 * Dedicated data type for policy objects (xref:/midpoint/reference/schema/policy/[PolicyType])
-* Implementation of new task activities for certification campaign creation and certification remediation. More details can be found in the xrefv:/midpoint/reference/tasks/activities/work/[Work Definition (Types of Activities)].
+* Implementation of new task activities for opening next stage of certification campaign and certification remediation. More details can be found in the xrefv:/midpoint/reference/tasks/activities/work/[Work Definition (Types of Activities)].
 
 === Releases Of Other Components
 
@@ -403,6 +408,9 @@ For more information see xref:/midpoint/reference/deployment/ninja/use-case/upgr
 
 * 250-object-collection-resource.xml: The `All resources` object collection was updated with a filter to exclude resource templates.
 * 251-object-collection-resource-up.xml: The `Resources up` object collection was updated with a filter to exclude resource templates.
+* 520-archetype-task-certification.xml: Changes for proper functioning of certification related tasks.
+* 534-archetype-task-certification-campaign-open-next-stage.xml: Archetype for campaign open next stage (start campaign) related task.
+* 535-archetype-task-certification-remediation.xml: Archetype for campaign remediation related task.
 // * References to removed `category`, `handlerUri`, and `reportOutputOid` properties of tasks were deleted: from task archetypes and from GUI configurations.
 // See https://github.com/Evolveum/midpoint/commit/1fe4b60057d040f7424523cf24194bfcb7920f90[1fe4b6], https://github.com/Evolveum/midpoint/commit/b5a331b377a4fff0dbabd82e64da60f0b8c96c2b[b5a331], and https://github.com/Evolveum/midpoint/commit/6887e980c48e45a5ae22642932ed22e0c8b5f665[6887e9].
 //

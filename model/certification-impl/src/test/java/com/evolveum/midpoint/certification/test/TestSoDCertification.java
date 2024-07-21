@@ -155,26 +155,19 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         // WHEN
         when();
-        certificationManager.createCampaign(certificationDefinition.getOid(), task, result);
+        AccessCertificationCampaignType campaign =
+                certificationManager.createCampaign(certificationDefinition.getOid(), task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertInProgressOrSuccess(result);
+        TestUtil.assertSuccess(result);
 
-        List<PrismObject<TaskType>> tasks = getCampaignCreationTasks(certificationDefinition.getOid(), result);
-        assertEquals("unexpected number of related tasks", 1, tasks.size());
-        String foundTaskOid = tasks.get(0).getOid();
-        waitForTaskFinish(foundTaskOid);
-
-        TaskType foundTask = getObject(TaskType.class, foundTaskOid).asObjectable();
-
-        campaignOid = ((CertificationCampaignCreationWorkStateType)foundTask
-                .getActivityState().getActivity().getWorkState()).getCreatedCampaignRef().getOid();
-
-        AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         assertNotNull("Created campaign is null", campaign);
 
+        campaignOid = campaign.getOid();
+
+        campaign = getCampaignWithCases(campaignOid);
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
         assertPercentCompleteAll(campaign, 100, 100, 100);
@@ -228,6 +221,8 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test020OpenFirstStage() throws Exception {
         // GIVEN
+        clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
@@ -236,12 +231,16 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         // WHEN
         when();
-        certificationManager.openNextStage(campaignOid, task, result);
+        certificationService.openNextStage(campaignOid, task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
@@ -391,6 +390,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test200StartRemediation() throws Exception {
         // GIVEN
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());

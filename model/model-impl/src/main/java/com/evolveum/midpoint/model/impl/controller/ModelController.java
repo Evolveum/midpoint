@@ -2534,12 +2534,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Override
     public void openNextStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getCertificationManagerRequired().openNextStage(campaignOid, task, parentResult);
+        getCertificationManagerRequired().createNextStageTask(campaignOid, task, parentResult);
     }
 
     @Override
-    public void createCampaign(String definitionOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getCertificationManagerRequired().createCampaign(definitionOid, task, parentResult);
+    public AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        return getCertificationManagerRequired().createCampaign(definitionOid, task, parentResult);
     }
     //endregion
 

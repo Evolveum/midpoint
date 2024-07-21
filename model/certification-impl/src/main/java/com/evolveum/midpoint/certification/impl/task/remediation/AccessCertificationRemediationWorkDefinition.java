@@ -7,45 +7,18 @@
 
 package com.evolveum.midpoint.certification.impl.task.remediation;
 
-import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.certification.impl.task.AccessCertificationCampaignWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
-import com.evolveum.midpoint.util.DebugUtil;
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 /**
  * Work definition for certification campaign remediation.
  */
-public class AccessCertificationRemediationWorkDefinition extends AbstractWorkDefinition {
+public final class AccessCertificationRemediationWorkDefinition extends AccessCertificationCampaignWorkDefinition {
 
-    private final @NotNull ObjectReferenceType campaignRef;
-
-    AccessCertificationRemediationWorkDefinition(@NotNull WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
+    public AccessCertificationRemediationWorkDefinition(@NotNull WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
         super(info);
-        CertificationRemediationWorkDefinitionType campaign = (CertificationRemediationWorkDefinitionType) info.getBean();
-        this.campaignRef = MiscUtil.configNonNull(campaign.getCertificationCampaignRef(), () -> "No campaign");
-    }
-
-    public @NotNull ObjectReferenceType getCertificationCampaignRef() {
-        return this.campaignRef;
-    }
-
-    protected void debugDumpContent(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabel(sb, "campaignRef", String.valueOf(this.campaignRef), indent + 1);
-    }
-
-    @Override
-    public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation(@Nullable AbstractActivityWorkStateType state) throws SchemaException, ConfigurationException {
-        return AffectedObjectsInformation.ObjectSet.repository(
-                new BasicObjectSetType()
-                        .type(AccessCertificationCampaignType.COMPLEX_TYPE)
-                        .objectRef(campaignRef.getOid(), campaignRef.getType()));
     }
 }

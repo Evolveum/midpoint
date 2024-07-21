@@ -16295,6 +16295,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="requirement">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REQUIREMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="minAssigneesViolation">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -16902,7 +16909,7 @@
             <xsd:enumeration value="00000000-0000-0000-0000-000000000534">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ARCHETYPE_CERTIFICATION_CAMPAIGN_CREATION_TASK"/>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_CERTIFICATION_OPEN_NEXT_STAGE_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

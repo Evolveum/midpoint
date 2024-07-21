@@ -5,9 +5,11 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import jakarta.annotation.PostConstruct;
@@ -58,7 +60,11 @@ public class ObjectOperationPolicyHelper {
             return null;
         }
 
-        public ItemDelta<?, ?> computeEffectiveMarkDelta(@NotNull ShadowType repoShadow,
+        protected EvaluatedPolicyStatements computeEffectiveMarkDelta(Map<PlusMinusZero, Collection<PolicyStatementType>> policyStatements) throws SchemaException {
+            return null;
+        }
+
+        public ItemDelta<?, ?> computeEffectiveMarkDelta(@NotNull ObjectType repoShadow,
                 List<ObjectReferenceType> effectiveMarkRef) throws SchemaException {
             return null;
         }
@@ -326,12 +332,12 @@ public class ObjectOperationPolicyHelper {
         }
 
         @Override
-        public ItemDelta<?, ?> computeEffectiveMarkDelta(@NotNull ShadowType repoShadow,
+        public ItemDelta<?, ?> computeEffectiveMarkDelta(@NotNull ObjectType repoObject,
                 List<ObjectReferenceType> effectiveMarks) throws SchemaException {
             List<ObjectReferenceType> refsToDelete = new ArrayList<>();
             List<ObjectReferenceType> refsToAdd = new ArrayList<>();
             for (ObjectReferenceType mark : effectiveMarks) {
-                if (policyNotExcluded(repoShadow, mark.getOid()) && !containsRef(repoShadow.getEffectiveMarkRef(), mark)) {
+                if (policyNotExcluded(repoObject, mark.getOid()) && !containsRef(repoObject.getEffectiveMarkRef(), mark)) {
                     // Computed mark is not explicitly excluded, we may need to add it
                     // if not present in repository
                     refsToAdd.add(mark.clone());
@@ -342,10 +348,14 @@ public class ObjectOperationPolicyHelper {
             // Shadow is not protected by resource policy
             //   - We need to check repository shadow if it contains protected mark,
             //   - which was maybe introduced by previously being protected by resource policy
-            if (!containsOid(effectiveMarks, MARK_PROTECTED_SHADOW_OID)
-                    && isProtectedByResourcePolicy(repoShadow, repoShadow.getEffectiveMarkRef())) {
-                refsToDelete.add(new ObjectReferenceType().oid(MARK_PROTECTED_SHADOW_OID).type(MarkType.COMPLEX_TYPE));
+            //repoShadow
+            if (repoObject instanceof ShadowType repoShadow) {
+                if (!containsOid(effectiveMarks, MARK_PROTECTED_SHADOW_OID)
+                        && isProtectedByResourcePolicy(repoShadow, repoObject.getEffectiveMarkRef())) {
+                    refsToDelete.add(new ObjectReferenceType().oid(MARK_PROTECTED_SHADOW_OID).type(MarkType.COMPLEX_TYPE));
+                }
             }
+
 
             if (refsToDelete.isEmpty() && refsToAdd.isEmpty()) {
                 // Nothing to add or remove.
@@ -458,7 +468,11 @@ public class ObjectOperationPolicyHelper {
         return behaviour.computeEffectiveMarkDelta(repoShadow, modification);
     }
 
-    public ItemDelta<?, ?> computeEffectiveMarkDelta(@NotNull ShadowType repoShadow, List<ObjectReferenceType> effectiveMarkRef) throws SchemaException {
+    public EvaluatedPolicyStatements computeEffectiveMarkDelta(ObjectType repoShadow, Map<PlusMinusZero, Collection<PolicyStatementType>> policyStatements) throws SchemaException {
+        return behaviour.computeEffectiveMarkDelta(policyStatements);
+    }
+
+    public ItemDelta<?, ?> computeEffectiveMarkDelta(@NotNull ObjectType repoShadow, List<ObjectReferenceType> effectiveMarkRef) throws SchemaException {
         return behaviour.computeEffectiveMarkDelta(repoShadow, effectiveMarkRef);
     }
 }

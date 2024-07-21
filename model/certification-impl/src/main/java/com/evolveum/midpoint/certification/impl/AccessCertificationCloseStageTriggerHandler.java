@@ -37,7 +37,7 @@ public class AccessCertificationCloseStageTriggerHandler implements SingleTrigge
     private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationCloseStageTriggerHandler.class);
 
     @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
-    @Autowired private CertificationManager certificationManager;
+    @Autowired private CertificationManagerImpl certificationManager;
 
     @PostConstruct
     private void initialize() {

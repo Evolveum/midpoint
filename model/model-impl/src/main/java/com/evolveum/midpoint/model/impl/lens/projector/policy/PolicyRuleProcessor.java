@@ -24,6 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
@@ -43,6 +44,9 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
     private static final String OP_EVALUATE_ASSIGNMENT_POLICY_RULES = CLASS_DOT + "evaluateAssignmentPolicyRules";
     private static final String OP_RECORD_ASSIGNMENT_POLICY_RULES = CLASS_DOT + "recordAssignmentPolicyRules";
     private static final String OP_ENFORCE = CLASS_DOT + "enforce";
+
+    @Autowired private PolicyStatementProcessor policyStatementProcessor;
+
 
     public <F extends AssignmentHolderType> void evaluateAssignmentPolicyRules(
             @NotNull LensFocusContext<F> focusContext,
@@ -91,8 +95,10 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             result.setNotApplicable("focus is gone");
         } else {
             // No need for custom operation result, as this already has one (because it's a projector component)
-            FocusPolicyRulesEvaluator<AH> evaluator = new FocusPolicyRulesEvaluator<>(context.getFocusContextRequired(), task);
+            LensFocusContext<AH> focusContext = context.getFocusContextRequired();
+            FocusPolicyRulesEvaluator<AH> evaluator = new FocusPolicyRulesEvaluator<>(focusContext, task);
             evaluator.evaluate(result);
+            policyStatementProcessor.processPolicyStatements(focusContext, task, result);
             evaluator.record(result);
         }
     }
@@ -110,6 +116,9 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         // No need for custom operation result, as this already has one (because it's a projector component)
         ProjectionPolicyRulesEvaluator evaluator = new ProjectionPolicyRulesEvaluator(projectionContext, task);
         evaluator.evaluate(result);
+
+        //TODO marks for projections?
+//        policyStatementProcessor.processPolicyStatements(projectionContext, task, result);
         evaluator.record(result);
     }
 

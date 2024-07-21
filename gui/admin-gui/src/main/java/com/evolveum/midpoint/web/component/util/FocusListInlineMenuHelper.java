@@ -200,6 +200,10 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
                 return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction<?>) getAction(), actionName);
             }
         });
+
+        menu.add(focusListComponent.createMarkInlineMenuAction());
+        menu.add(focusListComponent.createUnmarkInlineMenuAction());
+
         return menu;
     }
 

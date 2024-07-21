@@ -93,6 +93,12 @@ public abstract class AbstractRestServiceInitializer extends AbstractGuiIntegrat
     public static final File SECURITY_POLICY = new File(BASE_REPO_DIR, "security-policy.xml");
     public static final File SECURITY_POLICY_NO_HISTORY = new File(BASE_REPO_DIR, "security-policy-no-history.xml");
 
+    public static final File ROLE_META_APPROVAL = new File(BASE_REPO_DIR, "role-meta-approval.xml");
+    public static final String ROLE_META_APPROVAL_OID = "31bf8340-8130-47b8-ada3-cdd4ffeb17a8";
+
+    public static final File ROLE_TO_APPROVE = new File(BASE_REPO_DIR, "role-to-approve.xml");
+    public static final String ROLE_TO_APPROVE_OID = "665f225c-40f1-4499-b2be-73a06dfa4c95";
+
     @Autowired
     private ProvisioningService provisioning;
 
