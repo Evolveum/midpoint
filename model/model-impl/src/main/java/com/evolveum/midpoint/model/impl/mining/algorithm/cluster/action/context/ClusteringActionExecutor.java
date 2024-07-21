@@ -18,14 +18,13 @@ import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.mining.algorithm.BaseAction;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering.Clusterable;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.context.OutlierDetectionActionExecutor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils.processOutliersAnalysis;
 
 /**
  * Clustering action.
@@ -167,8 +166,8 @@ public class ClusteringActionExecutor extends BaseAction {
                     clusterTypePrismObject, session.getDefaultDetectionOption(), sessionRef, task, result
             );
 
-            processOutliersAnalysis(roleAnalysisService, cluster, session, analysisOption, task, result);
-
+            OutlierDetectionActionExecutor detectionExecutionUtil = new OutlierDetectionActionExecutor(roleAnalysisService);
+            detectionExecutionUtil.executeOutlierDetection(cluster, session, analysisOption, task, result);
         }
         result.getSubresults().get(0).close();
 

@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.context.OutlierPatternResolver;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,6 +62,8 @@ public class OutliersDetectionUtil {
             roleAnalysisOutlierType.getOutlierPartitions().add(partition);
             roleAnalysisOutlierType.setAnomalyObjectsConfidence(partition.getPartitionAnalysis().getAnomalyObjectsConfidence());
             roleAnalysisOutlierType.setOverallConfidence(partition.getPartitionAnalysis().getOverallConfidence());
+            //TODO when update? every partition?
+            resolveUserDuplicateAssignment(roleAnalysisService, roleAnalysisOutlierType, userOid, task, result);
             roleAnalysisService.resolveOutliers(roleAnalysisOutlierType, task, result);
         } else {
             RoleAnalysisOutlierType roleAnalysisOutlierType = outlierObject.asObjectable();
@@ -85,7 +89,7 @@ public class OutliersDetectionUtil {
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisSessionType session,
             PrismObject<UserType> userTypeObject,
-            DetectedAnomalyResult prepareRoleOutlier,
+            @NotNull DetectedAnomalyResult prepareRoleOutlier,
             @NotNull Task task,
             OperationResult result) {
 
@@ -129,7 +133,7 @@ public class OutliersDetectionUtil {
     }
 
     //TODO this is just for USER MODE! Implement Role (Experimental)
-    static RoleAnalysisPatternAnalysis detectAndLoadPatternAnalysis(
+    static @NotNull RoleAnalysisPatternAnalysis detectAndLoadPatternAnalysis(
             @NotNull String userOid,
             @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks) {
 
@@ -163,7 +167,7 @@ public class OutliersDetectionUtil {
     }
 
     //TODO this is just for USER MODE! Implement Role (Experimental)
-    static RoleAnalysisPatternAnalysis detectAndLoadPatternAnalysis(
+    static @NotNull RoleAnalysisPatternAnalysis detectAndLoadPatternAnalysis(
             @NotNull MiningRoleTypeChunk miningRoleTypeChunk,
             @NotNull String user,
             @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks) {
@@ -213,7 +217,7 @@ public class OutliersDetectionUtil {
 
     private static double calculateItemFactorConfidence(
             @NotNull RoleAnalysisSessionType session,
-            DetectedAnomalyResult outlierResult,
+            @NotNull DetectedAnomalyResult outlierResult,
             @NotNull PrismObject<UserType> userTypeObject,
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull Task task,
@@ -253,7 +257,7 @@ public class OutliersDetectionUtil {
     }
 
     public static double calculateRoleCoverageConfidence(
-            DetectedAnomalyResult outlierResult,
+            @NotNull DetectedAnomalyResult outlierResult,
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -273,7 +277,7 @@ public class OutliersDetectionUtil {
         return memberPercentageRepo;
     }
 
-    public static double calculateOutlierPropertyCoverageConfidence(DetectedAnomalyResult outlierResult) {
+    public static double calculateOutlierPropertyCoverageConfidence(@NotNull DetectedAnomalyResult outlierResult) {
         double occurInCluster = outlierResult.getStatistics().getFrequency() * 100;
         outlierResult.getStatistics().setOutlierCoverageConfidence(occurInCluster);
         return occurInCluster;
@@ -309,25 +313,35 @@ public class OutliersDetectionUtil {
         return detectionOption;
     }
 
-    static @NotNull Set<ObjectReferenceType> resolveUserDuplicateAssignment(
+    //TODO incorrect use membershipRef?
+    static void resolveUserDuplicateAssignment(
             @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull UserType user,
+            @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
+            @NotNull String userOid,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        List<String> rolesOidAssignment = getRolesOidAssignment(user);
-        Set<ObjectReferenceType> duplicatedRoleAssignments = new HashSet<>();
+        PrismObject<UserType> userPrismObject = roleAnalysisService.getUserTypeObject(userOid, task, result);
+        if (userPrismObject == null) {
+            return;
+        }
+
+        List<ObjectReferenceType> duplicatedRoleAssignment = roleAnalysisOutlierType.getDuplicatedRoleAssignment();
+        UserType userObject = userPrismObject.asObjectable();
+        List<String> rolesOidAssignment = getRolesOidAssignment(userObject);
         for (String roleOid : rolesOidAssignment) {
             PrismObject<RoleType> roleAssignment = roleAnalysisService.getRoleTypeObject(roleOid, task, result);
             if (roleAssignment != null) {
                 List<String> rolesOidInducement = getRolesOidInducement(roleAssignment.asObjectable());
                 for (String roleOidInducement : rolesOidInducement) {
                     if (rolesOidAssignment.contains(roleOidInducement)) {
-                        duplicatedRoleAssignments.add(new ObjectReferenceType().oid(roleOidInducement).type(RoleType.COMPLEX_TYPE));
+                        ObjectReferenceType ref = new ObjectReferenceType()
+                                .oid(roleOidInducement)
+                                .type(RoleType.COMPLEX_TYPE);
+                        duplicatedRoleAssignment.add(ref);
                     }
                 }
             }
         }
-        return duplicatedRoleAssignments;
     }
 
 }

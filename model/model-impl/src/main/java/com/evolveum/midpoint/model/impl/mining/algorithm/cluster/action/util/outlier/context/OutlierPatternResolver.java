@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier;
+package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.context;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.prepareDetectedPattern;
 
@@ -153,7 +153,11 @@ public class OutlierPatternResolver implements Serializable {
         return innerIntersections;
     }
 
-    private static <T extends MiningBaseTypeChunk> Set<List<String>> resolveInitialPatterns(@NotNull List<T> propertiesChunk, int minIntersection, List<String> connectedProperties, List<String> connectedMemberChunkProperties) {
+    private static <T extends MiningBaseTypeChunk> Set<List<String>> resolveInitialPatterns(
+            @NotNull List<T> propertiesChunk,
+            int minIntersection,
+            List<String> connectedProperties,
+            List<String> connectedMemberChunkProperties) {
         Set<List<String>> patterns = new HashSet<>();
         for (T propertyItem : propertiesChunk) {
             Set<String> members = new HashSet<>(propertyItem.getMembers());

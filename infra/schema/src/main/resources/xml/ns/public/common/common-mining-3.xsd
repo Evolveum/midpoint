@@ -79,7 +79,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Indication of the level of risk associated with the cluster.
+                                    Indication of the level of risk associated with the outlier object.
                                     This may be a numeric value, textual label are any other suitable machine-processable indication.
 
                                     Currently not used (reserved for future use).

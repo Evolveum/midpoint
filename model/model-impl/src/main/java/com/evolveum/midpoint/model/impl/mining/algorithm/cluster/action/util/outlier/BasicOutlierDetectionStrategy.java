@@ -23,10 +23,55 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-//TODO
-public class BasicOutlierDetectionUtils {
+//TODO clean/remove duplicates implement role mode
+public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
 
-    public static void resolveUserModeOutliers(
+    @Override
+    public void executeAnalysis(@NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull RoleAnalysisClusterType cluster,
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+
+        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareCompressedMiningStructure(cluster, true,
+                processMode, result, task);
+
+        ObjectReferenceType clusterRef = new ObjectReferenceType()
+                .oid(cluster.getOid())
+                .type(RoleAnalysisClusterType.COMPLEX_TYPE)
+                .targetName(cluster.getName());
+
+        ObjectReferenceType sessionRef = new ObjectReferenceType()
+                .oid(session.getOid())
+                .type(RoleAnalysisSessionType.COMPLEX_TYPE)
+                .targetName(session.getName());
+
+        RangeType frequencyRange = session.getDefaultDetectionOption().getFrequencyRange();
+        Double sensitivity = session.getDefaultDetectionOption().getSensitivity();
+        UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+        Double similarityThreshold = userModeOptions.getSimilarityThreshold();
+
+        //TODO role mode
+        outlierAnalysisProcess(roleAnalysisService,
+                cluster,
+                session,
+                task,
+                miningOperationChunk,
+                frequencyRange,
+                sensitivity,
+                clusterRef,
+                sessionRef,
+                result,
+                similarityThreshold);
+
+    }
+
+    /**
+     * NOTE just in case of user clustering mode.
+     */
+    private void outlierAnalysisProcess(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisSessionType session,
@@ -182,71 +227,4 @@ public class BasicOutlierDetectionUtils {
         }
 
     }
-
-    //TODO temporary disabled
-//    public static void resolveRoleModeOutliers(
-//            @NotNull RoleAnalysisService roleAnalysisService,
-//            @NotNull MiningOperationChunk miningOperationChunk,
-//            RangeType range,
-//            Double sensitivity,
-//            ObjectReferenceType clusterRef,
-//            ObjectReferenceType sessionRef,
-//            HashMap<String, RoleAnalysisOutlierType> map) {
-//        List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(
-//                RoleAnalysisSortMode.NONE);
-//
-//        ZScoreData zScoreData = roleAnalysisService.resolveOutliersZScore(miningUserTypeChunks, range, sensitivity);
-//
-//        for (MiningUserTypeChunk miningUserTypeChunk : miningUserTypeChunks) {
-//
-//            FrequencyItem frequencyItem = miningUserTypeChunk.getFrequencyItem();
-//
-//            //TODO Z score
-//            if (!frequencyItem.getStatus().equals(FrequencyItem.Status.INCLUDE)) {
-//                List<String> roles = miningUserTypeChunk.getProperties();
-//                List<String> users = miningUserTypeChunk.getMembers();
-//
-//                List<RoleAnalysisOutlierDescriptionType> prepareUserOutliers = new ArrayList<>();
-//
-//                users.forEach(user -> {
-//                    RoleAnalysisOutlierDescriptionType outlierDescription = new RoleAnalysisOutlierDescriptionType();
-//                    outlierDescription.setCategory(OutlierCategory.INNER_OUTLIER);
-//                    outlierDescription.setObject(new ObjectReferenceType().
-//                            oid(user)
-//                            .type(UserType.COMPLEX_TYPE));
-//
-//                    double confidence = roleAnalysisService.calculateZScoreConfidence(miningUserTypeChunk, zScoreData);
-//
-//                    outlierDescription.setConfidenceDeviation(confidence);
-//
-//                    outlierDescription.setCluster(clusterRef.clone());
-//                    outlierDescription.setFrequency(frequencyItem.getFrequency());
-//
-//                    outlierDescription.setSession(sessionRef.clone());
-//
-//                    prepareUserOutliers.add(outlierDescription);
-//                });
-//
-//                for (String role : roles) {
-//                    RoleAnalysisOutlierType roleOutliers = map.get(role);
-//
-//                    if (roleOutliers == null) {
-//                        roleOutliers = new RoleAnalysisOutlierType();
-//                        roleOutliers.setTargetObjectRef(new ObjectReferenceType().oid(role).type(RoleType.COMPLEX_TYPE));
-//                        for (RoleAnalysisOutlierDescriptionType prepareRoleOutlier : prepareUserOutliers) {
-//                            roleOutliers.getResult().add(prepareRoleOutlier.clone());
-//                        }
-//                        map.put(role, roleOutliers);
-//                    } else {
-//                        for (RoleAnalysisOutlierDescriptionType prepareRoleOutlier : prepareUserOutliers) {
-//                            roleOutliers.getResult().add(prepareRoleOutlier.clone());
-//                        }
-//                    }
-//
-//                }
-//
-//            }
-//        }
-//    }
-
 }
