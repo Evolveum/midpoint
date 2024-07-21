@@ -24,6 +24,8 @@ import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -42,6 +44,8 @@ public class ClusteringActionExecutor extends BaseAction {
     private Clusterable clusterable;
 
     private static final String DECOMISSIONED_MARK_OID = "00000000-0000-0000-0000-000000000801";
+
+    private static final Trace LOGGER = TraceManager.getTrace(ClusteringActionExecutor.class);
 
     private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Density Clustering",
             7, this::incrementProgress);
@@ -166,9 +170,18 @@ public class ClusteringActionExecutor extends BaseAction {
                     clusterTypePrismObject, session.getDefaultDetectionOption(), sessionRef, task, result
             );
 
+        }
+
+        for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
+            long startTime = System.currentTimeMillis();
+            RoleAnalysisClusterType cluster = clusterTypePrismObject.asObjectable();
             OutlierDetectionActionExecutor detectionExecutionUtil = new OutlierDetectionActionExecutor(roleAnalysisService);
             detectionExecutionUtil.executeOutlierDetection(cluster, session, analysisOption, task, result);
+            long endTime = System.currentTimeMillis();
+            double processingTimeInSeconds = (double) (endTime - startTime) / 1000.0;
+            LOGGER.debug("Processing time for outlier detection cluster " + cluster.getName() + ": " + processingTimeInSeconds + " seconds");
         }
+
         result.getSubresults().get(0).close();
 
         meanDensity = meanDensity / (clusters.size() - countOutliers);
@@ -182,8 +195,7 @@ public class ClusteringActionExecutor extends BaseAction {
         handler.enterNewStep("Update Session");
         handler.setOperationCountToProcess(clusters.size());
         roleAnalysisService
-                .updateSessionStatistics(sessionRef, sessionStatistic, task, result
-                );
+                .updateSessionStatistics(sessionRef, sessionStatistic, task, result);
     }
 
 }

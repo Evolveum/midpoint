@@ -2,9 +2,9 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ou
 
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionUtil.*;
 
-import java.util.*;
-
-import com.evolveum.midpoint.prism.util.CloneUtil;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -18,13 +18,18 @@ import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.common.mining.utils.values.ZScoreData;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 //TODO clean/remove duplicates implement role mode
 public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
+
+    private static final Trace LOGGER = TraceManager.getTrace(BasicOutlierDetectionStrategy.class);
 
     @Override
     public void executeAnalysis(@NotNull RoleAnalysisService roleAnalysisService,
@@ -83,6 +88,11 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
             ObjectReferenceType sessionRef,
             OperationResult result,
             Double similarityThreshold) {
+        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
+                session, UserType.COMPLEX_TYPE);
+
+        int userCountInRepo = roleAnalysisService.countObjects(UserType.class, null, null, task, result);
+
         List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(
                 RoleAnalysisSortMode.NONE);
 
@@ -94,7 +104,7 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
         }
 
         ListMultimap<String, DetectedAnomalyResult> userRoleMap = ArrayListMultimap.create();
-
+        long startTime1 = System.currentTimeMillis();
         for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
 
             FrequencyItem frequencyItem = miningRoleTypeChunk.getFrequencyItem();
@@ -118,11 +128,13 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
                     for (String user : users) {
                         PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(
                                 user, task, result);
+                        //TODO
                         RoleAnalysisPatternAnalysis patternAnalysis = detectAndLoadPatternAnalysis(
                                 miningRoleTypeChunk, user, miningRoleTypeChunks);
                         statistics.setPatternAnalysis(patternAnalysis);
                         double anomalyConfidence = calculateAssignmentAnomalyConfidence(
-                                roleAnalysisService, session, userTypeObject, anomalyResult, task, result);
+                                roleAnalysisService, attributesForUserAnalysis,
+                                userTypeObject, userCountInRepo, anomalyResult, task, result);
                         statistics.setConfidence(anomalyConfidence);
                         userRoleMap.put(user, anomalyResult);
                     }
@@ -131,7 +143,12 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
 
             }
         }
+        long endTime = System.currentTimeMillis();
+        double totalProcessingTime = (double) (endTime - startTime1) / 1000.0;
 
+        LOGGER.debug("Total processing time for all chunks: " + totalProcessingTime + " seconds");
+
+        startTime1 = System.currentTimeMillis();
         Set<String> keySet = userRoleMap.keySet();
         for (String userOid : keySet) {
             Collection<DetectedAnomalyResult> detectedAnomalyResults = userRoleMap.get(userOid);
@@ -163,9 +180,6 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
 
             similarObjectAnalysis.getSimilarObjects().addAll(CloneUtil.cloneCollectionMembers(cluster.getMember()));
             partitionAnalysis.setSimilarObjectAnalysis(similarObjectAnalysis);
-
-            List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
-                    session, UserType.COMPLEX_TYPE);
 
             AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
             RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics
@@ -225,6 +239,8 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
 
             updateOrImportOutlierObject(roleAnalysisService, session, userOid, partitionType, task, result);
         }
-
+        endTime = System.currentTimeMillis();
+        totalProcessingTime = (double) (endTime - startTime1) / 1000.0;
+        LOGGER.debug("Total processing time for all user keySet: " + totalProcessingTime + " seconds");
     }
 }

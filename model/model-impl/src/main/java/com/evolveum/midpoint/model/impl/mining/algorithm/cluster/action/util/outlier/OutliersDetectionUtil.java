@@ -87,8 +87,9 @@ public class OutliersDetectionUtil {
 
     static double calculateAssignmentAnomalyConfidence(
             @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull RoleAnalysisSessionType session,
+            @Nullable List<RoleAnalysisAttributeDef> attributesForUserAnalysis,
             PrismObject<UserType> userTypeObject,
+            int numberOfAllUsersInRepo,
             @NotNull DetectedAnomalyResult prepareRoleOutlier,
             @NotNull Task task,
             OperationResult result) {
@@ -96,11 +97,11 @@ public class OutliersDetectionUtil {
         DetectedAnomalyStatistics statistics = prepareRoleOutlier.getStatistics();
 
         double itemFactorConfidence = calculateItemFactorConfidence(
-                session, prepareRoleOutlier, userTypeObject, roleAnalysisService, task, result);
+                prepareRoleOutlier, userTypeObject, attributesForUserAnalysis, roleAnalysisService, task, result);
         double distributionConfidence = statistics.getConfidenceDeviation();
         double patternConfidence = statistics.getPatternAnalysis().getConfidence();
         double roleMemberConfidence = calculateRoleCoverageConfidence(
-                prepareRoleOutlier, roleAnalysisService, task, result);
+                prepareRoleOutlier, roleAnalysisService,numberOfAllUsersInRepo, task, result);
         double coverageConfidence = calculateOutlierPropertyCoverageConfidence(prepareRoleOutlier);
 
         double distributionConfidenceDiff = distributionConfidence * 100;
@@ -166,7 +167,7 @@ public class OutliersDetectionUtil {
         return patternInfo;
     }
 
-    //TODO this is just for USER MODE! Implement Role (Experimental)
+    //TODO this is just for USER MODE! (Experimental) Need to be optimized (MAJOR).
     static @NotNull RoleAnalysisPatternAnalysis detectAndLoadPatternAnalysis(
             @NotNull MiningRoleTypeChunk miningRoleTypeChunk,
             @NotNull String user,
@@ -216,9 +217,9 @@ public class OutliersDetectionUtil {
     }
 
     private static double calculateItemFactorConfidence(
-            @NotNull RoleAnalysisSessionType session,
             @NotNull DetectedAnomalyResult outlierResult,
             @NotNull PrismObject<UserType> userTypeObject,
+            @Nullable List<RoleAnalysisAttributeDef> attributesForUserAnalysis,
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -228,11 +229,12 @@ public class OutliersDetectionUtil {
         if (roleTypeObject == null) {
             return 0;
         }
-        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
-                session, UserType.COMPLEX_TYPE);
+
         if (attributesForUserAnalysis == null || attributesForUserAnalysis.isEmpty()) {
             return 0;
         }
+
+        //TODO this take a lot of time when role is popular. Think about better solution (MAJOR).
         RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService
                 .resolveRoleMembersAttribute(roleTypeObject.getOid(), task, result, attributesForUserAnalysis);
 
@@ -259,6 +261,7 @@ public class OutliersDetectionUtil {
     public static double calculateRoleCoverageConfidence(
             @NotNull DetectedAnomalyResult outlierResult,
             @NotNull RoleAnalysisService roleAnalysisService,
+            int numberOfAllUsersInRepo,
             @NotNull Task task,
             @NotNull OperationResult result) {
         ObjectReferenceType targetObjectRef = outlierResult.getTargetObjectRef();
@@ -270,9 +273,7 @@ public class OutliersDetectionUtil {
                 task, result);
         roleMemberCount = userExistCache.size();
 
-        int userCountInRepo = roleAnalysisService.countObjects(UserType.class, null, null, task, result);
-
-        double memberPercentageRepo = (((double) roleMemberCount / userCountInRepo) * 100);
+        double memberPercentageRepo = (((double) roleMemberCount / numberOfAllUsersInRepo) * 100);
         outlierResult.getStatistics().setMemberCoverageConfidence(memberPercentageRepo);
         return memberPercentageRepo;
     }

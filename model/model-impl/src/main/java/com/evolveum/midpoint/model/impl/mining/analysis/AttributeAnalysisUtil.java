@@ -62,7 +62,9 @@ public class AttributeAnalysisUtil {
             @NotNull RoleAnalysisServiceImpl roleAnalysisService,
             @NotNull Set<PrismObject<UserType>> prismUsers,
             @NotNull List<RoleAnalysisAttributeDef> itemDef,
-            @NotNull List<AttributeAnalysisStructure> attributeAnalysisStructures, @NotNull Task task, @NotNull OperationResult result) {
+            @NotNull List<AttributeAnalysisStructure> attributeAnalysisStructures,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
 
         int usersCount = prismUsers.size();
         Map<String, AttributePathResult> attributeResultMap = new HashMap<>();

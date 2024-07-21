@@ -92,6 +92,10 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
             RoleAnalysisClusterType tempCluster,
             double density,
             int countOfRoles) {
+        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
+                session, UserType.COMPLEX_TYPE);
+
+        int userCountInRepo = roleAnalysisService.countObjects(UserType.class, null, null, task, result);
 
         ListMultimap<String, DetectedAnomalyResult> userRoleMap = ArrayListMultimap.create();
 
@@ -123,7 +127,7 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
                                 miningRoleTypeChunk, user, miningRoleTypeChunks);
                         statistics.setPatternAnalysis(patternAnalysis);
                         double anomalyConfidence = calculateAssignmentAnomalyConfidence(
-                                roleAnalysisService, session, userTypeObject, anomalyResult, task, result);
+                                roleAnalysisService, attributesForUserAnalysis, userTypeObject, userCountInRepo, anomalyResult, task, result);
                         statistics.setConfidence(anomalyConfidence);
                         userRoleMap.put(user, anomalyResult);
                     }
@@ -170,9 +174,6 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
 
             similarObjectAnalysis.getSimilarObjects().addAll(CloneUtil.cloneCollectionMembers(tempCluster.getMember()));
             partitionAnalysis.setSimilarObjectAnalysis(similarObjectAnalysis);
-
-            List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
-                    session, UserType.COMPLEX_TYPE);
 
             RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics
                     .getUserAttributeAnalysisResult();
