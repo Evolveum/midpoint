@@ -27,10 +27,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 
-//TODO better name
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/certification/decisionsCampaign", matchUrlForSecurity = "/admin/certification/decisionsCampaign")
+                @Url(mountUrl = "/admin/certification/activeCampaigns", matchUrlForSecurity = "/admin/certification/activeCampaigns")
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
@@ -39,13 +38,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTZ_CERTIFICATION_CAMPAIGN_DECISIONS_URL,
                         label = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGN_DECISIONS_LABEL,
                         description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGN_DECISIONS_DESCRIPTION)})
-public class PageActiveCertItems extends PageAdminCertification {
+public class PageActiveCampaigns extends PageAdminCertification {
 
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_CAMPAIGNS_PANEL = "campaignsPanel";
 
-    public PageActiveCertItems() {
+    public PageActiveCampaigns() {
     }
 
     @Override
@@ -63,7 +62,7 @@ public class PageActiveCertItems extends PageAdminCertification {
                 PageParameters params = new PageParameters();
                 params.add(OnePageParameterEncoder.PARAMETER, campaignOid);
                 navigateToNext(PageCertItems.class, params);
-                target.add(PageActiveCertItems.this);
+                target.add(PageActiveCampaigns.this);
             }
 
             @Override
@@ -91,7 +90,7 @@ public class PageActiveCertItems extends PageAdminCertification {
 
             @Override
             protected MidPointPrincipal getPrincipal() {
-                return PageActiveCertItems.this.getPrincipalAsReviewer();
+                return PageActiveCampaigns.this.getPrincipalAsReviewer();
             }
 
         };
@@ -116,7 +115,7 @@ public class PageActiveCertItems extends PageAdminCertification {
 
 
     boolean isDisplayingAllItems() {
-        return true;
+        return false;
     }
 
 }

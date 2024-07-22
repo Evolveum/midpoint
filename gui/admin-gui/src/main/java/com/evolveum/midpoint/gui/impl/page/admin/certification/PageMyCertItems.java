@@ -29,7 +29,12 @@ public class PageMyCertItems extends PageCertItems {
     }
 
     @Override
-    boolean isDisplayingAllItems() {
-        return false;
+    boolean showOnlyNotDecidedItems() {
+        return true;
+    }
+
+    @Override
+    protected boolean isMyCertItems() {
+        return true;
     }
 }

@@ -255,18 +255,15 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
         return QueryUtils.createQueryForOpenWorkItems(query, principal, false);
     }
 
-    //TODO
     protected boolean isMyCertItems() {
         return true;
     }
 
-    //TODO
     protected boolean showOnlyNotDecidedItems() {
         return false;
     }
 
-    //TODO
-    private String getCampaignOid() {
+    protected String getCampaignOid() {
         return OnePageParameterEncoder.getParameter(getPageBase());
     }
 

@@ -60,8 +60,12 @@ public class PageAdminCertification extends PageAdmin {
     public static final String AUTH_MY_CERTIFICATION_DECISIONS_DESCRIPTION = "PageAdminCertification.auth.myCertificationDecisions.description";
 
     protected static final String AUTZ_CERTIFICATION_CAMPAIGN_DECISIONS_URL = AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGN_DECISIONS_URL;;
-    public static final String AUTH_CERTIFICATION_CAMPAIGN_DECISIONS_LABEL = "PageAdminCertification.auth.myCertificationDecisions.label";
-    public static final String AUTH_CERTIFICATION_CAMPAIGN_DECISIONS_DESCRIPTION = "PageAdminCertification.auth.myCertificationDecisions.description";
+    public static final String AUTH_CERTIFICATION_CAMPAIGN_DECISIONS_LABEL = "PageAdminCertification.auth.certificationCampaignDecisions.label";
+    public static final String AUTH_CERTIFICATION_CAMPAIGN_DECISIONS_DESCRIPTION = "PageAdminCertification.auth.certificationCampaignDecisions.description";
+
+    protected static final String AUTZ_MY_CERTIFICATION_CAMPAIGN_DECISIONS_URL = AuthorizationConstants.AUTZ_UI_MY_CERTIFICATION_CAMPAIGN_DECISIONS_URL;;
+    public static final String AUTH_MY_CERTIFICATION_CAMPAIGN_DECISIONS_LABEL = "PageAdminCertification.auth.myCertificationCampaignDecisions.label";
+    public static final String AUTH_MY_CERTIFICATION_CAMPAIGN_DECISIONS_DESCRIPTION = "PageAdminCertification.auth.myCertificationCampaignDecisions.description";
 
     public PageAdminCertification() {
         super();

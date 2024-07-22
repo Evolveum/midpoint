@@ -158,7 +158,26 @@ public class CertificationItemsPanel extends BasePanel<String> {
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 
-        CertificationWorkItemTable table = new CertificationWorkItemTable(ID_DECISIONS_TABLE);
+        CertificationWorkItemTable table = new CertificationWorkItemTable(ID_DECISIONS_TABLE) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected boolean isMyCertItems() {
+                return CertificationItemsPanel.this.isMyCertItems();
+            }
+
+            @Override
+            protected boolean showOnlyNotDecidedItems() {
+                return CertificationItemsPanel.this.showOnlyNotDecidedItems();
+            }
+
+            @Override
+            protected String getCampaignOid() {
+                return CertificationItemsPanel.this.getCampaignOid();
+            }
+
+        };
         table.setOutputMarkupId(true);
         mainForm.add(table);
     }
@@ -168,14 +187,12 @@ public class CertificationItemsPanel extends BasePanel<String> {
     }
 
 
-    //TODO
     protected boolean isMyCertItems() {
-        return true;
+        return false;
     }
 
-    //TODO
     protected boolean showOnlyNotDecidedItems() {
-        return false;
+        return true;
     }
 
 
@@ -513,7 +530,6 @@ public class CertificationItemsPanel extends BasePanel<String> {
         return true;
     }
 
-    //TODO
     protected String getCampaignOid() {
         return null;
     }
