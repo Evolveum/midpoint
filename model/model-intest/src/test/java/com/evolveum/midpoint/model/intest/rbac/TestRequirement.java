@@ -74,6 +74,7 @@ public class TestRequirement extends AbstractInitializedModelIntegrationTest {
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        skipIfNotNativeRepository();
         super.initSystem(initTask, initResult);
 
         repoAddObjectFromFile(POLICY_SKIPPER_LICENSE_FILE, initResult);
