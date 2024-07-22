@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.AttributePathResult;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -265,6 +266,40 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
 
         return roleMemberCache;
+    }
+
+    @Override //experiment
+    public int countUserTypeMembers(
+            @Nullable ObjectFilter userFilter,
+            @NotNull Set<String> clusterMembers,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        int memberCount = 0;
+        ObjectQuery query = PrismContext.get().queryFor(UserType.class)
+                .exists(AssignmentHolderType.F_ASSIGNMENT)
+                .block()
+                .item(AssignmentType.F_TARGET_REF)
+                .ref(clusterMembers.toArray(new String[0]))
+                .endBlock().build();
+
+        if (userFilter != null) {
+            query.addFilter(userFilter);
+        }
+
+        try {
+            Integer count = modelService.countObjects(UserType.class, query, null,
+                    task, result);
+
+            if (count != null) {
+                memberCount = count;
+            }
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Failed to search role member objects:", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+
+        return memberCount;
     }
 
     @Override
@@ -1634,6 +1669,20 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     @Override
+    public List<AttributeAnalysisStructure> userTypeAttributeAnalysisCached(
+            @NotNull Set<PrismObject<UserType>> prismUsers,
+            Double membershipDensity,
+            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet) {
+        List<AttributeAnalysisStructure> attributeAnalysisStructures = new ArrayList<>();
+        runUserAttributeAnalysisCached(this, prismUsers, attributeAnalysisStructures,
+                userAnalysisCache, task, result, attributeDefSet);
+        return attributeAnalysisStructures;
+    }
+
+    @Override
     public List<AttributeAnalysisStructure> roleTypeAttributeAnalysis(
             @NotNull Set<PrismObject<RoleType>> prismRoles,
             Double membershipDensity,
@@ -2019,6 +2068,48 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
         List<AttributeAnalysisStructure> userAttributeAnalysisStructures = this
                 .userTypeAttributeAnalysis(users, 100.0, task, result, attributeDefSet);
+
+        RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
+        for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
+            double density = userAttributeAnalysisStructure.getDensity();
+            if (density == 0) {
+                continue;
+            }
+            RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+            roleAnalysisAttributeAnalysis.setDensity(density);
+            roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
+            roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
+            roleAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
+            List<RoleAnalysisAttributeStatistics> attributeStatistics = userAttributeAnalysisStructure.getAttributeStatistics();
+            for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+                roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
+            }
+
+            userAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
+        }
+
+        return userAnalysis;
+    }
+
+    @Override
+    public RoleAnalysisAttributeAnalysisResult resolveRoleMembersAttributeCached(
+            @NotNull String objectOid,
+            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet) {
+
+        Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
+        this.extractUserTypeMembers(
+                userExistCache, null,
+                new HashSet<>(Collections.singleton(objectOid)),
+                task, result);
+
+        Set<PrismObject<UserType>> users = new HashSet<>(userExistCache.values());
+        userExistCache.clear();
+
+        List<AttributeAnalysisStructure> userAttributeAnalysisStructures = this
+                .userTypeAttributeAnalysisCached(users, 100.0, userAnalysisCache, task, result, attributeDefSet);
 
         RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
         for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {

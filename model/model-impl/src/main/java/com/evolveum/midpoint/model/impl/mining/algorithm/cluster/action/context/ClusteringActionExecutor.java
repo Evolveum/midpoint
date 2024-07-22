@@ -8,7 +8,11 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.context;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.common.mining.objects.analysis.AttributePathResult;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -171,12 +175,13 @@ public class ClusteringActionExecutor extends BaseAction {
             );
 
         }
-
+        //TODO not just basic it must be connected to in and out outlier analysis (experimental)
+        Map<String, Map<String, AttributePathResult>> userAnalysisCache = new ConcurrentHashMap<>();
         for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
             long startTime = System.currentTimeMillis();
             RoleAnalysisClusterType cluster = clusterTypePrismObject.asObjectable();
             OutlierDetectionActionExecutor detectionExecutionUtil = new OutlierDetectionActionExecutor(roleAnalysisService);
-            detectionExecutionUtil.executeOutlierDetection(cluster, session, analysisOption, task, result);
+            detectionExecutionUtil.executeOutlierDetection(cluster, session, analysisOption, userAnalysisCache, task, result);
             long endTime = System.currentTimeMillis();
             double processingTimeInSeconds = (double) (endTime - startTime) / 1000.0;
             LOGGER.debug("Processing time for outlier detection cluster " + cluster.getName() + ": " + processingTimeInSeconds + " seconds");

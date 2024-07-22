@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
+import com.evolveum.midpoint.common.mining.objects.analysis.AttributePathResult;
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
@@ -38,6 +39,7 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisSessionType session,
+            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
         UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
@@ -67,6 +69,7 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
                 minThreshold,
                 chunkMap,
                 outliersMembers,
+                userAnalysisCache,
                 minMembersCount,
                 userAnalysisAttributeDef,
                 roleAnalysisAttributeDef,
@@ -83,6 +86,7 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
             @NotNull Task task,
             ObjectReferenceType analyzedObjectRef,
             @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
+            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
             String memberOid,
             ZScoreData zScoreData,
             ObjectReferenceType clusterRef,
@@ -127,7 +131,8 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
                                 miningRoleTypeChunk, user, miningRoleTypeChunks);
                         statistics.setPatternAnalysis(patternAnalysis);
                         double anomalyConfidence = calculateAssignmentAnomalyConfidence(
-                                roleAnalysisService, attributesForUserAnalysis, userTypeObject, userCountInRepo, anomalyResult, task, result);
+                                roleAnalysisService, attributesForUserAnalysis, userTypeObject, userCountInRepo, anomalyResult,
+                                userAnalysisCache, task, result);
                         statistics.setConfidence(anomalyConfidence);
                         userRoleMap.put(user, anomalyResult);
                     }
@@ -370,6 +375,7 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
             double minThreshold,
             ListMultimap<List<String>, String> chunkMap,
             List<String> outliersMembers,
+            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
             Integer minMembersCount,
             List<RoleAnalysisAttributeDef> userAnalysisAttributeDef,
             List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef,
@@ -431,6 +437,7 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
                     task,
                     analyzedObjectRef,
                     miningRoleTypeChunks,
+                    userAnalysisCache,
                     memberOid,
                     zScoreData,
                     clusterRef,

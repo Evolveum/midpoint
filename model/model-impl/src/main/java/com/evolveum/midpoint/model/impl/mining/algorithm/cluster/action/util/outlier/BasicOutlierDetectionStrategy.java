@@ -4,7 +4,10 @@ import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.u
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import com.evolveum.midpoint.common.mining.objects.analysis.AttributePathResult;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -35,6 +38,7 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
     public void executeAnalysis(@NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisSessionType session,
+            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
@@ -64,6 +68,7 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
                 session,
                 task,
                 miningOperationChunk,
+                userAnalysisCache,
                 frequencyRange,
                 sensitivity,
                 clusterRef,
@@ -82,12 +87,14 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
             @NotNull RoleAnalysisSessionType session,
             @NotNull Task task,
             @NotNull MiningOperationChunk miningOperationChunk,
+            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
             RangeType range,
             Double sensitivity,
             ObjectReferenceType clusterRef,
             ObjectReferenceType sessionRef,
             OperationResult result,
             Double similarityThreshold) {
+
         List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
                 session, UserType.COMPLEX_TYPE);
 
@@ -134,7 +141,7 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
                         statistics.setPatternAnalysis(patternAnalysis);
                         double anomalyConfidence = calculateAssignmentAnomalyConfidence(
                                 roleAnalysisService, attributesForUserAnalysis,
-                                userTypeObject, userCountInRepo, anomalyResult, task, result);
+                                userTypeObject, userCountInRepo, anomalyResult,userAnalysisCache, task, result);
                         statistics.setConfidence(anomalyConfidence);
                         userRoleMap.put(user, anomalyResult);
                     }

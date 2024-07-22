@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 
 import java.util.*;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.AttributePathResult;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.context.OutlierPatternResolver;
 
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +28,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-//TODO
+//TODO major multiple thinks is processed multiple times
+// (Create structure for caching these data, NOTE: use also clustering process there is multiple mapped structures that can be used)
 public class OutliersDetectionUtil {
 
     public static void updateOrImportOutlierObject(
@@ -91,17 +93,47 @@ public class OutliersDetectionUtil {
             PrismObject<UserType> userTypeObject,
             int numberOfAllUsersInRepo,
             @NotNull DetectedAnomalyResult prepareRoleOutlier,
+            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
             @NotNull Task task,
             OperationResult result) {
 
         DetectedAnomalyStatistics statistics = prepareRoleOutlier.getStatistics();
 
         double itemFactorConfidence = calculateItemFactorConfidence(
-                prepareRoleOutlier, userTypeObject, attributesForUserAnalysis, roleAnalysisService, task, result);
+                prepareRoleOutlier, userTypeObject, attributesForUserAnalysis, roleAnalysisService, userAnalysisCache, task, result);
         double distributionConfidence = statistics.getConfidenceDeviation();
         double patternConfidence = statistics.getPatternAnalysis().getConfidence();
         double roleMemberConfidence = calculateRoleCoverageConfidence(
-                prepareRoleOutlier, roleAnalysisService,numberOfAllUsersInRepo, task, result);
+                prepareRoleOutlier, roleAnalysisService, numberOfAllUsersInRepo, task, result);
+        double coverageConfidence = calculateOutlierPropertyCoverageConfidence(prepareRoleOutlier);
+
+        double distributionConfidenceDiff = distributionConfidence * 100;
+        double patternConfidenceDiff = 100 - patternConfidence;
+        double itemFactorConfidenceDiff = 100 - itemFactorConfidence;
+        double roleMemberConfidenceDiff = 100 - roleMemberConfidence;
+        double coverageConfidenceDiff = 100 - coverageConfidence;
+
+        return (distributionConfidenceDiff + patternConfidenceDiff + itemFactorConfidenceDiff
+                + roleMemberConfidenceDiff + coverageConfidenceDiff) / 5;
+    }
+
+    static double calculateAssignmentAnomalyConfidence(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @Nullable List<RoleAnalysisAttributeDef> attributesForUserAnalysis,
+            PrismObject<UserType> userTypeObject,
+            int numberOfAllUsersInRepo,
+            @NotNull DetectedAnomalyResult prepareRoleOutlier,
+            @NotNull Task task,
+            OperationResult result) {
+
+        DetectedAnomalyStatistics statistics = prepareRoleOutlier.getStatistics();
+
+        double itemFactorConfidence = calculateItemFactorConfidence(
+                prepareRoleOutlier, userTypeObject, attributesForUserAnalysis, roleAnalysisService, null, task, result);
+        double distributionConfidence = statistics.getConfidenceDeviation();
+        double patternConfidence = statistics.getPatternAnalysis().getConfidence();
+        double roleMemberConfidence = calculateRoleCoverageConfidence(
+                prepareRoleOutlier, roleAnalysisService, numberOfAllUsersInRepo, task, result);
         double coverageConfidence = calculateOutlierPropertyCoverageConfidence(prepareRoleOutlier);
 
         double distributionConfidenceDiff = distributionConfidence * 100;
@@ -221,6 +253,7 @@ public class OutliersDetectionUtil {
             @NotNull PrismObject<UserType> userTypeObject,
             @Nullable List<RoleAnalysisAttributeDef> attributesForUserAnalysis,
             @NotNull RoleAnalysisService roleAnalysisService,
+            @Nullable Map<String, Map<String, AttributePathResult>> userAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
@@ -235,8 +268,14 @@ public class OutliersDetectionUtil {
         }
 
         //TODO this take a lot of time when role is popular. Think about better solution (MAJOR).
-        RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult = roleAnalysisService
-                .resolveRoleMembersAttribute(roleTypeObject.getOid(), task, result, attributesForUserAnalysis);
+        RoleAnalysisAttributeAnalysisResult roleAnalysisAttributeAnalysisResult;
+        if (userAnalysisCache == null) {
+            roleAnalysisAttributeAnalysisResult = roleAnalysisService
+                    .resolveRoleMembersAttribute(roleTypeObject.getOid(), task, result, attributesForUserAnalysis);
+        } else {
+            roleAnalysisAttributeAnalysisResult = roleAnalysisService
+                    .resolveRoleMembersAttributeCached(roleTypeObject.getOid(), userAnalysisCache, task, result, attributesForUserAnalysis);
+        }
 
         RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService.resolveUserAttributes(
                 userTypeObject, attributesForUserAnalysis);
@@ -258,6 +297,7 @@ public class OutliersDetectionUtil {
         return averageItemsOccurs / attributeAnalysis.size();
     }
 
+    //TODO test
     public static double calculateRoleCoverageConfidence(
             @NotNull DetectedAnomalyResult outlierResult,
             @NotNull RoleAnalysisService roleAnalysisService,
@@ -266,12 +306,9 @@ public class OutliersDetectionUtil {
             @NotNull OperationResult result) {
         ObjectReferenceType targetObjectRef = outlierResult.getTargetObjectRef();
         int roleMemberCount;
-        Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
-        roleAnalysisService.extractUserTypeMembers(
-                userExistCache, null,
+        roleMemberCount = roleAnalysisService.countUserTypeMembers(null,
                 new HashSet<>(Collections.singleton(targetObjectRef.getOid())),
                 task, result);
-        roleMemberCount = userExistCache.size();
 
         double memberPercentageRepo = (((double) roleMemberCount / numberOfAllUsersInRepo) * 100);
         outlierResult.getStatistics().setMemberCoverageConfidence(memberPercentageRepo);

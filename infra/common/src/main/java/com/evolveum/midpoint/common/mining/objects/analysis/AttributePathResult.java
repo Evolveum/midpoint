@@ -5,9 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.mining.analysis;
-
-import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+package com.evolveum.midpoint.common.mining.objects.analysis;
 
 import java.io.Serializable;
 import java.util.HashSet;
