@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscU
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -272,6 +274,52 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ACCESS_CERT_DEFINITION);
         OperationResult result = task.getResult();
 
+        GuiObjectListViewType view = getCollectionViewConfigurationFromCampaignDefinition(task, result);
+
+        String collectionIdentifier = null;
+        if (view != null) {
+            collectionIdentifier = view.getIdentifier();
+        }
+
+        CompiledObjectCollectionView existingGlobalView = null;
+        if (collectionIdentifier != null) {
+            existingGlobalView = WebComponentUtil.getCompiledGuiProfile().findObjectCollectionView(AccessCertificationWorkItemType.COMPLEX_TYPE, collectionIdentifier);
+        } else {
+            List<CompiledObjectCollectionView> compiledObjectCollectionViews = WebComponentUtil.getCompiledGuiProfile().findAllApplicableObjectCollectionViews(AccessCertificationWorkItemType.COMPLEX_TYPE);
+            if (compiledObjectCollectionViews.size() > 1) {
+                //TODO warning and skip, we can't decide which one to use
+            } else if (compiledObjectCollectionViews.size() == 1) {
+                existingGlobalView = compiledObjectCollectionViews.get(0);
+            }
+        }
+
+        try {
+
+            if (view == null) {
+                return existingGlobalView;
+            }
+            if (existingGlobalView == null) {
+                existingGlobalView = new CompiledObjectCollectionView();
+                existingGlobalView.setContainerType(AccessCertificationWorkItemType.COMPLEX_TYPE);
+            }
+            CompiledObjectCollectionView mergedView = existingGlobalView.clone();
+
+            getPageBase().getModelInteractionService().compileView(mergedView, view, task, result);
+            return mergedView;
+        } catch (Exception e) {
+            //TODO handle properly
+            throw new RuntimeException(e);
+        }
+
+//        WebComponentUtil.getCompiledObjectCollectionView(existingGlobalView, new ContainerPanelConfigurationType(), getPageBase());
+
+    }
+
+    private GuiObjectListViewType getCollectionViewConfigurationFromCampaignDefinition(Task task, OperationResult result) {
+        String campaignOid = getCampaignOid();
+        if (campaignOid == null) {
+            return null;
+        }
         var campaign = WebModelServiceUtils.loadObject(AccessCertificationCampaignType.class, getCampaignOid(), getPageBase(), task, result);
         if (campaign == null) {
             return null;
@@ -280,12 +328,11 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
         if (definitionRef == null) {
             return null;
         }
-        var definitionObj = WebModelServiceUtils.loadObject(definitionRef, getPageBase(), task, result);
+        PrismObject<AccessCertificationDefinitionType> definitionObj = WebModelServiceUtils.loadObject(definitionRef, getPageBase(), task, result);
         if (definitionObj == null) {
             return null;
         }
-        AccessCertificationDefinitionType definition = (AccessCertificationDefinitionType) definitionObj.asObjectable();
-        GuiObjectListViewType view = definition.getView();
-        return WebComponentUtil.getCompiledObjectCollectionView(view, new ContainerPanelConfigurationType(), getPageBase());
+        AccessCertificationDefinitionType definition = definitionObj.asObjectable();
+        return definition.getView();
     }
 }
