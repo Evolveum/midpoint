@@ -99,6 +99,7 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
         }
 
         var newVal = new ShadowReferenceAttributeValue(refVal.getOid(), refVal.getOriginType(), refVal.getOriginObject());
+        newVal.setTargetType(refVal.getTargetType());
         var shadow = (ShadowType) refVal.getObjectable();
         if (shadow != null) {
             if (ShadowUtil.isRaw(shadow)) {
