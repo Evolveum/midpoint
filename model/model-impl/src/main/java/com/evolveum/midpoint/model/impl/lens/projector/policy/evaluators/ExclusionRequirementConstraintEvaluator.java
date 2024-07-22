@@ -76,7 +76,7 @@ public class ExclusionRequirementConstraintEvaluator
         boolean isExclusion = QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_EXCLUSION);
 
         try {
-            LOGGER.trace("Evaluating {}} constraint {} on {}",
+            LOGGER.trace("Evaluating {} constraint {} on {}",
                     isExclusion ? "exclusion" : "requirement",
                     lazy(() -> PolicyRuleTypeUtil.toShortString(constraint)), rctx);
             if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
