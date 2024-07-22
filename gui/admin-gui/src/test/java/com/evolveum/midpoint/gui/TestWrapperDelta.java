@@ -142,6 +142,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         PrismObject<UserType> userElaineBefore = getUser(USER_ELAINE_OID);
 
         WrapperContext ctx = new WrapperContext(task, result);
+        ctx.setCreateIfEmpty(true);
         PrismObjectWrapper<UserType> objectWrapper =
                 createObjectWrapper(userElaineBefore, ItemStatus.NOT_CHANGED, ctx);
 
@@ -177,6 +178,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         PrismObject<UserType> userElaineBefore = getUser(USER_ELAINE_OID);
 
         WrapperContext ctx = new WrapperContext(task, result);
+        ctx.setCreateIfEmpty(true);
         PrismObjectWrapper<UserType> objectWrapper = createObjectWrapper(userElaineBefore, ItemStatus.NOT_CHANGED, ctx);
 
         PrismContainerWrapper<AssignmentType> assignment = objectWrapper.findContainer(UserType.F_ASSIGNMENT);
@@ -186,7 +188,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         PrismContainerValueWrapper<AssignmentType> assignmentValue = assignment.getValues().iterator().next();
         PrismContainerWrapper<ResourceAttributeDefinitionType> resourceAttrDefWrapper = assignmentValue.findContainer(ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE));
         assertNotNull("unexpected null assignment wrapper", resourceAttrDefWrapper);
-        assertEquals("Unexpected values for assignment " + resourceAttrDefWrapper.getValues().size(), 0, resourceAttrDefWrapper.getValues().size());
+        assertEquals("Unexpected values for assignment " + resourceAttrDefWrapper.getValues().size(), 1, resourceAttrDefWrapper.getValues().size());
 
         ModelServiceLocator locator = getServiceLocator(task);
 
@@ -260,6 +262,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         PrismObjectDefinition<UserType> def = getServiceLocator(task).getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismObject<UserType> user = def.instantiate();
         WrapperContext ctx = new WrapperContext(task, result);
+        ctx.setCreateIfEmpty(true);
 
         PrismObjectWrapper<UserType> userWrapper = createObjectWrapper(user, ItemStatus.ADDED, ctx);
 
@@ -271,7 +274,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
         PrismPropertyWrapper<ProtectedStringType> password = userWrapper.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
         ProtectedStringType pwd = new ProtectedStringType();
-        pwd.setClearValue("howMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChuckWood");
+        pwd.setClearValue("ChuckIsNumber1");
         password.getValue().setRealValue(pwd);
 
         PrismContainerValue<AssignmentType> newAssignment = createDummyResourceAssignment(userWrapper, 0, task, result);
@@ -328,6 +331,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         SystemConfigurationType systemConfigBefore = getSystemConfiguration();
 
         WrapperContext ctx = new WrapperContext(task, result);
+        ctx.setCreateIfEmpty(true);
         PrismObjectWrapper objectWrapper = createObjectWrapper(systemConfigBefore.asPrismContainer(), ItemStatus.NOT_CHANGED, ctx);
 
         PrismContainerWrapper<LoggingConfigurationType> loggingConfig = objectWrapper.findContainer(SystemConfigurationType.F_LOGGING);
@@ -374,6 +378,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         SystemConfigurationType systemConfigBefore = getSystemConfiguration();
 
         WrapperContext ctx = new WrapperContext(task, result);
+        ctx.setCreateIfEmpty(true);
         PrismObjectWrapper objectWrapper = createObjectWrapper(systemConfigBefore.asPrismContainer(), ItemStatus.NOT_CHANGED, ctx);
         ItemPath guiObjectViewPath = ItemPath.create(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS, GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW);
         PrismContainerWrapper<GuiObjectListViewType> collections = objectWrapper.findContainer(guiObjectViewPath);
@@ -430,6 +435,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         SystemConfigurationType systemConfigBefore = getSystemConfiguration();
 
         WrapperContext ctx = new WrapperContext(task, result);
+        ctx.setCreateIfEmpty(true);
         PrismObjectWrapper objectWrapper = createObjectWrapper(systemConfigBefore.asPrismContainer(), ItemStatus.NOT_CHANGED, ctx);
         ItemPath guiObjectViewPath = ItemPath.create(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS, GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW);
         PrismContainerWrapper<GuiObjectListViewType> collections = objectWrapper.findContainer(guiObjectViewPath);
@@ -472,6 +478,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         PrismContainerValue<AssignmentType> newAssignmentClone = newAssignment.clone();
 
         WrapperContext ctx = new WrapperContext(task, result);
+        ctx.setCreateIfEmpty(true);
         PrismContainerValueWrapper vw = locator.createValueWrapper(assignment, newAssignment, ValueStatus.ADDED, ctx);
         assignment.getValues().add(vw);
 

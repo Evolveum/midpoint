@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -42,12 +43,17 @@ public class TitleWithMarks extends BasePanel<String> {
     }
 
     private void initLayout() {
-        AjaxLink<Void> link = new AjaxLink<>(ID_LINK) {
+        Link<Void> link = new Link<>(ID_LINK) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                onTitleClicked(target);
+            public void onClick() {
+                onTitleClicked();
             }
+
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                onTitleClicked(target);
+//            }
         };
         link.add(new EnableBehaviour(this::isTitleLinkEnabled));
         add(link);
@@ -85,7 +91,7 @@ public class TitleWithMarks extends BasePanel<String> {
         return true;
     }
 
-    protected void onTitleClicked(AjaxRequestTarget target) {
+    protected void onTitleClicked() {
 
     }
 

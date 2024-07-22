@@ -13,17 +13,25 @@ import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 import java.util.Locale;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 //import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -62,9 +70,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
@@ -129,6 +134,26 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         logger.info("before super init");
+
+        if (!repositoryService.isNative()) {
+            // we have to reimport superuser role without assignment to policy type because PolicyType is not
+            // supported in non-native repositories and data import for initial objects failed for this role
+            try (InputStream is = AbstractIntegrationTest.class.getResourceAsStream("/initial-objects/role/030-role-superuser.xml")) {
+                String xml = IOUtils.toString(is);
+                PrismObject<RoleType> superuser = prismContext.parseObject(xml);
+                RoleType role = superuser.asObjectable();
+                List<AssignmentType> assignments = role.getAssignment().stream()
+                        .filter(a -> a.getTargetRef() == null || !PolicyType.COMPLEX_TYPE.equals(a.getTargetRef().getType()))
+                        .toList();
+                role.getAssignment().clear();
+                role.getAssignment().addAll(assignments);
+
+                repositoryService.addObject(superuser, RepoAddOptions.createOverwrite(), initResult);
+            } catch (IOException ex) {
+                throw new RuntimeException("Couldn't save super user role in non-native repository", ex);
+            }
+        }
+
         super.initSystem(initTask, initResult);
 
         logger.info("after super init");

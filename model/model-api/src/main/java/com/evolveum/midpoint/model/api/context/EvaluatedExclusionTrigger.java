@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -25,23 +25,19 @@ import java.util.Objects;
  * [NOTE]
  * ====
  * When present in "foreign policy rules" ({@link EvaluatedAssignment#getAllAssociatedPolicyRules()}), then the
- * values in {@link #conflictingAssignment}, {@link #conflictingTarget}, {@link #thisTarget} and so on may be misleading.
+ * values in {@link #conflictingAssignment}, {@link #conflictingTarget}, {@link #getThisTarget()} and so on may be misleading.
  * They are correct with regards to the original evaluated assignment, but not for the other one.
  *
  * Hence, to get the correct values, use {@link #getRealConflictingAssignment(EvaluatedAssignment)}.
  * ====
  */
-public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<ExclusionPolicyConstraintType> {
+public class EvaluatedExclusionTrigger extends EvaluatedExclusionRequirementTrigger {
 
     // See warning in class javadoc
 
     @NotNull private final EvaluatedAssignment conflictingAssignment;
     @NotNull private final ObjectType conflictingTarget;
     @NotNull private final AssignmentPath conflictingPath;
-
-    @NotNull private final EvaluatedAssignment thisAssignment;
-    @NotNull private final ObjectType thisTarget;
-    @NotNull private final AssignmentPath thisPath;
 
     // we keep thisTarget and thisPath here because in the future they might be useful
     public EvaluatedExclusionTrigger(
@@ -55,12 +51,9 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
             @NotNull AssignmentPath thisPath,
             @NotNull AssignmentPath conflictingPath,
             boolean enforcementOverride) {
-        super(PolicyConstraintKindType.EXCLUSION, constraint, message, shortMessage, enforcementOverride);
-        this.thisAssignment = thisAssignment;
+        super(PolicyConstraintKindType.EXCLUSION, constraint, message, shortMessage, thisAssignment, thisTarget, thisPath, enforcementOverride);
         this.conflictingAssignment = conflictingAssignment;
-        this.thisTarget = thisTarget;
         this.conflictingTarget = conflictingTarget;
-        this.thisPath = thisPath;
         this.conflictingPath = conflictingPath;
     }
 
@@ -73,7 +66,7 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
         if (conflictingAssignment.equals(owner)) {
             // This is a "foreign rule" situation; the owner perceived by the client is - in fact - the conflicting side here
             // So, the "real" conflicting side is the owning assignment.
-            return thisAssignment;
+            return getThisAssignment();
         } else {
             // Standard situation.
             return conflictingAssignment;
@@ -86,18 +79,6 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 
     public @NotNull AssignmentPath getConflictingPath() {
         return conflictingPath;
-    }
-
-    public @NotNull EvaluatedAssignment getThisAssignment() {
-        return thisAssignment;
-    }
-
-    public @NotNull ObjectType getThisTarget() {
-        return thisTarget;
-    }
-
-    public @NotNull AssignmentPath getThisPath() {
-        return thisPath;
     }
 
     @Override

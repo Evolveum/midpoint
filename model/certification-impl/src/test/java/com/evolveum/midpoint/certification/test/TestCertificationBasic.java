@@ -113,6 +113,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test002OpenFirstForeignStage() throws Exception {
         given();
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
@@ -198,6 +199,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
     @Test
     public void test011CreateCampaignAllowed() throws Exception {
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         given();
         Task task = getTestTask();
@@ -276,6 +278,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test021OpenFirstStageAllowed() throws Exception {
         given();
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -775,6 +778,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
     @Test
     public void test205StartRemediationAllow() throws Exception {
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         login(getUserFromRepo(USER_BOB_OID));
 
