@@ -106,17 +106,11 @@ public class RepoShadowModifications implements DebugDumpable {
         }
     }
 
-    public void add(ItemDelta<?, ?> modification, ShadowAttributeDefinition<?, ?, ?, ?> attrDef) throws SchemaException {
+    public void add(ItemDelta<?, ?> modification, ShadowSimpleAttributeDefinition<?> attrDef) throws SchemaException {
         ItemDelta<?, ?> rawModification = modification.clone();
-        if (attrDef instanceof ShadowSimpleAttributeDefinition<?> simpleAttrDef) {
-            // We have to suppress the type parameters, because - in fact - we change the type of the values.
-            //noinspection rawtypes,unchecked
-            ((ItemDelta) rawModification).applyDefinition(simpleAttrDef.toNormalizationAware(), true);
-        } else if (attrDef instanceof ShadowReferenceAttributeDefinition) {
-            rawModification.setParentPath(ShadowType.F_REFERENCE_ATTRIBUTES); // ugly hack but should work
-        } else {
-            throw new AssertionError(attrDef);
-        }
+        // We have to suppress the type parameters, because - in fact - we change the type of the values.
+        //noinspection rawtypes,unchecked
+        ((ItemDelta) rawModification).applyDefinition(attrDef.toNormalizationAware(), true);
         add(modification, rawModification);
     }
 

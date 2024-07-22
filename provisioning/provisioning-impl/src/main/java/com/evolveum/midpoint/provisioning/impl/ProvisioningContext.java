@@ -10,19 +10,12 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isDiscoveryAllowed;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import java.util.*;
 import java.util.function.Supplier;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
-import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.provisioning.util.ShadowItemsToReturnProvider;
-import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -34,8 +27,13 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.ShadowItemsToReturn;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.provisioning.util.ShadowItemsToReturnProvider;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -45,9 +43,12 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -743,40 +744,52 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     }
 
     /**
-     * Creates a well-formed {@link RepoShadow} from provided raw shadow bean. The embedded {@link RawRepoShadow}
-     * is not filled in - to avoid object cloning if not really necessary.
+     * Converts {@link RawRepoShadow} into {@link RepoShadow} by determining the correct definition (from OC/kind/intent),
+     * updating the shadow state, and converting the attributes from raw repo to standard format (including reference attributes).
      *
-     * TODO reconsider
-     *
-     * @see #adoptRawRepoShadow(PrismObject)
+     * Although it treats reference attributes, it does nothing with associations.
      */
-    public @NotNull RepoShadow adoptRawRepoShadowSimple(@NotNull PrismObject<ShadowType> shadowPrismObject)
-            throws SchemaException, ConfigurationException {
-        @NotNull ShadowType shadowBean = shadowPrismObject.asObjectable();
-        var shadowCtx = adoptShadowBean(shadowBean);
-        shadowCtx.updateShadowState(shadowBean);
-        return RepoShadow.of(shadowBean, null, shadowCtx.getResource());
-    }
-
-    /** TODO */
     public @NotNull RepoShadow adoptRawRepoShadow(@NotNull ShadowType bean)
             throws SchemaException, ConfigurationException {
-        return adoptRawRepoShadow(RawRepoShadow.of(bean));
+        return adoptRawRepoShadow(RawRepoShadow.of(bean), true);
     }
 
-    /** TODO */
+    /** Just a variant of {@link #adoptRawRepoShadow(ShadowType)}. */
     public @NotNull RepoShadow adoptRawRepoShadow(@NotNull PrismObject<ShadowType> prismObject)
             throws SchemaException, ConfigurationException {
-        return adoptRawRepoShadow(RawRepoShadow.of(prismObject));
+        return adoptRawRepoShadow(RawRepoShadow.of(prismObject), true);
     }
 
-    /** TODO */
+    /** Just a variant of {@link #adoptRawRepoShadow(ShadowType)}. */
     public @NotNull RepoShadow adoptRawRepoShadow(@NotNull RawRepoShadow rawRepoShadow)
             throws SchemaException, ConfigurationException {
-        var shadowBean = rawRepoShadow.getBean().clone();
-        var shadowCtx = adoptShadowBean(shadowBean);
-        shadowCtx.updateShadowState(shadowBean);
-        return RepoShadow.of(shadowBean, rawRepoShadow, shadowCtx.getResource());
+        return adoptRawRepoShadow(rawRepoShadow, true);
+    }
+
+    /**
+     * As {@link #adoptRawRepoShadow(PrismObject)} but does not fill-in the embedded {@link RawRepoShadow} - to avoid object
+     * cloning if not really necessary.
+     */
+    public @NotNull RepoShadow adoptRawRepoShadowSimple(@NotNull PrismObject<ShadowType> prismObject)
+            throws SchemaException, ConfigurationException {
+        return adoptRawRepoShadow(RawRepoShadow.of(prismObject), false);
+    }
+
+    private @NotNull RepoShadow adoptRawRepoShadow(@NotNull RawRepoShadow rawRepoShadow, boolean keepTheRawShadow)
+            throws SchemaException, ConfigurationException {
+        var rawShadowBean = rawRepoShadow.getBean();
+        var resourceOid = rawRepoShadow.getResourceOidRequired();
+        stateCheck(
+                resourceOid.equals(getResourceOid()),
+                "Resource OID mismatch: %s vs. %s", resourceOid, getResourceOid());
+        var definition =
+                stateNonNull(
+                        getResourceSchema().findDefinitionForShadow(rawShadowBean),
+                        "No definition for shadow %s on %s could be found."
+                                + "Please fix the shadow or the resource configuration",
+                        rawShadowBean, resource);
+        var state = ShadowLifecycleStateDeterminer.determineShadowState(this, rawShadowBean);
+        return RepoShadow.fromRaw(rawRepoShadow, resource, definition, state, keepTheRawShadow);
     }
 
     /** The shadow should be a bean usable as a {@link ResourceObjectShadow} (except for the attribute definitions). */

@@ -197,22 +197,12 @@ public class TestDummyRichAssociations extends AbstractDummyTest {
         assertShadow(shadow, "john")
                 .display()
                 .associations()
-                .assertValuesCount(2);
+                .assertValuesCount(2)
+                .end()
+                .attributes()
+                .assertNoAttribute(Person.LinkNames.CONTRACT.q()); // ref. attribute was completely converted into association
 
-        var johnLawContractRefAttrShadow = AbstractShadow.of(shadow)
-                .getReferenceAttributeValues(Person.LinkNames.CONTRACT.q())
-                .stream()
-                .map(val -> val.getShadowRequired())
-                .filter(s -> s.getName().getOrig().equals("john-law"))
-                .findFirst().orElseThrow();
-
-        var def = johnLawContractRefAttrShadow.getObjectDefinition();
-        displayDumpable("johnLaw contract definition", def);
-        assertThat(def.getTypeIdentification())
-                .as("johnLaw contract object definition type")
-                .isEqualTo(ResourceObjectTypeIdentification.of(ShadowKindType.ASSOCIATED, "contract"));
-
-        var johnLawContractAssocValue = AbstractShadow.of(shadow)
+        AbstractShadow.of(shadow)
                 .getAssociationValues(Person.LinkNames.CONTRACT.q())
                 .stream()
                 .filter(val -> "john-law".equals(val.getAttributesContainerRequired().findSimpleAttribute(ICFS_NAME).getRealValue()))

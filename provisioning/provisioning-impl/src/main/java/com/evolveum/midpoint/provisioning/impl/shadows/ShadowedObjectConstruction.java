@@ -14,8 +14,6 @@ import com.evolveum.midpoint.prism.ValueMetadata;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
 
-import com.evolveum.midpoint.schema.util.AbstractShadow;
-
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +22,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.CompleteResourceObject;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -141,7 +138,10 @@ class ShadowedObjectConstruction {
         // calling this method.)
 
         mergeActivation();
-        convertReferenceAttributesToAssociations();
+
+        b.associationsHelper.convertReferenceAttributesToAssociations(
+                ctx, resultingShadowedBean, authoritativeDefinition, result);
+
         copyCachingMetadata();
 
         checkConsistence();
@@ -284,84 +284,5 @@ class ShadowedObjectConstruction {
         b.accessChecker.filterGetAttributes(resultingAttributesContainer, authoritativeDefinition, result);
 
         resultingShadowedBean.asPrismObject().add(resultingAttributesContainer);
-    }
-
-    /**
-     * Converts reference attributes to associations, including some processing:
-     *
-     * - acquires target shadows for related references and stores them into those references
-     * - sorts the reference attributes into associations based on the definitions (kind/intent)
-     */
-    private void convertReferenceAttributesToAssociations()
-            throws SchemaException, ConfigurationException {
-
-        var attributesContainer = ShadowUtil.getAttributesContainerRequired(resultingShadowedBean);
-        var associationDefinitions = authoritativeDefinition.getAssociationDefinitions();
-
-        LOGGER.trace("Start converting {} reference attributes to {} associations",
-                attributesContainer.getReferenceAttributes().size(), associationDefinitions.size());
-
-        // TODO optimize this by iterating through the ref attr values, not the associations!
-        for (var assocDef : associationDefinitions) {
-            var refAttrDef = assocDef.getReferenceAttributeDefinition();
-            var refAttr = attributesContainer.findReferenceAttribute(refAttrDef.getItemName());
-            var refAttrValues = refAttr != null ? refAttr.getReferenceValues() : List.<ShadowReferenceAttributeValue>of();
-            LOGGER.trace("Processing association {} sourced by {} ({} values)",
-                    assocDef.getItemName(), refAttrDef.getItemName(), refAttrValues.size());
-            for (var refAttrValue : refAttrValues) {
-                convertReferenceAttributeValueToAssociationValueIfPossible(refAttrValue, assocDef);
-            }
-        }
-    }
-
-    /**
-     * Assumes that the reference attribute value has all shadows processed.
-     *
-     * TODO UPDATE DOCS
-     *
-     * Tries to acquire (find/create) shadow for given association value and fill-in its reference.
-     *
-     * Also, provides all identifier values from the shadow (if it's classified). Normally, the name is present among
-     * identifiers, and it is sufficient. However, there may be cases when UID is there only. But the name is sometimes needed,
-     * e.g. when evaluating tolerant/intolerant patterns on associations. See also MID-8815.
-     */
-    private void convertReferenceAttributeValueToAssociationValueIfPossible(
-            @NotNull ShadowReferenceAttributeValue refAttrValue, @NotNull ShadowAssociationDefinition assocDef)
-            throws ConfigurationException, SchemaException {
-
-        LOGGER.trace("Considering conversion of reference attribute value {} into {}", refAttrValue, assocDef);
-
-        var refAttrShadow = refAttrValue.getShadowRequired();
-
-        var participantsMap = assocDef.getObjectParticipants(ctx.getResourceSchema());
-        for (QName objectName : participantsMap.keySet()) {
-            var expectedObjectTypes = participantsMap.get(objectName);
-            LOGGER.trace("Checking participating object {}; expecting: {}", objectName, expectedObjectTypes);
-            AbstractShadow objectShadow;
-            if (assocDef.hasAssociationObject()) {
-                var objectRefAttrValue = refAttrShadow.getReferenceAttributeSingleValue(objectName);
-                if (objectRefAttrValue == null) {
-                    LOGGER.trace("Reference attribute {} not found, skipping the check", objectName);
-                    continue;
-                }
-                objectShadow = objectRefAttrValue.getShadowRequired();
-            } else {
-                objectShadow = refAttrShadow;
-            }
-            if (expectedObjectTypes.stream().anyMatch(
-                    type -> type.matches(objectShadow.getBean()))) {
-                LOGGER.trace("Shadow {} accepted for participating object {}", objectShadow, objectName);
-            } else {
-                LOGGER.trace("Shadow {} NOT accepted for participating object {}, rejecting the whole value",
-                        objectShadow, objectName);
-                return;
-            }
-        }
-
-        ShadowUtil
-                .getOrCreateAssociationsContainer(resultingShadowedBean)
-                .findOrCreateAssociation(assocDef.getItemName())
-                .createNewValue()
-                .fillFromReferenceAttributeValue(refAttrValue);
     }
 }

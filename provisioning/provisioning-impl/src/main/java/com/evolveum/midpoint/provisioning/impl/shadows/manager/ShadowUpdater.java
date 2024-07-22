@@ -116,7 +116,7 @@ public class ShadowUpdater {
 
         var repoModifications =
                 new ShadowDeltaComputerRelative(ctx, repoShadow, modifications, protector)
-                        .computeShadowModifications();
+                        .computeShadowModifications(result);
 
         executeRepoShadowModifications(ctx, repoShadow, repoModifications, result);
     }

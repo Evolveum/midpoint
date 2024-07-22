@@ -7,7 +7,11 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
+import java.util.List;
 import java.util.Objects;
+
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.schema.processor.*;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
@@ -80,6 +84,46 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
     @Nullable
     public static ShadowType getBean(@Nullable RepoShadow repoShadow) {
         return repoShadow != null ? repoShadow.getBean() : null;
+    }
+
+    static @NotNull RepoShadow fromRaw(
+            @NotNull RawRepoShadow rawRepoShadow,
+            @NotNull ResourceType resource,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull ShadowLifecycleStateType state,
+            boolean keepTheRawShadow) throws SchemaException {
+
+        RawRepoShadow rawShadowToStore;
+        ShadowType shadowToAdapt;
+        if (keepTheRawShadow) {
+            shadowToAdapt = rawRepoShadow.getBean().clone();
+            rawShadowToStore = rawRepoShadow;
+        } else {
+            shadowToAdapt = rawRepoShadow.getBean();
+            rawShadowToStore = null;
+        }
+
+        // We hope this will not touch reference attributes. We need to execute this first to get
+        // the properly defined attributes container in the "shadowToAdapt".
+        new ShadowDefinitionApplicator(definition)
+                .applyToShadow(shadowToAdapt);
+
+        var refAttributes = shadowToAdapt.getReferenceAttributes();
+        if (refAttributes != null) {
+            PrismContainerValue<?> refAttributesPcv = refAttributes.asPrismContainerValue();
+            for (var refAttrRaw : List.copyOf(refAttributesPcv.getItems())) {
+                // FIXME treat non-existing definitions more gracefully
+                var refAttrDef = definition.findReferenceAttributeDefinitionRequired(refAttrRaw.getElementName());
+                refAttributesPcv.removeReference(refAttrRaw.getElementName());
+                ShadowUtil
+                        .getOrCreateAttributesContainer(shadowToAdapt)
+                        .addAttribute(refAttrDef.instantiateFrom(refAttrRaw));
+            }
+        }
+
+        shadowToAdapt.setShadowLifecycleState(state);
+
+        return new RepoShadow(shadowToAdapt, rawShadowToStore, Resource.of(resource));
     }
 
     public @NotNull ShadowType getBean() {

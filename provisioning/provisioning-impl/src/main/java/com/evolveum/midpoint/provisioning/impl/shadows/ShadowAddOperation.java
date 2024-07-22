@@ -14,7 +14,6 @@ import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -162,7 +161,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             ctx.validateSchemaIfConfigured(objectToAdd.getBean());
 
             // Changes made here will go to the pending operation, should the operation fail.
-            associationsHelper.provideEntitlementsIdentifiersToObject(ctx, objectToAdd, result);
+            associationsHelper.provideObjectsIdentifiersToSubject(ctx, objectToAdd, result);
 
             accessChecker.checkAddAccess(ctx, objectToAdd, result);
 
@@ -172,7 +171,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             if (ctx.shouldExecuteResourceOperationDirectly()) {
                 // FIXME entitlement identifiers should be already there; but it looks like pending operations currently
                 //  do not store embedded shadows correctly, so let's re-resolve them now. This should be fixed!
-                associationsHelper.provideEntitlementsIdentifiersToObject(ctx, objectToAdd, result);
+                associationsHelper.provideObjectsIdentifiersToSubject(ctx, objectToAdd, result);
                 associationsHelper.convertAssociationsToReferenceAttributes(objectToAdd);
                 executeAddOperationDirectly(result);
             } else {
