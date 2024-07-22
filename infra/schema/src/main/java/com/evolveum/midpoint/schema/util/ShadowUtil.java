@@ -29,6 +29,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.Contract;
@@ -44,6 +45,8 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_UID;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.MiscUtil.*;
+
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 /**
  * Methods that would belong to the {@link ShadowType} class but cannot go there because of JAXB.
@@ -1061,6 +1064,13 @@ public class ShadowUtil {
         return modifications.stream()
                 .filter(ShadowUtil::isResourceModification)
                 .collect(Collectors.toList());
+    }
+
+    public static @NotNull ImmutableList<ItemDelta<?, ?>> getNonResourceModifications(
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+        return modifications.stream()
+                .filter(modification -> !isResourceModification(modification))
+                .collect(toImmutableList());
     }
 
     public static boolean isResourceModification(ItemDelta<?, ?> modification) {

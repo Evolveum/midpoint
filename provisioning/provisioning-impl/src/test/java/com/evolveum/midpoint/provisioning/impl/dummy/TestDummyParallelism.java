@@ -115,7 +115,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     // test000-test106 in the superclasses
 
     protected void assertWillRepoShadowAfterCreate(RawRepoShadow repoShadow) throws SchemaException, ConfigurationException {
-        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAccountAttributes())
+        assertRepoShadowNew(repoShadow)
                 .assertActiveLifecycleState()
                 .pendingOperations()
                 .singleOperation()

@@ -27,6 +27,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.test.DummyDefaultScenario;
 
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -1411,7 +1413,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                 .assertOrigValues(SchemaConstants.ICFS_NAME, getWillNameOnResource())
                 .assertOrigValues(SchemaConstants.ICFS_UID, willIcfUid)
                 .attributes()
-                .assertNoAttribute(new QName(SchemaConstants.NS_ICF_SCHEMA, "password"));
+                .assertNoSimpleAttribute(new QName(SchemaConstants.NS_ICF_SCHEMA, "password"));
 
         ActivationType activation = shadowAfter.getBean().getActivation();
         if (supportsActivation()) {
@@ -1464,7 +1466,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // The reason is that the ConnId returns only the UID (up-cased), so midPoint does not know that the name
         // was converted as well.
         String expectedIcfsName = rightAfterCreate ? ACCOUNT_WILL_USERNAME : getWillNameOnResource();
-        RepoShadowAsserter<Void> asserter = RepoShadowAsserter.forRepoShadow(accountRepo, getCachedAccountAttributes())
+        var asserter = assertRepoShadowNew(accountRepo)
                 .display()
                 .assertName(expectedIcfsName)
                 .assertIndexedPrimaryIdentifierValue(
@@ -1623,7 +1625,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         var repoShadow = getShadowRepo(ACCOUNT_WILL_OID);
         checkRepoAccountShadowWillBasic(repoShadow, startTs, endTs, false, null);
 
-        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAccountAttributes())
+        assertRepoShadowNew(repoShadow)
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate")
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl")
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE")
@@ -1790,5 +1792,23 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                         ResourceSchemaFactory.getCompleteSchemaRequired(resource));
         return requireNonNull(
                 resourceSchema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS));
+    }
+
+    /** TODO reconcile with {@link #assertRepoShadow(String)} */
+    RepoShadowAsserter<Void> assertRepoShadowNew(@NotNull String oid)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        return assertRepoShadow(oid, getCachedAccountAttributes());
+    }
+
+    /** TODO reconcile with {@link #assertRepoShadow(String)} */
+    RepoShadowAsserter<Void> assertRepoShadowNew(@NotNull RawRepoShadow rawRepoShadow)
+            throws SchemaException, ConfigurationException {
+        return RepoShadowAsserter.forRepoShadow(rawRepoShadow, getCachedAccountAttributes());
+    }
+
+    /** TODO reconcile with {@link #assertRepoShadow(String)} */
+    RepoShadowAsserter<Void> assertRepoShadowNew(@NotNull PrismObject<ShadowType> rawRepoShadow)
+            throws SchemaException, ConfigurationException {
+        return RepoShadowAsserter.forRepoShadow(rawRepoShadow, getCachedAccountAttributes());
     }
 }

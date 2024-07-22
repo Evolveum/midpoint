@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.getAdditionalOperationDesc;
+import static com.evolveum.midpoint.schema.util.ShadowUtil.getNonResourceModifications;
 import static com.evolveum.midpoint.schema.util.ShadowUtil.getResourceModifications;
 import static com.evolveum.midpoint.util.exception.CommonException.Severity.PARTIAL_ERROR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
@@ -50,7 +51,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -68,11 +68,17 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
     /** Modifications whose execution was (originally) requested. */
     @NotNull private final ImmutableList<? extends ItemDelta<?, ?>> requestedModifications;
 
+    /** Modifications from {@link #requestedModifications} that are NOT to be executed on the resource. */
+    @NotNull private final ImmutableList<? extends ItemDelta<?, ?>> requestedNonResourceModifications;
+
     /** The same as modifications in {@link ShadowProvisioningOperation#resourceDelta}. Just for code clarity. */
     @NotNull private final Collection<? extends ItemDelta<?, ?>> resourceDeltaModifications;
 
-    /** Requested modifications, later updated with known ones obtained from the {@link ResourceObjectConverter}. */
+    /** Requested modifications, later updated with known ones obtained from the {@link ResourceObjectConverter}. High-level. */
     @NotNull private final Collection<? extends ItemDelta<?, ?>> effectiveModifications;
+
+    /** Requested low-level modifications, later updated with known ones obtained from the {@link ResourceObjectConverter}. */
+    private Collection<? extends ItemDelta<?, ?>> effectiveResourceLevelModifications;
 
     private final boolean inRefreshOrPropagation;
 
@@ -93,6 +99,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
                 createModificationDelta(opState, modifications),
                 createModificationDelta(opState, getResourceModifications(modifications)));
         this.requestedModifications = ImmutableList.copyOf(modifications);
+        this.requestedNonResourceModifications = getNonResourceModifications(modifications);
         this.resourceDeltaModifications = resourceDelta.getModifications();
         // TODO To be discussed: should we append the executed modifications to the original list of requested modifications?
         //  This has an interesting side effect: when auditing, midPoint stores not only computed (requested) modifications,
@@ -155,7 +162,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
         // should the execution fail. (Because the shadow OIDs may be volatile.) Before 4.7, the inclusion to the pending
         // list was automatic, because the list of modifications was shared throughout the operation. However, now it is
         // no longer the case: we have separate "requested delta", "resource delta", and "executed delta" there.
-        ShadowsLocalBeans.get().entitlementsHelper.provideEntitlementsIdentifiersToDelta(
+        ShadowsLocalBeans.get().associationsHelper.provideObjectsIdentifiersToDelta(
                 ctx, modifications, "delta for shadow " + repoShadow.getOid(), result);
 
         return new ShadowModifyOperation(ctx, modifications, options, scripts, opState, false)
@@ -256,14 +263,13 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
                 if (wasRefreshOperationSuccessful()) {
                     // FIXME entitlement identifiers should be already there; but it looks like pending operations currently
                     //  do not store embedded shadows correctly, so let's re-resolve them now. This should be fixed!
-                    associationsHelper.provideEntitlementsIdentifiersToDelta(ctx, resourceDeltaModifications, "", result);
+                    associationsHelper.provideObjectsIdentifiersToDelta(ctx, resourceDeltaModifications, "", result);
                     associationsHelper.convertAssociationDeltasToReferenceAttributeDeltas(resourceDeltaModifications);
                     executeModifyOperationDirectly(result);
                 } else {
                     opState.markAsPostponed(
                             shadowRefreshOperation.getRetriedOperationsResult());
                 }
-
             } else {
                 markOperationExecutionAsPending(result);
             }
@@ -341,6 +347,10 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
 
             // TODO should we mark the resource as UP here, as we do for ADD and DELETE?
 
+            effectiveResourceLevelModifications = new ArrayList<>(resourceDeltaModifications);
+            ItemDeltaCollectionsUtil.addNotEquivalent(
+                    effectiveResourceLevelModifications, modifyOpResult.getExecutedDeltas());
+
             ItemDeltaCollectionsUtil.addNotEquivalent(
                     effectiveModifications, modifyOpResult.getExecutedDeltas());
             setExecutedDelta(
@@ -400,5 +410,13 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
 
     public @NotNull Collection<? extends ItemDelta<?, ?>> getEffectiveModifications() {
         return effectiveModifications;
+    }
+
+    public Collection<? extends ItemDelta<?, ?>> getEffectiveResourceLevelModifications() {
+        return effectiveResourceLevelModifications;
+    }
+
+    public @NotNull ImmutableList<? extends ItemDelta<?, ?>> getRequestedNonResourceModifications() {
+        return requestedNonResourceModifications;
     }
 }

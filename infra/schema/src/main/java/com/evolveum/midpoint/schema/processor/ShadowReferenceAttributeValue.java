@@ -274,6 +274,10 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
         }
     }
 
+    public @NotNull String getOidRequired() {
+        return stateNonNull(getOid(), "No OID in %s", this);
+    }
+
     @Override
     public String toString() {
         return "SRAV: " + super.toString() + (fullObject ? " (full)" : "");

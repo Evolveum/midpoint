@@ -417,7 +417,7 @@ public class TestDummyCaching extends TestDummy {
         then(message);
 
         RawRepoShadow shadow = getShadowRepoRetrieveAllAttributes(ACCOUNT_WILL_OID, result);
-        RepoShadowAsserter.forRepoShadow(shadow, getCachedAccountAttributes())
+        assertRepoShadowNew(shadow)
                 .assertCachedNormValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, values.toArray());
     }
 
@@ -429,8 +429,9 @@ public class TestDummyCaching extends TestDummy {
         // So do not check for number of attributes here. Check for individual values.
         checkRepoAccountShadowWillBasic(repoAccount, start, end, rightAfterCreate, null);
 
-        var asserter = RepoShadowAsserter.forRepoShadow(repoAccount, getCachedAccountAttributes())
-                .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
+        var asserter =
+                assertRepoShadowNew(repoAccount)
+                        .assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
         if (isWeaponIndexOnly()) {
             asserter.assertCachedOrigValues(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
         } else {

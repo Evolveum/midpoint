@@ -343,7 +343,7 @@ public class TestDelivery extends AbstractStoryTest {
         PrismObject<ShadowType> shadow = findShadowByNameViaModel(ShadowKindType.ACCOUNT, "default", "uid=bob,ou=People,dc=example,dc=com", resourceOpenDj, null, task, result);
         assertNotNull(shadow);
         bobShadowOid = shadow.getOid();
-        new ShadowAsserter<>(shadow).attributes().assertNoAttribute(ATTR_JPEG_PHOTO);
+        new ShadowAsserter<>(shadow).attributes().assertNoSimpleAttribute(ATTR_JPEG_PHOTO);
     }
 
     @Test

@@ -93,11 +93,15 @@ public interface ShadowAssociationDefinition
     @Override
     @NotNull ShadowAssociation instantiate() throws SchemaException;
 
-    default ShadowAssociationValue createValueFromFullDefaultObject(@NotNull AbstractShadow object)
+    default ShadowAssociationValue createValueFromFullDefaultObject(@NotNull AbstractShadow object) throws SchemaException {
+        return createValueFromDefaultObject(object, true);
+    }
+
+    default ShadowAssociationValue createValueFromDefaultObject(@NotNull AbstractShadow object, boolean full)
             throws SchemaException {
         var newValue = instantiate().createNewValue();
         newValue.getOrCreateObjectsContainer()
-                .addReferenceAttribute(getItemName(), object, true);
+                .addReferenceAttribute(getItemName(), object, full);
         return newValue.clone(); // to make it parent-less
     }
 
