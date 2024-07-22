@@ -74,17 +74,19 @@ public class TestRequirement extends AbstractInitializedModelIntegrationTest {
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        skipIfNotNativeRepository();
         super.initSystem(initTask, initResult);
 
-        repoAddObjectFromFile(POLICY_SKIPPER_LICENSE_FILE, initResult);
-        repoAddObjectFromFile(ROLE_SKIPPER_FILE, initResult);
-        repoAddObjectFromFile(ROLE_NAVY_CAPTAIN_FILE, initResult);
-        repoAddObjectFromFile(ROLE_NAVAL_ACADEMY_GRADUATE_FILE, initResult);
+        if (isNativeRepository()) {
+            repoAddObjectFromFile(POLICY_SKIPPER_LICENSE_FILE, initResult);
+            repoAddObjectFromFile(ROLE_SKIPPER_FILE, initResult);
+            repoAddObjectFromFile(ROLE_NAVY_CAPTAIN_FILE, initResult);
+            repoAddObjectFromFile(ROLE_NAVAL_ACADEMY_GRADUATE_FILE, initResult);
+        }
     }
 
     @Test
     public void test110DirectRequirementSkipperFail() throws Exception {
+        skipIfNotNativeRepository();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -111,6 +113,7 @@ public class TestRequirement extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test120DirectRequirementSkipperSuccess() throws Exception {
+        skipIfNotNativeRepository();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -130,6 +133,7 @@ public class TestRequirement extends AbstractInitializedModelIntegrationTest {
     //  indirect, role skipper in business role navy captain
     @Test
     public void test130IndirectRequirementNavyCaptainFail() throws Exception {
+        skipIfNotNativeRepository();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -157,6 +161,7 @@ public class TestRequirement extends AbstractInitializedModelIntegrationTest {
     //  indirect, role skipper in business role navy captain
     @Test
     public void test140IndirectRequirementNavyCaptainSuccess() throws Exception {
+        skipIfNotNativeRepository();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -179,6 +184,7 @@ public class TestRequirement extends AbstractInitializedModelIntegrationTest {
     //  indirect, skipper license in graduate role
     @Test
     public void test150IndirectRequirementGraduateSuccess() throws Exception {
+        skipIfNotNativeRepository();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -201,6 +207,7 @@ public class TestRequirement extends AbstractInitializedModelIntegrationTest {
     //  double indirect, role skipper in business role navy captain, skipper license in graduate role
     @Test
     public void test160IndirectRequirementNavyCaptainGraduateSuccess() throws Exception {
+        skipIfNotNativeRepository();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
