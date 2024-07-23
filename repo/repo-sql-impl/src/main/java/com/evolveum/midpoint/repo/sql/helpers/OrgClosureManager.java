@@ -580,13 +580,7 @@ public class OrgClosureManager {
 
                 long startUpdate = System.currentTimeMillis();
                 String updateInClosureQueryText;
-                // Can/must be unified with PG after H2 > 1.4.200 if no other issues emerge.
-                if (isH2()) {
-                    updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
-                            "set val = val + (select val from " + deltaTempTableName + " td " +
-                            "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
-                            "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
-                } else if (isPostgreSQL()) {
+                if (isH2() || isPostgreSQL()) {
                     updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
                             "set val = val + (select val from " + deltaTempTableName + " td " +
                             "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
@@ -611,7 +605,7 @@ public class OrgClosureManager {
                 if (countUpdate > 0) {
                     // Can/must be unified with PG after H2 > 1.4.200 if no other issues emerge.
                     if (isH2()) {
-                        addQuery += " where (descendant_oid, ancestor_oid) not in (select (descendant_oid, ancestor_oid) from " + CLOSURE_TABLE_NAME + ")";
+                        addQuery += " where (descendant_oid, ancestor_oid) not in (select descendant_oid, ancestor_oid from " + CLOSURE_TABLE_NAME + ")";
                     } else if (isPostgreSQL()) {
                         addQuery += " where not exists (select 1 from " + CLOSURE_TABLE_NAME + " cl where cl.descendant_oid=delta.descendant_oid and cl.ancestor_oid=delta.ancestor_oid)";
                     } else {
@@ -801,7 +795,7 @@ public class OrgClosureManager {
                 updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
                         "set val = val - (select val from " + deltaTempTableName + " td " +
                         "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
-                        "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
+                        "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
             } else if (isPostgreSQL() || isOracle()) {
                 deleteFromClosureQueryText = "delete from " + CLOSURE_TABLE_NAME + " " +
                         "where (descendant_oid, ancestor_oid, val) in " +
