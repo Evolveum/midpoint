@@ -10,13 +10,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import jakarta.persistence.criteria.*;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
-import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -63,50 +64,57 @@ public class LookupTableHelper {
     @Autowired private GeneralHelper generalHelper;
     @Autowired private PrismContext prismContext;
 
-    public void addLookupTableRows(Session session, RObject object, boolean deleteBeforeAdd) {
+    public void addLookupTableRows(EntityManager em, RObject object, boolean deleteBeforeAdd) {
         if (!(object instanceof RLookupTable)) {
             return;
         }
         RLookupTable table = (RLookupTable) object;
 
         if (deleteBeforeAdd) {
-            deleteLookupTableRows(session, table.getOid());
+            deleteLookupTableRows(em, table.getOid());
         }
         if (table.getRows() != null) {
             for (RLookupTableRow row : table.getRows()) {
-                session.save(row);
+                if (deleteBeforeAdd) {
+                    row.setTransient(true);
+                }
+                em.merge(row);
             }
         }
     }
 
-    private void addLookupTableRows(Session session, String tableOid,
+    private void addLookupTableRows(EntityManager em, String tableOid,
             Collection<PrismContainerValue<?>> values, int currentId, boolean deleteBeforeAdd)
             throws SchemaException {
         for (PrismContainerValue<?> value : values) {
             LookupTableRowType rowType = new LookupTableRowType();
             rowType.setupContainerValue(value);
             if (deleteBeforeAdd) {
-                deleteRowByKey(session, tableOid, rowType.getKey());
+                deleteRowByKey(em, tableOid, rowType.getKey());
             }
             RLookupTableRow row = RLookupTableRow.toRepo(tableOid, rowType);
             row.setId(currentId);
             currentId++;
-            session.save(row);
+
+            if (deleteBeforeAdd) {
+                row.setTransient(true);
+            }
+            em.merge(row);
         }
     }
 
     /**
      * This method removes all lookup table rows for object defined by oid
      */
-    public void deleteLookupTableRows(Session session, String oid) {
-        Query<?> query = session.getNamedQuery("delete.lookupTableData");
+    public void deleteLookupTableRows(EntityManager em, String oid) {
+        Query query = em.createNamedQuery("delete.lookupTableData");
         query.setParameter("oid", oid);
 
         query.executeUpdate();
     }
 
     public void updateLookupTableData(
-            Session session, String tableOid, Collection<? extends ItemDelta<?, ?>> modifications)
+            EntityManager em, String tableOid, Collection<? extends ItemDelta<?, ?>> modifications)
             throws SchemaException {
         if (modifications.isEmpty()) {
             return;
@@ -127,27 +135,27 @@ public class LookupTableHelper {
                     for (PrismContainerValue<LookupTableRowType> value :
                             (Collection<PrismContainerValue<LookupTableRowType>>) containerDelta.getValuesToDelete()) {
                         if (value.getId() != null) {
-                            deleteRowById(session, tableOid, value.getId());
+                            deleteRowById(em, tableOid, value.getId());
                         } else if (value.asContainerable().getKey() != null) {
-                            deleteRowByKey(session, tableOid, value.asContainerable().getKey());
+                            deleteRowByKey(em, tableOid, value.asContainerable().getKey());
                         } else {
                             // ignore (or throw an exception?)
                         }
                     }
                 }
                 if (containerDelta.getValuesToAdd() != null) {
-                    int currentId = generalHelper.findLastIdInRepo(session, tableOid, "get.lookupTableLastId") + 1;
-                    addLookupTableRows(session, tableOid, containerDelta.getValuesToAdd(), currentId, true);
+                    int currentId = generalHelper.findLastIdInRepo(em, tableOid, "get.lookupTableLastId") + 1;
+                    addLookupTableRows(em, tableOid, containerDelta.getValuesToAdd(), currentId, true);
                 }
                 if (containerDelta.getValuesToReplace() != null) {
-                    deleteLookupTableRows(session, tableOid);
-                    addLookupTableRows(session, tableOid, containerDelta.getValuesToReplace(), 1, false);
+                    deleteLookupTableRows(em, tableOid);
+                    addLookupTableRows(em, tableOid, containerDelta.getValuesToReplace(), 1, false);
                 }
             } else if (deltaPath.size() == 3) {  // row segment modification (structure is already checked)
                 Long rowId = ItemPath.toId(deltaPath.getSegment(1));
                 QName name = ItemPath.toName(deltaPath.getSegment(2));
 
-                RLookupTableRow row = session.get(RLookupTableRow.class, new RContainerId(RUtil.toInteger(rowId), tableOid));
+                RLookupTableRow row = em.find(RLookupTableRow.class, new RContainerId(RUtil.toInteger(rowId), tableOid));
                 LookupTableRowType rowType = row.toJAXB(prismContext);
                 delta.setParentPath(ItemPath.EMPTY_PATH);
                 delta.applyTo(rowType.asPrismContainerValue());
@@ -155,20 +163,20 @@ public class LookupTableHelper {
                     rowType.setLastChangeTimestamp(null);   // in order to get filled in via toRepo call below
                 }
                 RLookupTableRow rowUpdated = RLookupTableRow.toRepo(tableOid, rowType);
-                session.merge(rowUpdated);
+                em.merge(rowUpdated);
             }
         }
     }
 
-    private void deleteRowById(Session session, String tableOid, Long id) {
-        Query query = session.getNamedQuery("delete.lookupTableDataRow");
+    private void deleteRowById(EntityManager session, String tableOid, Long id) {
+        Query query = session.createNamedQuery("delete.lookupTableDataRow");
         query.setParameter("oid", tableOid);
         query.setParameter("id", RUtil.toInteger(id));
         query.executeUpdate();
     }
 
-    private void deleteRowByKey(Session session, String tableOid, String key) {
-        Query query = session.getNamedQuery("delete.lookupTableDataRowByKey");
+    private void deleteRowByKey(EntityManager session, String tableOid, String key) {
+        Query query = session.createNamedQuery("delete.lookupTableDataRowByKey");
         query.setParameter("oid", tableOid);
         query.setParameter("key", key);
         query.executeUpdate();
@@ -193,7 +201,7 @@ public class LookupTableHelper {
 
     <T extends ObjectType> void updateLoadedLookupTable(PrismObject<T> object,
             Collection<SelectorOptions<GetOperationOptions>> options,
-            Session session) throws SchemaException {
+            EntityManager session) throws SchemaException {
         if (!SelectorOptions.hasToFetchPathNotRetrievedByDefault(LookupTableType.F_ROW, options)) {
             return;
         }
@@ -215,7 +223,7 @@ public class LookupTableHelper {
         }
 
         //noinspection unchecked
-        List<RLookupTableRow> rows = query.list();
+        List<RLookupTableRow> rows = query.getResultList();
         if (CollectionUtils.isNotEmpty(rows)) {
             LookupTableType lookup = (LookupTableType) object.asObjectable();
             List<LookupTableRowType> jaxbRows = lookup.getRow();
@@ -234,8 +242,8 @@ public class LookupTableHelper {
         }
     }
 
-    private Query setupLookupTableRowsQuery(Session session, RelationalValueSearchQuery queryDef, String oid) throws SchemaException {
-        CriteriaBuilder cb = session.getCriteriaBuilder();
+    private Query setupLookupTableRowsQuery(EntityManager em, RelationalValueSearchQuery queryDef, String oid) throws SchemaException {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<?> cq = cb.createQuery(RLookupTableRow.class);
 
         Root<RLookupTableRow> root = cq.from(RLookupTableRow.class);
@@ -246,7 +254,7 @@ public class LookupTableHelper {
         if (queryDef == null) {
             appendWhereClause(cq, where, cb);
 
-            return session.createQuery(cq);
+            return em.createQuery(cq);
         }
 
         if (queryDef.getColumn() != null
@@ -277,7 +285,7 @@ public class LookupTableHelper {
 
         ObjectPaging paging = queryDef.getPaging();
         if (paging == null) {
-            return session.createQuery(cq);
+            return em.createQuery(cq);
         }
 
         ItemPath orderByPath = paging.getPrimaryOrderingPath();
@@ -306,7 +314,7 @@ public class LookupTableHelper {
             cq.orderBy(order);
         }
 
-        return session.createQuery(cq);
+        return em.createQuery(cq);
     }
 
     private Path[] buildOrderByPaths(String orderBy, Root<RLookupTableRow> root) {

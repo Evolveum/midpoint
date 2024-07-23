@@ -10,7 +10,7 @@ package com.evolveum.midpoint.repo.sql.helpers.modify;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.hibernate.Session;
+import jakarta.persistence.EntityManager;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAExtBase;
@@ -23,25 +23,25 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
  */
 public class DeltaUpdaterUtils {
 
-    public static void clearExtension(RAssignmentExtension extension, Session session) {
-        clearExtensionCollection(extension.getBooleans(), session);
-        clearExtensionCollection(extension.getDates(), session);
-        clearExtensionCollection(extension.getLongs(), session);
-        clearExtensionCollection(extension.getPolys(), session);
-        clearExtensionCollection(extension.getReferences(), session);
-        clearExtensionCollection(extension.getStrings(), session);
+    public static void clearExtension(RAssignmentExtension extension, EntityManager em) {
+        clearExtensionCollection(extension.getBooleans(), em);
+        clearExtensionCollection(extension.getDates(), em);
+        clearExtensionCollection(extension.getLongs(), em);
+        clearExtensionCollection(extension.getPolys(), em);
+        clearExtensionCollection(extension.getReferences(), em);
+        clearExtensionCollection(extension.getStrings(), em);
     }
 
-    public static void clearExtension(RObject obj, RObjectExtensionType extType, Session session) {
-        clearExtensionCollection(obj.getBooleans(), extType, session);
-        clearExtensionCollection(obj.getDates(), extType, session);
-        clearExtensionCollection(obj.getLongs(), extType, session);
-        clearExtensionCollection(obj.getPolys(), extType, session);
-        clearExtensionCollection(obj.getReferences(), extType, session);
-        clearExtensionCollection(obj.getStrings(), extType, session);
+    public static void clearExtension(RObject obj, RObjectExtensionType extType, EntityManager em) {
+        clearExtensionCollection(obj.getBooleans(), extType, em);
+        clearExtensionCollection(obj.getDates(), extType, em);
+        clearExtensionCollection(obj.getLongs(), extType, em);
+        clearExtensionCollection(obj.getPolys(), extType, em);
+        clearExtensionCollection(obj.getReferences(), extType, em);
+        clearExtensionCollection(obj.getStrings(), extType, em);
     }
 
-    private static void clearExtensionCollection(Collection<? extends RAExtBase<?>> dbCollection, Session session) {
+    private static void clearExtensionCollection(Collection<? extends RAExtBase<?>> dbCollection, EntityManager em) {
         Iterator<? extends RAExtBase> iterator = dbCollection.iterator();
         while (iterator.hasNext()) {
             RAExtBase dbValue = iterator.next();
@@ -51,7 +51,7 @@ public class DeltaUpdaterUtils {
     }
 
     private static void clearExtensionCollection(Collection<? extends ROExtBase<?>> dbCollection, RObjectExtensionType typeToDelete,
-            Session session) {
+            EntityManager em) {
         Iterator<? extends ROExtBase> iterator = dbCollection.iterator();
         //noinspection Java8CollectionRemoveIf
         while (iterator.hasNext()) {

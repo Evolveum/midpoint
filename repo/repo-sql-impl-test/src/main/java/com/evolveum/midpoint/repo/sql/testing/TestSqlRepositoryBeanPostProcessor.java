@@ -6,11 +6,13 @@
  */
 package com.evolveum.midpoint.repo.sql.testing;
 
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.Query;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.hibernate.query.Query;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -33,10 +35,10 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
     @Override
     public Object postProcessAfterInitialization(@NotNull Object bean, @NotNull String beanName)
             throws BeansException {
-        if (!(bean instanceof SessionFactory)) {
+        if (!(bean instanceof EntityManagerFactory entityManagerFactory)) {
             return bean;
         }
-        LOGGER.info("Postprocessing session factory - removing everything from database if necessary.");
+        LOGGER.info("Postprocessing entity manager factory - removing everything from database if necessary.");
 
         //we'll attempt to drop database objects if configuration contains dropIfExists=true and embedded=false
         if (!repoConfig.isDropIfExists() || repoConfig.isEmbedded()) {
@@ -46,36 +48,35 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
 
         LOGGER.info("Deleting objects from database.");
 
-        SessionFactory sessionFactory = (SessionFactory) bean;
-        Session session = sessionFactory.openSession();
+        EntityManager em = entityManagerFactory.createEntityManager();
         try {
-            session.beginTransaction();
+            em.getTransaction().begin();
 
-            Query<?> query;
+            Query query;
             if (useProcedure(repoConfig)) {
                 LOGGER.info("Using truncate procedure.");
-                query = session.createNativeQuery("{ call " + TRUNCATE_PROCEDURE + "() }");
+                query = em.createNativeQuery("{ call " + TRUNCATE_PROCEDURE + "() }");
                 query.executeUpdate();
             } else {
                 LOGGER.info("Using truncate function.");
-                query = session.createNativeQuery("select " + TRUNCATE_FUNCTION + "();");
-                query.uniqueResult();
+                query = em.createNativeQuery("select " + TRUNCATE_FUNCTION + "();");
+                RUtil.getSingleResultOrNull(query);
             }
 
-            session.getTransaction().commit();
+            em.getTransaction().commit();
         } catch (Exception ex) {
             LOGGER.error("Couldn't cleanup database, reason: " + ex.getMessage(), ex);
 
-            if (session != null && session.isOpen()) {
-                Transaction transaction = session.getTransaction();
+            if (em != null && em.isOpen()) {
+                EntityTransaction transaction = em.getTransaction();
                 if (transaction != null && transaction.isActive()) {
                     transaction.rollback();
                 }
             }
             throw new BeanInitializationException("Couldn't cleanup database, reason: " + ex.getMessage(), ex);
         } finally {
-            if (session != null && session.isOpen()) {
-                session.close();
+            if (em != null && em.isOpen()) {
+                em.close();
             }
         }
 

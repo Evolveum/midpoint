@@ -8,9 +8,9 @@ package com.evolveum.midpoint.repo.sql.data.common.other;
 
 import java.util.Date;
 import java.util.Objects;
-import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
@@ -49,10 +49,8 @@ public class RLookupTableRow implements Container<RLookupTable> {
 
     private XMLGregorianCalendar lastChangeTimestamp;
 
-    @Id
-
-    @JoinColumn(foreignKey = @ForeignKey(name = "fk_lookup_table_owner"))
-    @MapsId("owner")
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_lookup_table_owner"))
+    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @Override
     @NotQueryable
@@ -60,7 +58,13 @@ public class RLookupTableRow implements Container<RLookupTable> {
         return owner;
     }
 
+    /**
+     * @see com.evolveum.midpoint.repo.sql.data.generator.ContainerOidGenerator
+     */
+    @Id
     @Override
+    @GeneratedValue(generator = "ContainerOidGenerator")
+    @GenericGenerator(name = "ContainerOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.data.generator.ContainerOidGeneratorImpl")
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {
@@ -82,7 +86,6 @@ public class RLookupTableRow implements Container<RLookupTable> {
         return id;
     }
 
-    @Id
     @Column(name = "row_key")
     public String getKey() {
         return key;

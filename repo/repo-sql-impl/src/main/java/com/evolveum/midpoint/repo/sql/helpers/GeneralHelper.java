@@ -7,19 +7,22 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.hibernate.query.Query;
-import org.hibernate.Session;
-import org.springframework.stereotype.Component;
 
 @Component
 public class GeneralHelper {
 
-    public int findLastIdInRepo(Session session, String tableOid, String queryName) {
-        Query query = session.getNamedQuery(queryName);
+    public int findLastIdInRepo(EntityManager em, String tableOid, String queryName) {
+        Query query = em.createNamedQuery(queryName);
         query.setParameter("oid", tableOid);
-        Integer lastId = (Integer) query.uniqueResult();
+        Integer lastId = RUtil.getSingleResultOrNull(query);
         if (lastId == null) {
             lastId = 0;
         }
@@ -37,6 +40,5 @@ public class GeneralHelper {
         }
         // TODO call check consistence if possible
     }
-
 
 }

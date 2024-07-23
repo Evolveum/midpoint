@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.annotation.PostConstruct;
@@ -60,6 +62,24 @@ public class SqlEmbeddedRepository {
         if (sqlConfiguration.isEmbedded()) {
             dropDatabaseIfExists(sqlConfiguration);
             if (sqlConfiguration.isAsServer()) {
+
+                try {
+                    // create DB file if necessary, not doable in remote/server configuration without creating
+                    // security hole by allowing some sort of remote access
+                    // http://h2database.com/html/tutorial.html?highlight=ifNotExists&search=ifnote#firstFound
+                    String baseDir = sqlConfiguration.getBaseDir();
+                    String fileName = sqlConfiguration.getFileName();
+                    File databaseFile = new File(baseDir, fileName);
+                    String jdbcUrl = "jdbc:h2:file:" + databaseFile.getAbsolutePath();
+
+                    Connection connection = DriverManager.getConnection(
+                            jdbcUrl, sqlConfiguration.getJdbcUsername(), sqlConfiguration.getJdbcPassword());
+                    connection.close();
+                } catch (Exception ex) {
+                    throw new RepositoryServiceFactoryException(
+                            "Couldn't pre-create database, reason: " + ex.getMessage(), ex);
+                }
+
                 LOGGER.info("Starting h2 in server mode.");
                 startServer();
             } else {
