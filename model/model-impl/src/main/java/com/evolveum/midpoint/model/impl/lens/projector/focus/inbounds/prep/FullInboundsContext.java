@@ -69,9 +69,4 @@ public class FullInboundsContext extends InboundsContext {
     public @NotNull PathSet getCorrelationItemPaths() {
         return new PathSet();
     }
-
-    @Override
-    public @NotNull TaskExecutionMode getExecutionMode() {
-        return getTaskExecutionMode();
-    }
 }

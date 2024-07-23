@@ -136,6 +136,7 @@
                 <association>
                     <ref>ri:contract</ref>
                     <inbound>
+                        <name>contracts-inbound</name>
                         <expression>
                             <associationSynchronization>
                                 <attribute>
@@ -272,12 +273,6 @@
                                 </synchronization>
                             </associationSynchronization>
                         </expression>
-                        <target>
-                            <assignmentSubtype>contract</assignmentSubtype>
-                            <set>
-                                <predefined>all</predefined>
-                            </set>
-                        </target>
                     </inbound>
                 </association>
             </subject>

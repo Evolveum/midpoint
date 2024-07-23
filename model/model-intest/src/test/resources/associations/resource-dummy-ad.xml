@@ -138,6 +138,7 @@
                         </expression>
                     </outbound>
                     <inbound>
+                        <name>groups-inbound</name>
                         <expression>
                             <associationSynchronization>
                                 <objectRef>
@@ -168,12 +169,6 @@
                                 </synchronization>
                             </associationSynchronization>
                         </expression>
-                        <target>
-                            <assignmentSubtype>groupMembership</assignmentSubtype>
-                            <set>
-                                <predefined>all</predefined>
-                            </set>
-                        </target>
                     </inbound>
                 </association>
             </subject>

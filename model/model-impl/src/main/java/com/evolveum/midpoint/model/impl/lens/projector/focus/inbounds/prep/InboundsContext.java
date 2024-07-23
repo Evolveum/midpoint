@@ -60,7 +60,8 @@ public abstract class InboundsContext implements ExecutionModeProvider {
      */
     public abstract @NotNull PathSet getCorrelationItemPaths();
 
-    @NotNull TaskExecutionMode getTaskExecutionMode() {
+    @Override
+    public @NotNull TaskExecutionMode getExecutionMode() {
         return env.task.getExecutionMode();
     }
 

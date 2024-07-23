@@ -149,6 +149,7 @@
                         </expression>
                     </outbound>
                     <inbound>
+                        <name>accesses-inbound</name>
                         <expression>
                             <associationSynchronization>
                                 <objectRef>
@@ -213,12 +214,6 @@
                                 </synchronization>
                             </associationSynchronization>
                         </expression>
-                        <target>
-                            <assignmentSubtype>documentAccess</assignmentSubtype>
-                            <set>
-                                <predefined>all</predefined>
-                            </set>
-                        </target>
                     </inbound>
                 </association>
             </subject>

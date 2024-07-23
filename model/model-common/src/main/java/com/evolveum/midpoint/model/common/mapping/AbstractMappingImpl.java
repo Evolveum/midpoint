@@ -925,12 +925,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * </ol>
      */
     private void checkExistingTargetValues(OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        VariableBindingDefinitionType target = mappingBean.getTarget();
-        if (target == null) {
-            return;
-        }
-
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         if (valueMetadataComputer != null && valueMetadataComputer.supportsProvenance()) {
             restrictNegativeValuesToOwnYield();
             // Must come after the above method because this method creates some values in minus set.
@@ -938,7 +934,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             deleteOwnYieldFromNonNegativeValues();
         }
 
-        ValueSetDefinitionType rangeSetDefBean = target.getSet();
+        VariableBindingDefinitionType target = mappingBean.getTarget();
+        ValueSetDefinitionType rangeSetDefBean = target != null ? target.getSet() : null;
         // As of 4.9: Multivalues have by default provenance set mapping.
         if (rangeSetDefBean == null && shouldUseMatchingProvenance()) {
             rangeSetDefBean = new ValueSetDefinitionType().predefined(ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE);
@@ -957,7 +954,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             throw new IllegalStateException(
                     "Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
         }
-
 
         ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(
                 rangeSetDefBean,

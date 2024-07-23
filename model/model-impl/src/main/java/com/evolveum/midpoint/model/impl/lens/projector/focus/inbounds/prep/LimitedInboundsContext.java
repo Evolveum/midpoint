@@ -56,9 +56,4 @@ public class LimitedInboundsContext extends InboundsContext {
     public @NotNull PathSet getCorrelationItemPaths() {
         return correlationItemPaths;
     }
-
-    @Override
-    public @NotNull TaskExecutionMode getExecutionMode() {
-        return getTaskExecutionMode();
-    }
 }

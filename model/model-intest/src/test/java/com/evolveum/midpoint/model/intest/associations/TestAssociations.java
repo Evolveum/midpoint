@@ -323,7 +323,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .by().identifier(JOHN_SCIENCES_CONTRACT_ASSIGNMENT_ID).find()
                     .assertTargetRef(orgSciencesOid, OrgType.COMPLEX_TYPE)
                     .assertOrgRef(orgCc1000.getOid(), OrgType.COMPLEX_TYPE)
-                    .assertSubtype("contract")
                     .extension()
                         .assertPropertyValuesEqual(HR_COST_CENTER, CC_1000_NAME)
                     .end()
@@ -333,7 +332,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .by().identifier(JOHN_LAW_CONTRACT_ASSIGNMENT_ID).find()
                     .assertTargetRef(orgLawOid, OrgType.COMPLEX_TYPE)
                     .assertOrgRef(orgCc1000.getOid(), OrgType.COMPLEX_TYPE)
-                    .assertSubtype("contract")
                     .extension()
                         .assertPropertyValuesEqual(HR_COST_CENTER, CC_1000_NAME)
                     .end()
@@ -389,7 +387,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .by().identifier(JOHN_SCIENCES_CONTRACT_ASSIGNMENT_ID).find()
                     .assertTargetRef(orgSciencesOid, OrgType.COMPLEX_TYPE)
                     .assertOrgRef(orgCc1100.getOid(), OrgType.COMPLEX_TYPE)
-                    .assertSubtype("contract")
                     .extension()
                         .assertPropertyValuesEqual(HR_COST_CENTER, CC_1100_NAME)
                     .end()
@@ -398,7 +395,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .by().identifier(JOHN_MEDICINE_CONTRACT_ASSIGNMENT_ID).find()
                     .assertTargetRef(orgMedicineOid, OrgType.COMPLEX_TYPE)
                     .assertOrgRef(orgCc1100.getOid(), OrgType.COMPLEX_TYPE)
-                    .assertSubtype("contract")
                     .extension()
                         .assertPropertyValuesEqual(HR_COST_CENTER, CC_1100_NAME)
                     .end()
@@ -452,11 +448,9 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertAssignments(2)
                 .by().identifier("guide:read").find()
                     .assertTargetRef(serviceGuide.getOid(), ServiceType.COMPLEX_TYPE, RELATION_READ)
-                    .assertSubtype("documentAccess")
                 .end()
                 .by().identifier("guide:write").find()
                     .assertTargetRef(serviceGuide.getOid(), ServiceType.COMPLEX_TYPE, RELATION_WRITE)
-                    .assertSubtype("documentAccess")
                 .end();
         // @formatter:on
     }
@@ -501,7 +495,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertAssignments(1)
                 .by().targetOid(roleAdministrators.getOid()).find()
                     .assertTargetRef(roleAdministrators.getOid(), RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
-                    .assertSubtype("groupMembership")
                 .end();
         // @formatter:on
     }
@@ -528,7 +521,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertAssignments(1)
                 .by().targetOid(roleGuests.getOid()).find()
                     .assertTargetRef(roleGuests.getOid(), RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
-                    .assertSubtype("groupMembership")
                 .end();
         // @formatter:on
 
@@ -543,11 +535,9 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertAssignments(2)
                 .by().targetOid(roleGuests.getOid()).find()
                     .assertTargetRef(roleGuests.getOid(), RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
-                    .assertSubtype("groupMembership")
                 .end()
                 .by().targetOid(roleTesters.getOid()).find()
                     .assertTargetRef(roleTesters.getOid(), RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
-                    .assertSubtype("groupMembership")
                 .end();
         // @formatter:on
     }
