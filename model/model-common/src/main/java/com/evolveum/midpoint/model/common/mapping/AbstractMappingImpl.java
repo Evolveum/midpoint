@@ -935,12 +935,15 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
 
         VariableBindingDefinitionType target = mappingBean.getTarget();
-        ValueSetDefinitionType rangeSetDefBean = target != null ? target.getSet() : null;
+        ValueSetDefinitionType explicitRangeSetDefBean = target != null ? target.getSet() : null;
+        ValueSetDefinitionType effectiveRangeSetDefBean;
         // As of 4.9: Multivalues have by default provenance set mapping.
-        if (rangeSetDefBean == null && shouldUseMatchingProvenance()) {
-            rangeSetDefBean = new ValueSetDefinitionType().predefined(ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE);
+        if (explicitRangeSetDefBean == null && shouldUseMatchingProvenance()) {
+            effectiveRangeSetDefBean = new ValueSetDefinitionType().predefined(ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE);
+        } else {
+            effectiveRangeSetDefBean = explicitRangeSetDefBean;
         }
-        if (rangeSetDefBean == null) {
+        if (effectiveRangeSetDefBean == null) {
             return;
         }
         String name;
@@ -951,12 +954,18 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
 
         if (originalTargetValues == null) {
-            throw new IllegalStateException(
-                    "Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
+            if (explicitRangeSetDefBean != null) {
+                throw new IllegalStateException(
+                        "Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
+            } else {
+                // This is mainly to cover corner cases like those in low-level tests
+                // (TestMappingDomain, TestMappingDynamicSimple)
+                return;
+            }
         }
 
         ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(
-                rangeSetDefBean,
+                effectiveRangeSetDefBean,
                 ValueSetDefinition.ExtraSetSpecification.fromBean(target),
                 getOutputDefinition(),
                 valueMetadataDefinition,
