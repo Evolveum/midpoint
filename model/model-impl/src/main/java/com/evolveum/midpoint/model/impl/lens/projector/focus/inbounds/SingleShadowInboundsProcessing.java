@@ -131,7 +131,7 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
                     evaluationRequestsMap,
                     new LimitedInboundsSource(ctx),
                     new LimitedInboundsTarget<>(preFocusPcv, getFocusDefinition(preFocusPcv), itemDefinitionMap),
-                    new LimitedInboundsContext(ctx, getCorrelationItemPaths(result), env, assignmentsProcessingContext),
+                    new LimitedInboundsContext(ctx, getCorrelationItemPaths(result), env),
                     lResult -> {})
                     .prepareOrEvaluate(result);
         } catch (StopProcessingProjectionException e) {

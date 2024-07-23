@@ -76,8 +76,6 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
      */
     @NotNull private final DeltaSetTripleIvwoMap outputTripleMap = new DeltaSetTripleIvwoMap();
 
-    final AssignmentsProcessingContext assignmentsProcessingContext = new AssignmentsProcessingContext();
-
     @NotNull final ModelBeans beans = ModelBeans.get();
 
     AbstractInboundsProcessing(@NotNull MappingEvaluationEnvironment env) {
@@ -206,11 +204,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
                 result);
         consolidation.computeItemDeltas();
 
-        var consolidatedDeltas =
-                new AssignmentsConsolidation(assignmentsProcessingContext, consolidation.getItemDeltas(), getTarget())
-                        .consolidate();
-
-        applyComputedDeltas(consolidatedDeltas);
+        applyComputedDeltas(consolidation.getItemDeltas());
     }
 
     @NotNull private ItemDefinition<?> getItemDefinition(@NotNull ItemPath itemPath) {

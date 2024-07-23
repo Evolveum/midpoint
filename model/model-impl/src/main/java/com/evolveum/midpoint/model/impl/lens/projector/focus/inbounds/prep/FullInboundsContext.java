@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.AssignmentsProcessingContext;
 import com.evolveum.midpoint.prism.path.PathSet;
 
 import com.evolveum.midpoint.schema.TaskExecutionMode;
@@ -30,9 +29,8 @@ public class FullInboundsContext extends InboundsContext {
 
     public FullInboundsContext(
             @NotNull LensContext<?> lensContext,
-            @NotNull MappingEvaluationEnvironment env,
-            @NotNull AssignmentsProcessingContext assignmentsProcessingContext) {
-        super(env, assignmentsProcessingContext);
+            @NotNull MappingEvaluationEnvironment env) {
+        super(env);
         this.lensContext = lensContext;
     }
 

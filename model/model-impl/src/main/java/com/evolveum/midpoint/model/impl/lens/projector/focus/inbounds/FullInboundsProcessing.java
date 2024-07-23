@@ -110,7 +110,7 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
                 try {
                     // Here we prepare all those complex source/target/context objects ...
                     PrismObject<F> objectCurrentOrNew = lensContext.getFocusContext().getObjectCurrentOrNew();
-                    var inboundsContext = new FullInboundsContext(lensContext, env, assignmentsProcessingContext);
+                    var inboundsContext = new FullInboundsContext(lensContext, env);
                     var inboundsSource = new FullInboundsSource(
                             InboundSourceData.forShadow(
                                     projectionContext.getObjectCurrent(),
