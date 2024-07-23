@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequests;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequestsMap;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -49,7 +49,7 @@ public class SingleShadowInboundsPreparation<T extends Containerable> {
     private static final String OP_PREPARE_OR_EVALUATE = SingleShadowInboundsPreparation.class.getName() + ".prepareOrEvaluate";
 
     /** Place where the prepared mappings are gathered. */
-    @NotNull private final MappingEvaluationRequests evaluationRequestsBeingCollected;
+    @NotNull private final MappingEvaluationRequestsMap evaluationRequestsBeingCollected;
 
     /** Source - i.e. the resource object along with the whole context (like lens context for Clockwork execution). */
     @NotNull private final InboundsSource inboundsSource;
@@ -64,7 +64,7 @@ public class SingleShadowInboundsPreparation<T extends Containerable> {
     @NotNull private final SpecialInboundsEvaluator specialInboundsEvaluator;
 
     public SingleShadowInboundsPreparation(
-            @NotNull MappingEvaluationRequests evaluationRequestsBeingCollected,
+            @NotNull MappingEvaluationRequestsMap evaluationRequestsBeingCollected,
             @NotNull InboundsSource inboundsSource,
             @NotNull InboundsTarget<T> inboundsTarget,
             @NotNull InboundsContext inboundsContext,

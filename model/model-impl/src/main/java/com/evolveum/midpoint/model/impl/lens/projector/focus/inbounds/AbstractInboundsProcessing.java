@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.expr.AssociationSynchronizationResult;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleIvwoMap;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
@@ -63,11 +64,11 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     /** Context description, time, task. */
     @NotNull final MappingEvaluationEnvironment env;
 
-    /** All evaluation requests (i.e., mappings prepared for evaluation). */
-    final MappingEvaluationRequests evaluationRequests = new MappingEvaluationRequests();
+    /** All evaluation requests (i.e., mappings prepared for evaluation), indexed by the target item path. */
+    @NotNull final MappingEvaluationRequestsMap evaluationRequestsMap = new MappingEvaluationRequestsMap();
 
     /** Here we cache definitions for both regular and identity *target* items. */
-    final PathKeyedMap<ItemDefinition<?>> itemDefinitionMap = new PathKeyedMap<>();
+    @NotNull final PathKeyedMap<ItemDefinition<?>> itemDefinitionMap = new PathKeyedMap<>();
 
     /**
      * Output triples for individual target paths. This is the actual result of mapping evaluation.
@@ -118,7 +119,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
         OperationResult result = parentResult.subresult(OP_EVALUATE_MAPPINGS)
                 .build();
         try {
-            for (var entry : evaluationRequests.entrySet()) {
+            for (var entry : List.copyOf(evaluationRequestsMap.entrySet())) {
                 List<MappingEvaluationRequest<?, ?>> mappings = entry.getValue();
                 assert !mappings.isEmpty();
                 for (var mapping : mappings) {
@@ -152,21 +153,33 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     private <V extends PrismValue, D extends ItemDefinition<?>> void mergeMappingOutput(
             MappingImpl<V, D> mapping, ItemPath targetPath, boolean allToDelete) {
 
-        DeltaSetTriple<ItemValueWithOrigin<V, D>> ivwoTriple = ItemValueWithOrigin.createOutputTriple(mapping);
+        var ivwoTriple = ItemValueWithOrigin.createOutputTriple(mapping);
         LOGGER.trace("Inbound mapping for {}\nreturned triple:\n{}",
                 DebugUtil.shortDumpLazily(mapping.getDefaultSource()), DebugUtil.debugDumpLazily(ivwoTriple, 1));
 
-        if (ivwoTriple != null) {
-            if (allToDelete) {
-                LOGGER.trace("Projection is going to be deleted, setting values from this projection to minus set");
-                DeltaSetTriple<ItemValueWithOrigin<V, D>> convertedTriple = beans.prismContext.deltaFactory().createDeltaSetTriple();
-                convertedTriple.addAllToMinusSet(ivwoTriple.getPlusSet());
-                convertedTriple.addAllToMinusSet(ivwoTriple.getZeroSet());
-                convertedTriple.addAllToMinusSet(ivwoTriple.getMinusSet());
-                outputTripleMap.putOrMerge(targetPath, convertedTriple);
-            } else {
-                outputTripleMap.putOrMerge(targetPath, ivwoTriple);
-            }
+        if (ivwoTriple == null) {
+            return;
+        }
+        if (allToDelete) {
+            LOGGER.trace("Projection is going to be deleted, setting values from this projection to minus set");
+            DeltaSetTriple<ItemValueWithOrigin<V, D>> convertedTriple = beans.prismContext.deltaFactory().createDeltaSetTriple();
+            convertedTriple.addAllToMinusSet(ivwoTriple.getPlusSet());
+            convertedTriple.addAllToMinusSet(ivwoTriple.getZeroSet());
+            convertedTriple.addAllToMinusSet(ivwoTriple.getMinusSet());
+            outputTripleMap.putOrMerge(targetPath, convertedTriple);
+            return; // ignoring embedded triple maps
+        }
+
+        outputTripleMap.putOrMerge(targetPath, ivwoTriple);
+
+        // Let's also treat inner triples and additional data, if there are any
+        if (mapping.getOutputTriple() instanceof AssociationSynchronizationResult<V> associationSynchronizationResult) {
+            outputTripleMap.putOrMergeAll(
+                    associationSynchronizationResult.getInnerDeltaSetTriplesMap());
+            itemDefinitionMap.putAll(
+                    associationSynchronizationResult.getInnerItemDefinitionsMap());
+            evaluationRequestsMap.putAll(
+                    associationSynchronizationResult.getInnerMappingEvaluationRequestsMap());
         }
     }
 
@@ -207,7 +220,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     }
 
     private boolean rangeIsCompletelyDefined(ItemPath itemPath) {
-        return evaluationRequests.get(itemPath).stream()
+        return evaluationRequestsMap.getRequired(itemPath).stream()
                 .allMatch(m -> m.getMapping().hasTargetRange());
     }
 
@@ -225,8 +238,15 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
 
     abstract void applyComputedDeltas(Collection<? extends ItemDelta<?,?>> itemDeltas) throws SchemaException;
 
-    @NotNull
-    DeltaSetTripleIvwoMap getOutputTripleMap() {
+    public @NotNull DeltaSetTripleIvwoMap getOutputTripleMap() {
         return outputTripleMap;
+    }
+
+    public @NotNull PathKeyedMap<ItemDefinition<?>> getItemDefinitionMap() {
+        return itemDefinitionMap;
+    }
+
+    public @NotNull MappingEvaluationRequestsMap getEvaluationRequestsMap() {
+        return evaluationRequestsMap;
     }
 }

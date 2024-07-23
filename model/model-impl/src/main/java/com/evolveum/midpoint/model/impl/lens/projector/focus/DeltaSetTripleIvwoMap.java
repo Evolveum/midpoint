@@ -49,6 +49,12 @@ public class DeltaSetTripleIvwoMap extends PathKeyedMap<DeltaSetTriple<ItemValue
         }
     }
 
+    public void putOrMergeAll(ItemPath pathPrefix, DeltaSetTripleIvwoMap otherMap) {
+        for (var entry : otherMap.entrySet()) {
+            putOrMergeInternal(pathPrefix.append(entry.getKey()), entry.getValue());
+        }
+    }
+
     public void putOrMergeAll(DeltaSetTripleIvwoMap otherMap) {
         for (var entry : otherMap.entrySet()) {
             putOrMergeInternal(entry.getKey(), entry.getValue());

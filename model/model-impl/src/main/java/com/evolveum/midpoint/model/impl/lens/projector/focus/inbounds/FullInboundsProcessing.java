@@ -128,7 +128,7 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
 
                     // ... and run the preparation itself
                     var preparation = new SingleShadowInboundsPreparation<>(
-                            evaluationRequests, inboundsSource, inboundsTarget, inboundsContext,
+                            evaluationRequestsMap, inboundsSource, inboundsTarget, inboundsContext,
                             new SpecialInboundsEvaluatorImpl(inboundsSource, inboundsTarget, inboundsContext, projectionContext));
 
                     preparation.prepareOrEvaluate(result);

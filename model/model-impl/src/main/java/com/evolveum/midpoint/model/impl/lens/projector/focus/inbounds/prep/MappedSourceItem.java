@@ -13,7 +13,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.FullInboundsProcessing;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequests;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequestsMap;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -128,7 +128,7 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
     /**
      * Creates the respective mapping(s) and puts them into `evaluationRequestsBeingCollected` parameter.
      */
-    void createMappings(@NotNull MappingEvaluationRequests evaluationRequestsBeingCollected, OperationResult result)
+    void createMappings(@NotNull MappingEvaluationRequestsMap evaluationRequestsBeingCollected, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 

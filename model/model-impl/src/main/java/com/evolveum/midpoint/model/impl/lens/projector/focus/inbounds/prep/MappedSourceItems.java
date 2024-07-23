@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequests;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequestsMap;
 
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
@@ -413,7 +413,7 @@ class MappedSourceItems<T extends Containerable> {
         return false;
     }
 
-    void createMappings(MappingEvaluationRequests evaluationRequestsBeingCollected, OperationResult result)
+    void createMappings(MappingEvaluationRequestsMap evaluationRequestsBeingCollected, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         for (var mappedItem : mappedSourceItems) {
