@@ -24,11 +24,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
-public class FullContext extends MappingContext {
+public class FullInboundsContext extends InboundsContext {
 
     @NotNull private final LensContext<?> lensContext;
 
-    public FullContext(
+    public FullInboundsContext(
             @NotNull LensContext<?> lensContext,
             @NotNull MappingEvaluationEnvironment env,
             @NotNull AssignmentsProcessingContext assignmentsProcessingContext) {

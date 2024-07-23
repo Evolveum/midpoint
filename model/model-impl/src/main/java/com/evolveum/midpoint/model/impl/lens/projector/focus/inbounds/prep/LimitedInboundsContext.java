@@ -21,15 +21,15 @@ import org.jetbrains.annotations.NotNull;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 /**
- * A {@link MappingContext} for inbound mappings evaluation that is used in "pre-inbounds" evaluation (i.e., before clockwork is run).
+ * A {@link InboundsContext} for inbound mappings evaluation that is used in "pre-inbounds" evaluation (i.e., before clockwork is run).
  */
-public class LimitedContext extends MappingContext {
+public class LimitedInboundsContext extends InboundsContext {
 
     @NotNull private final SingleShadowInboundsProcessingContext<?> ctx;
 
     @NotNull private final PathSet correlationItemPaths;
 
-    public LimitedContext(
+    public LimitedInboundsContext(
             @NotNull SingleShadowInboundsProcessingContext<?> ctx,
             @NotNull PathSet correlationItemPaths,
             @NotNull MappingEvaluationEnvironment env,

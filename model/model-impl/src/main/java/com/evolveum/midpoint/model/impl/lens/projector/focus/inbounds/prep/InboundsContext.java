@@ -25,19 +25,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 /**
- * Overall context of the mappings preparation: system configuration, environment (time, task), operation result, and the like.
+ * Overall context of the inbounds processing: system configuration, environment (time, task), operation result, and the like.
  */
-public abstract class MappingContext implements ExecutionModeProvider {
+public abstract class InboundsContext implements ExecutionModeProvider {
 
     /** The environment: context description, now (the clock), task. */
     @NotNull protected final MappingEvaluationEnvironment env;
 
-    @NotNull final AssignmentsProcessingContext assignmentsProcessingContext;
+    @NotNull private final AssignmentsProcessingContext assignmentsProcessingContext;
 
     /** Useful Spring beans. */
     @NotNull final ModelBeans beans = ModelBeans.get();
 
-    MappingContext(@NotNull MappingEvaluationEnvironment env, @NotNull AssignmentsProcessingContext assignmentsProcessingContext) {
+    InboundsContext(@NotNull MappingEvaluationEnvironment env, @NotNull AssignmentsProcessingContext assignmentsProcessingContext) {
         this.env = env;
         this.assignmentsProcessingContext = assignmentsProcessingContext;
     }

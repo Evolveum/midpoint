@@ -45,28 +45,28 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 /**
- * Inbound mapping source ({@link MappingSource}) that is used in clockwork-based inbound mapping evaluation.
+ * Inbound mapping source ({@link InboundsSource}) that is used in clockwork-based inbound mapping evaluation.
  * This is the standard situation. The other one is e.g. pre-inbounds (correlation-time) evaluation.
  */
-public class FullSource extends MappingSource {
+public class FullInboundsSource extends InboundsSource {
 
-    private static final Trace LOGGER = TraceManager.getTrace(FullSource.class);
+    private static final Trace LOGGER = TraceManager.getTrace(FullInboundsSource.class);
 
-    private static final String OP_RESOLVE_ENTITLEMENT = FullSource.class.getName() + ".resolveEntitlement";
+    private static final String OP_RESOLVE_ENTITLEMENT = FullInboundsSource.class.getName() + ".resolveEntitlement";
 
     @NotNull private final LensProjectionContext projectionContext;
 
     @NotNull private final ModelBeans beans = ModelBeans.get();
 
-    @NotNull private final MappingContext context;
+    @NotNull private final InboundsContext context;
 
     @NotNull private final IdentityManagementConfiguration identityManagementConfiguration;
 
-    public FullSource(
+    public FullInboundsSource(
             @NotNull InboundSourceData sourceData,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
             @NotNull LensProjectionContext projectionContext,
-            @NotNull MappingContext context) throws ConfigurationException {
+            @NotNull InboundsContext context) throws ConfigurationException {
         super(
                 sourceData,
                 inboundDefinition,
@@ -183,7 +183,6 @@ public class FullSource extends MappingSource {
 
         if (sourceData.isEmpty()) {
             // We have no chance of loading the shadow - we have no information about it.
-            // Actually, this shouldn't occur (see shouldProcessMappings).
             LOGGER.trace("Mapping(s) for {}: No item a priori delta, and no shadow (not even repo version) -> skipping them",
                     itemDescription);
             return ProcessingMode.NONE;
@@ -211,7 +210,7 @@ public class FullSource extends MappingSource {
     }
 
     @Override
-    void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull MappingContext context, OperationResult result)
+    void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull InboundsContext context, OperationResult result)
             throws SchemaException, StopProcessingProjectionException {
         if (projectionContext.isFullShadow()) { // FIXME BEWARE, we may deal with a different shadow!
             return;
@@ -225,7 +224,7 @@ public class FullSource extends MappingSource {
         }
     }
 
-    private void doLoad(@NotNull MappingContext context, OperationResult result)
+    private void doLoad(@NotNull InboundsContext context, OperationResult result)
             throws SchemaException, StopProcessingProjectionException {
         try {
             beans.contextLoader.loadFullShadow(projectionContext, "inbound", context.env.task, result);

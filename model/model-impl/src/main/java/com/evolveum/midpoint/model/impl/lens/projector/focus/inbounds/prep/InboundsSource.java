@@ -41,18 +41,17 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * The resource object being processed plus the necessary surroundings,
+ * Source for the whole inbounds processing.
+ *
+ * Contains the resource object being processed plus the necessary surroundings,
  * like lens/projection context in the case of clockwork processing.
  *
  * There are a lot of abstract methods here, dealing with e.g. determining if the full shadow is (or has to be) loaded,
  * methods for fetching the entitlements, and so on.
- *
- * Note that the name means "mapping source" and it's there to distinguish from {@link Source} (to avoid ugly qualified names).
- * TODO come with something more sensible
  */
-public abstract class MappingSource implements DebugDumpable {
+public abstract class InboundsSource implements DebugDumpable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MappingSource.class);
+    private static final Trace LOGGER = TraceManager.getTrace(InboundsSource.class);
 
     /**
      * Current shadow object (in case of clockwork processing it may be full or repo-only, or maybe even null
@@ -72,7 +71,7 @@ public abstract class MappingSource implements DebugDumpable {
 
     @NotNull final ResourceObjectInboundDefinition inboundDefinition;
 
-    MappingSource(
+    InboundsSource(
             @NotNull InboundSourceData sourceData,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
             @NotNull ResourceType resource,
@@ -184,7 +183,7 @@ public abstract class MappingSource implements DebugDumpable {
      *
      * Currently relevant only for clockwork-based execution.
      */
-    abstract void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull MappingContext context, OperationResult result)
+    abstract void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull InboundsContext context, OperationResult result)
             throws SchemaException, StopProcessingProjectionException;
 
     /**

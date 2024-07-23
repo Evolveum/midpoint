@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.intest.associations;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.util.List;
 
 import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.midpoint.model.intest.TestEntitlements;
@@ -15,6 +17,7 @@ import com.evolveum.midpoint.model.intest.associations.DummyHrScenarioExtended.C
 import com.evolveum.midpoint.model.intest.associations.DummyHrScenarioExtended.OrgUnit;
 import com.evolveum.midpoint.model.intest.gensync.TestAssociationInbound;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.Resource;
@@ -101,6 +104,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<ArchetypeType> ARCHETYPE_DOCUMENT = TestObject.file(
             TEST_DIR, "archetype-document.xml", "ce92f877-9f22-44cf-9ef1-f55675760eb0");
 
+    private final ZonedDateTime sciencesContractFrom = ZonedDateTime.now();
+
     // HR objects
     private OrgType orgCc1000;
 
@@ -159,7 +164,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .addAttributeValue(DummyHrScenarioExtended.Person.AttributeNames.TITLE.local(), "Ing.");
 
         DummyObject johnContractSciences = hrScenario.contract.add("10703321")
-                .addAttributeValues(DummyHrScenarioExtended.Contract.AttributeNames.NOTE.local(), "needs review");
+                .addAttributeValues(DummyHrScenarioExtended.Contract.AttributeNames.NOTE.local(), "needs review")
+                .addAttributeValues(DummyHrScenarioExtended.Contract.AttributeNames.VALID_FROM.local(), List.of(sciencesContractFrom));
 
         DummyObject johnContractLaw = hrScenario.contract.add("10409314");
 
@@ -304,6 +310,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                         .assertPropertyValuesEqual(HR_COST_CENTER, CC_1000_NAME)
                     .end()
                     .assertDescription("needs review")
+                    //.assertValidFrom(XmlTypeConverter.createXMLGregorianCalendar(sciencesContractFrom)) // TODO enable when done
                 .end()
                 .by().identifier("contract:10409314").find()
                     .assertTargetRef(orgLawOid, OrgType.COMPLEX_TYPE)

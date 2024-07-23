@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.expr;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleIvwoMap;
@@ -14,7 +16,13 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.extensions.AbstractDelegatedPrismValueDeltaSetTriple;
 import com.evolveum.midpoint.util.DebugUtil;
 
-/** TODO */
+/**
+ * Generalized result of expression evaluation. It contains the main result (triple of values) but also other results
+ * (triples for inner paths - useful for complex values mappings).
+ *
+ * Currently quite experimental.
+ */
+@Experimental
 public class ExpressionEvaluatorResult<V extends PrismValue> extends AbstractDelegatedPrismValueDeltaSetTriple<V> {
 
     @NotNull private final DeltaSetTripleIvwoMap otherDeltaSetTriplesMap = new DeltaSetTripleIvwoMap();

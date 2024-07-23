@@ -34,11 +34,11 @@ import com.evolveum.midpoint.schema.processor.PropertyLimitations;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class LimitedSource extends MappingSource {
+public class LimitedInboundsSource extends InboundsSource {
 
     @NotNull private final SingleShadowInboundsProcessingContext<?> ctx;
 
-    public LimitedSource(@NotNull SingleShadowInboundsProcessingContext<?> ctx) throws SchemaException, ConfigurationException {
+    public LimitedInboundsSource(@NotNull SingleShadowInboundsProcessingContext<?> ctx) throws SchemaException, ConfigurationException {
         super(
                 InboundSourceData.forShadowLikeValue(
                         ctx.getShadowLikeValue(),
@@ -96,7 +96,7 @@ public class LimitedSource extends MappingSource {
     }
 
     @Override
-    void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull MappingContext context, OperationResult result) {
+    void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull InboundsContext context, OperationResult result) {
         // Nothing to do here
     }
 

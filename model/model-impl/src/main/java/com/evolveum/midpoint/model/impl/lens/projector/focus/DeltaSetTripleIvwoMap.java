@@ -19,9 +19,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Just to give it a better name.
+ * Collection of plus/minus/zero sets of values with origins (mappings or similar providers), keyed by target item path.
  *
- * TODO explain this class
+ * Reason for existence: to avoid unintelligible type names (like `PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>>`)
+ * in the code + to provide common methods here.
  */
 @Experimental
 public class DeltaSetTripleIvwoMap extends PathKeyedMap<DeltaSetTriple<ItemValueWithOrigin<?, ?>>> {

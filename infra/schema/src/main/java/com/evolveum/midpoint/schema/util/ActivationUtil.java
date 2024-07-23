@@ -58,6 +58,11 @@ public class ActivationUtil {
         return activation.getAdministrativeStatus() == ActivationStatusType.ENABLED || activation.getAdministrativeStatus() == null;
     }
 
+    public static XMLGregorianCalendar getValidFrom(AssignmentType assignment) {
+        var activation = assignment.getActivation();
+        return activation != null ? activation.getValidFrom() : null;
+    }
+
     public static XMLGregorianCalendar getValidFrom(ShadowType shadow) {
         var activation = shadow.getActivation();
         return activation != null ? activation.getValidFrom() : null;

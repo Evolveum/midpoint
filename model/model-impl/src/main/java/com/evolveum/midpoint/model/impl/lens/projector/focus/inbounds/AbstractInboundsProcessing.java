@@ -35,13 +35,13 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Evaluation of inbound mappings from all available projections.
+ * Evaluation of inbound mappings from single projection or all available projections.
  *
  * Has two modes of operation:
  *
  * 1. *Full processing*: takes all the mappings, from all available projections, from all embedded shadows, evaluates them,
  * and consolidates them. Always executed under the clockwork. Always targeted to the focus object (user, role, and so on).
- * See {@link FullInboundsProcessing}.
+ * Treats issues like loading the full shadow, if necessary. See {@link FullInboundsProcessing}.
  *
  * 2. *Limited processing*: converts just a single shadow into a (fragment of) the target value. This is used for correlation
  * purposes. May execute within or outside the clockwork. May target any object: user, role, but also specific assignment
@@ -60,12 +60,13 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     private static final Trace LOGGER = TraceManager.getTrace(AbstractInboundsProcessing.class);
     private static final String OP_EVALUATE_MAPPINGS = AbstractInboundsProcessing.class.getName() + ".evaluateMappings";
 
+    /** Context description, time, task. */
     @NotNull final MappingEvaluationEnvironment env;
 
     /** All evaluation requests (i.e., mappings prepared for evaluation). */
     final MappingEvaluationRequests evaluationRequests = new MappingEvaluationRequests();
 
-    /** Here we cache definitions for both regular and identity target items. */
+    /** Here we cache definitions for both regular and identity *target* items. */
     final PathKeyedMap<ItemDefinition<?>> itemDefinitionMap = new PathKeyedMap<>();
 
     /**
@@ -82,13 +83,15 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
         this.env = env;
     }
 
-    public void executeCompletely(OperationResult result)
+    /** Full processing, resulting in deltas being applied (to focus context or target object). */
+    public void executeToDeltas(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         executeToTriples(result);
         consolidateTriples(result);
     }
 
+    /** Partial processing that stops after triples are computed, i.e. just prepares and evaluates the mappings. */
     void executeToTriples(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {

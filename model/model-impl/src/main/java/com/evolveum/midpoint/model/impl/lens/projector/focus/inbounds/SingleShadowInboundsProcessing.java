@@ -73,7 +73,7 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
         try {
 
             new SingleShadowInboundsProcessing<>(ctx, createEnv(ctx))
-                    .executeCompletely(result);
+                    .executeToDeltas(result);
 
             var focus = ctx.getPreFocus();
             LOGGER.debug("Focus:\n{}", focus.debugDumpLazily(1));
@@ -130,9 +130,9 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
             var preFocusPcv = ctx.getPreFocusAsPcv();
             new SingleShadowInboundsPreparation<>(
                     evaluationRequests,
-                    new LimitedSource(ctx),
-                    new LimitedTarget<>(preFocusPcv, getFocusDefinition(preFocusPcv), itemDefinitionMap),
-                    new LimitedContext(ctx, getCorrelationItemPaths(result), env, assignmentsProcessingContext),
+                    new LimitedInboundsSource(ctx),
+                    new LimitedInboundsTarget<>(preFocusPcv, getFocusDefinition(preFocusPcv), itemDefinitionMap),
+                    new LimitedInboundsContext(ctx, getCorrelationItemPaths(result), env, assignmentsProcessingContext),
                     lResult -> {})
                     .prepareOrEvaluate(result);
         } catch (StopProcessingProjectionException e) {

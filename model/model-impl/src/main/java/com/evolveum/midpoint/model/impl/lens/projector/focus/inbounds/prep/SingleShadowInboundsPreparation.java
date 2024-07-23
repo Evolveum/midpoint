@@ -32,13 +32,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * To reduce complexity, the majority of the work is delegated to smaller classes:
  *
- *  * {@link MappingSource}, {@link MappingTarget}, {@link MappingContext} describing the environment in which mappings are to be evaluated
- *  * {@link MappedItems} containing {@link MappedItem} instances - intermediate structures helping with the mapping preparation
+ *  * {@link InboundsSource}, {@link InboundsTarget}, {@link InboundsContext} describing the environment
+ *  in which mappings are to be evaluated
+ *  * {@link MappedSourceItems} containing {@link MappedSourceItem} instances - intermediate structures
+ *  helping with the mapping preparation
  *
  * FIXME Special mappings i.e. password and activation ones, are evaluated immediately and using different code path.
  *  This should be unified.
  *
- * TODO should the {@link MappingContext} be both included in {@link MappingSource} and here?!
+ * TODO should the {@link InboundsContext} be both included in {@link InboundsSource} and here?!
  */
 public class SingleShadowInboundsPreparation<T extends Containerable> {
 
@@ -50,27 +52,27 @@ public class SingleShadowInboundsPreparation<T extends Containerable> {
     @NotNull private final MappingEvaluationRequests evaluationRequestsBeingCollected;
 
     /** Source - i.e. the resource object along with the whole context (like lens context for Clockwork execution). */
-    @NotNull private final MappingSource source;
+    @NotNull private final InboundsSource inboundsSource;
 
     /** Target - the focus including supporting data. */
-    @NotNull private final MappingTarget<T> target;
+    @NotNull private final InboundsTarget<T> inboundsTarget;
 
     /** Context of the execution (mapping evaluation environment, operation result). */
-    @NotNull private final MappingContext context;
+    @NotNull private final InboundsContext inboundsContext;
 
     /** Temporary */
     @NotNull private final SpecialInboundsEvaluator specialInboundsEvaluator;
 
     public SingleShadowInboundsPreparation(
             @NotNull MappingEvaluationRequests evaluationRequestsBeingCollected,
-            @NotNull MappingSource source,
-            @NotNull MappingTarget<T> target,
-            @NotNull MappingContext context,
+            @NotNull InboundsSource inboundsSource,
+            @NotNull InboundsTarget<T> inboundsTarget,
+            @NotNull InboundsContext inboundsContext,
             @NotNull SpecialInboundsEvaluator specialInboundsEvaluator) {
         this.evaluationRequestsBeingCollected = evaluationRequestsBeingCollected;
-        this.source = source;
-        this.target = target;
-        this.context = context;
+        this.inboundsSource = inboundsSource;
+        this.inboundsTarget = inboundsTarget;
+        this.inboundsContext = inboundsContext;
         this.specialInboundsEvaluator = specialInboundsEvaluator;
     }
 
@@ -84,28 +86,28 @@ public class SingleShadowInboundsPreparation<T extends Containerable> {
             ConfigurationException, ExpressionEvaluationException, StopProcessingProjectionException {
 
         OperationResult result = parentResult.subresult(OP_PREPARE_OR_EVALUATE)
-                .addArbitraryObjectAsParam("source", source)
+                .addArbitraryObjectAsParam("source", inboundsSource)
                 .build();
         try {
-            LOGGER.trace("Going to prepare/evaluate inbound mappings for:\n{}", source.debugDumpLazily(1));
+            LOGGER.trace("Going to prepare/evaluate inbound mappings for:\n{}", inboundsSource.debugDumpLazily(1));
 
             // Preliminary checks
-            if (!source.isEligibleForInboundProcessing(result)) {
+            if (!inboundsSource.isEligibleForInboundProcessing(result)) {
                 return;
             }
 
             // Collecting information about all source items that are to be mapped
-            MappedItems<T> mappedItems = new MappedItems<>(source, target, context);
-            mappedItems.collectMappedItems();
+            MappedSourceItems<T> mappedSourceItems = new MappedSourceItems<>(inboundsSource, inboundsTarget, inboundsContext);
+            mappedSourceItems.collectMappedItems();
 
             // Now we load the full shadow, if we need to. We no longer do that at other places.
-            source.loadFullShadowIfNeeded(mappedItems.isFullStateRequired(), context, result);
+            inboundsSource.loadFullShadowIfNeeded(mappedSourceItems.isFullShadowLoadingTriggered(), inboundsContext, result);
 
             // Let's create the mappings and put them to `evaluationRequestsBeingCollected`
-            mappedItems.createMappings(evaluationRequestsBeingCollected, result);
+            mappedSourceItems.createMappings(evaluationRequestsBeingCollected, result);
 
             // Evaluation of special mappings. This part will be transformed to the same style as the other mappings (eventually).
-            if (!source.isProjectionBeingDeleted()) {
+            if (!inboundsSource.isProjectionBeingDeleted()) {
                 specialInboundsEvaluator.evaluateSpecialInbounds(result);
             } else {
                 // TODO why we are skipping this evaluation?
