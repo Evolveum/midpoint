@@ -9,11 +9,10 @@ package com.evolveum.midpoint.repo.sql.data.common.dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import jakarta.annotation.PostConstruct;
-import jakarta.persistence.criteria.CriteriaQuery;
 
-import org.hibernate.Session;
-import org.hibernate.query.criteria.JpaCriteriaQuery;
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,13 +58,12 @@ public class ExtItemDictionary {
     }
 
     private void fetchItemsAttempt() {
-        Session session = null;
+        EntityManager em = null;
         try {
-            session = baseHelper.beginReadOnlyTransaction();
+            em = baseHelper.beginReadOnlyTransaction();
 
-            JpaCriteriaQuery<RExtItem> query = session.getCriteriaBuilder().createQuery(RExtItem.class);
-            query.select(query.from(RExtItem.class));
-            List<RExtItem> items = session.createQuery(query).getResultList();
+            TypedQuery<RExtItem> query = em.createQuery("from RExtItem", RExtItem.class);
+            List<RExtItem> items = query.getResultList();
             LOGGER.debug("Fetched {} item definitions", items.size());
 
             itemsById = new ConcurrentHashMap<>(items.size());
@@ -76,12 +74,12 @@ public class ExtItemDictionary {
                 itemsByKey.put(item.toKey(), item);
             }
 
-            session.getTransaction().commit();
+            em.getTransaction().commit();
         } catch (RuntimeException ex) {
             LOGGER.debug("Exception fetch: {}", ex.getMessage());
-            baseHelper.handleGeneralException(ex, session, null);
+            baseHelper.handleGeneralException(ex, em, null);
         } finally {
-            baseHelper.cleanupSessionAndResult(session, null);
+            baseHelper.cleanupManagerAndResult(em, null);
         }
     }
 
@@ -130,15 +128,15 @@ public class ExtItemDictionary {
     }
 
     private void addExtItemAttempt(RExtItem item) {
-        Session session = null;
+        EntityManager em = null;
         try {
-            session = baseHelper.beginTransaction();
-            session.persist(item);
-            session.getTransaction().commit();
+            em = baseHelper.beginTransaction();
+            em.persist(item);
+            em.getTransaction().commit();
         } catch (RuntimeException ex) {
-            baseHelper.handleGeneralException(ex, session, null);
+            baseHelper.handleGeneralException(ex, em, null);
         } finally {
-            baseHelper.cleanupSessionAndResult(session, null);
+            baseHelper.cleanupManagerAndResult(em, null);
         }
     }
 
